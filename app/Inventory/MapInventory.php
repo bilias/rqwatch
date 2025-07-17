@@ -126,7 +126,7 @@ class MapInventory
 				'access' => ['admin'],
 			],
 			'url_blacklist' => [
-				'model' => 'MapGenric',
+				'model' => 'MapGeneric',
 				'description' => 'URL blacklist',
 				'fields' => ['url'],
 				'map_form' => MapUrlForm::class,
