@@ -125,13 +125,18 @@ class MapService
 		return $map;
 	}
 
-	public function showPaginatedAllMapCombined(int $page = 1, string $url): ?LengthAwarePaginator {
+	public function showPaginatedAllMapCombined(int $page = 1, string $url, ?array $maps): ?LengthAwarePaginator {
 		$query = MapCombined::select('*')
 								  ->with(['user' => function ($query) {
 										$query->select('id', 'username', 'email');
 								    }])
 								  ->orderBy('map_name', 'ASC')
 								  ->orderBy('updated_at', 'DESC');
+
+		// filter maps
+		if (!$this->is_admin && $maps) {
+			$quuery = $query->whereIn('map_name', $maps);
+		}
 
 		$query = $this->applyUserScope($query);
 
