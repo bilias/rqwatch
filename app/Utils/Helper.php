@@ -580,14 +580,27 @@ You can see mail details and release it from quarantine by clicking here:
 				continue;
 			}
 
-			$ip = null;
 			$host = null;
 
+			/*
+			$ip = null;
 			// Try to extract IP in brackets [1.2.3.4]
 			if (preg_match('/\[(IPv6:)?([^\]]+)\]/i', $line, $ipMatch)) {
 				$ip = preg_replace('/^IPv6:/i', '', $ipMatch[2]);
 				if (!filter_var($ip, FILTER_VALIDATE_IP)) {
 					$ip = null;
+				}
+			}
+			*/
+
+			// Try to extract all IPs in brackets [1.2.3.4]
+			$ips = [];
+			if (preg_match_all('/\[(IPv6:)?([^\]]+)\]/i', $line, $ipMatches)) {
+				foreach ($ipMatches[2] as $rawIp) {
+					$cleanIp = preg_replace('/^IPv6:/i', '', $rawIp);
+					if (filter_var($cleanIp, FILTER_VALIDATE_IP)) {
+						$ips[] = $cleanIp;
+					}
 				}
 			}
 
@@ -596,13 +609,16 @@ You can see mail details and release it from quarantine by clicking here:
 				$host = strtolower($hostMatch[1]);
 			}
 
-			if ($ip) {
-				// Resolve hostname from IP (optional; basic reverse lookup)
-				$resolvedHost = gethostbyaddr($ip);
-				$relays[] = [
-					'ip' => $ip,
-					'host' => ($resolvedHost !== $ip) ? $resolvedHost : ($host ?? null),
-				];
+			//if ($ip) {
+			if (!empty($ips)) {
+				foreach (array_reverse($ips) as $ip) {
+					// Resolve hostname from IP (optional; basic reverse lookup)
+					$resolvedHost = gethostbyaddr($ip);
+					$relays[] = [
+						'ip' => $ip,
+						'host' => ($resolvedHost !== $ip) ? $resolvedHost : ($host ?? null),
+					];
+				}
 			} elseif ($host) {
 				// No IP found — try resolving IP from hostname
 				$resolvedIp = gethostbyname($host);
