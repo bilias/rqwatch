@@ -278,13 +278,13 @@ $routes->add('map_show', new Route(
 
 $routes->add('admin_map_add_entry', new Route(
     '/admin/map/{map}/add', // path
-    [ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
+    [ '_controller' => 'App\\Controllers\\MapController::addMapCombinedEntry', ], // defaults
     [ 'map' => '[a-zA-Z_]{1,64}' ]
 ));
 
 $routes->add('map_add_entry', new Route(
     '/user/map/{map}/add', // path
-    [ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
+    [ '_controller' => 'App\\Controllers\\MapController::addMapCombinedEntry', ], // defaults
     [ 'map' => '[a-zA-Z_]{1,64}' ]
 ));
 

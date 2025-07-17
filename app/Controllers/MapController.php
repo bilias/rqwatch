@@ -231,7 +231,7 @@ class MapController extends ViewController
 		]));
 	}
 
-	public function addMapEntry(string $map): Response {
+	public function addMapCombinedEntry(string $map): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -317,7 +317,7 @@ class MapController extends ViewController
 
 			// add entry
 			// has applyUseScope
-			if ($service->addMapEntry($map, $fields, $data)) {
+			if ($service->addMapCombinedEntry($map, $fields, $data)) {
 				$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
 				return new RedirectResponse($mapShowUrl);
 			} else {

@@ -259,7 +259,7 @@ class MapService
 		return $data;
 	}
 
-	public function addMapEntry(string $map_name, array $map_fields, array $data): bool {
+	public function addMapCombinedEntry(string $map_name, array $map_fields, array $data): bool {
 		if (empty($data)) {
 			$this->logger->error("Empty map data");
 			return false;
@@ -275,7 +275,7 @@ class MapService
 		// applyUseScope
 		if (!$this->is_admin && !defined('CLI_MODE') && in_array('rcpt_to', $map_fields)) {
 			if (empty($data['rcpt_to'])) {
-				$this->logger->warning("[addMapEntry] Missing rcpt_to in data for user {$this->username}");
+				$this->logger->warning("[addMapCombinedEntry] Missing rcpt_to in data for user {$this->username}");
 				return false;
 			}
 			$allowedRcptTo = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
