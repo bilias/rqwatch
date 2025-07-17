@@ -198,7 +198,7 @@ class MapController extends ViewController
 
 		// without pagination
 		// has applyUserScope
-		//$map_entries = $service->showMap($map, $fields);
+		//$map_entries = $service->showMapCombined($map, $fields);
 
 		$page = $this->request->query->getInt('page', 1);
 

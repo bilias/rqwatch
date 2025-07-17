@@ -108,7 +108,7 @@ class MapService
 		return $query->whereIn('rcpt_to', $emails);
 	}
 
-	public function showMap(string $map_name, array $map_fields): Collection {
+	public function showMapCombined(string $map_name, array $map_fields): Collection {
 		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 
 		$query = $query->with(['user' => function ($query) {
