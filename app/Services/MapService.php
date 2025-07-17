@@ -176,7 +176,7 @@ class MapService
 		return $map;
 	}
 
-	public function mapEntryExists(string $map_name, array $map_fields, array $data): bool {
+	public function mapCombinedEntryExists(string $map_name, array $map_fields, array $data): bool {
 		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 
 		// XXX strtolower might break some maps???
