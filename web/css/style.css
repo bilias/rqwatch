@@ -435,7 +435,14 @@ span.stored {
 	width: 8%;
 }
 
-.searchform,
+.searchform {
+  width: 100%;
+  max-width: 600px;
+  border: 0px;
+  margin: 20px auto;
+  box-sizing: border-box;
+}
+
 .mapform {
   width: 100%;
   max-width: 800px;
