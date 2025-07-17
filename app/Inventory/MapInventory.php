@@ -45,11 +45,16 @@ class MapInventory
 		MapMimeFromRcptToForm::class => MapMimeFromRcptToUserForm::class,
 	];
 
+	private static function getUserOverrideFormClass(string $adminFormClass): string {
+		return self::USER_FORM_OVERRIDES[$adminFormClass] ?? $adminFormClass;
+	}
+
 	// also need to create child form class in app/Forms
 	// and add the Form use at top
 	public static function getMapConfigs(?string $map = null): ?array {
 		$configs = [
 			'smtp_from_rcpt_to_whitelist' => [
+				'model' => 'MapCombined',
 				'description' => 'SMTP From/RCPT_TO Whitelist',
 				'fields' => ['smtp_from', 'rcpt_to'],
 				'map_form' => MapSmtpFromRcptToForm::class,
@@ -57,24 +62,28 @@ class MapInventory
 				'access' => ['admin', 'user'],
 			],
 			'smtp_from_rcpt_to_blacklist' => [
+				'model' => 'MapCombined',
 				'description' => 'SMTP From/RCPT_TO Blacklist',
 				'fields' => ['smtp_from', 'rcpt_to'],
 				'map_form' => MapSmtpFromRcptToForm::class,
 				'access' => ['admin', 'user'],
 			],
 			'mime_from_rcpt_to_whitelist' => [
+				'model' => 'MapCombined',
 				'description' => 'MIME From/RCPT_TO Whitelist',
 				'fields' => ['mime_from', 'rcpt_to'],
 				'map_form' => MapMimeFromRcptToForm::class,
 				'access' => ['admin', 'user'],
 			],
 			'mime_from_rcpt_to_blacklist' => [
+				'model' => 'MapCombined',
 				'description' => 'MIME From/RCPT_TO Blacklist',
 				'fields' => ['mime_from', 'rcpt_to'],
 				'map_form' => MapMimeFromRcptToForm::class,
 				'access' => ['admin', 'user'],
 			],
 			'smtp_from_whitelist' => [
+				'model' => 'MapCombined',
 				'description' => 'SMTP From Whitelist',
 				'fields' => ['smtp_from'],
 				'map_form' => MapSmtpFromForm::class,
@@ -82,30 +91,35 @@ class MapInventory
 				'access' => ['admin'],
 			],
 			'smtp_from_blacklist' => [
+				'model' => 'MapCombined',
 				'description' => 'SMTP From Blacklist',
 				'fields' => ['smtp_from'],
 				'map_form' => MapSmtpFromForm::class,
 				'access' => ['admin'],
 			],
 			'mime_from_whitelist' => [
+				'model' => 'MapCombined',
 				'description' => 'MIME From Whitelist',
 				'fields' => ['mime_from'],
 				'map_form' => MapMimeFromForm::class,
 				'access' => ['admin'],
 			],
 			'mime_from_blacklist' => [
+				'model' => 'MapCombined',
 				'description' => 'MIME From Blacklist',
 				'fields' => ['mime_from'],
 				'map_form' => MapMimeFromForm::class,
 				'access' => ['admin'],
 			],
 			'ip_whitelist' => [
+				'model' => 'MapCombined',
 				'description' => 'IP Whitelist',
 				'fields' => ['ip'],
 				'map_form' => MapIpForm::class,
 				'access' => ['admin'],
 			],
 			'ip_blacklist' => [
+				'model' => 'MapCombined',
 				'description' => 'IP Blacklist',
 				'fields' => ['ip'],
 				'map_form' => MapIpForm::class,
@@ -238,8 +252,18 @@ class MapInventory
 		});
 	}
 
-	private static function getUserOverrideFormClass(string $adminFormClass): string {
-		return self::USER_FORM_OVERRIDES[$adminFormClass] ?? $adminFormClass;
+	public static function filterMapsByModel(string $model, array $configs): array {
+		if (!$model) {
+			return [];
+		}
+
+		$maps = [];
+		foreach ($configs as $key => $config) {
+			if (array_key_exists('model', $config) && $config['model'] === $model) {
+				$maps[] = $key;
+			}
+		}
+		return $maps;
 	}
 
 }
