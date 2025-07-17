@@ -66,7 +66,10 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$options = [ 'role' => $this->getRole() ];
+		$options = [
+			'role' => $this->getRole(),
+			'model' => 'MapCombined',
+		];
 
 		$mapselectform = MapSelectForm::create($this->formFactory, $this->request, null, $options);
 		if ($response = MapSelectForm::check_form_show($mapselectform, $this->urlGenerator, $this->is_admin)) {
@@ -98,7 +101,10 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$options = [ 'role' => $this->getRole() ];
+		$options = [
+			'role' => $this->getRole(),
+			'model' => 'MapCombined',
+		];
 
 		$mapselectform = MapSelectForm::create($this->formFactory, $this->request, null, $options);
 		if ($response = MapSelectForm::check_form_show($mapselectform, $this->urlGenerator, $this->is_admin)) {
@@ -114,7 +120,7 @@ class MapController extends ViewController
 
 		$configs = MapInventory::getAvailableMapConfigs($this->getRole()) ?? null;
 
-		$maps_combined = MapInventory::filterMapsByModel("MapCombined", $configs);
+		$maps_combined = MapInventory::getMapsByModel("MapCombined", $configs);
 
 		// has applyUserScope and filter maps on model
 		$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl, $maps_combined);
@@ -164,7 +170,10 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$options = [ 'role' => $this->getRole() ];
+		$options = [
+			'role' => $this->getRole(),
+			'model' => 'MapCombined',
+		];
 
 		$mapselectform = MapSelectForm::create($this->formFactory, $this->request, null, $options);
 		if ($response = MapSelectForm::check_form_show($mapselectform, $this->urlGenerator, $this->is_admin)) {
@@ -244,7 +253,10 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$options = [ 'role' => $this->getRole() ];
+		$options = [
+			'role' => $this->getRole(),
+			'model' => 'MapCombined',
+		];
 
 		$mapselectform = MapSelectForm::create($this->formFactory, $this->request, null, $options);
 		if ($response = MapSelectForm::check_form_show($mapselectform, $this->urlGenerator, $this->is_admin)) {
@@ -282,7 +294,7 @@ class MapController extends ViewController
 			$mapform = $mapFormClass::create($this->formFactory, $this->request);
 		} else {
 			// override user form fields. rcpt_to drop down based on user email and aliases
-			$options = [ 
+			$options = [
 				'role' => $this->getRole(),
 				'user_emails' => $this->getUserEmailAddresses(),
 			];

@@ -54,10 +54,14 @@ class MapSelectForm extends AbstractType
 		//$configs = MapInventory::getMapConfigs();
 		// filter available maps based on access role
 		$configs = MapInventory::getAvailableMapConfigs($options['role']);
+		$model_maps = MapInventory::getMapsByModel($options['model'], $configs);
 
 		$choices = [];
 		foreach ($configs as $key => $config) {
-			$choices[$config['description']] = $key;
+			// filter maps based on model
+			if (in_array($key, $model_maps, true)) {
+				$choices[$config['description']] = $key;
+			}
 		}
 
 		$choices = ['All Maps' => 'all'] + $choices;
@@ -136,6 +140,7 @@ class MapSelectForm extends AbstractType
 
 		// Define allowed custom options
 		$resolver->setDefined(['role']);
+		$resolver->setDefined(['model']);
 		$resolver->setDefined(['available_rcpt_to']);
 	}
 

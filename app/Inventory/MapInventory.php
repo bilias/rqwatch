@@ -125,6 +125,13 @@ class MapInventory
 				'map_form' => MapIpForm::class,
 				'access' => ['admin'],
 			],
+			'url_blacklist' => [
+				'model' => 'MapGenric',
+				'description' => 'URL blacklist',
+				'fields' => ['url'],
+				'map_form' => MapUrlForm::class,
+				'access' => ['admin'],
+			],
 			// Add more maps here...
 		];
 
@@ -197,6 +204,18 @@ class MapInventory
 					],
 				],
 			],
+			'url' => [
+				'description' => 'URL',
+				'type' => TextType::class,
+				'field_options' => [
+					'label' => 'Url:',
+					'required' => true,
+					'attr' => ['class' => 'uniform-input'],
+					'constraints' => [
+						new NotBlank(),
+					],
+				],
+			],
 			// Add more fields here...
 		];
 
@@ -252,7 +271,7 @@ class MapInventory
 		});
 	}
 
-	public static function filterMapsByModel(string $model, array $configs): array {
+	public static function getMapsByModel(string $model, array $configs): array {
 		if (!$model) {
 			return [];
 		}
