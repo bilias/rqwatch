@@ -29,7 +29,9 @@
 {% else %}
 {% if log.ip %}
 {{ log.ip }} ({{ gethostbyaddr(log.ip) }})
-{{ ip_country }}
+{% if ip_country %}
+({{ ip_country }})
+{% endif%}
 {% endif %}
 {% endif %}
    </div>
