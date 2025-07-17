@@ -25,7 +25,6 @@ Map: {{ mapdescr }}: {{ totalRecords }} entries
  <th class='email'>{{ descriptions[loop.index0] ?? field }}</th>
  {% endfor %}
  <th class='email'>Created</th>
- <th class='email'>Creator</th>
  <th class='email'>Delete</th>
 </tr></thead>
 
@@ -35,16 +34,7 @@ Map: {{ mapdescr }}: {{ totalRecords }} entries
       <tr class='clean'>
           <td class='center'>{{ entry.pattern }}</td>
 			 <td class='center'>{{ entry.created_at }}</td>
-			 <td class='center'>{{ entry.map_username }}</td>
-{% if is_admin %}
           <td class='center'><a href="{{ get_route('admin_map_del_entry', { map: map, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
-			 {% else %}
-  {% if entry.user_can_delete %}
-          <td class='center'><a href="{{ get_route('map_del_entry', { map: map, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
-  {% else %}
-			<td class='center'>-</td>
-  {% endif %}
-{% endif %}
       </tr>
     {% endfor %}
 </tbody>

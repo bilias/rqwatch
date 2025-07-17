@@ -52,6 +52,7 @@ class MapGeneric extends Model
 		'map_name',
 		'pattern',
 		'score',
+		'created_at',
 	];
 
 	// scopes
