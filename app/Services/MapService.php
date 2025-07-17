@@ -151,7 +151,7 @@ class MapService
 		return $map_entries;
 	}
 
-	public function showPaginatedMap(string $map_name, array $map_fields, int $page = 1, string $url): ?LengthAwarePaginator {
+	public function showPaginatedMapCombined(string $map_name, array $map_fields, int $page = 1, string $url): ?LengthAwarePaginator {
 
 		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 		$query = $query->with(['user' => function ($query) {

@@ -204,7 +204,7 @@ class MapController extends ViewController
 		$this->initMapUrls($map);
 
 		// has applyUserScope
-		$map_entries = $service->showPaginatedMap($map, $fields, $page, $this->mapShowUrl);
+		$map_entries = $service->showPaginatedMapCombined($map, $fields, $page, $this->mapShowUrl);
 
 		foreach ($map_entries as $key => $map_entry) {
 			$map_entries[$key]->map_username = $this->getMapUser($map_entry->user);
