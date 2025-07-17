@@ -38,6 +38,7 @@
         "symfony/http-client": "^7.3",
         "symfony/console": "^7.3",
         "symfony/lock": "^7.3",
+        "rlanvin/php-ip": "^3.0",
         "maxmind-db/reader": "^1.12.1",
         "symfony/cache": "^7.3"
     }

@@ -83,6 +83,8 @@ Having said that, Rqwatch should run fine on any system with minor adjustments a
 
 - php-pecl-redis6
 
+- php-gmp (if geoip is required)
+
 **rspamd 3.12**
 
 ## Installation
