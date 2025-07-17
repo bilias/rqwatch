@@ -62,7 +62,7 @@ class MapService
 		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 	}
 
-	public function getMapBasicQuery(string $map_name, array $map_fields): Builder {
+	public function getMapCombinedBasicQuery(string $map_name, array $map_fields): Builder {
 		$select_fields = array_merge(MapCombined::SELECT_FIELDS, $map_fields);
 
 		$query = MapCombined::select($select_fields)
@@ -109,7 +109,7 @@ class MapService
 	}
 
 	public function showMap(string $map_name, array $map_fields): Collection {
-		$query = $this->getMapBasicQuery($map_name, $map_fields);
+		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 
 		$query = $query->with(['user' => function ($query) {
 							  $query->select('id', 'username', 'email');
@@ -153,7 +153,7 @@ class MapService
 
 	public function showPaginatedMap(string $map_name, array $map_fields, int $page = 1, string $url): ?LengthAwarePaginator {
 
-		$query = $this->getMapBasicQuery($map_name, $map_fields);
+		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 		$query = $query->with(['user' => function ($query) {
 								 $query->select('id', 'username', 'email');
 							  }]);
@@ -177,7 +177,7 @@ class MapService
 	}
 
 	public function mapEntryExists(string $map_name, array $map_fields, array $data): bool {
-		$query = $this->getMapBasicQuery($map_name, $map_fields);
+		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 
 		// XXX strtolower might break some maps???
 		$data = self::trimLower($data);
@@ -214,7 +214,7 @@ class MapService
 			return false;
 		}
 
-		$query = $this->getMapBasicQuery($map_name, $map_fields);
+		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 
 		$map_entries = $query->get()->toArray();
 
@@ -314,7 +314,7 @@ class MapService
 			return false;
 		}
 
-		$query = $this->getMapBasicQuery($map_name, $map_fields);
+		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 
 		$query = $this->applyUserScope($query);
 
