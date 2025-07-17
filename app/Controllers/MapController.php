@@ -111,17 +111,20 @@ class MapController extends ViewController
 		$service = new MapService($this->getFileLogger(), $this->session);
 
 		$this->initUrls();
-		// has applyUserScope
-		$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl);
+
+		$configs = MapInventory::getAvailableMapConfigs($this->getRole()) ?? null;
+
+		$maps_combined = MapInventory::filterMapsByModel("MapCombined", $configs);
+
+		// has applyUserScope and filter maps on model
+		$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl, $maps_combined);
 
 		if (empty($map_comb_entries)) {
 			$this->flashbag->add('info', 'No map entries exist');
 			return new RedirectResponse($this->mapsUrl);
 		}
 
-		$configs = MapInventory::getAvailableMapConfigs($this->getRole()) ?? null;
 		$field_definitions = MapInventory::getFieldDefinitions() ?? null;
-
 		$field_descriptions = [];
 		foreach ($field_definitions as $field => $definition) {
 			$field_descriptions[$field] = $definition['description'];
