@@ -341,7 +341,7 @@ class MapController extends ViewController
 		]));
 	}
 
-	public function delMapEntry(string $map, int $id): Response {
+	public function delMapCombinedEntry(string $map, int $id): Response {
 		if (!is_null($id) and is_int($id)) {
 
 			// we need the entry details for flashbag
@@ -365,7 +365,7 @@ class MapController extends ViewController
 
 				if ($fields) {
 					// has applyUseScope
-					if ($service->delMapEntry($map, $fields, $id)) {
+					if ($service->delMapCombinedEntry($map, $fields, $id)) {
 						$this->flashbag->add('success', "Map entry '{$entry_str}' deleted from Map '{$mapdescr}'");
 					} else {
 						$this->flashbag->add('error', "Map entry {$entry_str} failed to be deleted from Map {$mapdescr}");

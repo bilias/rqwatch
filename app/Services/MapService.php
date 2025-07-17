@@ -309,7 +309,7 @@ class MapService
 		return true;
 	}
 
-	public function delMapEntry(string $map_name, array $map_fields, int $id): bool {
+	public function delMapCombinedEntry(string $map_name, array $map_fields, int $id): bool {
 		if (is_null($id) or !is_int($id)) {
 			return false;
 		}
