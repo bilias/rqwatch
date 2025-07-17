@@ -79,6 +79,19 @@ class MapService
 		return $query;
 	}
 
+	public function getMapGenericBasicQuery(string $map_name): Builder {
+		$select_fields = array_merge(MapGeneric::SELECT_FIELDS);
+
+		$query = MapGeneric::select($select_fields)
+								  ->where('map_name', $map_name);
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		return $query;
+	}
+
 	protected function applyUserRcptToScope($query): Builder {
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
