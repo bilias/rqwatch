@@ -171,7 +171,14 @@ class MapService
 	public function showMapCombined(string $map_name, array $map_fields): Collection {
 		$query = $this->getMapCombinedQuery($map_name, $map_fields);
 
-		$map = $query->get();
+		try {
+			$map = $query
+				->get();
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
 		return $map;
 	}
 
