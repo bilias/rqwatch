@@ -108,23 +108,6 @@ class MapService
 		return $query->whereIn('rcpt_to', $emails);
 	}
 
-	public function showMapCombined(string $map_name, array $map_fields): Collection {
-		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
-
-		$query = $query->with(['user' => function ($query) {
-							  $query->select('id', 'username', 'email');
-							}]);
-
-		$query = $this->applyUserRcptToScope($query);
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		$map = $query->get();
-		return $map;
-	}
-
 	public function showPaginatedAllMapCombined(int $page = 1, string $url, ?array $maps): ?LengthAwarePaginator {
 		$query = MapCombined::select('*')
 								  ->with(['user' => function ($query) {
@@ -156,18 +139,31 @@ class MapService
 		return $map_entries;
 	}
 
-	public function showPaginatedMapCombined(string $map_name, array $map_fields, int $page = 1, string $url): ?LengthAwarePaginator {
-
+	public function getMapCombinedQuery(string $map_name, array $map_fields): Builder {
 		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
+
 		$query = $query->with(['user' => function ($query) {
-								 $query->select('id', 'username', 'email');
-							  }]);
+							  $query->select('id', 'username', 'email');
+							}]);
 
 		$query = $this->applyUserRcptToScope($query);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
+		return $query;
+	}
+
+
+	public function showMapCombined(string $map_name, array $map_fields): Collection {
+		$query = $this->getMapCombinedQuery($map_name, $map_fields);
+
+		$map = $query->get();
+		return $map;
+	}
+
+	public function showPaginatedMapCombined(string $map_name, array $map_fields, int $page = 1, string $url): ?LengthAwarePaginator {
+		$query = $this->getMapCombinedQuery($map_name, $map_fields);
 
 		try {
 			$map = $query
