@@ -334,12 +334,7 @@ class MailLogController extends ViewController
 			$mailreleaseform_disabled=true;
 		}
 
-		$ip_country = null;
-		if (Config::get('geoip_enable') && $ar['log']->ip) {
-			if ($ar['log']->ip !== '127.0.0.1') {
-				$ip_country = Helper::getCountry($ar['log']->ip);
-			}
-		}
+		$ip_country = Helper::getCountry($ar['log']->ip);
 
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),

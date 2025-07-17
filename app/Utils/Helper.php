@@ -22,6 +22,8 @@ use App\Core\Config;
 use Psr\Log\LoggerInterface;
 use App\Core\Auth\AuthManager;
 
+use PhpIP\IP;
+
 use DateTime;
 use DateTimeZone;
 
@@ -615,37 +617,46 @@ You can see mail details and release it from quarantine by clicking here:
 
 		// Deduplicate by IP
 		$seen = [];
-		$unique = [];
+		$unique_relay = [];
 		foreach ($relays as $relay) {
 			if (!in_array($relay['ip'], $seen)) {
 				$seen[] = $relay['ip'];
-				$unique[] = $relay;
+				$unique_relay[] = $relay;
 			}
 		}
 
-		if (Config::get('geoip_enable') && ($geoip_db = Config::get('geoip_country_db'))) {
-			$geoip_reader = new \MaxMind\Db\Reader($geoip_db);
-			foreach ($unique as $key => $relay) {
-				if (($relay['ip'] !== '127.0.0.1') && ($relay['ip'] !== '::1')) {
-					$geo = $geoip_reader->get($relay['ip']);
-					$unique[$key]['country'] = $geo['country']['names']['en'];
-				}
-			}
-			$geoip_reader->close();
+		foreach ($unique_relay as $key => $relay) {
+			$unique_relay[$key]['country'] = self::getCountry($relay['ip']);
 		}
 
-		return $unique;
+		return $unique_relay;
 	}
 
 	public static function getCountry(string $ip): ?string {
-		if (Config::get('geoip_enable') && ($geoip_db = Config::get('geoip_country_db'))) {
+		if (Config::get('geoip_enable') && ($geoip_db = Config::get('geoip_country_db')) &&
+				!self::isLocalOrReservedIp($ip)) {
 			$geoip_reader = new \MaxMind\Db\Reader($geoip_db);
 			$geo = $geoip_reader->get($ip);
-			$country = $geo['country']['names']['en'];
 			$geoip_reader->close();
-			return $country;
+
+			if (!empty($geo['country']['names']['en'])) {
+				return $geo['country']['names']['en'];
+			}
 		}
 		return null;
+	}
+
+	public static function isLocalOrReservedIp(string $ip): bool {
+		try {
+			$ipObj = IP::create($ip);
+		} catch (\InvalidArgumentException $e) {
+			return false; // Invalid IP format
+		}
+
+		return $ipObj->isPrivate()
+			|| $ipObj->isReserved()
+			|| $ipObj->isLoopback()
+			|| $ipObj->isLinkLocal();
 	}
 
 	public static function getAuthProvider(int $id): ?string {

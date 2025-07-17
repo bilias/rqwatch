@@ -29,9 +29,7 @@
 {% else %}
 {% if log.ip %}
 {{ log.ip }} ({{ gethostbyaddr(log.ip) }})
-{% if ip_country %}
-({{ ip_country }})
-{% endif %}
+{{ ip_country }}
 {% endif %}
 {% endif %}
    </div>
@@ -41,10 +39,13 @@
    <div class='info'>Mail Relays:</div>
    <div class='detail'>
 {% for relay in relays %}
-	{{ relay.ip }} ({{ relay.host }})
-	{% if relay.country %}
+	{{ relay.ip }}
+{% if relay.host %}
+	({{ relay.host }})
+{% endif %}
+{% if relay.country %}
 	({{ relay.country }})
-	{% endif %}
+{% endif %}
 	<br/>
 {% endfor %}
 	</div>
