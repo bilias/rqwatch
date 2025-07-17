@@ -23,6 +23,7 @@ use App\Utils\Helper;
 use App\Utils\FormHelper;
 
 use App\Models\MapCombined;
+use App\Models\MapGeneric;
 use App\Models\MapActivityLog;
 
 use Psr\Log\LoggerInterface;
@@ -79,10 +80,8 @@ class MapService
 		return $query;
 	}
 
-	public function getMapGenericBasicQuery(string $map_name): Builder {
-		$select_fields = array_merge(MapGeneric::SELECT_FIELDS);
-
-		$query = MapGeneric::select($select_fields)
+	public function getMapGenericQuery(string $map_name): Builder {
+		$query = MapGeneric::select(MapGeneric::SELECT_FIELDS)
 								  ->where('map_name', $map_name);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
@@ -167,6 +166,34 @@ class MapService
 		return $query;
 	}
 
+	public function showMapGeneric(string $map_name): Collection {
+		$query = $this->getMapGenericQuery($map_name);
+
+		try {
+			$map = $query
+				->get();
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $map;
+	}
+
+	public function showPaginatedMapGeneric(string $map_name, int $page = 1, string $url): ?LengthAwarePaginator {
+		$query = $this->getMapGenericQuery($map_name);
+
+		try {
+			$map = $query
+				->paginate($this->items_per_page, ['*'], 'page', $page)
+				->withPath($url);
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $map;
+	}
 
 	public function showMapCombined(string $map_name, array $map_fields): Collection {
 		$query = $this->getMapCombinedQuery($map_name, $map_fields);

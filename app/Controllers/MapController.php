@@ -215,19 +215,32 @@ class MapController extends ViewController
 
 		$this->initMapUrls($map);
 
-		dd($config['model']);
-		// has applyUserRcptToScope
-		$map_entries = $service->showPaginatedMapCombined($map, $fields, $page, $this->mapShowUrl);
+		if($config['model'] === 'MapCombined') {
+			$model = 'MapCombined';
+			// has applyUserRcptToScope
+			$map_entries = $service->showPaginatedMapCombined($map, $fields, $page, $this->mapShowUrl);
 
-		foreach ($map_entries as $key => $map_entry) {
-			$map_entries[$key]->map_username = $this->getMapUser($map_entry->user);
-			$map_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_entries[$key]->map_username);
+			foreach ($map_entries as $key => $map_entry) {
+				$map_entries[$key]->map_username = $this->getMapUser($map_entry->user);
+				$map_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_entries[$key]->map_username);
+			}
+
+		} elseif($this->getIsAdmin() && $config['model'] === 'MapGeneric') {
+			$model = 'MapGeneric';
+			// without pagination
+			//$map_entries = $service->showMapGeneric($map);
+			$map_entries = $service->showPaginatedMapGeneric($map, $page, $this->mapShowUrl);
+		} else {
+			$this->fileLogger->warning("User {$this->username} tried to show map in " . $this->request->getPathInfo() . " with wrong model");
+			$this->flashbag->add('error', 'Error in map');
+			return new RedirectResponse($this->mapsUrl);
 		}
 
 		return new Response($this->twig->render('map_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapselectform->createView(),
 			'map' => $map,
+			'model' => $model,
 			'mapdescr' => $mapdescr,
 			'fields' => $fields,
 			'descriptions' => $descriptions,

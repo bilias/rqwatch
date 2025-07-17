@@ -12,7 +12,11 @@
 {{ ui.paginator(map_entries, WEB_BASE) }}
 </div>
 
-{% include 'partials/map.html.twig' %}
+{% if model == 'MapCombined' %}
+ {% include 'partials/map_combined.html.twig' %}
+{% elseif model == 'MapGeneric' %}
+ {% include 'partials/map_generic.html.twig' %}
+{% endif %}
 
 <div class='pagbottom'>
 {{ ui.paginator(map_entries, WEB_BASE) }}

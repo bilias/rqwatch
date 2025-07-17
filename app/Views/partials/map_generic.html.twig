@@ -1,0 +1,61 @@
+<section>
+
+<div class='mapform descr'>
+Map: {{ mapdescr }}: {{ totalRecords }} entries
+{% if totalRecords > items_per_page %}
+| Displaying {{ items_per_page }}/page
+{% endif %}
+<div id="inside_links">
+<ul>
+{% if is_admin %}
+<li><a href='{{ get_route('admin_map_add_entry', { map: map} ) }}'>Add New entry</a></li>
+{% else %}
+<li><a href='{{ get_route('map_add_entry', { map: map} ) }}'>Add New entry</a></li>
+{% endif %}
+</ul>
+</div>
+</div>
+
+{% if map_entries is not empty %}
+
+<div class='mapform'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ {% for field in fields %}
+ <th class='email'>{{ descriptions[loop.index0] ?? field }}</th>
+ {% endfor %}
+ <th class='email'>Created</th>
+ <th class='email'>Creator</th>
+ <th class='email'>Delete</th>
+</tr></thead>
+
+<tbody>
+    {% for entry in map_entries %}
+		{% set parts = [] %}
+      <tr class='clean'>
+          <td class='center'>{{ entry.pattern }}</td>
+			 <td class='center'>{{ entry.created_at }}</td>
+			 <td class='center'>{{ entry.map_username }}</td>
+{% if is_admin %}
+          <td class='center'><a href="{{ get_route('admin_map_del_entry', { map: map, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
+			 {% else %}
+  {% if entry.user_can_delete %}
+          <td class='center'><a href="{{ get_route('map_del_entry', { map: map, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
+  {% else %}
+			<td class='center'>-</td>
+  {% endif %}
+{% endif %}
+      </tr>
+    {% endfor %}
+</tbody>
+
+</table>
+</div>
+
+{% else %}
+    No entries found
+{% endif %}
+
+</div>
+
+</section>
