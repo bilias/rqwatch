@@ -112,9 +112,9 @@ class MapController extends ViewController
 
 		$this->initUrls();
 		// has applyUserScope
-		$map_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl);
+		$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl);
 
-		if (empty($map_entries)) {
+		if (empty($map_comb_entries)) {
 			$this->flashbag->add('info', 'No map entries exist');
 			return new RedirectResponse($this->mapsUrl);
 		}
@@ -127,19 +127,19 @@ class MapController extends ViewController
 			$field_descriptions[$field] = $definition['description'];
 		}
 
-		foreach ($map_entries as $key => $map_entry) {
+		foreach ($map_comb_entries as $key => $map_entry) {
 			// add map description
-			$map_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
-			$map_entries[$key]->map_username = $this->getMapUser($map_entry->user);
-			$map_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_entries[$key]->map_username);
+			$map_comb_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
+			$map_comb_entries[$key]->map_username = $this->getMapUser($map_entry->user);
+			$map_comb_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_comb_entries[$key]->map_username);
 		}
 
 		return new Response($this->twig->render('maps_all_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapselectform->createView(),
-			'map_entries' => $map_entries,
+			'map_comb_entries' => $map_comb_entries,
 			'field_descriptions' => $field_descriptions,
-			'totalRecords' => $map_entries->count(),
+			'totalRecords' => $map_comb_entries->total(),
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
@@ -148,7 +148,6 @@ class MapController extends ViewController
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 		]));
-
 	}
 
 	public function showMap(string $map): Response {

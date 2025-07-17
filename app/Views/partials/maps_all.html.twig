@@ -8,7 +8,7 @@ All Generic/Combined Map Entries | Total: {{ totalRecords }} entries
 {% endif %}
 </div>
 
-{% if map_entries is not empty %}
+{% if map_comb_entries is not empty %}
 
 <div class='users'>
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
@@ -25,7 +25,7 @@ All Generic/Combined Map Entries | Total: {{ totalRecords }} entries
 </tr></thead>
 
 <tbody>
-    {% for entry in map_entries %}
+    {% for entry in map_comb_entries %}
       <tr class='clean'>
 			{% if is_admin %}
 			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
