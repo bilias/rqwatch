@@ -1,6 +1,7 @@
 # Roadmap
 
 ## In progress
+- Map filtering based on model (done in MapSelectForm)
 - Check/Update Views depending on access control
 
 ## Features bellow are in todo list.

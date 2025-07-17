@@ -122,7 +122,7 @@ class MapController extends ViewController
 
 		$maps_combined = MapInventory::getMapsByModel("MapCombined", $configs);
 
-		// has applyUserScope and filter maps on model
+		// has applyUserRcptToScope and filter maps on model
 		$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl, $maps_combined);
 
 		if (empty($map_comb_entries)) {
@@ -208,14 +208,15 @@ class MapController extends ViewController
 		$service = new MapService($this->getFileLogger(), $this->session);
 
 		// without pagination
-		// has applyUserScope
+		// has applyUserRcptToScope
 		//$map_entries = $service->showMapCombined($map, $fields);
 
 		$page = $this->request->query->getInt('page', 1);
 
 		$this->initMapUrls($map);
 
-		// has applyUserScope
+		dd($config['model']);
+		// has applyUserRcptToScope
 		$map_entries = $service->showPaginatedMapCombined($map, $fields, $page, $this->mapShowUrl);
 
 		foreach ($map_entries as $key => $map_entry) {
@@ -323,7 +324,7 @@ class MapController extends ViewController
 			$service = new MapService($this->getFileLogger(), $this->session);
 
 			// entry already exists
-			// has applyUserScope
+			// has applyUserRcptToScope
 			if ($service->mapCombinedEntryExists($map, $fields, $data)) {
 				$this->flashbag->add('error', "Entry '{$entry_str}' already exists in Map {$mapdescr}");
 				return new RedirectResponse($mapAddEntryUrl );
@@ -331,6 +332,7 @@ class MapController extends ViewController
 
 			// add entry
 			// has applyUseScope
+			dd("add here");
 			if ($service->addMapCombinedEntry($map, $fields, $data)) {
 				$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
 				return new RedirectResponse($mapShowUrl);
@@ -378,6 +380,7 @@ class MapController extends ViewController
 				$service = new MapService($this->getFileLogger(), $this->session);
 
 				if ($fields) {
+					dd("delete here");
 					// has applyUseScope
 					if ($service->delMapCombinedEntry($map, $fields, $id)) {
 						$this->flashbag->add('success', "Map entry '{$entry_str}' deleted from Map '{$mapdescr}'");

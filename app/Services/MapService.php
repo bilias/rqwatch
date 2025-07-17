@@ -79,7 +79,7 @@ class MapService
 		return $query;
 	}
 
-	protected function applyUserScope($query): Builder {
+	protected function applyUserRcptToScope($query): Builder {
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
 		}
@@ -115,7 +115,7 @@ class MapService
 							  $query->select('id', 'username', 'email');
 							}]);
 
-		$query = $this->applyUserScope($query);
+		$query = $this->applyUserRcptToScope($query);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -138,7 +138,7 @@ class MapService
 			$quuery = $query->whereIn('map_name', $maps);
 		}
 
-		$query = $this->applyUserScope($query);
+		$query = $this->applyUserRcptToScope($query);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -163,7 +163,7 @@ class MapService
 								 $query->select('id', 'username', 'email');
 							  }]);
 
-		$query = $this->applyUserScope($query);
+		$query = $this->applyUserRcptToScope($query);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -191,7 +191,7 @@ class MapService
 			$query = $query->where($field, $data[$field]);
 		}
 
-		$query = $this->applyUserScope($query);
+		$query = $this->applyUserRcptToScope($query);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -321,13 +321,13 @@ class MapService
 
 		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 
-		$query = $this->applyUserScope($query);
+		$query = $this->applyUserRcptToScope($query);
 
 		$query = $query->where('id', $id);
 
 		/* XXX
 		   if USER_CAN_SEE_ADMIN_MAP_ENTRIES is false
-			applyUserScope() will limit the query and even if
+			applyUserRcptToScope() will limit the query and even if
 			USER_CAN_DEL_ADMIN_MAP_ENTRIES is true,
 			user will not be able to delete the entry
 		*/
