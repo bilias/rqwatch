@@ -112,7 +112,7 @@ class MapController extends ViewController
 
 		$this->initUrls();
 		// has applyUserScope
-		$map_entries = $service->showPaginatedAllMaps($page, $this->mapShowAllUrl);
+		$map_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl);
 
 		if (empty($map_entries)) {
 			$this->flashbag->add('info', 'No map entries exist');

@@ -125,7 +125,7 @@ class MapService
 		return $map;
 	}
 
-	public function showPaginatedAllMaps(int $page = 1, string $url): ?LengthAwarePaginator {
+	public function showPaginatedAllMapCombined(int $page = 1, string $url): ?LengthAwarePaginator {
 		$query = MapCombined::select('*')
 								  ->with(['user' => function ($query) {
 										$query->select('id', 'username', 'email');
