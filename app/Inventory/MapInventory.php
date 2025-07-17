@@ -46,7 +46,7 @@ class MapInventory
 	];
 
 	// also need to create child form class in app/Forms
-	// and add the Form above in use
+	// and add the Form use at top
 	public static function getMapConfigs(?string $map = null): ?array {
 		$configs = [
 			'smtp_from_rcpt_to_whitelist' => [
