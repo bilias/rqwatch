@@ -231,7 +231,7 @@ class MapController extends ViewController
 			//$map_entries = $service->showMapGeneric($map);
 			$map_entries = $service->showPaginatedMapGeneric($map, $page, $this->mapShowUrl);
 		} else {
-			$this->fileLogger->warning("User {$this->username} tried to show map in " . $this->request->getPathInfo() . " with wrong model");
+			$this->fileLogger->warning("User {$this->username} tried to show map in " . $this->request->getPathInfo() . " with wrong model {$config['model']} or non admin rights");
 			$this->flashbag->add('error', 'Error in map');
 			return new RedirectResponse($this->mapsUrl);
 		}
@@ -336,22 +336,36 @@ class MapController extends ViewController
 
 			$service = new MapService($this->getFileLogger(), $this->session);
 
+			$model = $config['model'];
 			// entry already exists
 			// has applyUserRcptToScope
-			if ($service->mapCombinedEntryExists($map, $fields, $data)) {
+			if ($service->mapEntryExists($model, $map, $fields, $data)) {
 				$this->flashbag->add('error', "Entry '{$entry_str}' already exists in Map {$mapdescr}");
 				return new RedirectResponse($mapAddEntryUrl );
 			}
 
 			// add entry
-			// has applyUseScope
-			dd("add here");
-			if ($service->addMapCombinedEntry($map, $fields, $data)) {
-				$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
-				return new RedirectResponse($mapShowUrl);
+			if ($model === 'MapCombined') {
+				// has applyUseScope
+				if ($service->addMapCombinedEntry($map, $fields, $data)) {
+					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
+					return new RedirectResponse($mapShowUrl);
+				} else {
+					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
+					return new RedirectResponse($mapAddEntryUrl);
+				}
+			} elseif ($this->getIsAdmin() && $model === 'MapGeneric') {
+				if($service->addMapGenericEntry($map, $data[$fields[0]])) {
+					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
+					return new RedirectResponse($mapShowUrl);
+				} else {
+					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
+					return new RedirectResponse($mapAddEntryUrl);
+				}
 			} else {
-				$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
-				return new RedirectResponse($mapAddEntryUrl);
+				$this->fileLogger->warning("User {$this->username} tried to add map in " . $this->request->getPathInfo() . " with wrong model {$model} or non admin rights");
+				$this->flashbag->add('error', 'Error in map');
+				return new RedirectResponse($mapShowUrl);
 			}
 		}
 
