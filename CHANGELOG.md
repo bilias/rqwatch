@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## v1.5.0 - Released: 2025-07-18
+
 ### 2025-07-18
 - Added Generic Maps with custom field (asn, domain, url etc)
 
