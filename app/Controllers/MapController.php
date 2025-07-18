@@ -111,7 +111,7 @@ class MapController extends ViewController
 		]));
 	}
 
-	public function showAllMaps(): Response {
+	public function showAllMaps(?string $model): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -139,10 +139,10 @@ class MapController extends ViewController
 
 		$configs = MapInventory::getAvailableMapConfigs($this->getRole()) ?? null;
 
-		$maps_combined = MapInventory::getMapsByModel("MapCombined", $configs);
+		$filter_maps = MapInventory::getMapsByModel("MapCombined", $configs);
 
 		// has applyUserRcptToScope and filter maps on model
-		$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl, $maps_combined);
+		$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl, $filter_maps);
 
 		if (empty($map_comb_entries)) {
 			$this->flashbag->add('info', 'No map entries exist');
