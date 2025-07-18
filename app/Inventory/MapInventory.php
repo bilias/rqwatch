@@ -37,6 +37,7 @@ use App\Forms\MapMimeFromRcptToUserForm;
 use App\Forms\MapSmtpFromForm;
 use App\Forms\MapMimeFromForm;
 use App\Forms\MapIpForm;
+use App\Forms\MapUrlForm;
 
 class MapInventory
 {
