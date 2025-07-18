@@ -131,7 +131,6 @@ class MapController extends ViewController
 			return $response;
 		}
 
-
 		$page = $this->request->query->getInt('page', 1);
 
 		$service = new MapService($this->getFileLogger(), $this->session);
@@ -485,13 +484,9 @@ class MapController extends ViewController
 		}
 
       if ($this->getIsAdmin()) {
-         $this->mapsUrl = $this->urlGenerator->generate('admin_maps');
-         $this->mapShowAllUrl = $this->urlGenerator->generate('admin_map_show_all');
 			$this->mapShowUrl = $this->urlGenerator->generate('admin_map_show', [ 'map' => $map ]);
 			$this->mapAddEntryUrl = $this->urlGenerator->generate('admin_map_add_entry', [ 'map' => $map ]);
       } else {
-         $this->mapsUrl = $this->urlGenerator->generate('maps');
-         $this->mapShowAllUrl = $this->urlGenerator->generate('map_show_all');
 			$this->mapShowUrl = $this->urlGenerator->generate('map_show', [ 'map' => $map ]);
 			$this->mapAddEntryUrl = $this->urlGenerator->generate('map_add_entry', [ 'map' => $map ]);
       }
