@@ -44,6 +44,12 @@ Depending on the action taken by rspamd and the configuration, raw e-mails can b
 - DB Admin users / LDAP Admin users
 - /admin web endpoint for admins
 
+### Maps
+The Web interface provides map management and url endpoints for rspamd
+- Basic Maps with common fields of multimap module (smtp_from, rcpt_to, mime_from,ip)
+- Combined Maps with two fields for custom lua module (smtp_from/rcpt_to, mime_from/mime_to)
+- Generic Maps for other fields of multimap module (asn, url, domain etc)
+
 ### Redis Caching
 - Redis Session support (+ sentinel)
 - Redis Config Caching
@@ -58,12 +64,6 @@ Depending on the action taken by rspamd and the configuration, raw e-mails can b
 - Web client validates remote API SSL/TLS
 - Web client is authenticated to remote API (BasicAuth)
 - Dedicated Auth and IP WEB_API access list
-
-## Maps
-The Web interface provides map management and url endpoints for rspamd
-- Basic Maps with common fields of multimap module (smtp_from, rcpt_to, mime_from,ip)
-- Combined Maps with two fields for custom lua module (smtp_from/rcpt_to, mime_from/mime_to)
-- Generic Maps for other fields of multimap module (asn, url, domain etc)
 
 ## CLI
 - Mail Notifications to users
