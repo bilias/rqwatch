@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-07-18
+- Added Generic Maps with custom field (asn, domain, url etc)
+
 ### 2025-07-17
 - Don't send notifications for blacklisted mails by default
 - Added colorcoded for whitelist/blacklist in maillogs
