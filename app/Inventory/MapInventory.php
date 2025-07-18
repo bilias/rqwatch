@@ -136,6 +136,16 @@ class MapInventory
 			// Add more maps here...
 		];
 
+		// Check each config has required non-null fields
+		$requiredFields = ['model', 'fields', 'map_form', 'access'];
+		foreach ($configs as $key => $config) {
+			foreach ($requiredFields as $field) {
+				if (!array_key_exists($field, $config) || $config[$field] === null) {
+					throw new \RuntimeException("Missing or null required field '$field' in map config '$key'");
+				}
+			}
+		}
+
 		if ($map) {
 			if (array_key_exists($map, $configs)) {
 				return $configs[$map];
