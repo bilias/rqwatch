@@ -130,7 +130,7 @@ class MapService
 
 		// filter maps
 		if (!$this->is_admin && $maps) {
-			$quuery = $query->whereIn('map_name', $maps);
+			$query = $query->whereIn('map_name', $maps);
 		}
 
 		$query = $this->applyUserRcptToScope($query);
@@ -158,7 +158,7 @@ class MapService
 
 		// filter maps
 		if (!$this->is_admin && $maps) {
-			$quuery = $query->whereIn('map_name', $maps);
+			$query = $query->whereIn('map_name', $maps);
 		}
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
