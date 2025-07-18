@@ -71,7 +71,7 @@ CREATE TABLE maps_generic (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   map_name VARCHAR(64) NOT NULL,   -- e.g. body_regex, url_regex, subject_regex
   pattern TEXT NOT NULL,           -- the actual (regex) pattern
-  score INT UNSIGNED NOT NULL DEFAULT 1,
+  score int(11) DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
