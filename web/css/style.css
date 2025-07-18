@@ -443,12 +443,28 @@ span.stored {
   box-sizing: border-box;
 }
 
+.mapform-container {
+  display: flex;
+  gap: 0rem; /* space between the two forms */
+  justify-content: center;
+  flex-wrap: wrap; /* optional: allows stacking on small screens */
+}
+
+.mapform-wrapper {
+  flex: 1 1 45%; /* each form takes up to 45% of the width */
+  min-width: 300px;
+  max-width: 400px;
+  padding: 0;
+  margin: 0;
+}
+
 .mapform {
   width: 100%;
   max-width: 800px;
   border: 0px;
   margin: 20px auto;
   box-sizing: border-box;
+  display: block;
 }
 
 .searchform .descr,

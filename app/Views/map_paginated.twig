@@ -4,8 +4,8 @@
 {% block content %}
 <div class="center-container">
 
-{% if mapselectform %}
-{% include 'partials/map_select.html.twig' %}
+{% if mapselectform or mapselectform2%}
+ {% include 'partials/map_select.base.twig' %}
 {% endif %}
 
 <div class='pagtop'>

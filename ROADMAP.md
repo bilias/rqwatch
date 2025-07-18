@@ -1,6 +1,7 @@
 # Roadmap
 
 ## In progress
+- Add score in maps?
 - Map filtering based on model (done in MapSelectForm)
 - Check/Update Views depending on access control
 

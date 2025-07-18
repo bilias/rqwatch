@@ -5,7 +5,7 @@
 {{ form_start(mapselectform) }}
 
 <div class="row">
-<div class='info'>   {{ form_label(mapselectform.map_name) }}
+<div class='info'> {{ selectlabel}}  {{ form_label(mapselectform.map_name) }}
 {% if mapselectform.map_name.vars.help is not empty %}
       <div class="help-text">({{ mapselectform.map_name.vars.help }})</div>
 {% endif %}
@@ -22,4 +22,5 @@
 </div>
 
 {{ form_end(mapselectform) }}
+</div>
 </div>

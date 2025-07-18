@@ -33,7 +33,14 @@ class FormHelper
 		array $options = []
 	): Form {
 
-		$form = $formFactory->create($formTypeClass, $data, $options);
+		// Get form name from options, default to null or '' for unnamed form
+		$formName = $options['form_name'] ?? null;
+		if ($formName) {
+			// Create named form with prefix
+			$form = $formFactory->createNamed($formName, $formTypeClass, $data, $options);
+		} else {
+			$form = $formFactory->create($formTypeClass, $data, $options);
+		}
 
 		// handle form submit
       $form->handleRequest($request);

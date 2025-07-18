@@ -1,0 +1,19 @@
+<div class="mapform-container">
+
+{% if mapselectform %}
+{% set selectlabel = 'Basic/Combined' %}
+<div class="mapform-wrapper">
+ {% include 'partials/map_select.html.twig' %}
+</div>
+{% endif %}
+
+{% if mapselectform2 %}
+{# Include again, now overriding the variable for the include only #}
+{% set selectlabel = 'Generic' %}
+{% set mapselectform = mapselectform2 %}
+<div class="mapform-wrapper">
+ {% include 'partials/map_select.html.twig' %}
+</div>
+{% endif %}
+
+</div>

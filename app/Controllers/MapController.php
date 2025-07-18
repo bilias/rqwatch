@@ -66,20 +66,41 @@ class MapController extends ViewController
 			return $response;
 		}
 
+		/*
 		$options = [
 			'role' => $this->getRole(),
 			'model' => 'MapCombined',
+			'form_name' => 'map_combined_form',
 		];
 
-		$mapselectform = MapSelectForm::create($this->formFactory, $this->request, null, $options);
-		if ($response = MapSelectForm::check_form_show($mapselectform, $this->urlGenerator, $this->is_admin)) {
+		$mapCombinedSelectForm = MapSelectForm::create($this->formFactory, $this->request, null, $options);
+		if ($response = MapSelectForm::check_form_show($mapCombinedSelectForm, $this->urlGenerator, $this->is_admin)) {
 			// form submitted and valid
+			return $response;
+		}
+
+		$options['model'] = 'MapGeneric';
+		$options['form_name'] = 'map_generic_form';
+		$mapGenericSelectForm = MapSelectForm::create($this->formFactory, $this->request, null, $options);
+		if ($response = MapSelectForm::check_form_show($mapGenericSelectForm, $this->urlGenerator, $this->is_admin)) {
+			// form submitted and valid
+			return $response;
+		}
+		*/
+
+		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		if ($response !== null) {
+			return $response;
+		}
+		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
+		if ($response !== null) {
 			return $response;
 		}
 
 		return new Response($this->twig->render('map_select.twig', [
 			'qidform' => $qidform->createView(),
-			'mapselectform' => $mapselectform->createView(),
+			'mapselectform' => $mapCombinedSelectForm->createView(),
+			'mapselectform2' => $mapGenericSelectForm->createView(),
 			'runtime' => $this->getRuntime(),
 			'refresh_rate' => $this->refresh_rate,
 			'flashes' => $this->flashbag->all(),
@@ -101,16 +122,15 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$options = [
-			'role' => $this->getRole(),
-			'model' => 'MapCombined',
-		];
-
-		$mapselectform = MapSelectForm::create($this->formFactory, $this->request, null, $options);
-		if ($response = MapSelectForm::check_form_show($mapselectform, $this->urlGenerator, $this->is_admin)) {
-			// form submitted and valid
+		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		if ($response !== null) {
 			return $response;
 		}
+		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
+		if ($response !== null) {
+			return $response;
+		}
+
 
 		$page = $this->request->query->getInt('page', 1);
 
@@ -145,7 +165,8 @@ class MapController extends ViewController
 
 		return new Response($this->twig->render('maps_all_paginated.twig', [
 			'qidform' => $qidform->createView(),
-			'mapselectform' => $mapselectform->createView(),
+			'mapselectform' => $mapCombinedSelectForm->createView(),
+			'mapselectform2' => $mapGenericSelectForm->createView(),
 			'map_comb_entries' => $map_comb_entries,
 			'field_descriptions' => $field_descriptions,
 			'totalRecords' => $map_comb_entries->total(),
@@ -170,14 +191,12 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$options = [
-			'role' => $this->getRole(),
-			'model' => 'MapCombined',
-		];
-
-		$mapselectform = MapSelectForm::create($this->formFactory, $this->request, null, $options);
-		if ($response = MapSelectForm::check_form_show($mapselectform, $this->urlGenerator, $this->is_admin)) {
-			// form submitted and valid
+		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		if ($response !== null) {
+			return $response;
+		}
+		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
+		if ($response !== null) {
 			return $response;
 		}
 
@@ -238,7 +257,8 @@ class MapController extends ViewController
 
 		return new Response($this->twig->render('map_paginated.twig', [
 			'qidform' => $qidform->createView(),
-			'mapselectform' => $mapselectform->createView(),
+			'mapselectform' => $mapCombinedSelectForm->createView(),
+			'mapselectform2' => $mapGenericSelectForm->createView(),
 			'map' => $map,
 			'model' => $model,
 			'mapdescr' => $mapdescr,
@@ -267,14 +287,12 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$options = [
-			'role' => $this->getRole(),
-			'model' => 'MapCombined',
-		];
-
-		$mapselectform = MapSelectForm::create($this->formFactory, $this->request, null, $options);
-		if ($response = MapSelectForm::check_form_show($mapselectform, $this->urlGenerator, $this->is_admin)) {
-			// form submitted and valid
+		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		if ($response !== null) {
+			return $response;
+		}
+		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
+		if ($response !== null) {
 			return $response;
 		}
 
@@ -371,7 +389,8 @@ class MapController extends ViewController
 
 		return new Response($this->twig->render('map_add.twig', [
 			'qidform' => $qidform->createView(),
-			'mapselectform' => $mapselectform->createView(),
+			'mapselectform' => $mapCombinedSelectForm->createView(),
+			'mapselectform2' => $mapGenericSelectForm->createView(),
 			'mapdescr' => $mapdescr,
 			'mapform' => $mapform->createView(),
 			'runtime' => $this->getRuntime(),
@@ -506,6 +525,27 @@ class MapController extends ViewController
 			return $user->username;
 		}
 		return 'Deleted user';
+	}
+
+	private function handleMapSelectForm(string $model): array {
+		if ($model === 'MapCombined') {
+			$form_name = 'map_combined_form';
+		} elseif ($model === 'MapGeneric') {
+			$form_name = 'map_generic_form';
+		} else {
+			throw new \RuntimeException("Wrong model {$model} requested");
+		}
+
+		$options = [
+			'role' => $this->getRole(),
+			'model' => $model,
+			'form_name' => $form_name,
+		];
+
+		$form = MapSelectForm::create($this->formFactory, $this->request, null, $options);
+		$response = MapSelectForm::check_form_show($form, $this->urlGenerator, $this->is_admin);
+
+		return [$form, $response];
 	}
 
 }
