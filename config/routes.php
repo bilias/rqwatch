@@ -278,25 +278,25 @@ $routes->add('map_show', new Route(
 
 $routes->add('admin_map_add_entry', new Route(
     '/admin/map/{map}/add', // path
-    [ '_controller' => 'App\\Controllers\\MapController::addMapCombinedEntry', ], // defaults
+    [ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
     [ 'map' => '[a-zA-Z_]{1,64}' ]
 ));
 
 $routes->add('map_add_entry', new Route(
     '/user/map/{map}/add', // path
-    [ '_controller' => 'App\\Controllers\\MapController::addMapCombinedEntry', ], // defaults
+    [ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
     [ 'map' => '[a-zA-Z_]{1,64}' ]
 ));
 
 $routes->add('admin_map_del_entry', new Route(
     '/admin/map/{map}/del/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MapController::delMapCombinedEntry', ], // defaults
+    [ '_controller' => 'App\\Controllers\\MapController::delMapEntry', ], // defaults
     [ 'map' => '[a-zA-Z_]{1,64}', 'id' => '\d{1,8}' ]
 ));
 
 $routes->add('map_del_entry', new Route(
     '/user/map/{map}/del/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MapController::delMapCombinedEntry', ], // defaults
+    [ '_controller' => 'App\\Controllers\\MapController::delMapEntry', ], // defaults
     [ 'map' => '[a-zA-Z_]{1,64}', 'id' => '\d{1,8}' ]
 ));
 

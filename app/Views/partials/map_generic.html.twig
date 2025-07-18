@@ -1,9 +1,12 @@
 <section>
 
 <div class='mapform descr'>
-Map: {{ mapdescr }}: {{ totalRecords }} entries
+Generic Map: {{ mapdescr }}: {{ totalRecords }} entries
+{% if last_activity %}
+| Updated {{ last_activity }}
+{% endif %}
 {% if totalRecords > items_per_page %}
-| Displaying {{ items_per_page }}/page
+<br/>Displaying {{ items_per_page }}/page
 {% endif %}
 <div id="inside_links">
 <ul>

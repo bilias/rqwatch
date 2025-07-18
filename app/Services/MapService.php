@@ -67,7 +67,8 @@ class MapService
 		$select_fields = array_merge(MapCombined::SELECT_FIELDS, $map_fields);
 
 		$query = MapCombined::select($select_fields)
-								  ->where('map_name', $map_name);
+								  ->where('map_name', $map_name)
+								  ->orderBy('updated_at', 'DESC');
 
 		foreach ($map_fields as $field) {
 			$query = $query->whereNotNull($field);
@@ -82,7 +83,8 @@ class MapService
 
 	public function getMapGenericQuery(string $map_name): Builder {
 		$query = MapGeneric::select(MapGeneric::SELECT_FIELDS)
-								  ->where('map_name', $map_name);
+								  ->where('map_name', $map_name)
+								  ->orderBy('updated_at', 'DESC');
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -329,7 +331,7 @@ class MapService
 
 		$contents = implode(PHP_EOL, $lines);
 
-		fwrite($fp, $contents);
+		fwrite($fp, $contents . PHP_EOL);
 		fflush($fp);
 		fclose($fp);
 
@@ -421,7 +423,6 @@ class MapService
 			'pattern' => $pattern
 		);
 
-
 		$mapgeneric->fill($data);
 		if (!$mapgeneric->save()) {
 			return false;
@@ -442,25 +443,31 @@ class MapService
 		return true;
 	}
 
-	public function delMapCombinedEntry(string $map_name, array $map_fields, int $id): bool {
+	public function delMapEntry(string $model, string $map_name, array $map_fields, int $id): bool {
 		if (is_null($id) or !is_int($id)) {
 			return false;
 		}
 
-		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
+		if ($model === 'MapCombined') {
+			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
+			$query = $this->applyUserRcptToScope($query);
+			$query = $query->where('id', $id);
 
-		$query = $this->applyUserRcptToScope($query);
-
-		$query = $query->where('id', $id);
-
-		/* XXX
+			/* XXX
 		   if USER_CAN_SEE_ADMIN_MAP_ENTRIES is false
 			applyUserRcptToScope() will limit the query and even if
 			USER_CAN_DEL_ADMIN_MAP_ENTRIES is true,
 			user will not be able to delete the entry
-		*/
-		if (!Config::get('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
-			$query = $query->where('user_id', $this->user_id);
+			*/
+			if (!Config::get('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
+				$query = $query->where('user_id', $this->user_id);
+			}
+
+		} else if ($model === 'MapGeneric') {
+			$query = $this->getMapGenericQuery($map_name);
+			$query = $query->where('id', $id);
+		} else {
+			return false;
 		}
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
@@ -482,7 +489,7 @@ class MapService
 		$last_update = date("Y-m-d H:i:s");
 
 		// update map file
-		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
+		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
 			return false;
 		}
 

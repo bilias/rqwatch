@@ -33,6 +33,7 @@ use App\Inventory\MapInventory;
 use App\Services\MapService;
 
 use App\Models\MapCombined;
+use App\Models\MapGeneric;
 use App\Models\MapActivityLog;
 use App\Models\User;
 use App\Models\MailAlias;
@@ -281,6 +282,8 @@ class MapController extends ViewController
 			return new RedirectResponse($this->mapsUrl);
 		}
 
+		$last_activity = (string) MapActivityLog::where('map_name', $map)->value('last_changed_at');
+
 		return new Response($this->twig->render('map_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
@@ -291,7 +294,8 @@ class MapController extends ViewController
 			'fields' => $fields,
 			'descriptions' => $descriptions,
 			'map_entries' => $map_entries,
-			'totalRecords' => $map_entries->count(),
+			'totalRecords' => $map_entries->total(),
+			'last_activity' => $last_activity,
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
@@ -302,7 +306,7 @@ class MapController extends ViewController
 		]));
 	}
 
-	public function addMapCombinedEntry(string $map): Response {
+	public function addMapEntry(string $map): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -429,17 +433,28 @@ class MapController extends ViewController
 		]));
 	}
 
-	public function delMapCombinedEntry(string $map, int $id): Response {
+	public function delMapEntry(string $map, int $id): Response {
 		if (!is_null($id) and is_int($id)) {
 
-			// we need the entry details for flashbag
-			$map_entry = MapCombined::find($id);
+			$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
+			$model = $config['model'];
 
-			if ($map_entry) {
-				//$mapdescr = MapInventory::getMapConfigs($map)['description'];
-				$mapdescr = MapInventory::getAvailableMapConfigs($this->getRole(), $map)['description'] ?? null;
-				//$fields = MapInventory::getMapConfigs($map)['fields'];
-				$fields = MapInventory::getAvailableMapConfigs($this->getRole(), $map)['fields'] ?? null;
+			// we need the entry details for flashbag
+			if ($model === 'MapCombined') {
+				$map_entry = MapCombined::find($id);
+			} else if ($this->getIsAdmin() && ($model === 'MapGeneric')) {
+				$map_entry = MapGeneric::find($id);
+			} else {
+				$this->fileLogger->warning("User {$this->username} tried to del map in " . $this->request->getPathInfo() . " without admin authorization");
+				$this->flashbag->add('error', 'Invalid map selected');
+				$this->initUrls();
+				$url = $this->mapsUrl;
+				return new RedirectResponse($url);
+			}
+
+			if (!empty($map_entry)) {
+				$mapdescr = $config['description'] ?? null;
+				$fields = $config['fields'] ?? null;
 				$pairs = [];
 				$entry_str = '';
 				if ($fields) {
@@ -452,9 +467,9 @@ class MapController extends ViewController
 				$service = new MapService($this->getFileLogger(), $this->session);
 
 				if ($fields) {
-					dd("delete here");
-					// has applyUseScope
-					if ($service->delMapCombinedEntry($map, $fields, $id)) {
+					// has applyUseScope for MapCombined
+					$delete = $service->delMapEntry($model, $map, $fields, $id);
+					if ($delete) {
 						$this->flashbag->add('success', "Map entry '{$entry_str}' deleted from Map '{$mapdescr}'");
 					} else {
 						$this->flashbag->add('error', "Map entry {$entry_str} failed to be deleted from Map {$mapdescr}");

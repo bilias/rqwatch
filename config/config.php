@@ -98,7 +98,7 @@ $refresh_rate = 300;
 $refresh = false;
 
 # items to show in page
-$items_per_page = 50;
+$items_per_page = 1;
 
 # certain pages have sql restriction on upper items returned
 $max_items = 1000;
