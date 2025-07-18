@@ -111,7 +111,7 @@ class MapController extends ViewController
 		]));
 	}
 
-	public function showAllMaps(?string $model): Response {
+	public function showAllMaps(?string $model = null): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -135,19 +135,7 @@ class MapController extends ViewController
 
 		$service = new MapService($this->getFileLogger(), $this->session);
 
-		$this->initUrls();
-
 		$configs = MapInventory::getAvailableMapConfigs($this->getRole()) ?? null;
-
-		$filter_maps = MapInventory::getMapsByModel("MapCombined", $configs);
-
-		// has applyUserRcptToScope and filter maps on model
-		$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl, $filter_maps);
-
-		if (empty($map_comb_entries)) {
-			$this->flashbag->add('info', 'No map entries exist');
-			return new RedirectResponse($this->mapsUrl);
-		}
 
 		$field_definitions = MapInventory::getFieldDefinitions() ?? null;
 		$field_descriptions = [];
@@ -155,11 +143,48 @@ class MapController extends ViewController
 			$field_descriptions[$field] = $definition['description'];
 		}
 
-		foreach ($map_comb_entries as $key => $map_entry) {
-			// add map description
-			$map_comb_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
-			$map_comb_entries[$key]->map_username = $this->getMapUser($map_entry->user);
-			$map_comb_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_comb_entries[$key]->map_username);
+		$this->initUrls();
+
+		if ($model === 'MapGeneric') {
+			$map_comb_entries = null;
+			$map_comb_total = null;
+			$filter_maps = null;
+			$this->mapShowAllUrl = $this->urlGenerator->generate('admin_map_show_all', ['model' => $model]);
+			$map_gen_entries = $service->showPaginatedAllMapGeneric($page, $this->mapShowAllUrl);
+			$map_gen_total = $map_gen_entries->total();
+
+			if (empty($map_gen_entries)) {
+				$this->flashbag->add('info', 'No map entries exist');
+				return new RedirectResponse($this->mapsUrl);
+			}
+			foreach ($map_gen_entries as $key => $map_entry) {
+				// add map description
+				$field = $configs[$map_entry->map_name]['fields'][0];
+				$field_description = $field_descriptions[$field];
+				$map_gen_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
+				$map_gen_entries[$key]->field = $field;
+				$map_gen_entries[$key]->field_description = $field_description;
+			}
+		} else {
+			$map_gen_entries = null;
+			$map_gen_total = null;
+			$filter_maps = MapInventory::getMapsByModel("MapCombined", $configs);
+
+			// has applyUserRcptToScope and filter maps on model
+			$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl, $filter_maps);
+
+			if (empty($map_comb_entries)) {
+				$this->flashbag->add('info', 'No map entries exist');
+				return new RedirectResponse($this->mapsUrl);
+			}
+
+			foreach ($map_comb_entries as $key => $map_entry) {
+				// add map description
+				$map_comb_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
+				$map_comb_entries[$key]->map_username = $this->getMapUser($map_entry->user);
+				$map_comb_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_comb_entries[$key]->map_username);
+			}
+			$map_comb_total = $map_comb_entries->total();
 		}
 
 		return new Response($this->twig->render('maps_all_paginated.twig', [
@@ -167,8 +192,10 @@ class MapController extends ViewController
 			'mapselectform' => $mapCombinedSelectForm->createView(),
 			'mapselectform2' => $mapGenericSelectForm->createView(),
 			'map_comb_entries' => $map_comb_entries,
+			'map_comb_total' => $map_comb_total,
+			'map_gen_entries' => $map_gen_entries,
+			'map_gen_total' => $map_gen_total,
 			'field_descriptions' => $field_descriptions,
-			'totalRecords' => $map_comb_entries->total(),
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),

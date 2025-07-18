@@ -1,14 +1,13 @@
-</div>
 <section>
 
+{% if map_comb_entries is not empty %}
+
 <div class='current_mails descr'>
-All Generic/Combined Map Entries | Total: {{ totalRecords }} entries
+All Basic/Combined Map Entries | Total: {{ map_comb_total }} entries
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }}/page
 {% endif %}
 </div>
-
-{% if map_comb_entries is not empty %}
 
 <div class='users'>
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
@@ -64,10 +63,42 @@ All Generic/Combined Map Entries | Total: {{ totalRecords }} entries
 </table>
 </div>
 
+{% elseif is_admin and map_gen_entries is not empty %}
+
+<div class='current_mails descr'>
+All Generic Map Entries | Total: {{ map_gen_total }} entries
+{% if totalRecords > items_per_page %}
+| Displaying {{ items_per_page }}/page
+{% endif %}
+</div>
+
+<div class='users'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+<thead><tr>
+ <th>Map</th>
+ <th>Field</th>
+ <th>Pattern</th>
+ <th>Created</th>
+ <th>Delete</th>
+</tr></thead>
+
+<tbody>
+    {% for entry in map_gen_entries %}
+      <tr class='clean'>
+			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
+			<td class='center'>{{ entry.field_description }}</td>
+			<td class='center'>{{ entry.pattern }}</td>
+			<td class='center'>{{ entry.created_at }}</td>
+			<td class='center'><a href="{{ get_route('admin_map_del_entry', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete {{ entry.field_description }}:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
+      </tr>
+    {% endfor %}
+</tbody>
+
+</table>
+</div>
 {% else %}
     No entries found
 {% endif %}
-
-</div>
 
 </section>
