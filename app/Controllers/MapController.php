@@ -145,7 +145,7 @@ class MapController extends ViewController
 
 		$this->initUrls();
 
-		if ($model === 'MapGeneric') {
+		if ($this->getIsAdmin() and $model === 'MapGeneric') {
 			$map_comb_entries = null;
 			$map_comb_total = null;
 			$filter_maps = null;
