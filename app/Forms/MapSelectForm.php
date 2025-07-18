@@ -27,6 +27,7 @@ use Symfony\Component\Form\Form;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Symfony\Component\Validator\Constraints as Assert;
@@ -76,6 +77,10 @@ class MapSelectForm extends AbstractType
 			])
 			->add('select', SubmitType::class, [
 				'label' => 'Select',
+			])
+			->add('model', HiddenType::class, [
+				'data' => $options['model'],
+				'mapped' => true, // optional: if not mapped to the data object
 			]);
 	}
 
@@ -92,10 +97,17 @@ class MapSelectForm extends AbstractType
 		if ($form->isSubmitted() && $form->isValid()) {
 			$data = $form->getData();
 			$map = $data['map_name'];
+			$model = $data['model'] ?? null;
 
 			if ($is_admin) {
 				if ($map === 'all') {
-					$url = $urlGenerator->generate('admin_map_show_all');
+					// handle MapGeneric
+					if ($model === 'MapGeneric') {
+						$url = $urlGenerator->generate('admin_map_show_all', ['model' => $model]);
+					// default to MapCombined
+					} else {
+						$url = $urlGenerator->generate('admin_map_show_all');
+					}
 				} else {
 					$url = $urlGenerator->generate('admin_map_show', [
 						'map' => $map,
@@ -111,20 +123,6 @@ class MapSelectForm extends AbstractType
 				}
 
 			}
-
-			return new RedirectResponse($url);
-		}
-		return null;
-	}
-
-	public static function check_form_add(Form $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
-		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData();
-			$map = $data['map_name'];
-
-			$url = $urlGenerator->generate('admin_map_add_entry', [
-				'map' => $map,
-			]);
 
 			return new RedirectResponse($url);
 		}
