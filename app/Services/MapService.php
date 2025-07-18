@@ -151,6 +151,32 @@ class MapService
 		return $map_entries;
 	}
 
+	public function showPaginatedAllMapGeneric(int $page = 1, string $url, ?array $maps): ?LengthAwarePaginator {
+		$query = MapGeneric::select('*')
+								  ->orderBy('map_name', 'ASC')
+								  ->orderBy('updated_at', 'DESC');
+
+		// filter maps
+		if (!$this->is_admin && $maps) {
+			$quuery = $query->whereIn('map_name', $maps);
+		}
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		try {
+			$map_entries = $query
+				->paginate($this->items_per_page, ['*'], 'page', $page)
+				->withPath($url);
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $map_entries;
+	}
+
 	public function getMapCombinedQuery(string $map_name, array $map_fields): Builder {
 		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 
