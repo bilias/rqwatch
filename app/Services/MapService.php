@@ -151,15 +151,10 @@ class MapService
 		return $map_entries;
 	}
 
-	public function showPaginatedAllMapGeneric(int $page = 1, string $url, ?array $filter_maps): ?LengthAwarePaginator {
+	public function showPaginatedAllMapGeneric(int $page = 1, string $url): ?LengthAwarePaginator {
 		$query = MapGeneric::select('*')
 								  ->orderBy('map_name', 'ASC')
 								  ->orderBy('updated_at', 'DESC');
-
-		// filter maps
-		if (!$this->is_admin && $filter_maps) {
-			$query = $query->whereIn('map_name', $filter_maps);
-		}
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
