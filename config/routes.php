@@ -253,9 +253,9 @@ $routes->add('maps', new Route(
 ));
 
 $routes->add('admin_map_show_all', new Route(
-    '/admin/map/all', // path
-    [ '_controller' => 'App\\Controllers\\MapController::showAllMaps', ], // defaults
-    []
+    '/admin/map/all/{model}', // path
+    [ '_controller' => 'App\\Controllers\\MapController::showAllMaps',  'model' => null ], // defaults
+    [ 'model' => '[a-zA-Z_]{1,64}' ]
 ));
 
 $routes->add('map_show_all', new Route(
