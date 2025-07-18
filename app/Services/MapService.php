@@ -224,15 +224,21 @@ class MapService
 		return $map;
 	}
 
-	public function mapCombinedEntryExists(string $map_name, array $map_fields, array $data): bool {
-		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
+	public function mapEntryExists(string $model, string $map_name, array $map_fields, array $data): bool {
+		if ($model === 'MapCombined') {
+			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
+			foreach ($map_fields as $field) {
+				$query = $query->where($field, $data[$field]);
+			}
+		} else if ($model === 'MapGeneric') {
+			$query = $this->getMapGenericQuery($map_name);
+			$query = $query->where('pattern', $data[$map_fields[0]]);
+		} else {
+			throw new \RuntimeException("Unknown map model");
+		}
 
 		// XXX strtolower might break some maps???
 		$data = self::trimLower($data);
-
-		foreach ($map_fields as $field) {
-			$query = $query->where($field, $data[$field]);
-		}
 
 		$query = $this->applyUserRcptToScope($query);
 
@@ -253,7 +259,13 @@ class MapService
 		return false;
 	}
 
-	 public function updateMapFile(string $map_name, array $map_fields, string $last_update): bool {
+	 public function updateMapFile(
+		string $model,
+		string $map_name,
+		string $last_update,
+		?array $map_fields = null
+	): bool {
+
 		$map_dir = Config::get('MAP_DIR');
 
 		$tmpfile = tempnam($map_dir, "{$map_name}_");
@@ -262,23 +274,38 @@ class MapService
 			return false;
 		}
 
-		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
-
-		$map_entries = $query->get()->toArray();
-
 		$lastModified = strtotime($last_update);
 		$header = '# Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModified) . " GMT";
 		$lines = [];
 		array_unshift($lines, $header); // Add header at the top
 
-		foreach ($map_entries as $row) {
-			$values = array_map(fn($field) => $row[$field] ?? '', $map_fields);
-			// Skip the line if any value is empty
-			if (in_array('', $values, true)) {
-				continue;
+		if ($model === 'MapCombined') {
+			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
+			$map_entries = $query->get()->toArray();
+			foreach ($map_entries as $row) {
+				$values = array_map(fn($field) => $row[$field] ?? '', $map_fields);
+				// Skip the line if any value is empty
+				if (in_array('', $values, true)) {
+					continue;
+				}
+				$lines[] = implode('|', $values);
 			}
-			$lines[] = implode('|', $values);
+		} elseif ($model === 'MapGeneric') {
+			$query = $this->getMapGenericQuery($map_name);
+			$map_entries = $query->get()->toArray();
+			foreach ($map_entries as $row) {
+				// Skip if 'pattern' is missing or empty
+				if (empty($row['pattern'])) {
+					continue;
+				}
+				$pattern = $row['pattern'];
+				$score = $row['score'] ?? '';
+				$lines[] = trim("$pattern $score");
+			}
+		} else {
+			return false;
 		}
+
 		$contents = implode(PHP_EOL, $lines);
 
 		fwrite($fp, $contents);
@@ -345,7 +372,44 @@ class MapService
 		$last_update = date("Y-m-d H:i:s");
 
 		// update map file
-		if (!self::updateMapFile($map_name, $map_fields, $last_update)) {
+		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
+			return false;
+		}
+
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function addMapGenericEntry(string $map_name, string $pattern): bool {
+		if (empty($pattern)) {
+			$this->logger->error("Empty map pattern");
+			return false;
+		}
+
+		// XXX strtolower might break some maps???
+		$pattern = strtolower(trim($pattern));
+
+		// update map table in DB
+		$mapgeneric = new MapGeneric();
+		$data = array(
+			'map_name' => $map_name,
+			'pattern' => $pattern
+		);
+
+
+		$mapgeneric->fill($data);
+		if (!$mapgeneric->save()) {
+			return false;
+		}
+
+		$last_update = date("Y-m-d H:i:s");
+
+		// update map file
+		if (!self::updateMapFile('MapGeneric', $map_name, $last_update)) {
 			return false;
 		}
 
@@ -397,7 +461,7 @@ class MapService
 		$last_update = date("Y-m-d H:i:s");
 
 		// update map file
-		if (!self::updateMapFile($map_name, $map_fields, $last_update)) {
+		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
 			return false;
 		}
 
