@@ -68,7 +68,7 @@ class MapSelectForm extends AbstractType
 
 		$builder
 			->add('map_name', ChoiceType::class, [
-				'label' => 'Combined Maps:',
+				'label' => 'Basic/Combined Maps:',
 				'choices' => $choices,
 				'placeholder' => '---',
 				'required' => true,
