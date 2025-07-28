@@ -344,7 +344,15 @@ class MapController extends ViewController
 		}
 
 		$mapdescr = $config['description'];
-		$fields = $config['fields'];
+		$fields = $config['fields'] ?? [];
+		$data = [];
+
+		foreach ($fields as $field) {
+			$value = $this->request->get($field); // Supports both GET and POST
+			if ($value !== null) {
+				$data[$field] = $value;
+			}
+		}
 
 		// Dynamically call the correct form class's `create()` method
 		$mapFormClass = $config['map_form'];
@@ -352,16 +360,17 @@ class MapController extends ViewController
 			throw new \RuntimeException("Form class $mapFormClass does not have a static create() method");
 		}
 
-		if ($this->getIsAdmin()) {
-			$mapform = $mapFormClass::create($this->formFactory, $this->request);
-		} else {
+		$options = [
+			'role' => $this->getRole(),
+		];
+
+		if (!$this->getIsAdmin()) {
 			// override user form fields. rcpt_to drop down based on user email and aliases
 			$options = [
-				'role' => $this->getRole(),
 				'user_emails' => $this->getUserEmailAddresses(),
 			];
-			$mapform = $mapFormClass::create($this->formFactory, $this->request, null, $options);
 		}
+		$mapform = $mapFormClass::create($this->formFactory, $this->request, $data, $options);
 
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();
