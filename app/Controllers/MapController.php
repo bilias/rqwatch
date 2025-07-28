@@ -432,6 +432,7 @@ class MapController extends ViewController
 			'mapselectform2' => $mapGenericSelectForm->createView(),
 			'mapdescr' => $mapdescr,
 			'mapform' => $mapform->createView(),
+			'mapAddEntryUrl' => $mapAddEntryUrl,
 			'runtime' => $this->getRuntime(),
 			'refresh_rate' => $this->refresh_rate,
 			'flashes' => $this->flashbag->all(),
