@@ -43,11 +43,6 @@ class MapController extends ViewController
 	protected $refresh_rate;
 	protected $items_per_page;
 	protected $max_items;
-	protected bool $mapUrlsInitialized = false;
-	protected string $mapsUrl;
-	protected string $mapShowAllUrl;
-	protected string $mapShowUrl;
-	protected string $mapAddEntryUrl;
 
 	public function __construct() {
 	//	parent::__construct();
@@ -524,26 +519,6 @@ class MapController extends ViewController
 		$aliases[] = $this->email;
 		return $aliases;
 	}
-
-	public function initMapUrls(string $map): void {
-      if ($this->mapUrlsInitialized) {
-         return;
-      }
-
-		if (!$this->urlsInitialized) {
-			$this->initUrls();
-		}
-
-      if ($this->getIsAdmin()) {
-			$this->mapShowUrl = $this->urlGenerator->generate('admin_map_show', [ 'map' => $map ]);
-			$this->mapAddEntryUrl = $this->urlGenerator->generate('admin_map_add_entry', [ 'map' => $map ]);
-      } else {
-			$this->mapShowUrl = $this->urlGenerator->generate('map_show', [ 'map' => $map ]);
-			$this->mapAddEntryUrl = $this->urlGenerator->generate('map_add_entry', [ 'map' => $map ]);
-      }
-
-      $this->mapUrlsInitialized = true;
-   }
 
 	private function getUserCanDelete(string $username, ?string $map_creator = ''): bool {
 		// user is admin, allow
