@@ -112,22 +112,22 @@ class GetMapApi extends RqwatchApi
 		}
 	}
 
-	protected function handleSmtpFromWhitelist(): void {
-		$map_name = "smtp_from_whitelist";
+	protected function handleMailFromWhitelist(): void {
+		$map_name = "mail_from_whitelist";
 
 		$fields = MapInventory::getMapConfigs($map_name)['fields'];
 		$lastModified = $this->getLastModified($map_name);
 
 		$entries = $this->getBasicMapQuery($map_name, $fields)
 							  ->smtpFrom()
-							  ->pluck('smtp_from')
+							  ->pluck('mail_from')
 							  ->all();
 
 		$this->respondMap($entries, $map_name, $lastModified);
 	}
 
-	protected function handleSmtpFromRcptToWhitelist(): void {
-		$map_name = "smtp_from_rcpt_to_whitelist";
+	protected function handleMailFromRcptToWhitelist(): void {
+		$map_name = "mail_from_rcpt_to_whitelist";
 
 		$fields = MapInventory::getMapConfigs($map_name)['fields'];
 		$lastModified = $this->getLastModified($map_name);
@@ -136,7 +136,7 @@ class GetMapApi extends RqwatchApi
 					  ->smtpFromRcptTo()
 					  ->get()
 					  ->map(function ($entry) {
-							return "{$entry->smtp_from}|{$entry->rcpt_to}";
+							return "{$entry->mail_from}|{$entry->rcpt_to}";
 					  })
 					  ->all();
 

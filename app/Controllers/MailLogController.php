@@ -724,7 +724,6 @@ class MailLogController extends ViewController
 		}
 
 		$fieldMap = [
-			'smtp_from' => 'mail_from',
 			'mime_from' => 'mime_from_normalized',
 		];
 

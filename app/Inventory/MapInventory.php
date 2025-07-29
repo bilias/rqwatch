@@ -30,11 +30,11 @@ use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\Regex;
 
 use App\Forms\MapWithTwoFieldsForm;
-use App\Forms\MapSmtpFromRcptToForm;
+use App\Forms\MapMailFromRcptToForm;
 use App\Forms\MapMimeFromRcptToForm;
-use App\Forms\MapSmtpFromRcptToUserForm;
+use App\Forms\MapMailFromRcptToUserForm;
 use App\Forms\MapMimeFromRcptToUserForm;
-use App\Forms\MapSmtpFromForm;
+use App\Forms\MapMailFromForm;
 use App\Forms\MapMimeFromForm;
 use App\Forms\MapIpForm;
 use App\Forms\MapUrlForm;
@@ -42,7 +42,7 @@ use App\Forms\MapUrlForm;
 class MapInventory
 {
 	private const USER_FORM_OVERRIDES = [
-		MapSmtpFromRcptToForm::class => MapSmtpFromRcptToUserForm::class,
+		MapMailFromRcptToForm::class => MapMailFromRcptToUserForm::class,
 		MapMimeFromRcptToForm::class => MapMimeFromRcptToUserForm::class,
 	];
 
@@ -54,19 +54,19 @@ class MapInventory
 	// and add the Form use at top
 	public static function getMapConfigs(?string $map = null): ?array {
 		$configs = [
-			'smtp_from_rcpt_to_whitelist' => [
+			'mail_from_rcpt_to_whitelist' => [
 				'model' => 'MapCombined',
-				'description' => 'SMTP From/RCPT_TO Whitelist',
-				'fields' => ['smtp_from', 'rcpt_to'],
-				'map_form' => MapSmtpFromRcptToForm::class,
-				//'api_handler' => \handleSmtpFromRcptToWhitelist::class,
+				'description' => 'Mail From/RCPT_TO Whitelist',
+				'fields' => ['mail_from', 'rcpt_to'],
+				'map_form' => MapMailFromRcptToForm::class,
+				//'api_handler' => \handleMailFromRcptToWhitelist::class,
 				'access' => ['admin', 'user'],
 			],
-			'smtp_from_rcpt_to_blacklist' => [
+			'mail_from_rcpt_to_blacklist' => [
 				'model' => 'MapCombined',
-				'description' => 'SMTP From/RCPT_TO Blacklist',
-				'fields' => ['smtp_from', 'rcpt_to'],
-				'map_form' => MapSmtpFromRcptToForm::class,
+				'description' => 'Mail From/RCPT_TO Blacklist',
+				'fields' => ['mail_from', 'rcpt_to'],
+				'map_form' => MapMailFromRcptToForm::class,
 				'access' => ['admin', 'user'],
 			],
 			'mime_from_rcpt_to_whitelist' => [
@@ -83,19 +83,19 @@ class MapInventory
 				'map_form' => MapMimeFromRcptToForm::class,
 				'access' => ['admin', 'user'],
 			],
-			'smtp_from_whitelist' => [
+			'mail_from_whitelist' => [
 				'model' => 'MapCombined',
-				'description' => 'SMTP From Whitelist',
-				'fields' => ['smtp_from'],
-				'map_form' => MapSmtpFromForm::class,
-				//'api_handler' => \handleSmtpFromWhitelist::class,
+				'description' => 'Mail From Whitelist',
+				'fields' => ['mail_from'],
+				'map_form' => MapMailFromForm::class,
+				//'api_handler' => \handleMailFromWhitelist::class,
 				'access' => ['admin'],
 			],
-			'smtp_from_blacklist' => [
+			'mail_from_blacklist' => [
 				'model' => 'MapCombined',
-				'description' => 'SMTP From Blacklist',
-				'fields' => ['smtp_from'],
-				'map_form' => MapSmtpFromForm::class,
+				'description' => 'Mail From Blacklist',
+				'fields' => ['mail_from'],
+				'map_form' => MapMailFromForm::class,
 				'access' => ['admin'],
 			],
 			'mime_from_whitelist' => [
@@ -160,11 +160,11 @@ class MapInventory
 	// Reusable field definitions
 	public static function getFieldDefinitions(?string $field = null): array {
 		$definitions = [
-			'smtp_from' => [
-				'description' => 'SMTP From',
+			'mail_from' => [
+				'description' => 'Mail From',
 				'type' => EmailType::class,
 				'field_options' => [
-					'label' => 'SMTP From:',
+					'label' => 'Mail From:',
 					'required' => true,
 					'attr' => ['class' => 'uniform-input'],
 					'constraints' => [

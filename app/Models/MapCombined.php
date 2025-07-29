@@ -37,7 +37,7 @@ class MapCombined extends Model
 		'id' => 'integer',
 		'map_name' => 'string',
 		'ip' => 'string',
-		'smtp_from' => 'string',
+		'mail_from' => 'string',
 		'rcpt_to' => 'string',
 		'mime_from' => 'string',
 		'mime_to' => 'string',
@@ -48,7 +48,7 @@ class MapCombined extends Model
 	protected $fillable = [
 		'map_name',
 		'ip',
-		'smtp_from',
+		'mail_from',
 		'rcpt_to',
 		'mime_from',
 		'mime_to',
@@ -70,12 +70,12 @@ class MapCombined extends Model
 		return $query->where('map_name', $map);
 	}
 
-	public function scopeSmtpFromRcptTo($query): Builder {
-		return $query->whereNotNull('smtp_from')->whereNotNull('rcpt_to');
+	public function scopeMailFromRcptTo($query): Builder {
+		return $query->whereNotNull('mail_from')->whereNotNull('rcpt_to');
 	}
 
-	public function scopeSmtpFrom($query): Builder {
-		return $query->whereNotNull('smtp_from');
+	public function scopeMailFrom($query): Builder {
+		return $query->whereNotNull('mail_from');
 	}
 
 }

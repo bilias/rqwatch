@@ -39,7 +39,7 @@ CREATE TABLE maps_combined (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   map_name VARCHAR(64) NOT NULL,
   ip VARCHAR(45) DEFAULT NULL,
-  smtp_from VARCHAR(255) DEFAULT NULL,
+  mail_from VARCHAR(255) DEFAULT NULL,
   rcpt_to VARCHAR(255) DEFAULT NULL,
   mime_from VARCHAR(255) DEFAULT NULL,
   mime_to VARCHAR(255) DEFAULT NULL,
@@ -47,10 +47,10 @@ CREATE TABLE maps_combined (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY ip_index (ip),
-  KEY smtp_from_index (smtp_from),
+  KEY mail_from_index (mail_from),
   KEY rcpt_to_index (rcpt_to),
   KEY map_name_ip_index (map_name, ip),
-  KEY map_name_smtp_from_rcpt_to_index (map_name, smtp_from, rcpt_to),
+  KEY map_name_mail_from_rcpt_to_index (map_name, mail_from, rcpt_to),
   KEY `map_name_updated_at_index` (`map_name`,`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -62,8 +62,10 @@ CREATE TABLE `map_activity_logs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 
 INSERT INTO map_activity_logs (map_name) VALUES
-('smtp_from_rcpt_to_whitelist'),
-('smtp_from_whitelist')
+('mail_from_rcpt_to_blacklist'),
+('mail_from_rcpt_to_whitelist'),
+('mail_from_blacklist'),
+('mail_from_whitelist')
 ON DUPLICATE KEY UPDATE map_name = map_name;
 
 #DROP TABLE IF EXISTS `maps_generic`;

@@ -18,8 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace App\Forms;
 
-class MapSmtpFromRcptToUserForm extends MapWithTwoFieldsUserOverrideForm
+class MapMailFromRcptToForm extends MapWithTwoFieldsForm
 {
-	protected static string $firstFieldName = 'smtp_from';
+	protected static string $firstFieldName = 'mail_from';
 	protected static string $secondFieldName = 'rcpt_to';
 }

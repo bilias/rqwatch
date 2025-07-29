@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace App\Forms;
 
-class MapSmtpFromForm extends MapWithOneFieldForm
+class MapMailFromForm extends MapWithOneFieldForm
 {
-	protected static string $fieldName = 'smtp_from';
+	protected static string $fieldName = 'mail_from';
 }

@@ -14,7 +14,7 @@ All Basic/Combined Map Entries | Total: {{ map_comb_total }} entries
 <thead><tr>
 <thead><tr>
  <th>Map</th>
- <th>{{ field_descriptions.smtp_from }}</th>
+ <th>{{ field_descriptions.mail_from }}</th>
  <th>{{ field_descriptions.mime_from }}</th>
  <th>{{ field_descriptions.rcpt_to }}</th>
  <th>{{ field_descriptions.ip }}</th>
@@ -31,7 +31,7 @@ All Basic/Combined Map Entries | Total: {{ map_comb_total }} entries
 			{% else %}
 			<td class='center'><a href="{{ get_route('map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			{% endif %}
-			<td class='center'>{{ entry.smtp_from }}</td>
+			<td class='center'>{{ entry.mail_from }}</td>
 			<td class='center'>{{ entry.mime_from }}</td>
 			<td class='center'>{{ entry.rcpt_to }}</td>
 			<td class='center'>{{ entry.ip }}</td>
