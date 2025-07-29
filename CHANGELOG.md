@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-07-29
+- Added CLI tool to update Map Files if needed
 - Added MIME From/Rcpt To Whitelist/Blacklist links in detail view
 - Added SMTP From/Rcpt To Whitelist/Blacklist links in detail view
 - Added MIME From Whitelist/Blacklist links in detail view

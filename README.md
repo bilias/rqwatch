@@ -66,8 +66,9 @@ The Web interface provides map management and url endpoints for rspamd
 - Dedicated Auth and IP WEB_API access list
 
 ## CLI
-- Mail Notifications to users
-- Quarantine cleanup
+- Update map files if needed (cron)
+- Mail Notifications to users (cron)
+- Quarantine cleanup (cron)
 
 # Setup
 Developement as well as production is done on Rocky Linux 9 (RHEL 9) using PHP 8.3 and MariaDB 10.5.\
