@@ -642,6 +642,21 @@ span.stored {
 	padding-left: 20px;
 }
 
+.onefieldform,
+.twofieldsform {
+  width: 65%;
+}
+
+.onefieldform .info,
+.twofieldsform .info {
+ width: 25%;
+}
+
+.onefieldform .detail,
+.twofieldsform .detail {
+ width: 75%;
+}
+
 .formmap .row {
 	padding-bottom: 10px;
 }
