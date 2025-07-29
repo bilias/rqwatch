@@ -74,6 +74,8 @@ class MapWithTwoFieldsForm extends AbstractType
 			$data = null,
 			array $options = []): Form {
 
+		// Merge your custom class with any existing options
+		$options['attr']['class'] = trim(($options['attr']['class'] ?? '') . ' twofieldsform');
 		return FormHelper::formCreator($formFactory, $request, static::class, $data, $options);
 	}
 
