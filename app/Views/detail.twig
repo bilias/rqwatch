@@ -25,14 +25,18 @@
    <div class='info'>Received from:</div>
    <div class='detail'>
 {% if log.ip == 'unknown' %}
-{{ log.ip }}
-{% else %}
-{% if log.ip %}
-{{ log.ip }} ({{ gethostbyaddr(log.ip) }})
-{% if ip_country %}
-({{ ip_country }})
-{% endif%}
-{% endif %}
+ {{ log.ip }}
+{% elseif log.ip %}
+  {{ log.ip }} ({{ gethostbyaddr(log.ip) }})
+  {% if ip_country %}
+   ({{ ip_country }})
+  {% endif%}
+  {% if map_configs['ip_whitelist']['add_url'] %}
+   |<a href='{{ map_configs['ip_whitelist']['add_url'] }}'>Add to '{{  map_configs['ip_whitelist']['description'] }}'</a>
+  {% endif %}
+  {% if map_configs['ip_blacklist']['add_url'] %}
+   |<a href='{{ map_configs['ip_blacklist']['add_url'] }}'>Add to '{{  map_configs['ip_blacklist']['description'] }}'</a>
+  {% endif %}
 {% endif %}
    </div>
  </div>
