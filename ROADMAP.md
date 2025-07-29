@@ -5,6 +5,7 @@
 
 ## Features bellow are in todo list.
 - Direct add in whitelist/blacklist from detail
+- CLI tool to renew maps
 - Add score in maps
 
 ## Features bellow might be implemented
