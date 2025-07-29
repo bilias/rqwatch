@@ -35,6 +35,8 @@ use App\Forms\MailReleaseForm;
 use App\Models\MailLog;
 use App\Services\MailLogService;
 
+use App\Inventory\MapInventory;
+
 class MailLogController extends ViewController
 {
 	protected int $refresh_rate;
@@ -336,6 +338,8 @@ class MailLogController extends ViewController
 
 		$ip_country = Helper::getCountry($ar['log']->ip);
 
+		$map_configs = $this->getMapConfigsWithAddUrls($ar['log']);
+
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),
 			'mailreleaseform' => $mailreleaseform_t,
@@ -347,6 +351,7 @@ class MailLogController extends ViewController
 			'symbols' => $ar['symbols'],
 			'virus_found' => $ar['virus_found'],
 			'relays' => $ar['received'],
+			'map_configs' => $map_configs,
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
@@ -705,6 +710,41 @@ class MailLogController extends ViewController
 			return $this->urlGenerator->generate('releasemail',
 				[ 'id' => $id ]);
 		}
+	}
+
+	public function getMapConfigsWithAddUrls(MailLog $log, ?string $map = null): array {
+		$configs = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
+
+		if ($map !== null && empty($configs)) {
+				return [];
+		}
+
+		if (!empty($log->mime_from)) {
+			$log->mime_from_normalized = Helper::extractEmail($log->mime_from);
+		}
+
+		$fieldMap = [
+			'smtp_from' => 'mail_from',
+			'mime_from' => 'mime_from_normalized',
+		];
+
+		foreach ($configs as $mapName => &$cfg) {
+			$route = $this->getRole() === 'admin' ? 'admin_map_add_entry' : 'map_add_entry';
+			$queryParams = ['map' => $mapName];
+
+			foreach ($cfg['fields'] ?? [] as $field) {
+				$sourceField = $fieldMap[$field] ?? $field;
+				$value = $log->{$sourceField} ?? null;
+
+				if (!empty($value)) {
+					$queryParams[$field] = $value;
+				}
+			}
+			$cfg['add_url'] = $this->urlGenerator->generate($route, $queryParams);
+		}
+		unset($cfg);
+
+		return $configs;
 	}
 
 }
