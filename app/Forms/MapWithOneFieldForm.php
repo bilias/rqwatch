@@ -21,6 +21,7 @@ namespace App\Forms;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Form;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -66,9 +67,11 @@ class MapWithOneFieldForm extends AbstractType
 
 	public static function create(
 			FormFactoryInterface $formFactory,
-			Request $request): Form {
+			Request $request,
+			$data = null,
+			array $options = []): Form {
 
-		return FormHelper::formCreator($formFactory, $request, static::class);
+		return FormHelper::formCreator($formFactory, $request, static::class, $data, $options);
 	}
 
 	public static function check_form(Form $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
@@ -85,4 +88,8 @@ class MapWithOneFieldForm extends AbstractType
 		return null;
 	}
 
+
+	public function configureOptions(OptionsResolver $resolver): void {
+		$resolver->setDefined(['role']);
+	}
 }
