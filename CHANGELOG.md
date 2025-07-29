@@ -2,6 +2,13 @@
 
 ## Master Dev Branch
 
+### 2025-07-29
+- Added MIME From/Rcpt To Whitelist/Blacklist links in detail view
+- Added SMTP From/Rcpt To Whitelist/Blacklist links in detail view
+- Added MIME From Whitelist/Blacklist links in detail view
+- Added SMTP From Whitelist/Blacklist links in detail view
+- Added IP Whitelist/Blacklist links in detail view
+
 ## v1.5.0 - Released: 2025-07-18
 
 ### 2025-07-18
