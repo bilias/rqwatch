@@ -723,7 +723,7 @@ You can see mail details and release it from quarantine by clicking here:
 	public static function extractEmail(string $input): ?string {
 		// Use regex to find email first
 		if (preg_match('/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i', $input, $matches)) {
-			return $matches[0];
+			return strtolower(trim($matches[0]));
 		}
 		return null;
 	}
