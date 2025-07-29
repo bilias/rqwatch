@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## v1.6.0 - Released: 2025-07-29
+
 ### 2025-07-29
 - Added CLI tool to update Map Files if needed
 - Added MIME From/Rcpt To Whitelist/Blacklist links in detail view
