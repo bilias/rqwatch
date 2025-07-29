@@ -649,11 +649,15 @@ span.stored {
 
 .onefieldform .info,
 .twofieldsform .info {
+ padding: 5px;
+ margin: 0px;
  width: 25%;
 }
 
 .onefieldform .detail,
 .twofieldsform .detail {
+ padding-left: 5px;
+ margin: 0px;
  width: 75%;
 }
 
