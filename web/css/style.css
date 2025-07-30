@@ -618,6 +618,45 @@ span.stored {
 .header {
 	margin-left: 2px;
 	padding-bottom: 0px;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+}
+
+.header-left {
+  /* Optional: Let it grow naturally */
+}
+
+.header-right {
+ align-self: flex-start;
+ text-align: right;
+ border: 1px solid black;
+ margin-right: 10px;
+ background-color: var(--color-bg-clean);
+}
+
+.header-right .descr {
+ display: flex;
+ justify-content: center; /* center horizontally */
+ align-items: center;     /* center vertically (if height allows) */
+ width 100%;
+ border: 1px solid white;
+}
+
+.header-right .right-content {
+ padding: 0;
+ border-top: 1px solid black;
+}
+
+.header-details {
+ border-collapse: collapse;
+ margin: 0 auto; /* centers the table */
+ width: 100%;
+}
+
+.header-details td {
+ border: 1px solid white;
+ padding: 0 5px 0 5px;
 }
 
 .qidform {
