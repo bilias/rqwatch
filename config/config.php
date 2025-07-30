@@ -106,7 +106,7 @@ $refresh = false;
 $items_per_page = 50;
 
 # certain pages have sql restriction on upper items returned
-$max_items = 1000;
+$max_items = 10000;
 
 # hide subject on web interface
 $subject_privacy = false;

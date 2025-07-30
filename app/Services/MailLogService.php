@@ -188,14 +188,33 @@ class MailLogService
 
 		$query = $this->applyUserScope($query);
 
+		$query = $query->limit($this->max_items);
+
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
 		try {
+			/*
 			$logs = $query
 				->paginate($this->items_per_page, $fields, 'page', $page)
 				->withPath($url);
+			*/
+
+			// Get limited dataset first
+			$allItems = $query->get();
+
+			// Manual pagination
+			$offset = ($page - 1) * $this->items_per_page;
+			$itemsForPage = $allItems->slice($offset, $this->items_per_page)->values();
+
+			$paginator = new LengthAwarePaginator(
+				$itemsForPage,
+				$allItems->count(),
+				$this->items_per_page,
+				$page
+			);
+			$logs = $paginator->withPath($url);
 		} catch (\Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage());
 			exit("Query error");
