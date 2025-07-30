@@ -120,6 +120,4 @@ Rqwatch was initially inspired by [MailWatch](https://mailwatch.org) which is us
 
 ## [Third-Party Software](NOTICE.md)
 
-## License
-
-[GNU AGPL v3](LICENSE.md)
+## [License: GNU AGPL v3](LICENSE.md)
