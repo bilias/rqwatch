@@ -27,9 +27,9 @@
  <td>{% if rspamd_stats[server][key] is defined -%}
   {% if key == 'uptime' -%}
    {% if rspamd_stats[server][key] > 86400 -%}
-{{- (rspamd_stats[server][key] / 86400) | number_format(1) -}} days
+{{ (rspamd_stats[server][key] / 86400) | number_format(1) }} days
 	{% else -%}
-{{- (rspamd_stats[server][key] / 3600) | number_format(1) -}} hours
+{{ (rspamd_stats[server][key] / 3600) | number_format(1) }} hours
 	{% endif -%}
   {% else -%}
 {{- rspamd_stats[server][key] -}}
