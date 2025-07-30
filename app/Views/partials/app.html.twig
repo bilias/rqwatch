@@ -6,60 +6,61 @@
  <div class="header-right">
   <div class='descr'>Rspamd Stats</div>
   <div class="right-content">
-   <table class='header-details'>
-	 <thead>
-	 <tr>
-	  <th>&nbsp;</th>
-	  {% for server in rspamd_stats|keys %}
-      <th>{{ server }}</th>
-	  {% endfor %}
-	 </tr>
-	 </thead>
-	 <tbody>
-	 {% set stat_keys = ['version', 'uptime', 'scanned', 'learned', 'spam_count', 'ham_count'] %}
 
-	 {% for key in stat_keys %}
-	 <tr>
-        <td><strong>{{ key|capitalize }}</strong></td>
-        {% for server in rspamd_stats|keys %}
-          <td>
-            {% if rspamd_stats[server][key] is defined %}
-              {% if key == 'uptime' %}
-               {% if rspamd_stats[server][key] > 86400 %}
-						{{ (rspamd_stats[server][key] / 86400) | number_format(1) }} days
-					{% else %}
-						{{ (rspamd_stats[server][key] / 3600) | number_format(1) }} hours
-				   {% endif %}
-              {% else %}
-                {{ rspamd_stats[server][key] }}
-              {% endif %}
-            {% else %}
-              N/A
-            {% endif %}
-          </td>
-        {% endfor %}
-      </tr>
-    {% endfor %}
+  <table class='header-details'>
+	<thead>
+	<tr>
+	<th>&nbsp;</th>
+	{% for server in rspamd_stats|keys %}
+<th>{{ server }}</th>
+	{% endfor %}
+</tr>
+	</thead>
 
-	 {# Now print nested keys under 'actions' #}
-    {% set action_keys = ['no action', 'reject', 'rewrite subject', 'add header', 'greylist', 'soft reject'] %}
-    {% for action_key in action_keys %}
-      <tr>
-        <td><strong>{{ action_key|capitalize }}</strong></td>
-        {% for server in rspamd_stats|keys %}
-          <td>
-            {% if rspamd_stats[server]['actions'] is defined and rspamd_stats[server]['actions'][action_key] is defined %}
-              {{ rspamd_stats[server]['actions'][action_key] }}
-            {% else %}
-              N/A
-            {% endif %}
-          </td>
-        {% endfor %}
-      </tr>
-    {% endfor %}
+<tbody>
+{% set stat_keys = ['version', 'uptime', 'scanned', 'learned', 'spam_count', 'ham_count'] -%}
 
-	 </tbody>
-	</table>
+{% for key in stat_keys -%}
+<tr>
+ <td><strong>{{ key|capitalize }}</strong></td>
+ {% for server in rspamd_stats|keys -%}
+ <td>{% if rspamd_stats[server][key] is defined -%}
+  {% if key == 'uptime' -%}
+   {% if rspamd_stats[server][key] > 86400 -%}
+{{- (rspamd_stats[server][key] / 86400) | number_format(1) -}} days
+	{% else -%}
+{{- (rspamd_stats[server][key] / 3600) | number_format(1) -}} hours
+	{% endif -%}
+  {% else -%}
+{{- rspamd_stats[server][key] -}}
+  {% endif -%}
+ {% else -%}
+  N/A
+ {% endif -%}
+ </td>
+ {% endfor -%}
+</tr>
+{% endfor -%}
+
+{# Now print nested keys under 'actions' #}
+{% set action_keys = ['no action', 'reject', 'rewrite subject', 'add header', 'greylist', 'soft reject'] -%}
+{% for action_key in action_keys -%}
+<tr>
+ <td><strong>{{ action_key|capitalize }}</strong></td>
+ {% for server in rspamd_stats|keys -%}
+ <td>{% if rspamd_stats[server]['actions'] is defined and rspamd_stats[server]['actions'][action_key] is defined -%}
+ {{- rspamd_stats[server]['actions'][action_key] -}}
+ {% else -%}
+  N/A
+ {% endif -%}
+ </td>
+{% endfor -%}
+</tr>
+{% endfor -%}
+
+</tbody>
+</table>
+
   </div>
  </div>
 </div>

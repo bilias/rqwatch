@@ -654,6 +654,11 @@ span.stored {
  width: 100%;
 }
 
+.header-details thead th {
+ text-align: center;
+ border: 1px solid white;
+}
+
 .header-details td {
  border: 1px solid white;
  padding: 0 5px 0 5px;
