@@ -99,6 +99,7 @@ class MailLogController extends ViewController
 			'username' => $this->session->get('username'),
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 
@@ -148,6 +149,7 @@ class MailLogController extends ViewController
 			'username' => $this->session->get('username'),
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 
@@ -195,6 +197,7 @@ class MailLogController extends ViewController
 			'username' => $this->session->get('username'),
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 
@@ -240,6 +243,7 @@ class MailLogController extends ViewController
 			'username' => $this->session->get('username'),
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 
@@ -284,6 +288,7 @@ class MailLogController extends ViewController
 			'username' => $this->session->get('username'),
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 
@@ -359,6 +364,7 @@ class MailLogController extends ViewController
 			'username' => $this->session->get('username'),
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 
@@ -513,6 +519,7 @@ class MailLogController extends ViewController
 			'username' => $this->session->get('username'),
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 
@@ -661,6 +668,7 @@ class MailLogController extends ViewController
 			'username' => $this->session->get('username'),
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 

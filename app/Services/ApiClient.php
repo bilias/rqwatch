@@ -51,4 +51,12 @@ class ApiClient
 		]);
 	}
 
+	public function getWithRspamdPassword(string $url, string $password): ResponseInterface
+	{
+		return $this->client->request('GET', $url, [
+			'headers' => [ 'Password' => $password, ],
+			'timeout' => Config::get('rspamd_stat_api_timeout'),
+		]);
+	}
+
 }

@@ -79,6 +79,7 @@ class MailAliasController extends ViewController
 			'username' => $this->session->get('username'),
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 
@@ -159,6 +160,7 @@ class MailAliasController extends ViewController
 			'username' => $this->session->get('username'),
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 
@@ -253,6 +255,7 @@ class MailAliasController extends ViewController
 			'is_admin' => $this->session->get('is_admin'),
 			'username' => $this->session->get('username'),
 			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 

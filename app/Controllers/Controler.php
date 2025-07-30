@@ -20,12 +20,15 @@ namespace App\Controllers;
 
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use App\Core\Config;
 use App\Utils\Helper;
+
+use App\Services\ApiClient;
 
 use Psr\Log\LoggerInterface;
 
@@ -192,6 +195,32 @@ class Controller
 	public function setLoggers(LoggerInterface $fileLogger, LoggerInterface $syslogLogger): void {
 		$this->setFileLogger($fileLogger);
 		$this->setSyslogLogger($syslogLogger);
+	}
+
+	public function getRspamdStat(): array {
+		$api_servers = Config::get('API_SERVERS');
+
+		$apiClient = new ApiClient();
+		$password = $_ENV['RSPAMD_CONTROLLER_PASS'];
+
+		$stats = [];
+		foreach ($api_servers as $api_server => $config) {
+			if (empty($config['stat_url'])) {
+				$this->fileLogger->error("API server '{$api_server}' has an empty stat_url. Check config.local.php");
+				continue;
+			}
+			try {
+				$response = $apiClient->getWithRspamdPassword($config['stat_url'], $password);
+				if ($response->getStatusCode() === Response::HTTP_OK) {
+					$stats[$api_server] = json_decode($response->getContent(), true);
+				}
+			} catch (\Exception $e) {
+				$this->fileLogger->error("Stat request to '{$api_server}' failed: " . $e->getMessage());
+				continue;
+			}
+		}
+
+		return $stats;
 	}
 
 }

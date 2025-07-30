@@ -34,6 +34,7 @@ $SYS_CA_PATH = "/etc/pki/tls/certs";
 $API_SERVERS = array(
 	'mx1' => [
 		'url' => 'https://mx1.example.com',
+		'stat_url' => 'http://mx1.example.com:11334/stat',
 		'options' => [
 			'verify_peer' => true,
 			'verify_host' => true,
@@ -43,6 +44,7 @@ $API_SERVERS = array(
 	],
 	'mx2' => [
 		'url' => 'https://mx2.example.com',
+		'stat_url' => 'http://127.0.0.1:11334/stat',
 		'options' => [
 			'verify_peer' => true,
 			'verify_host' => true,
@@ -51,6 +53,9 @@ $API_SERVERS = array(
 		],
 	],
 );
+
+# timeout for getting rspamd statistics
+$rspamd_stat_api_timeout=0.5;
 
 # Path to use for remote API mail release
 $RM_WEB_API_PATH = "/api/release_mail.php";
