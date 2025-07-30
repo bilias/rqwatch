@@ -2,7 +2,7 @@
  --color-bg-menu: #70a49b;
  --color-bg-clean: #d9d9d9;
  --color-bg-clean-h: #C4C4C4;
- --color-menu-link: #4973f7;
+ --color-menu-link: #3768ff;
  --color-mail-virus: #9F91FF;
  --color-mail-subject: #F5BBBB;
  --color-mail-subject-h: #F7ADAD;
@@ -621,7 +621,7 @@ span.stored {
 }
 
 .qidform {
-	margin-left: 10px;
+	margin-left: 2px;
 }
 
 .formsearch {
