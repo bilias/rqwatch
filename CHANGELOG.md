@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-07-30
+- Limited show all Paginator
 - Added Rspamd statistics for all servers
 
 ## v1.6.0 - Released: 2025-07-29
