@@ -2,8 +2,10 @@
 
 ## Master Dev Branch
 
-### 2025-07-30
+### 2025-07-31
 - Redis cache for Rspamd stats
+
+### 2025-07-30
 - Limited show all Paginator
 - Added Rspamd statistics for all servers
 
