@@ -32,6 +32,8 @@ Apart from quarantine monitoring, this system can also be used as a map manageme
 - Maxmind GeoIP reader
 - composer installation
 
+[Third-Party Software NOTICE](NOTICE.md)
+
 ## Web
 
 ### Authentication
@@ -121,7 +123,5 @@ Rqwatch was initially inspired by [MailWatch](https://mailwatch.org) which is us
 ## [Changelog](CHANGELOG.md)
 
 ## [Roadmap](ROADMAP.md)
-
-## [Third-Party Software NOTICE](NOTICE.md)
 
 ## [License: Mozilla Public License Version 2.0](LICENSE)
