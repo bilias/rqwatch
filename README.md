@@ -2,12 +2,14 @@
 
 Rqwatch is quarantine monitoring/watch system for [Rspamd](https://rspamd.com), written in PHP.
 
-A web framework is provided to monitor all incoming mails passing your mail gateway either as admin or as the recipient user.
+A web framework is provided to monitor all incoming mails passing through your mail gateway either as admin or as the recipient user.
 
-An API also exists to insert data from Rspamd.
+An API exists to insert data from Rspamd.
 The API is being used by a plugin of rspamd ([Metadata exporter](https://docs.rspamd.com/modules/metadata_exporter)) in order to export raw e-mail and headers (both mail and rspamd headers) and store that metadata in a database.
 
-Depending on the action taken by rspamd and the configuration, raw e-mails can be saved in local quarantine storage, in order to be examined and released by admins or recipient user if it is required.
+Depending on the action taken by Rspamd and the configuration, raw e-mails can be saved in local quarantine storage to be examined and released by administrators or recipient users, if desired.
+
+Apart from quarantine monitoring, this system can also be used as a map management/provider for Rspamd, independently of the other functionalities.
 
 [[_TOC_]]
 
