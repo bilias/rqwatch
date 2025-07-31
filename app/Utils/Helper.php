@@ -534,7 +534,7 @@ Action: {$ar['action']}
 
 	public static function getNotifyText($ar): string {
 		$ret = "The following mail has been saved in our quarantine storage
-because our system has detected it as being high scored spam or that is contains a virus.
+because our system has detected it as being high scored spam or that it contains a virus.
 
 Date: {$ar['created_at']}
 From: {$ar['mime_from']}
