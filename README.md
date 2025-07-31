@@ -118,6 +118,6 @@ Rqwatch was initially inspired by [MailWatch](https://mailwatch.org) which is us
 
 ## [Roadmap](ROADMAP.md)
 
-## [Third-Party Software](NOTICE.md)
+## [Third-Party Software NOTICE](NOTICE.md)
 
-## [License: GNU AGPL v3](LICENSE.md)
+## [License: Mozilla Public License Version 2.0](LICENSE)
