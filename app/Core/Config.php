@@ -89,7 +89,6 @@ class Config {
 		$redisConnection = null;
 
 		try {
-			RedisFactory::setLogger(self::$logger);
 			$redisConnection = RedisFactory::get();
 			$cached = $redisConnection->get($redisKey);
 			if ($cached !== false) {

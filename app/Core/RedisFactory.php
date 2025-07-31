@@ -30,10 +30,10 @@ class RedisFactory
 				self::$client = RedisAdapter::createConnection($_ENV['REDIS_DSN']);
 				self::$logger->debug('[RedisFactory] Redis connection established');
 			} catch (InvalidArgumentException $e) {
-				self::$logger->error('[RedisFactory] Redis connection failed: ' . $e->getMessage());
+				self::$logger->error('[RedisFactory]: ' . $e->getMessage());
 				throw $e;
 			} catch (\Throwable $e) {
-				self::$logger->error('[RedisFactory] Redis connection failed: ' . $e->getMessage());
+				self::$logger->error('[RedisFactory]: ' . $e->getMessage());
 				throw $e;
 			}
 		}

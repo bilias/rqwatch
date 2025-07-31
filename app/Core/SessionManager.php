@@ -61,7 +61,6 @@ class SessionManager
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			// Redis Sentinel connection via phpredis or predis
 			try {
-				RedisFactory::setLogger(self::$logger);
 				$redisConnection = RedisFactory::get();
 				// Use RedisSessionHandler
 				$handler = new RedisSessionHandler($redisConnection, [

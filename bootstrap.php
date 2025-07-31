@@ -15,6 +15,7 @@ require_once 'vendor/autoload.php';
 
 use App\Core\Config;
 use App\Core\Logging\LoggerService;
+use App\Core\RedisFactory;
 use App\Utils\Helper;
 
 define('APP_ROOT', __DIR__);
@@ -41,13 +42,19 @@ $extras = [
 
 // cache config in redis
 if (!empty($_ENV['REDIS_ENABLE'])) {
-	Config::loadAndInitWithRedisCache(
-		$defaultConfigPath,
-		$localConfigPath,
-		$extras,
-		$_ENV['REDIS_CONFIG_NAME'],      // optional Redis key
-		$_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
-	);
+	try {
+		RedisFactory::setLogger($fileLogger);
+		Config::loadAndInitWithRedisCache(
+			$defaultConfigPath,
+			$localConfigPath,
+			$extras,
+			$_ENV['REDIS_CONFIG_NAME'],      // optional Redis key
+			$_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
+		);
+	} catch (\Throwable $e) {
+		$fileLogger->error('[Bootstrap] Redis connection failed: ' . $e->getMessage());
+		Config::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
+	}
 } else {
 	Config::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
 }
