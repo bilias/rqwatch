@@ -1,13 +1,10 @@
 # Rqwatch
 
-Rqwatch is quarantine monitoring/watch system for [Rspamd](https://rspamd.com), written in PHP.
+Rqwatch is quarantine monitoring and watch system for [Rspamd](https://rspamd.com), written in PHP. It provides a web framework to monitor all incoming emails passing through your mail gateway, accessible both by administrators and recipient users.
 
-A web framework is provided to monitor all incoming mails passing through your mail gateway either as admin or as the recipient user.
+An API is available to insert data from Rspamd. This API is used by the Rspamd ([Metadata Exporter plugin](https://docs.rspamd.com/modules/metadata_exporter)) to export raw emails and headers (both mail and Rspamd headers) and store that metadata in a database.
 
-An API exists to insert data from Rspamd.
-The API is being used by a plugin of rspamd ([Metadata exporter](https://docs.rspamd.com/modules/metadata_exporter)) in order to export raw e-mail and headers (both mail and rspamd headers) and store that metadata in a database.
-
-Depending on the action taken by Rspamd and the configuration, raw e-mails can be saved in local quarantine storage to be examined and released by administrators or recipient users, if desired.
+Depending on the action taken by Rspamd and the configuration, raw emails can be saved in local quarantine storage to be examined and released by administrators or recipient users, if desired.
 
 Apart from quarantine monitoring, this system can also be used as a map management/provider for Rspamd, independently of the other functionalities.
 
@@ -41,8 +38,8 @@ Apart from quarantine monitoring, this system can also be used as a map manageme
 - LDAP Authentication
 
 ### Access Control
-- Admin users can read/release all e-mail
-- Normal users can read/release only their e-mails (+ aliases)
+- Admin users can read/release all email
+- Normal users can read/release only their emails (+ aliases)
 - DB Admin users / LDAP Admin users
 - /admin web endpoint for admins
 
@@ -58,7 +55,7 @@ The Web interface provides map management and url endpoints for rspamd
 - Redis Rspamd stats caching
 
 ## API for Rspamd - RSPAMD API (metadata_importer)
-- Mail metadata and raw mail (depending on configuration) in injected to database and local storage, using the metadata_exporter plugin of Rspamd
+- Mail metadata and raw mail (depending on configuration) is inserted to database and local storage, using the metadata_exporter plugin of Rspamd
 - Dedicated Auth and IP RSPAMD API access list
 
 ## WEB API [Distributed mode]
@@ -74,8 +71,8 @@ The Web interface provides map management and url endpoints for rspamd
 - Quarantine cleanup (cron)
 
 # Setup
-Developement as well as production is done on Rocky Linux 9 (RHEL 9) using PHP 8.3 and MariaDB 10.5.\
-Having said that, Rqwatch should run fine on any system with minor adjustments as there is no exotic component involved.
+Development and production environments are primarily tested on Rocky Linux 9 (RHEL 9), using PHP 8.3 and MariaDB 10.5.\
+However, Rqwatch should run on any system with minor adjustments, as no exotic components are required.
 
 ## Requirements
 
@@ -93,9 +90,9 @@ Having said that, Rqwatch should run fine on any system with minor adjustments a
 
 - php-pecl-redis6
 
-- php-gmp (if geoip is required)
+- php-gmp (required only if GeoIP support is enabled)
 
-**rspamd 3.12**
+**Rspamd 3.12**
 
 ## Installation
 
