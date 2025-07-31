@@ -6,7 +6,7 @@ An API is available to insert data from Rspamd. This API is used by the Rspamd [
 
 Depending on the action taken by Rspamd and the configuration, raw emails can be saved in local quarantine storage to be examined and released by administrators or recipient users, if desired.
 
-Apart from quarantine monitoring, this system can also be used as a map management/provider for Rspamd, independently of the other functionalities.
+Apart from quarantine monitoring, this system can also be used as a map management/provider for Rspamd, independently of other functionalities.
 
 [[_TOC_]]
 
