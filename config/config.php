@@ -11,7 +11,7 @@
 # Default configuration variables for Rqwatch.
 
 # If you want to alter default configuration,
-# put the variable in config.local.php
+# override the variable in config.local.php
 # This file is being tracked and updated by git,
 # so local changes might be lost on update.
 
