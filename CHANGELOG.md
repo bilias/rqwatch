@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-07-31
+- Added Mail/MIME From Blacklist/Whitelist
 - Redis cache for Rspamd stats
 
 ### 2025-07-30

@@ -104,6 +104,21 @@ class MapInventory
 				'map_form' => MapMimeFromForm::class,
 				'access' => ['admin'],
 			],
+			'from_whitelist' => [
+				'model' => 'MapCombined',
+				'description' => 'Mail/MIME From Whitelist',
+				'fields' => ['mail_from'],
+				'map_form' => MapMailFromForm::class,
+				//'api_handler' => \handleMailFromWhitelist::class,
+				'access' => ['admin'],
+			],
+			'from_blacklist' => [
+				'model' => 'MapCombined',
+				'description' => 'Mail/MIME From Blacklist',
+				'fields' => ['mail_from'],
+				'map_form' => MapMailFromForm::class,
+				'access' => ['admin'],
+			],
 			'ip_whitelist' => [
 				'model' => 'MapCombined',
 				'description' => 'IP Whitelist',
