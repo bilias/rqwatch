@@ -48,7 +48,7 @@ if (!empty($_ENV['REDIS_ENABLE'])) {
 			$defaultConfigPath,
 			$localConfigPath,
 			$extras,
-			$_ENV['REDIS_CONFIG_NAME'],      // optional Redis key
+			$_ENV['REDIS_CONFIG_KEY'],      // optional Redis key
 			$_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
 		);
 	} catch (\Throwable $e) {

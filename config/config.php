@@ -47,7 +47,13 @@ $API_SERVERS = array(
 );
 
 # timeout for getting rspamd statistics
-$rspamd_stat_api_timeout=0.5;
+$rspamd_stat_api_timeout = 0.5;
+
+# redis key for for rspamd stats
+$rspamd_stat_redis_key = "rqwatch_rspamd_stats";
+
+# how much time to cache stats in redis
+$rspamd_stat_redis_cache_ttl = 300;
 
 # Path to use for remote API mail release
 $RM_WEB_API_PATH = "/api/release_mail.php";
