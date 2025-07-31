@@ -52,7 +52,8 @@ The Web interface provides map management and url endpoints for rspamd
 
 ### Redis Caching
 - Redis Session support (+ sentinel)
-- Redis Config Caching
+- Redis Config caching
+- Redis Rspamd stats caching
 
 ## API for Rspamd - RSPAMD API (metadata_importer)
 - Mail metadata and raw mail (depending on configuration) in injected to database and local storage, using the metadata_exporter plugin of Rspamd
