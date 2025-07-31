@@ -47,7 +47,7 @@ Apart from quarantine monitoring, this system can also be used as a map manageme
 
 ### Maps
 The Web interface provides map management and url endpoints for rspamd
-- Basic Maps with common fields of multimap module (mail_from, rcpt_to, mime_from,ip)
+- Basic Maps with common fields of multimap module (mail_from, rcpt_to, mime_from, ip)
 - Combined Maps with two fields for custom lua module (mail_from/rcpt_to, mime_from/mime_to)
 - Generic Maps for other fields of multimap module (asn, url, domain etc). Easily extendable to support other types
 
