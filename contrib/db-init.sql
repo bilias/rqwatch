@@ -14,6 +14,7 @@ CREATE TABLE users (
  `firstname` VARCHAR(100) DEFAULT NULL,
  `lastname` VARCHAR(100) DEFAULT NULL,
  `is_admin` TINYINT(1) NOT NULL DEFAULT '0',
+ `disable_notifications` TINYINT(1) NOT NULL DEFAULT '0',
  `last_login` datetime DEFAULT NULL,
  `auth_provider` tinyint(3) unsigned NOT NULL DEFAULT 0,
  `password` VARCHAR(255) NOT NULL,
