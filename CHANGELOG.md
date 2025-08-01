@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## v1.6.1 - Released: 2025-08-01
+
 ### 2025-08-01
 - Added user option to disable notifications for quarantined mails
 
