@@ -59,6 +59,7 @@ class User extends Model
 		'email',
 		'firstname',
 		'lastname',
+		'disable_notifications',
 		'is_admin',
 		'last_login',
 		'auth_provider',
