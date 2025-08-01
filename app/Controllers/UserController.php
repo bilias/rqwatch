@@ -351,7 +351,7 @@ class UserController extends ViewController
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->session->get('is_admin'),
 			'username' => $this->session->get('username'),
-			'auth_provider' => $user->auth_provider,
+			'auth_provider' => $this->session->get('auth_provider'),
 			'user_auth_provider' => $user->auth_provider,
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
