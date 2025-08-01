@@ -129,33 +129,36 @@ class UserController extends ViewController
 		$profileform_t = null;
 
 		$service = new UserService($this->getFileLogger(), $this->session);
-		$dbuser = $service->profile();
+		$user = $service->profile();
 
-		if (!$dbuser) {
+		if (!$user) {
 			$this->flashbag->add('error', "User not found");
 			$this->initUrls();
 			return new RedirectResponse($this->homepageUrl);
 		}
 
-		$profileform = ProfileForm::create($this->formFactory, $this->request, $dbuser->toArray());
+		$profileform = ProfileForm::create($this->formFactory, $this->request, $user->toArray());
 		$profileform_t = $profileform->createView(); // for twig
 
 		if ($profileform->isSubmitted() && $profileform->isValid()) {
 			$data = $profileform->getData();
+			// allow password change only for DB users
 			$pass_changed = false;
-			$newPassword = $profileform->get('password')->getData();
-			if (!empty($newPassword)) {
-				$data['password'] = Helper::passwordHash($newPassword);
-				$pass_changed = true;
+			if ($user->auth_provider === 0) {
+				$newPassword = $profileform->get('password')->getData();
+				if (!empty($newPassword)) {
+					$data['password'] = Helper::passwordHash($newPassword);
+					$pass_changed = true;
+				}
 			}
 
 			try {
-				$dbuser->fill($data);
+				$user->fill($data);
 				if ($pass_changed) {
-					$dbuser->password = $data['password'];
+					$user->password = $data['password'];
 				}
-				$dbuser->save();
-				if ($dbuser) {
+				$user->save();
+				if ($user) {
 					$this->flashbag->add('success', "Profile updated");
 				} else {
 					$this->flashbag->add('error', "Profile update failed");
@@ -171,7 +174,7 @@ class UserController extends ViewController
 		return new Response($this->twig->render('user.twig', [
 			'qidform' => $qidform->createView(),
 			'profileform' => $profileform_t,
-			'user' => $dbuser,
+			'user' => $user,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->session->get('is_admin'),

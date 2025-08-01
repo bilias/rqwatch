@@ -128,7 +128,8 @@ class UserService
 		];
 
 		$query = User::select($fields)
-			->where('auth_provider', 0)
+			// show profile only for DB Users
+			//->where('auth_provider', 0)
 			->where('username', $this->username);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {

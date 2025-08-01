@@ -46,11 +46,9 @@
       <a href="{{ aliases }}">Aliases</a>
     </li>
 {% endif %}
-{% if auth_provider == "DB" %}
     <li class="profilelink {{ current_route == profile ? 'active' : '' }}">
       <a href="{{ profile }}">Profile</a>
     </li>
-{% endif %}
     <li class="logoutlink"><a href="{{ logout }}">Logout</a>
     </li>
   </ul>
