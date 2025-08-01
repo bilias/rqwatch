@@ -89,6 +89,12 @@ Never
 {{ form_start(profileform) }}
 
 <div class="row">
+<div class='info'>   {{ form_label(profileform.disable_notifications) }}</div>
+<div class='detail'>   {{ form_widget(profileform.disable_notifications) }}
+   {{ form_errors(profileform.disable_notifications) }}</div>
+</div>
+
+<div class="row">
 <div class='info'>   {{ form_label(profileform.firstname) }}</div>
 <div class='detail'>
         {{ form_widget(profileform.firstname, {
@@ -106,12 +112,6 @@ Never
         }) }}
         {{ form_errors(profileform.lastname) }}
    {{ form_errors(profileform.lastname) }}</div>
-</div>
-
-<div class="row">
-<div class='info'>   {{ form_label(profileform.disable_notifications) }}</div>
-<div class='detail'>   {{ form_widget(profileform.disable_notifications) }}
-   {{ form_errors(profileform.disable_notifications) }}</div>
 </div>
 
 {% if user_auth_provider == 'DB' %}
