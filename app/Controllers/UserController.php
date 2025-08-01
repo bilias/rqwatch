@@ -142,7 +142,6 @@ class UserController extends ViewController
 
 		if ($profileform->isSubmitted() && $profileform->isValid()) {
 			$data = $profileform->getData();
-			dd($data);
 			// allow password change only for DB users
 			$pass_changed = false;
 			if ($user->auth_provider === 0) {
