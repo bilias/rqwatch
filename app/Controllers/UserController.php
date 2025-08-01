@@ -100,7 +100,7 @@ class UserController extends ViewController
 		}
 
 		$mail_aliases = $this->getMailAliases($user);
-		$aliases_str = implode(',', array_map('trim', $mail_aliases));
+		$aliases_str = implode(', ', array_map('trim', $mail_aliases));
 
 		return new Response($this->twig->render('user.twig', [
 			'qidform' => $qidform->createView(),
