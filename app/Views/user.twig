@@ -106,22 +106,35 @@ Never
 
 <div class="row">
 <div class='info'>   {{ form_label(profileform.firstname) }}</div>
-<div class='detail'>
-        {{ form_widget(profileform.firstname, {
-            attr: user_auth_provider != 'DB' ? {'disabled': 'disabled'} : {}
-        }) }}
-        {{ form_errors(profileform.firstname) }}
-   {{ form_errors(profileform.firstname) }}</div>
+ <div class='detail'>
+    {{ form_widget(profileform.firstname, {
+        attr: user_auth_provider != 'DB' ? {'disabled': 'disabled'} : {}
+    }) }}
+
+    {% if user_auth_provider != 'DB' %}
+      {% do profileform.firstname.setRendered %}
+      <input type="hidden" name="{{ profileform.firstname.vars.full_name }}" value="{{ profileform.firstname.vars.value }}">
+    {% endif %}
+
+    {{ form_errors(profileform.firstname) }}</div>
 </div>
 
 <div class="row">
 <div class='info'>   {{ form_label(profileform.lastname) }}</div>
 <div class='detail'>
-        {{ form_widget(profileform.lastname, {
-            attr: user_auth_provider != 'DB' ? {'disabled': 'disabled'} : {}
-        }) }}
-        {{ form_errors(profileform.lastname) }}
-   {{ form_errors(profileform.lastname) }}</div>
+    {# Render the visible disabled field #}
+    {{ form_widget(profileform.lastname, {
+        attr: user_auth_provider != 'DB' ? {'disabled': 'disabled'} : {}
+    }) }}
+
+    {# Mark the field as rendered so form_end() or form_rest() won't render again #}
+    {% if user_auth_provider != 'DB' %}
+        {% do profileform.lastname.setRendered %}
+        {# Render hidden input manually to submit the value #}
+        <input type="hidden" name="{{ profileform.lastname.vars.full_name }}" value="{{ profileform.lastname.vars.value }}">
+    {% endif %}
+
+    {{ form_errors(profileform.lastname) }}</div>
 </div>
 
 {% if user_auth_provider == 'DB' %}
