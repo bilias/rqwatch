@@ -37,7 +37,7 @@ class UserDeleteForm extends AbstractType
         $formFactory
 				->add('id', HiddenType::class)
             ->add('delete', SubmitType::class, [
-                'label' => 'Delete',
+                'label' => 'Delete User',
 					 'attr' => [
 						'class' => 'btn btn-danger',
 						'onclick' => "return confirm('Are you sure you want to delete user \"{$username}\"?');",

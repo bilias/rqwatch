@@ -151,7 +151,7 @@ class UserForm extends AbstractType
 					 ],
 				])
             ->add('add', SubmitType::class, [
-                'label' => $options['is_edit'] ? 'Update' : 'Add',
+                'label' => $options['is_edit'] ? 'Update User' : 'Add User',
             ]);
 	}
 
