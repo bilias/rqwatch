@@ -90,13 +90,21 @@ Never
 
 <div class="row">
 <div class='info'>   {{ form_label(profileform.firstname) }}</div>
-<div class='detail'>   {{ form_widget(profileform.firstname) }}
+<div class='detail'>
+        {{ form_widget(profileform.firstname, {
+            attr: user_auth_provider != 'DB' ? {'disabled': 'disabled'} : {}
+        }) }}
+        {{ form_errors(profileform.firstname) }}
    {{ form_errors(profileform.firstname) }}</div>
 </div>
 
 <div class="row">
 <div class='info'>   {{ form_label(profileform.lastname) }}</div>
-<div class='detail'>   {{ form_widget(profileform.lastname) }}
+<div class='detail'>
+        {{ form_widget(profileform.lastname, {
+            attr: user_auth_provider != 'DB' ? {'disabled': 'disabled'} : {}
+        }) }}
+        {{ form_errors(profileform.lastname) }}
    {{ form_errors(profileform.lastname) }}</div>
 </div>
 
