@@ -65,6 +65,14 @@ class ProfileForm extends AbstractType
 						),
 					 ],
             ])
+				->add('disable_notifications', CheckboxType::class, [
+					 'label' => 'Disable notifications',
+					 'required' => false,
+					 'attr' => [
+						'class' => 'disable_notifications',
+						'title' => 'Disable mail notifications for quarantined mails',
+					 ],
+				])
             ->add('password', RepeatedType::class, [
 					 'type' => PasswordType::class,
 					 'invalid_message' => 'The password fields must match.',

@@ -20,6 +20,7 @@ Total Users: {{ totalRecords }}
  <th>First Name</th>
  <th>Last Name</th>
  <th>E-mail</th>
+ <th>Notifications</th>
  <th>Admin</th>
  <th>Auth Provider</th>
  <th>Last Login</th>
@@ -36,6 +37,7 @@ Total Users: {{ totalRecords }}
   <td class='center'>{{ user.firstname }}</td>
   <td class='center'>{{ user.lastname }}</td>
   <td class='center'>{{ user.email }}</td>
+  <td class='center'>{%if user.disable_notifications %}No{% else %}Yes{% endif %}</td>
   <td class='center'>{% if user.is_admin %}Yes{% endif %}</td>
   <td class='center'>{{ getAuthProvider(user.auth_provider) }}</td>
   <td class='center'>

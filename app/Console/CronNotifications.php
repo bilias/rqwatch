@@ -23,6 +23,7 @@ use Symfony\Component\Console\Command\LockableTrait;
 use App\Core\Config;
 use App\Utils\Helper;
 use App\Services\MailLogService;
+use App\Services\UserService;
 
 use Psr\Log\LoggerInterface;
 
@@ -151,6 +152,25 @@ class CronNotifications extends RqwatchCliCommand
 				return Helper::checkForBlacklist($log->symbols);
 			});
 		}
+
+		// Filter out logs for users with notifications disabled
+		$userService = new UserService($this->fileLogger);
+
+		$removedLogs = $logs->filter(function ($log) use ($userService) {
+			return $userService->notificationsDisabledFor($log->rcpt_to);
+		});
+
+		if ($removedLogs->isNotEmpty()) {
+			foreach ($removedLogs as $log) {
+				$output->writeln("<comment>Notifications disabled for recipient: {$log->rcpt_to} (mail id: {$log->id})</comment>{$local}", OutputInterface::VERBOSITY_VERBOSE);
+			}
+		}
+
+		unset($removedLogs);
+
+		$logs = $logs->reject(function ($log) use ($userService) {
+			return $userService->notificationsDisabledFor($log->rcpt_to);
+		});
 
 		if (($count = count($logs)) < 1) {
 			$output->writeln("<info>No entries remain for notification{$local}</info>",

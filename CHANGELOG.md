@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-08-01
+- Added user option to disable notifications for quarantined mails
+
 ### 2025-07-31
 - Added Mail/MIME From Blacklist/Whitelist
 - Redis cache for Rspamd stats

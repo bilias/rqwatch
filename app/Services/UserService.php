@@ -15,6 +15,7 @@ use App\Utils\Helper;
 use App\Utils\FormHelper;
 
 use App\Models\User;
+use App\Models\MailAlias;
 
 use Psr\Log\LoggerInterface;
 
@@ -120,6 +121,7 @@ class UserService
 			'lastname',
 			'last_login',
 			'auth_provider',
+			'disable_notifications',
 			'is_admin',
 			'created_at',
 			'updated_at',
@@ -187,6 +189,25 @@ class UserService
 		}
 
 		return $logs;
+	}
+
+	public function notificationsDisabledFor(string $email): bool {
+		$user = User::where('email', $email)->first();
+
+		// check if email matches a user's email
+		if ($user) {
+			return $user->disable_notifications;
+		}
+
+		// check if email matches an alias
+		$alias = MailAlias::with('user')->where('alias', $email)->first();
+
+		if ($alias && $alias->user) {
+			return $alias->user->disable_notifications;
+		}
+
+		// not found, notifications enabled by default
+		return false;
 	}
 
 }

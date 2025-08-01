@@ -74,6 +74,11 @@
 	{{ form_errors(userform.password.second) }}</div>
 </div>
 <div class="row">
+<div class='info'>   {{ form_label(userform.disable_notifications) }}</div>
+ <div class='detail'> {{ form_widget(userform.disable_notifications) }}
+  {{ form_errors(userform.disable_notifications) }}</div>
+</div>
+<div class="row">
 <div class='info'>   {{ form_label(userform.is_admin) }}</div>
  <div class='detail'>
 {% if user_auth_provider %}

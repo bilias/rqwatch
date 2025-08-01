@@ -34,6 +34,15 @@
 </div>
 </div>
 
+{% if profileform is null %}
+<div class="row">
+<div class='info'>Notifications</div>
+<div class='detail'>
+{% if user.disable_notifications %}No{% else %}Yes{% endif %}
+</div>
+</div>
+{% endif %}
+
 {% if is_admin %}
 <div class="row">
 <div class='info'>Admin</div>
@@ -87,6 +96,12 @@ Never
 <div class='info'>   {{ form_label(profileform.lastname) }}</div>
 <div class='detail'>   {{ form_widget(profileform.lastname) }}
    {{ form_errors(profileform.lastname) }}</div>
+</div>
+
+<div class="row">
+<div class='info'>   {{ form_label(profileform.disable_notifications) }}</div>
+<div class='detail'>   {{ form_widget(profileform.disable_notifications) }}
+   {{ form_errors(profileform.disable_notifications) }}</div>
 </div>
 
 <div class="row">

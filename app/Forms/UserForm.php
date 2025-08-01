@@ -134,6 +134,14 @@ class UserForm extends AbstractType
 						),
 					 ],
             ])
+				->add('disable_notifications', CheckboxType::class, [
+					'label' => 'Disable notifications',
+					'required' => false,
+					 'attr' => [
+						'class' => 'disable_notifications',
+						'title' => 'Disable mail notifications for quarantined mails',
+					 ],
+				])
 				->add('is_admin', CheckboxType::class, [
 					'label' => 'Admin',
 					'required' => false,
