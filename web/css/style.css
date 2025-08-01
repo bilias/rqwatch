@@ -835,6 +835,11 @@ span.stored {
   margin-top: 10px;
 }
 
+.editbutton {
+ margin-bottom: 10px;
+ margin-top: 10px;
+}
+
 .user .row ,
 .maildetail .row ,
 .formuser .row {
