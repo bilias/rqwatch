@@ -49,9 +49,12 @@ a:hover {
   justify-content: flex-start;
 }
 
-#menu .profilelink,
-#menu .logoutlink {
+#menu .profilelink {
  margin-left: auto;
+}
+
+#menu .logoutlink {
+ margin-left: 0;
 }
 
 #menu {
