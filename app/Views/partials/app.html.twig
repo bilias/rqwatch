@@ -3,6 +3,7 @@
   <h2>{{ APP_NAME }}</h2>
   <h4>{{ APP_INFO }}</h4>
  </div>
+ {% if is_admin %}
  <div class="header-right">
   <div class='descr'>Rspamd Stats</div>
   <div class="right-content">
@@ -63,4 +64,5 @@
 
   </div>
  </div>
+{% endif %}
 </div>
