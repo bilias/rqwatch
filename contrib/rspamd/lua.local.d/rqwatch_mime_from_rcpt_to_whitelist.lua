@@ -15,7 +15,7 @@ rspamd_config:register_symbol{
   name = "RQWATCH_MIME_FROM_RCPT_TO_WHITELIST",
   callback = function(task)
     local from = task:get_from('mime') -- MIME only
-    local rcpt = task:get_recipients('mime') -- MIME only
+    local rcpt = task:get_recipients('smtp') -- SMTP only
 
     if from and rcpt then
       for _, f in ipairs(from) do
