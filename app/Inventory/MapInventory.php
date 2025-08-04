@@ -30,6 +30,7 @@ use App\Forms\MapMailFromForm;
 use App\Forms\MapMimeFromForm;
 use App\Forms\MapIpForm;
 use App\Forms\MapUrlForm;
+use App\Forms\MapEmailForm;
 
 class MapInventory
 {
@@ -133,11 +134,25 @@ class MapInventory
 				'map_form' => MapIpForm::class,
 				'access' => ['admin'],
 			],
-			'url_blacklist' => [
+			'url_host_blacklist' => [
 				'model' => 'MapGeneric',
-				'description' => 'URL blacklist',
+				'description' => 'Body URL (host) blacklist',
 				'fields' => ['url'],
 				'map_form' => MapUrlForm::class,
+				'access' => ['admin'],
+			],
+			'url_full_blacklist' => [
+				'model' => 'MapGeneric',
+				'description' => 'Body URL (full) blacklist',
+				'fields' => ['url'],
+				'map_form' => MapUrlForm::class,
+				'access' => ['admin'],
+			],
+			'email_blacklist' => [
+				'model' => 'MapGeneric',
+				'description' => 'Body Email blacklist',
+				'fields' => ['email'],
+				'map_form' => MapEmailForm::class,
 				'access' => ['admin'],
 			],
 			// Add more maps here...
@@ -226,11 +241,24 @@ class MapInventory
 				'description' => 'URL',
 				'type' => TextType::class,
 				'field_options' => [
-					'label' => 'Url:',
+					'label' => 'URL:',
 					'required' => true,
 					'attr' => ['class' => 'uniform-input'],
 					'constraints' => [
 						new NotBlank(),
+					],
+				],
+			],
+			'email' => [
+				'description' => 'Email',
+				'type' => TextType::class,
+				'field_options' => [
+					'label' => 'Email:',
+					'required' => true,
+					'attr' => ['class' => 'uniform-input'],
+					'constraints' => [
+						new NotBlank(),
+						new Email(),
 					],
 				],
 			],

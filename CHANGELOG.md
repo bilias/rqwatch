@@ -2,6 +2,11 @@
 
 ## Master Dev Branch
 
+### 2025-08-04
+- Added Body E-mail links blacklist
+- Added Body Host URL links blacklist
+- Added Body Full URL links blacklist
+
 ## v1.6.1 - Released: 2025-08-01
 
 ### 2025-08-01
