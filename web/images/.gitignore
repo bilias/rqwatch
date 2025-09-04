@@ -1,0 +1,4 @@
+# Ignore every file in this folder
+*.xcf
+# Except this one
+!.gitignore
