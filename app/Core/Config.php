@@ -145,7 +145,7 @@ class Config {
 					$ttlSeconds
 				);
 			} catch (\Throwable $e) {
-				$fileLogger->error('[Config] Redis connection failed: ' . $e->getMessage());
+				$fileLogger->error('Config [loadConfig] Redis connection failed: ' . $e->getMessage());
 				self::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
 			}
 		} else {
