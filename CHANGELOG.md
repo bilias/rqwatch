@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2025-09-04
+- Refresh config in redis in app version changes
+- Added logo image
+
 ### 2025-08-04
 - Added Body E-mail links blacklist
 - Added Body Host URL links blacklist
