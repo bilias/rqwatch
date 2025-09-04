@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-09-04
+- Moved config loading internals out of bootstrap
 - Refresh config in redis in app version changes
 - Added logo image
 
