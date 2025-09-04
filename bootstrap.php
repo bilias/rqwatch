@@ -31,9 +31,6 @@ $loggerService = new LoggerService();
 $fileLogger = $loggerService->getFileLogger();
 $syslogLogger = $loggerService->getSyslogLogger();
 
-// set logger in Config
-Config::setLogger($fileLogger);
-
 // load configuration
 Config::loadConfig(
 	$fileLogger,

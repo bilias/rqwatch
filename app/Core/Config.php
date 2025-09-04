@@ -131,10 +131,13 @@ class Config {
 		int $ttlSeconds = 300
 	): void {
 
+		// set logger
+		self::setLogger($fileLogger);
+
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			try {
 				RedisFactory::setLogger($fileLogger);
-				Config::loadAndInitWithRedisCache(
+				self::loadAndInitWithRedisCache(
 					$defaultConfigPath,
 					$localConfigPath,
 					$extras,
@@ -143,10 +146,10 @@ class Config {
 				);
 			} catch (\Throwable $e) {
 				$fileLogger->error('[Bootstrap] Redis connection failed: ' . $e->getMessage());
-				Config::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
+				self::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
 			}
 		} else {
-			Config::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
+			self::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
 		}
 	}
 
