@@ -191,24 +191,26 @@ class Controller
 	}
 
 	public function getRspamdStat(): array {
-		$redis = RedisFactory::get();
-		$redisKey = Config::get('rspamd_stat_redis_key');
-		$ttl = Config::get('rspamd_stat_redis_cache_ttl');
+		if (Helper::env_bool('REDIS_ENABLE')) {
+			$redis = RedisFactory::get();
+			$redisKey = Config::get('rspamd_stat_redis_key');
+			$ttl = Config::get('rspamd_stat_redis_cache_ttl');
 
-		// Try fetching from redis cache first
-		try {
-			$cached = $redis->get($redisKey);
-			if ($cached !== false) {
-				$stats = json_decode($cached, true);
-				if (is_array($stats) && !empty($stats)) {
-					$this->fileLogger->debug("Rspamd stats loaded from Redis cache");
-					return $stats;
+			// Try fetching from redis cache first
+			try {
+				$cached = $redis->get($redisKey);
+				if ($cached !== false) {
+					$stats = json_decode($cached, true);
+					if (is_array($stats) && !empty($stats)) {
+						$this->fileLogger->debug("Rspamd stats loaded from Redis cache");
+						return $stats;
+					}
+					$this->fileLogger->warning("Empty Rspamd stats returned from Redis cache");
 				}
-				$this->fileLogger->warning("Empty Rspamd stats returned from Redis cache");
+			} catch (\Throwable $e) {
+				$this->fileLogger->error("Redis error when reading Rspamd stats: " . $e->getMessage());
+				// fallback to fetching live if Redis fails
 			}
-		} catch (\Throwable $e) {
-			$this->fileLogger->error("Redis error when reading Rspamd stats: " . $e->getMessage());
-			// fallback to fetching live if Redis fails
 		}
 
 		$api_servers = Config::get('API_SERVERS');
@@ -233,12 +235,14 @@ class Controller
 			}
 		}
 
-		// Store in Redis for future use
-		try {
-			$redis->set($redisKey, json_encode($stats), ['ex' => $ttl]);
-			$this->fileLogger->debug("Rspamd stats cached in Redis for {$ttl} seconds");
-		} catch (\Throwable $e) {
-			$this->fileLogger->error("Redis error when writing Rspamd stats: " . $e->getMessage());
+		if (Helper::env_bool('REDIS_ENABLE')) {
+			// Store in Redis for future use
+			try {
+				$redis->set($redisKey, json_encode($stats), ['ex' => $ttl]);
+				$this->fileLogger->debug("Rspamd stats cached in Redis for {$ttl} seconds");
+			} catch (\Throwable $e) {
+				$this->fileLogger->error("Redis error when writing Rspamd stats: " . $e->getMessage());
+			}
 		}
 
 		return $stats;
