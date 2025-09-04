@@ -10,6 +10,7 @@
 
 namespace App\Core;
 
+use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 use App\Core\RedisFactory;
 
@@ -118,6 +119,34 @@ class Config {
 			} catch (\Throwable $e) {
 				self::$logger->error("Config [loadAndInitWithRedisCache2]: " . $e->getMessage());
 			}
+		}
+	}
+
+	public static function loadConfig(
+		LoggerInterface $fileLogger,
+		string $defaultConfigPath,
+		?string $localConfigPath = null,
+		array $extras = [],
+		string $redisKey = 'rqwatch_config',
+		int $ttlSeconds = 300
+	): void {
+
+		if (Helper::env_bool('REDIS_ENABLE')) {
+			try {
+				RedisFactory::setLogger($fileLogger);
+				Config::loadAndInitWithRedisCache(
+					$defaultConfigPath,
+					$localConfigPath,
+					$extras,
+					$redisKey,
+					$ttlSeconds
+				);
+			} catch (\Throwable $e) {
+				$fileLogger->error('[Bootstrap] Redis connection failed: ' . $e->getMessage());
+				Config::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
+			}
+		} else {
+			Config::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
 		}
 	}
 

@@ -34,32 +34,15 @@ $syslogLogger = $loggerService->getSyslogLogger();
 // set logger in Config
 Config::setLogger($fileLogger);
 
-// load config.php and config.local.php if it exists
-$defaultConfigPath = __DIR__ . '/config/config.php';
-$localConfigPath   = __DIR__ . '/config/config.local.php';
-$extras = [
-	'startTime'   => $startTime,
-	'startMemory' => $startMemory,
-];
-
-// cache config in redis
-if (Helper::env_bool('REDIS_ENABLE')) {
-	try {
-		RedisFactory::setLogger($fileLogger);
-		Config::loadAndInitWithRedisCache(
-			$defaultConfigPath,
-			$localConfigPath,
-			$extras,
-			$_ENV['REDIS_CONFIG_KEY'],      // optional Redis key
-			$_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
-		);
-	} catch (\Throwable $e) {
-		$fileLogger->error('[Bootstrap] Redis connection failed: ' . $e->getMessage());
-		Config::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
-	}
-} else {
-	Config::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
-}
+// load configuration
+Config::loadConfig(
+	$fileLogger,
+	__DIR__ . '/config/config.php',
+	__DIR__ . '/config/config.local.php',
+	[ 'startTime' => $startTime, 'startMemory' => $startMemory ],
+	$_ENV['REDIS_CONFIG_KEY'],             // optional Redis key
+	(int) $_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
+);
 
 // setup database connection
 require_once 'config/db.php';
