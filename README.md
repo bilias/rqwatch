@@ -42,7 +42,7 @@ Apart from quarantine monitoring, this system can also be used as a map manageme
 - LDAP Authentication
 
 ### Access Control
-- Admin users can read/release all email
+- Admin users can read/release all emails
 - Normal users can read/release only their emails (+ aliases)
 - DB Admin users / LDAP Admin users
 - /admin web endpoint for admins
@@ -62,7 +62,7 @@ The map subsystem can be easily extended to support additional types.
 
 ## API for Rspamd - RSPAMD API (metadata_importer)
 - Mail metadata and raw mail (depending on configuration) is inserted to database and local storage, using the metadata_exporter plugin of Rspamd
-- Dedicated Auth and IP RSPAMD API access list
+- Dedicated Auth and IP RSPAMD_API access list
 
 ## WEB API [Distributed mode]
 - Release Mail via remote API
