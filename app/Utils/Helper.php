@@ -520,7 +520,7 @@ Mail ID: {$ar['qid']}
 Spam Score: {$ar['score']}
 Virus Detected:";
 		if (empty($ar['has_virus'])) {
-			$ret .= " Yes";
+			$ret .= " Yes {$ar['virus_name']}";
 		} else {
 			$ret .= " No";
 		}
