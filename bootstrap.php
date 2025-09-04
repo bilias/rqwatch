@@ -18,6 +18,8 @@ use App\Core\Logging\LoggerService;
 use App\Core\RedisFactory;
 use App\Utils\Helper;
 
+define('APP_VERSION', '1.6.3-dev');
+
 define('APP_ROOT', __DIR__);
 
 // load config from .env
@@ -41,7 +43,7 @@ $extras = [
 ];
 
 // cache config in redis
-if (!empty($_ENV['REDIS_ENABLE'])) {
+if (Helper::env_bool('REDIS_ENABLE')) {
 	try {
 		RedisFactory::setLogger($fileLogger);
 		Config::loadAndInitWithRedisCache(

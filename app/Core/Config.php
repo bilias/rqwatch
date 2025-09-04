@@ -94,7 +94,8 @@ class Config {
 			if ($cached !== false) {
 				self::$logger->debug("Config [loadAndInitWithRedisCache]: Config is cached in Redis");
 				$data = json_decode($cached, true);
-				if (is_array($data)) {
+				// catch app version update
+				if (is_array($data) && (APP_VERSION === $data['APP_VERSION'])) {
 					// Merge extras on top of cached data — overrides if keys overlap
 					self::init(array_merge($data, $extras));
 					return;
@@ -104,14 +105,16 @@ class Config {
 			self::$logger->error("Config [loadAndInitWithRedisCache1]: " . $e->getMessage());
 		}
 
-		// Redis miss or error — fallback to config file
+		// Redis miss or error or app version change — fallback to config file
 		self::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
 
 		if ($redisConnection !== null) {
 			try {
 				// Remove all keys that are present in $extras from the cache data
 				$toCache = array_diff_key(self::getAll(), $extras);
+				// cache/save config in Redis
 				$redisConnection->set($redisKey, json_encode($toCache), ['ex' => $ttlSeconds]);
+				self::$logger->debug("Config [loadAndInitWithRedisCache]: " . "Cached data in Redis");
 			} catch (\Throwable $e) {
 				self::$logger->error("Config [loadAndInitWithRedisCache2]: " . $e->getMessage());
 			}
