@@ -17,7 +17,7 @@
 
 $APP_NAME="Rqwatch";
 $APP_INFO="Rspamd Quarantine Watch";
-$APP_VERSION="1.6.2-dev";
+$APP_VERSION="1.6.2";
 $FOOTER="{$APP_NAME} v{$APP_VERSION}";
 
 $SYS_CA_PATH = "/etc/pki/tls/certs";
