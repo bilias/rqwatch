@@ -17,3 +17,13 @@ https://www.maxmind.com/en/accounts/current/license-key
 
 More details:
 https://dev.maxmind.com/geoip/updating-databases/
+
+```
+cat << EOF > /etc/cron.daily/geoipupdate
+#!/usr/bin/env bash
+/usr/bin/geoipupdate
+EOF
+
+chmod 755 /etc/cron.daily/geoipupdate
+/etc/cron.daily/geoipupdate
+```
