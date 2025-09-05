@@ -216,7 +216,7 @@ class CronNotifications extends RqwatchCliCommand
 		// get detail link url
 		$routes = include __DIR__.'/../../config/routes.php';
 		$context = new RequestContext();
-		$context->setHost($_ENV['WEB_HOST']);
+		$context->setHost($_ENV['WEB_HOST_NOTIFICATIONS']);
 		$context->setScheme($_ENV['WEB_SCHEME']);
 		$context->setBaseUrl($_ENV['WEB_BASE']);
 		$urlGenerator = new UrlGenerator($routes, $context);
