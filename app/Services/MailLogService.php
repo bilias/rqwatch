@@ -591,7 +591,7 @@ class MailLogService
 			$mail_file = $response->getContent(false); // Don't throw on error status
 
 			if ($statusCode !== Response::HTTP_OK) {
-				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'");
+				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. API server said: '{$mail_file}'");
 				throw new \Exception("Error. Contact admin");
 			}
 		// SSL/TLS problems
@@ -772,7 +772,8 @@ class MailLogService
 			if ($statusCode === Response::HTTP_OK) {
 				return true;
 			} else {
-				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'");
+				$error_msg = $response->getContent(false); // Don't throw on error status
+				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. 'API server said: {$error_msg}'");
 				return false;
 			}
 		// SSL/TLS problems
