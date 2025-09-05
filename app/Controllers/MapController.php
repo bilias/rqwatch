@@ -458,7 +458,11 @@ class MapController extends ViewController
 				$entry_str = '';
 				if ($fields) {
 					foreach ($fields as $field) {
-						$pairs[] = MapInventory::getFieldDefinitions($field)['description'] . ": " . $map_entry->$field;
+						if ($model === 'MapGeneric') {
+							$pairs[] = MapInventory::getFieldDefinitions($field)['description'] . ": " . $map_entry->pattern;
+						} else {
+							$pairs[] = MapInventory::getFieldDefinitions($field)['description'] . ": " . $map_entry->$field;
+						}
 					}
 					$entry_str = implode(', ', $pairs);
 				}
