@@ -9,10 +9,6 @@
    <div class='detail'>{{ log.created_at }}</div>
  </div>
  <div class="row">
-   <div class='info'>Mail ID:</div>
-   <div class='detail'>{{ log.qid }}</div>
- </div>
- <div class="row">
    <div class='info'>Subject:</div>
    <div class='detail'>{{ log.subject }}</div>
  </div>
@@ -80,6 +76,10 @@ No
    <div class='detail'><span class='{{ white_black_class }}'>Yes</span></div>
  </div>
  {% endif %}
+ <div class="row">
+   <div class='info'>Mail ID:</div>
+   <div class='detail'>{{ log.qid }}</div>
+ </div>
  <div class="row">
    <div class='info'>Rspamd Symbols:</div>
    <div class='detail'>
