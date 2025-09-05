@@ -92,6 +92,8 @@ However, Rqwatch should run on any system with minor adjustments, as no exotic c
 
 - php-mbstring
 
+- php-xml
+
 - php-ldap
 
 - php-pecl-redis6
