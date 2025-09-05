@@ -42,7 +42,7 @@ class CustomBasicAuth implements AuthInterface {
 			} else {
 				$mode = "";
 			}
-			$this->logger->warning("Failed" . $mode . "Basic Auth user: '{$_SERVER['PHP_AUTH_USER']}'");
+			$this->logger->warning("Failed" . $mode . "Basic Auth user: '{$_SERVER['PHP_AUTH_USER']}' from '{$_SERVER['REMOTE_ADDR']}'");
 			sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 			$this->failAuth();
 		} else {
