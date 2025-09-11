@@ -386,7 +386,7 @@ class MapController extends ViewController
 			// entry already exists
 			// has applyUserRcptToScope
 			if ($service->mapEntryExists($model, $map, $fields, $data)) {
-				$this->flashbag->add('error', "Entry '{$entry_str}' already exists in Map {$mapdescr}");
+				$this->flashbag->add('error', "Entry '{$entry_str}' already exists in Map '{$mapdescr}'");
 				return new RedirectResponse($mapAddEntryUrl );
 			}
 
