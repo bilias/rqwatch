@@ -37,14 +37,14 @@ class ReleaseMailApi extends RqwatchApi
 	public function handle(): void {
 		$post = $this->request->request->all();
 
-		if (!array_key_exists('local_user', $post)) {
+		if (!array_key_exists('remote_user', $post)) {
 			$err_msg = "{$this->clientIp} requested mail release of mail with id {$id} without a calling user email";
 			$response_msg = "Missing Required info";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,
 				$err_msg, 'critical');
 		}
-		$remote_user = $post['local_user'];
+		$remote_user = $post['remote_user'];
 
 		if (!array_key_exists('id', $post)) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested mail release without a mail id";

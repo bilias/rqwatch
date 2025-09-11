@@ -40,7 +40,7 @@ class GetMailApi extends RqwatchApi
 
 	public function handle(): void {
 		$id = $this->request->request->get('id');
-		$remote_user = $this->request->request->get('local_user');
+		$remote_user = $this->request->request->get('remote_user');
 
 		if (empty($remote_user)) {
 			$err_msg = "{$this->clientIp} requested mail without a calling user email";

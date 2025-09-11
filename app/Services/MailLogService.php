@@ -577,7 +577,7 @@ class MailLogService
 
 		$data = array(
 			'id' => $id,
-			'local_user' => $this->email
+			'remote_user' => $this->email
 		);
 
 		$response = $apiClient->postWithAuth(
@@ -719,7 +719,7 @@ class MailLogService
 		return false;
 	}
 
-	public function releaseMailViaApi(array $release_to, int $id, string $api_server, string $local_user): bool {
+	public function releaseMailViaApi(array $release_to, int $id, string $api_server, string $remote_user): bool {
 		$lf = "[releaseMailViaApi]";
 
 		if (empty($id)) {
@@ -734,7 +734,7 @@ class MailLogService
 			$this->logger->error("{$lf} empty recipients");
 			return false;
 		}
-		if (empty($local_user)) {
+		if (empty($remote_user)) {
 			$this->logger->error("{$lf} empty local user email");
 			return false;
 		}
@@ -758,7 +758,7 @@ class MailLogService
 		$data = array(
 			'id' => $id,
 			'email' => $release_to,
-			'local_user' => $local_user,
+			'remote_user' => $remote_user,
 		);
 
 		$response = $apiClient->postWithAuth(
