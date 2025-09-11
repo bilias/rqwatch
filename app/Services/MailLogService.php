@@ -577,6 +577,7 @@ class MailLogService
 
 		$data = array(
 			'id' => $id,
+			'local_user' => $this->email
 		);
 
 		$response = $apiClient->postWithAuth(

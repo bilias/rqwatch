@@ -40,9 +40,18 @@ class GetMailApi extends RqwatchApi
 
 	public function handle(): void {
 		$id = $this->request->request->get('id');
+		$remote_user = $this->request->request->get('local_user');
+
+		if (empty($remote_user)) {
+			$err_msg = "{$this->clientIp} requested mail without a calling user email";
+			$response_msg = "Missing Required info";
+			$this->dropLogResponse(
+				Response::HTTP_BAD_REQUEST, $response_msg,
+				$err_msg, 'critical');
+		}
 
 		if (empty($id)) {
-			$err_msg = "{$this->clientIp} requested mail without a mail id";
+			$err_msg = "{$remote_user} via {$this->clientIp} requested mail without a mail id";
 			$response_msg = "Missing Required info";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,
@@ -50,18 +59,17 @@ class GetMailApi extends RqwatchApi
 		}
 		
 		$log = MailLog::find($id);
-		
+
 		if (empty($log)) {
-			$err_msg = "{$this->clientIp} requested mail with id {$id} which does no exist";
+			$err_msg = "{$remote_user} via {$this->clientIp} requested mail with id {$id} which does no exist";
 			$response_msg = "Message not found";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,
 				$err_msg, 'warning');
 		}
-		
 
 		if (!file_exists($log->mail_location)) {
-			$err_msg = "{$this->clientIp} requested mail {$log->qid} where local file '{$log->mail_location}' not found";
+			$err_msg = "{$remote_user} via {$this->clientIp} requested mail {$log->qid} where local file '{$log->mail_location}' not found";
 			$response_msg = "File '{$log->mail_location}' not found";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,
@@ -72,8 +80,8 @@ class GetMailApi extends RqwatchApi
 		$response = new BinaryFileResponse($log->mail_location);
 		$response->setStatusCode(Response::HTTP_OK);
 
-		$this->fileLogger->info("[{$this->logPrefix}] {$this->clientIp} requested mail {$log->qid}");
-		$this->syslogLogger->info("[{$this->logPrefix}] {$this->clientIp} requested mail {$log->qid}");
+		$this->fileLogger->info("[{$this->logPrefix}] '{$remote_user}' via '{$this->clientIp}' requested mail {$log->qid}");
+		$this->syslogLogger->info("[{$this->logPrefix}] '{$remote_user}' via '{$this->clientIp}' requested mail {$log->qid}");
 		$response->send();
 		exit;
 	}

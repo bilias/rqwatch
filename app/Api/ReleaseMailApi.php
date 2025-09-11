@@ -37,15 +37,6 @@ class ReleaseMailApi extends RqwatchApi
 	public function handle(): void {
 		$post = $this->request->request->all();
 
-		if (!array_key_exists('id', $post)) {
-			$err_msg = "{$this->clientIp} requested mail release without a mail id";
-			$response_msg = "Missing Required info";
-			$this->dropLogResponse(
-				Response::HTTP_BAD_REQUEST, $response_msg,
-				$err_msg, 'critical');
-		}
-		$id = $post['id'];
-		
 		if (!array_key_exists('local_user', $post)) {
 			$err_msg = "{$this->clientIp} requested mail release of mail with id {$id} without a calling user email";
 			$response_msg = "Missing Required info";
@@ -55,8 +46,17 @@ class ReleaseMailApi extends RqwatchApi
 		}
 		$remote_user = $post['local_user'];
 
+		if (!array_key_exists('id', $post)) {
+			$err_msg = "{$remote_user} via {$this->clientIp} requested mail release without a mail id";
+			$response_msg = "Missing Required info";
+			$this->dropLogResponse(
+				Response::HTTP_BAD_REQUEST, $response_msg,
+				$err_msg, 'critical');
+		}
+		$id = $post['id'];
+
 		if (!array_key_exists('email', $post)) {
-			$err_msg = "{$this->clientIp} requested mail release of mail with id {$id} without a destination email";
+			$err_msg = "{$remote_user} via {$this->clientIp} requested mail release of mail with id {$id} without a destination email";
 			$response_msg = "Missing Required info";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,
