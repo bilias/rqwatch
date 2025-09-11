@@ -820,6 +820,7 @@ class MailLogService
 		if ($send_mail) {
 			// these were modified just for producing the mail
 			// don't push changed back to DB. Needed for both save() and update()
+			unset($maillog->virus_name);
 			unset($maillog->virus_found);
 			unset($maillog->symbols);
 			/*
