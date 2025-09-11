@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#CREATE DATABASE /*!32312 IF NOT EXISTS*/ `rspamd` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
+#CREATE DATABASE /*!32312 IF NOT EXISTS*/ `rqwatch` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 
-USE `rspamd`;
+USE `rqwatch`;
 
 #DROP TABLE IF EXISTS `mail_aliases`;
 #DROP TABLE IF EXISTS `users`;
