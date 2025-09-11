@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-09-11
+- Log remote user releasing mail
 - Javascript on release form
 - Add Virus name in mail notifications
 

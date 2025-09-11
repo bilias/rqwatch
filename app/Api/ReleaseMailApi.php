@@ -46,6 +46,15 @@ class ReleaseMailApi extends RqwatchApi
 		}
 		$id = $post['id'];
 		
+		if (!array_key_exists('local_user', $post)) {
+			$err_msg = "{$this->clientIp} requested mail release of mail with id {$id} without a calling user email";
+			$response_msg = "Missing Required info";
+			$this->dropLogResponse(
+				Response::HTTP_BAD_REQUEST, $response_msg,
+				$err_msg, 'critical');
+		}
+		$remote_user = $post['local_user'];
+
 		if (!array_key_exists('email', $post)) {
 			$err_msg = "{$this->clientIp} requested mail release of mail with id {$id} without a destination email";
 			$response_msg = "Missing Required info";
@@ -58,7 +67,7 @@ class ReleaseMailApi extends RqwatchApi
 		$maillog = MailLog::find($id);
 		
 		if (empty($maillog)) {
-			$err_msg = "{$this->clientIp} requested release of mail with id {$id} which does no exist";
+			$err_msg = "{$remote_user} via {$this->clientIp} requested release of mail with id {$id} which does no exist";
 			$response_msg = "Message not found";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,
@@ -71,7 +80,7 @@ class ReleaseMailApi extends RqwatchApi
 			$runtime = $this->getRuntime();
 			$msg = "Message {$maillog->qid} released to '" .
 				implode(', ', $release_to) .
-				"' via {$this->logPrefix} by {$this->clientIp} | {$runtime}";
+				"' via {$this->logPrefix} from '{$remote_user}' by '{$this->clientIp}' | {$runtime}";
 		
 			$this->fileLogger->info($msg);
 			$this->syslogLogger->info($msg);

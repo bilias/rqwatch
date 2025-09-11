@@ -461,7 +461,11 @@ class MailLogController extends ViewController
 				}
 			// Mail stored in remote server. Call their API
 			} else {
-				$success = $service->releaseMailViaApi($release_to, $maillog->id, $maillog->server);
+				$success = $service->releaseMailViaApi(
+				   $release_to,
+					$maillog->id,
+					$maillog->server,
+					$this->session->get('email'));
 			}
 
 			if ($success) {
