@@ -683,18 +683,13 @@ class MailLogService
 		$subject = Config::get('release_mail_subject');
 
 		$ar = Helper::format_symbols($maillog->symbols, $maillog->score, $maillog->has_virus);
-		$virus_name = '';
-		if (!empty($ar['virus_found'])) {
-			$virus_name = $ar['virus_found'];
-		}
-
 		$vars = array(
 			'created_at' => $maillog->created_at,
 			'subject'    => $maillog->subject,
 			'qid'        => $maillog->qid,
 			'score'      => $maillog->score,
 			'has_virus'  => $maillog->has_virus,
-			'virus_name' => $virus_name,
+			'virus_name' => $ar['virus_found'],
 			'mime_from'  => $maillog->mime_from,
 			'rcpt_to'    => $maillog->rcpt_to,
 			'action'     => $maillog->action,
