@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-09-11
+- Javascript on release form
 - Add Virus name in mail notifications
 
 ### 2025-09-05

@@ -241,16 +241,28 @@ No
 
  <div class="row">
   <div class='info'>Release mail from quarantine</div>
-  <div class='detail'>{{ form_widget(mailreleaseform.release, {'disabled': mailreleaseform_disabled|default(false)}) }}
+  <div class='detail'>{{ form_widget(mailreleaseform.release, {
+    'disabled': mailreleaseform_disabled|default(false),
+    'id': 'release_checkbox'
+	 }) }}
   to original recipient: {{ form_widget(mailreleaseform.email) }}
   {{ form_errors(mailreleaseform.release) }}</div>
   <div class='info'>&nbsp;</div>
-  <div class='detail'>{{ form_widget(mailreleaseform.release_alt, {'disabled': mailreleaseform_disabled|default(false)}) }}
-  to alternate recipient: {{ form_widget(mailreleaseform.email_alt, {'disabled': mailreleaseform_disabled|default(false)}) }}
+  <div class='detail'>{{ form_widget(mailreleaseform.release_alt, {
+    'disabled': mailreleaseform_disabled|default(false),
+	 'id': 'release_alt_checkbox'
+	 }) }}
+  to alternate recipient: {{ form_widget(mailreleaseform.email_alt, {
+    'disabled': mailreleaseform_disabled|default(false),
+    'id': 'release_alt_value'
+	 }) }}
   {{ form_errors(mailreleaseform.release_alt) }}
   {{ form_errors(mailreleaseform.email_alt) }}</div>
   <div class='info'>&nbsp;</div>
-  <div class='detail'>{{ form_widget(mailreleaseform.submit, {'disabled': mailreleaseform_disabled|default(false)}) }}
+  <div class='detail'>{{ form_widget(mailreleaseform.submit, {
+    'disabled': mailreleaseform_disabled|default(false),
+    'id': 'submit_button'
+	 }) }}
 {% if mailreleaseform_disabled %}
 {% if is_admin %}
 <span style="color: red;">$mail_from is empty. Please define it in config.local.php</span>
@@ -282,5 +294,30 @@ Mail cannot be released. Contact administrator
       if (btn) btn.textContent = 'Show';
     }
   }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const release = document.getElementById('release_checkbox');
+    const releaseAlt = document.getElementById('release_alt_checkbox');
+    const releaseAltValue = document.getElementById('release_alt_value');
+    const submitBtn = document.getElementById('submit_button');
+
+    function toggleSubmit() {
+        const altHasValue = releaseAltValue.value && releaseAltValue.value.trim() !== '';
+
+        if (release.checked || (releaseAlt.checked && altHasValue)) {
+            submitBtn.disabled = false;
+        } else {
+            submitBtn.disabled = true;
+        }
+    }
+
+    // Run once on load
+    toggleSubmit();
+
+    // Watch for changes
+    release.addEventListener('change', toggleSubmit);
+    releaseAlt.addEventListener('change', toggleSubmit);
+    releaseAltValue.addEventListener('input', toggleSubmit);
+});
 </script>
 {% endblock %}
