@@ -798,6 +798,7 @@ class MailLogService
 			'qid'        => $maillog->qid,
 			'score'      => $maillog->score,
 			'has_virus'  => $maillog->has_virus,
+			'virus_name' => $maillog->virus_name,
 			'mime_from'  => $maillog->mime_from,
 			'rcpt_to'    => $maillog->rcpt_to,
 			'action'     => $maillog->action,

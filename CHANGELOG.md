@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-09-11
+- Add Virus name in mail notifications
+
 ### 2025-09-05
 - Minor fixes
 
