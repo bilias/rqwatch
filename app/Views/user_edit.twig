@@ -27,10 +27,7 @@
 <div class='info'>   {{ form_label(userform.username) }}</div>
 <div class='detail'>
 {% if user_auth_provider %}
-{{ form_widget(userform.username, { 'attr': {
-   'readonly': 'readonly',
-   'disabled': 'disabled',
-} }) }} (disabled for external users)
+{{ form_widget(userform.username, { 'attr': { 'readonly': 'readonly' } }) }} (disabled for external users)
 {% else %}
 {{ form_widget(userform.username) }}
 {% endif %}
@@ -40,10 +37,7 @@
 <div class='info'>   {{ form_label(userform.email) }}</div>
 <div class='detail'>
 {% if user_auth_provider %}
-{{ form_widget(userform.email, { 'attr': {
-   'readonly': 'readonly',
-   'disabled': 'disabled'
-} }) }} (disabled for external users)
+{{ form_widget(userform.email, { 'attr': { 'readonly': 'readonly' } }) }} (disabled for external users)
 {% else %}
 {{ form_widget(userform.email) }}
 {% endif %}
@@ -63,10 +57,7 @@
 <div class='info'>  {{ form_label(userform.password.first) }}</div>
 <div class='detail'>
 {% if user_auth_provider %}
-{{ form_widget(userform.password.first, { 'attr': {
-   'readonly': 'readonly',
-   'disabled': 'disabled'
-} }) }} (disabled for external users)
+{{ form_widget(userform.password.first, { 'attr': { 'readonly': 'readonly' } }) }} (disabled for external users)
 {% else %}
 {{ form_widget(userform.password.first) }}
 {% endif %}
@@ -76,10 +67,7 @@
 <div class='info'>  {{ form_label(userform.password.second) }}</div>
 <div class='detail'>
 {% if user_auth_provider %}
-{{ form_widget(userform.password.second, { 'attr': {
-   'readonly': 'readonly',
-   'disabled': 'disabled'
-} }) }} (disabled for external users)
+{{ form_widget(userform.password.second, { 'attr': { 'readonly': 'readonly' } }) }} (disabled for external users)
 {% else %}
 {{ form_widget(userform.password.second) }}
 {% endif %}
