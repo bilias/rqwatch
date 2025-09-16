@@ -32,10 +32,10 @@
    ({{ ip_country }})
   {% endif%}
   {% if map_configs['ip_whitelist']['add_url'] %}
-   <br/><a href='{{ map_configs['ip_whitelist']['add_url'] }}'>Add to '{{  map_configs['ip_whitelist']['description'] }}'</a>
+   <br/><a class='whitelist' href='class="whitelist" {{ map_configs['ip_whitelist']['add_url'] }}'>Add to '{{  map_configs['ip_whitelist']['description'] }}'</a>
   {% endif %}
   {% if map_configs['ip_blacklist']['add_url'] %}
-   |<a href='{{ map_configs['ip_blacklist']['add_url'] }}'>Add to '{{  map_configs['ip_blacklist']['description'] }}'</a>
+   |<a class='blacklist' href='{{ map_configs['ip_blacklist']['add_url'] }}'>Add to '{{  map_configs['ip_blacklist']['description'] }}'</a>
   {% endif %}
 {% endif %}
    </div>
@@ -66,17 +66,17 @@
    <div class='detail'>{{ log.mail_from }}
 	{% if is_admin %}
     {% if map_configs['mail_from_whitelist']['add_url'] %}
-	  <br/><a href='{{ map_configs['mail_from_whitelist']['add_url'] }}'>Add to '{{ map_configs['mail_from_whitelist']['description'] }}'</a>
+	  <br/><a class='whitelist' href='{{ map_configs['mail_from_whitelist']['add_url'] }}'>Add to '{{ map_configs['mail_from_whitelist']['description'] }}'</a>
 	 {% endif %}
     {% if map_configs['mail_from_blacklist']['add_url'] %}
-	  |<a href='{{ map_configs['mail_from_blacklist']['add_url'] }}'>Add to '{{ map_configs['mail_from_blacklist']['description'] }}'</a>
+	  |<a class='blacklist' href='{{ map_configs['mail_from_blacklist']['add_url'] }}'>Add to '{{ map_configs['mail_from_blacklist']['description'] }}'</a>
 	 {% endif %}
 	{% endif %}
    {% if map_configs['mail_from_rcpt_to_whitelist']['add_url'] %}
-	 |<a href='{{ map_configs['mail_from_rcpt_to_whitelist']['add_url'] }}'>Add to '{{ map_configs['mail_from_rcpt_to_whitelist']['description'] }}'</a>
+	 |<a class='whitelist' href='{{ map_configs['mail_from_rcpt_to_whitelist']['add_url'] }}'>Add to '{{ map_configs['mail_from_rcpt_to_whitelist']['description'] }}'</a>
 	{% endif %}
    {% if map_configs['mail_from_rcpt_to_blacklist']['add_url'] %}
-	 |<a href='{{ map_configs['mail_from_rcpt_to_blacklist']['add_url'] }}'>Add to '{{ map_configs['mail_from_rcpt_to_blacklist']['description'] }}'</a>
+	 |<a class='blacklist' href='{{ map_configs['mail_from_rcpt_to_blacklist']['add_url'] }}'>Add to '{{ map_configs['mail_from_rcpt_to_blacklist']['description'] }}'</a>
 	{% endif %}
 	</div>
  </div>
@@ -89,17 +89,17 @@
    <div class='detail'>{{ log.mime_from }}
 	{% if is_admin %}
     {% if map_configs['mime_from_whitelist']['add_url'] %}
-	  <br/><a href='{{ map_configs['mime_from_whitelist']['add_url'] }}'>Add to '{{ map_configs['mime_from_whitelist']['description'] }}'</a>
+	  <br/><a class='whitelist' href='{{ map_configs['mime_from_whitelist']['add_url'] }}'>Add to '{{ map_configs['mime_from_whitelist']['description'] }}'</a>
 	 {% endif %}
     {% if map_configs['mime_from_blacklist']['add_url'] %}
-	  |<a href='{{ map_configs['mime_from_blacklist']['add_url'] }}'>Add to '{{ map_configs['mime_from_blacklist']['description'] }}'</a>
+	  |<a class='blacklist' href='{{ map_configs['mime_from_blacklist']['add_url'] }}'>Add to '{{ map_configs['mime_from_blacklist']['description'] }}'</a>
 	 {% endif %}
 	{% endif %}
    {% if map_configs['mime_from_rcpt_to_whitelist']['add_url'] %}
-	 |<a href='{{ map_configs['mime_from_rcpt_to_whitelist']['add_url'] }}'>Add to '{{ map_configs['mime_from_rcpt_to_whitelist']['description'] }}'</a>
+	 |<a class='whitelist' href='{{ map_configs['mime_from_rcpt_to_whitelist']['add_url'] }}'>Add to '{{ map_configs['mime_from_rcpt_to_whitelist']['description'] }}'</a>
 	{% endif %}
    {% if map_configs['mime_from_rcpt_to_blacklist']['add_url'] %}
-	 |<a href='{{ map_configs['mime_from_rcpt_to_blacklist']['add_url'] }}'>Add to '{{ map_configs['mime_from_rcpt_to_blacklist']['description'] }}'</a>
+	 |<a class='blacklist' href='{{ map_configs['mime_from_rcpt_to_blacklist']['add_url'] }}'>Add to '{{ map_configs['mime_from_rcpt_to_blacklist']['description'] }}'</a>
 	{% endif %}
    </div>
  </div>

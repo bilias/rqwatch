@@ -358,6 +358,14 @@ a.stored {
 	display: inline-block;
 }
 
+a.whitelist {
+	background-color: var(--color-mail-whitelist);
+}
+
+a.blacklist {
+	background-color: var(--color-mail-blacklist);
+}
+
 span.stored {
 	background-color: orange;
 	display: inline-block;
