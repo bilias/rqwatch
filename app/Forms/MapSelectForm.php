@@ -57,7 +57,7 @@ class MapSelectForm extends AbstractType
 			}
 		}
 
-		$choices = ['All Maps' => 'all'] + $choices;
+		$choices = ['All Map Entries' => 'all'] + $choices;
 
 		$builder
 			->add('map_name', ChoiceType::class, [
