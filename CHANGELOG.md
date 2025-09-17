@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## v1.6.2 - Released: 2025-09-17
+
 ### 2025-09-11
 - Log remote user reading mail
 - Log remote user releasing mail
