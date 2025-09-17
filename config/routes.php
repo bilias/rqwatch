@@ -274,6 +274,12 @@ $routes->add('admin_map_add_entry', new Route(
     [ 'map' => '[a-zA-Z_]{1,64}' ]
 ));
 
+$routes->add('admin_custom_map_add_entry', new Route(
+    '/admin/custom_map/{map}/add', // path
+    [ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
+    [ 'map' => '[a-zA-Z_]{1,64}' ]
+));
+
 $routes->add('map_add_entry', new Route(
     '/user/map/{map}/add', // path
     [ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
@@ -353,6 +359,7 @@ $middlewareMap = [
 	'admin_map_show' => $adminMiddlewareClasses,
 	'map_show' => $userMiddlewareClasses,
 	'admin_map_add_entry' => $adminMiddlewareClasses,
+	'admin_custom_map_add_entry' => $adminMiddlewareClasses,
 	'map_add_entry' => $userMiddlewareClasses,
 	'admin_map_del_entry' => $adminMiddlewareClasses,
 	'map_del_entry' => $userMiddlewareClasses,
