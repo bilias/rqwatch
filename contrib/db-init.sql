@@ -95,6 +95,19 @@ CREATE TABLE maps_custom (
   INDEX map_name_index (map_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+#DROP TABLE IF EXISTS `custom_map_config`;
+CREATE TABLE custom_map_config (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  map_name VARCHAR(64) NOT NULL,   -- e.g. body_regex, url_regex, subject_regex
+  field_name TEXT NOT NULL,        -- field name
+  field_label TEXT NOT NULL,       -- field description
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  -- Indexes:
+  INDEX map_name_index (map_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 #DROP TABLE IF EXISTS `mail_logs`;
 
 CREATE TABLE `mail_logs` (
