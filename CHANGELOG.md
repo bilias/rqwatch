@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## v1.6.3 - Released: 2025-09-18
+
 ### 2025-09-18
 - Custom Maps
 
