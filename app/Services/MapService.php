@@ -16,7 +16,11 @@ use App\Utils\FormHelper;
 
 use App\Models\MapCombined;
 use App\Models\MapGeneric;
+use App\Models\MapCustom;
+use App\Models\CustomMapConfig;
 use App\Models\MapActivityLog;
+
+use App\Inventory\MapInventory;
 
 use Psr\Log\LoggerInterface;
 
@@ -51,40 +55,6 @@ class MapService
 		$this->max_items = Config::get('max_items');
 	}
 
-	public static function getSqlFromQuery(Builder $query): string {
-		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
-	}
-
-	public function getMapCombinedBasicQuery(string $map_name, array $map_fields): Builder {
-		$select_fields = array_merge(MapCombined::SELECT_FIELDS, $map_fields);
-
-		$query = MapCombined::select($select_fields)
-								  ->where('map_name', $map_name)
-								  ->orderBy('updated_at', 'DESC');
-
-		foreach ($map_fields as $field) {
-			$query = $query->whereNotNull($field);
-		}
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		return $query;
-	}
-
-	public function getMapGenericQuery(string $map_name): Builder {
-		$query = MapGeneric::select(MapGeneric::SELECT_FIELDS)
-								  ->where('map_name', $map_name)
-								  ->orderBy('updated_at', 'DESC');
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		return $query;
-	}
-
 	protected function applyUserRcptToScope($query): Builder {
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
@@ -112,6 +82,98 @@ class MapService
 		// Combine primary email with mail aliases
 		$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
 		return $query->whereIn('rcpt_to', $emails);
+	}
+
+	public static function getSqlFromQuery(Builder $query): string {
+		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
+	}
+
+	public function getMapCombinedBasicQuery(string $map_name, array $map_fields): Builder {
+		$select_fields = array_merge(MapCombined::SELECT_FIELDS, $map_fields);
+
+		$query = MapCombined::select($select_fields)
+								  ->where('map_name', $map_name)
+								  ->orderBy('updated_at', 'DESC');
+
+		foreach ($map_fields as $field) {
+			$query = $query->whereNotNull($field);
+		}
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		return $query;
+	}
+
+	public function getMapCombinedQuery(string $map_name, array $map_fields): Builder {
+		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
+
+		$query = $query->with(['user' => function ($query) {
+							  $query->select('id', 'username', 'email');
+							}]);
+
+		$query = $this->applyUserRcptToScope($query);
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+		return $query;
+	}
+
+	public function getMapGenericQuery(string $map_name): Builder {
+		$query = MapGeneric::select(MapGeneric::SELECT_FIELDS)
+								  ->where('map_name', $map_name)
+								  ->orderBy('updated_at', 'DESC');
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		return $query;
+	}
+
+	public function getMapCustomQuery(string $map_name): Builder {
+		$query = MapCustom::select(MapCustom::SELECT_FIELDS)
+								  ->where('map_name', $map_name)
+								  ->orderBy('updated_at', 'DESC');
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		return $query;
+	}
+
+	public static function getCustomMapConfigs(): Collection {
+		$query = CustomMapConfig::select(CustomMapConfig::SELECT_FIELDS)
+								  ->orderBy('map_name', 'ASC')
+								  ->orderBy('updated_at', 'DESC');
+
+		try {
+			$maps = $query
+				->get();
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $maps;
+	}
+
+	public static function getCustomField(string $map_name): array {
+		$query = CustomMapConfig::select('field_name', 'field_label')
+								  ->where('map_name', $map_name);
+
+		try {
+			$field = $query
+				->first()->toArray();
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $field;
 	}
 
 	public function showPaginatedAllMapCombined(int $page = 1, string $url, ?array $filter_maps): ?LengthAwarePaginator {
@@ -166,19 +228,75 @@ class MapService
 		return $map_entries;
 	}
 
-	public function getMapCombinedQuery(string $map_name, array $map_fields): Builder {
-		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
-
-		$query = $query->with(['user' => function ($query) {
-							  $query->select('id', 'username', 'email');
-							}]);
-
-		$query = $this->applyUserRcptToScope($query);
+	public function showPaginatedAllMapCustom(int $page = 1, string $url): ?LengthAwarePaginator {
+		$query = MapCustom::select('*')
+								  ->orderBy('map_name', 'ASC')
+								  ->orderBy('updated_at', 'DESC');
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
-		return $query;
+
+		try {
+			$map_entries = $query
+				->paginate($this->items_per_page, ['*'], 'page', $page)
+				->withPath($url);
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $map_entries;
+	}
+
+	public function showPaginatedCustomMapConfigs(int $page = 1, string $url): ?LengthAwarePaginator {
+		$query = CustomMapConfig::select('*')
+								  ->orderBy('map_name', 'ASC')
+								  ->orderBy('updated_at', 'DESC');
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		try {
+			$map_configs = $query
+				->paginate($this->items_per_page, ['*'], 'page', $page)
+				->withPath($url);
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $map_configs;
+	}
+
+	public function showMapCustom(string $map_name): Collection {
+		$query = $this->getMapCustomQuery($map_name);
+
+		try {
+			$map = $query
+				->get();
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $map;
+	}
+
+	public function showPaginatedMapCustom(string $map_name, int $page = 1, string $url): ?LengthAwarePaginator {
+		$query = $this->getMapCustomQuery($map_name);
+
+		try {
+			$map = $query
+				->paginate($this->items_per_page, ['*'], 'page', $page)
+				->withPath($url);
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $map;
 	}
 
 	public function showMapGeneric(string $map_name): Collection {
@@ -248,6 +366,9 @@ class MapService
 		} else if ($model === 'MapGeneric') {
 			$query = $this->getMapGenericQuery($map_name);
 			$query = $query->where('pattern', $data[$map_fields[0]]);
+		} else if ($model === 'MapCustom') {
+			$query = $this->getMapCustomQuery($map_name);
+			$query = $query->where('pattern', $data[$map_fields[0]]);
 		} else {
 			throw new \RuntimeException("Unknown map model");
 		}
@@ -264,6 +385,71 @@ class MapService
 		return $query->exists();
 	}
 
+	public function mapExists(string $map_name): bool {
+		$map_configs = MapInventory::getMapConfigs();
+
+		foreach ($map_configs as $map => $map_config) {
+			if (strtolower(trim($map)) === strtolower(trim($map_name))) {
+				return true;
+			}
+			// this name works as a link for management. deny
+			if (strtolower(trim($map_name)) === 'manage_custom_maps') {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static function delMapActivityLog(string $map_name): bool {
+		$log = MapActivityLog::find($map_name);
+
+		if (!$log) {
+			return true;
+		}
+		if ($log->delete($map_name)) {
+			return true;
+		}
+		return false;
+	}
+
+	// deletes entrys from activity log if not found in config
+	// delete map files if not found in config
+	public function syncMaps(): void {
+		// Get maps from config. Source of truth
+		$configs = MapInventory::getMapConfigs();
+		$validMapNames = array_keys($configs);
+
+		// Get maps from activity logs (DB)
+		$dbMapNames = MapActivityLog::pluck('map_name')->toArray();
+
+		// Add missing maps from config into activity log and create map file
+		$missingInDb = array_diff($validMapNames, $dbMapNames);
+		foreach ($missingInDb as $mapName) {
+			$this->updateMapActivityLog($mapName, date("Y-m-d H:i:s"));
+		}
+
+		// Delete DB entries not in config
+		$extraInDb = array_diff($dbMapNames, $validMapNames);
+		if (!empty($extraInDb)) {
+			MapActivityLog::whereIn('map_name', $extraInDb)->delete();
+		}
+
+		// Delete leftovers map files not in config
+		$mapDir = rtrim(Config::get('MAP_DIR'), DIRECTORY_SEPARATOR);
+		if (!is_dir($mapDir)) {
+			throw new \RuntimeException("Map directory not found: {$mapDir}");
+		}
+
+		$files = glob($mapDir . DIRECTORY_SEPARATOR . '*.txt');
+		foreach ($files as $filePath) {
+			$fileName = pathinfo($filePath, PATHINFO_FILENAME); // map name
+			if (!in_array($fileName, $validMapNames, true)) {
+				unlink($filePath);
+			}
+		}
+	}
+
 	public function updateMapActivityLog(string $map_name, string $last_update): bool {
 		$map_activity_log = MapActivityLog::firstOrNew(['map_name' => $map_name]);
 		$map_activity_log->last_changed_at = $last_update;
@@ -273,6 +459,20 @@ class MapService
 		}
 		return false;
 	}
+
+	 public static function delMapFile(string $map_name): bool {
+		$map_dir = Config::get('MAP_DIR');
+		$map_file = rtrim($map_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $map_name . ".txt";
+
+		if (!file_exists($map_file)) {
+			return true;
+		}
+
+		if (unlink($map_file)) {
+			return true;
+		}
+		return false;
+	 }
 
 	 public function updateMapFile(
 		string $model,
@@ -307,6 +507,18 @@ class MapService
 			}
 		} elseif ($model === 'MapGeneric') {
 			$query = $this->getMapGenericQuery($map_name);
+			$map_entries = $query->get()->toArray();
+			foreach ($map_entries as $row) {
+				// Skip if 'pattern' is missing or empty
+				if (empty($row['pattern'])) {
+					continue;
+				}
+				$pattern = $row['pattern'];
+				$score = $row['score'] ?? '';
+				$lines[] = trim("$pattern $score");
+			}
+		} elseif ($model === 'MapCustom') {
+			$query = $this->getMapCustomQuery($map_name);
 			$map_entries = $query->get()->toArray();
 			foreach ($map_entries as $row) {
 				// Skip if 'pattern' is missing or empty
@@ -435,6 +647,113 @@ class MapService
 		return true;
 	}
 
+	public function addMapCustomEntry(string $map_name, string $pattern): bool {
+		if (empty($pattern)) {
+			$this->logger->error("Empty map pattern");
+			return false;
+		}
+
+		$pattern = trim($pattern);
+
+		// update map table in DB
+		$mapcustom = new MapCustom();
+		$data = array(
+			'map_name' => $map_name,
+			'pattern' => $pattern
+		);
+
+		$mapcustom->fill($data);
+		if (!$mapcustom->save()) {
+			return false;
+		}
+
+		$last_update = date("Y-m-d H:i:s");
+
+		// update map file
+		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
+			return false;
+		}
+
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function addCustomMapConfig(array $data): bool {
+		if (empty($data)) {
+			$this->logger->error("Empty map data in addCustomMapConfig");
+			return false;
+		}
+
+		if (empty($data['map_name'])) {
+			$this->logger->error("Empty map_name in addCustomMapConfig");
+			return false;
+		}
+		$map_name = $data['map_name'];
+
+		$customMapConfig = new CustomMapConfig();
+
+		$customMapConfig->fill($data);
+		if (!$customMapConfig->save()) {
+			return false;
+		}
+
+		$last_update = date("Y-m-d H:i:s");
+
+		// update map file
+		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
+			$this->logger->error("Error updating map file for '{$map_name}' in addCustomMapConfig");
+			return false;
+		}
+
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			$this->logger->error("Error updating map activity log for '{$map_name}' in addCustomMapConfig");
+			return false;
+		}
+
+		return true;
+	}
+
+	public function delCustomMap(int $id): bool {
+		if (is_null($id) or !is_int($id)) {
+			return false;
+		}
+
+		$custom_map = CustomMapConfig::find($id);
+		if (is_null($custom_map)) {
+			return false;
+		}
+
+		// delete map entries
+		foreach ($custom_map->MapsCustom as $map_entry) {
+			// delete map entry from db
+			if (!$map_entry->delete()) {
+				return false;
+			}
+		}
+
+		// delete map from activity log
+		if (!self::delMapActivityLog($custom_map->map_name)) {
+			return false;
+		}
+
+		// XXX test for left overs
+		// delete map file if it exists
+		//if (!self::delMapFile($custom_map->map_name)) {
+		//	return false;
+		//}
+
+		if (!$custom_map->delete()) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public function delMapEntry(string $model, string $map_name, array $map_fields, int $id): bool {
 		if (is_null($id) or !is_int($id)) {
 			return false;
@@ -458,6 +777,9 @@ class MapService
 		} else if ($model === 'MapGeneric') {
 			$query = $this->getMapGenericQuery($map_name);
 			$query = $query->where('id', $id);
+		} else if ($model === 'MapCustom') {
+			$query = $this->getMapCustomQuery($map_name);
+			$query = $query->where('id', $id);
 		} else {
 			return false;
 		}
@@ -473,7 +795,7 @@ class MapService
 			return false;
 		}
 
-		// deleted entry from map table db
+		// delete map entry from db
 		if (!$map_entry->delete()) {
 			return false;
 		}

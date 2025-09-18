@@ -99,6 +99,7 @@ CREATE TABLE maps_custom (
 CREATE TABLE custom_map_config (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   map_name VARCHAR(64) NOT NULL,   -- e.g. body_regex, url_regex, subject_regex
+  map_description VARCHAR(128) NOT NULL, -- map description
   field_name TEXT NOT NULL,        -- field name
   field_label TEXT NOT NULL,       -- field description
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

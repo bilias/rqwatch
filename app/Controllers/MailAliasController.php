@@ -157,7 +157,7 @@ class MailAliasController extends ViewController
 	}
 
 	public function edit(int $id): Response {
-		// not complete, not used
+		// XXX NOT COMPLETE, NOT USED
 		exit;
 		// enable form rendering support
 		$this->twigFormView($this->request);
@@ -241,7 +241,6 @@ class MailAliasController extends ViewController
 			'error' => $error,
 			'qidform' => $qidform->createView(),
 			'mailaliasform' => $mailaliasform->createView(),
-			'userdelform' => $userdelform,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->session->get('is_admin'),

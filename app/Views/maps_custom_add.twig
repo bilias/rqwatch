@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+
+{% if mapselectform or mapselectform2 or mapselectform3 %}
+<div class="center-container">
+ {% include 'partials/map_select.base.twig' %}
+</div>
+{% endif %}
+
+{% if mapform %}
+<div class='userform'>
+<span class='descr'>Add Custom Map</span>
+
+<div class='formuser'>
+{{ form_start(mapform) }}
+
+<div class='user_errors'>
+{% if error %}
+{{ error }}
+{% endif %}
+{{ form_errors(mapform) }}
+</div>
+
+<div class="row">
+<div class='info'>{{ form_label(mapform.map_name) }}</div>
+<div class='detail'>{{ form_widget(mapform.map_name) }}
+   {{ form_errors(mapform.map_name) }}</div>
+</div>
+<div class="row">
+<div class='info'>{{ form_label(mapform.map_description) }}</div>
+<div class='detail'>{{ form_widget(mapform.map_description) }}
+   {{ form_errors(mapform.map_description) }}</div>
+</div>
+<div class="row">
+<div class='info'>{{ form_label(mapform.field_name) }}</div>
+<div class='detail'>{{ form_widget(mapform.field_name) }}
+   {{ form_errors(mapform.field_name) }}</div>
+</div>
+<div class="row">
+<div class='info'>{{ form_label(mapform.field_label) }}</div>
+<div class='detail'>{{ form_widget(mapform.field_label) }}
+   {{ form_errors(mapform.field_label) }}</div>
+</div>
+<div class="row btn">
+   {{ form_widget(mapform.add) }}
+</div>
+
+{{ form_end(mapform) }}
+</div>
+
+</div>
+{% endif %}
+{% endblock %}

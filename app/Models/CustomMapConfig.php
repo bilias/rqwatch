@@ -11,6 +11,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use Illuminate\Database\Eloquent\Builder;
 
@@ -27,6 +28,7 @@ class CustomMapConfig extends Model
 	protected $casts = [
 		'id' => 'integer',
 		'map_name' => 'string',
+		'map_description' => 'string',
 		'field_name' => 'string',
 		'field_label' => 'string',
 		'created_at' => 'datetime',
@@ -35,6 +37,7 @@ class CustomMapConfig extends Model
 
 	protected $fillable = [
 		'map_name',
+		'map_description',
 		'field_name',
 		'field_label',
 	];
@@ -42,9 +45,15 @@ class CustomMapConfig extends Model
 	public const SELECT_FIELDS = [
 		'id',
 		'map_name',
+		'map_description',
 		'field_name',
 		'field_label',
 		'created_at',
 	];
+
+	public function MapsCustom(): HasMany {
+		// map_name: foreign_key, local_key
+		return $this->hasMany(MapCustom::class, 'map_name', 'map_name')->orderBy('map_name', 'ASC');
+	}
 
 }

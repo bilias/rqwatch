@@ -31,6 +31,9 @@ use App\Forms\MapMimeFromForm;
 use App\Forms\MapIpForm;
 use App\Forms\MapUrlForm;
 use App\Forms\MapEmailForm;
+use App\Forms\MapWithCustomFieldForm;
+
+use App\Services\MapService;
 
 class MapInventory
 {
@@ -155,8 +158,24 @@ class MapInventory
 				'map_form' => MapEmailForm::class,
 				'access' => ['admin'],
 			],
-			// Add more maps here...
+			// Add more local maps here...
 		];
+
+		// add custom map configs from db in config
+		$custom_map_configs = MapService::getCustomMapConfigs();
+
+		// we have custom maps
+		if ($custom_map_configs->count() > 0) {
+			$custom_configs = array();
+			foreach ($custom_map_configs as $cmf) {
+				$custom_configs[$cmf->map_name]['model'] = 'MapCustom';
+				$custom_configs[$cmf->map_name]['description'] = $cmf->map_description;
+				$custom_configs[$cmf->map_name]['fields'] = [$cmf->field_name];
+				$custom_configs[$cmf->map_name]['map_form'] = MapWithCustomFieldForm::class;
+				$custom_configs[$cmf->map_name]['access'] = ['admin'];
+			}
+			$configs = array_merge($configs, $custom_configs);
+		}
 
 		// Check each config has required non-null fields
 		$requiredFields = ['model', 'fields', 'map_form', 'access'];
@@ -262,6 +281,18 @@ class MapInventory
 					],
 				],
 			],
+			'custom' => [
+				'description' => 'Custom Field', // overriden in custom_map_config
+				'type' => TextType::class,
+				'field_options' => [
+					'label' => 'Custom Field:',   // overriden in custom_map_config
+					'required' => true,
+					'attr' => ['class' => 'uniform-input'],
+					'constraints' => [
+						new NotBlank(),
+					],
+				],
+			],
 			// Add more fields here...
 		];
 
@@ -281,6 +312,7 @@ class MapInventory
 		?string $map = null
 	): array {
 
+		// local map configs
 		$configs = self::getMapConfigs();
 
 		// map exists in config

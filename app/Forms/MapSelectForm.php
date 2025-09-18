@@ -59,6 +59,10 @@ class MapSelectForm extends AbstractType
 
 		$choices = ['All Map Entries' => 'all'] + $choices;
 
+		if ($options['model'] === 'MapCustom') {
+			$choices = ['Manage Custom Maps' => 'manage_custom_maps'] + $choices;
+		}
+
 		$builder
 			->add('map_name', ChoiceType::class, [
 				'label' => 'Maps:',
@@ -93,8 +97,8 @@ class MapSelectForm extends AbstractType
 
 			if ($is_admin) {
 				if ($map === 'all') {
-					// handle MapGeneric
-					if ($model === 'MapGeneric') {
+					// handle MapGeneric and MapCustom
+					if (($model === 'MapGeneric') || ($model === 'MapCustom')) {
 						$url = $urlGenerator->generate('admin_map_show_all', ['model' => $model]);
 					// default to MapCombined
 					} else {

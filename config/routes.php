@@ -250,6 +250,24 @@ $routes->add('admin_map_show_all', new Route(
     [ 'model' => '[a-zA-Z_]{1,64}' ]
 ));
 
+$routes->add('admin_maps_custom_show', new Route(
+    '/admin/maps/custom', // path
+    [ '_controller' => 'App\\Controllers\\MapController::showCustomMaps', ], // defaults
+    [ ]
+));
+
+$routes->add('admin_maps_custom_add', new Route(
+    '/admin/maps/custom/add', // path
+    [ '_controller' => 'App\\Controllers\\MapController::addCustomMap', ], // defaults
+    [ ]
+));
+
+$routes->add('admin_maps_custom_del', new Route(
+    '/admin/maps/custom/del/{id}', // path
+    [ '_controller' => 'App\\Controllers\\MapController::delCustomMap', ], // defaults
+    [ 'id' => '\d{1,8}']
+));
+
 $routes->add('map_show_all', new Route(
     '/user/map/all', // path
     [ '_controller' => 'App\\Controllers\\MapController::showAllMaps', ], // defaults
@@ -259,7 +277,7 @@ $routes->add('map_show_all', new Route(
 $routes->add('admin_map_show', new Route(
     '/admin/map/{map}', // path
     [ '_controller' => 'App\\Controllers\\MapController::showMap', ], // defaults
-    [ 'map' => '[a-zA-Z_]{1,64}' ]
+    [ 'map' => '[a-zA-Z_0-9]{1,64}' ]
 ));
 
 $routes->add('map_show', new Route(
@@ -271,13 +289,7 @@ $routes->add('map_show', new Route(
 $routes->add('admin_map_add_entry', new Route(
     '/admin/map/{map}/add', // path
     [ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
-    [ 'map' => '[a-zA-Z_]{1,64}' ]
-));
-
-$routes->add('admin_custom_map_add_entry', new Route(
-    '/admin/custom_map/{map}/add', // path
-    [ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
-    [ 'map' => '[a-zA-Z_]{1,64}' ]
+    [ 'map' => '[a-zA-Z_0-9]{1,64}' ]
 ));
 
 $routes->add('map_add_entry', new Route(
@@ -289,7 +301,7 @@ $routes->add('map_add_entry', new Route(
 $routes->add('admin_map_del_entry', new Route(
     '/admin/map/{map}/del/{id}', // path
     [ '_controller' => 'App\\Controllers\\MapController::delMapEntry', ], // defaults
-    [ 'map' => '[a-zA-Z_]{1,64}', 'id' => '\d{1,8}' ]
+    [ 'map' => '[a-zA-Z_0-9]{1,64}', 'id' => '\d{1,8}' ]
 ));
 
 $routes->add('map_del_entry', new Route(
@@ -359,9 +371,11 @@ $middlewareMap = [
 	'admin_map_show' => $adminMiddlewareClasses,
 	'map_show' => $userMiddlewareClasses,
 	'admin_map_add_entry' => $adminMiddlewareClasses,
-	'admin_custom_map_add_entry' => $adminMiddlewareClasses,
 	'map_add_entry' => $userMiddlewareClasses,
 	'admin_map_del_entry' => $adminMiddlewareClasses,
+	'admin_maps_custom_show' => $adminMiddlewareClasses,
+	'admin_maps_custom_add' => $adminMiddlewareClasses,
+	'admin_maps_custom_del' => $adminMiddlewareClasses,
 	'map_del_entry' => $userMiddlewareClasses,
 ];
 

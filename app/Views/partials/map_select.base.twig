@@ -8,14 +8,22 @@
 {% endif %}
 
 {% if is_admin %}
-{% if mapselectform2 %}
-{# Include again, now overriding the variable for the include only #}
-{% set selectlabel = 'Generic' %}
-{% set mapselectform = mapselectform2 %}
-<div class="mapform-wrapper">
- {% include 'partials/map_select.html.twig' %}
-</div>
-{% endif %}
+ {% if mapselectform2 %}
+ {# Include again, now overriding the variable for the include only #}
+ {% set selectlabel = 'Generic' %}
+ {% set mapselectform = mapselectform2 %}
+ <div class="mapform-wrapper">
+  {% include 'partials/map_select.html.twig' %}
+ </div>
+ {% endif %}
+ {% if mapselectform3 %}
+ {# Include again, now overriding the variable for the include only #}
+ {% set selectlabel = 'Custom' %}
+ {% set mapselectform = mapselectform3 %}
+ <div class="mapform-wrapper">
+  {% include 'partials/map_select.html.twig' %}
+ </div>
+ {% endif %}
 {% endif %}
 
 </div>
