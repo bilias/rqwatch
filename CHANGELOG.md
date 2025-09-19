@@ -4,6 +4,7 @@
 
 ### 2025-09-19
 - Support insert of multiple entries in custom maps
+- Fix bug in map entry delete
 
 ## v1.6.3 - Released: 2025-09-18
 

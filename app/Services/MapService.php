@@ -794,7 +794,7 @@ class MapService
 			USER_CAN_DEL_ADMIN_MAP_ENTRIES is true,
 			user will not be able to delete the entry
 			*/
-			if (!Config::get('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
+			if (!$this->is_admin && !Config::get('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
 				$query = $query->where('user_id', $this->user_id);
 			}
 
