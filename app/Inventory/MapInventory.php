@@ -109,6 +109,7 @@ class MapInventory
 				'map_form' => MapMimeFromForm::class,
 				'access' => ['admin'],
 			],
+			/* deprecated, moved to custom maps
 			'from_whitelist' => [
 				'model' => 'MapCombined',
 				'description' => 'Mail/MIME From Whitelist',
@@ -124,6 +125,7 @@ class MapInventory
 				'map_form' => MapMailFromForm::class,
 				'access' => ['admin'],
 			],
+			*/
 			'ip_whitelist' => [
 				'model' => 'MapCombined',
 				'description' => 'IP Whitelist',
