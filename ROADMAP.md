@@ -5,7 +5,6 @@
 
 ## Features bellow are in todo list.
 - Add score in maps
-- Support insert of multiple entries in maps
 
 ## Features bellow might be implemented
 
