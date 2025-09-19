@@ -109,6 +109,11 @@ CREATE TABLE custom_map_config (
   INDEX map_name_index (map_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+# INSERT INTO `custom_map_config` VALUES
+# (1, 'body_email_blacklist', 'Body Email blacklist', 'email', 'Email', NOW(), NOW()),
+# (2, 'body_url_host_blacklist', 'Body URL (host) blacklist', 'url', 'URL', NOW(), NOW()),
+# (3, 'body_url_full_blacklist', 'Body URL (full) blacklist', 'url', 'URL', NOW(), NOW());
+
 #DROP TABLE IF EXISTS `mail_logs`;
 
 CREATE TABLE `mail_logs` (

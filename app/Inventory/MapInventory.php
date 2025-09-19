@@ -138,6 +138,7 @@ class MapInventory
 				'map_form' => MapIpForm::class,
 				'access' => ['admin'],
 			],
+			/* deprecated, moved to custom maps
 			'body_url_host_blacklist' => [
 				'model' => 'MapGeneric',
 				'description' => 'Body URL (host) blacklist',
@@ -159,6 +160,7 @@ class MapInventory
 				'map_form' => MapEmailForm::class,
 				'access' => ['admin'],
 			],
+			*/
 			// Add more local maps here...
 		];
 
