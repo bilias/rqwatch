@@ -43,6 +43,9 @@ class MapController extends ViewController
 
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
+		$this->web_host = $_ENV['WEB_HOST'];
+		$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, $this->web_host);
 	}
 
 	public function showSelectMap(): Response {
@@ -234,6 +237,7 @@ class MapController extends ViewController
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
+			'maps_url_base' => $this->getMapsUrlBase(),
 		]));
 	}
 
@@ -819,6 +823,10 @@ class MapController extends ViewController
 		$response = MapSelectForm::check_form_show($form, $this->urlGenerator, $this->is_admin);
 
 		return [$form, $response];
+	}
+
+	public function getMapsUrlBase(): string {
+		return $this->maps_url_base;
 	}
 
 }
