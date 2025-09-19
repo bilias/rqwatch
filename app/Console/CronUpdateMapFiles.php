@@ -156,7 +156,7 @@ class CronUpdateMapFiles extends RqwatchCliCommand
 					 $service->updateMapFile($config['model'], $mapName, $last_activity, $config['fields'])) {
 						$output->writeln("<info>Map file '{$mapName}' updated</info>", OutputInterface::VERBOSITY_VERBOSE);
 						$this->fileLogger->info("{$this->app_name} Map file '{$mapName}' updated");
-				} elseif ((($config['model'] === 'MapGeneric') || ($config['model'] === 'MapCustom')) &&
+				} elseif ($config['model'] === 'MapCustom' &&
 					       $service->updateMapFile($config['model'], $mapName, $last_activity)) {
 						$output->writeln("<info>Map file '{$mapName}' updated</info>", OutputInterface::VERBOSITY_VERBOSE);
 						$this->fileLogger->info("{$this->app_name} Map file '{$mapName}' updated");

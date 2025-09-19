@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-09-19
+- Deprecated MapGeneric. Moved to MapCustom
 - Support insert of multiple entries in custom maps
 - Fix bug in map entry delete
 

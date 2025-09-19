@@ -15,7 +15,7 @@ use App\Utils\Helper;
 use App\Utils\FormHelper;
 
 use App\Models\MapCombined;
-use App\Models\MapGeneric;
+//use App\Models\MapGeneric;
 use App\Models\MapCustom;
 use App\Models\CustomMapConfig;
 use App\Models\MapActivityLog;
@@ -121,6 +121,7 @@ class MapService
 		return $query;
 	}
 
+	// deprecated
 	public function getMapGenericQuery(string $map_name): Builder {
 		$query = MapGeneric::select(MapGeneric::SELECT_FIELDS)
 								  ->where('map_name', $map_name)
@@ -207,6 +208,7 @@ class MapService
 		return $map_entries;
 	}
 
+	// deprecated
 	public function showPaginatedAllMapGeneric(int $page = 1, string $url): ?LengthAwarePaginator {
 		$query = MapGeneric::select('*')
 								  ->orderBy('map_name', 'ASC')
@@ -299,6 +301,7 @@ class MapService
 		return $map;
 	}
 
+	// deprecated
 	public function showMapGeneric(string $map_name): Collection {
 		$query = $this->getMapGenericQuery($map_name);
 
@@ -313,6 +316,7 @@ class MapService
 		return $map;
 	}
 
+	// deprecated
 	public function showPaginatedMapGeneric(string $map_name, int $page = 1, string $url): ?LengthAwarePaginator {
 		$query = $this->getMapGenericQuery($map_name);
 
@@ -363,9 +367,11 @@ class MapService
 			foreach ($map_fields as $field) {
 				$query = $query->where($field, $data[$field]);
 			}
+		/* deprecated
 		} else if ($model === 'MapGeneric') {
 			$query = $this->getMapGenericQuery($map_name);
 			$query = $query->where('pattern', $data[$map_fields[0]]);
+		*/
 		} else if ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('pattern', $data[$map_fields[0]]);
@@ -505,6 +511,7 @@ class MapService
 				}
 				$lines[] = implode('|', $values);
 			}
+		/* deprecated
 		} elseif ($model === 'MapGeneric') {
 			$query = $this->getMapGenericQuery($map_name);
 			$map_entries = $query->get()->toArray();
@@ -517,6 +524,7 @@ class MapService
 				$score = $row['score'] ?? '';
 				$lines[] = trim("$pattern $score");
 			}
+		*/
 		} elseif ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			$map_entries = $query->get()->toArray();
@@ -611,6 +619,7 @@ class MapService
 		return true;
 	}
 
+	// deprecated
 	public function addMapGenericEntry(string $map_name, string $pattern): bool {
 		if (empty($pattern)) {
 			$this->logger->error("Empty map pattern");
@@ -798,9 +807,11 @@ class MapService
 				$query = $query->where('user_id', $this->user_id);
 			}
 
+		/* deprecated
 		} else if ($model === 'MapGeneric') {
 			$query = $this->getMapGenericQuery($map_name);
 			$query = $query->where('id', $id);
+		*/
 		} else if ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('id', $id);
