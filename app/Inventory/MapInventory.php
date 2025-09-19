@@ -11,6 +11,7 @@
 namespace App\Inventory;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -282,15 +283,20 @@ class MapInventory
 				],
 			],
 			'custom' => [
-				'description' => 'Custom Field', // overriden in custom_map_config
-				'type' => TextType::class,
+				'description' => 'Custom Field', // overriden in custom_map_config/MapWithCustomFieldForm
+				'type' => TextareaType::class,
 				'field_options' => [
-					'label' => 'Custom Field:',   // overriden in custom_map_config
+					'label' => 'Custom Field:',   // overriden in custom_map_config/MapWithCustomFieldForm
 					'required' => true,
-					'attr' => ['class' => 'uniform-input'],
+					'attr' => [
+						'class' => 'uniform-input',
+						'rows' => 5,
+						'style' => 'min-height: 120px;',
+					],
 					'constraints' => [
 						new NotBlank(),
 					],
+					'help' => 'One entry per line',
 				],
 			],
 			// Add more fields here...

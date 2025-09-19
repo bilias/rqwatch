@@ -1083,3 +1083,11 @@ table.attachments .filename {
  font-size: 14px;
  box-sizing: border-box;
 }
+
+.help-text {
+ display: block;
+ font-size: 0.85em;
+ color: #666;
+ margin-top: 4px;
+ text-align: left;
+}

@@ -20,8 +20,13 @@
  {% if field.vars.name != 'submit' and field.vars.name != '_token' %}
 	<div class="row">
 	 <div class='info'> {{ form_label(field) }}</div>
-	 <div class='detail'>    {{ form_widget(field) }}
+	 <div class='detail'>
+	   {{ form_widget(field) }}
 	   {{ form_errors(field) }}
+		{# Add help text if defined #}
+		{% if field.vars.help is not empty %}
+		  <small class="help-text">{{ field.vars.help }}</small>
+		{% endif %}
 	 </div>
 	</div>
  {% endif %}

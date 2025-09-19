@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-09-19
+- Support insert of multiple entries in custom maps
+
 ## v1.6.3 - Released: 2025-09-18
 
 ### 2025-09-18

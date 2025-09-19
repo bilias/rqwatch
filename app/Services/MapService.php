@@ -653,6 +653,7 @@ class MapService
 			return false;
 		}
 
+		/* one line textfield code
 		$pattern = trim($pattern);
 
 		// update map table in DB
@@ -664,6 +665,29 @@ class MapService
 
 		$mapcustom->fill($data);
 		if (!$mapcustom->save()) {
+			return false;
+		}
+		*/
+
+		// handle multiple lines
+		$lines = preg_split('/\r\n|\r|\n/', trim($pattern));
+
+		// Remove empty lines and trim whitespace from each
+		$values = array_filter(array_map('trim', $lines));
+
+		if (count($values) === 0) {
+			return false;
+		}
+
+		$rows = [];
+		foreach ($values as $value) {
+			$rows[] = [
+				'map_name' => $map_name,
+				'pattern'  => $value,
+			];
+		}
+
+		if (!MapCustom::insert($rows)) {
 			return false;
 		}
 
