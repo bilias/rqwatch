@@ -43,9 +43,9 @@ class MapController extends ViewController
 
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
-		$this->web_host = $_ENV['WEB_HOST'];
+
 		$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, $this->web_host);
+		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, $_ENV['WEB_HOST']);
 	}
 
 	public function showSelectMap(): Response {
