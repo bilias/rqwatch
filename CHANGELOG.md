@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2025-09-22
+- Allow dash in labels in custom maps
+- Case insensitive match for whitelists/blacklists
+
 ### 2025-09-19
 - Moved some predifined maps to MapCustom
 - Deprecated MapGeneric. Moved to MapCustom
