@@ -692,9 +692,16 @@ class MapService
 
 		$rows = [];
 		foreach ($values as $value) {
+			$disabled = 0;
+			// If first character is #, insert as disabled entry
+			if (strlen($value) > 0 && $value[0] === '#') {
+				$value = substr($value, 1); // remove #
+				$disabled = 1;
+			}
 			$rows[] = [
 				'map_name' => $map_name,
 				'pattern'  => $value,
+				'disabled'  => $disabled,
 			];
 		}
 

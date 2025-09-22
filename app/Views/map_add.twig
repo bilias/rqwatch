@@ -25,7 +25,7 @@
 	   {{ form_errors(field) }}
 		{# Add help text if defined #}
 		{% if field.vars.help is not empty %}
-		  <small class="help-text">{{ field.vars.help }}</small>
+		  <small class="help-text">{{ field.vars.help | nl2br }}</small>
 		{% endif %}
 	 </div>
 	</div>

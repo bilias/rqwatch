@@ -300,7 +300,7 @@ class MapInventory
 					'constraints' => [
 						new NotBlank(),
 					],
-					'help' => 'One entry per line',
+					'help' => "One entry per line.\nLines starting with # are inserted as disabled entries",
 				],
 			],
 			// Add more fields here...
