@@ -62,13 +62,13 @@ Total {{ totalRecords }} mails
 
 {% set log_action = log.action %}
 {% if row_class == 'rqwatch_map' %}
-  {% set log_action = 'rqwatch_map, ' ~ log_action %}
+  {% set log_action = log_action ~ ' (map)' %}
 {% endif %}
 {% if row_class == 'whitelist' %}
-  {% set log_action = 'whitelisted, ' ~ log_action %}
+  {% set log_action = log_action ~ ' (whitelisted)' %}
 {% endif %}
 {% if row_class == 'blacklist' %}
-  {% set log_action = 'blacklisted, ' ~ log_action %}
+  {% set log_action = log_action ~ ' (blacklisted)' %}
 {% endif %}
 
 {% if log.has_virus %}
