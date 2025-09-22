@@ -77,7 +77,7 @@ class Helper {
 	public static function checkForWhitelist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
 			if (isset($symbol['name']) &&
-			    preg_match('/^RQWATCH_.*_(WL|WHITELIST)$/', $symbol['name'])
+			    preg_match('/^RQWATCH_.*_(WL|WHITELIST)$/i', $symbol['name'])
 			) {
 					return true;
 			  }
@@ -88,7 +88,7 @@ class Helper {
 	public static function checkForBlacklist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
 			if (isset($symbol['name']) &&
-			    preg_match('/^RQWATCH_.*_(BL|BLACKLIST)$/', $symbol['name'])
+			    preg_match('/^RQWATCH_.*_(BL|BLACKLIST)$/i', $symbol['name'])
 			) {
 					return true;
 			  }
