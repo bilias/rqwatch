@@ -828,11 +828,12 @@ class MapController extends ViewController
 
 				if ($fields) {
 					// has applyUseScope for MapCombined
+					$what_toggle = $map_entry->disabled ? "enabled" : "disabled";
 					$toggle = $service->toggleMapEntry($model, $map, $fields, $id);
 					if ($toggle) {
-						$this->flashbag->add('success', "Map entry '{$entry_str}' toggled from Map '{$mapdescr}'");
+						$this->flashbag->add('success', "Map entry '{$entry_str}' {$what_toggle} in Map '{$mapdescr}'");
 					} else {
-						$this->flashbag->add('error', "Map entry {$entry_str} failed to be toggled from Map {$mapdescr}");
+						$this->flashbag->add('error', "Map entry {$entry_str} failed to be {$what_toggle} in Map {$mapdescr}");
 					}
 				} else { // if no fields it failed the role in getAvailableMapConfigs()
 					$this->fileLogger->warning("User '{$this->username}' tried to access " . $this->request->getPathInfo() . " without admin authorization");
