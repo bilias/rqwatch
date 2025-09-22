@@ -68,8 +68,8 @@ class CustomMapConfigForm extends AbstractType
 							max: 128,
 						),
 						new Assert\Regex(
-							pattern: '/^[a-zA-Z0-9._\- ]+$/',
-							message: 'Only letters, numbers, space and ._-  are allowed',
+							pattern: '/^[a-zA-Z0-9._\-\(\) ]+$/',
+							message: 'Only letters, numbers, space and ._-()  are allowed',
 						),
 					 ],
             ])
@@ -106,8 +106,8 @@ class CustomMapConfigForm extends AbstractType
 							max: 128,
 						),
 						new Assert\Regex(
-							pattern: '/^[a-zA-Z0-9._\- ]+$/',
-							message: 'Only letters, numbers, space and ._-  are allowed',
+							pattern: '/^[a-zA-Z0-9._\-\(\) ]+$/',
+							message: 'Only letters, numbers, space and ._-()  are allowed',
 						),
 					 ],
             ])
