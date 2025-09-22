@@ -1,6 +1,11 @@
+{% import 'macros/paginator.macro.twig' as ui %}
 <section>
 
 {% if map_comb_entries is not empty %}
+
+<div class='pagtop'>
+{{ ui.paginator(map_comb_entries, WEB_BASE) }}
+</div>
 
 <div class='current_mails descr'>
 All Basic/Combined Map Entries<br/>
@@ -77,6 +82,10 @@ Total: {{ map_comb_total }} entries
 </table>
 </div>
 
+<div class='pagbottom'>
+{{ ui.paginator(map_comb_entries, WEB_BASE) }}
+</div>
+
 {% elseif is_admin and map_gen_entries is not empty %}
 
 <div class='current_mails descr'>
@@ -115,6 +124,10 @@ All Generic Map Entries | Total: {{ map_gen_total }} entries
 
 {% elseif is_admin and map_custom_entries is not empty %}
 
+<div class='pagtop'>
+{{ ui.paginator(map_custom_entries, WEB_BASE) }}
+</div>
+
 <div class='current_mails descr'>
 All Custom Map Entries | Total: {{ map_custom_total }} entries
 {% if totalRecords > items_per_page %}
@@ -152,6 +165,10 @@ All Custom Map Entries | Total: {{ map_custom_total }} entries
 </tbody>
 
 </table>
+</div>
+
+<div class='pagbottom'>
+{{ ui.paginator(map_custom_entries, WEB_BASE) }}
 </div>
 
 {% else %}

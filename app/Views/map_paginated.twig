@@ -8,10 +8,6 @@
  {% include 'partials/map_select.base.twig' %}
 {% endif %}
 
-<div class='pagtop'>
-{{ ui.paginator(map_entries, WEB_BASE) }}
-</div>
-
 {% if model == 'MapCombined' %}
  {% include 'partials/map_combined.html.twig' %}
 {% elseif model == 'MapCustom' %}
