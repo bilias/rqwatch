@@ -70,6 +70,10 @@ class ViewController extends Controller
 			return Helper::get_row_class($action, $symbols);
 		}));
 
+		$this->twig->addFunction(new TwigFunction('get_symbol_class', function ($symbol = null) {
+			return Helper::get_symbol_class($symbol);
+		}));
+
 		$this->twig->addFunction(new TwigFunction('decodeEmail', function ($email) {
 			return Helper::decodeEmail($email);
 		}));

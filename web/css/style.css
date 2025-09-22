@@ -17,6 +17,8 @@
  --color-mail-whitelist-h: #01ae01;
  --color-mail-blacklist: #6c3211;
  --color-mail-blacklist-h: #4f240b;
+ --color-mail-rqwatch_map: yellow;
+ --color-mail-rqwatch_map-h: #e3e300;
  --color-disabled: #7d7d7d;
 }
 
@@ -255,6 +257,14 @@ table.rowhover>tbody>tr.whitelist:hover {
 	background-color: var(--color-mail-whitelist-h);
 }
 
+table.mail tr.rqwatch_map {
+    background-color: var(--color-mail-rqwatch_map);
+}
+
+table.rowhover>tbody>tr.rqwatch_map:hover {
+	background-color: var(--color-mail-rqwatch_map-h);
+}
+
 table.mail tr.blacklist {
 	 color: #FFF;
     background-color: var(--color-mail-blacklist);
@@ -347,6 +357,10 @@ li.active {
 
 .whitelist {
     background-color: var(--color-mail-whitelist);
+}
+
+.rqwatch_map {
+    background-color: var(--color-mail-rqwatch_map);
 }
 
 .blacklist {
@@ -835,6 +849,7 @@ span.stored {
 .colorcodes .greylist  { background-color: var(--color-mail-greylist); }
 .colorcodes .whitelist { background-color: var(--color-mail-whitelist); }
 .colorcodes .blacklist { background-color: var(--color-mail-blacklist); }
+.colorcodes .rqwatch_map { background-color: var(--color-mail-rqwatch_map); }
 .colorcodes .clean     { background-color: var(--color-bg-clean); }
 
 .maildetail,

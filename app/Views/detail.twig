@@ -216,7 +216,7 @@ No
 	 <div id='symbols' style='display:none;'>
 {% endif %}
 {% for symbol in symbols %}
-{{ symbol }}<br/>
+<span class='{{ get_symbol_class(symbol) }}'>{{ symbol }}</span><br/>
 {% endfor %}
     </div>
    </div>

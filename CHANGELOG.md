@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-09-22
+- Change color for mails matching rqwatch map
 - Allow insert of disabled entries, detect #comments
 - Enable/Disable map entries
 - Allow dash in labels in custom maps

@@ -74,10 +74,21 @@ class Helper {
 		return date("Y-m-d");
 	}
 
+	public static function checkForMap(array $symbols): bool {
+		foreach ($symbols as $symbol) {
+			if (isset($symbol['name']) &&
+			    preg_match('/^RQWATCH_.*$/i', $symbol['name'])
+			) {
+					return true;
+			  }
+		}
+		return false;
+	}
+
 	public static function checkForWhitelist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
 			if (isset($symbol['name']) &&
-			    preg_match('/^RQWATCH_.*_(WL|WHITELIST)$/i', $symbol['name'])
+			    preg_match('/^RQWATCH_.*_(WL|WHITELIST)/i', $symbol['name'])
 			) {
 					return true;
 			  }
@@ -88,12 +99,29 @@ class Helper {
 	public static function checkForBlacklist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
 			if (isset($symbol['name']) &&
-			    preg_match('/^RQWATCH_.*_(BL|BLACKLIST)$/i', $symbol['name'])
+			    preg_match('/^RQWATCH_.*_(BL|BLACKLIST)/i', $symbol['name'])
 			) {
 					return true;
 			  }
 		}
 		return false;
+	}
+
+	// change class depending on symbol
+	public static function get_symbol_class(string $symbol = null): string {
+		if (!empty($symbol)) {
+			$check[0]['name'] = $symbol;
+			if (self::checkForWhitelist($check)) {
+				return 'whitelist';
+			}
+			if (self::checkForBlacklist($check)) {
+				return 'blacklist';
+			}
+			if (self::checkForMap($check)) {
+				return 'rqwatch_map';
+			}
+		}
+		return '';
 	}
 
 	// change row class depending on action
@@ -104,6 +132,9 @@ class Helper {
 			}
 			if (self::checkForBlacklist($symbols)) {
 				return 'blacklist';
+			}
+			if (self::checkForMap($symbols)) {
+				return 'rqwatch_map';
 			}
 		}
 
