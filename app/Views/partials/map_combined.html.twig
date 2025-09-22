@@ -1,6 +1,10 @@
 {% import 'macros/paginator.macro.twig' as ui %}
 <section>
 
+<div class='pagtop'>
+{{ ui.paginator(map_entries, WEB_BASE) }}
+</div>
+
 <div class='mapform descr'>
 Basic/Combined Map: {{ mapdescr }}<br/>
 {{ totalRecords }} entries
@@ -22,10 +26,6 @@ Basic/Combined Map: {{ mapdescr }}<br/>
 </div>
 
 {% if map_entries is not empty %}
-
-<div class='pagtop'>
-{{ ui.paginator(map_entries, WEB_BASE) }}
-</div>
 
 <div class='mapform'>
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>

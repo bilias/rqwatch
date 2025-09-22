@@ -1,6 +1,10 @@
 {% import 'macros/paginator.macro.twig' as ui %}
 <section>
 
+<div class='pagtop'>
+{{ ui.paginator(map_entries, WEB_BASE) }}
+</div>
+
 <div class='mapform descr'>
 Custom Map: {{ mapdescr }}<br/>
 {{ totalRecords }} entries
@@ -10,6 +14,7 @@ Custom Map: {{ mapdescr }}<br/>
 {% if totalRecords > items_per_page %}
 <br/>Displaying {{ items_per_page }}/page
 {% endif %}
+
 <div id="inside_links">
 <ul>
 {% if is_admin %}
@@ -22,10 +27,6 @@ Custom Map: {{ mapdescr }}<br/>
 </div>
 
 {% if map_entries is not empty %}
-
-<div class='pagtop'>
-{{ ui.paginator(map_entries, WEB_BASE) }}
-</div>
 
 <div class='mapform'>
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
