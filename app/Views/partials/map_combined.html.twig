@@ -30,6 +30,7 @@ Basic/Combined Map: {{ mapdescr }}<br/>
  {% endfor %}
  <th class='email'>Created</th>
  <th class='email'>Creator</th>
+ <th class='email'>Enable/Disable</th>
  <th class='email'>Delete</th>
 </tr></thead>
 
@@ -38,20 +39,31 @@ Basic/Combined Map: {{ mapdescr }}<br/>
 		{% set parts = [] %}
       <tr class='clean'>
         {% for field in fields %}
-          <td class='center'>{{ attribute(entry, field) }}</td>
+          <td class='center {{ entry.disabled ? 'disabled' }}'>{{ attribute(entry, field) }}</td>
 			 {% set parts = parts|merge([descriptions[loop.index0] ~ ': ' ~ attribute(entry, field)]) %}
         {% endfor %}
 			 <td class='center'>{{ entry.created_at }}</td>
 			 <td class='center'>{{ entry.map_username }}</td>
+
 		  {% set entry_str = parts|join(', ') %}
+       <td class='center'>
+         {% if is_admin %}
+            <a href="{{ get_route('admin_map_toggle_entry', { map: map, id: entry.id }) }}">
+            {{ entry.disabled ? 'Enable' : 'Disable' }}</a>
+         {% elseif entry.user_can_delete %}
+            <a href="{{ get_route('map_toggle_entry', { map: map, id: entry.id }) }}">
+            {{ entry.disabled ? 'Enable' : 'Disable' }}</a>
+         {% else %}
+            -
+         {% endif %}
+         </td>
+
 {% if is_admin %}
           <td class='center'><a href="{{ get_route('admin_map_del_entry', { map: map, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
-			 {% else %}
-  {% if entry.user_can_delete %}
+{% elseif entry.user_can_delete %}
           <td class='center'><a href="{{ get_route('map_del_entry', { map: map, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
   {% else %}
 			<td class='center'>-</td>
-  {% endif %}
 {% endif %}
       </tr>
     {% endfor %}

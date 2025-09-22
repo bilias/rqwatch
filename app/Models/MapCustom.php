@@ -28,6 +28,7 @@ class MapCustom extends Model
 		'id' => 'integer',
 		'map_name' => 'string',
 		'pattern' => 'string',
+		'disabled' => 'boolean',
 		'score' => 'integer',
 		'created_at' => 'datetime',
 		'updated_at' => 'datetime',
@@ -36,6 +37,7 @@ class MapCustom extends Model
 	protected $fillable = [
 		'map_name',
 		'pattern',
+		'disabled',
 		'score',
 	];
 
@@ -43,6 +45,7 @@ class MapCustom extends Model
 		'id',
 		'map_name',
 		'pattern',
+		'disabled',
 		'score',
 		'created_at',
 	];

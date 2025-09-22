@@ -502,6 +502,7 @@ class MapService
 
 		if ($model === 'MapCombined') {
 			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
+			$query = $query->where('disabled', 0);
 			$map_entries = $query->get()->toArray();
 			foreach ($map_entries as $row) {
 				$values = array_map(fn($field) => $row[$field] ?? '', $map_fields);
@@ -527,6 +528,7 @@ class MapService
 		*/
 		} elseif ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
+			$query = $query->where('disabled', 0);
 			$map_entries = $query->get()->toArray();
 			foreach ($map_entries as $row) {
 				// Skip if 'pattern' is missing or empty
@@ -832,6 +834,70 @@ class MapService
 
 		// delete map entry from db
 		if (!$map_entry->delete()) {
+			return false;
+		}
+
+		$last_update = date("Y-m-d H:i:s");
+
+		// update map file
+		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
+			return false;
+		}
+
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function toggleMapEntry(string $model, string $map_name, array $map_fields, int $id): bool {
+		if (is_null($id) or !is_int($id)) {
+			return false;
+		}
+
+		if ($model === 'MapCombined') {
+			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
+			$query = $this->applyUserRcptToScope($query);
+			$query = $query->where('id', $id);
+
+			/* XXX
+		   if USER_CAN_SEE_ADMIN_MAP_ENTRIES is false
+			applyUserRcptToScope() will limit the query and even if
+			USER_CAN_DEL_ADMIN_MAP_ENTRIES is true,
+			user will not be able to delete the entry
+			*/
+			if (!$this->is_admin && !Config::get('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
+				$query = $query->where('user_id', $this->user_id);
+			}
+
+		/* deprecated
+		} else if ($model === 'MapGeneric') {
+			$query = $this->getMapGenericQuery($map_name);
+			$query = $query->where('id', $id);
+		*/
+		} else if ($model === 'MapCustom') {
+			$query = $this->getMapCustomQuery($map_name);
+			$query = $query->where('id', $id);
+		} else {
+			return false;
+		}
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		$map_entry = $query->first();
+
+		// entry not found
+		if (!$map_entry) {
+			return false;
+		}
+
+		// toggle disabled field in db
+		$map_entry->disabled = !$map_entry->disabled;
+		if (!$map_entry->save()) {
 			return false;
 		}
 

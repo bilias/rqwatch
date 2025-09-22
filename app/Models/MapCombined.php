@@ -33,23 +33,26 @@ class MapCombined extends Model
 		'rcpt_to' => 'string',
 		'mime_from' => 'string',
 		'mime_to' => 'string',
+		'disabled' => 'boolean',
 		'created_at' => 'datetime',
 		'updated_at' => 'datetime',
 	];
 
 	protected $fillable = [
 		'map_name',
+		'user_id',
 		'ip',
 		'mail_from',
 		'rcpt_to',
 		'mime_from',
 		'mime_to',
-		'user_id',
+		'disabled',
 	];
 
 	public const SELECT_FIELDS = [
 		'id',
 		'user_id',
+		'disabled',
 		'created_at',
 	];
 

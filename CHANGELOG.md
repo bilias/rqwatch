@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-09-22
+- Enable/Disable map entries
 - Allow dash in labels in custom maps
 - Case insensitive match for whitelists/blacklists
 

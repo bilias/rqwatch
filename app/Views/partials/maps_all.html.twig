@@ -23,6 +23,7 @@ Total: {{ map_comb_total }} entries
  <th>{{ field_descriptions.ip }}</th>
  <th>Created</th>
  <th>Creator</th>
+ <th>Enable/Disable</th>
  <th>Delete</th>
 </tr></thead>
 
@@ -35,12 +36,23 @@ Total: {{ map_comb_total }} entries
 			{% else %}
 			<td class='center'><a href="{{ get_route('map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			{% endif %}
-			<td class='center'>{{ entry.mail_from }}</td>
-			<td class='center'>{{ entry.mime_from }}</td>
-			<td class='center'>{{ entry.rcpt_to }}</td>
-			<td class='center'>{{ entry.ip }}</td>
+			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.mail_from }}</td>
+			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.mime_from }}</td>
+			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.rcpt_to }}</td>
+			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.ip }}</td>
 			<td class='center'>{{ entry.created_at }}</td>
 			<td class='center'>{{ entry.map_username }}</td>
+			<td class='center'>
+			{% if is_admin %}
+			   <a href="{{ get_route('admin_map_toggle_entry', { map: entry.map_name, id: entry.id }) }}">
+			   {{ entry.disabled ? 'Enable' : 'Disable' }}</a>
+			{% elseif entry.user_can_delete %}
+			   <a href="{{ get_route('map_toggle_entry', { map: entry.map_name, id: entry.id }) }}">
+			   {{ entry.disabled ? 'Enable' : 'Disable' }}</a>
+			{% else %}
+			   -
+			{% endif %}
+			</td>
 			{% set exclude_keys = ['id', 'user_id', 'map_username', 'user_can_delete', 'map_name', 'map_description', 'created_at', 'updated_at'] %}
 			{% set entry_str = '' %}
 
@@ -53,12 +65,10 @@ Total: {{ map_comb_total }} entries
 
 {% if is_admin %}
 			<td class='center'><a href="{{ get_route('admin_map_del_entry', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str|trim }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
-			{% else %}
-  {% if entry.user_can_delete %}
+{% elseif entry.user_can_delete %}
 			<td class='center'><a href="{{ get_route('map_del_entry', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str|trim }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
-  {% else %}
+{% else %}
 			<td class='center'>-</td>
-  {% endif %}
 {% endif %}
       </tr>
     {% endfor %}
@@ -120,6 +130,7 @@ All Custom Map Entries | Total: {{ map_custom_total }} entries
  <th>Field</th>
  <th>Pattern</th>
  <th>Created</th>
+ <th>Enable/Disable</th>
  <th>Delete</th>
 </tr></thead>
 
@@ -129,8 +140,12 @@ All Custom Map Entries | Total: {{ map_custom_total }} entries
 			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			<td class='center'><a href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
 			<td class='center'>{{ entry.field_description }}</td>
-			<td class='center'>{{ entry.pattern }}</td>
+			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.pattern }}</td>
 			<td class='center'>{{ entry.created_at }}</td>
+			<td class='center'>
+			   <a href="{{ get_route('admin_map_toggle_entry', { map: entry.map_name, id: entry.id }) }}">
+				{{ entry.disabled ? 'Enable' : 'Disable' }}</a>
+			</td>
 			<td class='center'><a href="{{ get_route('admin_map_del_entry', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.field_description }} {{ entry.pattern }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
       </tr>
     {% endfor %}

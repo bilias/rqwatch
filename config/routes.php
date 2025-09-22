@@ -310,6 +310,18 @@ $routes->add('map_del_entry', new Route(
     [ 'map' => '[a-zA-Z_]{1,64}', 'id' => '\d{1,8}' ]
 ));
 
+$routes->add('admin_map_toggle_entry', new Route(
+    '/admin/map/{map}/toggle/{id}', // path
+    [ '_controller' => 'App\\Controllers\\MapController::toggleMapEntry', ], // defaults
+    [ 'map' => '[a-zA-Z_0-9]{1,64}', 'id' => '\d{1,8}' ]
+));
+
+$routes->add('map_toggle_entry', new Route(
+    '/user/map/{map}/toggle/{id}', // path
+    [ '_controller' => 'App\\Controllers\\MapController::toggleMapEntry', ], // defaults
+    [ 'map' => '[a-zA-Z_]{1,64}', 'id' => '\d{1,8}' ]
+));
+
 // default middleware classes incase route is missing from middlewareMap bellow
 $defaultMiddlewareClasses = [
 	App\Core\Middleware\AuthMiddleware::class,
@@ -373,10 +385,12 @@ $middlewareMap = [
 	'admin_map_add_entry' => $adminMiddlewareClasses,
 	'map_add_entry' => $userMiddlewareClasses,
 	'admin_map_del_entry' => $adminMiddlewareClasses,
+	'map_del_entry' => $userMiddlewareClasses,
+	'admin_map_toggle_entry' => $adminMiddlewareClasses,
+	'map_toggle_entry' => $userMiddlewareClasses,
 	'admin_maps_custom_show' => $adminMiddlewareClasses,
 	'admin_maps_custom_add' => $adminMiddlewareClasses,
 	'admin_maps_custom_del' => $adminMiddlewareClasses,
-	'map_del_entry' => $userMiddlewareClasses,
 ];
 
 // removed from bootstrap (require_once) and added in Router.php

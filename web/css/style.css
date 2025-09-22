@@ -17,6 +17,7 @@
  --color-mail-whitelist-h: #01ae01;
  --color-mail-blacklist: #6c3211;
  --color-mail-blacklist-h: #4f240b;
+ --color-disabled: #7d7d7d;
 }
 
 a:link {
@@ -478,7 +479,7 @@ span.stored {
 
 .mapform {
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   border: 0px;
   margin: 20px auto;
   box-sizing: border-box;
@@ -1090,4 +1091,8 @@ table.attachments .filename {
  color: #666;
  margin-top: 4px;
  text-align: left;
+}
+
+.disabled {
+ color: var(--color-disabled);
 }
