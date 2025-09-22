@@ -493,7 +493,7 @@ span.stored {
 
 .mapform {
   width: 100%;
-  max-width: 1000px;
+  /* max-width: 1000px; */
   border: 0px;
   margin: 20px auto;
   box-sizing: border-box;
