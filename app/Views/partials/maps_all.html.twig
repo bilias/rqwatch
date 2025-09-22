@@ -37,7 +37,7 @@ Total: {{ map_comb_total }} entries
       <tr class='clean'>
 			{% if is_admin %}
 			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
-			<td class='center'><a href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
+			<td class='center'><a target='_blank' href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
 			{% else %}
 			<td class='center'><a href="{{ get_route('map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			{% endif %}
@@ -110,7 +110,7 @@ All Generic Map Entries | Total: {{ map_gen_total }} entries
     {% for entry in map_gen_entries %}
       <tr class='clean'>
 			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
-			<td class='center'><a href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
+			<td class='center'><a target='_blank' href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
 			<td class='center'>{{ entry.field_description }}</td>
 			<td class='center'>{{ entry.pattern }}</td>
 			<td class='center'>{{ entry.created_at }}</td>
@@ -151,7 +151,7 @@ All Custom Map Entries | Total: {{ map_custom_total }} entries
     {% for entry in map_custom_entries %}
       <tr class='clean'>
 			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
-			<td class='center'><a href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
+			<td class='center'><a target='_blank' href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
 			<td class='center'>{{ entry.field_description }}</td>
 			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.pattern }}</td>
 			<td class='center'>{{ entry.created_at }}</td>
