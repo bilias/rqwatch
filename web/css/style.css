@@ -500,8 +500,15 @@ span.stored {
   display: block;
 }
 
-.searchform .descr,
 .mapform .descr {
+ display: block;         /* consistent with .descr */
+ width: 100%;            /* fill container */
+ /* max-width: 800px; */       /* max width constraint */
+ margin: 20px auto 20px; /* top & bottom margins, centered */
+ box-sizing: border-box;
+}
+
+.searchform .descr {
  display: block;         /* consistent with .descr */
  width: 100%;            /* fill container */
  max-width: 800px;       /* max width constraint */
