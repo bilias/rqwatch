@@ -123,6 +123,7 @@ $USER_CAN_SEE_ADMIN_MAP_ENTRIES=true;
 # User can delete personal map entries created by admin
 # If you set this to true, USER_CAN_SEE_ADMIN_MAP_ENTRIES
 # must also be set to true to allow delete
+# This also applies to Enable/Disable of entry
 $USER_CAN_DEL_ADMIN_MAP_ENTRIES=false;
 
 # enable GeoIP
