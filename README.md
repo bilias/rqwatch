@@ -52,6 +52,8 @@ The Web interface provides map management and url endpoints for rspamd
 - Basic Maps with common fields of multimap module (mail_from, rcpt_to, mime_from, ip)
 - Combined Maps with two fields combination for custom lua module (mail_from/rcpt_to, mime_from/mime_to)
 - Custom Maps with a custom field. Can hold any type of field (asn, url, email etc)
+- Multi entry inserts
+- Enable/Disable/Delete per entry
 
 ### Redis Caching
 - Redis Session support (+ sentinel)
