@@ -3,10 +3,11 @@
 ## Master Dev Branch
 
 ### 2025-09-22
+- Add map link in manage custom maps
 - Change color for mails matching rqwatch map
 - Allow insert of disabled entries, detect #comments
 - Enable/Disable map entries
-- Allow dash in labels in custom maps
+- Allow dash and parentheses in labels in custom maps
 - Case insensitive match for whitelists/blacklists
 
 ### 2025-09-19
