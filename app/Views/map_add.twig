@@ -1,7 +1,6 @@
 {% extends 'base.html.twig' %}
 
 {% block content %}
-<div class="center-container">
 
 {% if mapselectform or mapselectcustomform %}
  {% include 'partials/map_select.base.twig' %}
@@ -9,10 +8,10 @@
 
 {% if mapform %}
 
-<div class='mapform'>
+<div class='userform'>
 <span class='descr'>Add entry in Map: {{ mapdescr }}</span>
 
-<div class='formmap'>
+<div class='formuser'>
 
 {{ form_start(mapform) }}
 
@@ -32,9 +31,8 @@
  {% endif %}
 {% endfor %}
 
-<div class="row">
- <div class="info"></div>
- <div class="detail"> {{ form_widget(mapform.submit) }}</div>
+<div class="row btn">
+ {{ form_widget(mapform.submit) }}
 </div>
 
 {{ form_end(mapform) }}
@@ -43,5 +41,4 @@
 {% endif %}
 </div>
 
-</div>
 {% endblock %}
