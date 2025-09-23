@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-09-23
+- Misc changes. mostly view formatting
+
 ### 2025-09-22
 - Add map link in manage custom maps
 - Change color for mails matching rqwatch map
