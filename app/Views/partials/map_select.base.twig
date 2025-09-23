@@ -1,23 +1,33 @@
 <div class="mapform-container">
 
+<div class="mapform-row">
+
 {% if mapselectform %}
 {% set selectlabel = 'Basic/Combined' %}
 <div class="mapform-wrapper">
- {% include 'partials/map_select.html.twig' %}
+{% include 'partials/map_select.html.twig' %}
 </div>
 {% endif %}
 
 {% if is_admin %}
 
- {% if mapselectcustomform %}
-  {# Include again, now overriding the variable for the include only #}
-  {% set selectlabel = 'Custom' %}
-  {% set mapselectform = mapselectcustomform %}
-  <div class="mapform-wrapper">
-   {% include 'partials/map_select.html.twig' %}
-  </div>
- {% endif %}
+{% if mapselectcustomform %}
+{# Include again, now overriding the variable for the include only #}
+{% set selectlabel = 'Custom' %}
+{% set mapselectform = mapselectcustomform %}
+<div class="mapform-wrapper">
+{% include 'partials/map_select.html.twig' %}
+</div>
+{% endif %}
+
+{% if mapsearchform %}
+<div class="mapform-search-wrapper">
+{% include 'partials/map_search.html.twig' %}
+</div>
+{% endif %}
 
 {% endif %}
+
+</div>
 
 </div>

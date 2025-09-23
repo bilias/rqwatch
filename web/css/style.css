@@ -491,11 +491,43 @@ span.stored {
   margin: 0;
 }
 
+.mapform-row {
+ display: flex;
+ gap: 1rem;
+ flex-wrap: wrap;
+ justify-content: center;
+}
+
+.form-row {
+ display: flex;
+ align-items: center;      /* vertically center everything */
+ gap: 0.5rem;              /* spacing between label, input, and button */
+}
+
+.form-row .info {
+ flex: 0 0 auto;            /* label takes natural width */
+}
+
+.form-row .detail {
+ flex: 1 1 auto;            /* input grows to fill available space */
+}
+
+.form-row .submit {
+ flex: 0 0 auto;            /* submit button natural width */
+}
+
+.mapform-search-wrapper {
+ width: 100%;            /* take full width */
+ max-width: 450px;       /* match the width of mapform-wrapper */
+ margin: 0;    /* center horizontally, add top spacing */
+ text-align: center;
+}
+
 .mapform {
   width: 100%;
   /* max-width: 1000px; */
   border: 0px;
-  margin: 20px auto;
+  margin: 20px auto 0px auto;
   box-sizing: border-box;
   display: block;
 }
@@ -720,7 +752,7 @@ span.stored {
 }
 
 .formmap {
- margin: 10px auto;
+ margin: 10px auto 0px auto;
  padding-left: 5px;
  display: flex;
  flex-direction: column;

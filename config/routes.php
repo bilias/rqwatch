@@ -252,7 +252,7 @@ $routes->add('admin_map_show_all', new Route(
 
 $routes->add('admin_maps_custom_show', new Route(
     '/admin/maps/custom', // path
-    [ '_controller' => 'App\\Controllers\\MapController::showCustomMaps', ], // defaults
+    [ '_controller' => 'App\\Controllers\\MapController::showCustomMapsConfig', ], // defaults
     [ ]
 ));
 
@@ -266,6 +266,16 @@ $routes->add('admin_maps_custom_del', new Route(
     '/admin/maps/custom/del/{id}', // path
     [ '_controller' => 'App\\Controllers\\MapController::delCustomMap', ], // defaults
     [ 'id' => '\d{1,8}']
+));
+
+$routes->add('admin_map_search_entry', new Route(
+    '/admin/map/search', // path
+    [ '_controller' => 'App\\Controllers\\MapController::searchMapEntry', ], // defaults
+    [], // requirements
+	 [], // options
+	 '', // host
+	 [], // schemes
+	 ['POST'] // methods
 ));
 
 $routes->add('map_show_all', new Route(
@@ -384,6 +394,7 @@ $middlewareMap = [
 	'map_show' => $userMiddlewareClasses,
 	'admin_map_add_entry' => $adminMiddlewareClasses,
 	'map_add_entry' => $userMiddlewareClasses,
+	'admin_map_search_entry' => $adminMiddlewareClasses,
 	'admin_map_del_entry' => $adminMiddlewareClasses,
 	'map_del_entry' => $userMiddlewareClasses,
 	'admin_map_toggle_entry' => $adminMiddlewareClasses,

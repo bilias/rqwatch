@@ -20,6 +20,7 @@ use App\Utils\Helper;
 use App\Forms\QidForm;
 use App\Forms\MapSelectForm;
 use App\Forms\CustomMapConfigForm;
+use App\Forms\MapSearchForm;
 
 use App\Inventory\MapInventory;
 use App\Services\MapService;
@@ -152,32 +153,9 @@ class MapController extends ViewController
 
 		$this->initUrls();
 
-		/* deprecated, moved to MapCustom
-		if ($this->getIsAdmin() and $model === 'MapGeneric') {
-			$map_comb_entries = null;
-			$map_comb_total = null;
-			$map_custom_entries = null;
-			$map_custom_total = null;
-			$filter_maps = null;
-			$this->mapShowAllUrl = $this->urlGenerator->generate('admin_map_show_all', ['model' => $model]);
-			$map_gen_entries = $service->showPaginatedAllMapGeneric($page, $this->mapShowAllUrl);
-			$map_gen_total = $map_gen_entries->total();
-
-			if (empty($map_gen_entries)) {
-				$this->flashbag->add('info', 'No map entries exist');
-				return new RedirectResponse($this->mapsUrl);
-			}
-			foreach ($map_gen_entries as $key => $map_entry) {
-				// add map description
-				$field = $configs[$map_entry->map_name]['fields'][0];
-				$field_description = $field_descriptions[$field];
-				$map_gen_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
-				$map_gen_entries[$key]->field = $field;
-				$map_gen_entries[$key]->field_description = $field_description;
-			}
-		} else if ($this->getIsAdmin() and $model === 'MapCustom') {
-		*/
 		if ($this->getIsAdmin() and $model === 'MapCustom') {
+			$mapSearchForm = MapSearchForm::create($model, $this->formFactory, $this->request, $this->urlGenerator);
+
 			$map_comb_entries = null;
 			$map_comb_total = null;
 			$map_gen_entries = null;
@@ -201,6 +179,8 @@ class MapController extends ViewController
 				$map_custom_entries[$key]->field_description = $field_description;
 			}
 		} else {
+			$mapSearchForm = MapSearchForm::create('MapCombined', $this->formFactory, $this->request, $this->urlGenerator);
+
 			$map_gen_entries = null;
 			$map_gen_total = null;
 			$map_custom_entries = null;
@@ -226,6 +206,7 @@ class MapController extends ViewController
 
 		return new Response($this->twig->render('maps_all_paginated.twig', [
 			'qidform' => $qidform->createView(),
+			'mapsearchform' => $mapSearchForm->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
 			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
@@ -248,7 +229,7 @@ class MapController extends ViewController
 		]));
 	}
 
-	public function showCustomMaps(): Response {
+	public function showCustomMapsConfig(): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -391,6 +372,7 @@ class MapController extends ViewController
 		]));
 	}
 
+	// works for all maps (MapCombined/MapCustom)
 	public function showMap(string $map): Response {
 		// Custom map management link, comes from map select form
 		if ($map === 'manage_custom_maps') {
@@ -491,10 +473,13 @@ class MapController extends ViewController
 			return new RedirectResponse($this->mapsUrl);
 		}
 
+		$mapSearchForm = MapSearchForm::create($model, $this->formFactory, $this->request, $this->urlGenerator);
+
 		$last_activity = (string) MapActivityLog::where('map_name', $map)->value('last_changed_at');
 
 		return new Response($this->twig->render('map_paginated.twig', [
 			'qidform' => $qidform->createView(),
+			'mapsearchform' => $mapSearchForm->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
 			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
@@ -778,6 +763,19 @@ class MapController extends ViewController
 			$url = $this->mapsUrl;
 		}
 		return new RedirectResponse($url);
+	}
+
+	public function searchMapEntry(Request $request): Response {
+		$map_search_form = $request->request->all('map_search_form');
+		if (!empty($map_search_form['field'])) {
+			$field = $map_search_form['field'];
+		}
+		if (!empty($map_search_form['model'])) {
+			$model = $map_search_form['model'];
+		}
+		dump($map_search_form);
+		dump($model);
+		dd($field);
 	}
 
 	public function toggleMapEntry(string $map, int $id): Response {

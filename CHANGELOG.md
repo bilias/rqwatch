@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-09-23
+- Add search map entry
 - Misc changes. mostly view formatting
 
 ### 2025-09-22
