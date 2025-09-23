@@ -204,6 +204,7 @@ class MapController extends ViewController
 
 		$sf_data = [ 'model' => $model ];
 		$mapSearchForm = MapSearchForm::create($sf_data, $this->formFactory, $this->request, $this->urlGenerator);
+		// XXX check isSubmitted
 
 		return new Response($this->twig->render('maps_all_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -479,6 +480,7 @@ class MapController extends ViewController
 			'map_name' => $map,
 		];
 		$mapSearchForm = MapSearchForm::create($sf_data, $this->formFactory, $this->request, $this->urlGenerator);
+		// XXX check isSubmitted
 
 		$last_activity = (string) MapActivityLog::where('map_name', $map)->value('last_changed_at');
 
@@ -886,6 +888,7 @@ class MapController extends ViewController
 
 		$sf_data = [ 'model' => $model ];
 		$mapSearchForm = MapSearchForm::create($sf_data, $this->formFactory, $this->request, $this->urlGenerator);
+		// XXX check isSubmitted
 
 		return new Response($this->twig->render('maps_all_paginated.twig', [
 			'qidform' => $qidform->createView(),
