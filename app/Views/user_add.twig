@@ -1,19 +1,22 @@
 {% extends 'base.html.twig' %}
 
 {% block content %}
+
 {% if userform %}
-<div class='userform'>
+
 <span class='descr'>Add (DB) User</span>
 
+{#
 {% if userdelform %}
-<div class='formdeluser'>
-{{ form_start(userdelform) }}
-{{ form_widget(userdelform.delete) }}
-{{ form_end(userdelform) }}
-</div>
+ <div class='formdeluser'>
+  {{ form_start(userdelform) }}
+  {{ form_widget(userdelform.delete) }}
+  {{ form_end(userdelform) }}
+ </div>
 {% endif %}
+#}
 
-<div class='formuser'>
+<div class='form'>
 {{ form_start(userform) }}
 
 <div class='user_errors'>
@@ -68,8 +71,8 @@
 </div>
 
 {{ form_end(userform) }}
-</div>
 
 </div>
+
 {% endif %}
 {% endblock %}

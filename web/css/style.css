@@ -861,11 +861,13 @@ span.stored {
 
 .maildetail,
 .formdeluser,
+.form,
 .formuser {
   display: flex;
   flex-direction: column;
   width: 100%;
   margin-bottom: 5px;
+  margin-top: 10px;
   margin-top: 10px;
 }
 
@@ -876,6 +878,7 @@ span.stored {
 
 .user .row ,
 .maildetail .row ,
+.form .row ,
 .formuser .row {
   display: flex;
   flex-wrap: wrap;
@@ -884,6 +887,7 @@ span.stored {
 
 .user .info ,
 .maildetail .info ,
+.form .info ,
 .formuser .info {
   background-color: var(--color-bg-menu);
   text-align: right;
@@ -896,6 +900,7 @@ span.stored {
 
 .user .detail ,
 .maildetail .detail ,
+.form .detail ,
 .formuser .detail {
   background-color: var(--color-bg-clean);
   text-align: left;

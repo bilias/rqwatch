@@ -2,17 +2,15 @@
 
 {% block content %}
 
-<section>
-
 {% if user %}
-{% if is_admin %}
-<div class="row editbutton">
-<button onclick="window.location.href='{{ get_route('admin_useredit', { id: user.id }) }}'">Edit User
-</button>
-</div>
-{% endif %}
 
-<div class='user'>
+ {% if is_admin %}
+  <div class="row editbutton">
+   <button onclick="window.location.href='{{ get_route('admin_useredit', { id: user.id }) }}'">Edit User</button>
+  </div>
+ {% endif %}
+
+<div class='form'>
 
 <div class="row">
 <div class='info'>Username</div>
@@ -95,6 +93,7 @@ Never
 </div>
 
 {% if profileform %}
+
 <div class='userform'>
 {{ form_start(profileform) }}
 
@@ -163,5 +162,4 @@ Never
 
 {% endif %}
 
-</section>
 {% endblock %}

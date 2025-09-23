@@ -2,10 +2,10 @@
 
 {% block content %}
 {% if mailaliasform %}
-<div class='userform'>
+
 <span class='descr'>Edit User</span>
 
-<div class='formuser'>
+<div class='form'>
 {{ form_start(mailaliasform) }}
 
 <div class='user_errors'>
@@ -30,8 +30,8 @@
 </div>
 
 {{ form_end(mailaliasform) }}
-</div>
 
 </div>
+
 {% endif %}
 {% endblock %}
