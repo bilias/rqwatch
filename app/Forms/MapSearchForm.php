@@ -75,34 +75,4 @@ class MapSearchForm extends AbstractType
 		);
 	}
 
-	public static function check_form(
-		Form $form,
-		UrlGeneratorInterface $urlGenerator,
-		bool $is_admin = false
-	): ?RedirectResponse {
-		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData();
-			$field = $data['field'];
-
-			if ($is_admin) {
-				$url = $urlGenerator->generate('admin_detail', [
-					'type' => 'qid',
-					'value' => $qid,
-				]);
-			} else {
-				$url = $urlGenerator->generate('detail', [
-					'type' => 'qid',
-					'value' => $qid,
-				]);
-
-			}
-			return new RedirectResponse($url);
-         /*
-         $response = new RedirectResponse($url);
-         $response->prepare($this->request);
-         return $response->send();
-         */
-      }
-		return null;
-	}
 }
