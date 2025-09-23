@@ -76,11 +76,11 @@ class Helper {
 
 	public static function checkForMap(array $symbols): bool {
 		foreach ($symbols as $symbol) {
-			if (isset($symbol['name']) &&
-			    preg_match('/^RQWATCH_.*$/i', $symbol['name'])
-			) {
+			if (isset($symbol['name']) && (
+				 (preg_match('/^RQWATCH_.*$/i', $symbol['name'])) ||
+				 (preg_match('/^LOCAL_.*$/i', $symbol['name'])))) {
 					return true;
-			  }
+			}
 		}
 		return false;
 	}
