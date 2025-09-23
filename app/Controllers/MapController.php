@@ -203,8 +203,7 @@ class MapController extends ViewController
 		}
 
 		$sf_data = [ 'model' => $model ];
-		$mapSearchForm = MapSearchForm::create($sf_data, $this->formFactory, $this->request, $this->urlGenerator);
-		// XXX check isSubmitted
+		$mapSearchForm = MapSearchForm::create($this->formFactory, $this->request, $this->urlGenerator, $sf_data);
 
 		return new Response($this->twig->render('maps_all_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -479,8 +478,7 @@ class MapController extends ViewController
 			'model' => $model,
 			'map_name' => $map,
 		];
-		$mapSearchForm = MapSearchForm::create($sf_data, $this->formFactory, $this->request, $this->urlGenerator);
-		// XXX check isSubmitted
+		$mapSearchForm = MapSearchForm::create($this->formFactory, $this->request, $this->urlGenerator, $sf_data);
 
 		$last_activity = (string) MapActivityLog::where('map_name', $map)->value('last_changed_at');
 
@@ -773,6 +771,25 @@ class MapController extends ViewController
 	}
 
 	public function searchMapEntry(Request $request): Response {
+		// enable form rendering support
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			// form submitted and valid
+			return $response;
+		}
+
+		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		if ($response !== null) {
+			return $response;
+		}
+		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
+		if ($response !== null) {
+			return $response;
+		}
+
 		$map_search_form = $request->request->all('map_search_form');
 
 		$this->initUrls();
@@ -797,31 +814,6 @@ class MapController extends ViewController
 		$map_name = null;
 		if (!empty($map_search_form['map_name'])) {
 			$map_name = $map_search_form['map_name'];
-		}
-
-		// enable form rendering support
-		$this->twigFormView($this->request);
-
-		// generate and handle qid form
-		$qidform = QidForm::create($this->formFactory, $this->request);
-		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
-			// form submitted and valid
-			return $response;
-		}
-
-		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
-		if ($response !== null) {
-			return $response;
-		}
-		/* deprecated
-		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
-		if ($response !== null) {
-			return $response;
-		}
-		*/
-		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
-		if ($response !== null) {
-			return $response;
 		}
 
 		$page = $this->request->query->getInt('page', 1);
@@ -870,7 +862,7 @@ class MapController extends ViewController
 
 			// has applyUserRcptToScope and filter maps on model
 			$this->mapSearchEntryUrl = $this->urlGenerator->generate('admin_map_search_entry');
-			$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapSearchEntryUrl, $filter_maps);
+			$map_comb_entries = $service->searchPaginatedMapCombined($page, $this->mapSearchEntryUrl, $filter_maps, $search, $map_name);
 
 			if (empty($map_comb_entries)) {
 				$this->flashbag->add('info', 'No map entries exist');
@@ -887,8 +879,7 @@ class MapController extends ViewController
 		}
 
 		$sf_data = [ 'model' => $model ];
-		$mapSearchForm = MapSearchForm::create($sf_data, $this->formFactory, $this->request, $this->urlGenerator);
-		// XXX check isSubmitted
+		$mapSearchForm = MapSearchForm::create($this->formFactory, $this->request, $this->urlGenerator, $sf_data);
 
 		return new Response($this->twig->render('maps_all_paginated.twig', [
 			'qidform' => $qidform->createView(),

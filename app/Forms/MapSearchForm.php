@@ -57,10 +57,11 @@ class MapSearchForm extends AbstractType
 	}
 
 	public static function create(
-			array $data,
 			FormFactoryInterface $formFactory,
 			Request $request,
-			UrlGeneratorInterface $urlGenerator): Form {
+			UrlGeneratorInterface $urlGenerator,
+			array $data
+	): Form {
 
 		$url = $urlGenerator->generate('admin_map_search_entry');
 
@@ -76,4 +77,19 @@ class MapSearchForm extends AbstractType
 		);
 	}
 
+	public static function check_form(
+		Form $form,
+		UrlGeneratorInterface $urlGenerator
+	): ?RedirectResponse {
+
+		if ($form->isSubmitted() && $form->isValid()) {
+			$data = $form->getData();
+			dd($data);
+
+			$url = $urlGenerator->generate('admin_map_search_entry');
+			return new RedirectResponse($url);
+      }
+
+		return null;
+	}
 }

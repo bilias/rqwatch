@@ -177,7 +177,57 @@ class MapService
 		return $field;
 	}
 
-	public function showPaginatedAllMapCombined(int $page = 1, string $url, ?array $filter_maps): ?LengthAwarePaginator {
+	public function searchPaginatedMapCombined(
+		int $page = 1,
+		string $url,
+		array $filter_maps,
+		$search,
+		$map_name
+	): ?LengthAwarePaginator {
+
+		$query = MapCombined::select('*')
+								  ->with(['user' => function ($query) {
+										$query->select('id', 'username', 'email');
+								    }])
+								  ->orderBy('updated_at', 'DESC');
+
+		// filter maps
+		if (!$this->is_admin && $filter_maps) {
+			$query = $query->whereIn('map_name', $filter_maps);
+		}
+
+		$query = $this->applyUserRcptToScope($query);
+
+		if (!empty($map_name)) {
+			$query = $query->where('map_name', $map_name);
+		}
+
+		$search = trim($search);
+		if (!empty($search)) {
+			$query->where(function($q) use ($search) {
+				foreach (MapCombined::SEARCH_FIELDS as $field) {
+					$q->orWhere($field, 'LIKE', "%{$search}%");
+				}
+			});
+		}
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		try {
+			$map_entries = $query
+				->paginate($this->items_per_page, ['*'], 'page', $page)
+				->withPath($url);
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $map_entries;
+	}
+
+	public function showPaginatedAllMapCombined(int $page = 1, string $url, array $filter_maps): ?LengthAwarePaginator {
 		$query = MapCombined::select('*')
 								  ->with(['user' => function ($query) {
 										$query->select('id', 'username', 'email');
@@ -241,8 +291,11 @@ class MapService
 			$query = MapCustom::select(MapCustom::SELECT_FIELDS);
 		}
 
-		$query = $query->where('pattern', 'LIKE', "%{$search}%")
-							->orderBy('updated_at', 'DESC');
+		$search = trim($search);
+		if (!empty($search)) {
+			$query = $query->where('pattern', 'LIKE', "%{$search}%")
+								->orderBy('updated_at', 'DESC');
+		}
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
