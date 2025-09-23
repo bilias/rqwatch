@@ -860,8 +860,8 @@ class MapController extends ViewController
 			$map_custom_total = null;
 			$filter_maps = MapInventory::getMapsByModel($model, $configs);
 
-			// has applyUserRcptToScope and filter maps on model
 			$this->mapSearchEntryUrl = $this->urlGenerator->generate('admin_map_search_entry');
+			// has applyUserRcptToScope and filter maps on model
 			$map_comb_entries = $service->searchPaginatedMapCombined($page, $this->mapSearchEntryUrl, $filter_maps, $search, $map_name);
 
 			if (empty($map_comb_entries)) {
