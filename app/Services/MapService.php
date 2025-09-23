@@ -182,7 +182,6 @@ class MapService
 								  ->with(['user' => function ($query) {
 										$query->select('id', 'username', 'email');
 								    }])
-								  ->orderBy('map_name', 'ASC')
 								  ->orderBy('updated_at', 'DESC');
 
 		// filter maps
@@ -211,7 +210,6 @@ class MapService
 	// deprecated
 	public function showPaginatedAllMapGeneric(int $page = 1, string $url): ?LengthAwarePaginator {
 		$query = MapGeneric::select('*')
-								  ->orderBy('map_name', 'ASC')
 								  ->orderBy('updated_at', 'DESC');
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
