@@ -8,14 +8,16 @@
 {% endif %}
 
 {% if is_admin %}
+
  {% if mapselectcustomform %}
- {# Include again, now overriding the variable for the include only #}
- {% set selectlabel = 'Custom' %}
- {% set mapselectform = mapselectcustomform %}
- <div class="mapform-wrapper">
-  {% include 'partials/map_select.html.twig' %}
- </div>
+  {# Include again, now overriding the variable for the include only #}
+  {% set selectlabel = 'Custom' %}
+  {% set mapselectform = mapselectcustomform %}
+  <div class="mapform-wrapper">
+   {% include 'partials/map_select.html.twig' %}
+  </div>
  {% endif %}
+
 {% endif %}
 
 </div>
