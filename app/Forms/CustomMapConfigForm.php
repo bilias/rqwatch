@@ -83,7 +83,7 @@ class CustomMapConfigForm extends AbstractType
 					 'constraints' => [
 						new NotBlank(),
 						new Assert\Length(
-							min: 3,
+							min: 2,
 							max: 128,
 						),
 						new Assert\Regex(
@@ -102,7 +102,7 @@ class CustomMapConfigForm extends AbstractType
 					 'constraints' => [
 						new NotBlank(),
 						new Assert\Length(
-							min: 3,
+							min: 2,
 							max: 128,
 						),
 						new Assert\Regex(
