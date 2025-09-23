@@ -113,6 +113,7 @@ class MapController extends ViewController
 		]));
 	}
 
+	// for both MapCombined/MapCustom
 	public function showAllMaps(?string $model = null): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
@@ -771,15 +772,144 @@ class MapController extends ViewController
 
 	public function searchMapEntry(Request $request): Response {
 		$map_search_form = $request->request->all('map_search_form');
-		if (!empty($map_search_form['field'])) {
-			$field = $map_search_form['field'];
+
+		$this->initUrls();
+
+		if (empty($map_search_form['model'])) {
+			$this->flashbag->add('error', 'Search Model empty');
+			return new RedirectResponse($this->mapsUrl);
 		}
-		if (!empty($map_search_form['model'])) {
-			$model = $map_search_form['model'];
+
+		$model = $map_search_form['model'];
+		if ($model !== 'MapCombined' && $model !== 'MapCustom') {
+			$this->flashbag->add('error', 'Wrong search Model');
+			return new RedirectResponse($this->mapsUrl);
 		}
-		dump($map_search_form);
-		dump($model);
-		dd($field);
+
+		if (empty($map_search_form['field'])) {
+			$this->flashbag->add('error', 'Search field empty');
+			return new RedirectResponse($this->mapsUrl);
+		}
+		$search = $map_search_form['field'];
+
+		$map_name = null;
+		if (!empty($map_search_form['map_name'])) {
+			$map_name = $map_search_form['map_name'];
+		}
+
+		// enable form rendering support
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			// form submitted and valid
+			return $response;
+		}
+
+		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		if ($response !== null) {
+			return $response;
+		}
+		/* deprecated
+		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
+		if ($response !== null) {
+			return $response;
+		}
+		*/
+		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
+		if ($response !== null) {
+			return $response;
+		}
+
+		$page = $this->request->query->getInt('page', 1);
+
+		$service = new MapService($this->getFileLogger(), $this->session);
+
+		$configs = MapInventory::getAvailableMapConfigs($this->getRole()) ?? null;
+
+		$field_definitions = MapInventory::getFieldDefinitions() ?? null;
+		$field_descriptions = [];
+		foreach ($field_definitions as $field => $definition) {
+			$field_descriptions[$field] = $definition['description'];
+		}
+
+		$this->initUrls();
+
+		if ($this->getIsAdmin() and $model === 'MapCustom') {
+			$map_comb_entries = null;
+			$map_comb_total = null;
+			$map_gen_entries = null;
+			$map_gen_total = null;
+			$filter_maps = null;
+			$this->mapSearchEntryUrl = $this->urlGenerator->generate('admin_map_search_entry');
+			$map_custom_entries = $service->searchPaginatedMapCustom($page, $this->mapSearchEntryUrl, $search, $map_name);
+			$map_custom_total = $map_custom_entries->total();
+
+			if (empty($map_custom_entries)) {
+				$this->flashbag->add('info', 'No map entries exist');
+				return new RedirectResponse($this->mapsUrl);
+			}
+			foreach ($map_custom_entries as $key => $map_entry) {
+				// add map description
+				$field = $configs[$map_entry->map_name]['fields'][0];
+				$map_name = $map_entry->map_name;
+				$field_description = MapService::getCustomField($map_name)['field_label'];
+				$map_custom_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
+				$map_custom_entries[$key]->field = $field;
+				$map_custom_entries[$key]->field_description = $field_description;
+			}
+		} else {
+			$map_gen_entries = null;
+			$map_gen_total = null;
+			$map_custom_entries = null;
+			$map_custom_total = null;
+			$filter_maps = MapInventory::getMapsByModel($model, $configs);
+
+			// has applyUserRcptToScope and filter maps on model
+			$this->mapSearchEntryUrl = $this->urlGenerator->generate('admin_map_search_entry');
+			$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapSearchEntryUrl, $filter_maps);
+
+			if (empty($map_comb_entries)) {
+				$this->flashbag->add('info', 'No map entries exist');
+				return new RedirectResponse($this->mapsUrl);
+			}
+
+			foreach ($map_comb_entries as $key => $map_entry) {
+				// add map description
+				$map_comb_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
+				$map_comb_entries[$key]->map_username = $this->getMapUser($map_entry->user);
+				$map_comb_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_comb_entries[$key]->map_username);
+			}
+			$map_comb_total = $map_comb_entries->total();
+		}
+
+		$sf_data = [ 'model' => $model ];
+		$mapSearchForm = MapSearchForm::create($sf_data, $this->formFactory, $this->request, $this->urlGenerator);
+
+		return new Response($this->twig->render('maps_all_paginated.twig', [
+			'qidform' => $qidform->createView(),
+			'mapsearchform' => $mapSearchForm->createView(),
+			'mapselectform' => $mapCombinedSelectForm->createView(),
+			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
+			'mapselectcustomform' => $mapCustomSelectForm->createView(),
+			'map_comb_entries' => $map_comb_entries,
+			'map_comb_total' => $map_comb_total,
+			'map_gen_entries' => $map_gen_entries,
+			'map_gen_total' => $map_gen_total,
+			'map_custom_entries' => $map_custom_entries,
+			'map_custom_total' => $map_custom_total,
+			'field_descriptions' => $field_descriptions,
+			'items_per_page' => $this->items_per_page,
+			'runtime' => $this->getRuntime(),
+			'flashes' => $this->flashbag->all(),
+			'is_admin' => $this->session->get('is_admin'),
+			'username' => $this->session->get('username'),
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+			'maps_url_base' => $this->getMapsUrlBase(),
+		]));
 	}
 
 	public function toggleMapEntry(string $map, int $id): Response {
@@ -921,10 +1051,17 @@ class MapController extends ViewController
 			throw new \RuntimeException("Wrong model {$model} requested");
 		}
 
+		if ($this->getIsAdmin()) {
+			$url = $this->urlGenerator->generate('admin_maps');
+		} else {
+			$url = $this->urlGenerator->generate('maps');
+		}
+
 		$options = [
 			'role' => $this->getRole(),
 			'model' => $model,
 			'form_name' => $form_name,
+			'action' => $url,
 		];
 
 		$form = MapSelectForm::create($this->formFactory, $this->request, null, $options);

@@ -228,6 +228,38 @@ class MapService
 		return $map_entries;
 	}
 
+	public function searchPaginatedMapCustom(
+		int $page = 1,
+		string $url,
+		string $search,
+		?string $map_name
+	): ?LengthAwarePaginator {
+
+		if (!empty($map_name)) {
+			$query = $this->getMapCustomQuery($map_name);
+		} else {
+			$query = MapCustom::select(MapCustom::SELECT_FIELDS);
+		}
+
+		$query = $query->where('pattern', 'LIKE', "%{$search}%")
+							->orderBy('updated_at', 'DESC');
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		try {
+			$map_entries = $query
+				->paginate($this->items_per_page, ['*'], 'page', $page)
+				->withPath($url);
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $map_entries;
+	}
+
 	public function showPaginatedAllMapCustom(int $page = 1, string $url): ?LengthAwarePaginator {
 		$query = MapCustom::select('*')
 								  ->orderBy('updated_at', 'DESC');
