@@ -113,9 +113,9 @@ CREATE TABLE custom_map_config (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 # INSERT INTO `custom_map_config` VALUES
-# (1, 'body_email_blacklist', 'Body Email Blacklist', 'email', 'Email', NOW(), NOW()),
-# (2, 'body_url_host_blacklist', 'Body URL (host) Blacklist', 'url', 'URL', NOW(), NOW()),
-# (3, 'body_url_full_blacklist', 'Body URL (full) Blacklist', 'url', 'URL', NOW(), NOW()),
+# (1, 'body_email', 'Body Email', 'email', 'Email', NOW(), NOW()),
+# (2, 'body_url_host', 'Body URL (host)', 'url', 'URL', NOW(), NOW()),
+# (3, 'body_url_full', 'Body URL (full)', 'url', 'URL', NOW(), NOW()),
 # (4, 'from_whitelist', 'Mail/MIME From Whitelist', 'from', 'From', NOW(), NOW()),
 # (5, 'from_blacklist', 'Mail/MIME From Blacklist', 'from', 'From', NOW(), NOW());
 
