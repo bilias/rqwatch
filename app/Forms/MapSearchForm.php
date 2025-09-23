@@ -48,13 +48,16 @@ class MapSearchForm extends AbstractType
 				->add('model', HiddenType::class, [
 					'mapped' => true,   // bound to form data
 				])
+				->add('map_name', HiddenType::class, [
+					'mapped' => true,   // bound to form data
+				])
             ->add('search', SubmitType::class, [
                 'label' => 'Search',
             ]);
 	}
 
 	public static function create(
-			string $model,
+			array $data,
 			FormFactoryInterface $formFactory,
 			Request $request,
 			UrlGeneratorInterface $urlGenerator): Form {
@@ -65,9 +68,7 @@ class MapSearchForm extends AbstractType
 			$formFactory,
 			$request,
 			self::class,
-			[ // form data
-				'model' => $model,
-			],
+			$data,
 			[
 				'action' => $url,
 				'method' => 'POST',

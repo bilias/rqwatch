@@ -154,8 +154,6 @@ class MapController extends ViewController
 		$this->initUrls();
 
 		if ($this->getIsAdmin() and $model === 'MapCustom') {
-			$mapSearchForm = MapSearchForm::create($model, $this->formFactory, $this->request, $this->urlGenerator);
-
 			$map_comb_entries = null;
 			$map_comb_total = null;
 			$map_gen_entries = null;
@@ -179,13 +177,12 @@ class MapController extends ViewController
 				$map_custom_entries[$key]->field_description = $field_description;
 			}
 		} else {
-			$mapSearchForm = MapSearchForm::create('MapCombined', $this->formFactory, $this->request, $this->urlGenerator);
-
+			$model = 'MapCombined';
 			$map_gen_entries = null;
 			$map_gen_total = null;
 			$map_custom_entries = null;
 			$map_custom_total = null;
-			$filter_maps = MapInventory::getMapsByModel("MapCombined", $configs);
+			$filter_maps = MapInventory::getMapsByModel($model, $configs);
 
 			// has applyUserRcptToScope and filter maps on model
 			$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl, $filter_maps);
@@ -203,6 +200,9 @@ class MapController extends ViewController
 			}
 			$map_comb_total = $map_comb_entries->total();
 		}
+
+		$sf_data = [ 'model' => $model ];
+		$mapSearchForm = MapSearchForm::create($sf_data, $this->formFactory, $this->request, $this->urlGenerator);
 
 		return new Response($this->twig->render('maps_all_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -473,7 +473,11 @@ class MapController extends ViewController
 			return new RedirectResponse($this->mapsUrl);
 		}
 
-		$mapSearchForm = MapSearchForm::create($model, $this->formFactory, $this->request, $this->urlGenerator);
+		$sf_data = [
+			'model' => $model,
+			'map_name' => $map,
+		];
+		$mapSearchForm = MapSearchForm::create($sf_data, $this->formFactory, $this->request, $this->urlGenerator);
 
 		$last_activity = (string) MapActivityLog::where('map_name', $map)->value('last_changed_at');
 
