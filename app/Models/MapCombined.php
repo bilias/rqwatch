@@ -56,6 +56,14 @@ class MapCombined extends Model
 		'created_at',
 	];
 
+	public const SEARCH_FIELDS = [
+		'mail_from',
+		'rcpt_to',
+		'mime_from',
+		'mime_to',
+		'ip',
+	];
+
 	public function user(): BelongsTo {
 		return $this->belongsTo(User::class);
 	}
