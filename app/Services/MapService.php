@@ -232,7 +232,6 @@ class MapService
 
 	public function showPaginatedAllMapCustom(int $page = 1, string $url): ?LengthAwarePaginator {
 		$query = MapCustom::select('*')
-								  ->orderBy('map_name', 'ASC')
 								  ->orderBy('updated_at', 'DESC');
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
