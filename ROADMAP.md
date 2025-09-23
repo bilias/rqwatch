@@ -1,6 +1,7 @@
 # Roadmap
 
 ## In progress
+- Search for entry
 - Check/Update Views depending on access control
 
 ## Features bellow are in todo list.
