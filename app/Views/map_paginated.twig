@@ -2,7 +2,6 @@
 {% import 'macros/paginator.macro.twig' as ui %}
 
 {% block content %}
-<div class="center-container">
 
 {% if mapselectform or mapselectcustomform %}
  {% include 'partials/map_select.base.twig' %}
@@ -10,7 +9,7 @@
 
 {% if model == 'MapCombined' %}
  {% include 'partials/map_combined.html.twig' %}
-{% elseif model == 'MapCustom' %}
+{% elseif is_admin and model == 'MapCustom' %}
  {% include 'partials/map_custom.html.twig' %}
 {% endif %}
 
@@ -18,5 +17,4 @@
 {{ ui.paginator(map_entries, WEB_BASE) }}
 </div>
 
-</div>
 {% endblock %}
