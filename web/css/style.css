@@ -484,7 +484,8 @@ span.stored {
 }
 
 .mapform-wrapper {
-  flex: 1 1 45%; /* each form takes up to 45% of the width */
+  /* flex: 1 1 45%; */ /* each form takes up to 45% of the width */
+  flex: 1 1 auto; /* grows to fit content */
   min-width: 300px;
   max-width: 450px;
   padding: 0;
@@ -1065,6 +1066,11 @@ span.stored {
   padding-right: 10px;
   font-weight: bold;
   align-self: center;
+}
+
+.mapform .info {
+  flex: 1;
+  white-space: nowrap;
 }
 
 .loginform .detail {
