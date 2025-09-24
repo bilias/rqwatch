@@ -2,10 +2,6 @@
 
 {% block content %}
 
-{% if mapselectform or mapselectcustomform %}
- {% include 'partials/map_select.base.twig' %}
-{% endif %}
-
 {% if mapform %}
 
 <span class='descr'>Add entry in Map: {{ mapdescr }}</span>
