@@ -42,6 +42,7 @@ class MailLogService
 {
 	private LoggerInterface $logger;
 	protected $items_per_page;
+	protected $q_items_per_page;
 	protected $max_items;
 	private ?bool $is_admin = null;
 	private ?string $email = null;
@@ -56,6 +57,7 @@ class MailLogService
 			$this->user_aliases = $session->get('user_aliases');
 		}
 		$this->items_per_page = Config::get('items_per_page');
+		$this->q_items_per_page = Config::get('q_items_per_page');
 		$this->max_items = Config::get('max_items');
 	}
 
@@ -394,7 +396,7 @@ class MailLogService
 		}
 
 		$days = $query
-			->paginate($this->items_per_page, ['day', 'cnt'], 'page', $page)
+			->paginate($this->q_items_per_page, ['day', 'cnt'], 'page', $page)
 			->withPath($url);
 
 		return $days;

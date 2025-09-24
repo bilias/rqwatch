@@ -33,6 +33,7 @@ class MailLogController extends ViewController
 {
 	protected int $refresh_rate;
 	protected int $items_per_page;
+	protected int $q_items_per_page;
 	protected int $max_items;
 	protected string $quarantine_dir;
 
@@ -41,6 +42,7 @@ class MailLogController extends ViewController
 
 		$this->refresh_rate = Config::get('refresh_rate');
 		$this->items_per_page = Config::get('items_per_page');
+		$this->q_items_per_page = Config::get('q_items_per_page');
 		$this->max_items = Config::get('max_items');
 		$this->subject_privacy = Config::get('subject_privacy');
 		$this->quarantine_dir = $_ENV['QUARANTINE_DIR'];
@@ -273,7 +275,7 @@ class MailLogController extends ViewController
 			'days' => $days,
 			'totalRecords' => $days->total(),
 			'totalMails' => $totalMails,
-			'items_per_page' => $this->items_per_page,
+			'items_per_page' => $this->q_items_per_page,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),

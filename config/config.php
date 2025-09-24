@@ -102,6 +102,8 @@ $refresh = false;
 
 # items to show in page
 $items_per_page = 50;
+# quarantine days to show
+$q_items_per_page = 31;
 
 # certain pages have sql restriction on upper items returned
 $max_items = 10000;
