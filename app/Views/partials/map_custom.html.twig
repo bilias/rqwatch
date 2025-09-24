@@ -24,13 +24,13 @@ Custom Map: {{ mapdescr }}<br/>
 </div>
 </div>
 
+{% if map_entries is not empty %}
+
 {% if mapsearchform %}
 <div class="mapsearchform">
 {% include 'partials/map_search.html.twig' %}
 </div>
 {% endif %}
-
-{% if map_entries is not empty %}
 
 <div class='mapform'>
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
@@ -62,7 +62,7 @@ Custom Map: {{ mapdescr }}<br/>
 </div>
 
 {% else %}
-    No entries found
+    <p>No entries found</p>
 {% endif %}
 
 </section>
