@@ -228,6 +228,7 @@ class MailLogController extends ViewController
 			'logs' => $logs,
 			'totalRecords' => $logs->total(),
 			'date' => $date,
+			'in_quarantine' => true,
 			'items_per_page' => $this->items_per_page,
 			'max_items' => $this->max_items,
 			'runtime' => $this->getRuntime(),
