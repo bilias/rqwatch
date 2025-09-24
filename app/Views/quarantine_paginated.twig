@@ -6,13 +6,13 @@
 
 <div class='quarantine'>
 
- <h2 class='descr'>Quarantine
+ <span class='descr'>Quarantine
 | Total: {{ totalRecords }} days
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }} days/page
 {% endif %}
 | {{ totalMails }} mails
- </h2>
+ </span>
 
 <div class='pagtop'>
 {{ ui.paginator(days, WEB_BASE) }}
