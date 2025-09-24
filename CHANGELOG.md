@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 ### 2025-09-24
+- Updated illuminate to v12.31.1
+- Updated symfony to v7.3.3
 - Use initMapUrls instead of initUrls and local generates
 - Move initMapUrls in MapController
 
