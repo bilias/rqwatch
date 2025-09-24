@@ -12,7 +12,9 @@
 {{ ui.paginator(map_entries, WEB_BASE) }}
 </div>
 
+{% if is_admin %}
 {% include 'partials/maps_custom_config.html.twig' %}
+{% endif %}
 
 <div class='pagbottom'>
 {{ ui.paginator(map_entries, WEB_BASE) }}
