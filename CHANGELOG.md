@@ -2,6 +2,11 @@
 
 ## Master Dev Branch
 
+### 2025-09-24
+- Increase rcpt_to/mime_to size in mail_logs db
+- Add more logging in MetadataImporterApi
+- Catch exception in MetadataImporterApi (failsafe)
+
 ## v1.6.4 - Released: 2025-09-24
 
 ### 2025-09-24
