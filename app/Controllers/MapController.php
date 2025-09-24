@@ -43,6 +43,7 @@ class MapController extends ViewController
 	protected string $mapsUrl;
 	protected string $mapShowUrl;
 	protected string $mapShowAllUrl;
+	protected string $mapShowAllCustomUrl;
 	protected string $mapAddEntryUrl;
 	protected string $showCustomMapsConfigUrl;
 	protected string $mapsCustomAddUrl;
@@ -80,6 +81,7 @@ class MapController extends ViewController
 		if ($this->getIsAdmin()) {
 			$this->mapsUrl = $this->urlGenerator->generate('admin_maps');
 			$this->mapShowAllUrl = $this->urlGenerator->generate('admin_map_show_all');
+			$this->mapShowAllCustomUrl = $this->urlGenerator->generate('admin_map_show_all', ['model' => 'MapCustom']);
 			$this->showCustomMapsConfigUrl = $this->urlGenerator->generate('admin_maps_custom_show');
 			$this->mapsCustomAddUrl = $this->urlGenerator->generate('admin_maps_custom_add');
 			$this->mapSearchEntryUrl = $this->urlGenerator->generate('admin_map_search_entry');
@@ -202,7 +204,7 @@ class MapController extends ViewController
 			$map_gen_entries = null;
 			$map_gen_total = null;
 			$filter_maps = null;
-			$map_custom_entries = $service->showPaginatedAllMapCustom($page, $this->mapShowAllUrl);
+			$map_custom_entries = $service->showPaginatedAllMapCustom($page, $this->mapShowAllCustomUrl);
 			$map_custom_total = $map_custom_entries->total();
 
 			if (empty($map_custom_entries)) {
