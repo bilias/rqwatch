@@ -2,12 +2,6 @@
 
 {% block content %}
 
-{% if mapselectform or mapselectcustomform %}
-<div class="center-container">
- {% include 'partials/map_select.base.twig' %}
-</div>
-{% endif %}
-
 {% if is_admin and mapform %}
 
 <span class='descr'>Add Custom Map</span>
