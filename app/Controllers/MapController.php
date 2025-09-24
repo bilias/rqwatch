@@ -266,7 +266,7 @@ class MapController extends ViewController
 			$map_configs[$key]['map_entries'] = $map_config->MapsCustom->count();
 		}
 
-		return new Response($this->twig->render('maps_custom.twig', [
+		return new Response($this->twig->render('maps_custom_config.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
 			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
@@ -356,7 +356,7 @@ class MapController extends ViewController
 			}
 		}
 
-		return new Response($this->twig->render('maps_custom_add.twig', [
+		return new Response($this->twig->render('maps_custom_config_add.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
 			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
