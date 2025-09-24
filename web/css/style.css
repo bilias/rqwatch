@@ -172,7 +172,7 @@ caption {
 	border-color: inherit;
 	background-color: var(--color-bg-menu);
 	font-weight: 700;
-   font-size: 12px;
+   /* font-size: 12px; */
 	/* margin-top: 20px;*/
 	/* margin-bottom: 20px; */
 	padding-top: 2px;
