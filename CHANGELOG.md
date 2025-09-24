@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## v1.6.4 - Released: 2025-09-24
+
 ### 2025-09-24
 - Updated illuminate to v12.31.1
 - Updated symfony to v7.3.3
