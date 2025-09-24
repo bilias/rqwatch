@@ -175,8 +175,7 @@ caption {
    /* font-size: 12px; */
 	/* margin-top: 20px;*/
 	/* margin-bottom: 20px; */
-	padding-top: 2px;
-	padding-bottom: 2px;
+	padding: 2px;
 	display: block;
 	width: 100%;
 	box-sizing: border-box;
