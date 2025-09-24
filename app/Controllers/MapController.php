@@ -44,6 +44,8 @@ class MapController extends ViewController
 	protected string $mapShowUrl;
 	protected string $mapShowAllUrl;
 	protected string $mapAddEntryUrl;
+	protected string $showCustomMapsConfigUrl;
+	protected string $mapsCustomAddUrl;
 
 	public function __construct() {
 	//	parent::__construct();
@@ -56,14 +58,6 @@ class MapController extends ViewController
 	}
 
 	public function initMapUrls(?string $map = null): void {
-		if ($this->mapUrlsInitialized) {
-			return;
-		}
-
-		if (!$this->urlsInitialized) {
-			$this->initUrls();
-		}
-
 		if (!empty($map)) {
 			if ($this->getIsAdmin()) {
 				$this->mapShowUrl = $this->urlGenerator->generate('admin_map_show', [ 'map' => $map ]);
@@ -72,6 +66,24 @@ class MapController extends ViewController
 				$this->mapShowUrl = $this->urlGenerator->generate('map_show', [ 'map' => $map ]);
 				$this->mapAddEntryUrl = $this->urlGenerator->generate('map_add_entry', [ 'map' => $map ]);
 			}
+		}
+
+		if ($this->mapUrlsInitialized) {
+			return;
+		}
+
+		if (!$this->urlsInitialized) {
+			$this->initUrls();
+		}
+
+		if ($this->getIsAdmin()) {
+			$this->mapsUrl = $this->urlGenerator->generate('admin_maps');
+			$this->mapShowAllUrl = $this->urlGenerator->generate('admin_map_show_all');
+			$this->showCustomMapsConfigUrl = $this->urlGenerator->generate('admin_maps_custom_show');
+			$this->mapsCustomAddUrl = $this->urlGenerator->generate('admin_maps_custom_add');
+		} else {
+			$this->mapsUrl = $this->urlGenerator->generate('maps');
+			$this->mapShowAllUrl = $this->urlGenerator->generate('map_show_all');
 		}
 
 		$this->mapUrlsInitialized = true;
@@ -180,7 +192,7 @@ class MapController extends ViewController
 			$field_descriptions[$field] = $definition['description'];
 		}
 
-		$this->initUrls();
+		$this->initMapUrls();
 
 		if ($this->getIsAdmin() and $model === 'MapCustom') {
 			$map_comb_entries = null;
@@ -188,7 +200,6 @@ class MapController extends ViewController
 			$map_gen_entries = null;
 			$map_gen_total = null;
 			$filter_maps = null;
-			$this->mapShowAllUrl = $this->urlGenerator->generate('admin_map_show_all', ['model' => $model]);
 			$map_custom_entries = $service->showPaginatedAllMapCustom($page, $this->mapShowAllUrl);
 			$map_custom_total = $map_custom_entries->total();
 
@@ -287,8 +298,10 @@ class MapController extends ViewController
 		$service = new MapService($this->getFileLogger(), $this->session);
 
 		$page = $this->request->query->getInt('page', 1);
-		$showCustomMapsUrl = $this->urlGenerator->generate('admin_maps_custom_show');
-		$map_configs = $service->showPaginatedCustomMapConfigs($page, $showCustomMapsUrl);
+
+		$this->initMapUrls();
+
+		$map_configs = $service->showPaginatedCustomMapConfigs($page, $this->showCustomMapsConfigUrl);
 
 		foreach ($map_configs as $key => $map_config) {
 			$map_configs[$key]['map_entries'] = $map_config->MapsCustom->count();
@@ -341,19 +354,19 @@ class MapController extends ViewController
 
 		$mapform = CustomMapConfigForm::create($this->formFactory, $this->request);
 
-		$url = $this->urlGenerator->generate('admin_maps_custom_add');
+		$this->initMapUrls();
 
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();
 			if (empty($data['map_name'])) {
 				$this->flashbag->add('error', "Map Name empty");
-				return new RedirectResponse($url);
+				return new RedirectResponse($this->mapsCustomAddUrl);
 			}
 			$data['map_name'] = strtolower(trim($data['map_name']));
 
 			if (empty($data['field_name'])) {
 				$this->flashbag->add('error', "Field Name empty");
-				return new RedirectResponse($url);
+				return new RedirectResponse($this->mapsCustomAddUrl);
 			}
 			$data['field_name'] = trim($data['field_name']);
 			$data['map_description'] = trim($data['map_description']);
@@ -365,22 +378,21 @@ class MapController extends ViewController
 			$map_name = $data['map_name'];
 			if ($map_name === 'manage_custom_maps') {
 				$this->flashbag->add('error', "Map name '{$map_name}' is not allowed!");
-				return new RedirectResponse($url);
+				return new RedirectResponse($this->mapsCustomAddUrl);
 			}
 			if ($service->mapExists($map_name)) {
 				$this->flashbag->add('error', "Map '{$map_name}' already exists!");
-				return new RedirectResponse($url);
+				return new RedirectResponse($this->mapsCustomAddUrl);
 			}
 
 			// add entry
 			if ($service->addCustomMapConfig($data)) {
 				$this->fileLogger->info("Custom map '{$map_name}' created by '{$this->email}'");
 				$this->flashbag->add('success', "Custom Map '{$data['map_name']}' created");
-				$url = $this->urlGenerator->generate('admin_maps_custom_show');
-				return new RedirectResponse($url);
+				return new RedirectResponse($this->showCustomMapsConfigUrl);
 			} else {
 				$this->flashbag->add('error', "Custom map '{$map_name}' creation problem. Check logs.");
-				return new RedirectResponse($url);
+				return new RedirectResponse($this->mapsCustomAddUrl);
 			}
 		}
 
@@ -433,12 +445,12 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$this->initUrls();
-
 		if (empty($map)) {
 			$this->flashbag->add('error', 'No map selected');
 			return new RedirectResponse($this->mapsUrl);
 		}
+
+		$this->initMapUrls($map);
 
 		// Fetch config for the selected map
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map) ?? null;
@@ -535,6 +547,7 @@ class MapController extends ViewController
 		]));
 	}
 
+	// works for both MapCombined/MapCustom
 	public function addMapEntry(string $map): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
@@ -561,12 +574,12 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$this->initUrls();
-
 		if (empty($map)) {
 			$this->flashbag->add('error', 'No map selected');
 			return new RedirectResponse($this->mapsUrl);
 		}
+
+		$this->initMapUrls($map);
 
 		// Fetch config for the selected map
 		//$config = MapInventory::getMapConfigs($map) ?? null;
@@ -614,13 +627,9 @@ class MapController extends ViewController
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();
 
-			$this->initMapUrls($map);
-			$mapAddEntryUrl  = $this->mapAddEntryUrl;
-			$mapShowUrl = $this->mapShowUrl;
-
 			if (empty($data)) {
 				$this->flashbag->add('error', "Empty map data");
-				return new RedirectResponse($mapAddEntryUrl);
+				return new RedirectResponse($this->mapAddEntryUrl);
 			}
 
 			// generate entry string for logs/flashbag
@@ -642,7 +651,7 @@ class MapController extends ViewController
 			// has applyUserRcptToScope
 			if ($service->mapEntryExists($model, $map, $fields, $data)) {
 				$this->flashbag->add('error', "Entry '{$entry_str}' already exists in Map '{$mapdescr}'");
-				return new RedirectResponse($mapAddEntryUrl );
+				return new RedirectResponse($this->mapAddEntryUrl );
 			}
 
 			// add entry
@@ -650,33 +659,33 @@ class MapController extends ViewController
 				// has applyUseScope
 				if ($service->addMapCombinedEntry($map, $fields, $data)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
-					return new RedirectResponse($mapShowUrl);
+					return new RedirectResponse($this->mapShowUrl);
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
-					return new RedirectResponse($mapAddEntryUrl);
+					return new RedirectResponse($this->mapAddEntryUrl);
 				}
 			/* deprecated
 			} elseif ($this->getIsAdmin() && $model === 'MapGeneric') {
 				if($service->addMapGenericEntry($map, $data[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
-					return new RedirectResponse($mapShowUrl);
+					return new RedirectResponse($this->mapShowUrl);
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
-					return new RedirectResponse($mapAddEntryUrl);
+					return new RedirectResponse($this->mapAddEntryUrl);
 				}
 			*/
 			} elseif ($this->getIsAdmin() && $model === 'MapCustom') {
 				if($service->addMapCustomEntry($map, $data[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
-					return new RedirectResponse($mapShowUrl);
+					return new RedirectResponse($this->mapShowUrl);
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
-					return new RedirectResponse($mapAddEntryUrl);
+					return new RedirectResponse($this->mapAddEntryUrl);
 				}
 			} else {
 				$this->fileLogger->warning("User {$this->username} tried to add map in " . $this->request->getPathInfo() . " with wrong model {$model} or non admin rights");
 				$this->flashbag->add('error', 'Error in map');
-				return new RedirectResponse($mapShowUrl);
+				return new RedirectResponse($this->mapShowUrl);
 			}
 		}
 
@@ -715,8 +724,7 @@ class MapController extends ViewController
 			$this->flashbag->add('error', 'Bad custom map id');
 		}
 
-		$url = $this->urlGenerator->generate('admin_maps_custom_show');
-		return new RedirectResponse($url);
+		return new RedirectResponse($this->showCustomMapsConfigUrl);
 	}
 
 	public function delMapEntry(string $map, int $id): Response {
@@ -737,9 +745,8 @@ class MapController extends ViewController
 			} else {
 				$this->fileLogger->warning("User {$this->username} tried to del entry in " . $this->request->getPathInfo() . " without admin authorization");
 				$this->flashbag->add('error', 'Invalid map selected');
-				$this->initUrls();
-				$url = $this->mapsUrl;
-				return new RedirectResponse($url);
+				$this->initMapUrls();
+				return new RedirectResponse($this->mapsUrl);
 			}
 
 			if (!empty($map_entry)) {
@@ -777,9 +784,8 @@ class MapController extends ViewController
 				} else { // if no fields it failed the role in getAvailableMapConfigs()
 					$this->fileLogger->warning("User '{$this->username}' tried to access " . $this->request->getPathInfo() . " without admin authorization");
 					$this->flashbag->add('error', "Permission denied");
-					$this->initUrls();
-					$url = $this->mapsUrl;
-					return new RedirectResponse($url);
+					$this->initMapUrls();
+					return new RedirectResponse($this->mapsUrl);
 				}
 			} else {
 				$this->flashbag->add('error', "Map entry not found");
@@ -792,7 +798,7 @@ class MapController extends ViewController
 			$this->initMapUrls($map);
 			$url = $this->mapShowUrl;
 		} else {
-			$this->initUrls();
+			$this->initMapUrls();
 			$url = $this->mapsUrl;
 		}
 		return new RedirectResponse($url);
@@ -820,7 +826,7 @@ class MapController extends ViewController
 
 		$map_search_form = $request->request->all('map_search_form');
 
-		$this->initUrls();
+		$this->initMapUrls();
 
 		if (empty($map_search_form['model'])) {
 			$this->flashbag->add('error', 'Search Model empty');
@@ -856,7 +862,7 @@ class MapController extends ViewController
 			$field_descriptions[$field] = $definition['description'];
 		}
 
-		$this->initUrls();
+		$this->initMapUrls();
 
 		if ($this->getIsAdmin() and $model === 'MapCustom') {
 			$map_comb_entries = null;
@@ -864,7 +870,6 @@ class MapController extends ViewController
 			$map_gen_entries = null;
 			$map_gen_total = null;
 			$filter_maps = null;
-			$this->mapSearchEntryUrl = $this->urlGenerator->generate('admin_map_search_entry');
 			$map_custom_entries = $service->searchPaginatedMapCustom($page, $this->mapSearchEntryUrl, $search, $map_name);
 			$map_custom_total = $map_custom_entries->total();
 
@@ -888,7 +893,6 @@ class MapController extends ViewController
 			$map_custom_total = null;
 			$filter_maps = MapInventory::getMapsByModel($model, $configs);
 
-			$this->mapSearchEntryUrl = $this->urlGenerator->generate('admin_map_search_entry');
 			// has applyUserRcptToScope and filter maps on model
 			$map_comb_entries = $service->searchPaginatedMapCombined($page, $this->mapSearchEntryUrl, $filter_maps, $search, $map_name);
 
@@ -952,9 +956,8 @@ class MapController extends ViewController
 			} else {
 				$this->fileLogger->warning("User {$this->username} tried to toggle entry in " . $this->request->getPathInfo() . " without admin authorization");
 				$this->flashbag->add('error', 'Invalid map selected');
-				$this->initUrls();
-				$url = $this->mapsUrl;
-				return new RedirectResponse($url);
+				$this->initMapUrls();
+				return new RedirectResponse($this->mapsUrl);
 			}
 
 			if (!empty($map_entry)) {
@@ -993,9 +996,8 @@ class MapController extends ViewController
 				} else { // if no fields it failed the role in getAvailableMapConfigs()
 					$this->fileLogger->warning("User '{$this->username}' tried to access " . $this->request->getPathInfo() . " without admin authorization");
 					$this->flashbag->add('error', "Permission denied");
-					$this->initUrls();
-					$url = $this->mapsUrl;
-					return new RedirectResponse($url);
+					$this->initMapUrls();
+					return new RedirectResponse($this->mapsUrl);
 				}
 			} else {
 				$this->flashbag->add('error', "Map entry not found");
@@ -1008,7 +1010,7 @@ class MapController extends ViewController
 			$this->initMapUrls($map);
 			$url = $this->mapShowUrl;
 		} else {
-			$this->initUrls();
+			$this->initMapUrls();
 			$url = $this->mapsUrl;
 		}
 		return new RedirectResponse($url);
@@ -1073,17 +1075,13 @@ class MapController extends ViewController
 			throw new \RuntimeException("Wrong model {$model} requested");
 		}
 
-		if ($this->getIsAdmin()) {
-			$url = $this->urlGenerator->generate('admin_maps');
-		} else {
-			$url = $this->urlGenerator->generate('maps');
-		}
+		$this->initMapUrls();
 
 		$options = [
 			'role' => $this->getRole(),
 			'model' => $model,
 			'form_name' => $form_name,
-			'action' => $url,
+			'action' => $this->mapsUrl,
 		];
 
 		$form = MapSelectForm::create($this->formFactory, $this->request, null, $options);

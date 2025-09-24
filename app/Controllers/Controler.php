@@ -130,13 +130,9 @@ class Controller
 		if ($this->getIsAdmin()) {
 			$this->homepageUrl = $this->urlGenerator->generate('admin_homepage');
 			$this->searchUrl = $this->urlGenerator->generate('admin_search');
-			$this->mapsUrl = $this->urlGenerator->generate('admin_maps');
-			$this->mapShowAllUrl = $this->urlGenerator->generate('admin_map_show_all');
 		} else {
 			$this->homepageUrl = $this->urlGenerator->generate('homepage');
 			$this->searchUrl = $this->urlGenerator->generate('search');
-			$this->mapsUrl = $this->urlGenerator->generate('maps');
-			$this->mapShowAllUrl = $this->urlGenerator->generate('map_show_all');
 		}
 
 		$this->loginUrl = $this->urlGenerator->generate('login');

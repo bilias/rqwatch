@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2025-09-24
+- Use initMapUrls instead of initUrls and local generates
+- Move initMapUrls in MapController
+
 ### 2025-09-23
 - Add search map entry
 - Misc changes. mostly view formatting
