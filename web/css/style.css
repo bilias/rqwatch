@@ -1166,6 +1166,13 @@ table.attachments .filename {
  text-align: left;
 }
 
+.help-text2 {
+ display: block;
+ font-size: 0.85em;
+ color: #666;
+ margin-top: 4px;
+}
+
 .disabled {
  color: var(--color-disabled);
 }
