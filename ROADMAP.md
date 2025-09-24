@@ -1,8 +1,6 @@
 # Roadmap
 
 ## In progress
-- Fix QID search form after map entry search form
-- Search for entry
 - Check/Update Views depending on access control
 
 ## Features bellow are in todo list.
