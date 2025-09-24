@@ -39,6 +39,12 @@ class MapController extends ViewController
 	protected $items_per_page;
 	protected $max_items;
 
+	protected bool $mapUrlsInitialized = false;
+	protected string $mapsUrl;
+	protected string $mapShowUrl;
+	protected string $mapShowAllUrl;
+	protected string $mapAddEntryUrl;
+
 	public function __construct() {
 	//	parent::__construct();
 
@@ -48,6 +54,28 @@ class MapController extends ViewController
 		$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, $_ENV['WEB_HOST']);
 	}
+
+	public function initMapUrls(?string $map = null): void {
+		if ($this->mapUrlsInitialized) {
+			return;
+		}
+
+		if (!$this->urlsInitialized) {
+			$this->initUrls();
+		}
+
+		if (!empty($map)) {
+			if ($this->getIsAdmin()) {
+				$this->mapShowUrl = $this->urlGenerator->generate('admin_map_show', [ 'map' => $map ]);
+				$this->mapAddEntryUrl = $this->urlGenerator->generate('admin_map_add_entry', [ 'map' => $map ]);
+			} else {
+				$this->mapShowUrl = $this->urlGenerator->generate('map_show', [ 'map' => $map ]);
+				$this->mapAddEntryUrl = $this->urlGenerator->generate('map_add_entry', [ 'map' => $map ]);
+			}
+		}
+
+		$this->mapUrlsInitialized = true;
+   }
 
 	public function showSelectMap(): Response {
 		// enable form rendering support

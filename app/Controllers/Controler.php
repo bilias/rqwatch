@@ -37,12 +37,6 @@ class Controller
 	protected string $loginUrl;
 	protected string $homepageUrl;
 	protected string $searchUrl;
-	protected string $mapsUrl;
-	protected string $mapShowAllUrl;
-
-	protected bool $mapUrlsInitialized = false;
-	protected string $mapShowUrl;
-	protected string $mapAddEntryUrl;
 
 	protected bool $is_admin = false;
 	protected ?string $username = null;
@@ -148,26 +142,6 @@ class Controller
 		$this->loginUrl = $this->urlGenerator->generate('login');
 		$this->urlsInitialized = true;
 	}
-
-	public function initMapUrls(string $map): void {
-		if ($this->mapUrlsInitialized) {
-			return;
-		}
-
-		if (!$this->urlsInitialized) {
-			$this->initUrls();
-		}
-
-		if ($this->getIsAdmin()) {
-			$this->mapShowUrl = $this->urlGenerator->generate('admin_map_show', [ 'map' => $map ]);
-			$this->mapAddEntryUrl = $this->urlGenerator->generate('admin_map_add_entry', [ 'map' => $map ]);
-		} else {
-			$this->mapShowUrl = $this->urlGenerator->generate('map_show', [ 'map' => $map ]);
-			$this->mapAddEntryUrl = $this->urlGenerator->generate('map_add_entry', [ 'map' => $map ]);
-		}
-
-		$this->mapUrlsInitialized = true;
-   }
 
 	public function getFileLogger(): LoggerInterface {
 		return $this->fileLogger;
