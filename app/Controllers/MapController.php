@@ -157,7 +157,7 @@ class MapController extends ViewController
 		]));
 	}
 
-	// for both MapCombined/MapCustom
+	// Show all entries for both MapCombined/MapCustom
 	public function showAllMaps(?string $model = null): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
