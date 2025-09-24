@@ -61,8 +61,21 @@ class MetadataImporterApi extends RqwatchApi
 
 	public function handle(): void {
 
-		$headers = $this->request->headers->all(); // array of lowercased header names
-		$rawEmail = $this->request->getContent(); // instead of php://input
+		try {
+			$headers = $this->request->headers->all(); // array of lowercased header names
+			$rawEmail = $this->request->getContent(); // instead of php://input
+		} catch (\Throwable $e) {
+			$this->fileLogger->error("[{$this->logPrefix}] Request parse error: " . $e->getMessage(), [
+				'trace' => $e->getTraceAsString(),
+			]);
+			$this->dropLogResponse(
+				Response::HTTP_BAD_REQUEST,
+				"Invalid request (parse error)",
+				$e->getMessage(),
+				'error'
+			);
+		}
+
 		$parser = new Parser();
 		if (!empty($rawEmail)) {
 			$parser->setText($rawEmail);
