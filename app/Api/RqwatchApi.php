@@ -71,6 +71,8 @@ abstract class RqwatchApi
 
 	protected function checkIpAcl(array $allowedIps): void {
 		if (empty($allowedIps)) {
+			$msg = "getAllowedIps() returned empty IP ACL in " . static::class;
+			$this->fileLogger->error($msg);
 			throw new \RuntimeException("getAllowedIps() returned empty IP ACL in " .
 				static::class);
 			exit;
@@ -89,6 +91,8 @@ abstract class RqwatchApi
 		[$username, $password] = $this->getAuthCredentials();
 
 		if (empty($username) or empty($password)) {
+			$msg = "getAuthCredentials() returned empty username or password in " . static::class;
+			$this->fileLogger->error($msg);
 			throw new \RuntimeException("getAuthCredentials() returned empty username or password in " .
 				static::class);
 			exit;
@@ -103,6 +107,8 @@ abstract class RqwatchApi
 
 		// Authenticate the remote system
 		if (!$this->auth->authenticate() || !$this->auth->getAuthenticatedUser()) {
+			$msg = "Authentication failed in " . static::class;
+			$this->fileLogger->error($msg);
 			// we should never be here
 			throw new \RuntimeException("Authentication failed in " . static::class);
 			exit;

@@ -88,6 +88,7 @@ class MetadataImporterApi extends RqwatchApi
 		//$request_size = (int)$_SERVER['CONTENT_LENGTH'];
 		
 		if (empty($qid) and empty($score) and empty($action)) {
+			$this->fileLogger->error("qid, score and action missing");
 			$msg = "qid, score and action missing";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $msg,
@@ -181,7 +182,7 @@ class MetadataImporterApi extends RqwatchApi
 				// $sql = $e->getSql(); // array
 				// $e->getMessage() // very verbose
 				$pdoMessage = $e->getPrevious()?->getMessage() ?? 'Unknown database error';
-				$err_msg = "DB error: {$pdoMessage}";
+				$err_msg = "{$qid} DB error: {$pdoMessage}";
 				$response_msg = "Database error. Please try again later";
 				$this->dropLogResponse(
 					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
