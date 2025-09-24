@@ -46,6 +46,7 @@ class MapController extends ViewController
 	protected string $mapAddEntryUrl;
 	protected string $showCustomMapsConfigUrl;
 	protected string $mapsCustomAddUrl;
+	protected string $mapSearchEntryUrl;
 
 	public function __construct() {
 	//	parent::__construct();
@@ -81,6 +82,7 @@ class MapController extends ViewController
 			$this->mapShowAllUrl = $this->urlGenerator->generate('admin_map_show_all');
 			$this->showCustomMapsConfigUrl = $this->urlGenerator->generate('admin_maps_custom_show');
 			$this->mapsCustomAddUrl = $this->urlGenerator->generate('admin_maps_custom_add');
+			$this->mapSearchEntryUrl = $this->urlGenerator->generate('admin_map_search_entry');
 		} else {
 			$this->mapsUrl = $this->urlGenerator->generate('maps');
 			$this->mapShowAllUrl = $this->urlGenerator->generate('map_show_all');
