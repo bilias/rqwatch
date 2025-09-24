@@ -523,11 +523,20 @@ span.stored {
  text-align: center;
 }
 
+.mapsearchform {
+  width: 100%;
+  /* max-width: 1000px; */
+  border: 0px;
+  margin: 10px auto 10px auto;
+  box-sizing: border-box;
+  display: block;
+}
+
 .mapform {
   width: 100%;
   /* max-width: 1000px; */
   border: 0px;
-  margin: 20px auto 0px auto;
+  margin: 10px auto 0px auto;
   box-sizing: border-box;
   display: block;
 }
@@ -628,7 +637,7 @@ span.stored {
   display: block;
   width: 100%;
 /*  max-width: 500px; */
-  margin: 20px auto; /* adds top margin & centers block */
+  margin: 20px auto 10px auto; /* adds top margin & centers block */
   box-sizing: border-box;
   text-align: center;
   border-radius: 2px;

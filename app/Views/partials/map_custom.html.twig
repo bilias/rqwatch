@@ -1,3 +1,5 @@
+{% if is_admin %}
+
 {% import 'macros/paginator.macro.twig' as ui %}
 <section>
 
@@ -17,14 +19,16 @@ Custom Map: {{ mapdescr }}<br/>
 
 <div id="inside_links">
 <ul>
-{% if is_admin %}
 <li><a href='{{ get_route('admin_map_add_entry', { map: map} ) }}'>Add New entry</a></li>
-{% else %}
-<li><a href='{{ get_route('map_add_entry', { map: map} ) }}'>Add New entry</a></li>
-{% endif %}
 </ul>
 </div>
 </div>
+
+{% if mapsearchform %}
+<div class="mapsearchform">
+{% include 'partials/map_search.html.twig' %}
+</div>
+{% endif %}
 
 {% if map_entries is not empty %}
 
@@ -62,3 +66,4 @@ Custom Map: {{ mapdescr }}<br/>
 {% endif %}
 
 </section>
+{% endif %}

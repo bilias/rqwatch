@@ -2,6 +2,7 @@
 {% import 'macros/paginator.macro.twig' as ui %}
 
 {% block content %}
+<div class="center-container">
 
 {% if mapselectform or mapselectcustomform %}
  {% include 'partials/map_select.base.twig' %}
@@ -17,4 +18,5 @@
 {{ ui.paginator(map_entries, WEB_BASE) }}
 </div>
 
+</div>
 {% endblock %}
