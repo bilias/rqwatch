@@ -55,11 +55,15 @@ class LdapAuth implements AuthInterface {
 		$ldap_login_attr = $_ENV['LDAP_LOGIN_ATTR'] ?? 'mail';
 		$ldap_mail_attr = $_ENV['LDAP_MAIL_ATTR'] ?? 'mail';
 		$ldap_sn_attr = $_ENV['LDAP_SN_ATTR'] ?? 'sn';
+		$ldap_sn_attr_fallback = $_ENV['LDAP_SN_ATTR_FALLBAK'] ?? 'sn';
 		$ldap_givenname_attr = $_ENV['LDAP_GIVENNAME_ATTR'] ?? 'givenName';
+		$ldap_givenname_attr_fallback = $_ENV['LDAP_GIVENNAME_ATTR_FALLBACK'] ?? 'givenName';
 		$ldap_attrs = [
 			$ldap_mail_attr,
 			$ldap_sn_attr,
+			$ldap_sn_attr_fallback,
 			$ldap_givenname_attr,
+			$ldap_givenname_attr_fallback,
 		];
 
 		$ldap = ldap_connect($ldap_uri);
@@ -174,10 +178,21 @@ class LdapAuth implements AuthInterface {
 			$sn = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_sn_attr);
 			if (!empty($sn)) {
 				$this->lastname = $sn;
+			} else {
+				$sn_fallback = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_sn_attr_fallback);
+				if (!empty($sn_fallback)) {
+					$this->lastname = $sn_fallback;
+				}
 			}
+
 			$givenName = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_givenname_attr);
 			if (!empty($givenName)) {
 				$this->firstname = $givenName;
+			} else {
+				$givenName_fallback = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_givenname_attr_fallback);
+				if (!empty($givenName_fallback)) {
+					$this->firstname = $givenName_fallback;
+				}
 			}
 
 			return true;
