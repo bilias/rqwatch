@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-09-24
+- Enable/Disable rspamd stats
 - Add sn/givenName fallback for LDAP
 - Mention personal white/black list in notification mail
 - Add warning about links in html

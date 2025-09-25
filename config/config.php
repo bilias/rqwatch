@@ -46,6 +46,9 @@ $API_SERVERS = array(
 	],
 );
 
+# disable rspamd stats
+$rspamd_stat_disable=false;
+
 # timeout for getting rspamd statistics
 $rspamd_stat_api_timeout = 1.0;
 

@@ -6,7 +6,7 @@
   <h4>{{ APP_INFO }}</h4>
 #}
  </div>
- {% if is_admin %}
+ {% if is_admin and rspamd_stats is not empty %}
  <div class="header-right">
   <div class='descr'>Rspamd Stats</div>
   <div class="right-content">

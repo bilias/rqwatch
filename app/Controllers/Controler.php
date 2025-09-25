@@ -161,6 +161,10 @@ class Controller
 	}
 
 	public function getRspamdStat(): array {
+		if (Config::get('rspamd_stat_disable')) {
+			return [];
+		}
+
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			$redis = RedisFactory::get();
 			$redisKey = Config::get('rspamd_stat_redis_key');
