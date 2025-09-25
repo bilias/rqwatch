@@ -15,6 +15,7 @@
 - Search users
 - Search aliases
 - Login as user
+- Exclude emails from notifications
 
 ## Features bellow might be implemented
 
