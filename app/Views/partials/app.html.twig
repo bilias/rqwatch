@@ -8,8 +8,10 @@
  </div>
  {% if is_admin and rspamd_stats is not empty %}
  <div class="header-right">
-  <div class='descr'>Rspamd Stats</div>
-  <div class="right-content">
+  <div class='descr'>{#Rspamd Stats#}
+  <button onclick="toggleDisplay('right-content', this)">Rspamd stats</button>
+  </div>
+  <div id='right-content' style='display:none;'>
 
   <table class='header-details'>
 	<thead>
@@ -69,3 +71,18 @@
  </div>
 {% endif %}
 </div>
+
+<script>
+  function toggleDisplay(id, btn = null) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (el.style.display === 'none' || el.style.display === '') {
+      el.style.display = 'block';
+{#      if (btn) btn.textContent = 'Hide';#}
+    } else {
+      el.style.display = 'none';
+{#      if (btn) btn.textContent = 'Show';#}
+    }
+  }
+</script>

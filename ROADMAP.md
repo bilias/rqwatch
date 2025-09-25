@@ -5,7 +5,6 @@
 - Check/Update Views depending on access control
 
 ## Features bellow are in todo list.
-- Hide/show rspamd stats
 - Show config cache TTL
 - Reload config from gui (before redis expire)
 - Add link for map file in map
