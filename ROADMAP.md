@@ -4,7 +4,7 @@
 - Check/Update Views depending on access control
 
 ## Features bellow are in todo list.
-- Add score in maps
+- Delete all entries from maps
 
 ## Features bellow might be implemented
 
