@@ -32,7 +32,7 @@
    ({{ ip_country }})
   {% endif%}
   {% if map_configs['ip_whitelist']['add_url'] %}
-   <br/><a class='whitelist' href='class="whitelist" {{ map_configs['ip_whitelist']['add_url'] }}'>Add to '{{  map_configs['ip_whitelist']['description'] }}'</a>
+   <br/><a class='whitelist' href='{{ map_configs['ip_whitelist']['add_url'] }}'>Add to '{{  map_configs['ip_whitelist']['description'] }}'</a>
   {% endif %}
   {% if map_configs['ip_blacklist']['add_url'] %}
    |<a class='blacklist' href='{{ map_configs['ip_blacklist']['add_url'] }}'>Add to '{{  map_configs['ip_blacklist']['description'] }}'</a>
