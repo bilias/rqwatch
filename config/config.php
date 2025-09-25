@@ -111,8 +111,8 @@ $max_items = 10000;
 # hide subject on web interface
 $subject_privacy = false;
 
-# calculate statistics on search page
-$show_stats=true;
+# calculate statistics on mail search page
+$show_mail_stats=true;
 
 # default password hash
 # https://www.php.net/manual/en/function.password-hash.php

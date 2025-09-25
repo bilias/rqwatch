@@ -650,7 +650,7 @@ class MailLogController extends ViewController
 		// get current stats
 		$service = new MailLogService($this->getFileLogger(), $this->session);
 		// array with results
-		if (Config::get('show_stats')) {
+		if (Config::get('show_mail_stats')) {
 			$stats = $service->showStats($filters);
 		} else {
 			$stats = array();
