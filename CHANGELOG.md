@@ -3,6 +3,12 @@
 ## Master Dev Branch
 
 ### 2025-09-24
+- Add sn/givenName fallback for LDAP
+- Mention personal white/black list in notification mail
+- Add warning about links in html
+- Show both textBody and htmlBody when viewing mail
+
+### 2025-09-24
 - Increase rcpt_to/mime_to size in mail_logs db
 - Add more logging in MetadataImporterApi
 - Catch exception in MetadataImporterApi (failsafe)
