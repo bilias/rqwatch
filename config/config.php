@@ -93,6 +93,9 @@ $release_mail_subject="Message released from quarantine";
 # default subject in notification mail
 $notify_mail_subject="New message stored in quarantine";
 
+# mails with score more than this don't get notifications
+$notification_score = 50.1;
+
 # default mail signature
 $mail_signature=$APP_NAME;
 

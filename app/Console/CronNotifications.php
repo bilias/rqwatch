@@ -172,6 +172,31 @@ class CronNotifications extends RqwatchCliCommand
 			return $userService->notificationsDisabledFor($log->rcpt_to);
 		});
 
+		$notification_score = Config::get('notification_score');
+
+		// identify empty score > $notification_score
+		$removedLogs = $logs->filter(function ($log) use ($notification_score) {
+			return $log->score > $notification_score;
+		});
+
+		if (count($removedLogs) > 0) {
+			// get the ids based on filter above
+			$removedIds = $removedLogs->pluck('id')->all();
+			foreach ($removedIds as $id) {
+				$output->writeln("<comment>Score higher than {$notification_score} for id: {$id}</comment>, disabling notification{$local}",
+					OutputInterface::VERBOSITY_VERBOSE);
+				$this->fileLogger->debug("{$this->app_name} Score higher than {$notification_score} for id: {$id}, disabling notification{$local}");
+			}
+		}
+		// don't need these anymore
+		unset($removedIds);
+		unset($removedLogs);
+
+		// filter out mails with score > $notification_score
+		$logs = $logs->reject(function ($log) use ($notification_score) {
+			return $log->score > $notification_score;
+		});
+
 		if (($count = count($logs)) < 1) {
 			$output->writeln("<info>No entries remain for notification{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);

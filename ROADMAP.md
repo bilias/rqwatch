@@ -5,7 +5,6 @@
 - Check/Update Views depending on access control
 
 ## Features bellow are in todo list.
-- Disable notifications for high scored spam
 - Exclude emails from notifications. This might work with aliases of an account with disabled notifications
 - Show config cache TTL
 - Reload config from gui (before redis expire)

@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-09-25
+- Disable notifications for high scored spam
+
 ### 2025-09-24
 - Hide/show rspamd stats
 - Enable/Disable rspamd stats
