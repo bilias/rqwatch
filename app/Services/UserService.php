@@ -49,11 +49,11 @@ class UserService
 	public function getSearchQuery(array $fields, int $limit=null): Builder {
 		if ($limit) {
 			$query = User::select($fields)
-				->orderBy('id', 'DESC')
+				->orderBy('last_login', 'DESC')
 				->limit($limit);
 		} else {
 			$query = User::select($fields)
-				->orderBy('id', 'DESC');
+				->orderBy('last_login', 'DESC');
 		}
 
 		return $query;
