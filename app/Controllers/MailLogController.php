@@ -542,13 +542,15 @@ class MailLogController extends ViewController
 		}
 
 		$filename = $attachment->getFilename();
+		$filenameFallback = base64_encode($filename);
 		$filetype = $attachment->getFileType();
 		$content = $attachment->getContent();
 		$size = $attachment->getSize();
 
 		$disposition = HeaderUtils::makeDisposition(
 			HeaderUtils::DISPOSITION_ATTACHMENT,
-			"$filename"
+			"$filename",
+			"$filenameFallback"
 		);
 
 		// Create streamed response to output content and force download
@@ -584,13 +586,15 @@ class MailLogController extends ViewController
 
 
 		$filename = $attachment->getFilename();
+		$filenameFallback = base64_encode($filename);
 		$filetype = $attachment->getFileType();
 		$content = $attachment->getContent();
 		$size = $attachment->getSize();
 
 		$disposition = HeaderUtils::makeDisposition(
 			HeaderUtils::DISPOSITION_INLINE,
-			"$filename"
+			"$filename",
+			"$filenameFallback"
 		);
 
 		// Create streamed response to output content and force download
