@@ -49,6 +49,7 @@ class MailAliasService
 		if ($limit) {
 			$query = MailAlias::with('user')
 									  ->join('users', 'mail_aliases.user_id', '=', 'users.id')
+									  ->orderBy('mail_aliases.updated_at', 'desc')
 									  ->orderBy('users.username', 'asc')
 									  ->orderBy('mail_aliases.alias', 'asc')
 									  ->select(['mail_aliases.*',
@@ -58,6 +59,7 @@ class MailAliasService
 		} else {
 			$query = MailAlias::with('user')
 									  ->join('users', 'mail_aliases.user_id', '=', 'users.id')
+									  ->orderBy('mail_aliases.updated_at', 'desc')
 									  ->orderBy('users.username', 'asc')
 									  ->orderBy('mail_aliases.alias', 'asc')
 									  ->select(['mail_aliases.*',
