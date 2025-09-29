@@ -548,6 +548,7 @@ class MapController extends ViewController
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
+			'maps_url_base' => $this->getMapsUrlBase(),
 		]));
 	}
 

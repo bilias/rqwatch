@@ -8,7 +8,11 @@
 <div class="center-container">
 
 <div class='mapform descr'>
+{% if is_admin %}
+Basic/Combined Map: <a target='_blank' href="{{ maps_url_base ~ map ~ '.txt' }}">{{ mapdescr }}</a><br/>
+{% else %}
 Basic/Combined Map: {{ mapdescr }}<br/>
+{% endif %}
 {{ totalRecords }} entries
 {% if last_activity %}
 | Updated {{ last_activity }}

@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-09-29
+- Add link for map file in map
+
 ### 2025-09-25
 - Disable notifications for high scored spam
 

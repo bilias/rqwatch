@@ -10,7 +10,11 @@
 <div class="center-container">
 
 <div class='mapform descr'>
+{% if is_admin %}
+Custom Map: <a target='_blank' href="{{ maps_url_base ~ map ~ '.txt' }}">{{ mapdescr }}</a><br/>
+{% else %}
 Custom Map: {{ mapdescr }}<br/>
+{% endif %}
 {{ totalRecords }} entries
 {% if last_activity %}
 | Updated {{ last_activity }}

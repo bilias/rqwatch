@@ -7,7 +7,6 @@
 ## Features bellow are in todo list.
 - Show config cache TTL
 - Reload config from gui (before redis expire)
-- Add link for map file in map
 - Delete all entries from map
 - Edit map config
 - Edit map entries
