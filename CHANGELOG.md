@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## Master Dev Branch
+- Fix notifications and release when rcpt_to contains more than one mail
 
 ### 2025-09-29
 - Add link for map file in map

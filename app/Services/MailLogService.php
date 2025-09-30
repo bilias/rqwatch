@@ -701,9 +701,12 @@ class MailLogService
 
 		$text_part = Helper::getReleaseText($vars);
 
+		// make array of recipients
+		$recipients = array_map('trim', explode(',', $release_to[0]));
+
 		$send_mail = $mailer->sendTemplatedEmail(
 			$from,
-			$release_to,
+			$recipients,
 			$subject,
 			'mail/release.html.twig',  // twig template
 			$text_part,                // Text part of mail
@@ -811,9 +814,12 @@ class MailLogService
 
 		$text_part = Helper::getNotifyText($vars);
 
+		// make array of recipients
+		$recipients = array_map('trim', explode(',', $maillog->rcpt_to));
+
 		$send_mail = $mailer->sendTemplatedEmail(
 			$from,
-			[$maillog->rcpt_to],
+			$recipients,
 			$subject,
 			'mail/notify.html.twig',  // twig template
 			$text_part,                // Text part of mail
