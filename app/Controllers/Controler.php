@@ -127,6 +127,10 @@ class Controller
 			return;
 		}
 
+		/* Upon login, setRequest() is called before details are into session from login()
+		   setRequest does not set $this->is_admin, that is why we do a second (||) check here
+			to catch this case when initUrls() is called from login()
+		*/
 		if ($this->getIsAdmin() || ($this->session && $this->session->get('is_admin'))) {
 			$this->homepageUrl = $this->urlGenerator->generate('admin_day_logs');
 			$this->searchUrl = $this->urlGenerator->generate('admin_search');
