@@ -133,9 +133,11 @@ class Helper {
 			if (self::checkForBlacklist($symbols)) {
 				return 'blacklist';
 			}
+			/*
 			if (self::checkForMap($symbols)) {
 				return 'rqwatch_map';
 			}
+			*/
 		}
 
 		if (!empty($action)) {

@@ -62,7 +62,7 @@ Total {{ totalRecords }} mails
   <td class='right'>{{ log.score }}</td>
 
 {% set log_action = log.action %}
-{% if row_class == 'rqwatch_map' %}
+{% if checkForMap(log.symbols) %}
   {% set log_action = log_action ~ ' (map)' %}
 {% endif %}
 {% if row_class == 'whitelist' %}
