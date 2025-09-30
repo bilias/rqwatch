@@ -667,6 +667,8 @@ class MailLogService
 			return $query->where('id', null);
 		}
 		if(!$this->is_admin) {
+			/* Old code, works for single rcpt_to entries only.
+			   We might have comma separeted values
 			// user has no aliases
 			if (empty($this->user_aliases)) {
 				return $query->where('rcpt_to', $this->email);
@@ -674,6 +676,20 @@ class MailLogService
 			// Combine primary email with mail aliases
 			$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
 			return $query->whereIn('rcpt_to', $emails);
+			*/
+
+			$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
+			return $query->where(function ($q) use ($emails) {
+				foreach ($emails as $email) {
+					$q->orWhere(function ($subQ) use ($email) {
+						// Remove spaces in rcpt_to to normalize
+						$subQ->whereRaw('REPLACE(rcpt_to, " ", "") = ?', [$email])
+							  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', [$email . ',%'])
+							  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', ['%,' . $email])
+							  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', ['%,' . $email . ',%']);
+					});
+				}
+			});
 		}
 		return $query;
 	}

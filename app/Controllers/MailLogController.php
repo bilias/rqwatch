@@ -412,11 +412,28 @@ class MailLogController extends ViewController
 				return $this->getDetailIdResponse($maillog->id);
 			}
 
-			// rcpt_to is different than session email (or aliases). Should NOT happen, unless we are admin
-			     // rcpt_to different than logged in user's mail or aliases
-			if (((!in_array($maillog->rcpt_to, array_merge([$this->getEmail()], $this->user_aliases ?? []), true)) or
+			// rcpt_to is different than session email (or aliases).
+			// Should NOT happen, unless we are admin
+
+			// get all emails from user (primary + aliases)
+			$emails = array_unique(array_filter(array_map('strtolower', array_merge([$this->getEmail()], $this->user_aliases ?? []))));
+			// split DB recipients into array
+			$rcptToList = array_map(fn($e) => strtolower(trim($e)), explode(',', $maillog->rcpt_to));
+			// split form's original recipients
+			$formEmailList = array_map(fn($e) => strtolower(trim($e)), explode(',', $data['email']));
+
+			/* Old code, works for single rcpt_to
+			if (((!in_array($maillog->rcpt_to, $emails, true)) or
 			    ($maillog->rcpt_to !== $data['email']))				// rcpt_to defferent than form's original recipient
 				  and !$this->getIsAdmin()) {								// admin can release everything
+			*/
+			if (
+				 // none of user's emails match recipients
+				 (count(array_intersect($emails, $rcptToList)) === 0
+				  // DB rcpt_to differs from form
+				  || $rcptToList !== $formEmailList)
+				 && !$this->getIsAdmin() // admin bypass
+			) {
 				$this->fileLogger->error("Mail release failed", [
 					'user' => $this->session->get('username'),
 					'user_mail' => $this->session->get('email'),

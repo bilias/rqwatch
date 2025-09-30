@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## Master Dev Branch
+- Fix mail release when rcpt_to contains more than one mail
 - Fix notifications and release when rcpt_to contains more than one mail
 
 ### 2025-09-29
