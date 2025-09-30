@@ -124,6 +124,21 @@ class Helper {
 		return '';
 	}
 
+	public static function get_action_details($symbols = null) {
+		if (!empty($symbols)) {
+			if (self::checkForWhitelist($symbols)) {
+				return 'whitelist';
+			}
+			if (self::checkForBlacklist($symbols)) {
+				return 'blacklist';
+			}
+			if (self::checkForMap($symbols)) {
+				return 'rqwatch_map';
+			}
+		}
+		return '';
+	}
+
 	// change row class depending on action
 	public static function get_row_class(string $action, $symbols = null) {
 		if (!empty($symbols)) {

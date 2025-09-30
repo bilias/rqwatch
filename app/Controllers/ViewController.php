@@ -66,8 +66,8 @@ class ViewController extends Controller
 			$this->urlGenerator->generate($name, $params)
 		));
 
-		$this->twig->addFunction(new TwigFunction('checkForMap', function ($symbols) {
-			return Helper::checkForMap($symbols);
+		$this->twig->addFunction(new TwigFunction('get_action_details', function ($symbols) {
+			return Helper::get_action_details($symbols);
 		}));
 
 		$this->twig->addFunction(new TwigFunction('get_row_class', function ($action, $symbols = null) {
