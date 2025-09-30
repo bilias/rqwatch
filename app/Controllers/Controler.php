@@ -127,15 +127,14 @@ class Controller
 			return;
 		}
 
-		if ($this->getIsAdmin()) {
-			$this->homepageUrl = $this->urlGenerator->generate('admin_homepage');
+		if ($this->getIsAdmin() || ($this->session && $this->session->get('is_admin'))) {
+			$this->homepageUrl = $this->urlGenerator->generate('admin_day_logs');
 			$this->searchUrl = $this->urlGenerator->generate('admin_search');
 		} else {
-			$this->homepageUrl = $this->urlGenerator->generate('homepage');
+			$this->homepageUrl = $this->urlGenerator->generate('day_logs');
 			$this->searchUrl = $this->urlGenerator->generate('search');
 		}
 
-		$this->loginUrl = $this->urlGenerator->generate('login');
 		$this->urlsInitialized = true;
 	}
 

@@ -40,13 +40,13 @@ class LoginController extends ViewController
 			$this->fileLogger->info("User logout: '{$username}'");
 		}
 		$this->clearSession();
-		$this->initUrls();
+		$this->loginUrl = $this->urlGenerator->generate('login');
 		return new RedirectResponse($this->loginUrl);
 	}
 
 	public function login(): Response {
 		if (!empty($this->session->get('username'))) {
-			$this->fileLogger->warning("'$username' Already logged in");
+			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
 			$this->flashbag->add('info', "Already logged in");
 			$this->initUrls();
 			return new RedirectResponse($this->homepageUrl);
@@ -87,6 +87,8 @@ class LoginController extends ViewController
 				$email = $auth->getUserEmail();
 				$auth_provider = $auth->getAuthProvider();
 				$user_id = $auth->getUserId();
+
+				// DB
 				if ($auth_provider === "DB") {
 					// save last login information
 					User::where('username', $username)
@@ -94,9 +96,10 @@ class LoginController extends ViewController
 								'last_login' => date("Y-m-d H:i:s"),
 								'updated_at' => DB::raw('updated_at'),
 							]);
+				// LDAP
 				} else {
 					$user = User::where('username', $username)->first();
-					// if user does not exist, create him
+					// LDAP user does not exist, create him
 					if (!$user) {
 						$user = new User();
 						$user->username = $username;
@@ -108,6 +111,7 @@ class LoginController extends ViewController
 						$user->password = "EXTERNAL_AUTH";
 						$user->last_login = date("Y-m-d H:i:s");
 						$user->save();
+					// LDAP user already exists
 					} else {
 						$user->update([ 'last_login' => date("Y-m-d H:i:s") ]);
 					}
@@ -146,6 +150,7 @@ class LoginController extends ViewController
 						$user->mailAliases()->pluck('alias')->toArray(),
 						fn($alias) => !empty(trim($alias))
 					)));
+
 					$this->session->set('user_aliases', $aliases);
 
 					// redirect to initial requested page if exists
@@ -154,7 +159,8 @@ class LoginController extends ViewController
 						if ($login_redirect !== $this->urlGenerator->generate('login') and
 						    $login_redirect !== $this->urlGenerator->generate('logout') and
 						    $login_redirect !== $this->urlGenerator->generate('admin_homepage') and
-						    $login_redirect !== $this->urlGenerator->generate('homepage')) {
+						    $login_redirect !== $this->urlGenerator->generate('homepage') and
+							 $login_redirect !== $this->homepageUrl) {
 								$url = $login_redirect;
 								$this->session->remove('login_redirect');
 						} else {
