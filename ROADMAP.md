@@ -1,7 +1,6 @@
 # Roadmap
 
 ## In progress
-- Check/Update Views depending on access control
 
 ## Features bellow are in todo list.
 - Show config cache TTL
