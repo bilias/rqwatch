@@ -706,6 +706,7 @@ class MailLogService
 			'created_at' => $maillog->created_at,
 			'subject'    => $maillog->subject,
 			'qid'        => $maillog->qid,
+			'message_id' => $maillog->message_id,
 			'score'      => $maillog->score,
 			'has_virus'  => $maillog->has_virus,
 			'virus_name' => $ar['virus_found'],
