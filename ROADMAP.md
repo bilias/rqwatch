@@ -1,6 +1,7 @@
 # Roadmap
 
 ## In progress
+- Don't add map entry if already exists
 
 ## Features bellow are in todo list.
 - Show config cache TTL
