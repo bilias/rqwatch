@@ -1,7 +1,6 @@
 # Roadmap
 
 ## In progress
-- Enable/Disable rspamd stats
 - Check/Update Views depending on access control
 
 ## Features bellow are in todo list.
