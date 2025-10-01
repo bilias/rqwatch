@@ -23,17 +23,31 @@ class MailLog extends Model
 	protected $primaryKey = 'id';
 
 	protected $casts = [
+		'id' => 'integer',
+		'qid' => 'string',
+		'server' => 'string',
+		'subject' => 'string',
 		'score' => 'float',
+		'actions' => 'string',
 		'symbols' => 'array',
 		'has_virus' => 'boolean',
 		'fuzzy_hashes' => 'array',
+		'ip' => 'string',
+		'mail_from' => 'string',
+		'mime_from' => 'string',
+		'rcpt_to' => 'string',
+		'mime_to' => 'string',
+		'size' => 'integer',
 		'mail_stored' => 'boolean',
+		'mail_location' => 'string',
 		'notified' => 'boolean',
+		'notify_date' => 'datetime',
 		'released' => 'boolean',
+		'release_date' => 'datetime',
+		'headers' => 'string',
+		'message_id' => 'string',
 		'created_at' => 'datetime',
 		'updated_at' => 'datetime',
-		'notify_date' => 'datetime',
-		'release_date' => 'datetime',
 	];
 
 	protected $fillable = [
