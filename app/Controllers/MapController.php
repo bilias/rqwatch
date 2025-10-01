@@ -811,6 +811,14 @@ class MapController extends ViewController
 	public function delMapAllEntries(string $map): Response {
 
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
+
+		if (empty($config) || empty($config['model'])) {
+			$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
+			$this->flashbag->add('error', 'Invalid map selected');
+			$this->initMapUrls();
+			return new RedirectResponse($this->mapsUrl);
+		}
+
 		$model = $config['model'];
 
 		if (empty($map) || (($model !== 'MapCombined') && ($model !== 'MapCustom'))) {
