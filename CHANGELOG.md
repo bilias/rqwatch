@@ -1,15 +1,14 @@
 # CHANGELOG
 
 ## Master Dev Branch
+
+### 2025-10-01
 - Delete all entries from map
 - Don't add map entry if already exists
 - Handle multi line entries in add custom map entry
 - Add missing updated_at from custom map search
 
 ## v1.6.5 - Released: 2025-10-01
-
-### 2025-10-01
-- Handle multi line entries in add custom map entry
 
 ### 2025-10-01
 - Implement setSessionVars() and call it upon login
