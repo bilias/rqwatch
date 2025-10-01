@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-01
+- Implement setSessionVars() and call it upon login
 - Add Totals in rspamd stats
 - Add Message-ID in mail_logs
 
