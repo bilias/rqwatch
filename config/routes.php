@@ -308,6 +308,18 @@ $routes->add('map_add_entry', new Route(
     [ 'map' => '[a-zA-Z_]{1,64}' ]
 ));
 
+$routes->add('admin_map_del_all_entries', new Route(
+    '/admin/map/{map}/delall', // path
+    [ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries', ], // defaults
+    [ 'map' => '[a-zA-Z_0-9]{1,64}' ]
+));
+
+$routes->add('map_del_all_entries', new Route(
+    '/user/map/{map}/delall', // path
+    [ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries', ], // defaults
+    [ 'map' => '[a-zA-Z_]{1,64}' ]
+));
+
 $routes->add('admin_map_del_entry', new Route(
     '/admin/map/{map}/del/{id}', // path
     [ '_controller' => 'App\\Controllers\\MapController::delMapEntry', ], // defaults
@@ -397,6 +409,8 @@ $middlewareMap = [
 	'admin_map_search_entry' => $adminMiddlewareClasses,
 	'admin_map_del_entry' => $adminMiddlewareClasses,
 	'map_del_entry' => $userMiddlewareClasses,
+	'admin_map_del_all_entries' => $adminMiddlewareClasses,
+	'map_del_all_entries' => $userMiddlewareClasses,
 	'admin_map_toggle_entry' => $adminMiddlewareClasses,
 	'map_toggle_entry' => $userMiddlewareClasses,
 	'admin_maps_custom_show' => $adminMiddlewareClasses,

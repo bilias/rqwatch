@@ -88,7 +88,7 @@ class MapService
 		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 	}
 
-	public function getMapCombinedBasicQuery(string $map_name, array $map_fields): Builder {
+	public function getMapCombinedBasicQuery(string $map_name, array $map_fields = []): Builder {
 		$select_fields = array_merge(MapCombined::SELECT_FIELDS, $map_fields);
 
 		$query = MapCombined::select($select_fields)
@@ -97,10 +97,6 @@ class MapService
 
 		foreach ($map_fields as $field) {
 			$query = $query->whereNotNull($field);
-		}
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
 		return $query;
@@ -138,10 +134,6 @@ class MapService
 		$query = MapCustom::select(MapCustom::SELECT_FIELDS)
 								  ->where('map_name', $map_name)
 								  ->orderBy('updated_at', 'DESC');
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
 
 		return $query;
 	}
@@ -357,6 +349,10 @@ class MapService
 	public function showMapCustom(string $map_name): Collection {
 		$query = $this->getMapCustomQuery($map_name);
 
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
 		try {
 			$map = $query
 				->get();
@@ -370,6 +366,10 @@ class MapService
 
 	public function showPaginatedMapCustom(string $map_name, int $page = 1, string $url): ?LengthAwarePaginator {
 		$query = $this->getMapCustomQuery($map_name);
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
 
 		try {
 			$map = $query
@@ -627,6 +627,10 @@ class MapService
 			}
 		} else {
 			return false;
+		}
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
 		$contents = implode(PHP_EOL, $lines);
@@ -927,6 +931,54 @@ class MapService
 
 		// delete map entry from db
 		if (!$map_entry->delete()) {
+			return false;
+		}
+
+		$last_update = date("Y-m-d H:i:s");
+
+		// update map file
+		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
+			return false;
+		}
+
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function delMapAllEntries(string $model, string $map_name, array $map_fields): bool {
+
+		if ($model === 'MapCombined') {
+			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
+			$query = $this->applyUserRcptToScope($query);
+
+			/* XXX
+		   if USER_CAN_SEE_ADMIN_MAP_ENTRIES is false
+			applyUserRcptToScope() will limit the query and even if
+			USER_CAN_DEL_ADMIN_MAP_ENTRIES is true,
+			user will not be able to delete the entry
+			*/
+			if (!$this->is_admin && !Config::get('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
+				$query = $query->where('user_id', $this->user_id);
+			}
+
+		} else if ($model === 'MapCustom') {
+			$query = $this->getMapCustomQuery($map_name);
+		} else {
+			return false;
+		}
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		// delete all entries matched by the query
+		$deletedRows = $query->delete();
+
+		if ($deletedRows === 0) {
 			return false;
 		}
 

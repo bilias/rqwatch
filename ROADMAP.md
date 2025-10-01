@@ -1,12 +1,10 @@
 # Roadmap
 
 ## In progress
-- Don't add map entry if already exists
 
 ## Features bellow are in todo list.
 - Show config cache TTL
 - Reload config from gui (before redis expire)
-- Delete all entries from map
 - Edit map config
 - Edit map entries
 - Edit alias

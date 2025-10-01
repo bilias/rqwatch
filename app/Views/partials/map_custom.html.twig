@@ -26,6 +26,7 @@ Custom Map: {{ mapdescr }}<br/>
 <div id="inside_links">
 <ul>
 <li><a href='{{ get_route('admin_map_add_entry', { map: map} ) }}'>Add New entry</a></li>
+<li><a href='{{ get_route('admin_map_del_all_entries', { map: map} ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr }}\'?')">Delete All Entries</a></li>
 </ul>
 </div>
 </div>

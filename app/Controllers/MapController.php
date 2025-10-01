@@ -808,6 +808,55 @@ class MapController extends ViewController
 		return new RedirectResponse($url);
 	}
 
+	public function delMapAllEntries(string $map): Response {
+
+		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
+		$model = $config['model'];
+
+		if (empty($map) || (($model !== 'MapCombined') && ($model !== 'MapCustom'))) {
+			$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " for an invalid map");
+			$this->flashbag->add('error', 'Invalid map selected');
+			$this->initMapUrls();
+			return new RedirectResponse($this->mapsUrl);
+		}
+
+		if (!$this->getIsAdmin() && ($model === 'MapCustom')) {
+			$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " without admin authorization");
+			$this->flashbag->add('error', 'Permission denied');
+			$this->initMapUrls();
+			return new RedirectResponse($this->mapsUrl);
+		}
+
+		$mapdescr = $config['description'] ?? null;
+		$fields = $config['fields'] ?? null;
+
+		$service = new MapService($this->getFileLogger(), $this->session);
+
+		if ($fields) {
+			// has applyUseScope for MapCombined
+			$delete = $service->delMapAllEntries($model, $map, $fields);
+			if ($delete) {
+				$this->flashbag->add('success', "All entries from Map '{$mapdescr}' deleted");
+			} else {
+				$this->flashbag->add('error', "All entries failed to be deleted from Map {$mapdescr}");
+			}
+		} else { // if no fields it failed the role in getAvailableMapConfigs()
+			$this->fileLogger->warning("User '{$this->username}' tried to access " . $this->request->getPathInfo() . " without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			$this->initMapUrls();
+			return new RedirectResponse($this->mapsUrl);
+		}
+
+		if (!empty($map)) {
+			$this->initMapUrls($map);
+			$url = $this->mapShowUrl;
+		} else {
+			$this->initMapUrls();
+			$url = $this->mapsUrl;
+		}
+		return new RedirectResponse($url);
+	}
+
 	public function searchMapEntry(Request $request): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);

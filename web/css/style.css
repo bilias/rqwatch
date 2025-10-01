@@ -1012,15 +1012,25 @@ span.stored {
 #inside_links ul {
  padding-bottom: 0px;
  margin-bottom: 0px;
+ list-style: none;
+ display: flex;
+ justify-content: center;
+ gap: 0.5rem;
 }
 
 #inside_links li {
- display: flex;
- flex-direction: column;
- flex-wrap: wrap;
- align-content: center;
- margin: 0px;
- padding: 0px;
+ display: inline;
+ margin: 0;
+ padding: 0;
+}
+
+#inside_links li::after {
+  content: "|";    /* add separator */
+  margin-left: 0.5rem;
+}
+
+#inside_links li:last-child::after {
+  content: "";     /* remove separator on last item */
 }
 
 #inside_links li a:hover {
@@ -1175,4 +1185,27 @@ table.attachments .filename {
 
 .disabled {
  color: var(--color-disabled);
+}
+
+.inline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;         /* ensures all li are on one line */
+  align-items: center;   /* keep vertical alignment */
+}
+
+.inline-list li {
+  display: inline-flex;  /* keep link + separator inline */
+  align-items: center;
+}
+
+.inline-list li::after {
+  content: "|";
+  margin-left: 0.5rem;
+  display: inline;       /* make sure it's inline */
+}
+
+.inline-list li:last-child::after {
+  content: "";
 }

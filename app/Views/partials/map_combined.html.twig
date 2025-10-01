@@ -24,8 +24,10 @@ Basic/Combined Map: {{ mapdescr }}<br/>
 <ul>
 {% if is_admin %}
 <li><a href='{{ get_route('admin_map_add_entry', { map: map} ) }}'>Add New entry</a></li>
+<li><a href='{{ get_route('admin_map_del_all_entries', { map: map} ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr }}\'?')">Delete All Entries</a></li>
 {% else %}
 <li><a href='{{ get_route('map_add_entry', { map: map} ) }}'>Add New entry</a></li>
+<li><a href='{{ get_route('map_del_all_entries', { map: map} ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr }}\'?')">Delete All Entries</a></li>
 {% endif %}
 </ul>
 </div>
