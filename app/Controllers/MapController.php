@@ -939,6 +939,8 @@ class MapController extends ViewController
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'maps_url_base' => $this->getMapsUrlBase(),
+			'map_name' => $map_search_form['map_name'],
+			'search_map' => true,
 		]));
 	}
 

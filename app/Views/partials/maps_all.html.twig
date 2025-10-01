@@ -10,7 +10,12 @@
 <div class="center-container">
 
 <div class='mapform descr'>
+
+{% if search_map and map_name %}
+Basic/Combined Map: <a target='_blank' href="{{ maps_url_base ~ map_name ~ '.txt' }}">{{ map_comb_entries[0].map_description }}</a><br/>
+{% else %}
 All Basic/Combined Map Entries<br/>
+{% endif %}
 Total: {{ map_comb_total }} entries
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }}/page
@@ -137,7 +142,12 @@ All Generic Map Entries | Total: {{ map_gen_total }} entries
 </div>
 
 <div class='current_mails descr'>
-All Custom Map Entries | Total: {{ map_custom_total }} entries
+{% if search_map and map_name %}
+Custom Map: <a target='_blank' href="{{ maps_url_base ~ map_name ~ '.txt' }}">{{ map_custom_entries[0].map_description }}</a><br/>
+{% else %}
+All Custom Map Entries
+{% endif %}
+Total: {{ map_custom_total }} entries
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }}/page
 {% endif %}
