@@ -48,6 +48,7 @@ class MapCustom extends Model
 		'disabled',
 		'score',
 		'created_at',
+		'updated_at',
 	];
 
 	// scopes
