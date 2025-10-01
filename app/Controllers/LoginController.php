@@ -153,8 +153,11 @@ class LoginController extends ViewController
 
 					$this->session->set('user_aliases', $aliases);
 
+					$this->setSessionVars($this->session);
+
 					// redirect to initial requested page if exists
 					$this->initUrls();
+
 					if (!empty($login_redirect = $this->session->get('login_redirect'))) {
 						if ($login_redirect !== $this->urlGenerator->generate('login') and
 						    $login_redirect !== $this->urlGenerator->generate('logout') and

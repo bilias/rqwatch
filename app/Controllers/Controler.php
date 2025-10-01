@@ -62,21 +62,25 @@ class Controller
 		$this->session = $request->getSession();
 		$this->flashbag = $this->session->getFlashBag();
 
-		if (!empty($this->session)) {
-			if (!empty($this->session->get('is_admin'))) {
-				$this->is_admin = $this->session->get('is_admin');
+		$this->setSessionVars($this->session);
+	}
+
+	public function setSessionVars(Session $session): void {
+		if (!empty($session)) {
+			if (!empty($session->get('is_admin'))) {
+				$this->is_admin = $session->get('is_admin');
 			}
-			if (!empty($this->session->get('username'))) {
-				$this->username = $this->session->get('username');
+			if (!empty($session->get('username'))) {
+				$this->username = $session->get('username');
 			}
-			if (!empty($this->session->get('user_id'))) {
-				$this->user_id = $this->session->get('user_id');
+			if (!empty($session->get('user_id'))) {
+				$this->user_id = $session->get('user_id');
 			}
-			if (!empty($this->session->get('email'))) {
-				$this->email = $this->session->get('email');
+			if (!empty($session->get('email'))) {
+				$this->email = $session->get('email');
 			}
-			if (!empty($this->session->get('user_aliases'))) {
-				$this->user_aliases = $this->session->get('user_aliases');
+			if (!empty($session->get('user_aliases'))) {
+				$this->user_aliases = $session->get('user_aliases');
 			}
 		}
 	}
@@ -127,11 +131,7 @@ class Controller
 			return;
 		}
 
-		/* Upon login, setRequest() is called before details are into session from login()
-		   setRequest does not set $this->is_admin, that is why we do a second (||) check here
-			to catch this case when initUrls() is called from login()
-		*/
-		if ($this->getIsAdmin() || ($this->session && $this->session->get('is_admin'))) {
+		if ($this->getIsAdmin()) {
 			$this->homepageUrl = $this->urlGenerator->generate('admin_day_logs');
 			$this->searchUrl = $this->urlGenerator->generate('admin_search');
 		} else {
