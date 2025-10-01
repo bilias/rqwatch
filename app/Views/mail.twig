@@ -78,7 +78,12 @@ No
  {% endif %}
  <div class="row">
    <div class='info'>Mail ID:</div>
-   <div class='detail'>{{ log.qid }}</div>
+	{% if is_admin %}
+	 {% set detail_url = get_route('admin_detail', { type: 'qid', value: log.qid }) %}
+	{% else %}
+	 {% set detail_url = get_route('detail', { type: 'qid', value: log.qid }) %}
+	{% endif %}
+   <div class='detail'><a href='{{ detail_url }}'>{{ log.qid }}</a></div>
  </div>
  <div class="row">
    <div class='info'>Message ID:</div>
