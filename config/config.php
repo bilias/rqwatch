@@ -100,7 +100,7 @@ $notification_score = 50.1;
 $mail_signature=$APP_NAME;
 
 # auto refresh rate for maillogs
-$refresh_rate = 300;
+$refresh_rate = 60;
 
 # auto refresh is disabled by default an all pages,
 # and explicitly enabled on maillogs pages
