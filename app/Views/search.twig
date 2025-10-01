@@ -15,10 +15,10 @@
  <a href="{{ get_route('search_filter_del', { filter_id: loop.index0 }) }}">Remove</a>
  {% endif %}
  </span></li>
-</ul>
 {% else %}
 <li>No filters</li>
 {% endfor %}
+</ul>
 <span class='delall'>
 {% if is_admin %}
 <a href="{{ get_route('admin_search_filter_del') }}">Remove all</a>
