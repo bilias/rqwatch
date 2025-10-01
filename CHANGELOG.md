@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-01
+- Add Totals in rspamd stats
 - Add Message-ID in mail_logs
 
 ### 2025-09-30

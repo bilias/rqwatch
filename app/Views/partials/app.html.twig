@@ -20,11 +20,24 @@
 	{% for server in rspamd_stats|keys %}
 <th>{{ server }}</th>
 	{% endfor %}
+<th>Total</th>
 </tr>
 	</thead>
 
 <tbody>
 {% set stat_keys = ['version', 'uptime', 'scanned', 'learned', 'spam_count', 'ham_count'] -%}
+
+{# compute totals in advance #}
+{% set totals = {} %}
+{% for key in stat_keys %}
+  {% set total = 0 %}
+  {% for server in rspamd_stats|keys %}
+    {% if rspamd_stats[server][key] is defined and key not in ['version','uptime'] %}
+      {% set total = total + rspamd_stats[server][key] %}
+    {% endif %}
+  {% endfor %}
+  {% set totals = totals|merge({ (key): total }) %}
+{% endfor %}
 
 {% for key in stat_keys -%}
 <tr>
@@ -45,11 +58,40 @@
  {% endif -%}
  </td>
  {% endfor -%}
+
+{# total column #}
+ <td>
+   {% if key in ['version','uptime'] %}
+     —
+   {% else %}
+     {% set scanned_total = totals['scanned']|default(0) %}
+     {% set val = totals[key]|default(0) %}
+     {% if scanned_total > 0 and key not in ['scanned'] %}
+       {{ val }} ({{ (100 * val / scanned_total)|number_format(1) }}%)
+     {% else %}
+       {{ val }}
+     {% endif %}
+   {% endif %}
+ </td>
+
 </tr>
 {% endfor -%}
 
 {# Now print nested keys under 'actions' #}
 {% set action_keys = ['no action', 'reject', 'rewrite subject', 'add header', 'greylist', 'soft reject'] -%}
+
+{# precompute action totals #}
+{% set action_totals = {} %}
+{% for action_key in action_keys %}
+  {% set total = 0 %}
+  {% for server in rspamd_stats|keys %}
+    {% if rspamd_stats[server]['actions'][action_key] is defined %}
+      {% set total = total + rspamd_stats[server]['actions'][action_key] %}
+    {% endif %}
+  {% endfor %}
+  {% set action_totals = action_totals|merge({ (action_key): total }) %}
+{% endfor %}
+
 {% for action_key in action_keys -%}
 <tr>
  <td><strong>{{ action_key|capitalize }}</strong></td>
@@ -61,6 +103,17 @@
  {% endif -%}
  </td>
 {% endfor -%}
+
+ <td>
+   {% set scanned_total = totals['scanned']|default(0) %}
+   {% set val = action_totals[action_key]|default(0) %}
+   {% if scanned_total > 0 %}
+     {{ val }} ({{ (100 * val / scanned_total)|number_format(1) }}%)
+   {% else %}
+     {{ val }}
+   {% endif %}
+ </td>
+
 </tr>
 {% endfor -%}
 
