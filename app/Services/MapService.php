@@ -456,7 +456,11 @@ class MapService
 		*/
 		} else if ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
-			$query = $query->where('pattern', $data[$map_fields[0]]);
+			//$query = $query->where('pattern', $data[$map_fields[0]]);
+			// handle multi line entries
+			$lines = preg_split('/\r\n|\r|\n/', trim($data[$map_fields[0]]));
+			$values = array_unique(array_filter(array_map('trim', $lines)));
+			$query = $query->whereIn('pattern', $values);
 		} else {
 			throw new \RuntimeException("Unknown map model");
 		}

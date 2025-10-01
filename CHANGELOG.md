@@ -5,6 +5,9 @@
 ## v1.6.5 - Released: 2025-10-01
 
 ### 2025-10-01
+- Handle multi line entries in add custom map entry
+
+### 2025-10-01
 - Implement setSessionVars() and call it upon login
 - Add Totals in rspamd stats
 - Add Message-ID in mail_logs
