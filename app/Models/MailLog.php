@@ -57,7 +57,8 @@ class MailLog extends Model
 		'notified',
 		'notify_date',
 		'released',
-		'release_date'
+		'release_date',
+		'message_id',
 	];
 
 	public const SELECT_FIELDS = [
@@ -77,6 +78,7 @@ class MailLog extends Model
 		'server',
 		'mail_stored',
 		'mail_location',
+		'message_id',
 	];
 
 	/* not needed now
