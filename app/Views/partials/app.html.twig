@@ -51,7 +51,7 @@
 {{ (rspamd_stats[server][key] / 3600) | number_format(1) }} hours
 	{% endif -%}
   {% else -%}
-{{- rspamd_stats[server][key] -}}
+{{- rspamd_stats[server][key]|number_format(0, ',', '.') -}}
   {% endif -%}
  {% else -%}
   N/A
@@ -67,9 +67,9 @@
      {% set scanned_total = totals['scanned']|default(0) %}
      {% set val = totals[key]|default(0) %}
      {% if scanned_total > 0 and key not in ['scanned'] %}
-       {{ val }} ({{ (100 * val / scanned_total)|number_format(1) }}%)
+       {{ val|number_format(0, ',', '.') }} ({{ (100 * val / scanned_total)|number_format(1, ',', '.') }}%)
      {% else %}
-       {{ val }}
+       {{ val|number_format(0, ',', '.') }}
      {% endif %}
    {% endif %}
  </td>
@@ -97,7 +97,7 @@
  <td><strong>{{ action_key|capitalize }}</strong></td>
  {% for server in rspamd_stats|keys -%}
  <td>{% if rspamd_stats[server]['actions'] is defined and rspamd_stats[server]['actions'][action_key] is defined -%}
- {{- rspamd_stats[server]['actions'][action_key] -}}
+ {{- rspamd_stats[server]['actions'][action_key]|number_format(0, ',', '.') -}}
  {% else -%}
   N/A
  {% endif -%}
@@ -108,9 +108,9 @@
    {% set scanned_total = totals['scanned']|default(0) %}
    {% set val = action_totals[action_key]|default(0) %}
    {% if scanned_total > 0 %}
-     {{ val }} ({{ (100 * val / scanned_total)|number_format(1) }}%)
+     {{ val|number_format(0, ',', '.') }} ({{ (100 * val / scanned_total)|number_format(1, ',', '.') }}%)
    {% else %}
-     {{ val }}
+     {{ val|number_format(0, ',', '.') }}
    {% endif %}
  </td>
 
