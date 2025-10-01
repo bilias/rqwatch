@@ -1,6 +1,11 @@
 # CHANGELOG
 
 ## Master Dev Branch
+
+### 2025-10-01
+- Add Message-ID in mail_logs
+
+### 2025-09-30
 - Fix a bug where getIsAdmin() is not enough on initUrls() and make default login page to be day and not all
 - Fix mail release when rcpt_to contains more than one mail
 - Fix notifications and release when rcpt_to contains more than one mail

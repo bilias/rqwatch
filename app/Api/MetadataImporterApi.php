@@ -121,6 +121,7 @@ class MetadataImporterApi extends RqwatchApi
 		$mime_from = $parser->getHeader('from');
 		$mime_to = $parser->getHeader('to');
 		$mime_subject = $parser->getHeader('subject');
+		$message_id = $parser->getHeader('message-id');
 		
 		// return all headers as an array, with charset conversion
 		$arrayHeaders = $parser->getHeaders();
@@ -183,6 +184,7 @@ class MetadataImporterApi extends RqwatchApi
 			'mail_location' => $mail_location,
 			'size' => $size,
 			'headers' => $stringHeaders,
+			'message_id' => $message_id,
 		);
 		
 		try {
