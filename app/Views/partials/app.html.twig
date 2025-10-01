@@ -50,6 +50,8 @@
 	{% else -%}
 {{ (rspamd_stats[server][key] / 3600) | number_format(1) }} hours
 	{% endif -%}
+  {% elseif key == 'version' -%}
+   {{- rspamd_stats[server][key] -}}
   {% else -%}
 {{- rspamd_stats[server][key]|number_format(0, ',', '.') -}}
   {% endif -%}
