@@ -460,7 +460,6 @@ class MapController extends ViewController
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map) ?? null;
 
 		if (!$config || !array_key_exists('fields', $config)) {
-			$this->fileLogger->warning("User {$this->username} tried to show map in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->mapsUrl);
 		}
