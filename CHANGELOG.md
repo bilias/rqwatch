@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-10-02
+- Fix bug in search 'does not contain'
+
 ### 2025-10-01
 - Delete all entries from map
 - Don't add map entry if already exists
