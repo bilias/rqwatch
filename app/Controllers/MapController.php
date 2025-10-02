@@ -728,6 +728,7 @@ class MapController extends ViewController
 			$this->flashbag->add('error', 'Bad custom map id');
 		}
 
+		$this->initMapUrls();
 		return new RedirectResponse($this->showCustomMapsConfigUrl);
 	}
 
