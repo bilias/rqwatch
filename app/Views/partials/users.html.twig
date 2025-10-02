@@ -16,6 +16,9 @@ Total Users: {{ totalRecords }}
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
 <thead><tr>
  <th>Info</th>
+ {% if is_admin %}
+ <th>Login As</th>
+ {% endif %}
  <th>Username</th>
  <th>First Name</th>
  <th>Last Name</th>
@@ -33,6 +36,9 @@ Total Users: {{ totalRecords }}
 {% for user in users %}
   <tr class='clean'>
   <td class='center'><a href='{{ get_route('admin_user', { id: user.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
+  {% if is_admin %}
+  <td class='center'><a href='{{ get_route('admin_userloginas', { id: user.id }) }}'><i class='mw-icon mw-login-as' aria-hidden='true'></i></a></td>
+  {% endif %}
   <td class='center'>{{ user.username }}</td>
   <td class='center'>{{ user.firstname }}</td>
   <td class='center'>{{ user.lastname }}</td>

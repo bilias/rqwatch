@@ -332,6 +332,19 @@ li.active {
   margin-top: 2px;
 }
 
+.mw-login-as {
+  background: url(/images/login_as_32.png);
+  background-size: auto;
+  -webkit-background-size: contain;
+  background-size: contain;
+  height: 1em;
+  width: 1em;
+  display: inline-block;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+  margin-top: 2px;
+}
+
 .reject {
 	 color: #FFF;
     background-color: var(--color-mail-reject);

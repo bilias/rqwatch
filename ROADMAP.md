@@ -10,7 +10,6 @@
 - Edit alias
 - Search users
 - Search aliases
-- Login as user
 - Stats in search (top domains, top ips etc)
 
 ## Features bellow might be implemented

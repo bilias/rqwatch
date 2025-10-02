@@ -148,6 +148,12 @@ $routes->add('admin_userdel', new Route(
     [ 'id' => '\d{1,8}']
 ));
 
+$routes->add('admin_userloginas', new Route(
+    '/admin/user/login/{id}', // path
+    [ '_controller' => 'App\\Controllers\\UserController::loginAs', ], // defaults
+    [ 'id' => '\d{1,8}']
+));
+
 $routes->add('admin_user', new Route(
     '/admin/user/{id}', // path
     [ '_controller' => 'App\\Controllers\\UserController::showOne', ], // defaults
@@ -385,6 +391,7 @@ $middlewareMap = [
 	'admin_useradd' => $adminMiddlewareClasses,
 	'admin_useredit' => $adminMiddlewareClasses,
 	'admin_userdel' => $adminMiddlewareClasses,
+	'admin_userloginas' => $adminMiddlewareClasses,
 	'admin_user' => $adminMiddlewareClasses,
 	'admin_aliases' => $adminMiddlewareClasses,
 	'admin_aliases_add' => $adminMiddlewareClasses,

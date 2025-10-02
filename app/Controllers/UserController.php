@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use App\Core\Config;
+use App\Core\SessionManager;
+use App\Core\Auth\AuthManager;;
 use App\Utils\Helper;
 
 use App\Forms\QidForm;
@@ -389,6 +391,54 @@ class UserController extends ViewController
 			$mail_aliases[] = $mail_alias->alias;
 		}
 		return $mail_aliases;
+	}
+
+	public function loginAs(int $id): Response {
+		if (!$this->getIsAdmin()) {
+			$this->fileLogger->warning("'{$this->session->get('username')}' tried to use loginAs without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			$this->initUrls();
+			return new RedirectResponse($this->homepageUrl);
+		}
+
+		if (!is_null($id) and is_int($id)) {
+			$user = User::where('id', $id)->first();
+			// user found
+			if ($user) {
+				$old_username = $this->session->get('username');
+
+				// only clears $this->vars from base Controller
+				$this->unsetSessionVars();
+
+				$this->session->set('username', $user->username);
+				$this->session->set('user_id', $user->id);
+				$this->session->set('email', $user->email);
+				$this->session->set('is_admin', $user->is_admin);
+
+				// need this to get the auth_provider description
+				$auth = new AuthManager($this->fileLogger);
+				$this->session->set('auth_provider', AuthManager::getAuthProviderById($user->auth_provider));
+				$aliases = array_unique(array_map('strtolower', array_filter(
+					$user->mailAliases()->pluck('alias')->toArray(),
+					fn($alias) => !empty(trim($alias))
+				)));
+				$this->session->set('user_aliases', $aliases);
+
+				// push session vars to $this->vars
+				$this->setSessionVars($this->session);
+				$this->unsetUrls();
+
+				$this->fileLogger->info("'{$old_username}' logged in as '{$user->email}'");
+				$this->flashbag->add('success', "You are logged in as {$user->email}");
+				$this->initUrls();
+				return new RedirectResponse($this->homepageUrl);
+			}
+		}
+
+		$this->flashbag->add('error', "User not found");
+		$this->initUrls();
+		$url = $this->urlGenerator->generate('admin_users');
+		return new RedirectResponse($url);
 	}
 
 }
