@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-02
+- Fix bug in map delete redirect
 - Fix bug in search 'does not contain'
 
 ### 2025-10-01
