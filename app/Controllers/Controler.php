@@ -71,16 +71,16 @@ class Controller
 			if ($session->has('is_admin')) {
 				$this->is_admin = $session->get('is_admin');
 			}
-			if (!empty($session->get('username'))) {
+			if ($session->has('username')) {
 				$this->username = $session->get('username');
 			}
-			if (!empty($session->get('user_id'))) {
+			if ($session->has('user_id')) {
 				$this->user_id = $session->get('user_id');
 			}
-			if (!empty($session->get('email'))) {
+			if ($session->has('email')) {
 				$this->email = $session->get('email');
 			}
-			if (!empty($session->get('user_aliases'))) {
+			if ($session->has('user_aliases')) {
 				$this->user_aliases = $session->get('user_aliases');
 			}
 		}
