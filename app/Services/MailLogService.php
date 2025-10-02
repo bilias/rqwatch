@@ -92,6 +92,9 @@ class MailLogService
 							if ($c === 'LIKE') {
 								$v = "%{$v}%";
 							}
+							if ($c === 'NOT LIKE') {
+								$v = "%{$v}%";
+							}
 							if ($c === '=' and $f === 'created_at') {
 								$c = 'LIKE';
 								$v = "{$v}%";
