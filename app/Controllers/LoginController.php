@@ -33,11 +33,7 @@ class LoginController extends ViewController
 		session_unset();
 		session_destroy();
 		$this->session = null;
-		unset($this->is_admin);
-		unset($this->username);
-		unset($this->user_id);
-		unset($this->email);
-		unset($this->user_aliases);
+		$this->unsetSessionVars();
 	}
 
 	public function logout(): Response {

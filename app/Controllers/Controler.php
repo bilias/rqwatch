@@ -85,6 +85,14 @@ class Controller
 		}
 	}
 
+	public function unsetSessionVars(): void {
+		unset($this->is_admin);
+		unset($this->username);
+		unset($this->user_id);
+		unset($this->email);
+		unset($this->user_aliases);
+	}
+
 	public function setUrlGenerator(UrlGeneratorInterface $urlGenerator): void {
 		$this->urlGenerator = $urlGenerator;
 	}
