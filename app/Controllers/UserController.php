@@ -429,8 +429,8 @@ class UserController extends ViewController
 				$this->setSessionVars($this->session);
 				$this->unsetUrls();
 
-				$this->fileLogger->info("'{$old_username}' logged in as '{$user->email}'");
-				$this->flashbag->add('success', "You are logged in as {$user->email}");
+				$this->fileLogger->info("'{$old_username}' logged in as '{$user->username}'");
+				$this->flashbag->add('success', "You are now logged in as {$user->username}");
 				$this->initUrls();
 				return new RedirectResponse($this->homepageUrl);
 			}
