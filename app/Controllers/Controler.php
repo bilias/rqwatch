@@ -68,7 +68,7 @@ class Controller
 
 	public function setSessionVars(Session $session): void {
 		if (!empty($session)) {
-			if (!empty($session->get('is_admin'))) {
+			if ($session->has('is_admin')) {
 				$this->is_admin = $session->get('is_admin');
 			}
 			if (!empty($session->get('username'))) {
@@ -92,6 +92,7 @@ class Controller
 		unset($this->user_id);
 		unset($this->email);
 		unset($this->user_aliases);
+		unset($this->urlsInitialized);
 	}
 
 	public function clearSession(): void {
@@ -142,6 +143,10 @@ class Controller
 		Config::set('startTime', microtime(true));
 		Config::set('startMemory', memory_get_usage());
 		return $runtime;
+	}
+
+	public function unsetUrls(): void {
+		$this->urlsInitialized = false;
 	}
 
 	public function initUrls(): void {
