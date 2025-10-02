@@ -27,14 +27,6 @@ use App\Core\Auth\AuthManager;
 
 class LoginController extends ViewController
 {
-	public function clearSession(): void {
-		SessionManager::destroy();
-		$this->session->invalidate();
-		session_unset();
-		session_destroy();
-		$this->session = null;
-		$this->unsetSessionVars();
-	}
 
 	public function logout(): Response {
 		if ($username = $this->session->get('username')) {

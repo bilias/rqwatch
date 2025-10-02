@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use App\Core\Config;
+use App\Core\SessionManager;
 use App\Core\RedisFactory;
 use App\Utils\Helper;
 
@@ -91,6 +92,15 @@ class Controller
 		unset($this->user_id);
 		unset($this->email);
 		unset($this->user_aliases);
+	}
+
+	public function clearSession(): void {
+		SessionManager::destroy();
+		$this->session->invalidate();
+		session_unset();
+		session_destroy();
+		$this->session = null;
+		$this->unsetSessionVars();
 	}
 
 	public function setUrlGenerator(UrlGeneratorInterface $urlGenerator): void {
