@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-02
+- Implemented unsetSessionVars() and moved clearSession in Controller
 - Fix bug in map delete redirect
 - Fix bug in search 'does not contain'
 
