@@ -1,6 +1,12 @@
 {% import 'macros/paginator.macro.twig' as ui %}
 <section>
 
+{% if is_admin and mapsearchform %}
+<div class="mapsearchform">
+{% include 'partials/map_search.html.twig' %}
+</div>
+{% endif %}
+
 {% if map_comb_entries is not empty %}
 
 <div class='pagtop'>
@@ -21,12 +27,6 @@ Total: {{ map_comb_total }} entries
 | Displaying {{ items_per_page }}/page
 {% endif %}
 </div>
-
-{% if is_admin and mapsearchform %}
-<div class="mapsearchform">
-{% include 'partials/map_search.html.twig' %}
-</div>
-{% endif %}
 
 <div class='mapform'>
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
@@ -152,12 +152,6 @@ Total: {{ map_custom_total }} entries
 | Displaying {{ items_per_page }}/page
 {% endif %}
 </div>
-
-{% if mapsearchform %}
-<div class="mapsearchform">
-{% include 'partials/map_search.html.twig' %}
-</div>
-{% endif %}
 
 <div class='mapform'>
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
