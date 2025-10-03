@@ -11,6 +11,7 @@
 - Search users
 - Search aliases
 - Stats in search (top domains, top ips etc)
+- Cache failed inserts in Redis and retry later via cron
 
 ## Features bellow might be implemented
 
