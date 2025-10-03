@@ -30,7 +30,7 @@ Total {{ totalRecords }} mails
 {% if subject_privacy is same as(false) %}
  <th class='subjwidth'>Subject</th>
 {% endif %}
- <th class='size'>Size</th>
+{# <th class='size'>Size</th> #}
  <th class='score'>Score</th>
  <th class='action'>Action</th>
 </tr></thead>
@@ -58,7 +58,7 @@ Total {{ totalRecords }} mails
 {% if subject_privacy is same as(false) %}
   <td>{{ truncate(log.subject, 100) }}</td>
 {% endif %}
-  <td class='right'>{{ formatSizeUnits(log.size) }}</td>
+{#  <td class='right'>{{ formatSizeUnits(log.size) }}</td> #}
   <td class='right'>{{ log.score }}</td>
 
 {% set log_action = log.action %}
