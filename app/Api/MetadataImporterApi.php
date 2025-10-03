@@ -72,7 +72,7 @@ class MetadataImporterApi extends RqwatchApi
 				Response::HTTP_BAD_REQUEST,
 				"Invalid request (parse error)",
 				$e->getMessage(),
-				'error'
+				'critical'
 			);
 		}
 
@@ -105,7 +105,7 @@ class MetadataImporterApi extends RqwatchApi
 			$msg = "qid, score and action missing";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $msg,
-				$msg, 'error');
+				$msg, 'critical');
 		}
 		
 		$server = $this->request->query->get('server', '');
