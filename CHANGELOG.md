@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-10-03
+- Move Login as user in user info
+
 ### 2025-10-02
 - Login as user
 - Implemented unsetSessionVars() and moved clearSession in Controller
