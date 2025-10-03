@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-03
+- Increase subject size
 - Show search form if no entry found
 - Move Login as user in user info
 
