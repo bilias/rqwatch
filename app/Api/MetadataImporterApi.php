@@ -195,7 +195,6 @@ class MetadataImporterApi extends RqwatchApi
 			}
 		}
 
-		/*
 		// Try to detect the most likely encoding
 		$enc = mb_detect_encoding(
 			$stringHeaders,
@@ -225,16 +224,19 @@ class MetadataImporterApi extends RqwatchApi
 			$detected = 'UTF-8';
 		}
 		
-		$this->fileLogger->info("{$qid}: Header encoding detected: {$detected}");
-		*/
+		$this->fileLogger->debug("{$qid}: Header encoding detected: {$detected}");
 
-		// return all headers as an array, with charset conversion
-		$arrayHeaders  = $parser->getHeaders();
+		/* get headers from array with char convertion
 		$headersText = '';
 
 		foreach ($arrayHeaders as $name => $value) {
-			$line = $name . ': ' . (is_array($value) ? implode(', ', $value) : $value);
-			$headersText .= $line . "\r\n";
+			if (is_array($value)) {
+				foreach ($value as $v) {
+					$headersText .= $name . ': ' . $v . "\r\n";
+				}
+			} else {
+				$headersText .= $name . ': ' . $value . "\r\n";
+			}
 		}
 
 		// Clean invalid UTF-8 bytes — drop or replace them safely
@@ -242,6 +244,7 @@ class MetadataImporterApi extends RqwatchApi
 		$headersText = iconv('UTF-8', 'UTF-8//TRANSLIT', $headersText);
 
 		$data['headers'] = $headersText;
+		*/
 
 		try {
 			$db_id = $this->capsule::table($_ENV['MAILLOGS_TABLE'])
