@@ -55,15 +55,15 @@ $routes->add('admin_search_results', new Route(
 ));
 
 $routes->add('reports', new Route(
-	'/reports/{what}',
+	'/reports/{field}',
 	[ '_controller' => 'App\\Controllers\\MailLogController::showReports' ],
-   [ 'what' => '[a-zA-Z_0-9]{1,64}' ]
+   [ 'field' => '[a-zA-Z_0-9]{1,64}' ]
 ));
 
 $routes->add('admin_reports', new Route(
-	'/admin/reports/{what}',
+	'/admin/reports/{field}',
 	[ '_controller' => 'App\\Controllers\\MailLogController::showReports' ],
-	[ 'what' => '[a-zA-Z_0-9]{1,64}' ]
+	[ 'field' => '[a-zA-Z_0-9]{1,64}' ]
 ));
 
 $routes->add('day_logs', new Route(

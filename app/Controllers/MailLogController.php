@@ -147,9 +147,9 @@ class MailLogController extends ViewController
 		]));
 	}
 
-	public function showReports(string $what): Response {
-		if (empty($what) || !in_array($what, MailLog::REPORT_FIELDS)) {
-			$this->flashbag->add('error', "Field '{$what}' does not exist");
+	public function showReports(string $field): Response {
+		if (empty($field) || !in_array($field, MailLog::REPORT_FIELDS)) {
+			$this->flashbag->add('error', "Field '{$field}' does not exist");
 			$this->initUrls();
 			return new RedirectResponse($this->searchUrl);
 		}
@@ -174,7 +174,7 @@ class MailLogController extends ViewController
 
 		$service = new MailLogService($this->getFileLogger(), $this->session);
 
-		$logs = $service->showReports($filters, $what)->toArray();
+		$logs = $service->showReports($filters, $field)->toArray();
 
 		return new Response($this->twig->render('reports.twig', [
 			'qidform' => $qidform->createView(),
