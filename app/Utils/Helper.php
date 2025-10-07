@@ -777,7 +777,7 @@ You can see mail details and release it from quarantine by clicking here:
 				}
 				/* prevent any hidden invalid byte issues
 				$data[$field] = mb_convert_encoding($data[$field], 'UTF-8', 'UTF-8');
-				$data[$field] = iconv('UTF-8', 'UTF-8//TRANSLIT', $data[$field]);
+				$data[$field] = iconv('UTF-8', 'UTF-8//IGNORE', $data[$field]);
 				*/
 				// use mb_strimwidth to handle multibyte safely
 				$data[$field] = mb_strimwidth($data[$field], 0, $max, '');

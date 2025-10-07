@@ -241,7 +241,7 @@ class MetadataImporterApi extends RqwatchApi
 
 		// Clean invalid UTF-8 bytes — drop or replace them safely
 		$headersText = mb_convert_encoding($headersText, 'UTF-8', 'UTF-8'); 
-		$headersText = iconv('UTF-8', 'UTF-8//TRANSLIT', $headersText);
+		$headersText = iconv('UTF-8', 'UTF-8//IGNORE', $headersText);
 
 		$data['headers'] = $headersText;
 		*/
