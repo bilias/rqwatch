@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-10-07
+- Clean invalid UTF-8 characters in headers
+
 ### 2025-10-03
 - Increase subject size
 - Show search form if no entry found
