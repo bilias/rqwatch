@@ -149,7 +149,6 @@ class MailLogController extends ViewController
 
 	public function showReports(string $what): Response {
 		if (empty($what) || !in_array($what, MailLog::REPORT_FIELDS)) {
-			//dd($what, MailLog::SELECT_FIELDS);
 			$this->flashbag->add('error', "Field '{$what}' does not exist");
 			$this->initUrls();
 			return new RedirectResponse($this->searchUrl);
