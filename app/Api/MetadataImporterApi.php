@@ -187,6 +187,14 @@ class MetadataImporterApi extends RqwatchApi
 			'message_id' => $message_id,
 		);
 
+		[$data, $debug] = Helper::trimDataToDbLimits($data, MailLog::FIELD_LIMITS);
+
+		if (!empty($debug)) {
+			foreach ($debug as $debug_msg) {
+				$this->fileLogger->warning("[{$this->logPrefix}] {$qid}: {$debug_msg}");
+			}
+		}
+
 		/*
 		// Try to detect the most likely encoding
 		$enc = mb_detect_encoding(

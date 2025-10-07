@@ -768,4 +768,22 @@ You can see mail details and release it from quarantine by clicking here:
 		return null;
 	}
 
+	public static function trimDataToDbLimits(array $data, array $limits): array {
+		$debug = [];
+		foreach ($limits as $field => $max) {
+			if (isset($data[$field]) && is_string($data[$field])) {
+				if (mb_strlen($data[$field]) > $max) {
+					$debug[] = "Field {$field} exceeded max {$max}, truncated.";
+				}
+				/* prevent any hidden invalid byte issues
+				$data[$field] = mb_convert_encoding($data[$field], 'UTF-8', 'UTF-8');
+				$data[$field] = iconv('UTF-8', 'UTF-8//TRANSLIT', $data[$field]);
+				*/
+				// use mb_strimwidth to handle multibyte safely
+				$data[$field] = mb_strimwidth($data[$field], 0, $max, '');
+			}
+		}
+		return [$data, $debug];
+	}
+
 }

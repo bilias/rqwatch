@@ -95,6 +95,21 @@ class MailLog extends Model
 		'message_id',
 	];
 
+	// Static DB field length limits
+	public const FIELD_LIMITS = [
+		'qid'           => 30,
+		'server'        => 10,
+		'subject'       => 1024,
+		'action'        => 20,
+		'ip'            => 50,
+		'mail_from'     => 255,
+		'mime_from'     => 255,
+		'rcpt_to'       => 1024,
+		'mime_to'       => 1024,
+		'mail_location' => 255,
+		'message_id'    => 1024,
+	];
+
 	/* not needed now
 	public function getTable() {
 		return $_ENV['MAILLOGS_TABLE'] ?? 'quarantine';
