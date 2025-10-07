@@ -41,9 +41,9 @@ Total {{ totalRecords }} mails
  {% set row_class = get_row_class(log.action, log.symbols) %}
  <tr class="{{ row_class }}">
   {% if is_admin %}
-  <td class='info center'><a href='{{ get_route('admin_detail', { type: 'id', value: log.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
+  <td class='mailinfo center'><a href='{{ get_route('admin_detail', { type: 'id', value: log.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
   {% else %}
-  <td class='info center'><a href='{{ get_route('detail', { type: 'id', value: log.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
+  <td class='mailinfo center'><a href='{{ get_route('detail', { type: 'id', value: log.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
   {% endif %}
   <td class='date center'>{{ log.created_at|date("Y-m-d") }} {{ log.created_at|date("H:i:s") }}</td>
   <td>{{ truncate(decodeEmail(log.mail_from),32) }}</td>
