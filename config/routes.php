@@ -54,6 +54,18 @@ $routes->add('admin_search_results', new Route(
 	[]
 ));
 
+$routes->add('reports', new Route(
+	'/reports/{what}',
+	[ '_controller' => 'App\\Controllers\\MailLogController::showReports' ],
+   [ 'what' => '[a-zA-Z_0-9]{1,64}' ]
+));
+
+$routes->add('admin_reports', new Route(
+	'/admin/reports/{what}',
+	[ '_controller' => 'App\\Controllers\\MailLogController::showReports' ],
+	[ 'what' => '[a-zA-Z_0-9]{1,64}' ]
+));
+
 $routes->add('day_logs', new Route(
     '/day/{date}', // path
     [ '_controller' => 'App\\Controllers\\MailLogController::showDay', 'date' => null ], // defaults
@@ -383,6 +395,8 @@ $middlewareMap = [
 	'admin_quarantine_day' => $adminMiddlewareClasses,
 	'detail' => $userMiddlewareClasses,
 	'admin_detail' => $adminMiddlewareClasses,
+	'reports' => $userMiddlewareClasses,
+	'admin_reports' => $adminMiddlewareClasses,
 	'search' => $userMiddlewareClasses,
 	'admin_search' => $adminMiddlewareClasses,
 	'search_filter_del' => $userMiddlewareClasses,

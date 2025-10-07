@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-07
+- Top Reports in search
 - Respect DB limits in mail_logs. Truncate fields exceeding and log
 - Clean invalid UTF-8 characters in headers
 

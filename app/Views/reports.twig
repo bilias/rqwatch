@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+<div class="center-container">
+
+<div class='quarantine'>
+
+ <span class='descr'>Top {{ max_items }} by {{ field|upper }}</span>
+
+ <div class="row caption">
+   <div class="cell left">{{ field|upper }}</div>
+   <div class="cell right"># of mails</div>
+ </div>
+
+<div class='quarantine_days'>
+{% for log in logs %}
+ <div class="row">
+  <div class='cell day'>{{ attribute(log, field) }}</td></div>
+  <div class='cell right cnt'>{{ log.total }}</div>
+ </div>
+{% endfor %}
+</div>
+
+{% endblock %}

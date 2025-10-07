@@ -114,6 +114,9 @@ $q_items_per_page = 31;
 # certain pages have sql restriction on upper items returned
 $max_items = 10000;
 
+# how many items to show in reports
+$top_reports = 30;
+
 # hide subject on web interface
 $subject_privacy = false;
 

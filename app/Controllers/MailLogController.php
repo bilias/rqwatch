@@ -147,6 +147,53 @@ class MailLogController extends ViewController
 		]));
 	}
 
+	public function showReports(string $what): Response {
+		if (empty($what) || !in_array($what, MailLog::REPORT_FIELDS)) {
+			//dd($what, MailLog::SELECT_FIELDS);
+			$this->flashbag->add('error', "Field '{$what}' does not exist");
+			$this->initUrls();
+			return new RedirectResponse($this->searchUrl);
+		}
+
+		// enable form rendering support
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			// form submitted and valid
+			return $response;
+		}
+
+		// get filters from session
+		$filters = $this->session->get('filters');
+		if ($filters) {
+			$filters = json_decode($filters, true);
+		} else {
+			$filters = array();
+		}
+
+		$service = new MailLogService($this->getFileLogger(), $this->session);
+
+		$logs = $service->showReports($filters, $what)->toArray();
+
+		return new Response($this->twig->render('reports.twig', [
+			'qidform' => $qidform->createView(),
+			'field' => array_keys($logs[0])[0],
+			'logs' => $logs,
+			'items_per_page' => $this->items_per_page,
+			'max_items' => Config::get('top_reports'),
+			'runtime' => $this->getRuntime(),
+			'subject_privacy' => $this->subject_privacy,
+			'flashes' => $this->flashbag->all(),
+			'is_admin' => $this->getIsAdmin(),
+			'username' => $this->session->get('username'),
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
 	public function showDay(string $date = null): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);

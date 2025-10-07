@@ -95,6 +95,18 @@ class MailLog extends Model
 		'message_id',
 	];
 
+	public const REPORT_FIELDS = [
+		'ip',
+		'action',
+		'has_virus',
+		'mail_from',
+		'rcpt_to',
+		'mime_from',
+		'mime_to',
+		'server',
+		'mail_stored',
+	];
+
 	// Static DB field length limits
 	public const FIELD_LIMITS = [
 		'qid'           => 30,

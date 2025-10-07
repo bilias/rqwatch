@@ -31,6 +31,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\Capsule\Manager as DB;
 
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -75,6 +76,10 @@ class MailLogService
 				->orderBy('id', 'DESC');
 		}
 
+		return $this->getQueryByFilters($query, $filters);
+	}
+
+	public function getQueryByFilters(Builder $query, array $filters): Builder {
 		if (!empty($filters)) {
 			$filters = FormHelper::getFilterByName($filters);
 		}
@@ -115,7 +120,6 @@ class MailLogService
 		}
 		return $query;
 	}
-
 
 	public function showAll(): Collection {
 		$fields = MailLog::SELECT_FIELDS;
@@ -273,6 +277,31 @@ class MailLogService
 				})
 				->toArray();
 				*/
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage());
+			exit("Query error");
+		}
+
+		return $logs;
+	}
+
+	public function showReports(array $filters, string $field): ?Collection {
+		$fields = [ $field, DB::raw('count(*) as total') ];
+
+		$query = MailLog::select($fields);
+		$query = $this->getQueryByFilters($query, $filters);
+		$query = $this->applyUserScope($query);
+
+		$query->groupBy($field)
+			   ->orderBy('total', 'DESC')
+			   ->limit(Config::get('top_reports'));
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		try {
+			$logs = $query->get();
 		} catch (\Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage());
 			exit("Query error");
