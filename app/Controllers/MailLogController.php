@@ -284,6 +284,7 @@ class MailLogController extends ViewController
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
+			'quarantine_days' => $_ENV['QUARANTINE_DAYS'],
 		]));
 	}
 
