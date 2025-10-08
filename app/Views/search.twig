@@ -80,29 +80,29 @@
 <ul>
 {% if stats.count > 0 %}
  {% if is_admin %}
- <li><a href='{{ get_route('admin_search_results') }}'>Show Search Results</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'ip'}) }}'>Show Top IPs</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mail_from'}) }}'>Show Top Mail From</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mime_from'}) }}'>Show Top MIME From</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'rcpt_to'}) }}'>Show Top RCPT To</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mime_to'}) }}'>Show Top MIME To</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mail_from_domain'}) }}'>Show Top Mail From Domains</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mime_from_domain'}) }}'>Show Top MIME From Domains</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'rcpt_to_domain'}) }}'>Show Top RCPT To Domains</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mime_to_domain'}) }}'>Show Top MIME To Domains</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'server'}) }}'>Show Top Servers</a></li>
+ <li><a href='{{ get_route('admin_search_results') }}'>Search Results</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'ip'}) }}'>Top IPs</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'mail_from'}) }}'>Top Mail From</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'mime_from'}) }}'>Top MIME From</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'rcpt_to'}) }}'>Top RCPT To</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'mime_to'}) }}'>Top MIME To</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'mail_from_domain'}) }}'>Top Mail From Domains</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'mime_from_domain'}) }}'>Top MIME From Domains</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'rcpt_to_domain'}) }}'>Top RCPT To Domains</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'mime_to_domain'}) }}'>Top MIME To Domains</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'server'}) }}'>Top Servers</a></li>
  {% else %}
- <li><a href='{{ get_route('search_results') }}'>Show Search Results</a></li>
- <li><a href='{{ get_route('reports', { field: 'ip'}) }}'>Show Top IPs</a></li>
- <li><a href='{{ get_route('reports', { field: 'mail_from'}) }}'>Show Top Mail From</a></li>
- <li><a href='{{ get_route('reports', { field: 'mime_from'}) }}'>Show Top MIME From</a></li>
- <li><a href='{{ get_route('reports', { field: 'rcpt_to'}) }}'>Show Top RCPT To</a></li>
- <li><a href='{{ get_route('reports', { field: 'mime_to'}) }}'>Show Top MIME To</a></li>
- <li><a href='{{ get_route('reports', { field: 'mail_from_domain'}) }}'>Show Top Mail From Domains</a></li>
- <li><a href='{{ get_route('reports', { field: 'mime_from_domain'}) }}'>Show Top MIME From Domains</a></li>
- <li><a href='{{ get_route('reports', { field: 'rcpt_to_domain'}) }}'>Show Top RCPT To Domains</a></li>
- <li><a href='{{ get_route('reports', { field: 'mime_to_domain'}) }}'>Show Top MIME To Domains</a></li>
- <li><a href='{{ get_route('reports', { field: 'server'}) }}'>Show Top Servers</a></li>
+ <li><a href='{{ get_route('search_results') }}'>Search Results</a></li>
+ <li><a href='{{ get_route('reports', { field: 'ip'}) }}'>Top IPs</a></li>
+ <li><a href='{{ get_route('reports', { field: 'mail_from'}) }}'>Top Mail From</a></li>
+ <li><a href='{{ get_route('reports', { field: 'mime_from'}) }}'>Top MIME From</a></li>
+ <li><a href='{{ get_route('reports', { field: 'rcpt_to'}) }}'>Top RCPT To</a></li>
+ <li><a href='{{ get_route('reports', { field: 'mime_to'}) }}'>Top MIME To</a></li>
+ <li><a href='{{ get_route('reports', { field: 'mail_from_domain'}) }}'>Top Mail From Domains</a></li>
+ <li><a href='{{ get_route('reports', { field: 'mime_from_domain'}) }}'>Top MIME From Domains</a></li>
+ <li><a href='{{ get_route('reports', { field: 'rcpt_to_domain'}) }}'>Top RCPT To Domains</a></li>
+ <li><a href='{{ get_route('reports', { field: 'mime_to_domain'}) }}'>Top MIME To Domains</a></li>
+ <li><a href='{{ get_route('reports', { field: 'server'}) }}'>Top Servers</a></li>
  {% endif %}
 {% else %}
 No results found
