@@ -86,6 +86,10 @@
  <li><a href='{{ get_route('admin_reports', { field: 'mime_from'}) }}'>Show Top MIME From</a></li>
  <li><a href='{{ get_route('admin_reports', { field: 'rcpt_to'}) }}'>Show Top RCPT To</a></li>
  <li><a href='{{ get_route('admin_reports', { field: 'mime_to'}) }}'>Show Top MIME To</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'mail_from_domain'}) }}'>Show Top Mail From Domains</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'mime_from_domain'}) }}'>Show Top MIME From Domains</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'rcpt_to_domain'}) }}'>Show Top RCPT To Domains</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'mime_to_domain'}) }}'>Show Top MIME To Domains</a></li>
  <li><a href='{{ get_route('admin_reports', { field: 'server'}) }}'>Show Top Servers</a></li>
  {% else %}
  <li><a href='{{ get_route('search_results') }}'>Show Search Results</a></li>
@@ -94,6 +98,10 @@
  <li><a href='{{ get_route('reports', { field: 'mime_from'}) }}'>Show Top MIME From</a></li>
  <li><a href='{{ get_route('reports', { field: 'rcpt_to'}) }}'>Show Top RCPT To</a></li>
  <li><a href='{{ get_route('reports', { field: 'mime_to'}) }}'>Show Top MIME To</a></li>
+ <li><a href='{{ get_route('reports', { field: 'mail_from_domain'}) }}'>Show Top Mail From Domains</a></li>
+ <li><a href='{{ get_route('reports', { field: 'mime_from_domain'}) }}'>Show Top MIME From Domains</a></li>
+ <li><a href='{{ get_route('reports', { field: 'rcpt_to_domain'}) }}'>Show Top RCPT To Domains</a></li>
+ <li><a href='{{ get_route('reports', { field: 'mime_to_domain'}) }}'>Show Top MIME To Domains</a></li>
  <li><a href='{{ get_route('reports', { field: 'server'}) }}'>Show Top Servers</a></li>
  {% endif %}
 {% else %}

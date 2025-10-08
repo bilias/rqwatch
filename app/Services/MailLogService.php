@@ -286,15 +286,30 @@ class MailLogService
 	}
 
 	public function showReports(array $filters, string $field): ?Collection {
-		$fields = [ $field, DB::raw('count(*) as total') ];
+		switch($field) {
+			case 'mail_from_domain':
+			case 'rcpt_to_domain':
+			case 'mime_from_domain':
+			case 'mime_to_domain':
+				$baseField = str_replace('_domain', '', $field);
+				$query = MailLog::selectRaw("LOWER(TRIM(TRAILING '>' FROM SUBSTRING_INDEX({$baseField}, '@', -1))) AS {$field}, COUNT(*) AS total")
+				                ->where($baseField, 'LIKE', '%@%')
+				                ->groupBy($field)
+				                ->orderByDesc('total');
+				break;
+			default:
+				//$fields = [ $field, DB::raw('count(*) as total') ];
+				//$query = MailLog::select($fields);
+				$query = MailLog::selectRaw("LOWER({$field}) AS {$field}, COUNT(*) AS total")
+				                ->groupBy($field);
+				break;
+		}
 
-		$query = MailLog::select($fields);
 		$query = $this->getQueryByFilters($query, $filters);
 		$query = $this->applyUserScope($query);
 
-		$query->groupBy($field)
-			   ->orderBy('total', 'DESC')
-			   ->limit(Config::get('top_reports'));
+		$query->orderBy('total', 'DESC')
+		      ->limit(Config::get('top_reports'));
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));

@@ -5,10 +5,10 @@
 
 <div class='quarantine'>
 
- <span class='descr'>Top {{ max_items }} by {{ field|upper }}</span>
+ <span class='descr'>Top {{ max_items }} by {{ field|replace({'_': ' '})|upper }}</span>
 
  <div class="row caption">
-   <div class="cell left">{{ field|upper }}</div>
+   <div class="cell left">{{ field|replace({'_': ' '})|upper }}</div>
    <div class="cell right"># of mails</div>
  </div>
 

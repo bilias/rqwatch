@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-08
+- Add reports by domain
 - showStats should not use full MailLogs results but counters only
 
 ### 2025-10-07

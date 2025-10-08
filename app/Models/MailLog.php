@@ -104,7 +104,10 @@ class MailLog extends Model
 		'mime_from',
 		'mime_to',
 		'server',
-		'mail_stored',
+		'mail_from_domain',
+		'rcpt_to_domain',
+		'mime_from_domain',
+		'mime_to_domain',
 	];
 
 	// Static DB field length limits
