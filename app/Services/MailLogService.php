@@ -313,27 +313,25 @@ class MailLogService
 	public function showStats(array $filters): array {
 		$fields = ['created_at', 'mail_stored', 'released', 'notified'];
 
-		// has applyUserScope
-		$logs = self::showResults($filters, $fields);
+		$query = MailLog::select($fields);
+		$query = $this->applyUserScope($query);
 
-		if (($count = $logs->count()) > 0) {
-			$stats['count'] = $count;
-			/*
-			$utcTz = new \DateTimeZone('UTC');
-			$localTz = new \DateTimeZone(date_default_timezone_get());
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
 
-			$dt = new \DateTime($logs[0]['created_at'], $utcTz);  // Input is UTC
-			$dt->setTimezone($localTz);                        // Convert to local
+		$stats['count'] = $query->count();
 
-			$ar['last'] = $dt->format('Y-m-d H:i:s');
-			*/
-			$stats['last'] = $logs->first()->created_at->toDateTimeString();
-			$stats['first'] = $logs->last()->created_at->toDateTimeString();
-			$stats['stored'] = ($logs->where('mail_stored', 1))->count();
-			$stats['notified'] = ($logs->where('notified', 1))->count();
-			$stats['released'] = ($logs->where('released', 1))->count();
+		if (($stats['count']) > 0) {
+			$stats['first'] = (clone $query)->orderBy('id', 'ASC')->first()->created_at->toDateTimeString();
+			$stats['last'] = (clone $query)->orderBy('id', 'DESC')->first()->created_at->toDateTimeString();
+			$stats['stored'] = ($query->where('mail_stored', 1))->count();
+			$stats['notified'] = ($query->where('notified', 1))->count();
+			$stats['released'] = ($query->where('released', 1))->count();
+
 			return $stats;
 		}
+
 		return array(
 			'count' => 0,
 			'last' => null,

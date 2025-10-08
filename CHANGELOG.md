@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-10-08
+- showStats should not use full MailLogs results but counters only
+
 ### 2025-10-07
 - Top Reports in search
 - Respect DB limits in mail_logs. Truncate fields exceeding and log
