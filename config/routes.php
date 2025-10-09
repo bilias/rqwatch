@@ -188,6 +188,16 @@ $routes->add('admin_aliases', new Route(
 	[]
 ));
 
+$routes->add('admin_aliases_search', new Route(
+	'/admin/aliases/search', // path
+	[ '_controller' => 'App\\Controllers\\MailAliasController::searchAlias', ], // defaults
+	[], // requirements
+	[], // options
+	'', // host
+	[], // schemes
+	['POST'] // methods
+));
+
 $routes->add('admin_aliases_add', new Route(
 	'/admin/aliases/add', // path
 	[ '_controller' => 'App\\Controllers\\MailAliasController::add', ], // defaults
@@ -419,6 +429,7 @@ $middlewareMap = [
 	'admin_userloginas' => $adminMiddlewareClasses,
 	'admin_user' => $adminMiddlewareClasses,
 	'admin_aliases' => $adminMiddlewareClasses,
+	'admin_aliases_search' => $adminMiddlewareClasses,
 	'admin_aliases_add' => $adminMiddlewareClasses,
 	'admin_aliases_edit' => $adminMiddlewareClasses,
 	'admin_aliases_del' => $adminMiddlewareClasses,
