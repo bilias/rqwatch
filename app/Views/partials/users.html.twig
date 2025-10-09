@@ -12,6 +12,12 @@ Total Users: {{ totalRecords }}
 </div>
 </div>
 
+{% if is_admin and usersearchform %}
+<div class="mapsearchform">
+{% include 'partials/user_search.html.twig' %}
+</div>
+{% endif %}
+
 <div class='users'>
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
 <thead><tr>

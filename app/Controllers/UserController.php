@@ -22,6 +22,7 @@ use App\Utils\Helper;
 use App\Forms\QidForm;
 use App\Forms\UserForm;
 use App\Forms\UserDeleteForm;
+use App\Forms\UserSearchForm;
 use App\Forms\ProfileForm;
 
 use App\Models\User;
@@ -67,9 +68,12 @@ class UserController extends ViewController
 		$url = $this->urlGenerator->generate('admin_users');
 		$users = $service->showPaginatedAll($page, $url);
 
+		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
+
 		//return new Response($this->twig->render('home.twig', [
 		return new Response($this->twig->render('users_paginated.twig', [
 			'qidform' => $qidform->createView(),
+			'usersearchform' => $userSearchForm->createView(),
 			'users' => $users,
 			'totalRecords' => $users->total(),
 			'items_per_page' => $this->items_per_page,
