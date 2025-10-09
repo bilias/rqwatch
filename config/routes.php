@@ -57,7 +57,7 @@ $routes->add('admin_search_results', new Route(
 $routes->add('reports', new Route(
 	'/reports/{field}',
 	[ '_controller' => 'App\\Controllers\\MailLogController::showReports' ],
-   [ 'field' => '[a-zA-Z_0-9]{1,64}' ]
+	[ 'field' => '[a-zA-Z_0-9]{1,64}' ]
 ));
 
 $routes->add('admin_reports', new Route(
@@ -67,15 +67,15 @@ $routes->add('admin_reports', new Route(
 ));
 
 $routes->add('day_logs', new Route(
-    '/day/{date}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::showDay', 'date' => null ], // defaults
-    [ 'date' => '\d{4}-\d{2}-\d{2}' ] // YYYY-MM-DD format
+	'/day/{date}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::showDay', 'date' => null ], // defaults
+	[ 'date' => '\d{4}-\d{2}-\d{2}' ] // YYYY-MM-DD format
 ));
 
 $routes->add('admin_day_logs', new Route(
-    '/admin/day/{date}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::showDay', 'date' => null ], // defaults
-    [ 'date' => '\d{4}-\d{2}-\d{2}' ] // YYYY-MM-DD format
+	'/admin/day/{date}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::showDay', 'date' => null ], // defaults
+	[ 'date' => '\d{4}-\d{2}-\d{2}' ] // YYYY-MM-DD format
 ));
 
 $routes->add('quarantine', new Route(
@@ -91,27 +91,27 @@ $routes->add('admin_quarantine', new Route(
 ));
 
 $routes->add('quarantine_day', new Route(
-    '/quarantine/{date}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineDay' ],
-    [ 'date' => '\d{4}-\d{2}-\d{2}' ] // YYYY-MM-DD format
+	'/quarantine/{date}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineDay' ],
+	[ 'date' => '\d{4}-\d{2}-\d{2}' ] // YYYY-MM-DD format
 ));
 
 $routes->add('admin_quarantine_day', new Route(
-    '/admin/quarantine/{date}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineDay' ],
-    [ 'date' => '\d{4}-\d{2}-\d{2}' ] // YYYY-MM-DD format
+	'/admin/quarantine/{date}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineDay' ],
+	[ 'date' => '\d{4}-\d{2}-\d{2}' ] // YYYY-MM-DD format
 ));
 
 $routes->add('detail', new Route(
-    '/detail/{type}/{value}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::detail' ], // defaults
-    [ 'type' => 'id|qid' ] // requirements: only 'id' or 'qid' allowed for {type}
+	'/detail/{type}/{value}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::detail' ], // defaults
+	[ 'type' => 'id|qid' ] // requirements: only 'id' or 'qid' allowed for {type}
 ));
 
 $routes->add('admin_detail', new Route(
-    '/admin/detail/{type}/{value}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::detail' ], // defaults
-    [ 'type' => 'id|qid' ] // requirements: only 'id' or 'qid' allowed for {type}
+	'/admin/detail/{type}/{value}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::detail' ], // defaults
+	[ 'type' => 'id|qid' ] // requirements: only 'id' or 'qid' allowed for {type}
 ));
 
 $routes->add('search', new Route(
@@ -137,27 +137,27 @@ $routes->add('admin_search_filter_del', new Route(
 ));
 
 $routes->add('admin_users', new Route(
-    '/admin/users', // path
-    [ '_controller' => 'App\\Controllers\\UserController::showAll', ], // defaults
-    []
+	'/admin/users', // path
+	[ '_controller' => 'App\\Controllers\\UserController::showAll', ], // defaults
+	[]
 ));
 
 $routes->add('admin_useradd', new Route(
-    '/admin/user/add', // path
-    [ '_controller' => 'App\\Controllers\\UserController::add', ], // defaults
-    []
+	'/admin/user/add', // path
+	[ '_controller' => 'App\\Controllers\\UserController::add', ], // defaults
+	[]
 ));
 
 $routes->add('admin_useredit', new Route(
-    '/admin/user/edit/{id}', // path
-    [ '_controller' => 'App\\Controllers\\UserController::edit', ], // defaults
-    [ 'id' => '\d{1,8}']
+	'/admin/user/edit/{id}', // path
+	[ '_controller' => 'App\\Controllers\\UserController::edit', ], // defaults
+	[ 'id' => '\d{1,8}']
 ));
 
 $routes->add('admin_userdel', new Route(
-    '/admin/user/del/{id}', // path
-    [ '_controller' => 'App\\Controllers\\UserController::del', ], // defaults
-    [ 'id' => '\d{1,8}']
+	'/admin/user/del/{id}', // path
+	[ '_controller' => 'App\\Controllers\\UserController::del', ], // defaults
+	[ 'id' => '\d{1,8}']
 ));
 
 $routes->add('admin_usersearch', new Route(
@@ -171,205 +171,205 @@ $routes->add('admin_usersearch', new Route(
 ));
 
 $routes->add('admin_userloginas', new Route(
-    '/admin/user/login/{id}', // path
-    [ '_controller' => 'App\\Controllers\\UserController::loginAs', ], // defaults
-    [ 'id' => '\d{1,8}']
+	'/admin/user/login/{id}', // path
+	[ '_controller' => 'App\\Controllers\\UserController::loginAs', ], // defaults
+	[ 'id' => '\d{1,8}']
 ));
 
 $routes->add('admin_user', new Route(
-    '/admin/user/{id}', // path
-    [ '_controller' => 'App\\Controllers\\UserController::showOne', ], // defaults
-    [ 'id' => '\d{1,8}' ] // 
+	'/admin/user/{id}', // path
+	[ '_controller' => 'App\\Controllers\\UserController::showOne', ], // defaults
+	[ 'id' => '\d{1,8}' ] // 
 ));
 
 $routes->add('admin_aliases', new Route(
-    '/admin/aliases', // path
-    [ '_controller' => 'App\\Controllers\\MailAliasController::showAll', ], // defaults
-    []
+	'/admin/aliases', // path
+	[ '_controller' => 'App\\Controllers\\MailAliasController::showAll', ], // defaults
+	[]
 ));
 
 $routes->add('admin_aliases_add', new Route(
-    '/admin/aliases/add', // path
-    [ '_controller' => 'App\\Controllers\\MailAliasController::add', ], // defaults
-    []
+	'/admin/aliases/add', // path
+	[ '_controller' => 'App\\Controllers\\MailAliasController::add', ], // defaults
+	[]
 ));
 
 $routes->add('admin_aliases_edit', new Route(
-    '/admin/aliases/edit/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MailAliasController::edit', ], // defaults
-    [ 'id' => '\d{1,8}']
+	'/admin/aliases/edit/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MailAliasController::edit', ], // defaults
+	[ 'id' => '\d{1,8}']
 ));
 
 $routes->add('admin_aliases_del', new Route(
-    '/admin/aliases/del/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MailAliasController::del', ], // defaults
-    [ 'id' => '\d{1,8}']
+	'/admin/aliases/del/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MailAliasController::del', ], // defaults
+	[ 'id' => '\d{1,8}']
 ));
 
 $routes->add('profile', new Route(
-    '/profile', // path
-    [ '_controller' => 'App\\Controllers\\UserController::profile', ], // defaults
-    [ ],
+	'/profile', // path
+	[ '_controller' => 'App\\Controllers\\UserController::profile', ], // defaults
+	[ ],
 ));
 
 $routes->add('showmail', new Route(
-    '/mail/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::showMail', ], // defaults
-    [ 'id' => '\d{1,8}']
+	'/mail/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::showMail', ], // defaults
+	[ 'id' => '\d{1,8}']
 ));
 
 $routes->add('admin_showmail', new Route(
-    '/admin/mail/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::showMail', ], // defaults
-    [ 'id' => '\d{1,8}']
+	'/admin/mail/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::showMail', ], // defaults
+	[ 'id' => '\d{1,8}']
 ));
 
 $routes->add('attachsave', new Route(
-    '/attach/save/{id}/{attach_id}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::saveAttachment', ], // defaults
-    [ 'id' => '\d{1,8}', 'attach_id' => '\d{1,2}']
+	'/attach/save/{id}/{attach_id}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::saveAttachment', ], // defaults
+	[ 'id' => '\d{1,8}', 'attach_id' => '\d{1,2}']
 ));
 
 $routes->add('admin_attachsave', new Route(
-    '/admin/attach/save/{id}/{attach_id}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::saveAttachment', ], // defaults
-    [ 'id' => '\d{1,8}', 'attach_id' => '\d{1,2}']
+	'/admin/attach/save/{id}/{attach_id}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::saveAttachment', ], // defaults
+	[ 'id' => '\d{1,8}', 'attach_id' => '\d{1,2}']
 ));
 
 $routes->add('attachopen', new Route(
-    '/attach/open/{id}/{attach_id}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::openAttachment', ], // defaults
-    [ 'id' => '\d{1,8}', 'attach_id' => '\d{1,2}']
+	'/attach/open/{id}/{attach_id}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::openAttachment', ], // defaults
+	[ 'id' => '\d{1,8}', 'attach_id' => '\d{1,2}']
 ));
 
 $routes->add('admin_attachopen', new Route(
-    '/admin/attach/open/{id}/{attach_id}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::openAttachment', ], // defaults
-    [ 'id' => '\d{1,8}', 'attach_id' => '\d{1,2}']
+	'/admin/attach/open/{id}/{attach_id}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::openAttachment', ], // defaults
+	[ 'id' => '\d{1,8}', 'attach_id' => '\d{1,2}']
 ));
 
 $routes->add('releasemail', new Route(
-    '/release/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::releaseMail', ], // defaults
-    [ 'id' => '\d{1,8}']
+	'/release/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::releaseMail', ], // defaults
+	[ 'id' => '\d{1,8}']
 ));
 
 $routes->add('admin_releasemail', new Route(
-    '/admin/release/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MailLogController::releaseMail', ], // defaults
-    [ 'id' => '\d{1,8}']
+	'/admin/release/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::releaseMail', ], // defaults
+	[ 'id' => '\d{1,8}']
 ));
 
 $routes->add('admin_maps', new Route(
-    '/admin/maps', // path
-    [ '_controller' => 'App\\Controllers\\MapController::showSelectMap', ], // defaults
-    []
+	'/admin/maps', // path
+	[ '_controller' => 'App\\Controllers\\MapController::showSelectMap', ], // defaults
+	[]
 ));
 
 $routes->add('maps', new Route(
-    '/user/maps', // path
-    [ '_controller' => 'App\\Controllers\\MapController::showSelectMap', ], // defaults
-    []
+	'/user/maps', // path
+	[ '_controller' => 'App\\Controllers\\MapController::showSelectMap', ], // defaults
+	[]
 ));
 
 $routes->add('admin_map_show_all', new Route(
-    '/admin/map/all/{model}', // path
-    [ '_controller' => 'App\\Controllers\\MapController::showAllMaps',  'model' => null ], // defaults
-    [ 'model' => '[a-zA-Z_]{1,64}' ]
+	'/admin/map/all/{model}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::showAllMaps',  'model' => null ], // defaults
+	[ 'model' => '[a-zA-Z_]{1,64}' ]
 ));
 
 $routes->add('admin_maps_custom_show', new Route(
-    '/admin/maps/custom', // path
-    [ '_controller' => 'App\\Controllers\\MapController::showCustomMapsConfig', ], // defaults
-    [ ]
+	'/admin/maps/custom', // path
+	[ '_controller' => 'App\\Controllers\\MapController::showCustomMapsConfig', ], // defaults
+	[ ]
 ));
 
 $routes->add('admin_maps_custom_add', new Route(
-    '/admin/maps/custom/add', // path
-    [ '_controller' => 'App\\Controllers\\MapController::addCustomMap', ], // defaults
-    [ ]
+	'/admin/maps/custom/add', // path
+	[ '_controller' => 'App\\Controllers\\MapController::addCustomMap', ], // defaults
+	[ ]
 ));
 
 $routes->add('admin_maps_custom_del', new Route(
-    '/admin/maps/custom/del/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MapController::delCustomMap', ], // defaults
-    [ 'id' => '\d{1,8}']
+	'/admin/maps/custom/del/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::delCustomMap', ], // defaults
+	[ 'id' => '\d{1,8}']
 ));
 
 $routes->add('admin_map_search_entry', new Route(
-    '/admin/map/search', // path
-    [ '_controller' => 'App\\Controllers\\MapController::searchMapEntry', ], // defaults
-    [], // requirements
-	 [], // options
-	 '', // host
-	 [], // schemes
-	 ['POST'] // methods
+	'/admin/map/search', // path
+	[ '_controller' => 'App\\Controllers\\MapController::searchMapEntry', ], // defaults
+	[], // requirements
+	[], // options
+	'', // host
+	[], // schemes
+	['POST'] // methods
 ));
 
 $routes->add('map_show_all', new Route(
-    '/user/map/all', // path
-    [ '_controller' => 'App\\Controllers\\MapController::showAllMaps', ], // defaults
-    []
+	'/user/map/all', // path
+	[ '_controller' => 'App\\Controllers\\MapController::showAllMaps', ], // defaults
+	[]
 ));
 
 $routes->add('admin_map_show', new Route(
-    '/admin/map/{map}', // path
-    [ '_controller' => 'App\\Controllers\\MapController::showMap', ], // defaults
-    [ 'map' => '[a-zA-Z_0-9]{1,64}' ]
+	'/admin/map/{map}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::showMap', ], // defaults
+	[ 'map' => '[a-zA-Z_0-9]{1,64}' ]
 ));
 
 $routes->add('map_show', new Route(
-    '/user/map/{map}', // path
-    [ '_controller' => 'App\\Controllers\\MapController::showMap', ], // defaults
-    [ 'map' => '[a-zA-Z_]{1,64}' ]
+	'/user/map/{map}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::showMap', ], // defaults
+	[ 'map' => '[a-zA-Z_]{1,64}' ]
 ));
 
 $routes->add('admin_map_add_entry', new Route(
-    '/admin/map/{map}/add', // path
-    [ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
-    [ 'map' => '[a-zA-Z_0-9]{1,64}' ]
+	'/admin/map/{map}/add', // path
+	[ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
+	[ 'map' => '[a-zA-Z_0-9]{1,64}' ]
 ));
 
 $routes->add('map_add_entry', new Route(
-    '/user/map/{map}/add', // path
-    [ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
-    [ 'map' => '[a-zA-Z_]{1,64}' ]
+	'/user/map/{map}/add', // path
+	[ '_controller' => 'App\\Controllers\\MapController::addMapEntry', ], // defaults
+	[ 'map' => '[a-zA-Z_]{1,64}' ]
 ));
 
 $routes->add('admin_map_del_all_entries', new Route(
-    '/admin/map/{map}/delall', // path
-    [ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries', ], // defaults
-    [ 'map' => '[a-zA-Z_0-9]{1,64}' ]
+	'/admin/map/{map}/delall', // path
+	[ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries', ], // defaults
+	[ 'map' => '[a-zA-Z_0-9]{1,64}' ]
 ));
 
 $routes->add('map_del_all_entries', new Route(
-    '/user/map/{map}/delall', // path
-    [ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries', ], // defaults
-    [ 'map' => '[a-zA-Z_]{1,64}' ]
+	'/user/map/{map}/delall', // path
+	[ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries', ], // defaults
+	[ 'map' => '[a-zA-Z_]{1,64}' ]
 ));
 
 $routes->add('admin_map_del_entry', new Route(
-    '/admin/map/{map}/del/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MapController::delMapEntry', ], // defaults
-    [ 'map' => '[a-zA-Z_0-9]{1,64}', 'id' => '\d{1,8}' ]
+	'/admin/map/{map}/del/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::delMapEntry', ], // defaults
+	[ 'map' => '[a-zA-Z_0-9]{1,64}', 'id' => '\d{1,8}' ]
 ));
 
 $routes->add('map_del_entry', new Route(
-    '/user/map/{map}/del/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MapController::delMapEntry', ], // defaults
-    [ 'map' => '[a-zA-Z_]{1,64}', 'id' => '\d{1,8}' ]
+	'/user/map/{map}/del/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::delMapEntry', ], // defaults
+	[ 'map' => '[a-zA-Z_]{1,64}', 'id' => '\d{1,8}' ]
 ));
 
 $routes->add('admin_map_toggle_entry', new Route(
-    '/admin/map/{map}/toggle/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MapController::toggleMapEntry', ], // defaults
-    [ 'map' => '[a-zA-Z_0-9]{1,64}', 'id' => '\d{1,8}' ]
+	'/admin/map/{map}/toggle/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::toggleMapEntry', ], // defaults
+	[ 'map' => '[a-zA-Z_0-9]{1,64}', 'id' => '\d{1,8}' ]
 ));
 
 $routes->add('map_toggle_entry', new Route(
-    '/user/map/{map}/toggle/{id}', // path
-    [ '_controller' => 'App\\Controllers\\MapController::toggleMapEntry', ], // defaults
-    [ 'map' => '[a-zA-Z_]{1,64}', 'id' => '\d{1,8}' ]
+	'/user/map/{map}/toggle/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::toggleMapEntry', ], // defaults
+	[ 'map' => '[a-zA-Z_]{1,64}', 'id' => '\d{1,8}' ]
 ));
 
 // default middleware classes incase route is missing from middlewareMap bellow
