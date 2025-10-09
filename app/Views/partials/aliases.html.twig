@@ -11,9 +11,18 @@ Total E-mail Aliases: {{ totalRecords }}
 <div id="inside_links">
 <ul>
 <li><a href='{{ get_route('admin_aliases_add') }}'>Add New Alias</a></li>
+{% if current_route == get_route('admin_aliases_search') %}
+<li><a href='{{ get_route('admin_aliases') }}'>Show All Aliases</a></li>
+{% endif %}
 </ul>
 </div>
 </div>
+
+{% if is_admin and mailaliassearchform %}
+<div class="mapsearchform">
+{% include 'partials/alias_search.html.twig' %}
+</div>
+{% endif %}
 
 {% if aliases and totalRecords > 0 %}
 <div class='aliases'>

@@ -136,6 +136,30 @@ class MailAliasService
 		return $aliases;
 	}
 
+	public function searchPaginatedAll(int $page = 1, string $url, string $search): ?LengthAwarePaginator {
+		$fields = MailAlias::SELECT_FIELDS;
+
+		$query = self::getSearchQuery($fields);
+		$query->where('username', 'LIKE', "%{$search}%")
+		      ->orWhere('email', 'LIKE', "%{$search}%")
+		      ->orWhere('alias', 'LIKE', "%{$search}%");
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		try {
+			$aliases = $query
+				->paginate($this->items_per_page, $fields, 'page', $page)
+				->withPath($url);
+		} catch (\Exception $e) {
+			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			exit("Query error");
+		}
+
+		return $aliases;
+	}
+
 	public function showPaginatedAliases(int $page = 1, string $url): ?LengthAwarePaginator {
 		$fields = User::SELECT_FIELDS;
 

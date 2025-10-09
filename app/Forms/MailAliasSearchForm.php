@@ -57,7 +57,7 @@ class MailAliasSearchForm extends AbstractType
 			array $data = null
 	): Form {
 
-		$url = $urlGenerator->generate('admin_usersearch');
+		$url = $urlGenerator->generate('admin_aliases_search');
 
 		return FormHelper::formCreator(
 			$formFactory,
@@ -80,7 +80,7 @@ class MailAliasSearchForm extends AbstractType
 			$data = $form->getData();
 			dd($data);
 
-			$url = $urlGenerator->generate('admin_usersearch');
+			$url = $urlGenerator->generate('admin_aliases_search');
 			return new RedirectResponse($url);
       }
 

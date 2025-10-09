@@ -19,6 +19,7 @@ use App\Utils\Helper;
 
 use App\Forms\QidForm;
 use App\Forms\MailAliasForm;
+use App\Forms\MailAliasSearchForm;
 
 use App\Models\MailAlias;
 use App\Services\MailAliasService;
@@ -59,8 +60,53 @@ class MailAliasController extends ViewController
 		$url = $this->urlGenerator->generate('admin_aliases');
 		$aliases = $service->showPaginatedAll($page, $url);
 
+		$mailAliasSearchForm = MailAliasSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
+
 		return new Response($this->twig->render('aliases_paginated.twig', [
 			'qidform' => $qidform->createView(),
+			'mailaliassearchform' => $mailAliasSearchForm->createView(),
+			'aliases' => $aliases,
+			'totalRecords' => $aliases->total(),
+			'items_per_page' => $this->items_per_page,
+			'runtime' => $this->getRuntime(),
+			'refresh_rate' => $this->refresh_rate,
+			'flashes' => $this->flashbag->all(),
+			'is_admin' => $this->session->get('is_admin'),
+			'username' => $this->session->get('username'),
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
+	public function searchAlias(): Response {
+		// enable form rendering support
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			// form submitted and valid
+			return $response;
+		}
+
+		// Get page from ?page=, default 1
+		$page = $this->request->query->getInt('page', 1);
+
+		$mail_alias_search_form = $this->request->get('mail_alias_search_form');
+		if (!empty($mail_alias_search_form['alias'])) {
+			$search = $mail_alias_search_form['alias'];
+
+			$service = new MailAliasService($this->getFileLogger());
+			$url = $this->urlGenerator->generate('admin_aliases');
+			$aliases = $service->searchPaginatedAll($page, $url, $search);
+		}
+
+		$mailAliasSearchForm = MailAliasSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
+
+		return new Response($this->twig->render('aliases_paginated.twig', [
+			'qidform' => $qidform->createView(),
+			'mailaliassearchform' => $mailAliasSearchForm->createView(),
 			'aliases' => $aliases,
 			'totalRecords' => $aliases->total(),
 			'items_per_page' => $this->items_per_page,

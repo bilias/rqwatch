@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-09
+- Search aliases
 - Search users
 
 ### 2025-10-08
