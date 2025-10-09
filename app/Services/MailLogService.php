@@ -329,6 +329,7 @@ class MailLogService
 		$fields = ['created_at', 'mail_stored', 'released', 'notified'];
 
 		$query = MailLog::select($fields);
+		$query = $this->getQueryByFilters($query, $filters);
 		$query = $this->applyUserScope($query);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
