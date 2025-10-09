@@ -8,6 +8,9 @@ Total Users: {{ totalRecords }}
 <div id="inside_links">
 <ul>
 <li><a href='{{ get_route('admin_useradd') }}'>Add New DB user</a></li>
+{% if current_route == get_route('admin_usersearch') %}
+<li><a href='{{ get_route('admin_users') }}'>Show All Users</a></li>
+{% endif %}
 </ul>
 </div>
 </div>
@@ -18,6 +21,7 @@ Total Users: {{ totalRecords }}
 </div>
 {% endif %}
 
+{% if users and totalRecords > 0 %}
 <div class='users'>
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
 <thead><tr>
@@ -35,7 +39,6 @@ Total Users: {{ totalRecords }}
 </tr></thead>
 
 <tbody>
-{% if users %}
 {% for user in users %}
   <tr class='clean'>
   <td class='center'><a href='{{ get_route('admin_user', { id: user.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
@@ -57,6 +60,9 @@ Never
 {#  <td class='center'><a href="{{ get_route('admin_userdel', { id: user.id }) }}" onclick="return confirm('are u sure?')">Delete</a></td> #}
   </tr>
 {% endfor %}
+
+{% else %}
+<p class='center help-text2'>No entries found</p>
 {% endif %}
 
 </tbody>
