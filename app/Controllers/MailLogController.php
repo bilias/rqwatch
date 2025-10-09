@@ -128,6 +128,7 @@ class MailLogController extends ViewController
 		} else {
 			$url = $this->urlGenerator->generate('search_results');
 		}
+		// has applyUserScope
 		$logs = $service->showPaginatedResults($filters, $page, $url);
 
 		return new Response($this->twig->render('home_paginated.twig', [
@@ -174,6 +175,7 @@ class MailLogController extends ViewController
 
 		$service = new MailLogService($this->getFileLogger(), $this->session);
 
+		// has applyUserScope
 		$logs = $service->showReports($filters, $field)->toArray();
 
 		return new Response($this->twig->render('reports.twig', [
@@ -719,6 +721,7 @@ class MailLogController extends ViewController
 		$service = new MailLogService($this->getFileLogger(), $this->session);
 		// array with results
 		if (Config::get('show_mail_stats')) {
+			// has applyUserScope
 			$stats = $service->showStats($filters);
 		} else {
 			$stats = array();
