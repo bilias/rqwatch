@@ -43,6 +43,56 @@ class UserController extends ViewController
 		$this->max_items = Config::get('max_items');
 	}
 
+	public function searchUser(): Response {
+		// enable form rendering support
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			// form submitted and valid
+			return $response;
+		}
+
+		$fields = User::SELECT_FIELDS;
+
+		/* without Pagination
+		$service = new UserService($this->getFileLogger());
+		$users = $service->showAll();
+		*/
+
+		// Get page from ?page=, default 1
+		$page = $this->request->query->getInt('page', 1);
+
+		$user_search_form = $this->request->get('user_search_form');
+		if (!empty($user_search_form['user'])) {
+			$search = $user_search_form['user'];
+
+			$service = new UserService($this->getFileLogger());
+			$url = $this->urlGenerator->generate('admin_users');
+			$users = $service->searchPaginatedAll($page, $url, $search);
+		}
+
+		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
+
+		//return new Response($this->twig->render('home.twig', [
+		return new Response($this->twig->render('users_paginated.twig', [
+			'qidform' => $qidform->createView(),
+			'usersearchform' => $userSearchForm->createView(),
+			'users' => $users,
+			'totalRecords' => $users->total(),
+			'items_per_page' => $this->items_per_page,
+			'runtime' => $this->getRuntime(),
+			'refresh_rate' => $this->refresh_rate,
+			'flashes' => $this->flashbag->all(),
+			'is_admin' => $this->session->get('is_admin'),
+			'username' => $this->session->get('username'),
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
 	public function showAll(): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);

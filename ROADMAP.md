@@ -8,7 +8,6 @@
 - Edit map config
 - Edit map entries
 - Edit alias
-- Search users
 - Search aliases
 - Cache failed inserts in Redis and retry later via cron
 
