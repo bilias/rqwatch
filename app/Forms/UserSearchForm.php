@@ -54,7 +54,6 @@ class UserSearchForm extends AbstractType
 			FormFactoryInterface $formFactory,
 			Request $request,
 			UrlGeneratorInterface $urlGenerator,
-			array $data
 	): Form {
 
 		$url = $urlGenerator->generate('admin_usersearch');
@@ -63,7 +62,6 @@ class UserSearchForm extends AbstractType
 			$formFactory,
 			$request,
 			self::class,
-			$data,
 			[
 				'action' => $url,
 				'method' => 'POST',
