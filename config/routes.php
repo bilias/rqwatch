@@ -160,6 +160,16 @@ $routes->add('admin_userdel', new Route(
     [ 'id' => '\d{1,8}']
 ));
 
+$routes->add('admin_usersearch', new Route(
+	'/admin/user/search', // path
+	[ '_controller' => 'App\\Controllers\\UserController::searchUser', ], // defaults
+	[], // requirements
+	[], // options
+	'', // host
+	[], // schemes
+	['POST'] // methods
+));
+
 $routes->add('admin_userloginas', new Route(
     '/admin/user/login/{id}', // path
     [ '_controller' => 'App\\Controllers\\UserController::loginAs', ], // defaults
