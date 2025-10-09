@@ -866,7 +866,7 @@ class MapController extends ViewController
 		return new RedirectResponse($url);
 	}
 
-	public function searchMapEntry(Request $request): Response {
+	public function searchMapEntry(): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -886,7 +886,8 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$map_search_form = $request->request->all('map_search_form');
+		//$map_search_form = $request->request->all('map_search_form');
+		$map_search_form = $this->request->get('map_search_form');
 
 		$this->initMapUrls();
 
