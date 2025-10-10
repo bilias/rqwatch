@@ -36,7 +36,7 @@ a:hover {
 
 .topmainmenu {
   position: sticky;
-  top: 30px;
+  top: 0px;
   z-index: 999;
   background-color: white;
 }
@@ -771,11 +771,19 @@ span.stored {
 .qidform {
  margin: 0;
  padding-left: 1px;
- position: sticky;
- top: 0;
- z-index: 1000;
  background-color: white;
- height: 30px;
+}
+
+.qid-row {
+ display: flex;
+ align-items: center;
+ gap: 10px;
+}
+
+.qid-errors {
+ color: red;
+ font-size: 0.9em;
+ margin: 2px 0 0 0;
 }
 
 .formsearch {

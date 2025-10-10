@@ -23,28 +23,16 @@
 #}
 
 {% if qidform %}
-<div class='qidform'>
-{{ form_start(qidform) }}
-
-<div class='qid_errors'>
-{{ form_errors(qidform) }}
+<div class="qidform">
+    {{ form_start(qidform) }}
+    <p class="qid-row">
+        {{ form_label(qidform.qid) }}
+        {{ form_widget(qidform.qid) }}
+        {{ form_widget(qidform.go) }}
+    </p>
+    <div class="qid-errors">
+        {{ form_errors(qidform.qid) }}
+    </div>
+    {{ form_end(qidform) }}
 </div>
-<p>
-   {{ form_label(qidform.qid) }}
-   {{ form_widget(qidform.qid) }}
-   {{ form_widget(qidform.go) }}
-</p>
-{{ form_end(qidform) }}
-
-<span class="form-errors name">
-{{ form_errors(qidform.qid) }}
-</span>
-</div>
-
-{#
-{{ form_start(qidform) }}
-    {{ form_row(qidform.qid) }}
-    {{ form_row(qidform.go) }}
-{{ form_end(qidform) }}
-#}
 {% endif %}
