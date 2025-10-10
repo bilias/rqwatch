@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## v1.6.6 - Released: 2025-10-10
+
 ### 2025-10-10
 - Changed Mail ID -> Mail Queue ID
 - Number formatting
