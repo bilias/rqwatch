@@ -326,7 +326,7 @@ class MailLogService
 	}
 
 	public function showStats(array $filters): array {
-		$fields = ['created_at', 'mail_stored', 'released', 'notified', 'has_virus'];
+		$fields = ['id'];
 
 		$query = MailLog::select($fields);
 		$query = $this->getQueryByFilters($query, $filters);
@@ -339,12 +339,17 @@ class MailLogService
 		$stats['count'] = $query->count();
 
 		if (($stats['count']) > 0) {
-			$stats['first'] = (clone $query)->orderBy('id', 'ASC')->first()->created_at->toDateTimeString();
-			$stats['last'] = (clone $query)->orderBy('id', 'DESC')->first()->created_at->toDateTimeString();
+			$stats['first'] = (clone $query)->select('created_at')->orderBy('id', 'ASC')->first()->created_at->toDateTimeString();
+			$stats['last'] = (clone $query)->select('created_at')->orderBy('id', 'DESC')->first()->created_at->toDateTimeString();
 			$stats['stored'] = (clone $query)->where('mail_stored', 1)->count();
 			$stats['notified'] = (clone $query)->where('notified', 1)->count();
 			$stats['released'] = (clone $query)->where('released', 1)->count();
 			$stats['has_virus'] = (clone $query)->where('has_virus', 1)->count();
+			$stats['action'] = collect((clone $query)
+				->selectRaw('action, COUNT(*) as cnt')
+			   ->groupBy('action')->get())
+				->mapWithKeys(fn($item) => [$item['action'] => $item['cnt']])
+				->toArray();
 
 			return $stats;
 		}

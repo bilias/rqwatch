@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-10
+- Add actions and has_virus in search stats
 - Allow search users by name
 - Add validation user, aliases search
 

@@ -68,6 +68,13 @@
  <li><span class="left">Stored:</span> {{ stats.stored|number_format }}</li>
  <li><span class="left">Notifications:</span> {{ stats.notified|number_format }}</li>
  <li><span class="left">Released:</span> {{ stats.released|number_format }}</li>
+ {# Loop through all actions dynamically #}
+{% for action, count in stats.action %}
+    <li>
+        <span class="left">{{ action|capitalize }}:</span>
+        {{ count|number_format }}
+    </li>
+{% endfor %}
  <li><span class="left">Has Virus:</span> {{ stats.has_virus|number_format }}</li>
  <li><span class="left">Newest Record:</span> {{ stats.last|date('Y-m-d') }}</li>
  <li><span class="left">Oldest Record:</span> {{ stats.first|date('Y-m-d') }}</li>
