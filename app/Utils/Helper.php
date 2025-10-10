@@ -564,7 +564,7 @@ Date: {$ar['created_at']}
 From: {$ar['mime_from']}
 To: {$ar['rcpt_to']}
 Subject: {$ar['subject']}
-Mail ID: {$ar['qid']}
+Mail Queue ID: {$ar['qid']}
 Spam Score: {$ar['score']}
 Virus Detected:";
 		if (empty($ar['has_virus'])) {
@@ -588,7 +588,7 @@ Date: {$ar['created_at']}
 From: {$ar['mime_from']}
 To: {$ar['rcpt_to']}
 Subject: {$ar['subject']}
-Mail ID: {$ar['qid']}
+Mail Queue ID: {$ar['qid']}
 Spam Score: {$ar['score']}
 Virus Detected:";
 		if (empty($ar['has_virus'])) {

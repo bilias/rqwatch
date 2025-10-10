@@ -39,7 +39,7 @@ class QidForm extends AbstractType
                 'label' => 'Go to message: ',
 					 'attr' => [
 						'class' => 'qidfield',
-						'title' => 'Enter Queue ID of the mail',
+						'title' => 'Enter Mail Queue ID of the mail',
 					 ],
 					 'constraints' => [
 						new NotBlank(),
