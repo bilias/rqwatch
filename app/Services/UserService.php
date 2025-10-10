@@ -167,7 +167,9 @@ class UserService
 
 		$query = self::getSearchQuery($fields);
 		$query = $query->where('username', 'LIKE', "%{$search}%")
-		               ->orWhere('email', 'LIKE', "%{$search}%");
+		               ->orWhere('email', 'LIKE', "%{$search}%")
+		               ->orWhere('firstname', 'LIKE', "%{$search}%")
+		               ->orWhere('lastname', 'LIKE', "%{$search}%");
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
