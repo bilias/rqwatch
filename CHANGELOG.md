@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2025-10-10
+- Allow search users by name
+- Add validation user, aliases search
+
 ### 2025-10-09
 - Search aliases
 - Search users
