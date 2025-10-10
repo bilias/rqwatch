@@ -57,10 +57,9 @@ class UserController extends ViewController
 		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 
 		if ($userSearchForm->isSubmitted() && !$userSearchForm->isValid()) {
-			$this->flashbag->add('error', 'Wrong input');
+			$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
 			return new RedirectResponse($this->urlGenerator->generate('admin_users'));
 		}
-
 
 		$fields = User::SELECT_FIELDS;
 
