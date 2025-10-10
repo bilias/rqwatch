@@ -31,7 +31,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\QueryException;
-use Illuminate\Database\Capsule\Manager as DB;
+//use Illuminate\Database\Capsule\Manager as DB;
 
 use Symfony\Component\HttpFoundation\Session\Session;
 
