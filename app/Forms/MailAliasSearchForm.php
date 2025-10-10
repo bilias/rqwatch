@@ -44,6 +44,14 @@ class MailAliasSearchForm extends AbstractType
 					 ],
 					 'constraints' => [
 						new NotBlank(),
+						 new Assert\Length(
+							min: 2,
+							max: 128,
+						),
+						new Assert\Regex(
+							pattern: '/^[a-zA-Z0-9._+-]+(@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)?$/',
+							message: 'The value can only contain letters, numbers and ._+-@',
+						),
 					 ],
             ])
             ->add('search', SubmitType::class, [

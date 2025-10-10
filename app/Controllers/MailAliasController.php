@@ -90,6 +90,13 @@ class MailAliasController extends ViewController
 			return $response;
 		}
 
+		$mailAliasSearchForm = MailAliasSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
+
+		if ($mailAliasSearchForm->isSubmitted() && !$mailAliasSearchForm->isValid()) {
+			$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
+			return new RedirectResponse($this->urlGenerator->generate('admin_aliases'));
+		}
+
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
@@ -101,8 +108,6 @@ class MailAliasController extends ViewController
 			$url = $this->urlGenerator->generate('admin_aliases');
 			$aliases = $service->searchPaginatedAll($page, $url, $search);
 		}
-
-		$mailAliasSearchForm = MailAliasSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 
 		return new Response($this->twig->render('aliases_paginated.twig', [
 			'qidform' => $qidform->createView(),
