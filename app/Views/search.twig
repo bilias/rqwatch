@@ -76,8 +76,8 @@
     </li>
 {% endfor %}
  <li><span class="left">Has Virus:</span> {{ stats.has_virus|number_format }}</li>
- <li><span class="left">Newest Record:</span> {{ stats.last|date('Y-m-d') }}</li>
  <li><span class="left">Oldest Record:</span> {{ stats.first|date('Y-m-d') }}</li>
+ <li><span class="left">Newest Record:</span> {{ stats.last|date('Y-m-d') }}</li>
  {% endif %}
 </ul>
 </div>
