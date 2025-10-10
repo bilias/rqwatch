@@ -326,7 +326,7 @@ class MailLogService
 	}
 
 	public function showStats(array $filters): array {
-		$fields = ['created_at', 'mail_stored', 'released', 'notified'];
+		$fields = ['created_at', 'mail_stored', 'released', 'notified', 'has_virus'];
 
 		$query = MailLog::select($fields);
 		$query = $this->getQueryByFilters($query, $filters);
@@ -341,9 +341,10 @@ class MailLogService
 		if (($stats['count']) > 0) {
 			$stats['first'] = (clone $query)->orderBy('id', 'ASC')->first()->created_at->toDateTimeString();
 			$stats['last'] = (clone $query)->orderBy('id', 'DESC')->first()->created_at->toDateTimeString();
-			$stats['stored'] = ($query->where('mail_stored', 1))->count();
-			$stats['notified'] = ($query->where('notified', 1))->count();
-			$stats['released'] = ($query->where('released', 1))->count();
+			$stats['stored'] = (clone $query)->where('mail_stored', 1)->count();
+			$stats['notified'] = (clone $query)->where('notified', 1)->count();
+			$stats['released'] = (clone $query)->where('released', 1)->count();
+			$stats['has_virus'] = (clone $query)->where('has_virus', 1)->count();
 
 			return $stats;
 		}
