@@ -54,6 +54,14 @@ class UserController extends ViewController
 			return $response;
 		}
 
+		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
+
+		if ($userSearchForm->isSubmitted() && !$userSearchForm->isValid()) {
+			$this->flashbag->add('error', 'Wrong input');
+			return new RedirectResponse($this->urlGenerator->generate('admin_users'));
+		}
+
+
 		$fields = User::SELECT_FIELDS;
 
 		/* without Pagination
@@ -72,8 +80,6 @@ class UserController extends ViewController
 			$url = $this->urlGenerator->generate('admin_users');
 			$users = $service->searchPaginatedAll($page, $url, $search);
 		}
-
-		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 
 		//return new Response($this->twig->render('home.twig', [
 		return new Response($this->twig->render('users_paginated.twig', [
