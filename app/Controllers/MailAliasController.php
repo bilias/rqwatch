@@ -51,8 +51,6 @@ class MailAliasController extends ViewController
 			return $response;
 		}
 
-		$fields = MailAlias::SELECT_FIELDS;
-
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 

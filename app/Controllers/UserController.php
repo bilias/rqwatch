@@ -61,13 +61,6 @@ class UserController extends ViewController
 			return new RedirectResponse($this->urlGenerator->generate('admin_users'));
 		}
 
-		$fields = User::SELECT_FIELDS;
-
-		/* without Pagination
-		$service = new UserService($this->getFileLogger());
-		$users = $service->showAll();
-		*/
-
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
@@ -108,13 +101,6 @@ class UserController extends ViewController
 			// form submitted and valid
 			return $response;
 		}
-
-		$fields = User::SELECT_FIELDS;
-
-		/* without Pagination
-		$service = new UserService($this->getFileLogger());
-		$users = $service->showAll();
-		*/
 
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
