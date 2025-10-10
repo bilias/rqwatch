@@ -110,6 +110,10 @@ class ViewController extends Controller
 			return Helper::getAuthProvider($id);
 		}));
 
+		$this->twig->addFilter(new \Twig\TwigFilter('nf', function ($number, $decimals = 0) {
+			return number_format($number, $decimals, ',', '.');
+		}));
+
 		$this->twig->addGlobal('APP_NAME', Config::get('APP_NAME') ?? 'Rqwatch');
 		$this->twig->addGlobal('APP_INFO', Config::get('APP_INFO') ?? 'Rspamd Quarantine Watch');
 		$this->twig->addGlobal('FOOTER', Config::get('FOOTER') ?? 'Rqwatch');

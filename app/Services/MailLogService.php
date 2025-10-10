@@ -347,7 +347,11 @@ class MailLogService
 			$stats['has_virus'] = (clone $query)->where('has_virus', 1)->count();
 			$stats['action'] = collect((clone $query)
 				->selectRaw('action, COUNT(*) as cnt')
-			   ->groupBy('action')->get())
+			   ->groupBy('action')
+				->orderBy('cnt', 'DESC')
+				->orderBy('action')
+				->get()
+				)
 				->mapWithKeys(fn($item) => [$item['action'] => $item['cnt']])
 				->toArray();
 
