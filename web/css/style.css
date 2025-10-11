@@ -1086,6 +1086,13 @@ span.stored {
   font-family: Verdana, sans-serif;
 }
 
+@media (max-width: 600px) {
+ .loginform {
+  width: 80%;
+  max-width: 350px;
+ }
+}
+
 .loginform .logindescr {
   display: block;
   background-color: var(--color-bg-menu);
