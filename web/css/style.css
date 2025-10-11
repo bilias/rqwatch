@@ -804,7 +804,10 @@ span.stored {
 	padding-left: 20px;
 }
 
-.onefieldform,
+.onefieldform {
+  width: 75%;
+}
+
 .twofieldsform {
   width: 50%;
 }
