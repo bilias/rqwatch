@@ -278,7 +278,8 @@ class MetadataImporterApi extends RqwatchApi
 		
 		$runtime = $this->getRuntime();
 		if ($db_id) {
-			$this->syslogLogger->info("$qid '$action' saved in DB [id: $db_id] by {$this->logPrefix} | $runtime");
+			$score = number_format((float)$score, 2);
+			$this->syslogLogger->info("$qid score: {$score} '$action' saved in DB [id: $db_id] by {$this->logPrefix} | $runtime");
 		} else {
 			$err_msg = "Error storing $qid in DB by {$this->logPrefix}. Check PHP/rspamd logs | $runtime";
 			$response_msg = "Error storing message in DB";
