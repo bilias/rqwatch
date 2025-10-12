@@ -734,6 +734,10 @@ class MailLogService
 			return $query->whereIn('rcpt_to', $emails);
 			*/
 
+			/* XXX if aliases change and user is logged in,
+			   old values remain in user's session.
+				User has to logout/login to update values
+			*/
 			$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
 			return $query->where(function ($q) use ($emails) {
 				foreach ($emails as $email) {
