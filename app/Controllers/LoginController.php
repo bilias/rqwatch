@@ -137,12 +137,8 @@ class LoginController extends ViewController
 									'lastname' => $auth->getUserlastName(),
 								]);
 					}
-
 					// Load user aliases and set them in session
-					$aliases = array_unique(array_map('strtolower', array_filter(
-						$user->mailAliases()->pluck('alias')->toArray(),
-						fn($alias) => !empty(trim($alias))
-					)));
+					$aliases = $this->getMailAliases($user);
 
 					$this->session->set('user_aliases', $aliases);
 
@@ -188,4 +184,20 @@ class LoginController extends ViewController
 			'flashes' => $this->flashbag->all(),
 		]));
 	}
+
+	protected static function getMailAliases(User $user): array {
+		$mail_aliases = [];
+		/*
+		foreach ($user->mailAliases as $mail_alias) {
+			$mail_aliases[] = strtolower(trim($mail_alias->alias));
+		}
+		*/
+		$mail_aliases = array_unique(array_map('strtolower', array_filter(
+		   $user->mailAliases()->pluck('alias')->toArray(),
+		   fn($alias) => !empty(trim($alias))
+		)));
+
+		return $mail_aliases;
+	}
+
 }

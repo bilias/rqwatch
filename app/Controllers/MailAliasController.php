@@ -321,12 +321,4 @@ class MailAliasController extends ViewController
 		return new RedirectResponse($url);
 	}
 
-	public function getMailAliases(User $user): array {
-		$mail_aliases = [];
-		foreach ($user->mailAliases as $mail_alias) {
-			$mail_aliases[] = $mail_alias->alias;
-		}
-		return $mail_aliases;
-	}
-
 }

@@ -432,9 +432,16 @@ class UserController extends ViewController
 
 	public function getMailAliases(User $user): array {
 		$mail_aliases = [];
+		/*
 		foreach ($user->mailAliases as $mail_alias) {
-			$mail_aliases[] = $mail_alias->alias;
+			$mail_aliases[] = strtolower(trim($mail_alias->alias));
 		}
+		*/
+		$mail_aliases = array_unique(array_map('strtolower', array_filter(
+		   $user->mailAliases()->pluck('alias')->toArray(),
+		   fn($alias) => !empty(trim($alias))
+		)));
+
 		return $mail_aliases;
 	}
 
