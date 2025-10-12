@@ -786,4 +786,13 @@ You can see mail details and release it from quarantine by clicking here:
 		return [$data, $debug];
 	}
 
+	public static function formatTtlHuman(int $ttl): string {
+		$minutes = floor($ttl / 60);
+		$seconds = $ttl % 60;
+		if ($minutes > 0) {
+			return sprintf('%dm %ds', $minutes, $seconds);
+		}
+		return sprintf('%ds', $seconds);
+	}
+
 }

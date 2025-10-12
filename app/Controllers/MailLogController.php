@@ -727,6 +727,8 @@ class MailLogController extends ViewController
 			$stats = array();
 		}
 
+		$configTTLData = $this->getRedisConfigTTLData();
+
 		return new Response($this->twig->render('search.twig', [
 			'qidform' => $qidform->createView(),
 			'filters' => $filters,
@@ -739,6 +741,8 @@ class MailLogController extends ViewController
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
+			'redis_config_ttl' => $configTTLData['ttl_human'],
+			'redis_config_expires_at' => $configTTLData['expires_at'],
 		]));
 	}
 

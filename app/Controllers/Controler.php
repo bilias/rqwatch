@@ -13,6 +13,7 @@ namespace App\Controllers;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -246,6 +247,62 @@ class Controller
 		}
 
 		return $stats;
+	}
+
+	public function getRedisConfigTTL(): ?int {
+		if (Helper::env_bool('REDIS_ENABLE')) {
+			return Config::getRedisConfigTTL($_ENV['REDIS_CONFIG_KEY']);
+		}
+		return null;
+	}
+
+	public function getRedisConfigTTLData(): array {
+		$ttl = $this->getRedisConfigTTL();
+		if ($ttl === null || $ttl < 0) {
+			return [
+				'ttl' => $ttl,
+				'expires_at' => null,
+			];
+		}
+
+		$expiresAt = (new \DateTimeImmutable())->add(new \DateInterval('PT' . $ttl . 'S'));
+		return [
+			'ttl' => "$ttl sec",
+			'ttl_human' => Helper::formatTtlHuman($ttl),
+			'expires_at' => $expiresAt->format('Y-m-d H:i:s'),
+		];
+	}
+
+	public function redisConfigReload(): Response {
+		$this->initUrls();
+
+		if (!Helper::env_bool('REDIS_ENABLE')) {
+			$this->flashbag->add('warning', "Redis is not enabled");
+			return new RedirectResponse($this->searchUrl);
+		}
+
+		try {
+			$defaultConfigPath = __DIR__ . '/../../' . ltrim($_ENV['CONFIG_DEFAULT_PATH'], '/');
+			$localConfigPath   = __DIR__ . '/../../' . ltrim($_ENV['CONFIG_LOCAL_PATH'], '/');
+
+			// Force reload the config and cache it again
+			Config::loadAndInitWithRedisCache(
+				$defaultConfigPath,
+				$localConfigPath,
+				[],
+				$_ENV['REDIS_CONFIG_KEY'],
+				(int) $_ENV['REDIS_CONFIG_CACHE_TTL'],
+				true
+			);
+			$this->fileLogger->info("Config reloaded and cached in Redis");
+			$this->flashbag->add('info', "Config reloaded and cached in Redis");
+			return new RedirectResponse($this->searchUrl);
+		} catch (Throwable $e) {
+			$this->fileLogger->error("Failed redisConfigReload: " . $e->getMessage());
+			$this->flashbag->add('error', "Failed redisConfigReload: " . $e->getMessage());
+			return new RedirectResponse($this->searchUrl);
+		}
+
 	}
 
 }

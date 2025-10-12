@@ -14,6 +14,12 @@ use Symfony\Component\Routing\RouteCollection;
 // Routes system
 $routes = new RouteCollection();
 
+$routes->add('config_reload', new Route(
+	'/admin/config/reload', // path
+	[ '_controller' => 'App\\Controllers\\Controller::redisConfigReload', ],
+	[]
+));
+
 $routes->add('login', new Route(
 	'/login',
 	[ '_controller' => 'App\\Controllers\\LoginController::login' ],
@@ -404,6 +410,7 @@ $middlewareMap = [
 	'logout' => $userMiddlewareClasses,
 	'homepage' => $userMiddlewareClasses,
 	'admin_homepage' => $adminMiddlewareClasses,
+	'config_reload' => $adminMiddlewareClasses,
 	'profile' => $userMiddlewareClasses,
 	'search_results' => $userMiddlewareClasses,
 	'admin_search_results' => $adminMiddlewareClasses,

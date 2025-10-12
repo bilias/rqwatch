@@ -31,11 +31,14 @@ $loggerService = new LoggerService();
 $fileLogger = $loggerService->getFileLogger();
 $syslogLogger = $loggerService->getSyslogLogger();
 
+$defaultConfigPath = __DIR__ . '/' . ltrim($_ENV['CONFIG_DEFAULT_PATH'], '/');
+$localConfigPath   = __DIR__ . '/' . ltrim($_ENV['CONFIG_LOCAL_PATH'], '/');
+
 // load configuration
 Config::loadConfig(
 	$fileLogger,
-	__DIR__ . '/config/config.php',
-	__DIR__ . '/config/config.local.php',
+	$defaultConfigPath,
+	$localConfigPath,
 	[ 'startTime' => $startTime, 'startMemory' => $startMemory ],
 	$_ENV['REDIS_CONFIG_KEY'],             // optional Redis key
 	(int) $_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL

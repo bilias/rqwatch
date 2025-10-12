@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2025-10-12
+- Show config cache TTL
+- Reload config from gui (before redis expire)
+
 ## v1.6.6 - Released: 2025-10-10
 
 ### 2025-10-10

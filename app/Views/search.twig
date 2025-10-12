@@ -122,5 +122,21 @@ No results found
 
 </div>
 
+{% if is_admin and redis_config_ttl is not null %}
+  {% if redis_config_ttl > 0 %}
+    <p class='help-text2'>
+      Config expires from Redis in {{ redis_config_ttl }}
+      [{{ redis_config_expires_at }}]
+    </p>
+  {% elseif redis_config_ttl == -1 %}
+    <p class='help-text2'>Redis config has no expiration (persistent)</p>
+  {% elseif redis_config_ttl == -2 %}
+    <p class='help-text2'>Redis config key not found</p>
+  {% endif %}
+
+  <p class='help-text2'><a href='{{ get_route('config_reload') }}'>Reload Config</a></p>
+{% endif %}
+
 </div>
+
 {% endblock %}
