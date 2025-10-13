@@ -795,9 +795,24 @@ class MapService
 			];
 		}
 
+		try {
+			$success = MapCustom::insert($rows);
+
+			if (!$success) {
+				// Insert did not throw an error, but still failed
+				$this->logger->error("Query insert failed");
+				return false;
+			}
+
+		} catch (\Throwable $e) {
+			$this->logger->error("Query insert error: " . $e->getMessage() . PHP_EOL);
+			return false;
+		}
+		/*
 		if (!MapCustom::insert($rows)) {
 			return false;
 		}
+		*/
 
 		$last_update = date("Y-m-d H:i:s");
 
