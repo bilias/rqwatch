@@ -692,9 +692,24 @@ class MapService
 		$data['user_id'] = $this->user_id;
 		$mapcombined = new MapCombined();
 		$mapcombined->fill($data);
+
+		try {
+			$success = $mapcombined->save();
+
+			if (!$success) {
+				// Insert did not throw an error, but still failed
+				$this->logger->error("Query insert failed");
+				return false;
+			}
+		} catch (\Throwable $e) {
+			$this->logger->error("Query insert error: " . $e->getMessage() . PHP_EOL);
+			return false;
+		}
+		/*
 		if (!$mapcombined->save()) {
 			return false;
 		}
+		*/
 
 		$last_update = date("Y-m-d H:i:s");
 
