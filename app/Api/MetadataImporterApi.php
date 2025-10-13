@@ -133,11 +133,18 @@ class MetadataImporterApi extends RqwatchApi
 				}
 		}
 		
+		// check for antivirus symbol
+		if (Helper::check_virus_from_all(json_decode($symbols, true))) {
+			$has_virus = 1;
+		} else {
+			$has_virus = 0;
+		}
+
 		$mail_stored = 0;
 		$mail_location = NULL;
 		$store_settings = Config::get('store_settings');
 		
-		if (!empty($action) and !empty($store_settings[$action])) {
+		if ((!empty($action) && !empty($store_settings[$action])) || $has_virus) {
 			if ($mail_location = Helper::store_raw_mail($_ENV['QUARANTINE_DIR'], $qid)) {
 				$this->syslogLogger->info("$qid stored in quarantine: $mail_location");
 				$mail_stored = 1;
@@ -156,13 +163,6 @@ class MetadataImporterApi extends RqwatchApi
 		
 		if ($fuzzy == 'unknown') {
 			$fuzzy = '[]';
-		}
-		
-		// check for antivirus symbol
-		if (Helper::check_virus_from_all(json_decode($symbols, true))) {
-			$has_virus = 1;
-		} else {
-			$has_virus = 0;
 		}
 		
 		$data = array(

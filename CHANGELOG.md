@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-10-14
+- Store has_virus mails no matter the action
+
 ### 2025-10-12
 - Show config cache TTL
 - Reload config from gui (before redis expire)
