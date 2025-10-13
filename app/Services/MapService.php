@@ -698,11 +698,11 @@ class MapService
 
 			if (!$success) {
 				// Insert did not throw an error, but still failed
-				$this->logger->error("Query insert failed");
+				$this->logger->error("[addMapCombinedEntry] Query save failed");
 				return false;
 			}
 		} catch (\Throwable $e) {
-			$this->logger->error("Query insert error: " . $e->getMessage() . PHP_EOL);
+			$this->logger->error("[addMapCombinedEntry] Query save error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}
 		/*
@@ -815,12 +815,12 @@ class MapService
 
 			if (!$success) {
 				// Insert did not throw an error, but still failed
-				$this->logger->error("Query insert failed");
+				$this->logger->error("[addMapCustomEntry] Query insert failed");
 				return false;
 			}
 
 		} catch (\Throwable $e) {
-			$this->logger->error("Query insert error: " . $e->getMessage() . PHP_EOL);
+			$this->logger->error("[addMapCustomEntry] Query insert error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}
 		/*
