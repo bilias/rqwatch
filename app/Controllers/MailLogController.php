@@ -140,6 +140,7 @@ class MailLogController extends ViewController
 						'choice' => 'is equal to',
 						'value' => $value
 					];
+					$queryParams[$field] = $value;
 				}
 			}
 		}
