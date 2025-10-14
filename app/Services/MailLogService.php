@@ -31,7 +31,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\QueryException;
-//use Illuminate\Database\Capsule\Manager as DB;
+use Illuminate\Database\Capsule\Manager as DB;
 
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -296,6 +296,11 @@ class MailLogService
 				                ->where($baseField, 'LIKE', '%@%')
 				                ->groupBy($field)
 				                ->orderByDesc('total');
+				break;
+			case 'date':
+				$query = MailLog::selectRaw('DATE(created_at) AS date, COUNT(*) AS total')
+				                ->groupBy(DB::raw('DATE(created_at)'))
+									 ->orderByDesc('date');
 				break;
 			default:
 				//$fields = [ $field, DB::raw('count(*) as total') ];

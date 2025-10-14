@@ -108,6 +108,7 @@ class MailLog extends Model
 		'rcpt_to_domain',
 		'mime_from_domain',
 		'mime_to_domain',
+		'date',
 	];
 
 	// Static DB field length limits

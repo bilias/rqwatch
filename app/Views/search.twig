@@ -92,6 +92,7 @@
 {% if stats.count > 0 %}
  {% if is_admin %}
  <li><a href='{{ get_route('admin_search_results') }}'>Search Results</a></li>
+ <li><a href='{{ get_route('admin_reports', { field: 'date'}) }}'>Mails per day</a></li>
  <li><a href='{{ get_route('admin_reports', { field: 'ip'}) }}'>Top IPs</a></li>
  <li><a href='{{ get_route('admin_reports', { field: 'mail_from'}) }}'>Top Mail From</a></li>
  <li><a href='{{ get_route('admin_reports', { field: 'mime_from'}) }}'>Top MIME From</a></li>
