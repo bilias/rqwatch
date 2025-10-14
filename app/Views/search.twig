@@ -105,6 +105,7 @@
  <li><a href='{{ get_route('admin_reports', { field: 'server'}) }}'>Top Servers</a></li>
  {% else %}
  <li><a href='{{ get_route('search_results') }}'>Search Results</a></li>
+ <li><a href='{{ get_route('reports', { field: 'date'}) }}'>Mails per day</a></li>
  <li><a href='{{ get_route('reports', { field: 'ip'}) }}'>Top IPs</a></li>
  <li><a href='{{ get_route('reports', { field: 'mail_from'}) }}'>Top Mail From</a></li>
  <li><a href='{{ get_route('reports', { field: 'mime_from'}) }}'>Top MIME From</a></li>
