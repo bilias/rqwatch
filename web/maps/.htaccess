@@ -1,0 +1,11 @@
+<IfModule mod_headers.c>
+	<FilesMatch ".+\.(txt)$">
+		Header unset Cache-Control
+		Header set Cache-Control "max-age=300, public"
+	</FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+	 ExpiresDefault "access plus 5 minutes"
+</IfModule>

@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-14
+- Map cache control with expires
 - Store has_virus mails no matter the action
 
 ### 2025-10-12
