@@ -6,13 +6,13 @@
 {% include 'partials/colorcodes.html.twig' %}
 
 <div class='pagtop'>
-{{ ui.paginator(logs, WEB_BASE) }}
+{{ ui.paginator(logs, WEB_BASE, queryParams) }}
 </div>
 
 {% include 'partials/mails.html.twig' %}
 
 <div class='pagbottom'>
-{{ ui.paginator(logs, WEB_BASE) }}
+{{ ui.paginator(logs, WEB_BASE, queryParams) }}
 </div>
 
 {% endblock %}

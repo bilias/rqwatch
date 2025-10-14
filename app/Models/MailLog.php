@@ -111,6 +111,14 @@ class MailLog extends Model
 		'date',
 	];
 
+	public const REPORT_DYN_FIELDS = [
+		'ip',
+		'mail_from',
+		'rcpt_to',
+		'date',
+		'server',
+	];
+
 	// Static DB field length limits
 	public const FIELD_LIMITS = [
 		'qid'           => 30,

@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 use App\Core\Config;
 use App\Utils\Helper;
+use App\Utils\FormHelper;
 
 use App\Forms\QidForm;
 use App\Forms\SearchForm;
@@ -118,6 +119,31 @@ class MailLogController extends ViewController
 			$filters = array();
 		}
 
+		// merge GET filters
+		$queryParams = [];
+		foreach (MailLog::REPORT_DYN_FIELDS as $field) {
+			$value = $this->request->query->get($field);
+			if ($value !== null) {
+				$key = array_search($field, FormHelper::getFilters());
+				if ($key != false) {
+					$filters[] = [
+						'filter' => $key,
+						'choice' => 'is equal to',
+						'value' => $value
+					];
+					$queryParams[$field] = $value;
+				}
+				// special case
+				if (strtolower($field) === 'date') {
+					$filters[] = [
+						'filter' => 'Date',
+						'choice' => 'is equal to',
+						'value' => $value
+					];
+				}
+			}
+		}
+
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
@@ -145,6 +171,7 @@ class MailLogController extends ViewController
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
+			'queryParams' => $queryParams,
 		]));
 	}
 
@@ -181,6 +208,7 @@ class MailLogController extends ViewController
 		return new Response($this->twig->render('reports.twig', [
 			'qidform' => $qidform->createView(),
 			'field' => array_keys($logs[0])[0],
+			'reportFields' => MailLog::REPORT_DYN_FIELDS,
 			'logs' => $logs,
 			'items_per_page' => $this->items_per_page,
 			'max_items' => Config::get('top_reports'),
