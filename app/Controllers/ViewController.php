@@ -118,6 +118,7 @@ class ViewController extends Controller
 		$this->twig->addGlobal('APP_INFO', Config::get('APP_INFO') ?? 'Rspamd Quarantine Watch');
 		$this->twig->addGlobal('FOOTER', Config::get('FOOTER') ?? 'Rqwatch');
 		$this->twig->addGlobal('WEB_BASE', $_ENV['WEB_BASE'] ?? '');
+		$this->twig->addGlobal('NOTIFICATION_SCORE', Config::get('notification_score') ?? 1000);
 
 		return $this->twig;
 	}

@@ -185,6 +185,10 @@ No
    <div class='detail'>
 {% if log.notified %}
 <strong>Yes</strong>: {{ log.notify_date }}
+{% elseif log.notification_pending and log.score > NOTIFICATION_SCORE %}
+Disabled due to high score
+{% elseif log.notification_pending %}
+Pending
 {% else %}
 No
 {% endif %}</div>
