@@ -9,4 +9,5 @@ logs/*
 tmp
 config/config.local.php
 test*
+*org
 NOTES
