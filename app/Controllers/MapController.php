@@ -578,13 +578,15 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$this->initUrls();
+		// needed to mapsUrl
+		$this->initMapUrls();
 
 		if (empty($map)) {
 			$this->flashbag->add('error', 'No map selected');
 			return new RedirectResponse($this->mapsUrl);
 		}
 
+		// redo with map
 		$this->initMapUrls($map);
 
 		// Fetch config for the selected map
@@ -715,16 +717,16 @@ class MapController extends ViewController
 
 	// works for both MapCombined/MapCustom
 	public function editMapEntry(string $map, int $id): Response {
-		$this->initUrls();
+		$this->initMapUrls();
 
 		if (empty($map)) {
 			$this->flashbag->add('error', 'No map selected');
 			return new RedirectResponse($this->mapsUrl);
 		}
-		dump($map);
 
-		if (!empty($id) && is_int($id)) {
-			dd($id);
+		if (empty($id) || !is_int($id)) {
+			$this->flashbag->add('error', 'Invalid map id');
+			return new RedirectResponse($this->mapsUrl);
 		}
 
 		// enable form rendering support
@@ -747,6 +749,7 @@ class MapController extends ViewController
 			return $response;
 		}
 
+		// redo with map
 		$this->initMapUrls($map);
 
 		// Fetch config for the selected map
