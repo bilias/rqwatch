@@ -352,6 +352,18 @@ $routes->add('map_add_entry', new Route(
 	[ 'map' => '[a-zA-Z_]{1,64}' ]
 ));
 
+$routes->add('admin_map_edit_entry', new Route(
+	'/admin/map/{map}/edit/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::editMapEntry', ], // defaults
+	[ 'map' => '[a-zA-Z_0-9]{1,64}', 'id' => '\d{1,8}' ]
+));
+
+$routes->add('map_edit_entry', new Route(
+	'/user/map/{map}/edit/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::editMapEntry', ], // defaults
+	[ 'map' => '[a-zA-Z_]{1,64}', 'id' => '\d{1,8}' ]
+));
+
 $routes->add('admin_map_del_all_entries', new Route(
 	'/admin/map/{map}/delall', // path
 	[ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries', ], // defaults
@@ -456,6 +468,8 @@ $middlewareMap = [
 	'map_show' => $userMiddlewareClasses,
 	'admin_map_add_entry' => $adminMiddlewareClasses,
 	'map_add_entry' => $userMiddlewareClasses,
+	'admin_map_edit_entry' => $adminMiddlewareClasses,
+	'map_edit_entry' => $userMiddlewareClasses,
 	'admin_map_search_entry' => $adminMiddlewareClasses,
 	'admin_map_del_entry' => $adminMiddlewareClasses,
 	'map_del_entry' => $userMiddlewareClasses,

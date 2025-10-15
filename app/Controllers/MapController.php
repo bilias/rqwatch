@@ -578,6 +578,8 @@ class MapController extends ViewController
 			return $response;
 		}
 
+		$this->initUrls();
+
 		if (empty($map)) {
 			$this->flashbag->add('error', 'No map selected');
 			return new RedirectResponse($this->mapsUrl);
@@ -678,6 +680,158 @@ class MapController extends ViewController
 					return new RedirectResponse($this->mapAddEntryUrl);
 				}
 			*/
+			} elseif ($this->getIsAdmin() && $model === 'MapCustom') {
+				if($service->addMapCustomEntry($map, $data[$fields[0]])) {
+					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
+					return new RedirectResponse($this->mapShowUrl);
+				} else {
+					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
+					return new RedirectResponse($this->mapAddEntryUrl);
+				}
+			} else {
+				$this->fileLogger->warning("User {$this->username} tried to add map in " . $this->request->getPathInfo() . " with wrong model {$model} or non admin rights");
+				$this->flashbag->add('error', 'Error in map');
+				return new RedirectResponse($this->mapShowUrl);
+			}
+		}
+
+		return new Response($this->twig->render('map_add.twig', [
+			'qidform' => $qidform->createView(),
+			'mapselectform' => $mapCombinedSelectForm->createView(),
+			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
+			'mapselectcustomform' => $mapCustomSelectForm->createView(),
+			'mapdescr' => $mapdescr,
+			'mapform' => $mapform->createView(),
+			'runtime' => $this->getRuntime(),
+			'refresh_rate' => $this->refresh_rate,
+			'flashes' => $this->flashbag->all(),
+			'is_admin' => $this->session->get('is_admin'),
+			'username' => $this->session->get('username'),
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
+	// works for both MapCombined/MapCustom
+	public function editMapEntry(string $map, int $id): Response {
+		$this->initUrls();
+
+		if (empty($map)) {
+			$this->flashbag->add('error', 'No map selected');
+			return new RedirectResponse($this->mapsUrl);
+		}
+		dump($map);
+
+		if (!empty($id) && is_int($id)) {
+			dd($id);
+		}
+
+		// enable form rendering support
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			// form submitted and valid
+			return $response;
+		}
+
+		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		if ($response !== null) {
+			return $response;
+		}
+
+		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
+		if ($response !== null) {
+			return $response;
+		}
+
+		$this->initMapUrls($map);
+
+		// Fetch config for the selected map
+		//$config = MapInventory::getMapConfigs($map) ?? null;
+		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map) ?? null;
+
+		if (!$config || !array_key_exists('map_form', $config)) {
+			$this->fileLogger->warning("User {$this->username} tried to add map entry in " . $this->request->getPathInfo() . " without admin authorization");
+			$this->flashbag->add('error', 'Invalid map selected');
+			return new RedirectResponse($this->mapsUrl);
+		}
+
+		$mapdescr = $config['description'];
+		$fields = $config['fields'] ?? [];
+		$data = [];
+
+		foreach ($fields as $field) {
+			$value = $this->request->get($field); // Supports both GET and POST
+			if ($value !== null) {
+				$data[$field] = $value;
+			}
+		}
+
+		// Dynamically call the correct form class's `create()` method
+		$mapFormClass = $config['map_form'];
+		if (!is_callable([$mapFormClass, 'create'])) {
+			throw new \RuntimeException("Form class $mapFormClass does not have a static create() method");
+		}
+
+		$options = [
+			'role' => $this->getRole(),
+		];
+
+		if ($config['model'] === 'MapCustom') {
+			$options['map'] = $map;
+		}
+
+		if (!$this->getIsAdmin()) {
+			// override user form fields. rcpt_to drop down based on user email and aliases
+			$options = [
+				'user_emails' => $this->getUserEmailAddresses(),
+			];
+		}
+		$mapform = $mapFormClass::create($this->formFactory, $this->request, $data, $options);
+
+		if ($mapform->isSubmitted() && $mapform->isValid()) {
+			$data = $mapform->getData();
+
+			if (empty($data)) {
+				$this->flashbag->add('error', "Empty map data");
+				return new RedirectResponse($this->mapAddEntryUrl);
+			}
+
+			// generate entry string for logs/flashbag
+			$pairs = [];
+			if ($config['model'] === 'MapCustom') {
+				$field_db = MapService::getCustomField($options['map']);
+				$pairs[] = $field_db['field_label'] . ": " . $data[$field_db['field_name']];
+			} else {
+				foreach ($fields as $field) {
+					$pairs[] = MapInventory::getFieldDefinitions($field)['description'] . ": " . $data[$field];
+				}
+			}
+			$entry_str = implode(', ', $pairs);
+
+			$service = new MapService($this->getFileLogger(), $this->session);
+
+			$model = $config['model'];
+			// entry already exists
+			// has applyUserRcptToScope
+			if ($service->mapEntryExists($model, $map, $fields, $data)) {
+				$this->flashbag->add('error', "Entry '{$entry_str}' already exists in Map '{$mapdescr}'");
+				return new RedirectResponse($this->mapAddEntryUrl );
+			}
+
+			// add entry
+			if ($model === 'MapCombined') {
+				// has applyUseScope
+				if ($service->addMapCombinedEntry($map, $fields, $data)) {
+					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
+					return new RedirectResponse($this->mapShowUrl);
+				} else {
+					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
+					return new RedirectResponse($this->mapAddEntryUrl);
+				}
 			} elseif ($this->getIsAdmin() && $model === 'MapCustom') {
 				if($service->addMapCustomEntry($map, $data[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
