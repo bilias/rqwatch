@@ -16,7 +16,7 @@
 - Show config cache TTL
 - Reload config from gui (before redis expire)
 
-## v1.6.6 - Released: 2025-10-10
+## Version v1.6.6 - Released: 2025-10-10
 
 ### 2025-10-10
 - Changed Mail ID -> Mail Queue ID
@@ -55,7 +55,7 @@
 - Handle multi line entries in add custom map entry
 - Add missing updated_at from custom map search
 
-## v1.6.5 - Released: 2025-10-01
+## Version v1.6.5 - Released: 2025-10-01
 
 ### 2025-10-01
 - Implement setSessionVars() and call it upon login
@@ -86,7 +86,7 @@
 - Add more logging in MetadataImporterApi
 - Catch exception in MetadataImporterApi (failsafe)
 
-## v1.6.4 - Released: 2025-09-24
+## Version v1.6.4 - Released: 2025-09-24
 
 ### 2025-09-24
 - Updated illuminate to v12.31.1
@@ -112,12 +112,12 @@
 - Support insert of multiple entries in custom maps
 - Fix bug in map entry delete
 
-## v1.6.3 - Released: 2025-09-18
+## Version v1.6.3 - Released: 2025-09-18
 
 ### 2025-09-18
 - Custom Maps
 
-## v1.6.2 - Released: 2025-09-17
+## Version v1.6.2 - Released: 2025-09-17
 
 ### 2025-09-11
 - Log remote user reading mail
@@ -138,7 +138,7 @@
 - Added Body Host URL links blacklist
 - Added Body Full URL links blacklist
 
-## v1.6.1 - Released: 2025-08-01
+## Version v1.6.1 - Released: 2025-08-01
 
 ### 2025-08-01
 - Added user option to disable notifications for quarantined mails
@@ -151,7 +151,7 @@
 - Limited show all Paginator
 - Added Rspamd statistics for all servers
 
-## v1.6.0 - Released: 2025-07-29
+## Version v1.6.0 - Released: 2025-07-29
 
 ### 2025-07-29
 - Added CLI tool to update Map Files if needed
@@ -161,7 +161,7 @@
 - Added SMTP From Whitelist/Blacklist links in detail view
 - Added IP Whitelist/Blacklist links in detail view
 
-## v1.5.0 - Released: 2025-07-18
+## Version v1.5.0 - Released: 2025-07-18
 
 ### 2025-07-18
 - Added Generic Maps with custom field (asn, domain, url etc)
@@ -170,7 +170,7 @@
 - Don't send notifications for blacklisted mails by default
 - Added colorcoded for whitelist/blacklist in maillogs
 
-## v1.4.0 - Released: 2025-07-16
+## Version v1.4.0 - Released: 2025-07-16
 
 ### 2025-07-16
 - Control if user is allowed to show/del user map entries created by admin
@@ -185,7 +185,7 @@
 - Rename API credentials
 - Rename WEB_API_PATHS in config
 
-## v1.3.0 - Released: 2025-07-14
+## Version v1.3.0 - Released: 2025-07-14
 
 ### 2025-07-14
 - Deprecated GetMap API, moved to apache static file download
@@ -204,7 +204,7 @@
 ### 2025-07-10
 - Added Maps
 
-## v1.2.0 - Released: 2025-07-09
+## Version v1.2.0 - Released: 2025-07-09
 
 ### 2025-07-09
 - Clear Quarantine CLI tool
@@ -224,7 +224,7 @@
 - Added cli option to show pending notifications (cli cron:notifications)
 - Added cli option for notifications for local server only (cli cron:notifications)
 
-## v1.0.0 - Released: 2025-07-08
+## Version v1.0.0 - Released: 2025-07-08
 
 ### 2025-07-08
 - Version v1.0.0 tag created
