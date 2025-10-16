@@ -1042,7 +1042,7 @@ class MapService
 		// map_name change
 		if ($org_map_name !== $map_name) {
 
-			$this->logger->info("Map '{$org_map_name}' rename to '{$map_name}' requested. Updating maps_custom entries and map_activity_logs");
+			$this->logger->info("Map '{$org_map_name}' rename to '{$map_name}' requested. Updating MapCustom entries and MapActivityLog");
 			// Update map_name in maps_custom entries
 			MapCustom::where('map_name', $org_map_name)
 			         ->update(['map_name' => $map_name]);
