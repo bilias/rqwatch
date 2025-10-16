@@ -17,6 +17,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Form;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -55,6 +56,32 @@ class MapWithCustomFieldForm extends AbstractType
 		$field['description'] = $field_label;
 		$field['field_options']['label'] = "{$field_label}:";
 
+		if (!empty($options['is_edit'])) {
+			// Fix mismatches between DB key and expected field name
+			// If 'domain' is expected but data uses 'pattern', remap it.
+			$data = $builder->getData();
+
+			// put # in front if it is disabled
+			if (!empty($data['disabled'])) {
+				$data['pattern'] = "#{$data['pattern']}";
+			}
+
+			if (!array_key_exists($field_name, $data) && array_key_exists('pattern', $data)) {
+				$data[$field_name] = $data['pattern'];
+			}
+
+			// don't do multi-entry on edit
+			// change TextareaType -> TextType
+			if ($field['type'] === TextareaType::class) {
+				$field['type'] = TextType::class;
+				unset($field['field_options']['attr']['rows']);
+				unset($field['field_options']['attr']['style']);
+				$field['field_options']['help'] = 'Lines starting with # are inserted as disabled entries';
+			}
+			// set the fixed data back on the builder
+			$builder->setData($data);
+		}
+
 		$builder
 			->add($field_name, $field['type'], $field['field_options'])
 			->add('submit', SubmitType::class, [
@@ -91,5 +118,6 @@ class MapWithCustomFieldForm extends AbstractType
 	public function configureOptions(OptionsResolver $resolver): void {
 		$resolver->setDefined(['role']);
 		$resolver->setDefined(['map']);
+		$resolver->setDefined(['is_edit']);
 	}
 }

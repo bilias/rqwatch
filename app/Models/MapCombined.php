@@ -54,6 +54,7 @@ class MapCombined extends Model
 		'user_id',
 		'disabled',
 		'created_at',
+		'updated_at',
 	];
 
 	public const SEARCH_FIELDS = [

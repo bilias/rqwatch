@@ -668,6 +668,7 @@ class MapService
 		}
 
 		if (empty($this->user_id)) {
+			$this->logger->warning("[updateMapCombinedEntry] empty user_id");
 			return false;
 		}
 
@@ -710,6 +711,76 @@ class MapService
 			return false;
 		}
 		*/
+
+		$last_update = date("Y-m-d H:i:s");
+
+		// update map file
+		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
+			return false;
+		}
+
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function updateMapCombinedEntry(string $map_name, array $map_fields, array $data): bool {
+		if (empty($data) || empty($data['map_name']) || $map_name !== $data['map_name']) {
+			$this->logger->error("Empty or invalid map data");
+			return false;
+		}
+
+		if (empty($this->user_id)) {
+			$this->logger->warning("[updateMapCombinedEntry] empty user_id");
+			return false;
+		}
+
+		// XXX strtolower might break some maps???
+		$data = self::trimLower($data);
+
+		// applyUseScope
+		if (!$this->is_admin && !defined('CLI_MODE') && in_array('rcpt_to', $map_fields)) {
+			if (empty($data['rcpt_to'])) {
+				$this->logger->warning("[updateMapCombinedEntry] Missing rcpt_to in data for user {$this->username}");
+				return false;
+			}
+			$allowedRcptTo = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
+			if (!in_array($data['rcpt_to'], $allowedRcptTo)) {
+				$this->logger->warning("rcpt_to value '{$data['rcpt_to']}' is not allowed for user {$this->username}");
+				return false;
+			}
+		}
+
+		if (!$this->is_admin && $this->user_id !== $data['user_id']) {
+			$this->logger->warning("[updateMapCombinedEntry] {$this->username} tried to update map entry {$data['id']} for map {$map_name} without permission");
+			return false;
+		}
+
+		$new_data = [];
+		foreach ($map_fields as $field) {
+			$new_data[$field] = $data[$field];
+		}
+		if (empty($new_data)) {
+			$this->logger->warning("[updateMapCombinedEntry] Empty new data");
+			return false;
+		}
+
+		try {
+			$success = MapCombined::where('id', $data['id'])
+			                      ->update($new_data);
+
+			if (!$success) {
+				// Insert did not throw an error, but still failed
+				$this->logger->error("[addMapCombinedEntry] Query save failed");
+				return false;
+			}
+		} catch (\Throwable $e) {
+			$this->logger->error("[addMapCombinedEntry] Query save error: " . $e->getMessage() . PHP_EOL);
+			return false;
+		}
 
 		$last_update = date("Y-m-d H:i:s");
 
@@ -828,6 +899,58 @@ class MapService
 			return false;
 		}
 		*/
+
+		$last_update = date("Y-m-d H:i:s");
+
+		// update map file
+		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
+			return false;
+		}
+
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function updateMapCustomEntry(string $map_name, array $data): bool {
+		if (empty($data) || empty($data['map_name']) || $map_name !== $data['map_name']) {
+			$this->logger->error("Empty or invalid map data");
+			return false;
+		}
+
+		$disabled = $data['disabled'];
+
+		$value = $data['pattern'];
+		if (strlen($value) > 0) {
+			// If first character is #, insert as disabled entry
+			if($value[0] === '#') {
+				$value = substr($value, 1); // remove #
+				$disabled = 1;
+			} else {
+				$disabled = 0;
+			}
+		}
+
+		try {
+			$success = MapCustom::where('id', $data['id'])
+			                    ->update([
+			                       'pattern' => $value,
+			                       'disabled' => $disabled,
+									    ]);
+
+			if (!$success) {
+				// Update did not throw an error, but still failed
+				$this->logger->error("[updateMapCustomEntry] Query update failed");
+				return false;
+			}
+
+		} catch (\Throwable $e) {
+			$this->logger->error("[updateMapCustomEntry] Query update error: " . $e->getMessage() . PHP_EOL);
+			return false;
+		}
 
 		$last_update = date("Y-m-d H:i:s");
 
