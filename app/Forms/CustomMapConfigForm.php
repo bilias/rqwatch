@@ -112,8 +112,8 @@ class CustomMapConfigForm extends AbstractType
 						),
 					 ],
             ])
-            ->add('add', SubmitType::class, [
-                'label' => 'Add',
+            ->add('submit', SubmitType::class, [
+                'label' => 'Submit',
             ]);
 	}
 
@@ -125,7 +125,7 @@ class CustomMapConfigForm extends AbstractType
 
 		// Merge class with any existing class
 		$options['attr']['class'] = trim(($options['attr']['class'] ?? '') . ' onefieldform');
-		return FormHelper::formCreator($formFactory, $request, self::class);
+		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
 	}
 
 	public static function check_form(Form $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {

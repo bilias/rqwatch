@@ -306,6 +306,12 @@ $routes->add('admin_maps_custom_add', new Route(
 	[ ]
 ));
 
+$routes->add('admin_maps_custom_edit', new Route(
+	'/admin/maps/custom/edit/{id}', // path
+	[ '_controller' => 'App\\Controllers\\MapController::editCustomMap', ], // defaults
+	[ 'id' => '\d{1,8}' ]
+));
+
 $routes->add('admin_maps_custom_del', new Route(
 	'/admin/maps/custom/del/{id}', // path
 	[ '_controller' => 'App\\Controllers\\MapController::delCustomMap', ], // defaults
@@ -479,6 +485,7 @@ $middlewareMap = [
 	'map_toggle_entry' => $userMiddlewareClasses,
 	'admin_maps_custom_show' => $adminMiddlewareClasses,
 	'admin_maps_custom_add' => $adminMiddlewareClasses,
+	'admin_maps_custom_edit' => $adminMiddlewareClasses,
 	'admin_maps_custom_del' => $adminMiddlewareClasses,
 ];
 

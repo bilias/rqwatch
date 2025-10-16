@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-16
+- Update Custom Map Config
 - Update Map entry
 
 ### 2025-10-14

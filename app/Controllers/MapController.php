@@ -417,6 +417,103 @@ class MapController extends ViewController
 		]));
 	}
 
+	public function editCustomMap(int $id): Response {
+		$this->initMapUrls();
+
+		if (empty($id) || !is_int($id)) {
+			$this->flashbag->add('error', 'Invalid map id');
+			return new RedirectResponse($this->showCustomMapsConfigUrl);
+		}
+
+		// enable form rendering support
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			// form submitted and valid
+			return $response;
+		}
+
+		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		if ($response !== null) {
+			return $response;
+		}
+		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
+		if ($response !== null) {
+			return $response;
+		}
+
+		$customMapConfig = CustomMapConfig::find($id)->toArray();
+
+		$mapform = CustomMapConfigForm::create($this->formFactory, $this->request, $customMapConfig);
+
+		$this->initMapUrls();
+
+		if ($mapform->isSubmitted() && $mapform->isValid()) {
+			$data = $mapform->getData();
+			if (empty($data['map_name'])) {
+				$this->flashbag->add('error', "Map Name empty");
+				return new RedirectResponse($this->mapsCustomAddUrl);
+			}
+			$data['map_name'] = strtolower(trim($data['map_name']));
+
+			if (empty($data['field_name'])) {
+				$this->flashbag->add('error', "Field Name empty");
+				return new RedirectResponse($this->mapsCustomAddUrl);
+			}
+			$data['field_name'] = trim($data['field_name']);
+			$data['map_description'] = trim($data['map_description']);
+			$data['field_label'] = trim($data['field_label']);
+
+			$service = new MapService($this->getFileLogger(), $this->session);
+			$model = 'MapCustom';
+
+			$edit_url = $this->urlGenerator->generate('admin_maps_custom_edit', [ 'id' => $id ]);
+
+			$map_name = $data['map_name'];
+			if ($map_name === 'manage_custom_maps') {
+				$this->flashbag->add('error', "Map name '{$map_name}' is not allowed!");
+				return new RedirectResponse($edit_url);
+			}
+
+			// map_name change
+			if ($customMapConfig['map_name'] !== $map_name) {
+				// check if new name exists
+				if ($service->mapExists($map_name)) {
+					$this->flashbag->add('error', "Map '{$map_name}' already exists!");
+					return new RedirectResponse($edit_url);
+				}
+			}
+
+			// update entry
+			if ($service->updateCustomMapConfig($data)) {
+				$this->fileLogger->info("Custom map '{$map_name}' updated by '{$this->email}'");
+				$this->flashbag->add('success', "Custom Map '{$data['map_name']}' updated");
+				return new RedirectResponse($this->showCustomMapsConfigUrl);
+			} else {
+				$this->flashbag->add('error', "Custom map '{$map_name}' update problem. Check logs.");
+				return new RedirectResponse($edit_url);
+			}
+		}
+
+		return new Response($this->twig->render('maps_custom_config_add.twig', [
+			'qidform' => $qidform->createView(),
+			'mapselectform' => $mapCombinedSelectForm->createView(),
+			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
+			'mapselectcustomform' => $mapCustomSelectForm->createView(),
+			'items_per_page' => $this->items_per_page,
+			'mapform' => $mapform->createView(),
+			'runtime' => $this->getRuntime(),
+			'flashes' => $this->flashbag->all(),
+			'is_admin' => $this->session->get('is_admin'),
+			'username' => $this->session->get('username'),
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
 	// works for all maps (MapCombined/MapCustom)
 	public function showMap(string $map): Response {
 		// Custom map management link, comes from map select form
@@ -725,7 +822,7 @@ class MapController extends ViewController
 		}
 
 		if (empty($id) || !is_int($id)) {
-			$this->flashbag->add('error', 'Invalid map id');
+			$this->flashbag->add('error', 'Invalid map entry id');
 			return new RedirectResponse($this->mapsUrl);
 		}
 

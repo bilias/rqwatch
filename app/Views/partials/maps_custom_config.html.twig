@@ -22,9 +22,10 @@ Manage Custom Maps | Total: {{ totalRecords }} entries
  <th>Map Name</th>
  <th>Field Name</th>
  <th>Field Label</th>
- <th>Created</th>
+ <th>Updated</th>
  <th>Entries</th>
  <th>Delete</th>
+ <th>Edit</th>
 </tr></thead>
 
 <tbody>
@@ -34,9 +35,10 @@ Manage Custom Maps | Total: {{ totalRecords }} entries
 			<td class='center'><a target='_blank' href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
 			<td class='center'>{{ entry.field_name }}</td>
 			<td class='center'>{{ entry.field_label }}</td>
-			<td class='center'>{{ entry.created_at }}</td>
+			<td class='center'>{{ entry.updated_at }}</td>
 			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_entries }}</a></td>
 			<td class='center'><a href="{{ get_route('admin_maps_custom_del', { id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete custom map:\n\'{{ entry.map_description }}\'?\n\'{{ entry.map_entries }}\' map entries will also be deleted.')">Delete</a></td>
+			<td class='center'><a href="{{ get_route('admin_maps_custom_edit', { id: entry.id }) }}">Edit</a></td>
       </tr>
     {% endfor %}
 </tbody>

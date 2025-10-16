@@ -327,7 +327,7 @@ class MapService
 
 	public function showPaginatedCustomMapConfigs(int $page = 1, string $url): ?LengthAwarePaginator {
 		$query = CustomMapConfig::select('*')
-								  ->orderBy('map_name', 'ASC')
+								  //->orderBy('map_name', 'ASC')
 								  ->orderBy('updated_at', 'DESC');
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
@@ -995,6 +995,73 @@ class MapService
 		}
 
 		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			$this->logger->error("Error updating map activity log for '{$map_name}' in addCustomMapConfig");
+			return false;
+		}
+
+		return true;
+	}
+
+	public function updateCustomMapConfig(array $data): bool {
+		if (empty($data)) {
+			$this->logger->error("Empty map data in updateCustomMapConfig");
+			return false;
+		}
+
+		if (empty($data['map_name'])) {
+			$this->logger->error("Empty map_name in updateCustomMapConfig");
+			return false;
+		}
+		$map_name = $data['map_name'];
+
+		$customMapConfig = CustomMapConfig::find($data['id']);
+
+		if (!$customMapConfig) {
+			$this->logger->error("[updateCustomMapConfig] CustomMapConfig with id '{$data['id']}' not found");
+			return false;
+		}
+
+		$org_map_name = $customMapConfig->map_name;
+
+		// Update custom_map_config
+		$customMapConfig->fill($data);
+		try {
+			$success = $customMapConfig->save();
+
+			if (!$success) {
+				// Update did not throw an error, but still failed
+				$this->logger->error("[updateCustomMapConfig] Query update failed");
+				return false;
+			}
+		} catch (\Throwable $e) {
+			$this->logger->error("[updateCustomMapConfig] Query update error: " . $e->getMessage() . PHP_EOL);
+			return false;
+		}
+
+		// map_name change
+		if ($org_map_name !== $map_name) {
+
+			$this->logger->info("Map '{$org_map_name}' rename to '{$map_name}' requested. Updating maps_custom entries and map_activity_logs");
+			// Update map_name in maps_custom entries
+			MapCustom::where('map_name', $org_map_name)
+			         ->update(['map_name' => $map_name]);
+
+			// Delete old Activity log table in DB
+			MapActivityLog::where('map_name', $org_map_name)->delete();
+
+			// old map file will be deleted by syncMaps() from CronUpdateMapFiles
+		}
+
+		$last_update = date("Y-m-d H:i:s");
+
+		// 3. update map file
+		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
+			$this->logger->error("Error updating map file for '{$map_name}' in updateCustomMapConfig");
+			return false;
+		}
+
+		// 4. update Activity log table in DB
 		if (!self::updateMapActivityLog($map_name, $last_update)) {
 			$this->logger->error("Error updating map activity log for '{$map_name}' in addCustomMapConfig");
 			return false;
