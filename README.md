@@ -12,6 +12,30 @@ Apart from quarantine monitoring, this system can also be used as a map manageme
 
 [[_TOC_]]
 
+<!--ts-->
+* [Rqwatch](#rqwatch)
+* [Features](#features)
+   * [Architecture](#architecture)
+   * [Components](#components)
+   * [Web](#web)
+      * [Authentication](#authentication)
+      * [Access Control](#access-control)
+      * [Maps](#maps)
+      * [Redis Caching](#redis-caching)
+   * [API for Rspamd - RSPAMD API (metadata_importer)](#api-for-rspamd---rspamd-api-metadata_importer)
+   * [WEB API [Distributed mode]](#web-api-distributed-mode)
+   * [CLI](#cli)
+* [Setup](#setup)
+   * [Requirements](#requirements)
+   * [Installation](#installation)
+   * [Configuration](#configuration)
+* [INFO](#info)
+   * [Similar software](#similar-software)
+   * [<a href="CHANGELOG.md">Changelog</a>](CHANGELOG.md)
+   * [<a href="ROADMAP.md">Roadmap</a>](ROADMAP.md)
+   * [<a href="LICENSE">License: Mozilla Public License Version 2.0</a>](LICENSE)
+<!--te-->
+
 # Features
 
 ## Architecture
