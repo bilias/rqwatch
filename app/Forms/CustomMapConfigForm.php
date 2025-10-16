@@ -38,6 +38,7 @@ class CustomMapConfigForm extends AbstractType
             ->add('map_name', TextType::class, [
                 'required' => true,
                 'label' => 'Map Name: ',
+					 'help' => 'Will be used for url construction',
 					 'attr' => [
 						'autofocus' => true,
 						'class' => 'map_name',

@@ -19,22 +19,26 @@
 <div class="row">
 <div class='info'>{{ form_label(mapform.map_name) }}</div>
 <div class='detail'>{{ form_widget(mapform.map_name) }}
-   {{ form_errors(mapform.map_name) }}</div>
+   {{ form_errors(mapform.map_name) }}
+	{{ form_help(mapform.map_name) }}</div>
 </div>
 <div class="row">
 <div class='info'>{{ form_label(mapform.map_description) }}</div>
 <div class='detail'>{{ form_widget(mapform.map_description) }}
-   {{ form_errors(mapform.map_description) }}</div>
+   {{ form_errors(mapform.map_description) }}
+	{{ form_help(mapform.map_description) }}</div>
 </div>
 <div class="row">
 <div class='info'>{{ form_label(mapform.field_name) }}</div>
 <div class='detail'>{{ form_widget(mapform.field_name) }}
-   {{ form_errors(mapform.field_name) }}</div>
+   {{ form_errors(mapform.field_name) }}
+	{{ form_help(mapform.field_name) }}</div>
 </div>
 <div class="row">
 <div class='info'>{{ form_label(mapform.field_label) }}</div>
 <div class='detail'>{{ form_widget(mapform.field_label) }}
-   {{ form_errors(mapform.field_label) }}</div>
+   {{ form_errors(mapform.field_label) }}
+	{{ form_help(mapform.field_label) }}</div>
 </div>
 <div class="row btn">
    {{ form_widget(mapform.submit) }}
