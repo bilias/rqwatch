@@ -10,7 +10,7 @@ Depending on the action taken by Rspamd and the configuration, raw emails can al
 
 Apart from quarantine monitoring, this system can also be used as a map management/provider for Rspamd, independently of other functionalities.
 
-[[_TOC_]]
+<!-- [[_TOC_]] -->
 
 <!--ts-->
 * [Rqwatch](#rqwatch)

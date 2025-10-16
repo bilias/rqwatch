@@ -18,7 +18,7 @@ use App\Core\Logging\LoggerService;
 use App\Core\RedisFactory;
 use App\Utils\Helper;
 
-define('APP_VERSION', '1.6.7-dev');
+define('APP_VERSION', '1.6.8-dev');
 
 define('APP_ROOT', __DIR__);
 
