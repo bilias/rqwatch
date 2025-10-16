@@ -3,8 +3,6 @@
 ## In progress
 
 ## Features bellow are in todo list.
-- Edit map config
-- Edit map entries
 - Edit alias
 - Cache failed inserts in Redis and retry later via cron
 
