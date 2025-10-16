@@ -18,8 +18,8 @@ Manage Custom Maps | Total: {{ totalRecords }} entries
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
 <thead><tr>
 <thead><tr>
- <th>Map Description</th>
  <th>Map Name</th>
+ <th>Map Description</th>
  <th>Field Name</th>
  <th>Field Label</th>
  <th>Updated</th>
@@ -31,8 +31,8 @@ Manage Custom Maps | Total: {{ totalRecords }} entries
 <tbody>
     {% for entry in map_configs %}
       <tr class='clean'>
-			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			<td class='center'><a target='_blank' href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
+			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			<td class='center'>{{ entry.field_name }}</td>
 			<td class='center'>{{ entry.field_label }}</td>
 			<td class='center'>{{ entry.updated_at }}</td>
