@@ -1,14 +1,14 @@
 # Rqwatch
 
-Rqwatch is a quarantine monitoring and watch system for [Rspamd](https://rspamd.com), written in PHP. 
+**Rqwatch** is a quarantine and map management system for [Rspamd](https://rspamd.com), written in PHP. 
 
 It provides a web framework to monitor all incoming emails passing through your mail gateway, accessible by both administrators and recipient users.
 
-An API is available to insert data from Rspamd. This API is used by the Rspamd [Metadata Exporter plugin](https://docs.rspamd.com/modules/metadata_exporter) to export headers (both mail and Rspamd headers) and store that metadata in a database.
+An API is available to insert data from Rspamd. This API is used by the Rspamd [Metadata Exporter plugin](https://docs.rspamd.com/modules/metadata_exporter) to export raw email and Rspamd headers and store that metadata in a database.
 
 Depending on the action taken by Rspamd and the configuration, raw emails can also be saved in a local quarantine storage to be examined and released by administrators or recipient users, if desired.
 
-Apart from quarantine monitoring, this system can also be used as a map management/provider for Rspamd, independently of other functionalities.
+Apart from quarantine monitoring, this system can also be used as a complete map management/distribution point for Rspamd, independently of other functionalities.
 
 <!-- [[_TOC_]] -->
 
@@ -49,7 +49,7 @@ Apart from quarantine monitoring, this system can also be used as a map manageme
 
 ## Components
 - Symfony components (http-foundation, router, form, mailer, console etc.)
-- Eloquent ORM
+- Eloquent ORM/Query Builder
 - Twig Views
 - Monolog Logging
 - .env file for sensitive parameters (+ common config options)
@@ -66,8 +66,8 @@ Apart from quarantine monitoring, this system can also be used as a map manageme
 - LDAP Authentication
 
 ### Access Control
-- Admin users can read/release all emails
-- Normal users can read/release only their emails (+ aliases)
+- Admin users can read/release all emails and edit all maps
+- Normal users can read/release only their emails (+ aliases) and edit their maps
 - DB Admin users / LDAP Admin users
 - /admin web endpoint for admins
 
@@ -141,11 +141,14 @@ composer install
 # INFO
 
 ## Similar software
-Rqwatch was initially inspired by [MailWatch](https://mailwatch.org) which is used for [MailScanner](https://www.mailscanner.info).
+**Rqwatch** was initially inspired by
+<a href="https://mailwatch.org" target="_blank">MailWatch</a> which is used for
+<a href="https://www.mailscanner.info" target="_blank">MailScanner</a>.
 
-[mailcow](https://mailcow.email/) has a quarantine system. Ideas taken from there too ([metadata exporter](https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/rspamd/local.d/metadata_exporter.conf)).  
-[rspamd-quarantine](https://github.com/sys4/rspamd-quarantine) (python)  
-[rspamd-quarantine](https://github.com/fedmik/rspamd-quarantine) (PHP)
+<a href="https://mailcow.email/" target="_blank">mailcow</a> has a quarantine system. Ideas taken from there too 
+(<a href="https://github.com/mailcow/mailcow-dockerized/blob/master/data/conf/rspamd/local.d/metadata_exporter.conf" target="_blank">metadata_exporter</a>)\
+<a href="https://github.com/sys4/rspamd-quarantine" target="_blank">rspamd-quarantine</a> (python - never used it)\
+<a href="https://github.com/fedmik/rspamd-quarantine" target="_blank">rspamd-quarantine</a> (PHP - never used it)
 
 ## [Changelog](CHANGELOG.md)
 

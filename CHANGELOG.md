@@ -2,11 +2,11 @@
 
 ## Master Dev Branch
 
+## Version v1.6.7 - Released: 2025-10-17
+
 ### 2025-10-17
 - Tagged v1.6.7
 - Github release
-
-## Version v1.6.7 - Released: 2025-10-17
 
 ### 2025-10-16
 - Update Custom Map Config
