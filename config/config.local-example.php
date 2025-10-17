@@ -17,7 +17,8 @@
  in .env controls refresh period.
 **************************************************/
 
-# define all API server aliases and their API urls
+# Define all API server aliases and their API urls.
+# See config.php for all available options
 $API_SERVERS = array(
 	'mx1' => array(
 		'url' => 'https://mx1.example.com',

@@ -20,6 +20,7 @@ $APP_INFO="Rspamd Quarantine Watch";
 $APP_VERSION = APP_VERSION;
 $FOOTER="{$APP_NAME} v{$APP_VERSION}";
 
+# Default CA path dir (capath) to verify remote API Servers SSL/TLS
 $SYS_CA_PATH = "/etc/pki/tls/certs";
 
 # define all API server aliases and their API urls
