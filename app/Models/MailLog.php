@@ -136,7 +136,7 @@ class MailLog extends Model
 
 	/* not needed now
 	public function getTable() {
-		return $_ENV['MAILLOGS_TABLE'] ?? 'quarantine';
+		return $_ENV['MAILLOGS_TABLE'] ?? 'mail_logs';
 	}
 	*/
 }
