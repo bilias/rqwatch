@@ -1,0 +1,58 @@
+<section>
+
+<div class='current_mails descr'>
+Total Users: {{ totalRecords }}
+{% if totalRecords > items_per_page %}
+| Displaying {{ items_per_page }}/page
+{% endif %}
+<div id="inside_links">
+<ul>
+<li><a href='{{ get_route('admin_useradd') }}'>Add New DB user</a></li>
+</ul>
+</div>
+</div>
+
+<div class='users'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th>Info</th>
+ <th>Username</th>
+ <th>First Name</th>
+ <th>Last Name</th>
+ <th>E-mail</th>
+ <th>Admin</th>
+ <th>Auth Provider</th>
+ <th>Last Login</th>
+ <th>Edit</th>
+{# <th class='userdel'>#</th> #}
+</tr></thead>
+
+<tbody>
+{% if users %}
+{% for user in users %}
+  <tr class='clean'>
+  <td class='center'><a href='{{ get_route('admin_user', { id: user.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
+  <td class='center'>{{ user.username }}</td>
+  <td class='center'>{{ user.firstname }}</td>
+  <td class='center'>{{ user.lastname }}</td>
+  <td class='center'>{{ user.email }}</td>
+  <td class='center'>{% if user.is_admin %}Yes{% endif %}</td>
+  <td class='center'>{{ getAuthProvider(user.auth_provider) }}</td>
+  <td class='center'>
+  {% if user.last_login %}
+{{ user.last_login }}
+{% else %}
+Never
+{% endif %}
+  </td>
+  <td class='center'><a href='{{ get_route('admin_useredit', { id: user.id }) }}'>Edit</a></td>
+{#  <td class='center'><a href="{{ get_route('admin_userdel', { id: user.id }) }}" onclick="return confirm('are u sure?')">Delete</a></td> #}
+  </tr>
+{% endfor %}
+{% endif %}
+
+</tbody>
+
+</table>
+</div>
+</section>

@@ -1,0 +1,88 @@
+<?php declare(strict_types=1);
+/*
+ Rqwatch
+ Copyright (C) 2025 Giannis Kapetanakis
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License version 3
+as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+namespace App\Api;
+
+use App\Core\Config;
+use App\Utils\Helper;
+
+use App\Core\Auth\BasicAuth;
+
+use App\Models\MailLog;
+use App\Inventory\MailObject;
+use App\Services\MailLogService;
+
+use PhpMimeMailParser\Parser;
+
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+
+class GetMailApi extends RqwatchApi
+{
+	protected string $logPrefix = 'GetMailApi';
+
+	protected function getAllowedIps(): array {
+		return array_map('trim', explode(',', $_ENV['WEB_API_ACL']));
+	}
+
+	protected function getAuthCredentials(): array {
+		return [$_ENV['WEB_API_USER'], $_ENV['WEB_API_PASS']];
+	}
+
+	public function handle(): void {
+		$id = $this->request->request->get('id');
+
+		if (empty($id)) {
+			$err_msg = "{$this->clientIp} requested mail without a mail id";
+			$response_msg = "Missing Required info";
+			$this->dropLogResponse(
+				Response::HTTP_BAD_REQUEST, $response_msg,
+				$err_msg, 'critical');
+		}
+		
+		$log = MailLog::find($id);
+		
+		if (empty($log)) {
+			$err_msg = "{$this->clientIp} requested mail with id {$id} which does no exist";
+			$response_msg = "Message not found";
+			$this->dropLogResponse(
+				Response::HTTP_BAD_REQUEST, $response_msg,
+				$err_msg, 'warning');
+		}
+		
+
+		if (!file_exists($log->mail_location)) {
+			$err_msg = "{$this->clientIp} requested mail {$log->qid} where local file '{$log->mail_location}' not found";
+			$response_msg = "File '{$log->mail_location}' not found";
+			$this->dropLogResponse(
+				Response::HTTP_BAD_REQUEST, $response_msg,
+				$err_msg, 'critical');
+		}
+
+		// serve static file 
+		$response = new BinaryFileResponse($log->mail_location);
+		$response->setStatusCode(Response::HTTP_OK);
+
+		$this->fileLogger->info("[{$this->logPrefix}] {$this->clientIp} requested mail {$log->qid}");
+		$this->syslogLogger->info("[{$this->logPrefix}] {$this->clientIp} requested mail {$log->qid}");
+		$response->send();
+		exit;
+	}
+}

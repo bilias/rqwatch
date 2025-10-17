@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+{% import 'macros/paginator.macro.twig' as ui %}
+
+{% block content %}
+<div class="center-container">
+
+{% if mapselectform %}
+{% include 'partials/map_select.html.twig' %}
+{% endif %}
+
+<div class='pagtop'>
+{{ ui.paginator(map_entries, WEB_BASE) }}
+</div>
+
+{% include 'partials/maps_all.html.twig' %}
+
+<div class='pagbottom'>
+{{ ui.paginator(map_entries, WEB_BASE) }}
+</div>
+
+</div>
+{% endblock %}

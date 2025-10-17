@@ -1,0 +1,128 @@
+<?php
+define('API_MODE', true);
+
+require_once __DIR__ . '/../../bootstrap.php';
+
+use App\Core\Config;
+use App\Utils\Helper;
+use Psr\Log\LoggerInterface;
+
+use App\Core\Auth\BasicAuth;
+
+use App\Models\MailLog;
+use App\Services\MailLogService;
+
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+$client_ip = $_SERVER['REMOTE_ADDR'];
+
+$WEB_API_ACL = array_map('trim', explode(',', $_ENV['WEB_API_ACL']));
+
+if (!in_array($client_ip, $WEB_API_ACL)) {
+	$err_msg = "{$client_ip} is not allowed to connect to metadata_importer API";
+	$response_msg = "Permission denied";
+	dropLogResponse(
+		Response::HTTP_FORBIDDEN, $response_msg,
+		$err_msg, 'critical', $fileLogger, $syslogLogger);
+}
+
+try {
+	$auth = new BasicAuth($_ENV['WEB_API_USER'], $_ENV['WEB_API_PASS'], $fileLogger);
+} catch (HttpException $e) {
+	$err_msg = $e->getMessage();
+	dropLogResponse(
+		$e->getStatusCode(), $err_msg,
+		$err_msg, 'critical', $fileLogger, $syslogLogger);
+}
+
+// Authenticate the remote system
+if (!$auth->authenticate() or !$auth->getAuthenticatedUser()) {
+	// we should never be here
+	throw new \RuntimeException("Error in Authentication! (" . __METHOD__ . ")");
+}
+
+/* --------------- API CODE --------------- */
+
+$request = Request::createFromGlobals();
+$post = $request->request->all();
+
+if (!array_key_exists('id', $post)) {
+	$err_msg = "{$client_ip} requested mail release without a mail id";
+	$response_msg = "Missing Required info";
+	dropLogResponse(
+		Response::HTTP_BAD_REQUEST, $response_msg,
+		$err_msg, 'critical', $fileLogger, $syslogLogger);
+}
+$id = $post['id'];
+
+if (!array_key_exists('email', $post)) {
+	$err_msg = "{$client_ip} requested mail release of mail with id {$id} without a destination email";
+	$response_msg = "Missing Required info";
+	dropLogResponse(
+		Response::HTTP_BAD_REQUEST, $response_msg,
+		$err_msg, 'critical', $fileLogger, $syslogLogger);
+}
+$release_to = $post['email'];
+
+$maillog = MailLog::find($id);
+
+if (empty($maillog)) {
+	$err_msg = "{$client_ip} requested release of mail with id {$id} which does no exist";
+	$response_msg = "Message not found";
+	dropLogResponse(
+		Response::HTTP_BAD_REQUEST, $response_msg,
+		$err_msg, 'warning', $fileLogger, $syslogLogger);
+}
+
+$service = new MailLogService($fileLogger);
+
+if ($service->releaseHtmlMail($release_to, $maillog)) {
+	$runtime = Helper::get_runtime($startTime, $startMemory);
+	$msg = "Message {$maillog->qid} released to '" .
+		implode(', ', json_decode($release_to, true)) .
+		"' via API by {$client_ip} | {$runtime}";
+
+	$fileLogger->info($msg);
+	$syslogLogger->info($msg);
+
+	$response = new Response();
+	$response->setContent('Message Released');
+	$response->setCharset('UTF-8');
+	$response->setStatusCode(Response::HTTP_OK);
+	$response->prepare($request);
+	$response->send();
+	exit;
+}
+
+$runtime = Helper::get_runtime($startTime, $startMemory);
+$err_msg = "Message {$maillog->qid} failed to be released via API by {$client_ip} | {$runtime}";
+$response_msg = "Message Release Failed";
+	dropLogResponse(
+		Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
+		$err_msg, 'error', $fileLogger, $syslogLogger);
+
+exit;
+
+function dropLogResponse(
+	int $httpCode = 500,
+	string $responseMsg,
+	string $logMsg,
+	string $logLevel = 'error',
+	?LoggerInterface $fileLogger = null,
+	?LoggerInterface $syslogLogger = null,
+): void {
+
+	if ($fileLogger && method_exists($fileLogger, $logLevel)) {
+		$fileLogger->$logLevel($logMsg);
+	}
+
+	if ($syslogLogger && method_exists($syslogLogger, $logLevel)) {
+		$syslogLogger->$logLevel($logMsg);
+	}
+
+	$response = new Response($responseMsg, $httpCode);
+	$response->send();
+	exit;
+}

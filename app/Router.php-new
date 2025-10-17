@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Core;
+
+use Symfony\Component\Routing\Route;
+use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\Matcher\UrlMatcher;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class Router
+{
+    protected $routes;
+
+	 public function __construct()
+{
+    $this->routes = new RouteCollection();
+
+    // Define routes
+    $this->routes->add('homepage', new Route('/', [
+        '_controller' => [\App\Controllers\PageController::class, 'indexAction']
+    ]));
+    $this->routes->add('log', new Route('/log{id}', [
+        '_controller' => [\App\Controllers\LogController::class, 'showAction']
+    ]));
+
+    // Add more routes here
+}
+
+public function dispatch(Request $request): Response
+{
+    $context = new RequestContext();
+    $context->fromRequest($request);
+
+    $matcher = new UrlMatcher($this->routes, $context);
+    $parameters = $matcher->match($request->getPathInfo());
+
+    $controller = $parameters['_controller'];
+    unset($parameters['_controller'], $parameters['_route']);
+
+    return call_user_func_array($controller, [$request, $parameters]);
+}
+
+}

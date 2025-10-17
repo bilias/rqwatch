@@ -1,0 +1,169 @@
+{% include 'partials/head.html.twig' %}
+
+{% block content %}
+
+<div class='mailheaders maildetail'>
+
+ <div class="row">
+   <div class='info'>Date:</div>
+   <div class='detail'>{{ log.created_at }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Subject:</div>
+   <div class='detail'>{{ log.subject }}</div>
+ </div>
+  <div class="row">
+   <div class='info'>Received from:</div>
+   <div class='detail'>
+{% if log.ip == 'unknown' %}
+{{ log.ip }}
+{% else %}
+{% if log.ip %}
+{{ log.ip }} ({{ gethostbyaddr(log.ip) }})
+{% endif %}
+{% endif %}
+   </div>
+ </div>
+ <div class="row">
+   <div class='info'>Mail From (decoded):</div>
+   <div class='detail'>{{ decodeEmail(log.mail_from) }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Mail From (original):</div>
+   <div class='detail'>{{ log.mail_from }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>MIME From:</div>
+   <div class='detail'>{{ log.mime_from }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>MIME To:</div>
+   <div class='detail'>{{ log.mime_to }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Mail To:</div>
+   <div class='detail'>{{ log.rcpt_to }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Has Virus:</div>
+   <div class='detail'>
+{% if log.has_virus %}
+<span class='virus'><strong>Yes</strong>: {{ virus_found }}</span>
+{% else %}
+No
+{% endif %}
+   </div>
+ </div>
+ <div class="row">
+   <div class='info'>Spam score:</div>
+   <div class='detail'>{{ log.score }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Action taken:</div>
+   <div class='detail'><span class='{{ get_row_class(log.action) }}'>{{ log.action }}</span>
+	({{ getDelivery(log.action) }})</div>
+ </div>
+ {% set white_black_class = get_row_class(log.action, log.symbols) %}
+ {% if white_black_class == 'whitelist' %}
+ <div class="row">
+   <div class='info'>Whitelisted:</div>
+   <div class='detail'><span class='{{ white_black_class }}'>Yes</span></div>
+ </div>
+ {% endif %}
+ {% if white_black_class == 'blacklist' %}
+ <div class="row">
+   <div class='info'>Blacklisted:</div>
+   <div class='detail'><span class='{{ white_black_class }}'>Yes</span></div>
+ </div>
+ {% endif %}
+ <div class="row">
+   <div class='info'>Rspamd Symbols:</div>
+   <div class='detail'>
+
+	 <button onclick="toggleDisplay('symbols', this)">Show</button>
+    <div id='symbols' style='display:none;'>
+{% for symbol in symbols %}
+{{ symbol }}<br/>
+{% endfor %}
+    </div>
+   </div>
+ </div>
+
+</div>
+
+<div class='mailattachments'>
+{% if attached %}
+
+<h3>Attachments: {{ attached|length }}</h3>
+<hr/>
+<h4 class='flash-error'>
+Files bellow may contain virus or other malicious code that could harm your device or compromise your data.
+</h4>
+<p class="flash-error">
+This mail or attachments have been marked as Spam and/or Virus by our Anti-Spam System.
+</p>
+<p class="flash-error">
+Please be very carefull before opening or saving any of the files bellow.
+</p>
+
+<div id='showbtn'>
+<button onclick="toggleDisplay('attachmentsList', this)">Show</button>
+</div>
+
+<div id="attachmentsList" style="display:none;">
+<table border="0" align="left" cellpadding="5" cellspacing="1" class="mail attachments">
+<thead>
+<tr>
+<th>#</th>
+<th>Filename</th>
+<th>Type</th>
+<th colspan="2">Links</th>
+</tr>
+</thead>
+<tbody>
+{% for attach in attached %}
+<tr>
+<td class='center'>{{ loop.index }}</td>
+<td class='filename'>{{ attach.filename }}</td>
+<td class='center'>{{ attach.filetype }}</td>
+<td class='center'>
+<a href='{{ get_route('attachopen', { id: log.id, attach_id: loop.index0}) }}' target="_blank">Open in Browser</a></td>
+<td class='center'>
+<a href='{{ get_route('attachsave', { id: log.id, attach_id: loop.index0}) }}'>Save</a>
+</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
+
+</div>
+
+<div class='mailbody'>
+{% if textBody %}
+<h3>Mail Body in Text:</h3>
+<hr/>
+{{ textBody|raw }}
+{% else %}
+<h3>Mail Body in HTML:</h3>
+<hr/>
+{{ htmlBody }}
+{% endif %}
+</div>
+
+<script>
+  function toggleDisplay(id, btn = null) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (el.style.display === 'none' || el.style.display === '') {
+      el.style.display = 'block';
+      if (btn) btn.textContent = 'Hide';
+    } else {
+      el.style.display = 'none';
+      if (btn) btn.textContent = 'Show';
+    }
+  }
+</script>
+{% endblock %}

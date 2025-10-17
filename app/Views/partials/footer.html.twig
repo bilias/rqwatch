@@ -1,0 +1,8 @@
+<div class='footer'>
+{{ FOOTER }} &copy; 
+{% if "now"|date("Y") > 2025 %}
+2025 - {{ "now"|date("Y") }}
+{% else %}
+{{ "now"|date("Y") }}
+{% endif %}
+</div>

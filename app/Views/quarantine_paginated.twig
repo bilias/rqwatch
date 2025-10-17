@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+{% import 'macros/paginator.macro.twig' as ui %}
+
+{% block content %}
+<div class="center-container">
+
+<div class='quarantine'>
+
+ <h2 class='descr'>Quarantine
+| Total: {{ totalRecords }} days
+{% if totalRecords > items_per_page %}
+| Displaying {{ items_per_page }} days/page
+{% endif %}
+| {{ totalMails }} mails
+ </h2>
+
+<div class='pagtop'>
+{{ ui.paginator(days, WEB_BASE) }}
+</div>
+
+ <div class="row caption">
+   <div class="cell left">Day</div>
+   <div class="cell right"># of mails</div>
+ </div>
+
+<div class='quarantine_days'>
+{% for day in days %}
+ <div class="row">
+  {% if is_admin %}
+  <div class='cell day'><a href='{{ get_route('admin_quarantine_day', { date: day.day }) }}'>{{ day.day }}</a></div>
+  {% else %}
+  <div class='cell day'><a href='{{ get_route('quarantine_day', { date: day.day }) }}'>{{ day.day }}</a></div>
+  {% endif %}
+  <div class='cell right cnt'>{{ day.cnt }} mails</div>
+ </div>
+{% endfor %}
+</div>
+
+</div>
+</div>
+{% endblock %}

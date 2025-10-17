@@ -1,0 +1,28 @@
+<section>
+
+<div class='users'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th class='userid'>Id</th>
+ <th class='username'>Username</th>
+ <th class='firstname'>First Name</th>
+ <th class='lastname'>Last Name</th>
+ <th class='email'>E-mail</th>
+</tr></thead>
+
+<tbody>
+{% if users %}
+{% for user in users %}
+  <td><a href='{{ get_route('admin_user', { id: user.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
+  <td class='center'>{{ user.username }}</td>
+  <td class='center'>{{ user.firstname }}</td>
+  <td class='center'>{{ user.lastname }}</td>
+  <td class='center'>{{ user.email }}</td>
+{% endfor %}
+{% endif %}
+
+</tbody>
+
+</table>
+</div>
+</section>

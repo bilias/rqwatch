@@ -1,0 +1,32 @@
+{% extends 'minimal.html.twig' %}
+
+{% block content %}
+{% if loginform %}
+<div class='loginform'>
+<span class='logindescr'>User Login</span>
+
+<div class='formlogin'>
+{{ form_start(loginform) }}
+
+<div class="row">
+<div class='info'>   {{ form_label(loginform.username) }}</div>
+<div class='detail'>   {{ form_widget(loginform.username) }}
+	{{ form_errors(loginform.username) }}</div>
+</div>
+
+<div class="row">
+<div class='info'>   {{ form_label(loginform.password) }}</div>
+<div class='detail'>   {{ form_widget(loginform.password) }}
+	{{ form_errors(loginform.password) }}</div>
+</div>
+
+<div class="row btn">
+   {{ form_widget(loginform.submit) }}
+</div>
+
+{{ form_end(loginform) }}
+</div>
+
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+{% import 'macros/paginator.macro.twig' as ui %}
+
+{% block content %}
+
+<div class='pagtop'>
+{{ ui.paginator(users, WEB_BASE) }}
+</div>
+
+{% include 'partials/users.html.twig' %}
+
+<div class='pagbottom'>
+{{ ui.paginator(users, WEB_BASE) }}
+</div>
+
+{% endblock %}

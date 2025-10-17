@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+<div class="center-container">
+
+<div class='active_filters'>
+<span class='descr'>Active Filters</span>
+<ul>
+{% for filter in filters %}
+ <li class='filtername'>{{ filter.filter }} {{ filter.choice }} "{{ filter.value }}"
+ <span class='filtervalue'>
+ {% if is_admin %}
+ <a href="{{ get_route('admin_search_filter_del', { filter_id: loop.index0 }) }}">Remove</a>
+ {% else %}
+ <a href="{{ get_route('search_filter_del', { filter_id: loop.index0 }) }}">Remove</a>
+ {% endif %}
+ </span></li>
+</ul>
+{% else %}
+<li>No filters</li>
+{% endfor %}
+<span class='delall'>
+{% if is_admin %}
+<a href="{{ get_route('admin_search_filter_del') }}">Remove all</a>
+{% else %}
+<a href="{{ get_route('search_filter_del') }}">Remove all</a>
+{% endif %}
+</span>
+</div>
+
+{% if searchform %}
+<div class='searchform'>
+
+<span class='descr'>Add Filters</span>
+
+<div class='formsearch'>
+{{ form_start(searchform) }}
+<div class='search_errors'>
+{{ form_errors(searchform) }}
+</div>
+
+<div class="form-line">
+   {{ form_widget(searchform.filter) }}
+</div>
+<div class="form-line">
+   {{ form_widget(searchform.choice) }}
+</div>
+<div class="form-line row-flex">
+   {{ form_widget(searchform.value) }}
+   {{ form_widget(searchform.search) }}
+</div>
+{{ form_end(searchform) }}
+</div>
+
+<span class="form-errors name">
+{{ form_errors(searchform.value) }}
+</span>
+
+</div>
+{% endif %}
+
+{% if stats %}
+<div class='statistics'>
+<span class='descr'>Statistics</span>
+<ul>
+ <li><span class="left">Total Records:</span> {{ stats.count|number_format }}</li>
+ {% if stats.count > 0 %}
+ <li><span class="left">Stored:</span> {{ stats.stored|number_format }}</li>
+ <li><span class="left">Notifications:</span> {{ stats.notified|number_format }}</li>
+ <li><span class="left">Released:</span> {{ stats.released|number_format }}</li>
+ <li><span class="left">Newest Record:</span> {{ stats.last|date('Y-m-d') }}</li>
+ <li><span class="left">Oldest Record:</span> {{ stats.first|date('Y-m-d') }}</li>
+ {% endif %}
+</ul>
+</div>
+{% endif %}
+
+<div class='reports'>
+<span class='descr'>Results and Reports</span>
+<ul>
+{% if stats.count > 0 %}
+ {% if is_admin %}
+ <li><a href='{{ get_route('admin_search_results') }}'>Show Search Results</a></li>
+ {% else %}
+ <li><a href='{{ get_route('search_results') }}'>Show Search Results</a></li>
+ {% endif %}
+{% else %}
+No results found
+{% endif %}
+</ul>
+
+</div>
+
+</div>
+{% endblock %}

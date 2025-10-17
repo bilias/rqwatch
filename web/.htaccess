@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# must reflect WEB_BASE in .env
+#RewriteBase /sub
+
+# For subdir uncomment bellow
+#RewriteBase /rqwatch
+
+# Serve static files directly if they exist
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Exclude folders/files from rewrite
+RewriteCond %{REQUEST_URI} ^/(api|maps/|favicon\.ico|css/|images/) [NC]
+RewriteRule ^ - [L]
+
+# Route all other requests to index.php
+RewriteRule ^(.*)$ index.php?route=$1 [L,QSA]
+
+</IfModule>

@@ -1,0 +1,50 @@
+{#
+<form id="gotoForm" method="get">
+  <p>
+    Go to message (qid):
+    <input type="text" id="qidInput" name="qid" value="" required>
+    <button type="submit">Go</button>
+  </p>
+</form>
+
+<script>
+ document.getElementById('gotoForm').addEventListener('submit', function(event) {
+	event.preventDefault(); // prevent default form submission
+	const qid = document.getElementById('qidInput').value.trim();
+	if (qid) {
+		// Redirect to /detail/qid/<value>
+		// value is required that's why we add a dummy value
+		const baseUrl = '{{ get_route('detail', { type: 'qid', value: '__PLACEHOLDER__' }) }}';
+		const redirectUrl = baseUrl.replace('__PLACEHOLDER__', encodeURIComponent(qid));
+		window.location.href = redirectUrl;
+	}
+ });
+</script>
+#}
+
+{% if qidform %}
+<div class='qidform'>
+{{ form_start(qidform) }}
+
+<div class='qid_errors'>
+{{ form_errors(qidform) }}
+</div>
+<p>
+   {{ form_label(qidform.qid) }}
+   {{ form_widget(qidform.qid) }}
+   {{ form_widget(qidform.go) }}
+</p>
+{{ form_end(qidform) }}
+
+<span class="form-errors name">
+{{ form_errors(qidform.qid) }}
+</span>
+</div>
+
+{#
+{{ form_start(qidform) }}
+    {{ form_row(qidform.qid) }}
+    {{ form_row(qidform.go) }}
+{{ form_end(qidform) }}
+#}
+{% endif %}

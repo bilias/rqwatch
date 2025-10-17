@@ -1,0 +1,12 @@
+# Untracked files:
+composer.lock
+vendor
+.env
+.htpasswd
+*.swp
+logs/*
+/fpm/
+tmp
+config/config.local.php
+test*
+NOTES

@@ -1,0 +1,84 @@
+<section>
+
+<div class='current_mails descr'>
+{% if date %}
+{{ date }}:
+{% endif %}
+Total {{ totalRecords }} mails
+{% if max_items and totalRecords == max_items %}
+| Limited
+{% endif %}
+{% if totalRecords > items_per_page %}
+| Displaying {{ items_per_page }}/page
+{% endif %}
+{% if refresh_rate %}
+| Refreshing every {{ refresh_rate }} s
+{% endif %}
+</div>
+
+<div class='mails'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th class='circlelink'>#</th>
+ <th class='datetime'>Date/Time</th>
+ <th class='mailfromwidth'>From</th>
+ <th class='mailtowidth'>To</th>
+{#
+ <th class='mailwidth'>MIME-To</th>
+#}
+{% if subject_privacy is same as(false) %}
+ <th class='subjwidth'>Subject</th>
+{% endif %}
+ <th class='size'>Size</th>
+ <th class='score'>Score</th>
+ <th class='action'>Action</th>
+</tr></thead>
+
+<tbody>
+{% if logs %}
+{% for log in logs %}
+ {% set row_class = get_row_class(log.action, log.symbols) %}
+ <tr class="{{ row_class }}">
+  {% if is_admin %}
+  <td><a href='{{ get_route('admin_detail', { type: 'id', value: log.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
+  {% else %}
+  <td><a href='{{ get_route('detail', { type: 'id', value: log.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
+  {% endif %}
+  <td class='date center'>{{ log.created_at|date("Y-m-d") }} {{ log.created_at|date("H:i:s") }}</td>
+  <td>{{ truncate(decodeEmail(log.mail_from),32) }}</td>
+  <td>{{ truncate(log.rcpt_to, 25) }}</td>
+{#
+{% if log.mime_to %}
+  <td>{{ truncate(log.mime_to, 20) }}</td>
+{% else %}
+  <td>&nbsp;</td>
+{% endif %}
+#}
+{% if subject_privacy is same as(false) %}
+  <td>{{ truncate(log.subject, 100) }}</td>
+{% endif %}
+  <td class='right'>{{ formatSizeUnits(log.size) }}</td>
+  <td class='right'>{{ log.score }}</td>
+
+{% set log_action = log.action %}
+{% if row_class == 'whitelist' %}
+  {% set log_action = 'whitelisted, ' ~ log_action %}
+{% endif %}
+{% if row_class == 'blacklist' %}
+  {% set log_action = 'blacklisted, ' ~ log_action %}
+{% endif %}
+
+{% if log.has_virus %}
+  <td class='center action'>{{ log_action }}<br/><span class='virus'>{{ check_virus_from_all(log.symbols) }}</span></td>
+{% else %}
+  <td class='center'>{{ log_action }}</td>
+{% endif %}
+ </tr>
+{% endfor %}
+{% endif %}
+
+</tbody>
+
+</table>
+</div>
+</section>

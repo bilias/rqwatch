@@ -1,0 +1,37 @@
+{% macro paginator(logs, url_prefix) %}
+{% set totalPages = logs.lastPage %}
+{% set currentPage = logs.currentPage %}
+{% set range = 2 %}
+{% if totalPages > 1 %}
+ <div class="pagination">
+ {% if currentPage > 1 %}
+ <a href="{{ url_prefix }}{{ logs.url(1) }}">[1]</a>
+ <a href="{{ url_prefix }}{{ logs.url(currentPage - 1) }}">&nbsp;Prev&nbsp;</a>
+{% endif %}
+{% if currentPage > range + 2 %}
+ <span>...</span>
+{% endif %}
+{% set start = max(currentPage - range, 1) %}
+{% set end = min(currentPage + range, totalPages) %}
+{% if currentPage <= range %}
+{% set end = min(5, totalPages) %}
+{% elseif currentPage >= totalPages - range %}
+{% set start = max(totalPages - 4, 1) %}
+{% endif %}
+{% for page in start..end %}
+ {% if page == currentPage %}
+  <strong>{{ page }}</strong>
+ {% else %}
+  <a href="{{ url_prefix }}{{ logs.url(page) }}">{{ page }}</a>
+ {% endif %}
+{% endfor %}
+{% if currentPage < totalPages - range - 1 %}
+ <span>...</span>
+{% endif %}
+{% if currentPage < totalPages %}
+ <a href="{{ url_prefix }}{{ logs.url(currentPage + 1) }}">&nbsp;Next&nbsp;</a>
+ <a href="{{ url_prefix }}{{ logs.url(totalPages) }}">[{{ totalPages }}]</a>
+{% endif %}
+</div>
+{% endif %}
+{% endmacro %}

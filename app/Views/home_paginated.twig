@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+{% import 'macros/paginator.macro.twig' as ui %}
+
+{% block content %}
+
+{% include 'partials/colorcodes.html.twig' %}
+{#
+<div style="font-family: sans-serif; font-size: 18px;">
+  <p style="color: #4a7d70;">Color: #4a7d70</p>
+  <p style="color: #3b6f62;">Color: #3b6f62</p>
+  <p style="color: #2e5f52;">Color: #2e5f52</p>
+  <p style="color: #1f4f42;">Color: #1f4f42</p>
+  <p style="color: #146e50;">Color: #146e50</p>
+  <p style="color: #0c5a40;">Color: #0c5a40</p>
+</div>
+#}
+
+<div class='pagtop'>
+{{ ui.paginator(logs, WEB_BASE) }}
+</div>
+
+{% include 'partials/mails.html.twig' %}
+
+<div class='pagbottom'>
+{{ ui.paginator(logs, WEB_BASE) }}
+</div>
+
+{% endblock %}

@@ -1,0 +1,3 @@
+# /etc/cron.d/rqwatch
+*/5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:notifications -m -l
+01 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:quarantine -d -l

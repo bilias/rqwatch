@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+{% if mailaliasform %}
+<div class='userform'>
+<span class='descr'>Add E-mail Alias</span>
+
+{% if userdelform %}
+<div class='formdeluser'>
+{{ form_start(userdelform) }}
+{{ form_widget(userdelform.delete) }}
+{{ form_end(userdelform) }}
+</div>
+{% endif %}
+
+<div class='formuser'>
+{{ form_start(mailaliasform) }}
+
+<div class='user_errors'>
+{% if error %}
+{{ error }}
+{% endif %}
+{{ form_errors(mailaliasform) }}
+</div>
+
+<div class="row">
+<div class='info'>{{ form_label(mailaliasform.username) }}</div>
+<div class='detail'>{{ form_widget(mailaliasform.username) }}
+	{{ form_errors(mailaliasform.username) }}</div>
+</div>
+<div class="row">
+<div class='info'>{{ form_label(mailaliasform.alias) }}</div>
+<div class='detail'>{{ form_widget(mailaliasform.alias) }}
+	{{ form_errors(mailaliasform.alias) }}</div>
+</div>
+<div class="row btn">
+   {{ form_widget(mailaliasform.add) }}
+</div>
+
+{{ form_end(mailaliasform) }}
+</div>
+
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,44 @@
+{
+    "name": "bilias/rqwatch",
+    "description": "Rqwatch",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "classmap": [
+            "app/"
+        ]
+    },
+    "require": {
+        "php": "^8.3",
+        "ext-mysqlnd": "*",
+        "ext-pdo": "*",
+        "ext-ldap": "*",
+        "ext-redis": "*",
+        "ext-mbstring": "*",
+        "ext-mailparse": "*",
+        "php-mime-mail-parser/php-mime-mail-parser": "^9.0",
+        "vlucas/phpdotenv": "^5.6",
+        "monolog/monolog": "^3.9",
+        "illuminate/database": "^12.19",
+        "illuminate/pagination": "^12.19",
+        "twig/twig": "^3.21",
+        "symfony/routing": "^7.3",
+        "symfony/http-foundation": "^7.3",
+        "symfony/http-kernel": "^7.3",
+        "symfony/form": "^7.3",
+        "symfony/security-csrf": "^7.3",
+        "symfony/validator": "^7.3",
+        "symfony/twig-bridge": "^7.3",
+        "symfony/translation": "^7.3",
+        "symfony/config": "^7.3",
+        "symfony/password-hasher": "^7.3",
+        "symfony/expression-language": "^7.3",
+        "symfony/mailer": "^7.3",
+        "symfony/http-client": "^7.3",
+        "symfony/console": "^7.3",
+        "symfony/lock": "^7.3",
+        "maxmind-db/reader": "^1.12.1",
+        "symfony/cache": "^7.3"
+    }
+}

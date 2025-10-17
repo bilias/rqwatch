@@ -1,0 +1,245 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+{% if error %}
+{{ error }}
+{% else %}
+<div class="maildetail">
+ <div class="row">
+   <div class='info'>Date:</div>
+   <div class='detail'>{{ log.created_at }}</div>
+ </div>
+{% if subject_privacy is same as(false) %}
+ <div class="row">
+   <div class='info'>Subject:</div>
+   <div class='detail'>{{ log.subject }}</div>
+ </div>
+{% endif %}
+ {% if is_admin %}
+ <div class="row">
+   <div class='info'>Server:</div>
+   <div class='detail'>{{ log.server }}</div>
+ </div>
+ {% endif %}
+ <div class="row">
+   <div class='info'>Received from:</div>
+   <div class='detail'>
+{% if log.ip == 'unknown' %}
+{{ log.ip }}
+{% else %}
+{% if log.ip %}
+{{ log.ip }} ({{ gethostbyaddr(log.ip) }})
+{% if ip_country %}
+({{ ip_country }})
+{% endif %}
+{% endif %}
+{% endif %}
+   </div>
+ </div>
+{% if relays %}
+ <div class="row">
+   <div class='info'>Mail Relays:</div>
+   <div class='detail'>
+{% for relay in relays %}
+	{{ relay.ip }} ({{ relay.host }})
+	{% if relay.country %}
+	({{ relay.country }})
+	{% endif %}
+	<br/>
+{% endfor %}
+	</div>
+ </div>
+{% endif %}
+ <div class="row">
+   <div class='info'>Queue ID:</div>
+   <div class='detail'>{{ log.qid }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Mail From (original):</div>
+   <div class='detail'>{{ log.mail_from }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Mail From (decoded):</div>
+   <div class='detail'>{{ decodeEmail(log.mail_from) }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>MIME From:</div>
+   <div class='detail'>{{ log.mime_from }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>MIME To:</div>
+   <div class='detail'>{{ log.mime_to }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Mail To:</div>
+   <div class='detail'>{{ log.rcpt_to }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Action taken:</div>
+   <div class='detail'><span class='{{ get_row_class(log.action) }}'>{{ log.action }}</span>
+	({{ getDelivery(log.action) }})</div>
+ </div>
+ {% set row_class = get_row_class(log.action, log.symbols) %}
+ {% if row_class == 'whitelist' %}
+ <div class="row">
+   <div class='info'>Whitelisted:</div>
+   <div class='detail'><span class='{{ row_class }}'>Yes</span></div>
+ </div>
+ {% endif %}
+ {% if row_class == 'blacklist' %}
+ <div class="row">
+   <div class='info'>Blacklisted:</div>
+   <div class='detail'><span class='{{ row_class }}'>Yes</span></div>
+ </div>
+ {% endif %}
+ <div class="row">
+   <div class='info'>Score:</div>
+   <div class='detail'>{{ log.score }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Size:</div>
+   <div class='detail'>{{ formatSizeUnits(log.size) }}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Stored:</div>
+   <div class='detail'>
+{% if not log.mail_stored %}
+No 
+{% else %}
+<strong>Yes</strong>:
+{% endif %} {# log.mail_stored #}
+{% if log.mail_location %}
+	{% set mailurl = get_route('showmail', { id: log.id }) %}
+	{# open in new window #}
+	{# <a class='stored' href='{{ mailurl }}' onclick="window.open('{{ mailurl }}', 'newwindow', 'width=1024,height=768'); return false;"> #}
+	{% if log.mail_stored %}
+		<a class='stored' href='{{ mailurl }}' target='_blank'>
+			{% if is_admin %}
+				{{ log.mail_location }}
+			{% elseif stripped_mail_location %}
+				{{ stripped_mail_location }}
+			{% else %}
+				{{ log.mail_location }}
+			{% endif %}</a> {# is_admin #}
+			<span class='detail'>(Click to see mail and possible attachments)</span>
+	{% else %} {# not log.mail_stored #}
+		{% if is_admin %}
+			{{ log.mail_location }}
+		{% elseif stripped_mail_location %}
+			{{ stripped_mail_location }}
+		{% else %}
+			{{ log.mail_location }}
+		{% endif %} {# is_admin #}
+		<span class='detail'>(Has been purged from quarantine)</span>
+	{% endif %} {# log.mail_stored #}
+{% endif %} {# log.mail_location #}
+  </div>
+ </div>
+ <div class="row">
+   <div class='info'>Notified:</div>
+   <div class='detail'>
+{% if log.notified %}
+<strong>Yes</strong>: {{ log.notify_date }}
+{% else %}
+No
+{% endif %}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Released:</div>
+   <div class='detail'>
+{% if log.released %}
+<strong>Yes</strong>: {{ log.release_date }}
+{% else %}
+No
+{% endif %}</div>
+ </div>
+ <div class="row">
+   <div class='info'>Has Virus:</div>
+   <div class='detail'>
+{% if log.has_virus %}
+<strong>Yes</strong>:
+<span class='virus'>{{ virus_found }}</span>
+{% else %}
+No
+{% endif %}
+   </div>
+ </div>
+ <div class="row">
+   <div class='info'>Rspamd Symbols:</div>
+   <div class='detail'>
+{% if is_admin %}
+	 <button onclick="toggleDisplay('symbols', this)">Hide</button>
+	 <div id='symbols' style='display:block;'>
+{% else %}
+	 <button onclick="toggleDisplay('symbols', this)">Show</button>
+	 <div id='symbols' style='display:none;'>
+{% endif %}
+{% for symbol in symbols %}
+{{ symbol }}<br/>
+{% endfor %}
+    </div>
+   </div>
+ </div>
+ <div class="row">
+   <div class='info'>Mail Headers:</div>
+   <div class='detail'>
+{% if is_admin %}
+    <button onclick="toggleDisplay('mailheaders', this)">Hide</button>
+	 <div id='mailheaders' style='display:block;'>
+{% else %}
+    <button onclick="toggleDisplay('mailheaders', this)">Show</button>
+	 <div id='mailheaders' style='display:none;'>
+{% endif %}
+	 <pre>{{ log.headers }}</pre>
+	 </div>
+	</div>
+ </div>
+ {% if mailreleaseform %}
+<div class='releaseform'>
+ {{ form_start(mailreleaseform) }}
+
+ <div class="row">
+  <div class='info'>Release mail from quarantine</div>
+  <div class='detail'>{{ form_widget(mailreleaseform.release, {'disabled': mailreleaseform_disabled|default(false)}) }}
+  to original recipient: {{ form_widget(mailreleaseform.email) }}
+  {{ form_errors(mailreleaseform.release) }}</div>
+  <div class='info'>&nbsp;</div>
+  <div class='detail'>{{ form_widget(mailreleaseform.release_alt, {'disabled': mailreleaseform_disabled|default(false)}) }}
+  to alternate recipient: {{ form_widget(mailreleaseform.email_alt, {'disabled': mailreleaseform_disabled|default(false)}) }}
+  {{ form_errors(mailreleaseform.release_alt) }}
+  {{ form_errors(mailreleaseform.email_alt) }}</div>
+  <div class='info'>&nbsp;</div>
+  <div class='detail'>{{ form_widget(mailreleaseform.submit, {'disabled': mailreleaseform_disabled|default(false)}) }}
+{% if mailreleaseform_disabled %}
+{% if is_admin %}
+<span style="color: red;">$mail_from is empty. Please define it in config.local.php</span>
+{% else %}
+Mail cannot be released. Contact administrator
+{% endif %}
+{% endif %}
+
+  </div>
+ </div>
+
+ {{ form_end(mailreleaseform) }}
+ </div>
+ {% endif %}
+
+</div>
+{% endif %}
+
+<script>
+  function toggleDisplay(id, btn = null) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    if (el.style.display === 'none' || el.style.display === '') {
+      el.style.display = 'block';
+      if (btn) btn.textContent = 'Hide';
+    } else {
+      el.style.display = 'none';
+      if (btn) btn.textContent = 'Show';
+    }
+  }
+</script>
+{% endblock %}

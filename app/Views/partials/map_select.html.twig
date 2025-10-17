@@ -1,0 +1,21 @@
+<div class='mapform'>
+{# <span class='descr'>Maps</span> #}
+
+<div class='formmap'>
+{{ form_start(mapselectform) }}
+
+<div class="row">
+<div class='info'>   {{ form_label(mapselectform.map_name) }}</div>
+<div class='detail'>   {{ form_widget(mapselectform.map_name) }}
+   {{ form_errors(mapselectform.map_name) }}</div>
+</div>
+
+<div class="row">
+  <div class="info"></div>
+  <div class="detail">
+    {{ form_widget(mapselectform.select) }}
+  </div>
+</div>
+
+{{ form_end(mapselectform) }}
+</div>

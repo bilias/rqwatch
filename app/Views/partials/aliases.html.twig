@@ -1,0 +1,47 @@
+<section>
+
+<div class='current_mails descr'>
+{% if date %}
+{{ date }}:
+{% endif %}
+Total E-mail Aliases: {{ totalRecords }}
+{% if totalRecords > items_per_page %}
+| Displaying {{ items_per_page }}/page
+{% endif %}
+<div id="inside_links">
+<ul>
+<li><a href='{{ get_route('admin_aliases_add') }}'>Add New Alias</a></li>
+</ul>
+</div>
+</div>
+
+<div class='aliases'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th>Username</th>
+ <th>E-mail</th>
+ <th>Alias</th>
+ <th>Created</th>
+ <th>Modified</th>
+ <th>Delete</th>
+</tr></thead>
+
+<tbody>
+{% if aliases %}
+{% for alias in aliases %}
+  <tr class='clean'>
+  <td class='center'>{{ alias.username }}</td>
+  <td class='center'>{{ alias.email }}</td>
+  <td class='center'>{{ alias.alias }}</td>
+  <td class='center'>{{ alias.created_at }}</td>
+  <td class='center'>{{ alias.updated_at }}</td>
+  <td class='center'><a href="{{ get_route('admin_aliases_del', { id: alias.id }) }}" onclick="return confirm('Are you sure you want to delete alias {{ alias.alias }} for user {{ alias.username }}?')">Delete</a></td>
+  </tr>
+{% endfor %}
+{% endif %}
+
+</tbody>
+
+</table>
+</div>
+</section>

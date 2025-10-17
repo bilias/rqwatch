@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+
+<section>
+
+{% if user %}
+{% if is_admin %}
+<div class="row">
+<a href='{{ get_route('admin_useredit', { id: user.id }) }}'>Edit</a>
+</div>
+{% endif %}
+
+<div class='user'>
+
+<div class="row">
+<div class='info'>Username</div>
+<div class='detail'>{{ user.username }}</div>
+</div>
+
+<div class="row">
+<div class='info'>E-mail</div>
+<div class='detail'>{{ user.email }}</div>
+</div>
+
+<div class="row">
+<div class='info'>E-mail Aliases</div>
+<div class='detail'>
+{% if mail_aliases %}
+{{ mail_aliases }}
+{% else %}
+-
+{% endif %}
+</div>
+</div>
+
+{% if is_admin %}
+<div class="row">
+<div class='info'>Admin</div>
+<div class='detail'>
+{% if user.is_admin %}
+Yes
+{% else %}
+No
+{% endif %}
+</div>
+</div>
+{% endif %}
+
+<div class="row">
+<div class='info'>Auth Provider</div>
+<div class='detail'>{{ getAuthProvider(user.auth_provider) }}</div>
+</div>
+
+<div class="row">
+<div class='info'>Last Login</div>
+<div class='detail'>
+{% if user.last_login %}
+{{ user.last_login }}
+{% else %}
+Never
+{% endif %}
+</div>
+</div>
+
+<div class="row">
+<div class='info'>Created</div>
+<div class='detail'>{{ user.created_at }}</div>
+</div>
+
+<div class="row">
+<div class='info'>Modified</div>
+<div class='detail'>{{ user.updated_at }}</div>
+</div>
+
+{% if profileform %}
+<div class='userform'>
+{{ form_start(profileform) }}
+
+<div class="row">
+<div class='info'>   {{ form_label(profileform.firstname) }}</div>
+<div class='detail'>   {{ form_widget(profileform.firstname) }}
+   {{ form_errors(profileform.firstname) }}</div>
+</div>
+
+<div class="row">
+<div class='info'>   {{ form_label(profileform.lastname) }}</div>
+<div class='detail'>   {{ form_widget(profileform.lastname) }}
+   {{ form_errors(profileform.lastname) }}</div>
+</div>
+
+<div class="row">
+<div class='info'>  {{ form_label(profileform.password.first) }}</div>
+<div class='detail'>   {{ form_widget(profileform.password.first) }}
+   {{ form_errors(profileform.password.first) }}</div>
+</div>
+
+<div class="row">
+<div class='info'>  {{ form_label(profileform.password.second) }}</div>
+<div class='detail'> {{ form_widget(profileform.password.second) }}
+   {{ form_errors(profileform.password.second) }}</div>
+</div>
+
+{{ form_end(profileform) }}
+</div>
+{% endif %}
+
+</div>
+
+{% endif %}
+
+</section>
+{% endblock %}

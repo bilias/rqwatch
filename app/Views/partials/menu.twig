@@ -1,0 +1,58 @@
+{% if is_admin %}
+{% set homepage = get_route('admin_homepage') %}
+{% set day_logs = get_route('admin_day_logs') %}
+{% set maps = get_route('admin_maps') %}
+{% set quarantine = get_route('admin_quarantine') %}
+{% set search = get_route('admin_search') %}
+{% set users = get_route('admin_users') %}
+{% set aliases = get_route('admin_aliases') %}
+{% else %}
+{% set homepage = get_route('homepage') %}
+{% set day_logs = get_route('day_logs') %}
+{% set maps = get_route('maps') %}
+{% set quarantine = get_route('quarantine') %}
+{% set search = get_route('search') %}
+{% endif %}
+{% set profile = get_route('profile') %}
+{% set logout = get_route('logout') %}
+
+<div>
+  <ul id="menu" class="mainmenu">
+    <li class="{{ current_route == homepage ? 'active' : '' }}">
+      <a href="{{ homepage }}">All</a>
+    </li>
+    <li class="{{ current_route == day_logs ? 'active' : '' }}">
+      <a href="{{ day_logs }}">Today</a>
+    </li>
+{% if maps %}
+{% set mapSingularBase = maps|replace({'/maps': '/map'}) %}
+{% set isMapRoute = current_route starts with maps or current_route starts with mapSingularBase %}
+
+    <li class="{{ isMapRoute ? 'active' : '' }}">
+      <a href="{{ maps }}">Maps</a>
+    </li>
+{% endif %}
+    <li class="{{ current_route == quarantine ? 'active' : '' }}">
+      <a href="{{ quarantine }}">Quarantine</a>
+    </li>
+    <li class="{{ current_route == search ? 'active' : '' }}">
+      <a href="{{ search }}">Search</a>
+    </li>
+{% if is_admin %}
+    <li class="{{ current_route == users ? 'active' : '' }}">
+      <a href="{{ users }}">Users</a>
+    </li>
+    <li class="{{ current_route == aliases ? 'active' : '' }}">
+      <a href="{{ aliases }}">Aliases</a>
+    </li>
+{% endif %}
+{% if auth_provider == "DB" %}
+    <li class="profilelink {{ current_route == profile ? 'active' : '' }}">
+      <a href="{{ profile }}">Profile</a>
+    </li>
+{% endif %}
+    <li class="logoutlink"><a href="{{ logout }}">Logout</a>
+    </li>
+  </ul>
+</div>
+

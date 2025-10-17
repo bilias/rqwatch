@@ -1,0 +1,73 @@
+</div>
+<section>
+
+<div class='current_mails descr'>
+All Generic/Combined Map Entries | Total: {{ totalRecords }} entries
+{% if totalRecords > items_per_page %}
+| Displaying {{ items_per_page }}/page
+{% endif %}
+</div>
+
+{% if map_entries is not empty %}
+
+<div class='users'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+<thead><tr>
+ <th>Map</th>
+ <th>{{ field_descriptions.smtp_from }}</th>
+ <th>{{ field_descriptions.mime_from }}</th>
+ <th>{{ field_descriptions.rcpt_to }}</th>
+ <th>{{ field_descriptions.ip }}</th>
+ <th>Created</th>
+ <th>Creator</th>
+ <th>Delete</th>
+</tr></thead>
+
+<tbody>
+    {% for entry in map_entries %}
+      <tr class='clean'>
+			{% if is_admin %}
+			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
+			{% else %}
+			<td class='center'><a href="{{ get_route('map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
+			{% endif %}
+			<td class='center'>{{ entry.smtp_from }}</td>
+			<td class='center'>{{ entry.mime_from }}</td>
+			<td class='center'>{{ entry.rcpt_to }}</td>
+			<td class='center'>{{ entry.ip }}</td>
+			<td class='center'>{{ entry.created_at }}</td>
+			<td class='center'>{{ entry.map_username }}</td>
+			{% set exclude_keys = ['id', 'user_id', 'map_name', 'map_description', 'created_at', 'updated_at'] %}
+			{% set entry_str = '' %}
+
+			{% for key, value in entry.attributes %}
+			 {% if value is not null and key not in exclude_keys %}
+			  {% set label = field_descriptions[key] is defined ? field_descriptions[key] : key %}
+			  {% set entry_str = entry_str ~ label ~ ': ' ~ value ~ ' ' %}
+			 {% endif %}
+			{% endfor %}
+
+{% if is_admin %}
+			<td class='center'><a href="{{ get_route('admin_map_del_entry', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str|trim }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
+			{% else %}
+  {% if entry.user_can_delete %}
+			<td class='center'><a href="{{ get_route('map_del_entry', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str|trim }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
+  {% else %}
+			<td class='center'>-</td>
+  {% endif %}
+{% endif %}
+      </tr>
+    {% endfor %}
+</tbody>
+
+</table>
+</div>
+
+{% else %}
+    No entries found
+{% endif %}
+
+</div>
+
+</section>

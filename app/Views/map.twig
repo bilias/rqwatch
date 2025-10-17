@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+<div class="center-container">
+
+{% if mapselectform %}
+{% include 'partials/map_select.html.twig' %}
+{% endif %}
+
+{% include 'partials/map.html.twig' %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+{% if userform %}
+<div class='userform'>
+<span class='descr'>Add (DB) User</span>
+
+{% if userdelform %}
+<div class='formdeluser'>
+{{ form_start(userdelform) }}
+{{ form_widget(userdelform.delete) }}
+{{ form_end(userdelform) }}
+</div>
+{% endif %}
+
+<div class='formuser'>
+{{ form_start(userform) }}
+
+<div class='user_errors'>
+{% if error %}
+{{ error }}
+{% endif %}
+{{ form_errors(userform) }}
+</div>
+
+<div class="row">
+<div class='info'>{{ form_label(userform.username) }}</div>
+<div class='detail'>{{ form_widget(userform.username) }}
+	{{ form_errors(userform.username) }}</div>
+</div>
+<div class="row">
+<div class='info'>{{ form_label(userform.email) }}</div>
+<div class='detail'>{{ form_widget(userform.email) }}
+	{{ form_errors(userform.email) }}</div>
+</div>
+<div class="row">
+<div class='info'>{{ form_label(userform.firstname) }}</div>
+<div class='detail'>{{ form_widget(userform.firstname) }}
+	{{ form_errors(userform.firstname) }}</div>
+</div>
+<div class="row">
+<div class='info'>{{ form_label(userform.lastname) }}</div>
+ <div class='detail'>  {{ form_widget(userform.lastname) }}
+	{{ form_errors(userform.lastname) }}</div>
+</div>
+<div class="row">
+<div class='info'>{{ form_label(userform.password.first) }}</div>
+<div class='detail'>{{ form_widget(userform.password.first) }}
+	{{ form_errors(userform.password.first) }}</div>
+</div>
+<div class="row">
+<div class='info'>{{ form_label(userform.password.second) }}</div>
+<div class='detail'>{{ form_widget(userform.password.second) }}
+	{{ form_errors(userform.password.second) }}</div>
+</div>
+<div class="row">
+<div class='info'>{{ form_label(userform.is_admin) }}</div>
+ <div class='detail'>{{ form_widget(userform.is_admin) }}
+	{{ form_errors(userform.is_admin) }}</div>
+</div>
+<div class="row btn">
+   {{ form_widget(userform.add) }}
+</div>
+
+{{ form_end(userform) }}
+</div>
+
+</div>
+{% endif %}
+{% endblock %}
