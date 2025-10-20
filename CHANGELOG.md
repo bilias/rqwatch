@@ -5,7 +5,7 @@
 ## Version v1.6.7 - Released: 2025-10-20
 
 ### 2025-10-20
-- Tagged v1.6.6
+- Tagged v1.6.7
 - Github release
 
 ### 2025-10-16
