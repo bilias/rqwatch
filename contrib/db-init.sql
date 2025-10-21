@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#CREATE DATABASE /*!32312 IF NOT EXISTS*/ `rqwatch` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `rqwatch` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 
 USE `rqwatch`;
 
-#DROP TABLE IF EXISTS `mail_aliases`;
-#DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `mail_aliases`;
+DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE users (
  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -35,7 +35,8 @@ CREATE TABLE mail_aliases (
     ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-#DROP TABLE IF EXISTS `maps_combined`;
+DROP TABLE IF EXISTS `maps_combined`;
+
 CREATE TABLE maps_combined (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   map_name VARCHAR(64) NOT NULL,
@@ -44,7 +45,7 @@ CREATE TABLE maps_combined (
   rcpt_to VARCHAR(255) DEFAULT NULL,
   mime_from VARCHAR(255) DEFAULT NULL,
   mime_to VARCHAR(255) DEFAULT NULL,
-  disabled` TINYINT(1) NOT NULL DEFAULT '0',
+  disabled TINYINT(1) NOT NULL DEFAULT '0',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -56,12 +57,13 @@ CREATE TABLE maps_combined (
   KEY `map_name_updated_at_index` (`map_name`,`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-#DROP TABLE IF EXISTS `map_activity_logs`;
+DROP TABLE IF EXISTS `map_activity_logs`;
+
 CREATE TABLE `map_activity_logs` (
   `map_name` varchar(255) NOT NULL,
   `last_changed_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`map_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO map_activity_logs (map_name) VALUES
 ('mail_from_rcpt_to_blacklist'),
@@ -84,12 +86,13 @@ ON DUPLICATE KEY UPDATE map_name = map_name;
 #  INDEX map_name_index (map_name)
 #) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-#DROP TABLE IF EXISTS `maps_custom`;
+DROP TABLE IF EXISTS `maps_custom`;
+
 CREATE TABLE maps_custom (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   map_name VARCHAR(64) NOT NULL,   -- e.g. body_regex, url_regex, subject_regex
   pattern TEXT NOT NULL,           -- the actual (regex) pattern
-  disabled` TINYINT(1) NOT NULL DEFAULT '0',
+  disabled TINYINT(1) NOT NULL DEFAULT '0',
   score int(11) DEFAULT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -98,7 +101,8 @@ CREATE TABLE maps_custom (
   INDEX map_name_index (map_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-#DROP TABLE IF EXISTS `custom_map_config`;
+DROP TABLE IF EXISTS `custom_map_config`;
+
 CREATE TABLE custom_map_config (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   map_name VARCHAR(64) NOT NULL,   -- e.g. body_regex, url_regex, subject_regex
@@ -119,7 +123,7 @@ CREATE TABLE custom_map_config (
 # (4, 'from_whitelist', 'Mail/MIME From Whitelist', 'from', 'From', NOW(), NOW()),
 # (5, 'from_blacklist', 'Mail/MIME From Blacklist', 'from', 'From', NOW(), NOW());
 
-#DROP TABLE IF EXISTS `mail_logs`;
+DROP TABLE IF EXISTS `mail_logs`;
 
 CREATE TABLE `mail_logs` (
  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -156,6 +160,6 @@ CREATE TABLE `mail_logs` (
   KEY `mime_from_index` (`mime_from`),
   KEY `rcpt_to_index` (`rcpt_to`),
   KEY `mime_to_index` (`mime_to`),
-  KEY `mail_stored_index` (`mail_stored`)
+  KEY `mail_stored_index` (`mail_stored`),
   KEY `notification_pending_index` (`notification_pending`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
