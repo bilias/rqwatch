@@ -11,6 +11,6 @@ config/config.local.php
 test*
 *org
 NOTES
-README.md.orig.*
-README.md.toc.*
+*.md.orig.*
+*.md.toc.*
 gh-md-toc
