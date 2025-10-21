@@ -15,3 +15,6 @@
 
 ### Authentication
 - OpenID Authentication 
+
+### UI
+- Responsive design
