@@ -61,15 +61,15 @@ $routes->add('admin_search_results', new Route(
 ));
 
 $routes->add('reports', new Route(
-	'/reports/{field}',
-	[ '_controller' => 'App\\Controllers\\MailLogController::showReports' ],
-	[ 'field' => '[a-zA-Z_0-9]{1,64}' ]
+	'/reports/{field}/{mode}',
+	[ '_controller' => 'App\\Controllers\\MailLogController::showReports', 'mode' => 'count' ],
+	[ 'field' => '[a-zA-Z_0-9]{1,64}', 'mode' => 'count|volume' ]
 ));
 
 $routes->add('admin_reports', new Route(
-	'/admin/reports/{field}',
-	[ '_controller' => 'App\\Controllers\\MailLogController::showReports' ],
-	[ 'field' => '[a-zA-Z_0-9]{1,64}' ]
+	'/admin/reports/{field}/{mode}',
+	[ '_controller' => 'App\\Controllers\\MailLogController::showReports', 'mode' => 'count'],
+	[ 'field' => '[a-zA-Z_0-9]{1,64}', 'mode' => 'count|volume' ]
 ));
 
 $routes->add('day_logs', new Route(

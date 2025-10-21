@@ -10,6 +10,7 @@
  <div class="row caption">
    <div class="cell left">{{ field|replace({'_': ' '})|upper }}</div>
    <div class="cell right"># of mails</div>
+   <div class="cell right">Total size</div>
  </div>
 
 <div class='quarantine_days'>
@@ -32,6 +33,7 @@
   {% endif %}
   </div>
   <div class='cell right cnt'>{{ log.total }}</div>
+  <div class='cell right cnt'>{{ formatSizeUnits(log.total_size) }}</div>
  </div>
 {% endfor %}
 </div>

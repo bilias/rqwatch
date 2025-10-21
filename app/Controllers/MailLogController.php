@@ -176,7 +176,7 @@ class MailLogController extends ViewController
 		]));
 	}
 
-	public function showReports(string $field): Response {
+	public function showReports(string $field, string $mode = 'count'): Response {
 		if (empty($field) || !in_array($field, MailLog::REPORT_FIELDS)) {
 			$this->flashbag->add('error', "Field '{$field}' does not exist");
 			$this->initUrls();
@@ -204,7 +204,7 @@ class MailLogController extends ViewController
 		$service = new MailLogService($this->getFileLogger(), $this->session);
 
 		// has applyUserScope
-		$logs = $service->showReports($filters, $field)->toArray();
+		$logs = $service->showReports($filters, $field, $mode)->toArray();
 
 		return new Response($this->twig->render('reports.twig', [
 			'qidform' => $qidform->createView(),

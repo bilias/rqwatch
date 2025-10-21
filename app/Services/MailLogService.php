@@ -285,27 +285,27 @@ class MailLogService
 		return $logs;
 	}
 
-	public function showReports(array $filters, string $field): ?Collection {
+	public function showReports(array $filters, string $field, string $mode = 'count'): ?Collection {
 		switch($field) {
 			case 'mail_from_domain':
 			case 'rcpt_to_domain':
 			case 'mime_from_domain':
 			case 'mime_to_domain':
 				$baseField = str_replace('_domain', '', $field);
-				$query = MailLog::selectRaw("LOWER(TRIM(TRAILING '>' FROM SUBSTRING_INDEX({$baseField}, '@', -1))) AS {$field}, COUNT(*) AS total")
+				$query = MailLog::selectRaw("LOWER(TRIM(TRAILING '>' FROM SUBSTRING_INDEX({$baseField}, '@', -1))) AS {$field}, COUNT(*) AS total, SUM(size) as total_size")
 				                ->where($baseField, 'LIKE', '%@%')
 				                ->groupBy($field)
 				                ->orderByDesc('total');
 				break;
 			case 'date':
-				$query = MailLog::selectRaw('DATE(created_at) AS date, COUNT(*) AS total')
+				$query = MailLog::selectRaw('DATE(created_at) AS date, COUNT(*) AS total, SUM(size) as total_size')
 				                ->groupBy(DB::raw('DATE(created_at)'))
 									 ->orderByDesc('date');
 				break;
 			default:
 				//$fields = [ $field, DB::raw('count(*) as total') ];
 				//$query = MailLog::select($fields);
-				$query = MailLog::selectRaw("LOWER({$field}) AS {$field}, COUNT(*) AS total")
+				$query = MailLog::selectRaw("LOWER({$field}) AS {$field}, COUNT(*) AS total, SUM(size) as total_size")
 				                ->groupBy($field);
 				break;
 		}
@@ -313,8 +313,13 @@ class MailLogService
 		$query = $this->getQueryByFilters($query, $filters);
 		$query = $this->applyUserScope($query);
 
-		$query->orderBy('total', 'DESC')
-		      ->limit(Config::get('top_reports'));
+		if ($mode === 'volume') {
+			$query->orderBy('total_size', 'DESC');
+		} else {
+			$query->orderBy('total', 'DESC');
+		}
+
+		$query->limit(Config::get('top_reports'));
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
