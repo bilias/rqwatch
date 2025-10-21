@@ -210,6 +210,7 @@ class MailLogController extends ViewController
 			'qidform' => $qidform->createView(),
 			'field' => array_keys($logs[0])[0],
 			'reportFields' => MailLog::REPORT_DYN_FIELDS,
+			'mode' => $mode,
 			'logs' => $logs,
 			'items_per_page' => $this->items_per_page,
 			'max_items' => Config::get('top_reports'),

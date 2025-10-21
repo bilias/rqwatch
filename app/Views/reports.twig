@@ -5,7 +5,13 @@
 
 <div class='quarantine'>
 
- <span class='descr'>Top {{ max_items }} by {{ field|replace({'_': ' '})|upper }}</span>
+ <span class='descr'>Top {{ max_items }} {{ field|replace({'_': ' '})|upper }}
+ {% if mode == 'volume' %}
+  by Volume
+ {% else %}
+  by Quantity
+ {% endif %}
+ </span>
 
  <div class="row caption">
    <div class="cell left">{{ field|replace({'_': ' '})|upper }}</div>
