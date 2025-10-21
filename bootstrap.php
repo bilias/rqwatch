@@ -44,8 +44,17 @@ Config::loadConfig(
 	(int) $_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
 );
 
-// setup database connection
+// setup DB connection
 require_once 'config/db.php';
+
+// test DB connection
+try {
+	$capsule->getConnection()->getPdo();
+} catch (Exception $e) {
+	$fileLogger->error("DB error: " . $e->getMessage());
+	echo "Database connection problem!";
+	exit;
+}
 
 // pass fileLogger to Helper methods
 Helper::setLogger($fileLogger);
