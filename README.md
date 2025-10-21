@@ -43,7 +43,7 @@ Apart from quarantine monitoring, this system can also be used as a complete map
 - Router
 - Auth and Access control Middlewares per route
 - Pretty Urls
-- Can run either in Local mode (Web/API on same server), or Distributed setup (Web servers/API servers) on different hosts
+- Can run either in Local mode (Web/API on same server), or [Distributed](docs/DISTRIBUTED.md) setup (Web servers/API servers) on different hosts
 - Supports /subfolder in base Url
 - Default config file + local override file
 
@@ -89,7 +89,7 @@ The Web interface provides map management and url endpoints for rspamd
 - Mail metadata and raw mail (depending on configuration) is inserted to database and local storage, using the metadata_exporter plugin of Rspamd
 - Dedicated Auth and IP RSPAMD_API access list
 
-## WEB API [Distributed mode]
+## WEB API [[Distributed mode](docs/DISTRIBUTED.md)]
 - Release Mail via remote API
 - Get Mail via remote API
 - Web client validates remote API SSL/TLS
