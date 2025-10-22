@@ -186,7 +186,7 @@ No
 {% if log.notified %}
 <strong>Yes</strong>: {{ log.notify_date }}
 {% elseif log.notification_pending and log.score > NOTIFICATION_SCORE %}
-Disabled due to high score (or blacklist)
+No (Disabled due to high score or blacklist)
 {% elseif log.notification_pending %}
 Pending
 {% else %}
