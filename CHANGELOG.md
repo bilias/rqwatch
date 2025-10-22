@@ -2,6 +2,15 @@
 
 ## Master Dev Branch
 
+### 2025-10-22
+- Updated documentation
+- Prepare for public release
+- Added screenshots
+- Created INSTALL.md
+- Created CONFIGURE.md
+- Check DB connection in bootstrap
+- Fixed typos in db-init.sql
+
 ### 2025-10-21
 - Added top reports by Volume
 

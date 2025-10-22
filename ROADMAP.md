@@ -1,6 +1,7 @@
 # Roadmap
 
 ## In progress
+- CLI: add user
 
 ## Features bellow are in todo list.
 - Edit alias

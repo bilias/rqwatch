@@ -1,7 +1,7 @@
 # Distributed Setup (High Availability)
 
-**Rqwatch** has been designed from scratch in order to run in a high availability setup.
+**Rqwatch** is designed to run in a high-availability configuration.
 
-A sketch is provided in order to represent such a setup in a graphical way.
+The diagram below provides an overview of the high-availability distributed mode.
 
 ![Rqwatch Distributed](images/rqwatch-distributed.png)
