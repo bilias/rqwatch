@@ -23,7 +23,7 @@ $FOOTER="{$APP_NAME} v{$APP_VERSION}";
 # Default CA path dir (capath) to verify remote API Servers SSL/TLS
 $SYS_CA_PATH = "/etc/pki/tls/certs";
 
-# define all API server aliases and their API urls
+# Define all API server aliases and their API urls
 $API_SERVERS = array(
 	'mx1' => [
 		'url' => 'https://mx1.example.com',
@@ -47,16 +47,16 @@ $API_SERVERS = array(
 	],
 );
 
-# disable rspamd stats
+# Disable rspamd stats
 $rspamd_stat_disable=false;
 
-# timeout for getting rspamd statistics
+# Timeout for getting rspamd statistics
 $rspamd_stat_api_timeout = 1.0;
 
-# redis key for for rspamd stats
+# Redis key for caching rspamd stats
 $rspamd_stat_redis_key = "rqwatch_rspamd_stats";
 
-# how much time to cache stats in redis
+# How many seconds to cache rspamd stats in redis
 $rspamd_stat_redis_cache_ttl = 300;
 
 # Path to use for remote API mail release
@@ -68,6 +68,16 @@ $GM_WEB_API_PATH = "/api/get_mail.php";
 # Directory to store and serve maps
 $MAP_DIR = __DIR__ . '/../web/maps/';
 $MAP_FILE_PERM = 0644;
+
+# If user can see personal map entries created by admin
+# Set to false to only show entries created by user
+$USER_CAN_SEE_ADMIN_MAP_ENTRIES=true;
+
+# If user can delete personal map entries created by admin
+# If you set this to true, USER_CAN_SEE_ADMIN_MAP_ENTRIES
+# must also be set to true to allow delete
+# This also applies to Enable/Disable of entry
+$USER_CAN_DEL_ADMIN_MAP_ENTRIES=false;
 
 # Logging file
 $LOG_FILE = __DIR__ . '/../logs/rqwatch.log';
@@ -88,58 +98,49 @@ $store_settings = array(
 	'reject'          => true,
 );
 
-# default subject in release mail
+# Default subject in release mail
 $release_mail_subject="Message released from quarantine";
 
-# default subject in notification mail
+# Default subject in notification mail
 $notify_mail_subject="New message stored in quarantine";
 
-# mails with score more than this don't get notifications
+# Mails with score more than this don't get notifications
 $notification_score = 50.1;
 
-# default mail signature
+# Default mail signature
 $mail_signature=$APP_NAME;
 
-# auto refresh rate for maillogs
+# Auto refresh rate for maillogs
 $refresh_rate = 60;
 
-# auto refresh is disabled by default an all pages,
-# and explicitly enabled on maillogs pages
+# Auto refresh is disabled by default an all pages,
+# and explicitly enabled on maillogs pages.
+# Set to true to enable globally.
 $refresh = false;
 
-# items to show in page
+# Pager items to show in page
 $items_per_page = 50;
-# quarantine days to show
+# Pager quarantine days to show
 $q_items_per_page = 31;
 
-# certain pages have sql restriction on upper items returned
+# Certain pages have sql restriction on upper items returned
 $max_items = 10000;
 
-# how many items to show in reports
+# How many items to show in reports
 $top_reports = 30;
 
-# hide subject on web interface
+# Hide subject on web interface
 $subject_privacy = false;
 
-# calculate statistics on mail search page
+# Calculate statistics on mail search page
 $show_mail_stats=true;
 
-# default password hash
+# Default password hash
 # https://www.php.net/manual/en/function.password-hash.php
 $password_hash = PASSWORD_BCRYPT;
 
-# User can see personal map entries created by admin
-# Set to false to only show entries created by user
-$USER_CAN_SEE_ADMIN_MAP_ENTRIES=true;
-
-# User can delete personal map entries created by admin
-# If you set this to true, USER_CAN_SEE_ADMIN_MAP_ENTRIES
-# must also be set to true to allow delete
-# This also applies to Enable/Disable of entry
-$USER_CAN_DEL_ADMIN_MAP_ENTRIES=false;
-
-# enable GeoIP
-# set $geoip_enable=true; in config.local.php to enable
+# Enable GeoIP
+# Set $geoip_enable=true; in config.local.php to enable
 # https://github.com/maxmind/MaxMind-DB-Reader-php
 # https://dev.maxmind.com/geoip/updating-databases/?lang=en
 # https://github.com/maxmind/geoipupdate
@@ -148,8 +149,8 @@ $geoip_enable=false;
 # GeoIP Country database (requires maxmind account)
 $geoip_country_db="/usr/share/GeoIP/GeoLite2-Country.mmdb";
 
-# set to true to store details into files in QUARANTINE_DIR/file_log_debug
-# used for debugging to see what type of information
+# Set to true to store details into files
+# Used for debugging to see what type of information
 # comes from rspamd to rqwatch api
 $log_to_files=false;
 $log_to_files_dir="{$_ENV['QUARANTINE_DIR']}/file_log_debug";
