@@ -9,6 +9,7 @@ All passwords provided are dummy entries and **should not be used**, as this is 
 <!--ts-->
 * [Configuration](#configuration)
    * [Rspamd](#rspamd)
+   * [Users personal Whitelists/Blacklists (Combined Maps)](#users-personal-whitelistsblacklists-combined-maps)
    * [.env](#env)
       * [Database Connection details](#database-connection-details)
       * [Rspamd](#rspamd-1)
@@ -44,7 +45,34 @@ Edit `url` and append `?server=server_name`.\
 **`server_name` must match `MY_API_SERVER_ALIAS` entry in `.env`**.\
 This is needed in order for the (API) server to identify if an email is stored in quarantine locally or remotely on another API server.
 
-After placing `metadata_exporter.conf` and editing `.env` and `config.local.php` a reload in needed on Rspamd.
+After placing `metadata_exporter.conf` and editing `.env` and `config.local.php` a reload in needed for Rspamd.
+
+## Users personal Whitelists/Blacklists (Combined Maps)
+In Rqwatch Combined Maps have been implemented, where two fields are used instead of one that Rspamd normally uses.
+These type of maps do work as users personal whitelists/blacklists.
+
+4 types of such lists are supported:
+- smtp_from|rcpt_to whitelist
+- smtp_from|rcpt_to blacklist
+- mime_from|rcpt_to whitelist
+- mime_from|rcpt_to blacklist
+
+The fields entries in those maps are seperated by `|` for example:
+```
+sender@example1.com|recipient@example.com
+```
+Users have access to those maps depending on their email address as well as aliases created for them.
+If one of those addreses matches `rcpt_to` address then access is given.
+
+Admin users can also add entries in those maps.
+User access to those entries, created by admin, is controlled by `$USER_CAN_SEE_ADMIN_MAP_ENTRIES` and
+`$USER_CAN_DEL_ADMIN_MAP_ENTRIES` in [Map Settings](#map-settings).
+
+In order for these maps to work, custom lua scripts for Rspamd have been implemented and to activate them:
+```
+cp contrib/rspamd/lua.local.d/* /etc/rspamd/lua.local.d/
+```
+After placing those lua scripts and editing `.env` and `config.local.php` a reload in needed for Rspamd.
 
 ## .env
 You should create a copy of the provided file:
