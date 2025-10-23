@@ -36,7 +36,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 #[AsCommand(
 	name: 'cron:notifications',
 	description: 'Notifications for stored mails',
-	help: 'This commands scans the rqwatch database for new undelivered stored mails
+	help: 'This command scans the Rqwatch database for new undelivered stored mails
 and then sends notification mails to recipients.
 ',
 )]

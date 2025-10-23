@@ -41,7 +41,7 @@ use DateTimeZone;
 #[AsCommand(
 	name: 'cron:updatemapfiles',
 	description: 'Update Map Files',
-	help: 'This commands scans the rqwatch database and updates map files if needed.
+	help: 'This command scans the Rqwatch database and updates map files if needed.
 ',
 )]
 class CronUpdateMapFiles extends RqwatchCliCommand
