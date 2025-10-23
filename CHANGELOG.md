@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-23
+- Allow logo change from config
 - Use UserService userExists() and userAdd() in UserController 
 - Add user:add CLI
 - Add userAdd() in UserService

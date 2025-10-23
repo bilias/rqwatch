@@ -17,6 +17,8 @@
 
 $APP_NAME="Rqwatch";
 $APP_INFO="Rspamd Quarantine Watch";
+$APP_LOGO="/images/logo.png";
+$APP_LOGO_ALT="Rqwatch logo";
 $APP_VERSION = APP_VERSION;
 $FOOTER="{$APP_NAME} v{$APP_VERSION}";
 
