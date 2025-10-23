@@ -191,6 +191,7 @@ If the server run the Web service then the following settings are relevant:
 - `FAILED_LOGIN_TIMEOUT` - How many seconds to sleep after a failed login\
   A better brute force detection method might be implemented in the future,
   but for now, this is what we have.
+  However failed logins are logged in Rqwatch's log file (`$LOG_FILE`) and Fail2Ban can be applied.
 - `IDLE_TIMEOUT` - Login Session timeout.\
   Default 4 hours. Set to `0` to disable it.
 

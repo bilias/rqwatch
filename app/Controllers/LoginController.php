@@ -172,7 +172,8 @@ class LoginController extends ViewController
 			// authenticate() failed
 			} else {
 				$auth_provider = $auth->getAuthProvider();
-				$this->fileLogger->warning("Login failed for user: '{$username}' ($auth_provider)");
+				$client_ip = $_SERVER['REMOTE_ADDR'];
+				$this->fileLogger->warning("($auth_provider) Login failed for user: '{$username}' via IP:{$client_ip}");
 				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 				$this->flashbag->add('error', "Wrong username or password");
 			}
