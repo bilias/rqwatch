@@ -34,7 +34,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 #[AsCommand(
 	name: 'cron:quarantine',
-	description: 'Clear Quarantine',
+	description: 'Clean Quarantine',
 	help: 'This command scans the Rqwatch database and cleans the Quarantine.
 ',
 )]

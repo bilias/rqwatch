@@ -236,7 +236,7 @@ Use command option `-h` for help.
 
 The following tools are available:
 - **user:add**\
-  Create a local user.
+  Create a user.
     ```
     Usage:
       user:add [options] [--] <username> <mail>

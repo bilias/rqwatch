@@ -42,8 +42,8 @@ use DateTimeZone;
 
 #[AsCommand(
 	name: 'user:add',
-	description: 'Create a local user',
-	help: 'This command creates a local user to Rqwatch.
+	description: 'Create a user',
+	help: 'This command creates a user to Rqwatch.
 ',
 )]
 class UserAdd extends RqwatchCliCommand
