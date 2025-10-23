@@ -14,6 +14,7 @@
       * [Database Server](#database-server)
       * [Database creation](#database-creation)
       * [Admin user](#admin-user)
+      * [Quarantine location](#quarantine-location)
 * [<a href="CONFIGURE.md">Configuration</a>](CONFIGURE.md)
 <!--te-->
 
@@ -95,7 +96,7 @@ git clone https://github.com/bilias/rqwatch/
 
 chmod 750 /var/www/html/rqwatch
 chown -R root:root /var/www/html/rqwatch
-chown rqwatch:rqwatch_web /var/www/html/rqwatch /var/www/html/rqwatch/web
+chgrp rqwatch_web /var/www/html/rqwatch /var/www/html/rqwatch/web
 
 cd rqwatch/
 
@@ -112,6 +113,10 @@ chmod 640 .env config/config.*
 ```
 
 ### Rqwatch Installation
+Temporarily give write access to rqwatch user in order to create `vendor/` and `composer.lock`:
+```
+chown rqwatch /var/www/htmp/rqwatch
+```
 ```
 su - rqwatch -s /bin/bash
 [rqwatch]$ cd /var/www/html/rqwatch/
@@ -123,6 +128,11 @@ su - rqwatch -s /bin/bash
 [rqwatch]$ composer check-platform-reqs
 
 [rqwatch]$ composer dump-autoload -o # optional
+```
+
+Remove write permissions:
+```
+chown root /var/www/htmp/rqwatch
 ```
 
 ### PHP-FPM
@@ -213,5 +223,18 @@ mysql -p < contrib/db-init.sql
 After finishing [Configuration](CONFIGURE.md) you can create an admin user with
 `user:add` CLI command.\
 See [CLI](docs/CONFIGURE.md#cli) for details.
+
+### Quarantine location
+Before specifying [QUARANTINE_DIR](/docs/CONFIGURE.md#quarantine-settings) in
+[.env](/docs/CONFIGURE.md#env-configuration-file) you should create a directory
+that will store quarantined emails:
+
+```
+mkdir /quarantine
+
+chown rqwatch:rqwatch /quarantine
+
+chmod 750 /quarantine
+```
 
 # [Configuration](CONFIGURE.md)

@@ -1,10 +1,10 @@
 # /etc/cron.d/rqwatch
 
-# send mail notifications for blocked/stored mails (local only)
+# send mail notifications for blocked/stored mails (local only) every 5 min
 */5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:notifications -m -l
 
-# update local map files if needed
+# update local map files if needed every 5 min
 */5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:updatemapfiles
 
-# clean quarantine (local only)
+# clean quarantine (local only) daily
 01 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:quarantine -d -l
