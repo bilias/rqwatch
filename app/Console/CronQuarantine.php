@@ -60,7 +60,7 @@ class CronQuarantine extends RqwatchCliCommand
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
 			->addOption('delete', 'd', InputOption::VALUE_NONE, 'Delete entries from quarantine')
 			->addOption('local', 'l', InputOption::VALUE_NONE, 'Clean quarantine for local server only')
-			->addOption('show', 's', InputOption::VALUE_NONE, 'Show quarantine')
+			->addOption('show', 's', InputOption::VALUE_NONE, 'Show entries in quaranting pending to be deleted')
 		;
 	}
 
