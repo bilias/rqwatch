@@ -8,11 +8,14 @@ Rqwatch uses the following files for its configuration:
 All passwords provided are dummy entries and **should not be used**, as this is public information.
 <!--ts-->
 * [Configuration](#configuration)
-   * [Rspamd](#rspamd)
-   * [Users personal Whitelists/Blacklists (Combined Maps)](#users-personal-whitelistsblacklists-combined-maps)
+   * [Rspamd (metadata_export)](#rspamd-metadata_export)
+   * [Rspamd and Rqwatch Maps](#rspamd-and-rqwatch-maps)
+      * [Users personal Whitelists/Blacklists (Combined Maps)](#users-personal-whitelistsblacklists-combined-maps)
+      * [Basic and Combined Maps](#basic-and-combined-maps)
+      * [Custom Maps](#custom-maps)
    * [.env](#env)
       * [Database Connection details](#database-connection-details)
-      * [Rspamd](#rspamd-1)
+      * [Rspamd](#rspamd)
       * [Quarantine Settings](#quarantine-settings)
       * [API Settings](#api-settings)
       * [Web Settings](#web-settings)
@@ -32,7 +35,7 @@ All passwords provided are dummy entries and **should not be used**, as this is 
 * [<a href="INSTALL.md">Installation</a>](INSTALL.md)
 <!--te-->
 
-## Rspamd
+## Rspamd (metadata_export)
 The Rspamd [metadata_exporter](https://docs.rspamd.com/modules/metadata_exporter)
 module connects to our Rqwatch metadata_importer API.\
 The connection can be authenticated and also be restricted by IP.
@@ -47,32 +50,90 @@ This is needed in order for the (API) server to identify if an email is stored i
 
 After placing `metadata_exporter.conf` and editing `.env` and `config.local.php` a reload in needed for Rspamd.
 
-## Users personal Whitelists/Blacklists (Combined Maps)
-In Rqwatch Combined Maps have been implemented, where two fields are used instead of one that Rspamd normally uses.
+## Rspamd and Rqwatch Maps
+
+### Users personal Whitelists/Blacklists (Combined Maps)
+In Rqwatch *Combined Maps* have been implemented, where two fields are used instead of one that Rspamd normally uses.
 These type of maps do work as users personal whitelists/blacklists.
 
-4 types of such lists are supported:
-- smtp_from|rcpt_to whitelist
-- smtp_from|rcpt_to blacklist
-- mime_from|rcpt_to whitelist
-- mime_from|rcpt_to blacklist
+4 types of such maps are supported:
+- Mail From/RCPT_TO Whitelist
+- Mail From/RCPT_TO Blacklist
+- MIME From/RCPT_TO Whitelist
+- MIME From/RCPT_TO Blacklist
 
 The fields entries in those maps are seperated by `|` for example:
 ```
-sender@example1.com|recipient@example.com
+sender@example1.com|recipient@example2.com
 ```
 Users have access to those maps depending on their email address as well as aliases created for them.
-If one of those addreses matches `rcpt_to` address then access is given.
+If one of those addreses matches `rcpt_to` address then access is granted.
 
-Admin users can also add entries in those maps.
+Admin users can also add entries in those personal user maps.
 User access to those entries, created by admin, is controlled by `$USER_CAN_SEE_ADMIN_MAP_ENTRIES` and
 `$USER_CAN_DEL_ADMIN_MAP_ENTRIES` in [Map Settings](#map-settings).
 
-In order for these maps to work, custom lua scripts for Rspamd have been implemented and to activate them:
+For Combined Maps to work, custom lua scripts for Rspamd have been implemented and these need to be placed
+inside Rspamd's custom lua scripts location:
 ```
-cp contrib/rspamd/lua.local.d/* /etc/rspamd/lua.local.d/
+cp contrib/rspamd/lua.local.d/rqwatch_*.lua /etc/rspamd/lua.local.d/
 ```
-After placing those lua scripts and editing `.env` and `config.local.php` a reload in needed for Rspamd.
+Those scripts also register the appropriate Rspamd symbols and enable map file download via http from 
+Rqwatch API running locally on same host as Rspamd.
+
+After installing Rqwatch's lua scripts and editing `.env` and `config.local.php` a reload is needed for Rspamd.
+
+Follow the next section instructions to define scores for Combined Maps.
+
+### Basic and Combined Maps
+Apart from the *Combined Maps* with two fields that are mentioned above,
+Rqwarch comes predefined with some *Basic Maps* with common one type field:
+- Mail From Whitelist
+- Mail From Blacklist
+- MIME From Whitelist
+- MIME From Blacklist
+- IP Whitelist
+- IP Blacklist
+
+In order to activate Basic and Combined maps you need to define those in Rspamd `local.d/groups.conf` and `local.d/multimap.conf`
+```
+cat contrib/rspamd/local.d/groups.conf >> /etc/rspamd/local.d/groups.conf
+cat contrib/rspamd/local.d/multimap.conf >> /etc/rspamd/local.d/multimap.conf
+```
+`multimap.conf` defines type of map, download location and score for each Basic Map.\
+`groups.conf` defines scores for Combined and Basic Maps.
+
+### Custom Maps
+Rqwatch also supports *Custom Maps* where definition and configuration is performed on the Rqwatch Web interface.
+
+You still need to define those maps in Rspamd's `local.d/multimap.conf` in order to define the maps and enable download from Rqwatch API.
+
+Let's take for example a custom map about body text:
+```
+Custom Map definition in Rqwatch:
+
+Map Name: bad_words # this will create maps/bad_words.txt URL endpoint for map
+Map Description: Bad Body Words
+Field Name: text
+Field Label: Text (regexp)
+
+multimap.conf:
+
+RQWATCH_BAD_WORDS {
+  type = "content";
+  filter = "text";
+  map = "http://127.0.0.1/maps/bad_words.txt"
+  regexp = true;
+  score = 1;
+  dynamic_symbols = true;
+}
+
+example entry:
+/common spam text/i LOCAL_spam_1:10
+```
+Adding `RQWATCH_` (or `LOCAL_`) in front of Map Name in `multimap.conf` tells Rqwatch to match it as a local map on the web interface.\
+Adding `_BL` or `_BLACKLIST` tells Rqwatch to match it as a blacklist entry.\
+Adding `_WL` or `_WHITELIST` tells Rqwatch to match is as a whitelist entry.
 
 ## .env
 You should create a copy of the provided file:
@@ -104,7 +165,7 @@ cp .env-example .env
 
 ### API Settings
 If the server runs the API (MetadataImporter, GetMail, ReleaseMail) the following settings apply:
-- `API_ENABLE` - Set to `true` to enable API
+- `API_ENABLE` - Set to `false` to disable the API
 - `MY_API_SERVER_ALIAS` - If the server runs the API, specify its alias (server name).\
   This must match `?server=` setting of `url` in `metadata_exporter.conf` in order
   for the server to identify if an email is stored in quarantine locally or remotely
@@ -112,7 +173,6 @@ If the server runs the API (MetadataImporter, GetMail, ReleaseMail) the followin
 
   If this host is only a Web Server (that does not run the API) then **put a name here
   that does not match** `$API_SERVERS` entries in `config.php/config.local.php`
-
 - `WEB_API_USER` - ReleaseMail/GetMail WEB API username for web clients
 - `WEB_API_PASS` - ReleaseMail/GetMail WEB API password for web clients
 - `WEB_API_ACL` - Comma-separated IPs that are allowed to connect to our local ReleaseMail/GetMail API
@@ -146,7 +206,7 @@ If an email is quarantined and a notification must be sent (according to setting
 - `MAILER_FROM` - From address used for notifications and mail release mails, sent by Rqwatch
 
 ### Redis Settings
-Rqwatch supports Redis for saving login sessions, caching configuration (`config.php/config.local.php`) and caching of Rspamd statistics.\
+Rqwatch supports Redis for saving login sessions, caching configuration (`config.php` and `config.local.php`) and caching of Rspamd statistics.\
 Sentinel is also supported.
 - `REDIS_ENABLE` - Set to `true` to enable Redis support
 - `REDIS_DSN` - Redis connection details\
