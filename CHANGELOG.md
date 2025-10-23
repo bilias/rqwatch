@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-23
+- Use UserService userExists() and userAdd() in UserController 
 - Add user:add CLI
 - Add userAdd() in UserService
 - Add userExists() in UserService
