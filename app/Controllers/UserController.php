@@ -248,39 +248,28 @@ class UserController extends ViewController
 
 		if ($userform->isSubmitted() && $userform->isValid()) {
 			$data = $userform->getData();
+			$service = new UserService($this->getFileLogger());
+
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
-			}
-			else if (User::where('username', strtolower(trim($data['username'])))
-			               ->exists()) {
+			} else if ($service->userExists($data['username'])) {
 				$this->flashbag->add('error', "User '{$data['username']}' already exists");
 			} else {
-				$newPassword = $userform->get('password')->getData();
-				if (!empty($newPassword)) {
-					$data['password'] = Helper::passwordHash($newPassword);
-				} else {
+				$newPassword = trim($userform->get('password')->getData());
+				if (empty($newPassword)) {
 						$this->flashbag->add('error', 'Empty password not allowed.');
 						$url = $this->urlGenerator->generate('admin_users');
 						return new RedirectResponse($url);
 				}
+				$data['password'] = Helper::passwordHash($newPassword);
 
-				try {
-					$user = new User;
-					$data['username'] = strtolower(trim($data['username']));
-					$user->fill($data);
-					$user->password = $data['password'];
-					$user->save();
-						if ($user) {
-							$this->flashbag->add('success', "User '{$user->username}' created");
-						} else {
-							$this->flashbag->add('error', "User creation failed");
-						}
-					$url = $this->urlGenerator->generate('admin_users');
-					return new RedirectResponse($url);
-				} catch (\Exception $e) {
-					$error = $e->getMessage();
-					$this->flashbag->add('error', $error);
+				if ($user = $service->userAdd($data)) {
+					$this->flashbag->add('success', "User '{$data['username']}' created");
+				} else {
+					$this->flashbag->add('error', "User creation failed");
 				}
+				$url = $this->urlGenerator->generate('admin_users');
+				return new RedirectResponse($url);
 			}
 		}
 
@@ -345,13 +334,12 @@ class UserController extends ViewController
 		if ($userform->isSubmitted() && $userform->isValid()) {
 			//$data = $userform->getData()->toArray();
 			$data = $userform->getData();
+			$service = new UserService($this->getFileLogger());
 			// username change and new username exists
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
-			}
-			else if (($data['username'] !== $user->username) and
-			         (User::where('username', strtolower(trim($data['username'])))
-						       ->exists())) {
+			} else if (($data['username'] !== $user->username) and
+			           ($service->userExists($data['username']))) {
 				$this->flashbag->add('error', "Username '{$data['username']}' already exists.");
 			} else {
 				$pass_changed = false;
