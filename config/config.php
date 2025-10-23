@@ -24,6 +24,8 @@ $FOOTER="{$APP_NAME} v{$APP_VERSION}";
 $SYS_CA_PATH = "/etc/pki/tls/certs";
 
 # Define all API server aliases and their API urls
+# See https://symfony.com/doc/current/reference/configuration/framework.html#http-client
+# for available entries in options
 $API_SERVERS = array(
 	'mx1' => [
 		'url' => 'https://mx1.example.com',
