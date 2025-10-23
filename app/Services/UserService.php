@@ -236,4 +236,37 @@ class UserService
 		return false;
 	}
 
+	public function userExists(string $user): bool {
+		if (empty($user)) {
+			return false;
+		}
+
+		return User::where('username', strtolower(trim($user)))->exists();
+	}
+
+	public function userAdd(array $data): bool {
+		if (empty($data) || empty($data['username'])) {
+			return false;
+		}
+
+		try {
+			$user = new User;
+			$data['username'] = strtolower(trim($data['username']));
+			$user->fill($data);
+			$user->password = $data['password'];
+			$user->save();
+
+			if ($user) {
+				return true;
+			}
+			return false;
+		} catch (\Exception $e) {
+			$error = $e->getMessage();
+			$this->logger->error("userAdd error: " . $e->getMessage() . PHP_EOL);
+			return false;
+		}
+
+		return false;
+	}
+
 }

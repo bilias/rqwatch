@@ -2,6 +2,11 @@
 
 ## Master Dev Branch
 
+### 2025-10-23
+- Add user:add CLI
+- Add userAdd() in UserService
+- Add userExists() in UserService
+
 ### 2025-10-22
 - Updated documentation
 - Prepare for public release
