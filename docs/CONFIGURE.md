@@ -235,6 +235,29 @@ Use command option `-v` for verbose output.\
 Use command option `-h` for help.
 
 The following tools are available:
+- **user:add**\
+  Create a local user.
+    ```
+    Usage:
+      user:add [options] [--] <username> <mail>
+
+    Arguments:
+      username                   Username for the user
+      mail                       Email for the user
+
+    Options:
+      -f, --first=FIRST          First name
+      -s, --surname=SURNAME      Surname
+      -a, --admin                Create user with admin privileges
+      -l, --ldap                 Create an LDAP user
+      -d, --no-notifications     Disable notifications
+      -p, --password[=PASSWORD]  Specify user password
+    ```
+For instance, in order to create an admin user after Installation and Configuration is done:
+```
+./bin/cli.php user:add -a admin admin@example.com
+```
+
 - **cron:notifications**\
   This command scans the Rqwatch database for new undelivered stored mails
   and then sends notification mails to recipients, depending on the configuration.
@@ -263,6 +286,7 @@ The following tools are available:
       -s, --show            Show pending notifications
       -b, --blacklisted     Send notifications for blacklisted mails
     ```
+
 - **cron:quarantine**\
   This command scans the Rqwatch database and cleans the Quarantine.
 
@@ -278,6 +302,7 @@ The following tools are available:
       -l, --local           Clean quarantine for local server only
       -s, --show            Show entries in quaranting pending to be deleted
     ```
+
 - **cron:updatemapfiles**\
   This command scans the Rqwatch database and updates map files if needed.
 

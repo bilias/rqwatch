@@ -13,6 +13,7 @@
       * [Web Server](#web-server)
       * [Database Server](#database-server)
       * [Database creation](#database-creation)
+      * [Admin user](#admin-user)
 * [<a href="CONFIGURE.md">Configuration</a>](CONFIGURE.md)
 <!--te-->
 
@@ -207,5 +208,10 @@ Initialize the database (this will also drop all tables if they were previously 
 ```
 mysql -p < contrib/db-init.sql
 ```
+
+### Admin user
+After finishing [Configuration](CONFIGURE.md) you can create an admin user with
+`user:add` CLI command.\
+See [CLI](docs/CONFIGURE.md#cli) for details.
 
 # [Configuration](CONFIGURE.md)
