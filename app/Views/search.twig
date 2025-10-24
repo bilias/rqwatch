@@ -79,8 +79,8 @@
     </li>
 {% endfor %}
  <hr>
- <li><span class="left">Oldest Record:</span> {{ stats.first|date('Y-m-d') }}</li>
- <li><span class="left">Newest Record:</span> {{ stats.last|date('Y-m-d') }}</li>
+ <li><span class="left">Oldest Record:</span> {{ stats.first }}</li>
+ <li><span class="left">Newest Record:</span> {{ stats.last }}</li>
  {% endif %}
 </ul>
 </div>
