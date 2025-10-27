@@ -633,8 +633,8 @@ class MailLogService
 			$this->logger->error("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
 			throw new \Exception("Error. Contact admin");
 		}
-		// XXX have not checked if it works with /subfolder in WEB_BASE
-		$url = $api_servers[$api_server]['url'] . $_ENV['WEB_BASE'] . Config::get('GET_MAIL_API_PATH');
+		// XXX have not checked if it works with remote /subfolder in WEB_BASE
+		$url = $api_servers[$api_server]['url'] . Config::get('GET_MAIL_API_PATH');
 
 		if (array_key_exists('options', $api_servers[$api_server])) {
 			$options = $api_servers[$api_server]['options'];
@@ -837,8 +837,8 @@ class MailLogService
 			$this->logger->error("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
 			return false;
 		}
-		// XXX have not checked if it works with /subfolder in WEB_BASE
-		$url = $api_servers[$api_server]['url'] . $_ENV['WEB_BASE'] . Config::get('RELEASE_MAIL_API_PATH');
+		// XXX have not checked if it works with remote /subfolder in WEB_BASE
+		$url = $api_servers[$api_server]['url'] . Config::get('RELEASE_MAIL_API_PATH');
 
 		if (array_key_exists('options', $api_servers[$api_server])) {
 			$options = $api_servers[$api_server]['options'];
