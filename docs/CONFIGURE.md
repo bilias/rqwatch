@@ -249,17 +249,17 @@ metadata_importer API\
 
 #### Mail API settings (GetMail/ReleaseMail)
 - `MAIL_API_USER` - ReleaseMail/GetMail Mail API username\
-  Used by both Mail IP and Web
+  Used by both Mail API (server) and Web (client)
 
 - `MAIL_API_PASS` - ReleaseMail/GetMail Mail API password\
-  Used by both Mail IP and Web
+  Used by both Mail API (server) and Web (client)
 
 - `MAIL_API_ACL` - Comma-separated IPs that are allowed to connect to our
 local ReleaseMail/GetMail API\
   Use `127.0.0.1` if API and Web run on the same host.
 
 ### Web Settings
-If the server run the Web service then the following settings are relevant:
+If the server runs the Web service then the following settings are relevant:
 - `WEB_ENABLE` - Set to `false` to disable web interface
 
 - `WEB_HOST` - Full name (FQDN) of our server\
@@ -376,9 +376,10 @@ These settings are used by the web servers in order to connect to API servers (a
 
 `MAIL_API_USER` and `MAIL_API_PASS` from `.env` are also used from web client in order to be authenticated to remote Mail API servers.
 
-If the Web server also runs API, `MY_API_SERVER_ALIAS` matches an entry in `$API_SERVERS` and mail is stored locally with
-a `server` entry matching its local alias name, then GetMail/ReleaseMail happens locally.\
-In any other case a call to the remote API server is being done.
+If the Web server also runs the API, and `MY_API_SERVER_ALIAS` matches an entry in
+`$API_SERVERS` and mail is stored locally with a `server` entry matching its local alias name,
+then GetMail and ReleaseMail are handled locally.\
+In all other cases, a call to the remote API server is made.
 
 ### Rspamd Statistics
 - `$rspamd_stat_disable` - Set to `true` to disable fetching statistics from Rspamd servers
@@ -406,13 +407,15 @@ In any other case a call to the remote API server is being done.
   This also applies to Enable/Disable of entry.
 
 ### Logging Settings
-- `$LOG_FILE` - Log file for Rqwatch
+- `$LOG_FILE` - Log file for Rqwatch\
   rqwatch user must have read/write access in the parent directory.\
   Default is `rqwatch.log` inside `logs/` directory in Rqwatch main path.
 
-- `$LOG_FILE_LEVEL` - Logging level for file logging (see [LoggerFactory.php](/app/Core/Logging/LoggerFactory.php) for all available options)
+- `$LOG_FILE_LEVEL` - Logging level for file logging\
+  See [LoggerFactory.php](/app/Core/Logging/LoggerFactory.php) for all available levels.
 
-- `$LOG_SYSLOG_LEVEL` - Logging level for syslog (minimal data is logged in mail log)
+- `$LOG_SYSLOG_LEVEL` - Logging level for syslog\
+  Minimal data is logged in mail log.
 
 - `$LOG_SYSLOG_PREFIX` - Prefix to use in syslog
 
@@ -447,8 +450,8 @@ based on action taken by Rspamd\
 
 - `$refresh_rate` - Auto-refresh rate for maillogs web pages
 
-- `$refresh` - Auto-refresh is disabled by default on all web pages\
-and explicitly enabled on maillogs pages.\
+- `$refresh` - Auto-refresh is disabled by default on all web pages and explicitly enabled
+on maillogs pages.\
   Set to `true` to enable globally.
 
 - `$items_per_page` - Number of pager items to show per page\
@@ -458,9 +461,9 @@ and explicitly enabled on maillogs pages.\
 
 - `$max_items` - Certain pages have an SQL restriction on upper items returned
 
-- `$top_reports` - How many items to show in reports
+- `$top_reports` - How many items to show in Top reports
 
-- `$subject_privacy` - Hide subject in the web interface
+- `$subject_privacy` - Hide the email subject on the web interface
 
 - `$show_mail_stats` - Calculate statistics on the mail search page
 
