@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-10-27
+- Rename WEB_API to MAIL_API
+
 ### 2025-10-23
 - Log IP on failed logins
 - Allow logo change from config

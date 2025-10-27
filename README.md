@@ -41,7 +41,7 @@ introducing only minimal overhead.
       * [Maps](#maps)
       * [Redis Caching](#redis-caching)
    * [API for Rspamd - RSPAMD API (metadata_importer)](#api-for-rspamd---rspamd-api-metadata_importer)
-   * [WEB API (or MAIL IP)](#web-api-or-mail-ip)
+   * [Mail API](#mail-api)
    * [CLI](#cli)
 * [<a href="docs/INSTALL.md">Installation</a>](docs/INSTALL.md)
 * [<a href="docs/CONFIGURE.md">Configuration</a>](docs/CONFIGURE.md)
@@ -138,13 +138,13 @@ stress on the database.
 - Mail metadata and raw email (depending on configuration) is inserted to database and local storage, using the metadata_exporter plugin of Rspamd
 - Dedicated Authentication and IP RSPAMD_API access list
 
-## WEB API (or MAIL IP)
-The WEB API is used in [Distributed](docs/DISTRIBUTED.md) mode, where Web components connect to it.
+## Mail API
+The Mail API is used in [Distributed](docs/DISTRIBUTED.md) mode, where Web components connect to it.
 - Release Mail via remote API
 - Get Mail via remote API
 - Web client validates remote API SSL/TLS
-- Web client is authenticated to remote API (BasicAuth)
-- Dedicated Authentication and IP WEB_API access list
+- Web client is authenticated to remote API
+- Dedicated Authentication and IP access control list
 
 ## CLI
 - Update map files if needed (cron)

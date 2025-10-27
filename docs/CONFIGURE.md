@@ -15,15 +15,16 @@ All passwords provided are dummy entries and **should not be used**, as this is 
       * [Custom Maps](#custom-maps)
    * [.env Configuration file](#env-configuration-file)
       * [Database Connection details](#database-connection-details)
-      * [Rspamd](#rspamd)
       * [Quarantine Settings](#quarantine-settings)
       * [API Settings](#api-settings)
+         * [Rspamd API settings (MetadataImporter)](#rspamd-api-settings-metadataimporter)
+         * [Mail API settings (GetMail/ReleaseMail)](#mail-api-settings-getmailreleasemail)
       * [Web Settings](#web-settings)
       * [Mail Notifications/Release from Quarantine](#mail-notificationsrelease-from-quarantine)
       * [Redis Settings](#redis-settings)
       * [LDAP Settings](#ldap-settings)
    * [config.local.php (and config.php) Configuration file](#configlocalphp-and-configphp-configuration-file)
-      * [API Settings](#api-settings-1)
+      * [Web API Settings](#web-api-settings)
       * [Rspamd Statistics](#rspamd-statistics)
       * [Map Settings](#map-settings)
       * [Logging Settings](#logging-settings)
@@ -39,7 +40,7 @@ All passwords provided are dummy entries and **should not be used**, as this is 
 
 ## Rspamd (metadata_export)
 The Rspamd [metadata_exporter](https://docs.rspamd.com/modules/metadata_exporter)
-module connects to our Rqwatch metadata_importer API to export raw emails and Rspamd headers
+module connects to our Rqwatch metadata_importer/MetadataImporter API to export raw emails and Rspamd headers
 and store that metadata in the database. Depending on the action taken by Rspamd and the
 configuration, raw emails can also be saved in local quarantine storage to be examined
 and released by administrators or recipient users, if desired.
@@ -60,9 +61,11 @@ Edit `/etc/rspamd/local.d/metadata_exporter.conf`:
 
 After configuring `metadata_exporter.conf` and editing `.env` and `config.local.php` a reload in needed for Rspamd.
 
+Also see [API Settings](#api-settings) for remote side API authentication and ACL settings for Rspamd MetadataImporter.
+
 ## Rspamd and Rqwatch Maps
 It is suggested that Rspamd/Rqwatch API servers also run Web (with restricted access)
-just for map downloading.
+just forlocal map downloading, instead of connecting to a remote server (better availability).
 
 ### Users personal Whitelists/Blacklists (Combined Maps)
 In Rqwatch *Combined Maps* have been implemented, where two fields are used instead of one that Rspamd normally uses.\
@@ -135,10 +138,10 @@ Using predefined Basic Maps or choosing to use Custom Maps (see bellow) is up to
 
 ### Custom Maps
 Rqwatch also supports *Custom Maps* where definition and configuration is performed
-on the Rqwatch Web interface and is not hardcoded inside the code.
+on the Web interface and is not hardcoded inside Rqwatch code.
 
-You still need to define those maps in Rspamd's `local.d/multimap.conf` in order to
-define the map type, score and enable download from Rqwatch API.
+You still need to define those maps in Rspamd's in order to define the map type, score and
+enable download from Rqwatch API.
 
 Let's take for example a custom map about Spam text found inside Body of emails:
 ```
@@ -169,7 +172,10 @@ as a whitelisted entry.
 - Adding `_BL` or `_BLACKLIST` as a suffix of Map Name, tells Rqwatch to match it
 as a blacklisted entry.
 
-Custom maps can be used for all type of fields that are supported by Rspamd. For example:
+Custom maps can be used with any plugin of Rspamd that reads maps of one field such as:
+multimap, whitelist, spf, dmarc, reputation, antivirus etc.
+
+For example:
 
 | Map description | Map field | Rspamd reference configuration (not complete) |
 | --------------- | --------- | --------------------------------------------- |
@@ -211,7 +217,26 @@ cp .env-example .env
 - `MAILLOGS_TABLE` - The main table where email metadata is stored\
   Default is `mail_logs`
 
-### Rspamd
+### Quarantine Settings
+- `QUARANTINE_DIR` - Local Quarantine directory\
+  rqwatch user must have read/write access in this directory.
+
+- `QUARANTINE_DAYS` - Number of days to keep emails in quarantine\
+  Cleanup is performed by `cron:quarantine`
+
+### API Settings
+If the server runs the API (MetadataImporter, GetMail, ReleaseMail) the following settings apply:
+- `API_ENABLE` - Set to `false` to disable the APIs
+
+- `MY_API_SERVER_ALIAS` - If the server runs the API, specify its alias (server name).\
+  This must match `?server=` setting of `url` in `metadata_exporter.conf` in order
+  for the server to identify if an email is stored in quarantine locally or remotely
+  on another API server.
+
+  If this host is only a Web Server (that does not run the API) then **put a name here
+  that does not match** `$API_SERVERS` entries in `config.php/config.local.php`
+
+#### Rspamd API settings (MetadataImporter)
 - `RSPAMD_API_USER` - Authentication username for our metadata_importer API\
   Same as `user` in `metadata_exporter.conf`
 
@@ -222,46 +247,20 @@ cp .env-example .env
 metadata_importer API\
   Use `127.0.0.1` if Rspamd and Rqwatch API run on the same host.
 
-- `RSPAMD_CONTROLLER_PASS` - Rspamd [Controller worker](https://docs.rspamd.com/workers/controller/) password.\
-  This is needed to get stats from Rspamd.
-  Must be the same as the `password` in `/etc/rspamd/local.d/worker-controller.inc`.\
-  (Also see `stat_url` for `$API_SERVERS` and `$rspamd_stat_disable`
-  in `config.local.php/config.php` files).
+#### Mail API settings (GetMail/ReleaseMail)
+- `MAIL_API_USER` - ReleaseMail/GetMail Mail API username\
+  Used by both Mail IP and Web
 
-### Quarantine Settings
-- `QUARANTINE_DIR` - Local Quarantine directory\
-  rqwatch user must have read/write access in this directory.
+- `MAIL_API_PASS` - ReleaseMail/GetMail Mail API password\
+  Used by both Mail IP and Web
 
-- `QUARANTINE_DAYS` - Number of days to keep emails in quarantine\
-  Cleanup is performed by `cron:quarantine`
-
-### API Settings
-If the server runs the API (MetadataImporter, GetMail, ReleaseMail) the following settings apply:
-- `API_ENABLE` - Set to `false` to disable the API
-
-- `MY_API_SERVER_ALIAS` - If the server runs the API, specify its alias (server name).\
-  This must match `?server=` setting of `url` in `metadata_exporter.conf` in order
-  for the server to identify if an email is stored in quarantine locally or remotely
-  on another API server.
-
-  If this host is only a Web Server (that does not run the API) then **put a name here
-  that does not match** `$API_SERVERS` entries in `config.php/config.local.php`
-
-- `WEB_API_USER` - ReleaseMail/GetMail WEB API username for web clients
-
-- `WEB_API_PASS` - ReleaseMail/GetMail WEB API password for web clients
-
-- `WEB_API_ACL` - Comma-separated IPs that are allowed to connect to our
+- `MAIL_API_ACL` - Comma-separated IPs that are allowed to connect to our
 local ReleaseMail/GetMail API\
   Use `127.0.0.1` if API and Web run on the same host.
 
 ### Web Settings
 If the server run the Web service then the following settings are relevant:
 - `WEB_ENABLE` - Set to `false` to disable web interface
-
-- `WEB_API_USER` - Username the web client uses to connect to remote API servers
-
-- `WEB_API_PASS` - Password the web client uses to connect to remote API servers
 
 - `WEB_HOST` - Full name (FQDN) of our server\
   Used for routing and constructing URLs for maps
@@ -280,6 +279,12 @@ If the server run the Web service then the following settings are relevant:
 
 - `IDLE_TIMEOUT` - Login Session timeout.\
   Default 4 hours. Set to `0` to disable it.
+
+- `RSPAMD_CONTROLLER_PASS` - Rspamd [Controller worker](https://docs.rspamd.com/workers/controller/) password.\
+  This is needed to get stats from Rspamd.
+  Must be the same as the `password` in `/etc/rspamd/local.d/worker-controller.inc`.\
+  (Also see `stat_url` for `$API_SERVERS` and `$rspamd_stat_disable`
+  in `config.local.php/config.php` files).
 
 ### Mail Notifications/Release from Quarantine
 If an email is quarantined and a notification must be sent (according to settings) or released from quarantine:
@@ -358,16 +363,22 @@ cd config/
 cp config.local-example.php config.local.php
 ```
 
-### API Settings
-These settings are used by the web servers in order to connect to API servers:
+### Web API Settings
+These settings are used by the web servers in order to connect to API servers (as a web client):
 - `$API_SERVERS` - Array of API server aliases (url, statistics url and TLS options)\
   See `config.php` for all available options
 
 - `$SYS_CA_PATH` - Default CA path dir ([capath](https://symfony.com/doc/current/reference/configuration/framework.html#capath)) to verify remote API servers' TLS
 
-- `$RM_WEB_API_PATH` - Path to use for remote API mail release
+- `$GET_MAIL_API_PATH` - Path to use for remote API get mail
 
-- `$GM_WEB_API_PATH` - Path to use for remote API get mail
+- `$RELEASE_MAIL_API_PATH` - Path to use for remote API mail release
+
+`MAIL_API_USER` and `MAIL_API_PASS` from `.env` are also used from web client in order to be authenticated to remote Mail API servers.
+
+If the Web server also runs API, `MY_API_SERVER_ALIAS` matches an entry in `$API_SERVERS` and mail is stored locally with
+a `server` entry matching its local alias name, then GetMail/ReleaseMail happens locally.\
+In any other case a call to the remote API server is being done.
 
 ### Rspamd Statistics
 - `$rspamd_stat_disable` - Set to `true` to disable fetching statistics from Rspamd servers

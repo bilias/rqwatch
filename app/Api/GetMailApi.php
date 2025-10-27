@@ -31,11 +31,11 @@ class GetMailApi extends RqwatchApi
 	protected string $logPrefix = 'GetMailApi';
 
 	protected function getAllowedIps(): array {
-		return array_map('trim', explode(',', $_ENV['WEB_API_ACL']));
+		return array_map('trim', explode(',', $_ENV['MAIL_API_ACL']));
 	}
 
 	protected function getAuthCredentials(): array {
-		return [$_ENV['WEB_API_USER'], $_ENV['WEB_API_PASS']];
+		return [$_ENV['MAIL_API_USER'], $_ENV['MAIL_API_PASS']];
 	}
 
 	public function handle(): void {

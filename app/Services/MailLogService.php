@@ -634,7 +634,7 @@ class MailLogService
 			throw new \Exception("Error. Contact admin");
 		}
 		// XXX have not checked if it works with /subfolder in WEB_BASE
-		$url = $api_servers[$api_server]['url'] . $_ENV['WEB_BASE'] . Config::get('GM_WEB_API_PATH');
+		$url = $api_servers[$api_server]['url'] . $_ENV['WEB_BASE'] . Config::get('GET_MAIL_API_PATH');
 
 		if (array_key_exists('options', $api_servers[$api_server])) {
 			$options = $api_servers[$api_server]['options'];
@@ -651,8 +651,8 @@ class MailLogService
 		$response = $apiClient->postWithAuth(
 			$url,
 			$data,
-			$_ENV['WEB_API_USER'],
-			$_ENV['WEB_API_PASS']
+			$_ENV['MAIL_API_USER'],
+			$_ENV['MAIL_API_PASS']
 		);
 
 		try {
@@ -838,7 +838,7 @@ class MailLogService
 			return false;
 		}
 		// XXX have not checked if it works with /subfolder in WEB_BASE
-		$url = $api_servers[$api_server]['url'] . $_ENV['WEB_BASE'] . Config::get('RM_WEB_API_PATH');
+		$url = $api_servers[$api_server]['url'] . $_ENV['WEB_BASE'] . Config::get('RELEASE_MAIL_API_PATH');
 
 		if (array_key_exists('options', $api_servers[$api_server])) {
 			$options = $api_servers[$api_server]['options'];
@@ -856,8 +856,8 @@ class MailLogService
 		$response = $apiClient->postWithAuth(
 			$url,
 			$data,
-			$_ENV['WEB_API_USER'],
-			$_ENV['WEB_API_PASS']
+			$_ENV['MAIL_API_USER'],
+			$_ENV['MAIL_API_PASS']
 		);
 
 		try {

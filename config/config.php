@@ -82,10 +82,10 @@ $rspamd_stat_redis_key = "rqwatch_rspamd_stats";
 $rspamd_stat_redis_cache_ttl = 300;
 
 # Path to use for remote API mail release
-$RM_WEB_API_PATH = "/api/release_mail.php";
+$RELEASE_MAIL_API_PATH = "/api/release_mail.php";
 
 # Path to use for remote API get mail
-$GM_WEB_API_PATH = "/api/get_mail.php";
+$GET_MAIL_API_PATH = "/api/get_mail.php";
 
 # Directory for storing and serving map files
 $MAP_DIR = __DIR__ . '/../web/maps/';
