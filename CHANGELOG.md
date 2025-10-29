@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-29
+- Fallback to smtp mail from incase mime from in empty in metadata_export
 - Enforce background so raw mail does not override it
 
 ### 2025-10-27
