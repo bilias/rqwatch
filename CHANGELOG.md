@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-10-29
+- Enforce background so raw mail does not override it
+
 ### 2025-10-27
 - Remove WEB_BASE from api calls to remote MAIL API
 - Rename WEB_API to MAIL_API
