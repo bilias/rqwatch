@@ -101,7 +101,9 @@ The following functionalities are supported:
 If mail is stored in Quarantine:
 - Show raw mail (text/html)
 - Show/save mail attachments
+- Notify recipient via CLI command run from cron
 - Release mail (to original and/or alternate recipients)
+- Track notification and release datetime
 - Show Quarantined mails per day
 
 Admin users have full access. Users have limited access and only to their data.
