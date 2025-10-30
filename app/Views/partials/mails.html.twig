@@ -64,9 +64,11 @@ Total {{ totalRecords }} mails
 
 {% set log_action = log.action %}
 {% set action_details = get_action_details(log.symbols) %}
+{#
 {% if action_details == 'rqwatch_map' %}
   {% set log_action = log_action ~ ' (map)' %}
 {% endif %}
+#}
 {% if action_details == 'whitelist' %}
   {% set log_action = log_action ~ ' (whitelisted)' %}
 {% endif %}
@@ -76,6 +78,8 @@ Total {{ totalRecords }} mails
 
 {% if log.has_virus %}
   <td class='center action'>{{ log_action }}<br/><span class='virus'>{{ check_virus_from_all(log.symbols) }}</span></td>
+{% elseif action_details == 'rqwatch_map' %}
+  <td class='center'>{{ log_action }}<br/><span class='rqwatch_map'>[map]</span></td>
 {% else %}
   <td class='center'>{{ log_action }}</td>
 {% endif %}

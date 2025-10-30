@@ -385,6 +385,11 @@ li.active {
     background-color: var(--color-mail-rqwatch_map);
 }
 
+.mail .rqwatch_map {
+ display: block;
+ color: #000 !important;
+}
+
 .blacklist {
 	 color: #FFF;
     background-color: var(--color-mail-blacklist);
