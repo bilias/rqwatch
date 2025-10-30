@@ -795,4 +795,10 @@ You can see mail details and release it from quarantine by clicking here:
 		return sprintf('%ds', $seconds);
 	}
 
+	public function getMailFromMime(string $mime_from): string {
+		$parse = mailparse_rfc822_parse_addresses($mime_from);
+
+		return $parse[0]['address'] ? $parse[0]['address'] : '';
+	}
+
 }

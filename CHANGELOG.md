@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-10-30
+- Show MIME From instead of Mail From on main mail logs pages
+
 ### 2025-10-29
 - Fallback to smtp mail from incase mime from in empty in metadata_export
 - Enforce background so raw mail does not override it

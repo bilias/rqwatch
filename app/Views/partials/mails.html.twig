@@ -22,8 +22,8 @@ Total {{ totalRecords }} mails
 <thead><tr>
  <th class='date'>Info</th>
  <th class='datetime'>Date/Time</th>
- <th class='mailfromwidth'>From</th>
- <th class='mailtowidth'>To</th>
+ <th class='mailfromwidth'>MIME From</th>
+ <th class='mailtowidth'>RCPT To</th>
 {#
  <th class='mailwidth'>MIME-To</th>
 #}
@@ -46,7 +46,8 @@ Total {{ totalRecords }} mails
   <td class='mailinfo center'><a href='{{ get_route('detail', { type: 'id', value: log.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
   {% endif %}
   <td class='date center'>{{ log.created_at|date("Y-m-d") }} {{ log.created_at|date("H:i:s") }}</td>
-  <td>{{ truncate(decodeEmail(log.mail_from),32) }}</td>
+{#  <td>{{ truncate(decodeEmail(log.mail_from),32) }}</td> #}
+  <td>{{ truncate(decodeEmail(log.mime_from_decoded),32) }}</td>
   <td>{{ truncate(log.rcpt_to, 25) }}</td>
 {#
 {% if log.mime_to %}

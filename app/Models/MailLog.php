@@ -75,6 +75,8 @@ class MailLog extends Model
 		'message_id',
 	];
 
+	protected $appends = ['mime_from_decoded'];
+
 	public const SELECT_FIELDS = [
 		'id',
 		'qid',
@@ -139,4 +141,26 @@ class MailLog extends Model
 		return $_ENV['MAILLOGS_TABLE'] ?? 'mail_logs';
 	}
 	*/
+
+	public function getMimeFromDecodedAttribute(): string {
+		// If mime_from is missing or empty, just return mail_from
+		if (empty($this->mime_from)) {
+			return (string) $this->mail_from;
+		}
+
+		try {
+			$parsed = mailparse_rfc822_parse_addresses((string) $this->mime_from);
+
+			if (!empty($parsed[0]['address'])) {
+				return $parsed[0]['address'];
+			}
+		} catch (\Throwable $e) {
+			// In case parsing fails, fallback gracefully
+			return (string) $this->mail_from;
+		}
+
+		// Fallback if no address found
+		return (string) $this->mail_from;
+	}
+
 }
