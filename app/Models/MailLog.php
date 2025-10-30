@@ -145,7 +145,7 @@ class MailLog extends Model
 	public function getMimeFromDecodedAttribute(): string {
 		// If mime_from is missing or empty, just return mail_from
 		if (empty($this->mime_from)) {
-			return (string) $this->mail_from;
+			return $this->getMailFrom();
 		}
 
 		try {
@@ -156,11 +156,15 @@ class MailLog extends Model
 			}
 		} catch (\Throwable $e) {
 			// In case parsing fails, fallback gracefully
-			return (string) $this->mail_from;
+			return $this->getMailFrom();
 		}
 
 		// Fallback if no address found
-		return (string) $this->mail_from;
+		return $this->getMailFrom();
+	}
+
+	private function getMailFrom() {
+		return empty($this->mail_from) ? '' : (string) $this->mail_from;
 	}
 
 }
