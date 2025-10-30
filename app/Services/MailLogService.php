@@ -210,6 +210,8 @@ class MailLogService
 			$offset = ($page - 1) * $this->items_per_page;
 			$itemsForPage = $allItems->slice($offset, $this->items_per_page)->values();
 
+			// we need to enforce the upper limit,
+			// that's why the manual LengthAwarePaginator paginator
 			$paginator = new LengthAwarePaginator(
 				$itemsForPage,
 				$allItems->count(),
@@ -222,6 +224,8 @@ class MailLogService
 
 			$itemsForPage = $query->forPage($page, $this->items_per_page)->get();
 
+			// we need to enforce the upper limit,
+			// that's why the manual LengthAwarePaginator paginator
 			$paginator = new LengthAwarePaginator(
 				$itemsForPage,
 				$total,
