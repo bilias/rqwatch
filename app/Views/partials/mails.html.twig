@@ -75,8 +75,6 @@ Total {{ totalRecords }} mails
 
 {% if log.has_virus %}
   <td class='center action'>{{ log_action }}<br/><span class='virus'>{{ check_virus_from_all(log.symbols) }}</span></td>
-{% elseif action_details == 'rqwatch_map' %}
-  <td class='center rqwatch_map'>{{ log_action }}</td>
 {% else %}
   <td class='center'>{{ log_action }}</td>
 {% endif %}
