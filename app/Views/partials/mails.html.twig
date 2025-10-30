@@ -4,7 +4,7 @@
 {% if date %}
 {{ date }}:
 {% endif %}
-Total {{ totalRecords }} mails
+Total {{ totalRecords|nf }} mails
 {% if in_quarantine %} in Quarantine{% endif %}
 {% if max_items and totalRecords == max_items %}
 / Limited
