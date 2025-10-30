@@ -3,6 +3,9 @@
 ## Master Dev Branch
 
 ### 2025-10-30
+- Let paginator not fetch everything (less memory)
+- Increase php memory limit to handle 10K entries
+- Color on mapped entry
 - Show MIME From instead of Mail From on main mail logs pages
 
 ### 2025-10-29
