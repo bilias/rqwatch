@@ -38,6 +38,8 @@ introducing only minimal overhead.
       * [Mail Logs and Quarantine](#mail-logs-and-quarantine)
       * [Authentication](#authentication)
       * [Access Control](#access-control)
+      * [Users](#users)
+      * [Aliases](#aliases)
       * [Maps](#maps)
       * [Redis Caching](#redis-caching)
    * [API for Rspamd - RSPAMD API (metadata_importer)](#api-for-rspamd---rspamd-api-metadata_importer)
@@ -115,6 +117,18 @@ Admin users have full access. Users have limited access and only to their data.
 - DB Admin users / LDAP Admin users
 - /admin web endpoint for admins
 
+### Users
+- Add/Delete Local (DB) user
+- Edit user
+- Login as user
+- Search
+
+### Aliases
+User mail aliases can be added in order for the user to have access to multiple recipient addresses.
+
+- Add/Delete mail aliases
+- Search
+
 ### Maps
 The Web interface provides map management and URL endpoints for rspamd
 - Basic Maps with common fields of Rspamd multimap module (mail_from, rcpt_to, mime_from, ip)
@@ -124,6 +138,8 @@ The Web interface provides map management and URL endpoints for rspamd
 - Custom Maps with a custom field. Can hold any type of field that Rspamd supports (asn, url, email, ip, text etc)
 - Multi entry inserts
 - Enable/Disable/Delete per entry per map
+- Search entries
+- Edit entries
 
 A GetMapApi was also initially implemented, however it's been disabled by default.\
 Rspamd downloads map files locally from the web server and this does not put additional
