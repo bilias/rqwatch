@@ -202,6 +202,7 @@ class MailLogService
 				->withPath($url);
 			*/
 
+			/* Working but needs memory
 			// Get limited dataset first
 			$allItems = $query->get();
 
@@ -215,6 +216,19 @@ class MailLogService
 				$this->items_per_page,
 				$page
 			);
+			*/
+
+			$total = min($query->count(), $this->max_items);  // cap total
+
+			$itemsForPage = $query->forPage($page, $this->items_per_page)->get();
+
+			$paginator = new LengthAwarePaginator(
+				$itemsForPage,
+				$total,
+				$this->items_per_page,
+				$page
+			);
+
 			$logs = $paginator->withPath($url);
 		} catch (\Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage());
