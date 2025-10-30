@@ -162,7 +162,7 @@ php_admin_flag[expose_php] = off
 ; see postfix mailbox_size_limit/message_size_limit
 php_value[post_max_size] = 64M
 php_value[upload_max_filesize] = 64M
-php_admin_value[memory_limit] = 256M
+php_admin_value[memory_limit] = 128M
 php_value[date.timezone]  = Europe/Athens
 EOF
 ```
