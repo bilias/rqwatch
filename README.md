@@ -1,20 +1,26 @@
 # Rqwatch
 
-**Rqwatch** is a quarantine and map management system for [Rspamd](https://rspamd.com), written in PHP. 
+**Rqwatch** is a quarantine and map management system for [Rspamd](https://rspamd.com),
+written in PHP.
 
-It provides a web interface to monitor all incoming emails passing through your mail gateway,
-accessible to both administrators and recipient users.
+It provides an intuitive web interface to monitor all incoming emails passing through your
+mail gateway, accessible to both administrators and recipient users.
 
 An API is available to insert data from Rspamd. This API is used by the Rspamd
 [Metadata Exporter](https://docs.rspamd.com/modules/metadata_exporter) plugin to
-export raw emails and Rspamd headers and store that metadata in a database.
+export raw emails and Rspamd headers and symbols and store that metadata in a database.
 
-Depending on the action taken by Rspamd and the configuration, raw emails can also be saved
-in local quarantine storage to be examined and released by administrators or recipient users,
-if desired.
+Depending on the action taken by Rspamd and the configuration, raw emails can also
+be saved in local quarantine storage to be examined and released by administrators
+or recipient users, if desired.  This is particularly useful for rejected or discarded
+emails, which in a default Rspamd setup would be lost, leaving the recipient unaware of them.
 
-Apart from quarantine monitoring, this system can also be used as a complete map management
-and distribution point for Rspamd, independent of other functionalities.
+Additionally, an administrator can monitor all email traffic and the information
+provided by Rqwatch, taking appropriate actions to improve Anti-Spam and Anti-Virus control
+and minimize false positives and false negatives.
+
+Apart from monitoring, this system can also be used as a complete map
+management and distribution point for Rspamd, independent of other functionalities.
 
 Rqwatch is able to operate in two modes:
 - Local mode (single-host), where the Web and API components run on the same host
@@ -26,6 +32,10 @@ hosts as Rspamd, while the Web servers (public or private) run on separate hosts
 
 In both modes, Rspamd communicates with Rqwatch API running on the same host,
 introducing only minimal overhead.
+
+Rqwatch comes packed with a variety of [features](#features). From detailed email traffic
+monitoring to actionable insights and Quarantine and maps management, Rqwatch provides administrators
+with extra tools to make the most of Rspamd’s powerful anti-spam capabilities.
 
 <!-- [[_TOC_]] -->
 
@@ -63,7 +73,7 @@ introducing only minimal overhead.
 - Router
 - Authentication and Access Control middlewares per route
 - Pretty URLs
-- Can run either in Local mode (Web/API on same server), or [Distributed](docs/DISTRIBUTED.md)
+- Can run either in Local mode (Web/API on same host), or [Distributed](docs/DISTRIBUTED.md)
 mode (Web/API on different hosts).\
   Dedicated Mode, where Rqwatch runs separately than Rspamd could also work in theory,
 however this setup has not been tested.
@@ -94,7 +104,7 @@ The following functionalities are supported:
 - Top reports
 - Show mail metadata
 - Show mail headers
-- Show rspamd headers
+- Show Rspamd symbols
 - Show virus report
 - Quick links for white/black lists
 
@@ -132,7 +142,7 @@ User mail aliases can be added in order for the user to have access to multiple 
 - Search
 
 ### Maps
-The Web interface provides map management and URL endpoints for rspamd
+The Web interface provides map management and URL endpoints for Rspamd
 - Basic Maps with common fields of Rspamd multimap module (mail_from, rcpt_to, mime_from, ip)
 - Combined Maps with two fields combination for custom lua plugins provided by Rqwatch
 (mail_from/rcpt_to, mime_from/rcpt_to etc)
