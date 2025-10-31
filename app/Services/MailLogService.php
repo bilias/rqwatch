@@ -633,7 +633,7 @@ class MailLogService
 			// has applyUserScope
 			$ar = $this->detail('id', $id);
 		} catch (\InvalidArgumentException $e) {
-			$this->logger->error($e->getMessage());
+			$this->logger->error("{$lf} InvalidArgumentException for id {$id}: " . $e->getMessage());
 			throw new \Exception($e->getMessage());
 		}
 
@@ -677,12 +677,25 @@ class MailLogService
 			$statusCode = $response->getStatusCode();
 			$mail_file = $response->getContent(false); // Don't throw on error status
 
-			if ($statusCode !== Response::HTTP_OK) {
+			if ($statusCode === Response::HTTP_FORBIDDEN) {
+				$this->logger->error("{$lf} wrong response code: {$statusCode} Forbidden, from API server '{$api_server}'. API server said: " . PHP_EOL . "'{$mail_file}'");
+				// our API returns this
+				if ($mail_file == 'Permission denied') {
+					$this->logger->warning("{$lf} Check local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
+				} else {
+					// apache returns full http response
+					$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
+				}
+				throw new \Exception("Error. Contact admin");
+			} else if ($statusCode !== Response::HTTP_OK) {
 				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. API server said: '{$mail_file}'");
 				throw new \Exception("Error. Contact admin");
 			}
 		// SSL/TLS problems
 		} catch (TransportException $e) {
+			$this->logger->error("{$lf} problem: " . $e->getMessage());
+			throw new \Exception("Error. Contact admin");
+		} catch (\Exception $e) {
 			$this->logger->error("{$lf} problem: " . $e->getMessage());
 			throw new \Exception("Error. Contact admin");
 		}
@@ -727,7 +740,8 @@ class MailLogService
 			try {
 				// has applyUserScope
 				if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS'])) {
-					throw new \Exception("MAIL_API_USER or MAIL_API_PASS not set");
+					$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set");
+					throw new \Exception("Error. Contact admin");
 				}
 				$mailobject = $this->getMailObjectViaApi($maillog->id, $maillog->server);
 			} catch (\Exception $e) {
@@ -885,6 +899,17 @@ class MailLogService
 			$statusCode = $response->getStatusCode();
 			if ($statusCode === Response::HTTP_OK) {
 				return true;
+			} else if ($statusCode === Response::HTTP_FORBIDDEN) {
+				$error_msg = $response->getContent(false); // Don't throw on error status
+				$this->logger->error("{$lf} wrong response code: {$statusCode} Forbidden, from API server '{$api_server}'. API server said: " . PHP_EOL . "'{$error_msg}'");
+				// our API returns this
+				if ($error_msg == 'Permission denied') {
+					$this->logger->warning("{$lf} Check local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
+				} else {
+					// apache returns full http response
+					$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
+				}
+				return false;
 			} else {
 				$error_msg = $response->getContent(false); // Don't throw on error status
 				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. 'API server said: {$error_msg}'");

@@ -594,8 +594,8 @@ class MailLogController extends ViewController
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
 		} catch (\Exception $e) {
-			$this->fileLogger->warning("getMailObject() problem: " . $e->getMessage());
-			$this->flashbag->add('error', 'Mail does not exist or user does not have access to it');
+			$this->fileLogger->warning("showMail() problem: " . $e->getMessage());
+			$this->flashbag->add('error', $e->getMessage());
 			$this->initUrls();
 			return new RedirectResponse($this->homepageUrl);
 		}
@@ -626,8 +626,8 @@ class MailLogController extends ViewController
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
 		} catch (\Exception $e) {
-			$this->fileLogger->warning("getMailObject() problem: " . $e->getMessage());
-			$this->flashbag->add('error', 'Mail does not exist or user does not have access to it');
+			$this->fileLogger->warning("saveAttachment() problem: " . $e->getMessage());
+			$this->flashbag->add('error', $e->getMessage());
 			return new RedirectResponse($this->homepageUrl);
 		}
 
@@ -670,8 +670,8 @@ class MailLogController extends ViewController
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
 		} catch (\Exception $e) {
-			$this->fileLogger->warning("getMailObject() problem: " . $e->getMessage());
-			$this->flashbag->add('error', 'Mail does not exist or user does not have access to it');
+			$this->fileLogger->warning("openAttachment() problem: " . $e->getMessage());
+			$this->flashbag->add('error', $e->getMessage());
 			return new RedirectResponse($this->homepageUrl);
 		}
 

@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-31
+- Better error handling for Remote API 403 permission denied
 - Catch MAIL_API_USER or MAIL_API_PASS not set
 - Show login form error
 - Catch error when rspamd stat connection fails (Unauthorized)
