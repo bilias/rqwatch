@@ -726,6 +726,9 @@ class MailLogService
 		} else {
 			try {
 				// has applyUserScope
+				if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS'])) {
+					throw new \Exception("MAIL_API_USER or MAIL_API_PASS not set");
+				}
 				$mailobject = $this->getMailObjectViaApi($maillog->id, $maillog->server);
 			} catch (\Exception $e) {
 				throw new \Exception($e->getMessage());

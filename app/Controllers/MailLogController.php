@@ -594,8 +594,8 @@ class MailLogController extends ViewController
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
 		} catch (\Exception $e) {
-			$this->fileLogger->warning($e->getMessage() . ". Mail does not exist or user does not have access to it");
-			$this->flashbag->add('error', $e->getMessage());
+			$this->fileLogger->warning("getMailObject() problem: " . $e->getMessage());
+			$this->flashbag->add('error', 'Mail does not exist or user does not have access to it');
 			$this->initUrls();
 			return new RedirectResponse($this->homepageUrl);
 		}
@@ -626,7 +626,8 @@ class MailLogController extends ViewController
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
 		} catch (\Exception $e) {
-			$this->flashbag->add('warning', $e->getMessage());
+			$this->fileLogger->warning("getMailObject() problem: " . $e->getMessage());
+			$this->flashbag->add('error', 'Mail does not exist or user does not have access to it');
 			return new RedirectResponse($this->homepageUrl);
 		}
 
@@ -669,7 +670,8 @@ class MailLogController extends ViewController
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
 		} catch (\Exception $e) {
-			$this->flashbag->add('error', $e->getMessage());
+			$this->fileLogger->warning("getMailObject() problem: " . $e->getMessage());
+			$this->flashbag->add('error', 'Mail does not exist or user does not have access to it');
 			return new RedirectResponse($this->homepageUrl);
 		}
 

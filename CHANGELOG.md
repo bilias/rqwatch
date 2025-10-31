@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 ### 2025-10-31
+- Catch MAIL_API_USER or MAIL_API_PASS not set
+- Show login form error
 - Catch error when rspamd stat connection fails (Unauthorized)
 
 ### 2025-10-30
