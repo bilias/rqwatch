@@ -59,7 +59,7 @@ $API_SERVERS = array(
 	],
 	'mx2' => [
 		'url' => 'https://mx2.example.com',
-		'stat_url' => 'http://127.0.0.1:11334/stat',
+		'stat_url' => 'http://mx2.example.com:11334/stat',
 		'options' => [
 			'verify_peer' => true,
 			'verify_host' => true,

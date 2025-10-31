@@ -13,11 +13,20 @@
 # See config.php for all available options
 $API_SERVERS = array(
 	'mx1' => array(
-		'url' => 'https://mx1.example.com',
+		'url' => 'http://127.0.0.1',
 	),
+/*
 	'mx2' => array(
 		'url' => 'https://mx2.example.com',
+		'stat_url' => 'http://mx2.example.com:11334/stat',
+		'options' => [
+			'verify_peer' => true,
+			'verify_host' => true,
+			'capath' => '/etc/pki/tls/certs',
+			'cafile' => '/etc/pki/tls/certs/mx2.crt',
+		],
 	),
+*/
 );
 
 #$geoip_enable=true;
