@@ -15,7 +15,7 @@ Custom Map: <a target='_blank' href="{{ maps_url_base ~ map ~ '.txt' }}">{{ mapd
 {% else %}
 Custom Map: {{ mapdescr }}<br/>
 {% endif %}
-{{ totalRecords }} entries
+{{ totalRecords|nf }} entries
 {% if last_activity %}
 | Updated {{ last_activity }}
 {% endif %}

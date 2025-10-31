@@ -22,7 +22,7 @@ Basic/Combined Map: <a target='_blank' href="{{ maps_url_base ~ map_name ~ '.txt
 {% else %}
 All Basic/Combined Map Entries<br/>
 {% endif %}
-Total: {{ map_comb_total }} entries
+Total: {{ map_comb_total|nf }} entries
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }}/page
 {% endif %}
@@ -109,7 +109,8 @@ Total: {{ map_comb_total }} entries
 {% elseif is_admin and map_gen_entries is not empty %}
 
 <div class='current_mails descr'>
-All Generic Map Entries | Total: {{ map_gen_total }} entries
+All Generic Map Entries<br/>
+Total: {{ map_gen_total|nf }} entries
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }}/page
 {% endif %}
@@ -154,9 +155,9 @@ All Generic Map Entries | Total: {{ map_gen_total }} entries
 {% if search_map and map_name %}
 Custom Map: <a target='_blank' href="{{ maps_url_base ~ map_name ~ '.txt' }}">{{ map_custom_entries[0].map_description }}</a><br/>
 {% else %}
-All Custom Map Entries
+All Custom Map Entries<br/>
 {% endif %}
-Total: {{ map_custom_total }} entries
+Total: {{ map_custom_total|nf }} entries
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }}/page
 {% endif %}

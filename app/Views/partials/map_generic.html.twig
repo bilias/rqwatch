@@ -2,7 +2,7 @@
 
 <div class='mapform descr'>
 Generic Map: {{ mapdescr }}<br/>
-{{ totalRecords }} entries
+{{ totalRecords|nf }} entries
 {% if last_activity %}
 | Updated {{ last_activity }}
 {% endif %}

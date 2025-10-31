@@ -38,7 +38,7 @@
 		{{ value }}
   {% endif %}
   </div>
-  <div class='cell right cnt'>{{ log.total }}</div>
+  <div class='cell right cnt'>{{ log.total|nf }}</div>
   <div class='cell right cnt'>{{ formatSizeUnits(log.total_size) }}</div>
  </div>
 {% endfor %}
