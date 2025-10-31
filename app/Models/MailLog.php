@@ -11,6 +11,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Utils\Helper;
 
 class MailLog extends Model
 {
@@ -75,7 +76,10 @@ class MailLog extends Model
 		'message_id',
 	];
 
-	protected $appends = ['mime_from_decoded'];
+	protected $appends = [
+		'mime_from_decoded',
+		'virus_from_symbol',
+	];
 
 	public const SELECT_FIELDS = [
 		'id',
@@ -141,6 +145,14 @@ class MailLog extends Model
 		return $_ENV['MAILLOGS_TABLE'] ?? 'mail_logs';
 	}
 	*/
+
+	public function getVirusFromSymbolAttribute() {
+		if (empty($this->getAttribute('has_virus'))) {
+			return null;
+		}
+
+		return Helper::check_virus_from_all($this->getAttribute('symbols'));
+	}
 
 	public function getMimeFromDecodedAttribute(): string {
 		// If mime_from is missing or empty, just return mail_from

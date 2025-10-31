@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-31
+- Use check_virus_from_all in model instead of twig call
 - Number format in maps and reports
 - Number format in quarantine
 - Track composer.lock in git
