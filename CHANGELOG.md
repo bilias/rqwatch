@@ -3,6 +3,10 @@
 ## Master Dev Branch
 
 ### 2025-10-31
+- Track composer.lock in git
+- Update all components to latest versions
+- Update illuminate components to v12.36.1
+- Update symfony components to v7.3.5
 - Better error handling for Remote API 403 permission denied
 - Catch MAIL_API_USER or MAIL_API_PASS not set
 - Show login form error

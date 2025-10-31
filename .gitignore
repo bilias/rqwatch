@@ -1,5 +1,4 @@
 # Untracked files:
-composer.lock
 vendor
 .env
 .htpasswd
