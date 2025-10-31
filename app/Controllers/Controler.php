@@ -227,8 +227,11 @@ class Controller
 			}
 			try {
 				$response = $apiClient->getWithRspamdPassword($config['stat_url'], $password);
-				if ($response->getStatusCode() === Response::HTTP_OK) {
+				$responseCode = $response->getStatusCode();
+				if ($responseCode === Response::HTTP_OK) {
 					$stats[$api_server] = json_decode($response->getContent(), true);
+				} else {
+					$this->fileLogger->error("Stat request to '{$api_server}' failed with error code " . $responseCode . ": " . $response->getContent());
 				}
 			} catch (\Exception $e) {
 				$this->fileLogger->error("Stat request to '{$api_server}' failed: " . $e->getMessage());

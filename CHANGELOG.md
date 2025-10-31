@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-10-31
+- Catch error when rspamd stat connection fails (Unauthorized)
+
 ### 2025-10-30
 - Let paginator not fetch everything (less memory)
 - Increase php memory limit to handle 10K entries
