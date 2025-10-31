@@ -20,7 +20,11 @@
 {% if search_map and map_name %}
 Basic/Combined Map: <a target='_blank' href="{{ maps_url_base ~ map_name ~ '.txt' }}">{{ map_comb_entries[0].map_description }}</a><br/>
 {% else %}
-All Basic/Combined Map Entries<br/>
+ {% if search_map %}
+   Basic/Combined Map Entries after search<br/>
+ {% else %}
+   All Basic/Combined Map Entries<br/>
+ {% endif %}
 {% endif %}
 Total: {{ map_comb_total|nf }} entries
 {% if totalRecords > items_per_page %}
@@ -155,7 +159,11 @@ Total: {{ map_gen_total|nf }} entries
 {% if search_map and map_name %}
 Custom Map: <a target='_blank' href="{{ maps_url_base ~ map_name ~ '.txt' }}">{{ map_custom_entries[0].map_description }}</a><br/>
 {% else %}
-All Custom Map Entries<br/>
+ {% if search_map %}
+   Custom Map Entries after search<br/>
+ {% else %}
+   All Custom Map Entries<br/>
+ {% endif %}
 {% endif %}
 Total: {{ map_custom_total|nf }} entries
 {% if totalRecords > items_per_page %}
