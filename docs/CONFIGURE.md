@@ -1,7 +1,8 @@
 # Configuration
 Rqwatch uses the following files for its configuration:
-- `.env` for sensitive data, various connection details and generally configuration options that are not cached.
-- `config.php` and `config.local.php` inside `config/` directory for the rest of configuration.\
+- `.env` for sensitive data, various connection details and generally configuration options that are not cached
+
+- `config.php` and `config.local.php` inside `config/` directory for the rest of configuration\
 `config.php` is tracked by git and **you should NOT make any changes there as they will be lost on update**.\
 `config.local.php` is not tracked by git and you can use it to override any defaults found in `config.php`.
 
@@ -40,8 +41,8 @@ All passwords provided are dummy entries and **should not be used**, as this is 
 
 ## Rspamd (metadata_export)
 The Rspamd [metadata_exporter](https://docs.rspamd.com/modules/metadata_exporter)
-module connects to our Rqwatch metadata_importer/MetadataImporter API to export raw emails and Rspamd headers
-and store that metadata in the database. Depending on the action taken by Rspamd and the
+module connects to our Rqwatch metadata_importer/MetadataImporter API to export raw emails and Rspamd
+headers and symbols and store that metadata in the database. Depending on the action taken by Rspamd and the
 configuration, raw emails can also be saved in local quarantine storage to be examined
 and released by administrators or recipient users, if desired.
 
@@ -167,7 +168,7 @@ example map entry:
 /common spam text/i LOCAL_spam_text_1:10
 ```
 - Adding `RQWATCH_` (or `LOCAL_`) as a prefix of Map Name in `multimap.conf`, tells Rqwatch to match it as a local map on the web interface.
-- Adding `_WL` or `_WHITELIST` as a suffix of Map Name, tells Rqwatch to match is
+- Adding `_WL` or `_WHITELIST` as a suffix of Map Name, tells Rqwatch to match it
 as a whitelisted entry.
 - Adding `_BL` or `_BLACKLIST` as a suffix of Map Name, tells Rqwatch to match it
 as a blacklisted entry.
@@ -335,11 +336,11 @@ System supports LDAP Authentication.
 
 - `LDAP_SN_ATTR_FALLBAK` - Fallback LDAP attribute for getting user's surname
 
-- `LDAP_UPDATE_NAME_ON_LOGIN` - Update user's first/last name on every login
-
 - `LDAP_GIVENNAME_ATTR` - LDAP attribute for getting user's first name
 
 - `LDAP_GIVENNAME_ATTR_FALLBACK` - Fallback LDAP attribute for getting user's first name
+
+- `LDAP_UPDATE_NAME_ON_LOGIN` - Update user's first/last name on every login
 
 - `LDAP_TLS_CACERTDIR` - (**unused**; use `/etc/openldap/ldap.conf` for now)\
   Specifies the path of the directory containing CA certificates for LDAP server TLS verification
@@ -429,7 +430,8 @@ In all other cases, a call to the remote API server is made.
 - `$store_settings` - Array defining which mails (raw) to store in Quarantine
 based on action taken by Rspamd\
   Default is to store mails with `add header`, `rewrite subject`, `discard`, and `reject`
-  action.
+  action.\
+  Mails with virus symbols are stored independently of the action.
 
 - `$release_mail_subject` - Default subject in release mail
 
@@ -472,6 +474,8 @@ on maillogs pages.\
   documentation for details.
 
 ### GeoIP
+GeoIP is used to show country location for each for mail relays in detailed mail log.
+
 - `$geoip_enable` - Set to `true` to enable GeoIP for relay IPs (country)
 
 - `$geoip_country_db` - GeoIP country database (requires MaxMind account)
@@ -538,8 +542,8 @@ Available commands for the "cron" namespace:
 
   By default, notifications for blacklisted emails are not sent unless `-b` option 
   is specified.\
-  Blacklisted emails are tracked based on Rspamd headers.
-  If a header starts with `RQWATCH_` and ends with either `_BL` or `_BLACKLIST` then
+  Blacklisted emails are tracked based on Rspamd symbols.
+  If a symbol starts with `RQWATCH_` and ends with either `_BL` or `_BLACKLIST` then
   that email is marked as blacklisted.
 
   Users are also able to disable notifications by visiting their Profile page and
@@ -549,7 +553,7 @@ Available commands for the "cron" namespace:
   for emails having a score higher that this.\
   Default score is `50.1`.
 
-  It is suggested that your run this command via cron in order for users to
+  It is suggested that your run this command via [cron](#cron-jobs) in order for users to
   receive notifications for quarantined emails as soon as possible.
     ```
     ./bin/cli.php cron:notifications -h
@@ -565,9 +569,9 @@ Available commands for the "cron" namespace:
   This command scans the Rqwatch database and cleans the Quarantine.
 
   Depending on the value set in .env `QUARANTINE_DAYS` (default 180),
-  Rqwatch databases in being search for email stored before that date.
+  Rqwatch database in being searched for emails stored before that date.
   If `-d` command option is used then those emails are deleted from Quarantine
-  directory (.env `QUARANTINE_DIR`) permanently. However entry remains in the database.
+  directory (.env `QUARANTINE_DIR`) permanently. However entries remain in the database.
     ```
     ./bin/cli.php cron:quarantine -h
 
