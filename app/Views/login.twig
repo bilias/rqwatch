@@ -8,6 +8,10 @@
 <div class='formlogin'>
 {{ form_start(loginform) }}
 
+<div>
+{{ form_errors(loginform) }}
+</div>
+
 <div class="row">
 <div class='info'>   {{ form_label(loginform.username) }}</div>
 <div class='detail'>   {{ form_widget(loginform.username) }}
