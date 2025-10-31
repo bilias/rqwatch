@@ -7,12 +7,12 @@
 <div class='quarantine'>
 
  <span class='descr'>Quarantine
-| Total: {{ totalRecords }} days
+| Total: {{ totalRecords|nf }} days
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }} days/page
 {% endif %}
-| {{ totalMails }} mails
-<br/>Mails kept in Quarantine for: {{ quarantine_days }} days
+| {{ totalMails|nf }} mails
+<br/>Mails kept in Quarantine for: {{ quarantine_days|nf }} days
  </span>
 
 <div class='pagtop'>

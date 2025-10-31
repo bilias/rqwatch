@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-31
+- Number format in quarantine
 - Track composer.lock in git
 - Update all components to latest versions
 - Update illuminate components to v12.36.1
