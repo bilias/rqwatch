@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-10-31
+- Catch and log GeoIP problem
 - Update config defaults
 - Use check_virus_from_all in model instead of twig call
 - Number format in maps and reports

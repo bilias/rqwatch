@@ -691,12 +691,17 @@ You can see mail details and release it from quarantine by clicking here:
 	public static function getCountry(string $ip): ?string {
 		if (Config::get('geoip_enable') && ($geoip_db = Config::get('geoip_country_db')) &&
 				!self::isLocalOrReservedIp($ip)) {
-			$geoip_reader = new \MaxMind\Db\Reader($geoip_db);
-			$geo = $geoip_reader->get($ip);
-			$geoip_reader->close();
+			try {
+				$geoip_reader = new \MaxMind\Db\Reader($geoip_db);
+				$geo = $geoip_reader->get($ip);
+				$geoip_reader->close();
 
-			if (!empty($geo['country']['names']['en'])) {
-				return $geo['country']['names']['en'];
+				if (!empty($geo['country']['names']['en'])) {
+					return $geo['country']['names']['en'];
+				}
+			} catch (\Exception $e) {
+				self::$logger->error("GeoIP problem: " . $e->getMessage());
+				return null;
 			}
 		}
 		return null;
