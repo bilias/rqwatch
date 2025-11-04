@@ -600,7 +600,7 @@ Virus Detected:";
 		$ret .= "
 Action: {$ar['action']}
 
-You can see mail details and release it from quarantine by clicking here:
+You can view mail details and optionally release it from quarantine by clicking here:
 {$ar['detailurl']}
 
 {$ar['signature']}";
