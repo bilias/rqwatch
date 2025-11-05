@@ -79,7 +79,7 @@ class MailReleaseForm extends AbstractType
 			FormFactoryInterface $formFactory,
 			Request $request,
 			$data = null,
-			$options = []): Form {
+			array $options = []): Form {
 
 		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
 	}
