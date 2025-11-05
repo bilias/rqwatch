@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 ### 2025-11-05
+- Add missing array definition for data in forms create
+- Add missing array definition for options in forms create
 - Save deleted search filter
 
 ### 2025-10-31

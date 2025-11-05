@@ -106,7 +106,7 @@ class ProfileForm extends AbstractType
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,
-			$data = null): Form {
+			array $data = null): Form {
 
 		return FormHelper::formCreator($formFactory, $request, self::class, $data);
 	}

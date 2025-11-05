@@ -121,7 +121,7 @@ class CustomMapConfigForm extends AbstractType
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,
-			$data = null,
+			array $data = null,
 			array $options = []): Form {
 
 		// Merge class with any existing class
