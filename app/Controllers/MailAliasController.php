@@ -224,7 +224,7 @@ class MailAliasController extends ViewController
 
 		// 
 		if ($alias) {
-			$mailaliasform = UserForm::create($this->formFactory, $this->request, $alias->toArray());
+			$mailaliasform = MailAliasForm::create($this->formFactory, $this->request, $alias->toArray());
 
 		} else {
 			// alias does not exist
