@@ -718,7 +718,14 @@ class MailLogController extends ViewController
 			return $response;
 		}
 
-		$searchform = SearchForm::create($this->formFactory, $this->request);
+		$deleted_filter = $this->flashbag->get('deleted_filter', []);
+		if (!empty($deleted_filter)) {
+			$prefillData = $deleted_filter;
+		} else {
+			$prefillData = [];
+		}
+
+		$searchform = SearchForm::create($this->formFactory, $this->request, $prefillData);
 
 		if ($searchform->isSubmitted() && $searchform->isValid()) {
 			$data = $searchform->getData();
@@ -787,7 +794,12 @@ class MailLogController extends ViewController
 
 			if (!empty($filters)) {
 				$filters_ar = json_decode($filters, true);
-				unset($filters_ar[$filter_id]);
+
+				if (array_key_exists($filter_id, $filters_ar)) {
+					$this->flashbag->set('deleted_filter', $filters_ar[$filter_id]);
+					unset($filters_ar[$filter_id]);
+				}
+
 				if (count($filters_ar) > 0) {
 					$filters_ar = array_values($filters_ar);
 					$this->session->set('filters', json_encode($filters_ar));

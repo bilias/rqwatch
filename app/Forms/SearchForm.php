@@ -70,9 +70,10 @@ class SearchForm extends AbstractType
 
 	public static function create(
 			FormFactoryInterface $formFactory,
-			Request $request): Form {
+			Request $request,
+			array $data = null): Form {
 
-		return FormHelper::formCreator($formFactory, $request, self::class);
+		return FormHelper::formCreator($formFactory, $request, self::class, $data);
 	}
 
 	public static function check_form(Form $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {

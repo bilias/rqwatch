@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-11-05
+- Save deleted search filter
+
 ### 2025-10-31
 - Catch and log GeoIP problem
 - Update config defaults
