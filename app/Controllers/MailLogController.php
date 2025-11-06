@@ -344,16 +344,16 @@ class MailLogController extends ViewController
 		}
 
 		$days = $service->showPaginatedQuarantine($page, $url);
-		$totalMails = 0;
+		$totalMailsInPage = 0;
 		foreach ($days as $day) {
-			$totalMails += $day->cnt;
+			$totalMailsInPage += $day->cnt;
 		}
 
 		return new Response($this->twig->render('quarantine_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'days' => $days,
 			'totalRecords' => $days->total(),
-			'totalMails' => $totalMails,
+			'totalMailsInPage' => $totalMailsInPage,
 			'items_per_page' => $this->q_items_per_page,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),

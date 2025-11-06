@@ -11,7 +11,7 @@
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }} days/page
 {% endif %}
-| {{ totalMails|nf }} mails
+| {{ totalMailsInPage|nf }} mails in page
 <br/>Mails kept in Quarantine for: {{ quarantine_days|nf }} days
  </span>
 
