@@ -69,7 +69,7 @@ class SessionManager
 				]);
 
 				$storage = new NativeSessionStorage([
-					'cookie_secure' => '1',
+					'cookie_secure' => self::checkSecureCookie(),
 					'cookie_httponly' => '1',
 					'cookie_samesite' => Cookie::SAMESITE_STRICT,
 					// not needed
@@ -83,7 +83,7 @@ class SessionManager
 			}
 		} else {
 			$storage = new NativeSessionStorage([
-				'cookie_secure' => '1',
+				'cookie_secure' => self::checkSecureCookie(),
 				'cookie_httponly' => '1',
 				'cookie_samesite' => Cookie::SAMESITE_STRICT,
 				// not needed
@@ -128,5 +128,12 @@ class SessionManager
 			}
 		}
 		return false;
+	}
+
+	private static function checkSecureCookie(): string {
+		if ($_ENV['WEB_SCHEME'] == 'http') {
+			return "auto";
+		}
+		return "1";
 	}
 }
