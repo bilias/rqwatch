@@ -75,6 +75,14 @@ php-pecl-mailparse php-mbstring php-xml \
 php-ldap php-pecl-redis6 php-gmp composer git
 ```
 
+For Ubuntu 24.04:
+```
+apt-get update
+apt install git composer \
+php8.3-fpm php8.3-cli php8.3-mysql php8.3-mailparse php8.3-mbstring \
+php8.3-xml php8.3-ldap php8.3-redis php8.3-gmp
+```
+
 ### Users and groups
 Create a group and a user for Rqwatch:
 ```
@@ -86,7 +94,10 @@ Create a group shared by Rqwatch and the web server:
 ```
 groupadd -r rqwatch_web
 usermod -G rqwatch_web rqwatch
+
 usermod -G rqwatch_web apache
+# For Ubuntu there is no apache user, only www-data
+usermod -G rqwatch_web www-data
 ```
 
 ### Download and setup directories
@@ -115,7 +126,7 @@ chmod 640 .env config/config.*
 ### Rqwatch Installation
 Temporarily give write access to rqwatch user in order to create `vendor/` and `composer.lock`:
 ```
-chown rqwatch /var/www/htmp/rqwatch
+chown rqwatch /var/www/html/rqwatch
 ```
 ```
 su - rqwatch -s /bin/bash
@@ -138,13 +149,23 @@ chown root /var/www/htmp/rqwatch
 ### PHP-FPM
 ```
 cd /etc/php-fpm.d
+# For Ubuntu
+cd /etc/php/8.3/fpm/pool.d
 
 cat <<EOF > rqwatch.conf
 [rqwatch]
 user = rqwatch
 group = rqwatch
+
 listen = /run/php-fpm/rqwatch.sock
-listen.acl_users = apache,nginx
+; For Ubuntu
+;listen = /run/php/rqwatch.sock
+
+listen.acl_users = apache
+; For Ubuntu
+;listen.acl_users = www-data
+
+listen.mode = 0660
 listen.allowed_clients = 127.0.0.1
 pm = dynamic
 pm.max_children = 50
@@ -174,20 +195,37 @@ chown -R rqwatch:rqwatch /var/www/html/rqwatch/fpm
 chmod 700 /var/www/html/rqwatch/fpm
 
 systemctl enable --now php-fpm
+# For Ubuntu
+systemctl enable --now php8.3-fpm
 ```
 
 ### Web Server
 ```
 dnf install httpd mod_ssl
+# For Ubuntu
+apt install apache2
 
 cp /var/www/html/rqwatch/contrib/apache-rqwatch.conf /etc/httpd/conf.d/rqwatch.conf
+# For Ubuntu
+cp /var/www/html/rqwatch/contrib/apache-rqwatch.conf /etc/apache2/sites-available/rqwatch.conf
 ```
 Edit `/etc/httpd/conf.d/rqwatch.conf` and define allowed IPs for `/api`.\
 If using Local mode (single-host) setup, then only `127.0.0.1` should be able to connect.\
 If in Distributed mode, both `127.0.0.1` and Rqwatch Web Servers must be able to connect to the servers running the API (Rspamd servers).
 
+For Ubuntu change\
+`SetHandler "proxy:unix:/run/php-fpm/rqwatch.sock|fcgi://localhost"`\
+to\
+`SetHandler "proxy:unix:/run/php/rqwatch.sock|fcgi://localhost"`
 ```
 systemctl enable --now httpd
+
+# For Ubuntu
+a2dissite 000-default
+a2enmod rewrite
+a2enmod proxy_fcgi
+a2ensite rqwatch
+systemctl enable --now apache2
 ```
 
 ### Database Server
@@ -195,11 +233,18 @@ For Distributed mode, Rqwatch connects to a remote MySQL/MariaDB server accessib
 Only MariaDB client is needed:
 ```
 dnf install mariadb
+# For Ubuntu
+apt install mariadb-client
 ```
 
 For Local mode (single-host) setup:
 ```
 dnf install mariadb-server
+# For Ubuntu
+apt install mariadb-server
+```
+
+```
 systemctl enable --now mariadb
 mariadb-secure-installation
 ```
