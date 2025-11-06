@@ -31,7 +31,7 @@ hosts as Rspamd, while the Web servers (public or private) run on separate hosts
   to retrieve mail data and release messages as needed.
 
 In both modes, Rspamd communicates with Rqwatch API running on the same host,
-introducing only minimal overhead. Rqwatch doesn’t affect Rspamd’s spam decisions or
+introducing only minimal overhead, without affecting Rspamd’s spam decisions or
 block its operation — even if mail import fails, Rspamd keeps running as usual.
 
 Rqwatch comes packed with a variety of [features](#features). From detailed email traffic
