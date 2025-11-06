@@ -2,6 +2,11 @@
 
 ## Master Dev Branch
 
+### 2025-11-06
+- Install instructions for Ubuntu 24
+- TextType instead of EmailType in Mail Aliases username
+- Add missing user_id for maps_combined in contrib
+
 ### 2025-11-05
 - Add missing array definition for data in forms create
 - Add missing array definition for options in forms create
