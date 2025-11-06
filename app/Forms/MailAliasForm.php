@@ -40,7 +40,7 @@ class MailAliasForm extends AbstractType
 {
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
-            ->add('username', EmailType::class, [
+            ->add('username', TextType::class, [
                 'required' => true,
                 'label' => 'Username: ',
 					 'attr' => [
