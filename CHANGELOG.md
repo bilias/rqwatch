@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v1.6.8 - Released: 2025-11-10
+
 ### 2025-11-06
 - Install instructions for Ubuntu 24
 - TextType instead of EmailType in Mail Aliases username
