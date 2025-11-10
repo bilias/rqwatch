@@ -1,6 +1,16 @@
 {
     "name": "bilias/rqwatch",
-    "description": "Rqwatch",
+    "description": "Rqwatch is a quarantine and map management system for Rspamd",
+	 "keywords": ["rspamd","antispam"],
+	 "homepage": "https://github.com/bilias/rqwatch",
+	 "license": "MPL-2.0",
+	 "authors": [
+		{
+			"name": "Giannis Kapetanakis",
+			"role": "Developer"
+		}
+	],
+    "type": "project",
     "autoload": {
         "psr-4": {
             "App\\": "app/"
