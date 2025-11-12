@@ -38,6 +38,7 @@ use App\Core\Form\FormFactoryProvider;
 
 use Twig\TwigFunction;
 
+use App\Core\RouteName;
 use App\Core\Config;
 use App\Utils\Helper;
 
@@ -65,6 +66,16 @@ class ViewController extends Controller
 		$this->twig->addFunction(new TwigFunction('get_route', fn($name, $params = []) =>
 			$this->urlGenerator->generate($name, $params)
 		));
+
+		$this->twig->addFunction(new TwigFunction('route', function (string $caseName, array $params = []) {
+			$enumClass = RouteName::class;
+			if (!defined("$enumClass::$caseName")) {
+				throw new \RuntimeException("Unknown RouteName enum case: $caseName");
+			}
+
+			$enumCase = constant("$enumClass::$caseName"); // gets the enum case object
+			return $this->url($enumCase, $params);
+		}));
 
 		$this->twig->addFunction(new TwigFunction('get_action_details', function ($symbols) {
 			return Helper::get_action_details($symbols);
