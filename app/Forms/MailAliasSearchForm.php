@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Utils\FormHelper;
 
 class MailAliasSearchForm extends AbstractType
@@ -66,7 +67,7 @@ class MailAliasSearchForm extends AbstractType
 			array $data = null
 	): Form {
 
-		$url = $urlGenerator->generate('admin_aliases_search');
+		$url = $urlGenerator->generate(RouteName::ADMIN_ALIASES_SEARCH->value);
 
 		return FormHelper::formCreator(
 			$formFactory,
@@ -89,7 +90,7 @@ class MailAliasSearchForm extends AbstractType
 			$data = $form->getData();
 			dd($data);
 
-			$url = $urlGenerator->generate('admin_aliases_search');
+			$url = $urlGenerator->generate(RouteName::ADMIN_ALIASES_SEARCH->value);
 			return new RedirectResponse($url);
       }
 

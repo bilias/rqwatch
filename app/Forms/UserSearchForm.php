@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Utils\FormHelper;
 
 class UserSearchForm extends AbstractType
@@ -66,7 +67,7 @@ class UserSearchForm extends AbstractType
 			array $data = null
 	): Form {
 
-		$url = $urlGenerator->generate('admin_usersearch');
+		$url = $urlGenerator->generate(RouteName::ADMIN_USERSEARCH->value);
 
 		return FormHelper::formCreator(
 			$formFactory,
@@ -89,7 +90,7 @@ class UserSearchForm extends AbstractType
 			$data = $form->getData();
 			dd($data);
 
-			$url = $urlGenerator->generate('admin_usersearch');
+			$url = $urlGenerator->generate(RouteName::ADMIN_USERSEARCH->value);
 			return new RedirectResponse($url);
       }
 

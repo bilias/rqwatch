@@ -28,6 +28,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Utils\FormHelper;
 
 class QidForm extends AbstractType
@@ -75,12 +76,12 @@ class QidForm extends AbstractType
 			$qid = $data['qid'];
 
 			if ($is_admin) {
-				$url = $urlGenerator->generate('admin_detail', [
+				$url = $urlGenerator->generate(RouteName::ADMIN_DETAIL->value, [
 					'type' => 'qid',
 					'value' => $qid,
 				]);
 			} else {
-				$url = $urlGenerator->generate('detail', [
+				$url = $urlGenerator->generate(RouteName::DETAIL->value, [
 					'type' => 'qid',
 					'value' => $qid,
 				]);

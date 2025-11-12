@@ -36,6 +36,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 
@@ -76,7 +77,7 @@ class MapWithTwoFieldsForm extends AbstractType
 			$data = $form->getData();
 			$map = $data['map_name'];
 
-			$url = $urlGenerator->generate('admin_map_add_entry', [
+			$url = $urlGenerator->generate(RouteName::ADMIN_MAP_ADD_ENTRY->value, [
 				'map' => $map,
 			]);
 

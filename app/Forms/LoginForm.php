@@ -30,6 +30,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Utils\FormHelper;
 use App\Models\User;
 
@@ -91,7 +92,7 @@ class LoginForm extends AbstractType
 			$username = $data['username'];
 			$password = $data['password'];
 
-			$url = $urlGenerator->generate('login', [
+			$url = $urlGenerator->generate(RouteName::LOGIN->value, [
 				'username' => $username,
 				'password' => $password,
 			]);

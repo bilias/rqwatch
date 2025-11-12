@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Utils\FormHelper;
 use App\Models\User;
 
@@ -89,7 +90,7 @@ class MailReleaseForm extends AbstractType
 			$data = $form->getData();
 			$username = $data['username'];
 
-			$url = $urlGenerator->generate('detail', [
+			$url = $urlGenerator->generate(RouteName::DETAIL->value, [
 				'type' => 'username',
 				'value' => $username,
 			]);

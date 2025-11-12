@@ -37,6 +37,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 
@@ -99,21 +100,19 @@ class MapSelectForm extends AbstractType
 				if ($map === 'all') {
 					// handle MapGeneric and MapCustom
 					if (($model === 'MapGeneric') || ($model === 'MapCustom')) {
-						$url = $urlGenerator->generate('admin_map_show_all', ['model' => $model]);
+						$url = $urlGenerator->generate(RouteName::ADMIN_MAP_SHOW_ALL->value, ['model' => $model]);
 					// default to MapCombined
 					} else {
-						$url = $urlGenerator->generate('admin_map_show_all');
+						$url = $urlGenerator->generate(RouteName::ADMIN_MAP_SHOW_ALL->value);
 					}
 				} else {
-					$url = $urlGenerator->generate('admin_map_show', [
-						'map' => $map,
-					]);
+					$url = $urlGenerator->generate(RouteName::ADMIN_MAP_SHOW->value, ['map' => $map]);
 				}
 			} else {
 				if ($map === 'all') {
-					$url = $urlGenerator->generate('map_show_all');
+					$url = $urlGenerator->generate(RouteName::MAP_SHOW_ALL->value);
 				} else {
-					$url = $urlGenerator->generate('map_show', [
+					$url = $urlGenerator->generate(RouteName::MAP_SHOW->value, [
 						'map' => $map,
 					]);
 				}

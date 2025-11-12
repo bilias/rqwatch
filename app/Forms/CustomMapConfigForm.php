@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Utils\FormHelper;
 
 class CustomMapConfigForm extends AbstractType
@@ -133,7 +134,7 @@ class CustomMapConfigForm extends AbstractType
 		if ($form->isSubmitted() && $form->isValid()) {
 			$data = $form->getData();
 
-			$url = $urlGenerator->generate('admin_maps_custom_add');
+			$url = $urlGenerator->generate(RouteName::ADMIN_MAPS_CUSTOM_ADD->value);
 			return new RedirectResponse($url);
          /*
          $response = new RedirectResponse($url);

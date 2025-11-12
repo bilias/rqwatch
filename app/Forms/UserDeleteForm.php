@@ -28,6 +28,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Utils\FormHelper;
 
 class UserDeleteForm extends AbstractType
@@ -59,9 +60,7 @@ class UserDeleteForm extends AbstractType
 			$id = $data['id'];
 			if (!$id) return null;
 
-			$url = $urlGenerator->generate('admin_userdel', [
-				'id' => $id,
-			]);
+			$url = $urlGenerator->generate(RouteName::ADMIN_USERDEL->value, ['id' => $id]);
 			return new RedirectResponse($url);
          /*
          $response = new RedirectResponse($url);

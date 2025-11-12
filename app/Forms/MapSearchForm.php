@@ -28,6 +28,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Utils\FormHelper;
 
 class MapSearchForm extends AbstractType
@@ -63,7 +64,7 @@ class MapSearchForm extends AbstractType
 			array $data
 	): Form {
 
-		$url = $urlGenerator->generate('admin_map_search_entry');
+		$url = $urlGenerator->generate(RouteName::ADMIN_MAP_SEARCH_ENTRY->value);
 
 		return FormHelper::formCreator(
 			$formFactory,
@@ -86,7 +87,7 @@ class MapSearchForm extends AbstractType
 			$data = $form->getData();
 			dd($data);
 
-			$url = $urlGenerator->generate('admin_map_search_entry');
+			$url = $urlGenerator->generate(RouteName::ADMIN_MAP_SEARCH_ENTRY->value);
 			return new RedirectResponse($url);
       }
 
