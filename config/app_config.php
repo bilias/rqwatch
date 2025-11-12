@@ -16,4 +16,6 @@ define('APP_ROOT', realpath(__DIR__ . '/..'));
 define('CONFIG_DEFAULT_PATH', APP_ROOT . '/config/config.php');
 define('CONFIG_LOCAL_PATH', APP_ROOT . '/config/config.local.php');
 
+define('APP_VENDOR_PATH', APP_ROOT . '/vendor/autoload.php');
+define('APP_ENV_PATH', APP_ROOT . '/.env');
 define('APP_VIEWS_PATH', APP_ROOT . '/app/Views');

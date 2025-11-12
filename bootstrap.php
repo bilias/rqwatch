@@ -12,7 +12,8 @@ $startTime = microtime(true);
 $startMemory = memory_get_usage();
 
 require_once __DIR__ . '/config/app_config.php';
-require_once APP_ROOT . '/vendor/autoload.php';
+
+require_once APP_VENDOR_PATH;
 
 use App\Core\Config;
 use App\Core\Logging\LoggerService;
@@ -20,8 +21,7 @@ use App\Core\RedisFactory;
 use App\Utils\Helper;
 
 // load config from .env
-$envPath = APP_ROOT . '/.env';
-if (!file_exists($envPath)) {
+if (!file_exists(APP_ENV_PATH)) {
 	echo "<h1 style='color:red'>Application configuration error</h1>";
 	echo "<p>Missing required <code>.env</code> file</p>";
 	throw new RuntimeException("Missing required environment file: {$envPath}");
