@@ -285,13 +285,11 @@ class Controller
 		}
 
 		try {
-			$defaultConfigPath = __DIR__ . '/../../' . ltrim($_ENV['CONFIG_DEFAULT_PATH'], '/');
-			$localConfigPath   = __DIR__ . '/../../' . ltrim($_ENV['CONFIG_LOCAL_PATH'], '/');
 
 			// Force reload the config and cache it again
 			Config::loadAndInitWithRedisCache(
-				$defaultConfigPath,
-				$localConfigPath,
+				CONFIG_DEFAULT_PATH,
+				CONFIG_LOCAL_PATH,
 				[],
 				$_ENV['REDIS_CONFIG_KEY'],
 				(int) $_ENV['REDIS_CONFIG_CACHE_TTL'],

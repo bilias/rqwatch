@@ -11,19 +11,23 @@
 $startTime = microtime(true);
 $startMemory = memory_get_usage();
 
-require_once 'vendor/autoload.php';
+require_once __DIR__ . '/config/app_config.php';
+require_once APP_ROOT . '/vendor/autoload.php';
 
 use App\Core\Config;
 use App\Core\Logging\LoggerService;
 use App\Core\RedisFactory;
 use App\Utils\Helper;
 
-define('APP_VERSION', '1.6.9-dev');
-
-define('APP_ROOT', __DIR__);
-
 // load config from .env
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$envPath = APP_ROOT . '/.env';
+if (!file_exists($envPath)) {
+	echo "<h1 style='color:red'>Application configuration error</h1>";
+	echo "<p>Missing required <code>.env</code> file</p>";
+	throw new RuntimeException("Missing required environment file: {$envPath}");
+}
+
+$dotenv = Dotenv\Dotenv::createImmutable(APP_ROOT);
 $dotenv->load();
 
 // configure loggers
@@ -31,14 +35,11 @@ $loggerService = new LoggerService();
 $fileLogger = $loggerService->getFileLogger();
 $syslogLogger = $loggerService->getSyslogLogger();
 
-$defaultConfigPath = __DIR__ . '/' . ltrim($_ENV['CONFIG_DEFAULT_PATH'], '/');
-$localConfigPath   = __DIR__ . '/' . ltrim($_ENV['CONFIG_LOCAL_PATH'], '/');
-
 // load configuration
 Config::loadConfig(
 	$fileLogger,
-	$defaultConfigPath,
-	$localConfigPath,
+	CONFIG_DEFAULT_PATH,
+	CONFIG_LOCAL_PATH,
 	[ 'startTime' => $startTime, 'startMemory' => $startMemory ],
 	$_ENV['REDIS_CONFIG_KEY'],             // optional Redis key
 	(int) $_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL

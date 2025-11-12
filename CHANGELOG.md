@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-11-12
+- Created app_config.php
+
 ## Version v1.6.8 - Released: 2025-11-10
 
 ### 2025-11-06
