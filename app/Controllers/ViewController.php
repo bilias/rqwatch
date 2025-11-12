@@ -55,8 +55,7 @@ class ViewController extends Controller
 
 	final public function twigView(): Environment {
 		if (!$this->twig ) {
-			$viewsPath = APP_ROOT . '/app/Views';
-			$loader = new FilesystemLoader($viewsPath);
+			$loader = new FilesystemLoader(APP_VIEWS_PATH);
 			$this->twig = new Environment($loader, [
 				'cache' => false,
 				'debug' => true
