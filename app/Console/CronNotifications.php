@@ -20,6 +20,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
+use App\Core\RouteName;
 use App\Core\Config;
 use App\Utils\Helper;
 use App\Services\MailLogService;
@@ -252,7 +253,7 @@ class CronNotifications extends RqwatchCliCommand
 		$urlGenerator = new UrlGenerator($routes, $context);
 
 		foreach ($logs as $log) {
-			$detailurl = $urlGenerator->generate('detail', [
+			$detailurl = $urlGenerator->generate(RouteName::DETAIL->value, [
 				'type' => 'id',
 				'value' => $log->id,
 			], UrlGeneratorInterface::ABSOLUTE_URL);
