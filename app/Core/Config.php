@@ -10,6 +10,8 @@
 
 namespace App\Core;
 
+use App\Config\AppConfig;
+
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 use App\Core\RedisFactory;
@@ -98,7 +100,7 @@ class Config {
 					self::$logger->debug("Config [loadAndInitWithRedisCache]: Config is cached in Redis");
 					$data = json_decode($cached, true);
 					// catch app version update
-					if (is_array($data) && (APP_VERSION === $data['APP_VERSION'])) {
+					if (is_array($data) && (AppConfig::VERSION === $data['APP_VERSION'])) {
 						// Merge extras on top of cached data — overrides if keys overlap
 						self::init(array_merge($data, $extras));
 						return;

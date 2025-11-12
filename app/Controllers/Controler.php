@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use App\Config\AppConfig;
 use App\Core\RouteName;
 use App\Utils\UrlHelper;
 use App\Core\Config;
@@ -294,8 +295,8 @@ class Controller
 
 			// Force reload the config and cache it again
 			Config::loadAndInitWithRedisCache(
-				CONFIG_DEFAULT_PATH,
-				CONFIG_LOCAL_PATH,
+				AppConfig::CONFIG_DEFAULT_PATH,
+				AppConfig::CONFIG_LOCAL_PATH,
 				[],
 				$_ENV['REDIS_CONFIG_KEY'],
 				(int) $_ENV['REDIS_CONFIG_CACHE_TTL'],

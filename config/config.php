@@ -22,6 +22,8 @@
 ### Default configuration variables for Rqwatch
 ### Use config.local.php for making changes
 
+use App\Config\AppConfig;
+
 # Name to use on HTML pages
 $APP_NAME="Rqwatch";
 
@@ -35,7 +37,7 @@ $APP_LOGO="/images/logo.png";
 $APP_LOGO_ALT="Rqwatch logo";
 
 # App version. Comes from bootstrap.php
-$APP_VERSION = APP_VERSION;
+$APP_VERSION = AppConfig::VERSION;
 
 # Footer on HTML pages
 $FOOTER="{$APP_NAME} v{$APP_VERSION}";

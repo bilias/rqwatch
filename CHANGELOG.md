@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-11-12
+- Move app_config to AppConfig
 - Routing updates
 - Created app_config.php
 

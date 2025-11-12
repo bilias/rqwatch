@@ -38,6 +38,7 @@ use App\Core\Form\FormFactoryProvider;
 
 use Twig\TwigFunction;
 
+use App\Config\AppConfig;
 use App\Core\RouteName;
 use App\Core\Config;
 use App\Utils\Helper;
@@ -55,7 +56,7 @@ class ViewController extends Controller
 
 	final public function twigView(): Environment {
 		if (!$this->twig ) {
-			$loader = new FilesystemLoader(APP_VIEWS_PATH);
+			$loader = new FilesystemLoader(AppConfig::VIEWS_PATH);
 			$this->twig = new Environment($loader, [
 				'cache' => false,
 				'debug' => true

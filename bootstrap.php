@@ -11,9 +11,11 @@
 $startTime = microtime(true);
 $startMemory = memory_get_usage();
 
-require_once __DIR__ . '/config/app_config.php';
+require_once __DIR__ . '/app/Config/AppConfig.php';
 
-require_once APP_VENDOR_PATH;
+use App\Config\AppConfig;
+
+require_once AppConfig::VENDOR_PATH;
 
 use App\Core\Config;
 use App\Core\Logging\LoggerService;
@@ -21,7 +23,7 @@ use App\Core\RedisFactory;
 use App\Utils\Helper;
 
 // load config from .env
-if (!file_exists(APP_ENV_PATH)) {
+if (!file_exists(AppConfig::ENV_PATH)) {
 	echo "<h1 style='color:red'>Application configuration error</h1>";
 	echo "<p>Missing required <code>.env</code> file</p>";
 	throw new RuntimeException("Missing required environment file: {$envPath}");
@@ -38,8 +40,8 @@ $syslogLogger = $loggerService->getSyslogLogger();
 // load configuration
 Config::loadConfig(
 	$fileLogger,
-	CONFIG_DEFAULT_PATH,
-	CONFIG_LOCAL_PATH,
+	AppConfig::CONFIG_DEFAULT_PATH,
+	AppConfig::CONFIG_LOCAL_PATH,
 	[ 'startTime' => $startTime, 'startMemory' => $startMemory ],
 	$_ENV['REDIS_CONFIG_KEY'],             // optional Redis key
 	(int) $_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
