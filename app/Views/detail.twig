@@ -151,9 +151,9 @@ No
 {% endif %} {# log.mail_stored #}
 {% if log.mail_location %}
  {% if is_admin %}
-	{% set mailurl = get_route('admin_showmail', { id: log.id }) %}
+	{% set mailurl = route('ADMIN_SHOWMAIL', { id: log.id }) %}
  {% else %}
-	{% set mailurl = get_route('showmail', { id: log.id }) %}
+	{% set mailurl = route('SHOWMAIL', { id: log.id }) %}
  {% endif %}
 	{# open in new window #}
 	{# <a class='stored' href='{{ mailurl }}' onclick="window.open('{{ mailurl }}', 'newwindow', 'width=1024,height=768'); return false;"> #}

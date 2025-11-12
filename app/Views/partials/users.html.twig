@@ -7,9 +7,9 @@ Total Users: {{ totalRecords }}
 {% endif %}
 <div id="inside_links">
 <ul>
-<li><a href='{{ get_route('admin_useradd') }}'>Add New DB user</a></li>
-{% if current_route == get_route('admin_usersearch') %}
-<li><a href='{{ get_route('admin_users') }}'>Show All Users</a></li>
+<li><a href='{{ route('ADMIN_USERADD') }}'>Add New DB user</a></li>
+{% if current_route == route('ADMIN_USERSEARCH') %}
+<li><a href='{{ route('ADMIN_USERS') }}'>Show All Users</a></li>
 {% endif %}
 </ul>
 </div>
@@ -41,7 +41,7 @@ Total Users: {{ totalRecords }}
 <tbody>
 {% for user in users %}
   <tr class='clean'>
-  <td class='center'><a href='{{ get_route('admin_user', { id: user.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
+  <td class='center'><a href='{{ route('ADMIN_USER', { id: user.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
   <td class='center'>{{ user.username }}</td>
   <td class='center'>{{ user.firstname }}</td>
   <td class='center'>{{ user.lastname }}</td>
@@ -56,8 +56,8 @@ Total Users: {{ totalRecords }}
 Never
 {% endif %}
   </td>
-  <td class='center'><a href='{{ get_route('admin_useredit', { id: user.id }) }}'>Edit</a></td>
-{#  <td class='center'><a href="{{ get_route('admin_userdel', { id: user.id }) }}" onclick="return confirm('are u sure?')">Delete</a></td> #}
+  <td class='center'><a href='{{ route('ADMIN_USEREDIT', { id: user.id }) }}'>Edit</a></td>
+{#  <td class='center'><a href="{{ route('ADMIN_USERDEL', { id: user.id }) }}" onclick="return confirm('are u sure?')">Delete</a></td> #}
   </tr>
 {% endfor %}
 

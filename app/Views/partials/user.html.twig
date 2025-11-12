@@ -13,7 +13,7 @@
 <tbody>
 {% if users %}
 {% for user in users %}
-  <td><a href='{{ get_route('admin_user', { id: user.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
+  <td><a href='{{ route('ADMIN_USER', { id: user.id }) }}'><i class='mw-icon mw-info-circle' aria-hidden='true'></i></a></td>
   <td class='center'>{{ user.username }}</td>
   <td class='center'>{{ user.firstname }}</td>
   <td class='center'>{{ user.lastname }}</td>

@@ -79,9 +79,9 @@ No
  <div class="row">
    <div class='info'>Mail Queue ID:</div>
 	{% if is_admin %}
-	 {% set detail_url = get_route('admin_detail', { type: 'qid', value: log.qid }) %}
+	 {% set detail_url = route('ADMIN_DETAIL', { type: 'qid', value: log.qid }) %}
 	{% else %}
-	 {% set detail_url = get_route('detail', { type: 'qid', value: log.qid }) %}
+	 {% set detail_url = route('DETAIL', { type: 'qid', value: log.qid }) %}
 	{% endif %}
    <div class='detail'><a href='{{ detail_url }}'>{{ log.qid }}</a></div>
  </div>
@@ -140,9 +140,9 @@ Please be very carefull before opening or saving any of the files bellow.
 <td class='filename'>{{ attach.filename }}</td>
 <td class='center'>{{ attach.filetype }}</td>
 <td class='center'>
-<a href='{{ get_route('attachopen', { id: log.id, attach_id: loop.index0}) }}' target="_blank">Open in Browser</a></td>
+<a href='{{ route('ATTACHOPEN', { id: log.id, attach_id: loop.index0}) }}' target="_blank">Open in Browser</a></td>
 <td class='center'>
-<a href='{{ get_route('attachsave', { id: log.id, attach_id: loop.index0}) }}'>Save</a>
+<a href='{{ route('ATTACHSAVE', { id: log.id, attach_id: loop.index0}) }}'>Save</a>
 </td>
 </tr>
 {% endfor %}

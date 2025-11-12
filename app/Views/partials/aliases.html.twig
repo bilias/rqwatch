@@ -10,9 +10,9 @@ Total E-mail Aliases: {{ totalRecords }}
 {% endif %}
 <div id="inside_links">
 <ul>
-<li><a href='{{ get_route('admin_aliases_add') }}'>Add New Alias</a></li>
-{% if current_route == get_route('admin_aliases_search') %}
-<li><a href='{{ get_route('admin_aliases') }}'>Show All Aliases</a></li>
+<li><a href='{{ route('ADMIN_ALIASES_ADD') }}'>Add New Alias</a></li>
+{% if current_route == route('ADMIN_ALIASES_SEARCH') %}
+<li><a href='{{ route('ADMIN_ALIASES') }}'>Show All Aliases</a></li>
 {% endif %}
 </ul>
 </div>
@@ -44,7 +44,7 @@ Total E-mail Aliases: {{ totalRecords }}
   <td class='center'>{{ alias.alias }}</td>
   <td class='center'>{{ alias.created_at }}</td>
   <td class='center'>{{ alias.updated_at }}</td>
-  <td class='center'><a href="{{ get_route('admin_aliases_del', { id: alias.id }) }}" onclick="return confirm('Are you sure you want to delete alias {{ alias.alias }} for user {{ alias.username }}?')">Delete</a></td>
+  <td class='center'><a href="{{ route('ADMIN_ALIASES_DEL', { id: alias.id }) }}" onclick="return confirm('Are you sure you want to delete alias {{ alias.alias }} for user {{ alias.username }}?')">Delete</a></td>
   </tr>
 {% endfor %}
 

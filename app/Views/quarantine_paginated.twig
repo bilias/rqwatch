@@ -28,9 +28,9 @@
 {% for day in days %}
  <div class="row">
   {% if is_admin %}
-  <div class='cell day'><a href='{{ get_route('admin_quarantine_day', { date: day.day }) }}'>{{ day.day }}</a></div>
+  <div class='cell day'><a href='{{ route('ADMIN_QUARANTINE_DAY', { date: day.day }) }}'>{{ day.day }}</a></div>
   {% else %}
-  <div class='cell day'><a href='{{ get_route('quarantine_day', { date: day.day }) }}'>{{ day.day }}</a></div>
+  <div class='cell day'><a href='{{ route('QUARANTINE_DAY', { date: day.day }) }}'>{{ day.day }}</a></div>
   {% endif %}
   <div class='cell right cnt'>{{ day.cnt }}</div>
  </div>

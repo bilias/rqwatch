@@ -6,10 +6,10 @@
 
  {% if is_admin %}
   <div class="row editbutton">
-{#   <button onclick="window.location.href='{{ get_route('admin_useredit', { id: user.id }) }}'">Edit User</button> #}
+{#   <button onclick="window.location.href='{{ route('ADMIN_USEREDIT', { id: user.id }) }}'">Edit User</button> #}
   </div>
-  <a href='{{ get_route('admin_useredit', { id: user.id }) }}'><button>Edit User</button></a>
-  <a href='{{ get_route('admin_userloginas', { id: user.id }) }}'><button>Login As</button></a>
+  <a href='{{ route('ADMIN_USEREDIT', { id: user.id }) }}'><button>Edit User</button></a>
+  <a href='{{ route('ADMIN_USERLOGINAS', { id: user.id }) }}'><button>Login As</button></a>
  {% endif %}
 
 <div class='form'>

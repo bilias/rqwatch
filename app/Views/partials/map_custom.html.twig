@@ -25,8 +25,8 @@ Custom Map: {{ mapdescr }}<br/>
 
 <div id="inside_links">
 <ul>
-<li><a href='{{ get_route('admin_map_add_entry', { map: map} ) }}'>Add New entry</a></li>
-<li><a href='{{ get_route('admin_map_del_all_entries', { map: map} ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr }}\'?')">Delete All Entries</a></li>
+<li><a href='{{ route('ADMIN_MAP_ADD_ENTRY', { map: map} ) }}'>Add New entry</a></li>
+<li><a href='{{ route('ADMIN_MAP_DEL_ALL_ENTRIES', { map: map} ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr }}\'?')">Delete All Entries</a></li>
 </ul>
 </div>
 </div>
@@ -58,11 +58,11 @@ Custom Map: {{ mapdescr }}<br/>
           <td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.pattern }}</td>
 			 <td class='center'>{{ entry.updated_at }}</td>
 			 <td class='center'>
-				<a href="{{ get_route('admin_map_toggle_entry', { map: map, id: entry.id }) }}">
+				<a href="{{ route('ADMIN_MAP_TOGGLE_ENTRY', { map: map, id: entry.id }) }}">
 				{{ entry.disabled ? 'Enable' : 'Disable' }}</a>
 			 </td>
-          <td class='center'><a href="{{ get_route('admin_map_del_entry', { map: map, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
-          <td class='center'><a href="{{ get_route('admin_map_edit_entry', { map: map, id: entry.id }) }}">Edit</a></td>
+          <td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: map, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
+          <td class='center'><a href="{{ route('ADMIN_MAP_EDIT_ENTRY', { map: map, id: entry.id }) }}">Edit</a></td>
       </tr>
     {% endfor %}
 </tbody>

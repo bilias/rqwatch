@@ -10,9 +10,9 @@
  <li class='filtername'>{{ filter.filter }} {{ filter.choice }} "{{ filter.value }}"
  <span class='filtervalue'>
  {% if is_admin %}
- <a href="{{ get_route('admin_search_filter_del', { filter_id: loop.index0 }) }}">Remove</a>
+ <a href="{{ route('ADMIN_SEARCH_FILTER_DEL', { filter_id: loop.index0 }) }}">Remove</a>
  {% else %}
- <a href="{{ get_route('search_filter_del', { filter_id: loop.index0 }) }}">Remove</a>
+ <a href="{{ route('SEARCH_FILTER_DEL', { filter_id: loop.index0 }) }}">Remove</a>
  {% endif %}
  </span></li>
 {% else %}
@@ -21,9 +21,9 @@
 </ul>
 <span class='delall'>
 {% if is_admin %}
-<a href="{{ get_route('admin_search_filter_del') }}">Remove all</a>
+<a href="{{ route('ADMIN_SEARCH_FILTER_DEL') }}">Remove all</a>
 {% else %}
-<a href="{{ get_route('search_filter_del') }}">Remove all</a>
+<a href="{{ route('SEARCH_FILTER_DEL') }}">Remove all</a>
 {% endif %}
 </span>
 </div>
@@ -91,51 +91,51 @@
 <ul>
 {% if stats.count > 0 %}
  {% if is_admin %}
- <li><a href='{{ get_route('admin_search_results') }}'>Search Results</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'date'}) }}'>Mails per day</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'ip'}) }}'>Top IPs by Quantity</a>
- / <a href='{{ get_route('admin_reports', { field: 'ip', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mail_from'}) }}'>Top Mail From by Quantity</a>
- / <a href='{{ get_route('admin_reports', { field: 'mail_from', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mime_from'}) }}'>Top MIME From by Quantity</a>
- / <a href='{{ get_route('admin_reports', { field: 'mime_from', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'rcpt_to'}) }}'>Top RCPT To by Quantity</a>
- / <a href='{{ get_route('admin_reports', { field: 'rcpt_to', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mime_to'}) }}'>Top MIME To by Quantity</a>
- / <a href='{{ get_route('admin_reports', { field: 'mime_to', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mail_from_domain'}) }}'>Top Mail From Domains by Quantity</a>
- / <a href='{{ get_route('admin_reports', { field: 'mail_from_domain', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mime_from_domain'}) }}'>Top MIME From Domains by Quantity</a>
- / <a href='{{ get_route('admin_reports', { field: 'mime_from_domain', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'rcpt_to_domain'}) }}'>Top RCPT To Domains by Quantity</a>
- / <a href='{{ get_route('admin_reports', { field: 'rcpt_to_domain', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'mime_to_domain'}) }}'>Top MIME To Domains by Quantity</a>
- / <a href='{{ get_route('admin_reports', { field: 'mime_to_domain', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('admin_reports', { field: 'server'}) }}'>Top Servers by Quantity</a>
- / <a href='{{ get_route('admin_reports', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_SEARCH_RESULTS') }}'>Search Results</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'date'}) }}'>Mails per day</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'ip'}) }}'>Top IPs by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'ip', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'mail_from'}) }}'>Top Mail From by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mail_from', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'mime_from'}) }}'>Top MIME From by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_from', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'rcpt_to'}) }}'>Top RCPT To by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'rcpt_to', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'mime_to'}) }}'>Top MIME To by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_to', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'mail_from_domain'}) }}'>Top Mail From Domains by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mail_from_domain', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'mime_from_domain'}) }}'>Top MIME From Domains by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_from_domain', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'rcpt_to_domain'}) }}'>Top RCPT To Domains by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'rcpt_to_domain', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'mime_to_domain'}) }}'>Top MIME To Domains by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_to_domain', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'server'}) }}'>Top Servers by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
  {% else %}
- <li><a href='{{ get_route('search_results') }}'>Search Results</a></li>
- <li><a href='{{ get_route('reports', { field: 'date'}) }}'>Mails per day</a></li>
- <li><a href='{{ get_route('reports', { field: 'ip'}) }}'>Top IPs by Quantity</a>
- / <a href='{{ get_route('reports', { field: 'ip', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('reports', { field: 'mail_from'}) }}'>Top Mail From by Quantity</a>
- / <a href='{{ get_route('reports', { field: 'mail_from', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('reports', { field: 'mime_from'}) }}'>Top MIME From by Quantity</a>
- / <a href='{{ get_route('reports', { field: 'mime_from', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('reports', { field: 'rcpt_to'}) }}'>Top RCPT To by Quantity</a>
- / <a href='{{ get_route('reports', { field: 'rcpt_to', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('reports', { field: 'mime_to'}) }}'>Top MIME To by Quantity</a>
- / <a href='{{ get_route('reports', { field: 'mime_to', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('reports', { field: 'mail_from_domain'}) }}'>Top Mail From Domains by Quantity</a>
- / <a href='{{ get_route('reports', { field: 'mail_from_domain', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('reports', { field: 'mime_from_domain'}) }}'>Top MIME From Domains by Quantity</a>
- / <a href='{{ get_route('reports', { field: 'mime_from_domain', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('reports', { field: 'rcpt_to_domain'}) }}'>Top RCPT To Domains by Quantity</a>
- / <a href='{{ get_route('reports', { field: 'rcpt_to_domain', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('reports', { field: 'mime_to_domain'}) }}'>Top MIME To Domains by Quantity</a>
- / <a href='{{ get_route('reports', { field: 'mime_to_domain', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ get_route('reports', { field: 'server'}) }}'>Top Servers by Quantity</a>
- / <a href='{{ get_route('reports', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('SEARCH_RESULTS') }}'>Search Results</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'date'}) }}'>Mails per day</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'ip'}) }}'>Top IPs by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'ip', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'mail_from'}) }}'>Top Mail From by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mail_from', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'mime_from'}) }}'>Top MIME From by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mime_from', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'rcpt_to'}) }}'>Top RCPT To by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'rcpt_to', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'mime_to'}) }}'>Top MIME To by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mime_to', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'mail_from_domain'}) }}'>Top Mail From Domains by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mail_from_domain', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'mime_from_domain'}) }}'>Top MIME From Domains by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mime_from_domain', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'rcpt_to_domain'}) }}'>Top RCPT To Domains by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'rcpt_to_domain', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'mime_to_domain'}) }}'>Top MIME To Domains by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mime_to_domain', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'server'}) }}'>Top Servers by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
  {% endif %}
 {% else %}
 No results found
@@ -156,7 +156,7 @@ No results found
     <p class='help-text2'>Redis config key not found</p>
   {% endif %}
 
-  <p class='help-text2'><a href='{{ get_route('config_reload') }}'>Reload Config</a></p>
+  <p class='help-text2'><a href='{{ route('CONFIG_RELOAD') }}'>Reload Config</a></p>
 {% endif %}
 
 </div>

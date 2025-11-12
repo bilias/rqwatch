@@ -14,7 +14,7 @@
 	if (qid) {
 		// Redirect to /detail/qid/<value>
 		// value is required that's why we add a dummy value
-		const baseUrl = '{{ get_route('detail', { type: 'qid', value: '__PLACEHOLDER__' }) }}';
+		const baseUrl = '{{ route('DETAIL', { type: 'qid', value: '__PLACEHOLDER__' }) }}';
 		const redirectUrl = baseUrl.replace('__PLACEHOLDER__', encodeURIComponent(qid));
 		window.location.href = redirectUrl;
 	}

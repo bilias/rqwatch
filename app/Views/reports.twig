@@ -26,11 +26,11 @@
   <div class='cell day'>
   {% if field in reportFields %}
 	{% if is_admin %}
-	<a href="{{ get_route('admin_search_results') }}?{{ field }}={{ value|url_encode }}">
+	<a href="{{ route('ADMIN_SEARCH_RESULTS') }}?{{ field }}={{ value|url_encode }}">
 		{{ value }}
    </a>
 	{% else %}
-	<a href="{{ get_route('search_results') }}?{{ field }}={{ value|url_encode }}">
+	<a href="{{ route('SEARCH_RESULTS') }}?{{ field }}={{ value|url_encode }}">
 		{{ value }}
    </a>
 	{% endif %}

@@ -12,9 +12,9 @@ Generic Map: {{ mapdescr }}<br/>
 <div id="inside_links">
 <ul>
 {% if is_admin %}
-<li><a href='{{ get_route('admin_map_add_entry', { map: map} ) }}'>Add New entry</a></li>
+<li><a href='{{ route('ADMIN_MAP_ADD_ENTRY', { map: map} ) }}'>Add New entry</a></li>
 {% else %}
-<li><a href='{{ get_route('map_add_entry', { map: map} ) }}'>Add New entry</a></li>
+<li><a href='{{ route('MAP_ADD_ENTRY', { map: map} ) }}'>Add New entry</a></li>
 {% endif %}
 </ul>
 </div>
@@ -38,7 +38,7 @@ Generic Map: {{ mapdescr }}<br/>
       <tr class='clean'>
           <td class='center'>{{ entry.pattern }}</td>
 			 <td class='center'>{{ entry.created_at }}</td>
-          <td class='center'><a href="{{ get_route('admin_map_del_entry', { map: map, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
+          <td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: map, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
       </tr>
     {% endfor %}
 </tbody>

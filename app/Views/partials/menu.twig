@@ -1,20 +1,20 @@
 {% if is_admin %}
-{% set homepage = get_route('admin_homepage') %}
-{% set day_logs = get_route('admin_day_logs') %}
-{% set maps = get_route('admin_maps') %}
-{% set quarantine = get_route('admin_quarantine') %}
-{% set search = get_route('admin_search') %}
-{% set users = get_route('admin_users') %}
-{% set aliases = get_route('admin_aliases') %}
+{% set homepage = route('ADMIN_HOMEPAGE') %}
+{% set day_logs = route('ADMIN_DAY_LOGS') %}
+{% set maps = route('ADMIN_MAPS') %}
+{% set quarantine = route('ADMIN_QUARANTINE') %}
+{% set search = route('ADMIN_SEARCH') %}
+{% set users = route('ADMIN_USERS') %}
+{% set aliases = route('ADMIN_ALIASES') %}
 {% else %}
-{% set homepage = get_route('homepage') %}
-{% set day_logs = get_route('day_logs') %}
-{% set maps = get_route('maps') %}
-{% set quarantine = get_route('quarantine') %}
-{% set search = get_route('search') %}
+{% set homepage = route('HOMEPAGE') %}
+{% set day_logs = route('DAY_LOGS') %}
+{% set maps = route('MAPS') %}
+{% set quarantine = route('QUARANTINE') %}
+{% set search = route('SEARCH') %}
 {% endif %}
-{% set profile = get_route('profile') %}
-{% set logout = get_route('logout') %}
+{% set profile = route('PROFILE') %}
+{% set logout = route('LOGOUT') %}
 
 <div class="topmainmenu">
   <ul id="menu" class="mainmenu">

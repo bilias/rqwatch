@@ -54,10 +54,10 @@ Total: {{ map_comb_total|nf }} entries
     {% for entry in map_comb_entries %}
       <tr class='clean'>
 			{% if is_admin %}
-			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_SHOW', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			<td class='center'><a target='_blank' href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
 			{% else %}
-			<td class='center'><a href="{{ get_route('map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
+			<td class='center'><a href="{{ route('MAP_SHOW', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			{% endif %}
 			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.mail_from }}</td>
 			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.mime_from }}</td>
@@ -67,10 +67,10 @@ Total: {{ map_comb_total|nf }} entries
 			<td class='center'>{{ entry.map_username }}</td>
 			<td class='center'>
 			{% if is_admin %}
-			   <a href="{{ get_route('admin_map_toggle_entry', { map: entry.map_name, id: entry.id }) }}">
+			   <a href="{{ route('ADMIN_MAP_TOGGLE_ENTRY', { map: entry.map_name, id: entry.id }) }}">
 			   {{ entry.disabled ? 'Enable' : 'Disable' }}</a>
 			{% elseif entry.user_can_delete %}
-			   <a href="{{ get_route('map_toggle_entry', { map: entry.map_name, id: entry.id }) }}">
+			   <a href="{{ route('MAP_TOGGLE_ENTRY', { map: entry.map_name, id: entry.id }) }}">
 			   {{ entry.disabled ? 'Enable' : 'Disable' }}</a>
 			{% else %}
 			   -
@@ -87,17 +87,17 @@ Total: {{ map_comb_total|nf }} entries
 			{% endfor %}
 
 {% if is_admin %}
-			<td class='center'><a href="{{ get_route('admin_map_del_entry', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str|trim }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str|trim }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
 {% elseif entry.user_can_delete %}
-			<td class='center'><a href="{{ get_route('map_del_entry', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str|trim }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
+			<td class='center'><a href="{{ route('MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str|trim }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
 {% else %}
 			<td class='center'>-</td>
 {% endif %}
 
 {% if is_admin %}
-			<td class='center'><a href="{{ get_route('admin_map_edit_entry', { map: entry.map_name, id: entry.id }) }}">Edit</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_EDIT_ENTRY', { map: entry.map_name, id: entry.id }) }}">Edit</a></td>
 {% else %}
-			<td class='center'><a href="{{ get_route('map_edit_entry', { map: entry.map_name, id: entry.id }) }}">Edit</a></td>
+			<td class='center'><a href="{{ route('MAP_EDIT_ENTRY', { map: entry.map_name, id: entry.id }) }}">Edit</a></td>
 {% endif %}
       </tr>
     {% endfor %}
@@ -135,13 +135,13 @@ Total: {{ map_gen_total|nf }} entries
 <tbody>
     {% for entry in map_gen_entries %}
       <tr class='clean'>
-			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_SHOW', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			<td class='center'><a target='_blank' href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
 			<td class='center'>{{ entry.field_description }}</td>
 			<td class='center'>{{ entry.pattern }}</td>
 			<td class='center'>{{ entry.updated_at }}</td>
-			<td class='center'><a href="{{ get_route('admin_map_del_entry', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.field_description }} {{ entry.pattern }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
-			<td class='center'><a href="{{ get_route('admin_map_edit_entry', { map: entry.map_name, id: entry.id }) }}">Edit</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.field_description }} {{ entry.pattern }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_EDIT_ENTRY', { map: entry.map_name, id: entry.id }) }}">Edit</a></td>
       </tr>
     {% endfor %}
 </tbody>
@@ -187,17 +187,17 @@ Total: {{ map_custom_total|nf }} entries
 <tbody>
     {% for entry in map_custom_entries %}
       <tr class='clean'>
-			<td class='center'><a href="{{ get_route('admin_map_show', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_SHOW', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			<td class='center'><a target='_blank' href="{{ maps_url_base ~ entry.map_name ~ '.txt' }}">{{ entry.map_name }}</a></td>
 			<td class='center'>{{ entry.field_description }}</td>
 			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.pattern }}</td>
 			<td class='center'>{{ entry.updated_at }}</td>
 			<td class='center'>
-			   <a href="{{ get_route('admin_map_toggle_entry', { map: entry.map_name, id: entry.id }) }}">
+			   <a href="{{ route('ADMIN_MAP_TOGGLE_ENTRY', { map: entry.map_name, id: entry.id }) }}">
 				{{ entry.disabled ? 'Enable' : 'Disable' }}</a>
 			</td>
-			<td class='center'><a href="{{ get_route('admin_map_del_entry', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.field_description }} {{ entry.pattern }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
-			<td class='center'><a href="{{ get_route('admin_map_edit_entry', { map: entry.map_name, id: entry.id }) }}">Edit</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.field_description }} {{ entry.pattern }}\'\nfrom Map:\n\'{{ entry.map_description }}\'?')">Delete</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_EDIT_ENTRY', { map: entry.map_name, id: entry.id }) }}">Edit</a></td>
       </tr>
     {% endfor %}
 </tbody>
