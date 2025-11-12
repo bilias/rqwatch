@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-11-12
+- Routing updates
 - Created app_config.php
 
 ## Version v1.6.8 - Released: 2025-11-10
