@@ -22,6 +22,8 @@ use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Exception\NoConfigurationException;
 
+use App\Core\RouteName;
+
 use App\Core\SessionManager;
 use App\Core\Middleware\AuthMiddleware;
 use App\Core\Middleware\Authorization;
@@ -54,7 +56,7 @@ class Router
 		$context->setBaseUrl($_ENV['WEB_BASE']);
 
 		$urlGenerator = new UrlGenerator($routes, $context);
-		$loginUrl = $urlGenerator->generate('login');
+		$loginUrl = $urlGenerator->generate(RouteName::LOGIN->value);
 
 		try {
 			$request->attributes->add($matcher->match($request->getPathInfo()));
@@ -160,9 +162,9 @@ class Router
 				// redirect to homepage
 				$session->getFlashBag()->add('error', "Unknown URL");
 				if ($session->get('is_admin')) {
-					return new RedirectResponse($urlGenerator->generate('admin_homepage'));
+					return new RedirectResponse($urlGenerator->generate(RouteName::ADMIN_HOMEPAGE->value));
 				} else {
-					return new RedirectResponse($urlGenerator->generate('homepage'));
+					return new RedirectResponse($urlGenerator->generate(RouteName::HOMEPAGE->value));
 				}
 			} else {
 				// user is NOT authenticated
