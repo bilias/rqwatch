@@ -10,6 +10,8 @@
 
 namespace App\Core\Middleware;
 
+use App\Core\RouteName;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -28,11 +30,8 @@ class Authorization
 	}
 
 	public function handle(Request $request, callable $next): Response {
-
-		$loginUrl = $this->urlGenerator->generate('login');
-		$homeUrl = $this->urlGenerator->generate('homepage');
-
-
+		$loginUrl = $this->urlGenerator->generate(RouteName::LOGIN->value);
+		$homeUrl = $this->urlGenerator->generate(RouteName::HOMEPAGE->value);
 
 		if (!$request->hasSession() || !$request->getSession()->has('username')) {
 			$this->logger->error("In Authorization without Auth",

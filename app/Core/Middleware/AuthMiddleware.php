@@ -10,6 +10,8 @@
 
 namespace App\Core\Middleware;
 
+use App\Core\RouteName;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -38,8 +40,8 @@ class AuthMiddleware
 		}
 
 		$requestPath = $request->getPathInfo();
-		$loginUrl = $this->urlGenerator->generate('login');
-		$homeUrl = $this->urlGenerator->generate('homepage');
+		$loginUrl = $this->urlGenerator->generate(RouteName::LOGIN->value);
+		$homeUrl = $this->urlGenerator->generate(RouteName::HOMEPAGE->value);
 
 		if ($requestPath !== $loginUrl && $requestPath !== $homeUrl) {
 			$request->getSession()->set('login_redirect', $request->getRequestUri());
