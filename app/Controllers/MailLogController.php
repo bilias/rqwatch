@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
+use App\Core\RouteName;
 use App\Core\Config;
 use App\Utils\Helper;
 use App\Utils\FormHelper;
@@ -73,9 +74,9 @@ class MailLogController extends ViewController
 		$service = new MailLogService($this->getFileLogger(), $this->session);;
 
 		if ($this->getIsAdmin()) {
-			$url = $this->urlGenerator->generate('admin_homepage');
+			$url = $this->url(RouteName::ADMIN_HOMEPAGE);
 		} else {
-			$url = $this->urlGenerator->generate('homepage');
+			$url = $this->url(RouteName::HOMEPAGE);
 		}
 		$logs = $service->showPaginatedAll(array(), $page, $url);
 
@@ -151,9 +152,9 @@ class MailLogController extends ViewController
 		$service = new MailLogService($this->getFileLogger(), $this->session);
 
 		if ($this->getIsAdmin()) {
-			$url = $this->urlGenerator->generate('admin_search_results');
+			$url = $this->url(RouteName::ADMIN_SEARCH_RESULTS);
 		} else {
-			$url = $this->urlGenerator->generate('search_results');
+			$url = $this->url(RouteName::SEARCH_RESULTS);
 		}
 		// has applyUserScope
 		$logs = $service->showPaginatedResults($filters, $page, $url);
@@ -244,13 +245,9 @@ class MailLogController extends ViewController
 		$service = new MailLogService($this->getFileLogger(), $this->session);
 
 		if ($this->getIsAdmin()) {
-			$url = $this->urlGenerator->generate('admin_day_logs', [
-				'date' => $date,
-			]);
+			$url = $this->url(RouteName::ADMIN_DAY_LOGS, ['date' => $date]);
 		} else {
-			$url = $this->urlGenerator->generate('day_logs', [
-				'date' => $date,
-			]);
+			$url = $this->url(RouteName::DAY_LOGS, ['date' => $date]);
 		}
 		$logs = $service->showPaginatedDay($page, $date, $url);
 		
@@ -291,13 +288,9 @@ class MailLogController extends ViewController
 
 		$service = new MailLogService($this->getFileLogger(), $this->session);
 		if ($this->getIsAdmin()) {
-			$url = $this->urlGenerator->generate('admin_quarantine_day', [
-				'date' => $date,
-			]);
+			$url = $this->url(RouteName::ADMIN_QUARANTINE_DAY, ['date' => $date]);
 		} else {
-			$url = $this->urlGenerator->generate('quarantine_day', [
-				'date' => $date,
-			]);
+			$url = $this->url(RouteName::QUARANTINE_DAY, ['date' => $date]);
 		}
 		$logs = $service->showPaginatedQuarantineDay($page, $date, $url);
 		
@@ -338,9 +331,9 @@ class MailLogController extends ViewController
 		$page = $this->request->query->getInt('page', 1);
 
 		if ($this->getIsAdmin()) {
-			$url = $this->urlGenerator->generate('admin_quarantine');
+			$url = $this->url(RouteName::ADMIN_QUARANTINE);
 		} else {
-			$url = $this->urlGenerator->generate('quarantine');
+			$url = $this->url(RouteName::QUARANTINE);
 		}
 
 		$days = $service->showPaginatedQuarantine($page, $url);
@@ -819,10 +812,10 @@ class MailLogController extends ViewController
 
 	public function getDetailIdResponse(int $id): RedirectResponse {
 		if ($this->getIsAdmin()) {
-			return new RedirectResponse($this->urlGenerator->generate('admin_detail',
+			return new RedirectResponse($this->url(RouteName::ADMIN_DETAIL,
 				[ 'type' => 'id', 'value' => $id ]));
 		} else {
-			return new RedirectResponse($this->urlGenerator->generate('detail',
+			return new RedirectResponse($this->url(RouteName::DETAIL,
 				[ 'type' => 'id', 'value' => $id ]));
 		}
 	}
@@ -830,11 +823,9 @@ class MailLogController extends ViewController
 	public function getReleaseUrl(int $id): string {
 		// mailrelease form calls releaseMail()
 		if ($this->getIsAdmin()) {
-			return $this->urlGenerator->generate('admin_releasemail',
-				[ 'id' => $id ]);
+			return $this->url(RouteName::ADMIN_RELEASEMAIL, ['id' => $id]);
 		} else {
-			return $this->urlGenerator->generate('releasemail',
-				[ 'id' => $id ]);
+			return $this->url(RouteName::RELEASEMAIL, ['id' => $id]);
 		}
 	}
 
@@ -854,7 +845,7 @@ class MailLogController extends ViewController
 		];
 
 		foreach ($configs as $mapName => &$cfg) {
-			$route = $this->getRole() === 'admin' ? 'admin_map_add_entry' : 'map_add_entry';
+			$route = $this->getRole() === 'admin' ? RouteName::ADMIN_MAP_ADD_ENTRY : RouteName::MAP_ADD_ENTRY;
 			$queryParams = ['map' => $mapName];
 
 			foreach ($cfg['fields'] ?? [] as $field) {
@@ -865,7 +856,7 @@ class MailLogController extends ViewController
 					$queryParams[$field] = $value;
 				}
 			}
-			$cfg['add_url'] = $this->urlGenerator->generate($route, $queryParams);
+			$cfg['add_url'] = $this->url($route, $queryParams);
 		}
 		unset($cfg);
 

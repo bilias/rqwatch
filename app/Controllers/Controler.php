@@ -18,6 +18,8 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use App\Core\RouteName;
+use App\Utils\UrlHelper;
 use App\Core\Config;
 use App\Core\SessionManager;
 use App\Core\RedisFactory;
@@ -109,6 +111,10 @@ class Controller
 		$this->urlGenerator = $urlGenerator;
 	}
 
+	protected function url(RouteName $route, array $parameters = []): string {
+		return UrlHelper::generate($this->urlGenerator, $route, $parameters);
+	}
+
 	public function setRoutes(RouteCollection $routes): void {
 		$this->routes = $routes;
 	}
@@ -156,11 +162,11 @@ class Controller
 		}
 
 		if ($this->getIsAdmin()) {
-			$this->homepageUrl = $this->urlGenerator->generate('admin_day_logs');
-			$this->searchUrl = $this->urlGenerator->generate('admin_search');
+			$this->homepageUrl = $this->url(RouteName::ADMIN_DAY_LOGS);
+			$this->searchUrl = $this->url(RouteName::ADMIN_SEARCH);
 		} else {
-			$this->homepageUrl = $this->urlGenerator->generate('day_logs');
-			$this->searchUrl = $this->urlGenerator->generate('search');
+			$this->homepageUrl = $this->url(RouteName::DAY_LOGS);
+			$this->searchUrl = $this->url(RouteName::SEARCH);
 		}
 
 		$this->urlsInitialized = true;

@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Core\Config;
 use App\Utils\Helper;
 
@@ -33,12 +34,22 @@ class MailAliasController extends ViewController
 	protected $items_per_page;
 	protected $max_items;
 
+	private ?string $adminAliasesUrl = null;
+
 	public function __construct() {
 	//	parent::__construct();
 
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
 	}
+
+	private function getAdminAliasesUrl(): string {
+		if ($this->adminAliasesUrl === null) {
+			$this->adminAliasesUrl = $this->url(RouteName::ADMIN_ALIASES);
+		}
+
+		return $this->adminAliasesUrl;
+   }
 
 	public function showAll(): Response {
 		// enable form rendering support
@@ -55,7 +66,7 @@ class MailAliasController extends ViewController
 		$page = $this->request->query->getInt('page', 1);
 
 		$service = new MailAliasService($this->getFileLogger());
-		$url = $this->urlGenerator->generate('admin_aliases');
+		$url = $this->getAdminAliasesUrl();
 		$aliases = $service->showPaginatedAll($page, $url);
 
 		$mailAliasSearchForm = MailAliasSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
@@ -92,7 +103,7 @@ class MailAliasController extends ViewController
 
 		if ($mailAliasSearchForm->isSubmitted() && !$mailAliasSearchForm->isValid()) {
 			$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
-			return new RedirectResponse($this->urlGenerator->generate('admin_aliases'));
+			return new RedirectResponse($this-getAdminAliasesUrl());
 		}
 
 		// Get page from ?page=, default 1
@@ -103,7 +114,7 @@ class MailAliasController extends ViewController
 			$search = $mail_alias_search_form['alias'];
 
 			$service = new MailAliasService($this->getFileLogger());
-			$url = $this->urlGenerator->generate('admin_aliases');
+			$url = $this->getAdminAliasesUrl();
 			$aliases = $service->searchPaginatedAll($page, $url, $search);
 		}
 
@@ -138,7 +149,7 @@ class MailAliasController extends ViewController
 		$error = null;
 		$mailaliasform = MailAliasForm::create($this->formFactory, $this->request);
 
-		$url = $this->urlGenerator->generate('admin_aliases_add');
+		$url = $this->url(RouteName::ADMIN_ALIASES_ADD);
 
 		if ($mailaliasform->isSubmitted() && $mailaliasform->isValid()) {
 			$data = $mailaliasform->getData();
@@ -183,7 +194,7 @@ class MailAliasController extends ViewController
 				} else {
 					$this->flashbag->add('error', "Alias creation failed");
 				}
-				$url = $this->urlGenerator->generate('admin_aliases');
+				$url = $this->getAdminAliasesUrl();
 				return new RedirectResponse($url);
 			} catch (\Exception $e) {
 				$error = $e->getMessage();
@@ -230,7 +241,7 @@ class MailAliasController extends ViewController
 			// alias does not exist
 			// get back to search page
 			$this->flashbag->add('error', 'Alias not found.');
-			$url = $this->urlGenerator->generate('admin_aliases');
+			$url = $this->getAdminAliasesUrl();
 			return new RedirectResponse($url);
 		}
 
@@ -276,7 +287,7 @@ class MailAliasController extends ViewController
 					} else {
 						$this->flashbag->add('error', "User update failed");
 					}
-					$url = $this->urlGenerator->generate('admin_users');
+					$url = $this->getAdminAliasesUrl();
 					return new RedirectResponse($url);
 				} catch (\Exception $e) {
 					$error = $e->getMessage();
@@ -317,7 +328,7 @@ class MailAliasController extends ViewController
 		}
 
 		// get back to aliases page
-		$url = $this->urlGenerator->generate('admin_aliases');
+		$url = $this->getAdminAliasesUrl();
 		return new RedirectResponse($url);
 	}
 

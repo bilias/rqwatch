@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Core\Config;
 use App\Core\SessionManager;
 use App\Utils\Helper;
@@ -33,7 +34,7 @@ class LoginController extends ViewController
 			$this->fileLogger->info("User logout: '{$username}'");
 		}
 		$this->clearSession();
-		$this->loginUrl = $this->urlGenerator->generate('login');
+		$this->loginUrl = $this->url(RouteName::LOGIN);
 		return new RedirectResponse($this->loginUrl);
 	}
 
@@ -53,7 +54,7 @@ class LoginController extends ViewController
 
 		// session expired and user clicked logout.
 		// don't show session expired warning
-		if($this->session->get('login_redirect') === $this->urlGenerator->generate('logout')) {
+		if($this->session->get('login_redirect') === $this->url(RouteName::LOGOUT)) {
 			$this->session->getFlashBag()->clear();
 		}
 
@@ -148,10 +149,10 @@ class LoginController extends ViewController
 					$this->initUrls();
 
 					if (!empty($login_redirect = $this->session->get('login_redirect'))) {
-						if ($login_redirect !== $this->urlGenerator->generate('login') and
-						    $login_redirect !== $this->urlGenerator->generate('logout') and
-						    $login_redirect !== $this->urlGenerator->generate('admin_homepage') and
-						    $login_redirect !== $this->urlGenerator->generate('homepage') and
+						if ($login_redirect !== $this->url(RouteName::LOGIN) and
+						    $login_redirect !== $this->url(RouteName::LOGOUT) and
+						    $login_redirect !== $this->url(RouteName::ADMIN_HOMEPAGE) and
+						    $login_redirect !== $this->url(RouteName::HOMEPAGE) and
 							 $login_redirect !== $this->homepageUrl) {
 								$url = $login_redirect;
 								$this->session->remove('login_redirect');

@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Core\Config;
 use App\Utils\Helper;
 
@@ -62,11 +63,11 @@ class MapController extends ViewController
 	public function initMapUrls(?string $map = null): void {
 		if (!empty($map)) {
 			if ($this->getIsAdmin()) {
-				$this->mapShowUrl = $this->urlGenerator->generate('admin_map_show', [ 'map' => $map ]);
-				$this->mapAddEntryUrl = $this->urlGenerator->generate('admin_map_add_entry', [ 'map' => $map ]);
+				$this->mapShowUrl = $this->url(RouteName::ADMIN_MAP_SHOW, [ 'map' => $map ]);
+				$this->mapAddEntryUrl = $this->url(RouteName::ADMIN_MAP_ADD_ENTRY, [ 'map' => $map ]);
 			} else {
-				$this->mapShowUrl = $this->urlGenerator->generate('map_show', [ 'map' => $map ]);
-				$this->mapAddEntryUrl = $this->urlGenerator->generate('map_add_entry', [ 'map' => $map ]);
+				$this->mapShowUrl = $this->url(RouteName::MAP_SHOW, [ 'map' => $map ]);
+				$this->mapAddEntryUrl = $this->url(RouteName::MAP_ADD_ENTRY, [ 'map' => $map ]);
 			}
 		}
 
@@ -79,15 +80,15 @@ class MapController extends ViewController
 		}
 
 		if ($this->getIsAdmin()) {
-			$this->mapsUrl = $this->urlGenerator->generate('admin_maps');
-			$this->mapShowAllUrl = $this->urlGenerator->generate('admin_map_show_all');
-			$this->mapShowAllCustomUrl = $this->urlGenerator->generate('admin_map_show_all', ['model' => 'MapCustom']);
-			$this->showCustomMapsConfigUrl = $this->urlGenerator->generate('admin_maps_custom_show');
-			$this->mapsCustomAddUrl = $this->urlGenerator->generate('admin_maps_custom_add');
-			$this->mapSearchEntryUrl = $this->urlGenerator->generate('admin_map_search_entry');
+			$this->mapsUrl = $this->url(RouteName::ADMIN_MAPS);
+			$this->mapShowAllUrl = $this->url(RouteName::ADMIN_MAP_SHOW_ALL);
+			$this->mapShowAllCustomUrl = $this->url(RouteName::ADMIN_MAP_SHOW_ALL, ['model' => 'MapCustom']);
+			$this->showCustomMapsConfigUrl = $this->url(RouteName::ADMIN_MAPS_CUSTOM_SHOW);
+			$this->mapsCustomAddUrl = $this->url(RouteName::ADMIN_MAPS_CUSTOM_ADD);
+			$this->mapSearchEntryUrl = $this->url(RouteName::ADMIN_MAP_SEARCH_ENTRY);
 		} else {
-			$this->mapsUrl = $this->urlGenerator->generate('maps');
-			$this->mapShowAllUrl = $this->urlGenerator->generate('map_show_all');
+			$this->mapsUrl = $this->url(RouteName::MAPS);
+			$this->mapShowAllUrl = $this->url(RouteName::MAP_SHOW_ALL);
 		}
 
 		$this->mapUrlsInitialized = true;
@@ -469,7 +470,7 @@ class MapController extends ViewController
 			$service = new MapService($this->getFileLogger(), $this->session);
 			$model = 'MapCustom';
 
-			$edit_url = $this->urlGenerator->generate('admin_maps_custom_edit', [ 'id' => $id ]);
+			$edit_url = $this->url(RouteName::ADMIN_MAPS_CUSTOM_EDIT, [ 'id' => $id ]);
 
 			$map_name = $data['map_name'];
 			if ($map_name === 'manage_custom_maps') {
@@ -518,7 +519,7 @@ class MapController extends ViewController
 	public function showMap(string $map): Response {
 		// Custom map management link, comes from map select form
 		if ($map === 'manage_custom_maps') {
-			return new RedirectResponse($this->urlGenerator->generate('admin_maps_custom_show'));
+			return new RedirectResponse($this->url(RouteName::ADMIN_MAPS_CUSTOM_SHOW));
 		}
 
 		// enable form rendering support
@@ -922,9 +923,9 @@ class MapController extends ViewController
 			$service = new MapService($this->getFileLogger(), $this->session);
 
 			if ($this->getIsAdmin()) {
-				$map_edit_url = $this->urlGenerator->generate('admin_map_edit_entry', [ 'map' => $map, 'id' => $id ]);
+				$map_edit_url = $this->url(RouteName::ADMIN_MAP_EDIT_ENTRY, [ 'map' => $map, 'id' => $id ]);
 			} else {
-				$map_edit_url = $this->urlGenerator->generate('map_edit_entry', [ 'map' => $map, 'id' => $id ]);
+				$map_edit_url = $this->url(RouteName::MAP_EDIT_ENTRY, [ 'map' => $map, 'id' => $id ]);
 			}
 
 			// add entry

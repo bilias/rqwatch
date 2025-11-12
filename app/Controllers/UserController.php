@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\RouteName;
 use App\Core\Config;
 use App\Core\SessionManager;
 use App\Core\Auth\AuthManager;;
@@ -36,11 +37,21 @@ class UserController extends ViewController
 	protected $items_per_page;
 	protected $max_items;
 
+	private ?string $adminUsersUrl = null;
+
 	public function __construct() {
 	//	parent::__construct();
 
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
+	}
+
+	private function getAdminUsersUrl(): string {
+		if ($this->adminUsersUrl === null) {
+			$this->adminUsersUrl = $this->url(RouteName::ADMIN_USERS);
+		}
+
+		return $this->adminUsersUrl;
 	}
 
 	public function searchUser(): Response {
@@ -58,7 +69,7 @@ class UserController extends ViewController
 
 		if ($userSearchForm->isSubmitted() && !$userSearchForm->isValid()) {
 			$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
-			return new RedirectResponse($this->urlGenerator->generate('admin_users'));
+			return new RedirectResponse($this->getAdminUsersUrl());
 		}
 
 		// Get page from ?page=, default 1
@@ -69,7 +80,7 @@ class UserController extends ViewController
 			$search = $user_search_form['user'];
 
 			$service = new UserService($this->getFileLogger());
-			$url = $this->urlGenerator->generate('admin_users');
+			$url = $this->getAdminUsersUrl();
 			$users = $service->searchPaginatedAll($page, $url, $search);
 		}
 
@@ -106,7 +117,7 @@ class UserController extends ViewController
 		$page = $this->request->query->getInt('page', 1);
 
 		$service = new UserService($this->getFileLogger());
-		$url = $this->urlGenerator->generate('admin_users');
+		$url = $this->getAdminUsersUrl();
 		$users = $service->showPaginatedAll($page, $url);
 
 		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
@@ -258,7 +269,7 @@ class UserController extends ViewController
 				$newPassword = trim($userform->get('password')->getData());
 				if (empty($newPassword)) {
 						$this->flashbag->add('error', 'Empty password not allowed.');
-						$url = $this->urlGenerator->generate('admin_users');
+						$url = $this->getAdminUsersUrl();
 						return new RedirectResponse($url);
 				}
 				$data['password'] = Helper::passwordHash($newPassword);
@@ -268,7 +279,7 @@ class UserController extends ViewController
 				} else {
 					$this->flashbag->add('error', "User creation failed");
 				}
-				$url = $this->urlGenerator->generate('admin_users');
+				$url = $this->getAdminUsersUrl();
 				return new RedirectResponse($url);
 			}
 		}
@@ -326,7 +337,7 @@ class UserController extends ViewController
 			// user does not exist
 			// get back to search page
 			$this->flashbag->add('error', 'User not found.');
-			$url = $this->urlGenerator->generate('admin_users');
+			$url = $this->getAdminUsersUrl();
 			return new RedirectResponse($url);
 		}
 
@@ -370,7 +381,7 @@ class UserController extends ViewController
 					} else {
 						$this->flashbag->add('error', "User update failed");
 					}
-					$url = $this->urlGenerator->generate('admin_users');
+					$url = $this->getAdminUsersUrl();
 					return new RedirectResponse($url);
 				} catch (\Exception $e) {
 					$error = $e->getMessage();
@@ -414,7 +425,7 @@ class UserController extends ViewController
 		}
 
 		// get back to users page
-		$url = $this->urlGenerator->generate('admin_users');
+		$url = $this->getAdminUsersUrl();
 		return new RedirectResponse($url);
 	}
 
@@ -478,7 +489,7 @@ class UserController extends ViewController
 
 		$this->flashbag->add('error', "User not found");
 		$this->initUrls();
-		$url = $this->urlGenerator->generate('admin_users');
+		$url = $this->getAdminUsersUrl();
 		return new RedirectResponse($url);
 	}
 
