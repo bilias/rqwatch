@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-11-13
+- Move middlewares inside routes
+
 ### 2025-11-12
 - Move app_config to AppConfig
 - Routing updates

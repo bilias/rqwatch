@@ -38,7 +38,7 @@ class Router
 {
 	public function __invoke(
 			RouteCollection $routes,
-			array $middlewareMap,
+			// array $middlewareMap,
 			array $defaultMiddlewareClasses,
 			LoggerInterface $fileLogger,
 			LoggerInterface $syslogLogger
@@ -86,13 +86,16 @@ class Router
 				return new Response("What?", 404);
 			}
 
-			// middleware in route (moved to $middlewareMap)
-			// $middlewareClasses = $request->attributes->get('_middleware', []);
+			$middlewareClasses = $request->attributes->get('_middleware', []);
 
 			$request_route = $request->attributes->get('_route');
+
+			// moved middleware inside routes->add
+			/*
 			if (array_key_exists($request_route, $middlewareMap)) {
 				$middlewareClasses = $middlewareMap[$request->attributes->get('_route')];
 			}
+			*/
 
 			// play safe incase route is missing from $middlewareMap
 			if (empty($middlewareClasses)) {
@@ -101,7 +104,7 @@ class Router
 					$request->attributes->get('_route') .
 					"'. Check middlewareMap in config/routes.php");
 				*/
-				$fileLogger->warning("$request_route does not exist in middlewareMap. Using defaultMiddlewareClasses");
+				$fileLogger->warning("$request_route does not have a _middleware. Using defaultMiddlewareClasses");
 				$middlewareClasses = $defaultMiddlewareClasses;
 			}
 
@@ -115,33 +118,34 @@ class Router
 				return call_user_func_array($controller, $arguments);
 			};
 
-			// Wrap controller with middleware layers (from last to first)
-			$middlewareChain = $controllerHandler;
+			$response = null;
 
-			foreach (array_reverse($middlewareClasses) as $middlewareClass) {
-				$next = $middlewareChain;
-				$middlewareChain = function (Request $request) use (
-					$middlewareClass,
-					$next,
-					$urlGenerator,
-					$fileLogger
-				) {
-					//$middleware = new $middlewareClass($urlGenerator);
-					// add logger
-					$middleware = $this->resolveMiddleware($middlewareClass, $urlGenerator, $fileLogger);
-					return $middleware->handle($request, $next);
-				};
-			}
+			if ($middlewareClasses[0] !== 'NO_MIDDLEWARE') {
+				// Wrap controller with middleware layers (from last to first)
+				$middlewareChain = $controllerHandler;
 
-			if ($middlewareClasses[0] === 'NO_MIDDLEWARE') {
-				// response without Middleware
+				foreach (array_reverse($middlewareClasses) as $middlewareClass) {
+					$next = $middlewareChain;
+					$middlewareChain = function (Request $request) use (
+						$middlewareClass,
+						$next,
+						$urlGenerator,
+						$fileLogger
+					) {
+						//$middleware = new $middlewareClass($urlGenerator);
+						// add logger
+						$middleware = $this->resolveMiddleware($middlewareClass, $urlGenerator, $fileLogger);
+						return $middleware->handle($request, $next);
+					};
+				}
+				// Run the full middleware + controller chain
+				$response = $middlewareChain($request);
+			} else  {
+				// NO_MIDDLEWARE: response without Middleware, and invoke controller
 				if (is_array($controller) && $controller[0] instanceof \App\Controllers\Controller) {
 					$controller[0]->setLoggers($fileLogger, $syslogLogger);
 					$response = call_user_func_array($controller, $arguments);
 				}
-			} else {
-				// Run the full middleware + controller chain
-				$response = $middlewareChain($request);
 			}
 
 			if (!$response instanceof Response) {
@@ -197,5 +201,6 @@ $router = new Router();
 $routes = include __DIR__.'/../config/routes.php';
 
 // fileLogger and syslogLogger come from bootstrap
-$response = $router($routes, $middlewareMap, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
+//$response = $router($routes, $middlewareMap, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
+$response = $router($routes, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
 $response->send();
