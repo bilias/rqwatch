@@ -1,5 +1,5 @@
 <div class='footer'>
-{{ FOOTER }} &copy; 
+<a href="{{ FOOTER_URL }}" target="_blank">{{ FOOTER_NAME }}</a> {{ FOOTER_VERSION }} &copy;
 {% if "now"|date("Y") > 2025 %}
 2025 - {{ "now"|date("Y") }}
 {% else %}

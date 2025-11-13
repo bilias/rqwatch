@@ -129,7 +129,9 @@ class ViewController extends Controller
 		$this->twig->addGlobal('APP_INFO', Config::get('APP_INFO') ?? 'Rspamd Quarantine Watch');
 		$this->twig->addGlobal('APP_LOGO', Config::get('APP_LOGO') ?? '/images/logo.png');
 		$this->twig->addGlobal('APP_LOGO_ALT', Config::get('APP_LOGO_ALT') ?? 'Rqwatch logo');
-		$this->twig->addGlobal('FOOTER', Config::get('FOOTER') ?? 'Rqwatch');
+		$this->twig->addGlobal('FOOTER_NAME', Config::get('FOOTER_NAME') ?? 'Rqwatch');
+		$this->twig->addGlobal('FOOTER_URL', Config::get('FOOTER_URL') ?? 'Rqwatch');
+		$this->twig->addGlobal('FOOTER_VERSION', Config::get('FOOTER_VERSION') ?? 'Rqwatch');
 		$this->twig->addGlobal('WEB_BASE', $_ENV['WEB_BASE'] ?? '');
 		$this->twig->addGlobal('NOTIFICATION_SCORE', Config::get('notification_score') ?? 1000);
 

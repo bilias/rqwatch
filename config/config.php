@@ -25,22 +25,24 @@
 use App\Config\AppConfig;
 
 # Name to use on HTML pages
-$APP_NAME="Rqwatch";
+$APP_NAME = AppConfig::APP_NAME;
 
 # unused
-$APP_INFO="Rspamd Quarantine Watch";
+$APP_INFO = AppConfig::APP_INFO;
 
 # Image to use as logo
-$APP_LOGO="/images/logo.png";
+$APP_LOGO = AppConfig::APP_LOGO;
 
 # Text to show on mouse hover over logo
-$APP_LOGO_ALT="Rqwatch logo";
+$APP_LOGO_ALT = AppConfig::APP_LOGO_ALT;
 
 # App version. Comes from bootstrap.php
 $APP_VERSION = AppConfig::VERSION;
 
 # Footer on HTML pages
-$FOOTER="{$APP_NAME} v{$APP_VERSION}";
+$FOOTER_NAME = $APP_NAME;
+$FOOTER_URL = AppConfig::GITHUB;
+$FOOTER_VERSION = "v{$APP_VERSION}";
 
 # Default CA path dir (capath) to verify remote API servers' TLS
 $SYS_CA_PATH = "/etc/pki/tls/certs";
@@ -72,7 +74,7 @@ $API_SERVERS = array(
 );
 
 # Set to true in config.local.php to disable fetching statistics from Rspamd servers
-$rspamd_stat_disable=false;
+$rspamd_stat_disable = false;
 
 # Timeout for Rspamd statistics (float, seconds)
 $rspamd_stat_api_timeout = 1.0;
@@ -84,38 +86,39 @@ $rspamd_stat_redis_key = "rqwatch_rspamd_stats";
 $rspamd_stat_redis_cache_ttl = 300;
 
 # Path to use for remote API mail release
-$RELEASE_MAIL_API_PATH = "/api/release_mail.php";
+$RELEASE_MAIL_API_PATH = AppConfig::RELEASE_MAIL_API_PATH;
 
 # Path to use for remote API get mail
-$GET_MAIL_API_PATH = "/api/get_mail.php";
+$GET_MAIL_API_PATH = AppConfig::GET_MAIL_API_PATH;
 
 # Directory for storing and serving map files
-$MAP_DIR = __DIR__ . '/../web/maps/';
+$MAP_DIR = AppConfig::MAP_DIR;
 
 # Permissions for map files
 $MAP_FILE_PERM = 0644;
 
 # Control if user can see personal map entries created by admin
 # Set to false in config.local.php to only show entries created by user
-$USER_CAN_SEE_ADMIN_MAP_ENTRIES=true;
+$USER_CAN_SEE_ADMIN_MAP_ENTRIES = true;
 
 # Control if user can delete personal map entries created by admin
 # If you set this to true, $USER_CAN_SEE_ADMIN_MAP_ENTRIES,
 # must also be set to true to allow delete.
 # This also applies to Enable/Disable of entry
-$USER_CAN_DEL_ADMIN_MAP_ENTRIES=false;
+$USER_CAN_DEL_ADMIN_MAP_ENTRIES = false;
 
 # Log file for Rqwatch
-$LOG_FILE = __DIR__ . '/../logs/rqwatch.log';
+# default is APP_ROOT/logs/rqwatch.log
+$LOG_FILE = AppConfig::LOG_FILE;
 
 # Log levels
 # see LoggerFactory.php for all available options
-$LOG_FILE_LEVEL="INFO";
-$LOG_SYSLOG_LEVEL="DEBUG";
-$LOG_SYSLOG_FACILITY="LOG_MAIL";
+$LOG_FILE_LEVEL = "INFO";
+$LOG_SYSLOG_LEVEL ="DEBUG";
+$LOG_SYSLOG_FACILITY = "LOG_MAIL";
 
 # Prefix to use in syslog
-$LOG_SYSLOG_PREFIX="rqwatch";
+$LOG_SYSLOG_PREFIX = AppConfig::SYSLOG_PREFIX;
 
 # Define which mails (raw) to store in Quarantine based on action taken by Rspamd
 $store_settings = array(
@@ -128,16 +131,16 @@ $store_settings = array(
 );
 
 # Default subject in release mail
-$release_mail_subject="Message released from quarantine";
+$release_mail_subject = "Message released from quarantine";
 
 # Default subject in notification mail
-$notify_mail_subject="New message stored in quarantine";
+$notify_mail_subject = "New message stored in quarantine";
 
 # Mails with score more than this don't get notifications
 $notification_score = 50.1;
 
 # Default mail signature
-$mail_signature=$APP_NAME;
+$mail_signature = $APP_NAME;
 
 # Auto refresh rate for maillogs
 $refresh_rate = 60;
@@ -163,11 +166,11 @@ $top_reports = 30;
 $subject_privacy = false;
 
 # Calculate statistics on mail search page
-$show_mail_stats=true;
+$show_mail_stats = true;
 
 # Default password hash for local users
 # https://www.php.net/manual/en/function.password-hash.php
-$password_hash = PASSWORD_BCRYPT;
+$password_hash = AppConfig::DEFAULT_PASSWORD_HASH;
 
 # GeoIP for relay IPs (Country)
 # https://github.com/maxmind/MaxMind-DB-Reader-php
@@ -176,13 +179,13 @@ $password_hash = PASSWORD_BCRYPT;
 # https://maxmind.github.io/GeoIP2-php/
 
 # Set to true in config.local.php to enable
-$geoip_enable=false;
+$geoip_enable = false;
 
 # GeoIP Country database (requires maxmind account)
-$geoip_country_db="/usr/share/GeoIP/GeoLite2-Country.mmdb";
+$geoip_country_db = "/usr/share/GeoIP/GeoLite2-Country.mmdb";
 
 # Set to true in config.local.php to store details into files
 # Used for debugging to see what type of information
 # comes from rspamd to rqwatch api
-$log_to_files=false;
-$log_to_files_dir="{$_ENV['QUARANTINE_DIR']}/file_log_debug";
+$log_to_files = false;
+$log_to_files_dir = "{$_ENV['QUARANTINE_DIR']}/file_log_debug";
