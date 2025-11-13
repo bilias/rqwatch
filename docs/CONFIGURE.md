@@ -446,7 +446,7 @@ based on action taken by Rspamd\
 ### Application Settings
 - `$APP_NAME` - Name to use on HTML pages
 
-- `$APP_LOGO` - Image to use as logo
+- `$APP_LOGO_PATH` - Image to use as logo
 
 - `$APP_LOGO_ALT` - Text to show on mouse hover over logo
 

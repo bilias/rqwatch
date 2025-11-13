@@ -125,13 +125,13 @@ class ViewController extends Controller
 			return number_format($number, $decimals, ',', '.');
 		}));
 
-		$this->twig->addGlobal('APP_NAME', Config::get('APP_NAME') ?? 'Rqwatch');
-		$this->twig->addGlobal('APP_INFO', Config::get('APP_INFO') ?? 'Rspamd Quarantine Watch');
-		$this->twig->addGlobal('APP_LOGO', Config::get('APP_LOGO') ?? '/images/logo.png');
-		$this->twig->addGlobal('APP_LOGO_ALT', Config::get('APP_LOGO_ALT') ?? 'Rqwatch logo');
-		$this->twig->addGlobal('FOOTER_NAME', Config::get('FOOTER_NAME') ?? 'Rqwatch');
-		$this->twig->addGlobal('FOOTER_URL', Config::get('FOOTER_URL') ?? 'Rqwatch');
-		$this->twig->addGlobal('FOOTER_VERSION', Config::get('FOOTER_VERSION') ?? 'Rqwatch');
+		$this->twig->addGlobal('APP_NAME', Config::get('APP_NAME') ?? AppConfig::APP_NAME);
+		$this->twig->addGlobal('APP_INFO', Config::get('APP_INFO') ?? AppConfig::APP_INFO);
+		$this->twig->addGlobal('APP_LOGO_PATH', Config::get('APP_LOGO_PATH') ?? AppConfig::APP_LOGO_PATH);
+		$this->twig->addGlobal('APP_LOGO_ALT', Config::get('APP_LOGO_ALT') ?? AppConfig::APP_LOGO_ALT);
+		$this->twig->addGlobal('FOOTER_NAME', Config::get('FOOTER_NAME') ?? AppConfig::APP_NAME);
+		$this->twig->addGlobal('FOOTER_URL', Config::get('FOOTER_URL') ?? AppConfig::GITHUB);
+		$this->twig->addGlobal('FOOTER_VERSION', Config::get('FOOTER_VERSION') ?? AppConfig::APP_NAME);
 		$this->twig->addGlobal('WEB_BASE', $_ENV['WEB_BASE'] ?? '');
 		$this->twig->addGlobal('NOTIFICATION_SCORE', Config::get('notification_score') ?? 1000);
 

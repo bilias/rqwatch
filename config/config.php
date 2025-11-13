@@ -31,7 +31,7 @@ $APP_NAME = AppConfig::APP_NAME;
 $APP_INFO = AppConfig::APP_INFO;
 
 # Image to use as logo
-$APP_LOGO = AppConfig::APP_LOGO;
+$APP_LOGO_PATH = AppConfig::APP_LOGO_PATH;
 
 # Text to show on mouse hover over logo
 $APP_LOGO_ALT = AppConfig::APP_LOGO_ALT;

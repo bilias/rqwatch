@@ -16,7 +16,7 @@ define('APP_ROOT', realpath(__DIR__ . '/../..'));
 class AppConfig {
 
 // Application version
-public const VERSION = '1.6.9-dev';
+public const VERSION = '1.6.9-dev2';
 
 public const APP_NAME = 'Rqwatch';
 
@@ -27,7 +27,7 @@ public const LOG_FILE = APP_ROOT . '/logs/rqwatch.log';
 
 public const APP_INFO = 'Rspamd Quarantine Watch';
 
-public const APP_LOGO = '/images/logo.png';
+public const APP_LOGO_PATH = '/images/logo.png';
 
 public const APP_LOGO_ALT = self::APP_NAME . ' logo';
 
