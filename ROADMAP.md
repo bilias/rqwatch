@@ -1,7 +1,7 @@
 # Roadmap
 
 ## In progress
--
+- Clean up database
 
 ## Features bellow are in todo list.
 -
