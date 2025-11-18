@@ -65,10 +65,22 @@
 <ul>
  <li><span class="left">Total Records:</span> {{ stats.count|nf }}</li>
  {% if stats.count > 0 %}
- <li><span class="left">Stored:</span> {{ stats.stored|nf }}</li>
- <li><span class="left">Notifications:</span> {{ stats.notified|nf }}</li>
- <li><span class="left">Released:</span> {{ stats.released|nf }}</li>
- <li><span class="left">Has Virus:</span> {{ stats.has_virus|nf }}</li>
+ <li><span class="left">Stored
+  ({{ ((stats.stored / stats.count * 100)|round(2))|nf(1) }}%):</span>
+  {{ stats.stored|nf }}
+ </li>
+ <li><span class="left">Notifications
+  ({{ ((stats.notified / stats.count * 100)|round(2))|nf(1) }}%):</span>
+  {{ stats.notified|nf }}
+ </li>
+ <li><span class="left">Released
+  ({{ ((stats.released / stats.count * 100)|round(2))|nf(1) }}%):</span>
+  {{ stats.released|nf }}
+ </li>
+ <li><span class="left">Has Virus
+  ({{ ((stats.has_virus / stats.count * 100)|round(2))|nf(1) }}%):</span>
+  {{ stats.has_virus|nf }}
+ </li>
  <hr>
  {# Loop through all actions dynamically #}
 {% for action, count in stats.action %}
