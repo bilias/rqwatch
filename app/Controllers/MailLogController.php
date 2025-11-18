@@ -207,12 +207,20 @@ class MailLogController extends ViewController
 		// has applyUserScope
 		$logs = $service->showReports($filters, $field, $mode)->toArray();
 
+		$sum['count'] = 0;
+		$sum['size'] = 0;
+		foreach ($logs as $log) {
+			$sum['count'] += $log['total'];
+			$sum['size'] += $log['total_size'];
+		}
+
 		return new Response($this->twig->render('reports.twig', [
 			'qidform' => $qidform->createView(),
 			'field' => array_keys($logs[0])[0],
 			'reportFields' => MailLog::REPORT_DYN_FIELDS,
 			'mode' => $mode,
 			'logs' => $logs,
+			'sum' => $sum,
 			'items_per_page' => $this->items_per_page,
 			'max_items' => Config::get('top_reports'),
 			'runtime' => $this->getRuntime(),

@@ -44,6 +44,12 @@
   <div class='cell right cnt'>{{ formatSizeUnits(log.total_size) }}</div>
  </div>
 {% endfor %}
+ <div class="row caption">
+  <div class='cell day'>Total:</div>
+  <div class='cell right cnt'>{{ sum.count|nf }}</div>
+  <div class='cell right cnt'>{{ formatSizeUnits(sum.size) }}</div>
+  </div>
+ </div>
 </div>
 
 {% endblock %}

@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-11-18
+- Totals in Mails per day
 - Mails per day and by quantity/volume
 
 ### 2025-11-13

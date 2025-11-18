@@ -92,9 +92,9 @@
 {% if stats.count > 0 %}
  {% if is_admin %}
  <li><a href='{{ route('ADMIN_SEARCH_RESULTS') }}'>Search Results</a></li>
- <li><a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'day' }) }}'>Mails per day</a>
- (<a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'count' }) }}'>by Quantity</a>
- / <a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'volume' }) }}'>by Volume</a>)
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'day' }) }}'>Mails by Day</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'count' }) }}'>Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'volume' }) }}'>Volume</a>
  </li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'ip'}) }}'>Top IPs by Quantity</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'ip', mode: 'volume'}) }}'>Volume</a></li>
@@ -118,9 +118,9 @@
  / <a href='{{ route('ADMIN_REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
  {% else %}
  <li><a href='{{ route('SEARCH_RESULTS') }}'>Search Results</a></li>
- <li><a href='{{ route('REPORTS', { field: 'date', mode: 'day' }) }}'>Mails per day</a>
- (<a href='{{ route('REPORTS', { field: 'date', mode: 'count' }) }}'>by Quantity</a>
- / <a href='{{ route('REPORTS', { field: 'date', mode: 'volume' }) }}'>by Volume</a>)
+ <li><a href='{{ route('REPORTS', { field: 'date', mode: 'day' }) }}'>Mails by Day</a>
+ / <a href='{{ route('REPORTS', { field: 'date', mode: 'count' }) }}'>Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'date', mode: 'volume' }) }}'>Volume</a>
  </li>
  <li><a href='{{ route('REPORTS', { field: 'ip'}) }}'>Top IPs by Quantity</a>
  / <a href='{{ route('REPORTS', { field: 'ip', mode: 'volume'}) }}'>Volume</a></li>
