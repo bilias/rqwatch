@@ -8,6 +8,8 @@
  <span class='descr'>Top {{ max_items }} {{ field|replace({'_': ' '})|upper }}
  {% if mode == 'volume' %}
   by Volume
+ {% elseif field == 'date' and mode == 'day' %}
+  by Date
  {% else %}
   by Quantity
  {% endif %}

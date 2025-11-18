@@ -317,8 +317,7 @@ class MailLogService
 				break;
 			case 'date':
 				$query = MailLog::selectRaw('DATE(created_at) AS date, COUNT(*) AS total, SUM(size) as total_size')
-				                ->groupBy(DB::raw('DATE(created_at)'))
-									 ->orderByDesc('date');
+				                ->groupBy(DB::raw('DATE(created_at)'));
 				break;
 			default:
 				//$fields = [ $field, DB::raw('count(*) as total') ];
@@ -333,6 +332,8 @@ class MailLogService
 
 		if ($mode === 'volume') {
 			$query->orderBy('total_size', 'DESC');
+		} elseif ($field == 'date' && $mode === 'day') {
+			$query->orderByDesc('date');
 		} else {
 			$query->orderBy('total', 'DESC');
 		}

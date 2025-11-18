@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2025-11-18
+- Mails per day and by quantity/volume
+
 ### 2025-11-13
 - remove app_config.php
 - Use AppConfig in ViewController globals
