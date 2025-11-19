@@ -35,6 +35,11 @@ class Kernel
 
 		require_once AppConfig::VENDOR_PATH;
 
+		// configure loggers
+		$loggerService = new LoggerService();
+		$fileLogger = $loggerService->getFileLogger();
+		$syslogLogger = $loggerService->getSyslogLogger();
+
 		// load config from .env
 		if (!file_exists(AppConfig::ENV_PATH)) {
 			echo "<h1 style='color:red'>Application configuration error</h1>";
@@ -51,11 +56,6 @@ class Kernel
 			echo "Error loading .env";
 			exit;
 		}
-
-		// configure loggers
-		$loggerService = new LoggerService();
-		$fileLogger = $loggerService->getFileLogger();
-		$syslogLogger = $loggerService->getSyslogLogger();
 
 		// load configuration
 		Config::loadConfig(
