@@ -47,8 +47,8 @@ use DateTimeZone;
 class CronUpdateMapFiles extends RqwatchCliCommand
 {
 	private string $app_name = "cron:updatemapfiles";
-	private ?LoggerInterface $fileLogger = null;
-	private ?LoggerInterface $syslogLogger = null;
+	private ?LoggerInterface $fileLogger;
+	private ?LoggerInterface $syslogLogger;
 
 	use LockableTrait;
 

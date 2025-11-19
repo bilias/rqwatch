@@ -41,8 +41,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 class CronQuarantine extends RqwatchCliCommand
 {
 	private string $app_name = "cron:quarantine";
-	private ?LoggerInterface $fileLogger = null;
-	private ?LoggerInterface $syslogLogger = null;
+	private ?LoggerInterface $fileLogger;
+	private ?LoggerInterface $syslogLogger;
 
 	use LockableTrait;
 

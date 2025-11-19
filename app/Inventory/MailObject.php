@@ -16,10 +16,10 @@ use PhpMimeMailParser\Parser;
 
 class MailObject
 {
-	private ?string $virus_found = null;
-	private array $symbols = [];
-	private bool $mail_stored = false;
-	private ?string $mail_location = null;
+	private ?string $virus_found;
+	private array $symbols;
+	private bool $mail_stored;
+	private ?string $mail_location;
 	private string $htmlBody;
 	private string $textBody;
 	private array $attached = [];

@@ -18,7 +18,7 @@ class AuthManager
 	private ?AuthInterface $provider = null;
 	private int $providerId = 0;
 	private ?string $providerDescr = null;
-	private ?LoggerInterface $logger = null;
+	private ?LoggerInterface $logger;
 
 	public static array $authProviders = [
 		0 => 'DB',

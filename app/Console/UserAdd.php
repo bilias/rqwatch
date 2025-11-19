@@ -49,8 +49,8 @@ use DateTimeZone;
 class UserAdd extends RqwatchCliCommand
 {
 	private string $app_name = "user:add";
-	private ?LoggerInterface $fileLogger = null;
-	private ?LoggerInterface $syslogLogger = null;
+	private ?LoggerInterface $fileLogger;
+	private ?LoggerInterface $syslogLogger;
 
 	use LockableTrait;
 

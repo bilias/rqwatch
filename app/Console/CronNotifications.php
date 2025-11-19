@@ -44,8 +44,8 @@ and then sends notification mails to recipients.
 class CronNotifications extends RqwatchCliCommand
 {
 	private string $app_name = "cron:notifications";
-	private ?LoggerInterface $fileLogger = null;
-	private ?LoggerInterface $syslogLogger = null;
+	private ?LoggerInterface $fileLogger;
+	private ?LoggerInterface $syslogLogger;
 
 	use LockableTrait;
 
