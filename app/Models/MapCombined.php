@@ -49,7 +49,7 @@ class MapCombined extends Model
 		'disabled',
 	];
 
-	public const SELECT_FIELDS = [
+	public const array SELECT_FIELDS = [
 		'id',
 		'user_id',
 		'disabled',
@@ -57,7 +57,7 @@ class MapCombined extends Model
 		'updated_at',
 	];
 
-	public const SEARCH_FIELDS = [
+	public const array SEARCH_FIELDS = [
 		'mail_from',
 		'rcpt_to',
 		'mime_from',

@@ -41,7 +41,7 @@ class MapCustom extends Model
 		'score',
 	];
 
-	public const SELECT_FIELDS = [
+	public const array SELECT_FIELDS = [
 		'id',
 		'map_name',
 		'pattern',

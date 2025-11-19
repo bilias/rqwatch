@@ -42,7 +42,7 @@ class CustomMapConfig extends Model
 		'field_label',
 	];
 
-	public const SELECT_FIELDS = [
+	public const array SELECT_FIELDS = [
 		'id',
 		'map_name',
 		'map_description',

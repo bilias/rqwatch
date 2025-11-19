@@ -53,7 +53,7 @@ class User extends Model
 		'password', // Hide on JSON/array output
 	];
 
-	public const SELECT_FIELDS = [
+	public const array SELECT_FIELDS = [
 		'id',
 		'username',
 		'email',

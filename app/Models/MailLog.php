@@ -81,7 +81,7 @@ class MailLog extends Model
 		'virus_from_symbol',
 	];
 
-	public const SELECT_FIELDS = [
+	public const array SELECT_FIELDS = [
 		'id',
 		'qid',
 		'created_at',
@@ -101,7 +101,7 @@ class MailLog extends Model
 		'message_id',
 	];
 
-	public const REPORT_FIELDS = [
+	public const array REPORT_FIELDS = [
 		'ip',
 		'action',
 		'has_virus',
@@ -117,7 +117,7 @@ class MailLog extends Model
 		'date',
 	];
 
-	public const REPORT_DYN_FIELDS = [
+	public const array REPORT_DYN_FIELDS = [
 		'ip',
 		'mail_from',
 		'rcpt_to',
@@ -126,7 +126,7 @@ class MailLog extends Model
 	];
 
 	// Static DB field length limits
-	public const FIELD_LIMITS = [
+	public const array FIELD_LIMITS = [
 		'qid'           => 30,
 		'server'        => 10,
 		'subject'       => 1024,

@@ -36,7 +36,7 @@ class MailAlias extends Model
 		'alias',
 	];
 
-	public const SELECT_FIELDS = [
+	public const array SELECT_FIELDS = [
 		'id',
 		'user_id',
 		'alias',

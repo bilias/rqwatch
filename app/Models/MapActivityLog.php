@@ -31,7 +31,7 @@ class MapActivityLog extends Model
 		'map_name',
 	];
 
-	public const SELECT_FIELDS = [
+	public const array SELECT_FIELDS = [
 		'table_name',
 		'last_changed_at',
 	];

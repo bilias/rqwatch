@@ -38,7 +38,7 @@ use App\Services\MapService;
 
 class MapInventory
 {
-	private const USER_FORM_OVERRIDES = [
+	private const array USER_FORM_OVERRIDES = [
 		MapMailFromRcptToForm::class => MapMailFromRcptToUserForm::class,
 		MapMimeFromRcptToForm::class => MapMimeFromRcptToUserForm::class,
 	];
