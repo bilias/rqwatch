@@ -81,9 +81,7 @@ class MailAliasService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$aliases = $query->get();
-
-		return $aliases;
+		return $query->get();
 	}
 
 	public function showOne(int $id): ?MailAlias {
@@ -96,9 +94,7 @@ class MailAliasService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$alias = $query->first();
-
-		return $alias;
+		return $query->first();
 	}
 
 	public function aliasExists(int $user_id, string $alias): bool {

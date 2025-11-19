@@ -131,11 +131,10 @@ class MapService
 	}
 
 	public function getMapCustomQuery(string $map_name): Builder {
-		$query = MapCustom::select(MapCustom::SELECT_FIELDS)
+		// query
+		return MapCustom::select(MapCustom::SELECT_FIELDS)
 								  ->where('map_name', $map_name)
 								  ->orderBy('updated_at', 'DESC');
-
-		return $query;
 	}
 
 	public static function getCustomMapConfigs(): Collection {
@@ -654,11 +653,9 @@ class MapService
 
 	private static function trimLower(array $data): array {
 		// trim and strtolower entries
-		$data = array_map(function ($value) {
+		return array_map(function ($value) {
 			return is_string($value) ? strtolower(trim($value)) : $value;
 		}, $data);
-
-		return $data;
 	}
 
 	public function addMapCombinedEntry(string $map_name, array $map_fields, array $data): bool {

@@ -215,14 +215,12 @@ class Helper {
 		$executionTime = $endTime - $startTime;
 		$memoryUsed = $endMemory - $startMemory;
 
-		$runtime = sprintf(
+		return sprintf(
 			"Execution time: %.3f sec | Memory used: %.2f MB | Peak memory: %.2f MB",
 			$executionTime,
 			$memoryUsed / 1048576,
 			$peakMemory / 1048576
 		);
-
-		return $runtime;
 	}
 
 	public static function convertSRSAddress($srsAddress) {
@@ -253,24 +251,22 @@ class Helper {
 	}
 
 	public static function convertPRVSAddress($email) {
-	// Match PRVS format
-	if (preg_match('/^prvs=[^=]+=(.+)@(.+)$/i', $email, $matches)) {
-	    $local = $matches[1];
-	    $domain = $matches[2];
-	    return "$local@$domain";
-	}
+		// Match PRVS format
+		if (preg_match('/^prvs=[^=]+=(.+)@(.+)$/i', $email, $matches)) {
+			$local = $matches[1];
+			$domain = $matches[2];
+			return "$local@$domain";
+		}
 
-	return $email;
+		return $email;
 	}
 
 	public static function decodeEmail($email) {
-	// Step 1: Decode SRS if applicable
-	$decoded = self::convertSRSAddress($email);
+		// Step 1: Decode SRS if applicable
+		$decoded = self::convertSRSAddress($email);
 
-	// Step 2: Decode PRVS if present
-	$decoded = self::convertPRVSAddress($decoded);
-
-	return $decoded;
+		// Step 2: Decode PRVS if present
+		return self::convertPRVSAddress($decoded);
 	}
 
 	// Snippet from PHP Share: http://www.phpshare.org
@@ -475,13 +471,11 @@ class Helper {
          $error = "Unknown error";
       }
 
-		$ret = array(
+		return array(
 			'error' => $error,
 			'id'    => $id,
 			'qid'   => $qid,
 		);
-
-		return $ret;
 	}
 
 	public static function removeValFromArr(array $array, string $value): array {

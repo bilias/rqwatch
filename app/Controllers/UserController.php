@@ -436,12 +436,10 @@ class UserController extends ViewController
 			$mail_aliases[] = strtolower(trim($mail_alias->alias));
 		}
 		*/
-		$mail_aliases = array_unique(array_map('strtolower', array_filter(
+		return array_unique(array_map('strtolower', array_filter(
 		   $user->mailAliases()->pluck('alias')->toArray(),
 		   fn($alias) => !empty(trim($alias))
 		)));
-
-		return $mail_aliases;
 	}
 
 	public function loginAs(int $id): Response {

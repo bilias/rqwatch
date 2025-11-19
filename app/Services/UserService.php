@@ -71,9 +71,7 @@ class UserService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$logs = $query->get();
-
-		return $logs;
+		return $query->get();
 	}
 
 	public function showOne(int $id): ?User {
@@ -83,9 +81,7 @@ class UserService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$user = $query->first();
-
-		return $user;
+		return $query->first();
 	}
 
 	public function showOneByUsername(string $username): ?User {
@@ -95,9 +91,7 @@ class UserService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$user = $query->first();
-
-		return $user;
+		return $query->first();
 	}
 
 	public function showOneByEmail(string $email): ?User {
@@ -107,9 +101,7 @@ class UserService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$user = $query->first();
-
-		return $user;
+		return $query->first();
 	}
 
 	public function profile(): ?User {
@@ -136,9 +128,7 @@ class UserService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$logs = $query->first();
-
-		return $logs;
+		return $query->first();
 	}
 
 	public function showPaginatedAll(int $page = 1, string $url): ?LengthAwarePaginator {

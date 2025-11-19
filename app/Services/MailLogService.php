@@ -134,9 +134,7 @@ class MailLogService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$logs = $query->get();
-
-		return $logs;
+		return $query->get();
 	}
 
 	public function showOne(int $id): MailLog {
@@ -414,11 +412,9 @@ class MailLogService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$logs = $query
+		return $query
 			->paginate($this->items_per_page, $fields, 'page', $page)
 			->withPath($url);
-		
-		return $logs;
 	}
 
 	public function showPaginatedQuarantineDay(int $page = 1, string $date = null, string $url): LengthAwarePaginator {
@@ -439,11 +435,9 @@ class MailLogService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$logs = $query
+		return $query
 			->paginate($this->items_per_page, $fields, 'page', $page)
 			->withPath($url);
-		
-		return $logs;
 	}
 
 	public function showQuarantine(): Collection {
@@ -460,10 +454,8 @@ class MailLogService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$days = $query
-			->get();
-
-		return $days;
+		// days
+		return $query->get();
 	}
 
 	public function showPaginatedQuarantine(int $page = 1, string $url): LengthAwarePaginator {
@@ -480,11 +472,10 @@ class MailLogService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$days = $query
+		// days
+		return $query
 			->paginate($this->q_items_per_page, ['day', 'cnt'], 'page', $page)
 			->withPath($url);
-
-		return $days;
 	}
 
 	public function detailById(int $id): MailLog {
@@ -573,13 +564,12 @@ class MailLogService
 			$received = null;
 		}
 
-		$ret = array(
+		return array(
 			'log' => $log,
 			'symbols' => $ar['symbols'],
 			'virus_found' => $ar['virus_found'],
 			'received' => $received,
 		);
-		return $ret;
 	}
 
 	public function getMailObjectLocal(int $id): MailObject {
@@ -1013,9 +1003,8 @@ class MailLogService
 			}
 		}
 
-		$logs = $query->get();
-
-		return $logs;
+		// logs
+		return $query->get();
 	}
 
 	// returns mail_logs in quarantine before QUARANTINE_DAYS
@@ -1050,9 +1039,8 @@ class MailLogService
 			}
 		}
 
-		$logs = $query->get();
-
-		return $logs;
+		// logs
+		return $query->get();
 	}
 
 	// cleans quarantine
