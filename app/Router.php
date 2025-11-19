@@ -200,7 +200,7 @@ class Router
 $router = new Router();
 $routes = include __DIR__.'/../config/routes.php';
 
-// fileLogger and syslogLogger come from bootstrap
+// fileLogger and syslogLogger come from Kernel::runRouter()
 //$response = $router($routes, $middlewareMap, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
 $response = $router($routes, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
 $response->send();
