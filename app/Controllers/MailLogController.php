@@ -71,7 +71,7 @@ class MailLogController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MailLogService($this->getFileLogger(), $this->session);;
+		$service = new MailLogService($this->getFileLogger(), $this->session);
 
 		if ($this->getIsAdmin()) {
 			$url = $this->url(RouteName::ADMIN_HOMEPAGE);
