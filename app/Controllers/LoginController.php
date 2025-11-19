@@ -119,6 +119,7 @@ class LoginController extends ViewController
 				$this->fileLogger->info("User login: '{$username}' ($auth_provider)", [
 					'is_admin' => $is_admin,
 					'email' => $email,
+					'ip' => $_SERVER['REMOTE_ADDR'],
 				]);
 
 				$user = User::where('username', $username)->first();
