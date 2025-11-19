@@ -76,12 +76,15 @@ class UserController extends ViewController
 		$page = $this->request->query->getInt('page', 1);
 
 		$user_search_form = $this->request->get('user_search_form');
+		$users = null;
+		$totalRecords = 0;
 		if (!empty($user_search_form['user'])) {
 			$search = $user_search_form['user'];
 
 			$service = new UserService($this->getFileLogger());
 			$url = $this->getAdminUsersUrl();
 			$users = $service->searchPaginatedAll($page, $url, $search);
+			$totalRecords = $users->total();
 		}
 
 		//return new Response($this->twig->render('home.twig', [
@@ -89,7 +92,7 @@ class UserController extends ViewController
 			'qidform' => $qidform->createView(),
 			'usersearchform' => $userSearchForm->createView(),
 			'users' => $users,
-			'totalRecords' => $users->total(),
+			'totalRecords' => $totalRecords,
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
 			'refresh_rate' => $this->refresh_rate,
