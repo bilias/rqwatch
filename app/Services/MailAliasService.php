@@ -17,6 +17,8 @@ use App\Utils\FormHelper;
 use App\Models\MailAlias;
 use App\Models\User;
 
+use Exception;
+
 use Psr\Log\LoggerInterface;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -125,7 +127,7 @@ class MailAliasService
 			$aliases = $query
 				->paginate($this->items_per_page, $fields, 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -149,7 +151,7 @@ class MailAliasService
 			$aliases = $query
 				->paginate($this->items_per_page, $fields, 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -179,7 +181,7 @@ class MailAliasService
 			$logs = $query
 				->paginate($this->items_per_page, $fields, 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
