@@ -856,7 +856,7 @@ class MailLogService
 		}
 		if (empty($api_server)) {
 			$this->logger->error("{$lf} empty api server");
-			return null;
+			return false;
 		}
 		if (empty($release_to)) {
 			$this->logger->error("{$lf} empty recipients");
