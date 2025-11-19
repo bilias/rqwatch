@@ -13,10 +13,16 @@ exit;
 
 define('API_MODE', true);
 
-require_once __DIR__ . '/../../bootstrap.php';
+use App\Kernel;
+
+require_once __DIR__ . '/../Kernel.php';
 
 use Symfony\Component\HttpFoundation\Request;
 use App\Api\GetMapApi;
+
+$services = Kernel::boot();
+$fileLogger = $services['fileLogger'];
+$syslogLogger = $services['syslogLogger'];
 
 // Create request from globals
 $request = Request::createFromGlobals();
