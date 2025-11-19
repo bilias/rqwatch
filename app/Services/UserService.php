@@ -131,7 +131,7 @@ class UserService
 		return $query->first();
 	}
 
-	public function showPaginatedAll(int $page = 1, string $url): ?LengthAwarePaginator {
+	public function showPaginatedAll(string $url, int $page = 1): ?LengthAwarePaginator {
 		$fields = User::SELECT_FIELDS;
 
 		$query = self::getSearchQuery($fields);

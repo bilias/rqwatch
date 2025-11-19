@@ -180,7 +180,7 @@ class MailLogService
 		return $log;
 	}
 
-	public function showPaginatedAll(array $filters, int $page = 1, string $url): ?LengthAwarePaginator {
+	public function showPaginatedAll(array $filters, string $url, int $page = 1): ?LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = self::getSearchQuery($filters, $fields);
@@ -240,7 +240,7 @@ class MailLogService
 		return $logs;
 	}
 
-	public function showPaginatedResults(array $filters, int $page = 1, string $url): ?LengthAwarePaginator {
+	public function showPaginatedResults(array $filters, string $url, int $page = 1): ?LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = self::getSearchQuery($filters, $fields);
@@ -395,7 +395,7 @@ class MailLogService
 		);
 	}
 
-	public function showPaginatedDay(int $page = 1, string $date = null, string $url): LengthAwarePaginator {
+	public function showPaginatedDay(?string $date, string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
 
 		if (!$date) {
@@ -417,7 +417,7 @@ class MailLogService
 			->withPath($url);
 	}
 
-	public function showPaginatedQuarantineDay(int $page = 1, string $date = null, string $url): LengthAwarePaginator {
+	public function showPaginatedQuarantineDay(?string $date, string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
 
 		if (!$date) {
@@ -458,7 +458,7 @@ class MailLogService
 		return $query->get();
 	}
 
-	public function showPaginatedQuarantine(int $page = 1, string $url): LengthAwarePaginator {
+	public function showPaginatedQuarantine(string $url, int $page = 1): LengthAwarePaginator {
 
 		$query = MailLog::selectRaw('DATE(created_at) as day, COUNT(*) as cnt')
 			->where('mail_stored', 1)

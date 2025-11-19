@@ -78,7 +78,7 @@ class MailLogController extends ViewController
 		} else {
 			$url = $this->url(RouteName::HOMEPAGE);
 		}
-		$logs = $service->showPaginatedAll(array(), $page, $url);
+		$logs = $service->showPaginatedAll(array(), $url, $page);
 
 		//return new Response($this->twig->render('home.twig', [
 		return new Response($this->twig->render('home_paginated.twig', [
@@ -157,7 +157,7 @@ class MailLogController extends ViewController
 			$url = $this->url(RouteName::SEARCH_RESULTS);
 		}
 		// has applyUserScope
-		$logs = $service->showPaginatedResults($filters, $page, $url);
+		$logs = $service->showPaginatedResults($filters, $url, $page);
 
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -257,7 +257,7 @@ class MailLogController extends ViewController
 		} else {
 			$url = $this->url(RouteName::DAY_LOGS, ['date' => $date]);
 		}
-		$logs = $service->showPaginatedDay($page, $date, $url);
+		$logs = $service->showPaginatedDay($date, $url, $page);
 		
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -300,7 +300,7 @@ class MailLogController extends ViewController
 		} else {
 			$url = $this->url(RouteName::QUARANTINE_DAY, ['date' => $date]);
 		}
-		$logs = $service->showPaginatedQuarantineDay($page, $date, $url);
+		$logs = $service->showPaginatedQuarantineDay($date, $url, $page);
 		
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -344,7 +344,7 @@ class MailLogController extends ViewController
 			$url = $this->url(RouteName::QUARANTINE);
 		}
 
-		$days = $service->showPaginatedQuarantine($page, $url);
+		$days = $service->showPaginatedQuarantine($url, $page);
 		$totalMailsInPage = 0;
 		foreach ($days as $day) {
 			$totalMailsInPage += $day->cnt;

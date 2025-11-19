@@ -118,7 +118,7 @@ class UserController extends ViewController
 
 		$service = new UserService($this->getFileLogger());
 		$url = $this->getAdminUsersUrl();
-		$users = $service->showPaginatedAll($page, $url);
+		$users = $service->showPaginatedAll($url, $page);
 
 		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 

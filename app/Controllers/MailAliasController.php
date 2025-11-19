@@ -67,7 +67,7 @@ class MailAliasController extends ViewController
 
 		$service = new MailAliasService($this->getFileLogger());
 		$url = $this->getAdminAliasesUrl();
-		$aliases = $service->showPaginatedAll($page, $url);
+		$aliases = $service->showPaginatedAll($url, $page);
 
 		$mailAliasSearchForm = MailAliasSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 
@@ -115,7 +115,7 @@ class MailAliasController extends ViewController
 
 			$service = new MailAliasService($this->getFileLogger());
 			$url = $this->getAdminAliasesUrl();
-			$aliases = $service->searchPaginatedAll($page, $url, $search);
+			$aliases = $service->searchPaginatedAll($url, $search, $page);
 		}
 
 		return new Response($this->twig->render('aliases_paginated.twig', [
