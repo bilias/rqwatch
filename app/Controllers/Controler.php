@@ -28,6 +28,7 @@ use App\Utils\Helper;
 
 use App\Services\ApiClient;
 
+use Throwable;
 use Psr\Log\LoggerInterface;
 
 class Controller
@@ -209,7 +210,7 @@ class Controller
 					}
 					$this->fileLogger->warning("Empty Rspamd stats returned from Redis cache");
 				}
-			} catch (\Throwable $e) {
+			} catch (Throwable $e) {
 				$this->fileLogger->error("Redis error when reading Rspamd stats: " . $e->getMessage());
 				// fallback to fetching live if Redis fails
 			}
@@ -245,7 +246,7 @@ class Controller
 			try {
 				$redis->set($redisKey, json_encode($stats), ['ex' => $ttl]);
 				$this->fileLogger->debug("Rspamd stats cached in Redis for {$ttl} seconds");
-			} catch (\Throwable $e) {
+			} catch (Throwable $e) {
 				$this->fileLogger->error("Redis error when writing Rspamd stats: " . $e->getMessage());
 			}
 		}

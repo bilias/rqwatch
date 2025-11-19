@@ -23,6 +23,8 @@ use App\Forms\MailAliasForm;
 use App\Forms\MailAliasSearchForm;
 
 use App\Models\MailAlias;
+use App\Models\User;
+
 use App\Services\MailAliasService;
 use App\Services\UserService;
 

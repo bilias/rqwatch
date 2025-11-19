@@ -15,7 +15,7 @@ use App\Utils\Helper;
 use App\Utils\FormHelper;
 
 use App\Models\MapCombined;
-//use App\Models\MapGeneric;
+use App\Models\MapGeneric;
 use App\Models\MapCustom;
 use App\Models\CustomMapConfig;
 use App\Models\MapActivityLog;
