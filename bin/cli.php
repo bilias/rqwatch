@@ -2,7 +2,9 @@
 <?php
 define('CLI_MODE', true);
 
-require_once __DIR__ . '/../bootstrap.php';
+use App\Kernel;
+
+require_once __DIR__ . '/../app/Kernel.php';
 
 use Symfony\Component\Console\Application;
 
@@ -10,6 +12,10 @@ use App\Console\CronNotifications;
 use App\Console\CronQuarantine;
 use App\Console\CronUpdateMapFiles;
 use App\Console\UserAdd;
+
+$services = Kernel::boot();
+$fileLogger = $services['fileLogger'];
+$syslogLogger = $services['syslogLogger'];
 
 $application = new Application();
 
