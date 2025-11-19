@@ -36,7 +36,7 @@ $APP_LOGO_PATH = AppConfig::APP_LOGO_PATH;
 # Text to show on mouse hover over logo
 $APP_LOGO_ALT = AppConfig::APP_LOGO_ALT;
 
-# App version. Comes from bootstrap.php
+# App version
 $APP_VERSION = AppConfig::VERSION;
 
 # Footer on HTML pages
