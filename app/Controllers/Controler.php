@@ -52,12 +52,6 @@ class Controller
 	protected LoggerInterface $fileLogger;
 	protected LoggerInterface $syslogLogger;
 
-	public function getRequest(): Request {
-		if ($this->request) {
-			return $this->request;
-		}
-	}
-
 	public function setRequest(Request $request): void {
 		$this->request = $request;
 		if (!$request->hasSession()) {
