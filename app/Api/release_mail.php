@@ -19,6 +19,8 @@ use App\Api\ReleaseMailApi;
 $services = Kernel::boot();
 $fileLogger = $services['fileLogger'];
 $syslogLogger = $services['syslogLogger'];
+$startTime = $services['startTime'];
+$startMemory = $services['startMemory'];
 
 // Create request from globals
 $request = Request::createFromGlobals();

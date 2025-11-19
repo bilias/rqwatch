@@ -19,6 +19,9 @@ use App\Api\MetadataImporterApi;
 $services = Kernel::boot();
 $fileLogger = $services['fileLogger'];
 $syslogLogger = $services['syslogLogger'];
+$startTime = $services['startTime'];
+$startMemory = $services['startMemory'];
+$capsule = $services['capsule'];
 
 // Create request from globals
 $request = Request::createFromGlobals();

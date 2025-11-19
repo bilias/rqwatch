@@ -84,6 +84,8 @@ class Kernel
 		Helper::setLogger($fileLogger);
 
 		return [
+			'startTime' => $startTime,
+			'startMemory' => $startMemory,
 			'fileLogger' => $fileLogger,
 			'syslogLogger' => $syslogLogger,
 			'capsule' => $capsule,
