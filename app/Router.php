@@ -196,12 +196,3 @@ class Router
 		};
 	}
 }
-
-// Invoke
-$router = new Router();
-$routes = include AppConfig::ROUTES_PATH;
-
-// fileLogger and syslogLogger come from Kernel::runRouter()
-//$response = $router($routes, $middlewareMap, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
-$response = $router($routes, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
-$response->send();

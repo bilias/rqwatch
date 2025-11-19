@@ -14,6 +14,9 @@ use App\Config\AppConfig;
 use App\Core\Config;
 use App\Core\Logging\LoggerService;
 use App\Utils\Helper;
+
+use App\Router;
+
 use Dotenv\Dotenv;
 use Exception;
 use RuntimeException;
@@ -95,10 +98,23 @@ class Kernel
 		// we do not need Router in our API or CLI
 		if (!defined('API_MODE') && !defined('CLI_MODE') && defined('WEB_MODE')) {
 			if (Helper::env_bool('WEB_ENABLE')) {
-				// Call our Router
-				require_once AppConfig::ROUTER_PATH;
+				// Load routes and default middleware classes
+				if (!file_exists(AppConfig::ROUTES_PATH)) {
+					$fileLogger->error("Routes file missing: " . AppConfig::ROUTES_PATH);
+					exit;
+				}
+				/** @var RouteCollection $routes */
+				/** @var array $defaultMiddlewareClasses */
+				include AppConfig::ROUTES_PATH;
+
+				// Instantiate Router and handle the request
+				$router = new Router();
+				$response = $router($routes, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
+				$response->send();
+				exit;
 			} else {
-				$fileLogger->warning("Client '" . $_SERVER['REMOTE_ADDR'] . "' requested '" . $_SERVER['REQUEST_URI'] . "' but Web is disabled.");
+				$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+				$fileLogger->warning("Client '{$ip}' requested '" . $_SERVER['REQUEST_URI'] . "' but Web is disabled.");
 				exit("Web is disabled");
 			}
 		}
