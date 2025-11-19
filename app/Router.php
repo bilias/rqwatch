@@ -22,6 +22,7 @@ use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Exception\NoConfigurationException;
 
+use App\Config\AppConfig;
 use App\Core\RouteName;
 
 use App\Core\SessionManager;
@@ -198,7 +199,7 @@ class Router
 
 // Invoke
 $router = new Router();
-$routes = include __DIR__.'/../config/routes.php';
+$routes = include AppConfig::ROUTES_PATH;
 
 // fileLogger and syslogLogger come from Kernel::runRouter()
 //$response = $router($routes, $middlewareMap, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);

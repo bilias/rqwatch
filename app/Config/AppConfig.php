@@ -44,6 +44,9 @@ public const string DB_CONFIG_PATH = APP_ROOT . '/config/db.php';
 // Router Path
 public const string ROUTER_PATH = APP_ROOT . '/app/Router.php';
 
+// Routes Path
+public const string ROUTES_PATH = APP_ROOT . '/config/routes.php';
+
 // Environment file
 public const string ENV_PATH = APP_ROOT . '/.env';
 
