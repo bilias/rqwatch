@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use App\Core\RouteName;
 use App\Core\Config;
 use App\Core\SessionManager;
-use App\Core\Auth\AuthManager;;
+use App\Core\Auth\AuthManager;
 use App\Utils\Helper;
 
 use App\Forms\QidForm;

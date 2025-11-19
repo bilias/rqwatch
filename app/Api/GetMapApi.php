@@ -30,7 +30,7 @@ class GetMapApi extends RqwatchApi
 	protected string $logPrefix = 'GetMapApi';
 
 	protected function getAllowedIps(): array {
-		return array_map('trim', explode(',', $_ENV['MAP_API_ACL']));;
+		return array_map('trim', explode(',', $_ENV['MAP_API_ACL']));
 	}
 
 	protected function getAuthCredentials(): array {
