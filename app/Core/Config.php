@@ -85,8 +85,8 @@ class Config {
 		string $defaultConfigPath,
 		?string $localConfigPath = null,
 		array $extras = [],
-		string $redisKey = 'rqwatch_config',
-		int $ttlSeconds = 300,
+		string $redisKey = AppConfig::REDIS_CONFIG_KEY,
+		int $ttlSeconds = AppConfig::REDIS_CONFIG_CACHE_TTL,
 		bool $forceReload = false
 	): void {
 
@@ -134,8 +134,8 @@ class Config {
 		string $defaultConfigPath,
 		?string $localConfigPath = null,
 		array $extras = [],
-		string $redisKey = 'rqwatch_config',
-		int $ttlSeconds = 300
+		string $redisKey = AppConfig::REDIS_CONFIG_KEY,
+		int $ttlSeconds = AppConfig::REDIS_CONFIG_CACHE_TTL
 	): void {
 
 		// set logger
@@ -160,7 +160,10 @@ class Config {
 		}
 	}
 
-	public static function getRedisConfigTTL(string $redisKey = 'rqwatch_config'): ?int {
+	public static function getRedisConfigTTL(
+		string $redisKey = AppConfig::REDIS_CONFIG_KEY
+	): ?int {
+
 		try {
 			$redis = RedisFactory::get();
 			$ttl = $redis->ttl($redisKey);

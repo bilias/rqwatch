@@ -66,4 +66,8 @@ public const string RELEASE_MAIL_API_PATH = '/api/release_mail.php';
 // Path to use for remote API get mail
 public const string GET_MAIL_API_PATH = '/api/get_mail.php';
 
+// default REDIS
+public const string REDIS_CONFIG_KEY = 'rqwatch_config';
+public const int REDIS_CONFIG_CACHE_TTL = 300;
+
 }
