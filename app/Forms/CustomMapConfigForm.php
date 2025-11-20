@@ -134,7 +134,6 @@ class CustomMapConfigForm extends AbstractType
 
 	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData();
 
 			$url = $urlGenerator->generate(RouteName::ADMIN_MAPS_CUSTOM_ADD->value);
 			return new RedirectResponse($url);

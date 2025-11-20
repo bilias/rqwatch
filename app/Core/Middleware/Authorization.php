@@ -30,7 +30,6 @@ class Authorization
 	}
 
 	public function handle(Request $request, callable $next): Response {
-		$loginUrl = $this->urlGenerator->generate(RouteName::LOGIN->value);
 		$homeUrl = $this->urlGenerator->generate(RouteName::HOMEPAGE->value);
 
 		if (!$request->hasSession() || !$request->getSession()->has('username')) {
