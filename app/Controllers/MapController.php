@@ -36,9 +36,9 @@ use App\Models\MailAlias;
 
 class MapController extends ViewController
 {
-	protected $refresh_rate;
-	protected $items_per_page;
-	protected $max_items;
+	protected int $refresh_rate;
+	protected int $items_per_page;
+	protected int $max_items;
 
 	protected bool $mapUrlsInitialized = false;
 	protected string $mapsUrl;

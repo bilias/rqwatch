@@ -32,9 +32,9 @@ use App\Services\UserService;
 
 class MailAliasController extends ViewController
 {
-	protected $refresh_rate;
-	protected $items_per_page;
-	protected $max_items;
+	protected int $refresh_rate;
+	protected int $items_per_page;
+	protected int $max_items;
 
 	private ?string $adminAliasesUrl = null;
 
