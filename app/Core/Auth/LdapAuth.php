@@ -10,11 +10,9 @@
 
 namespace App\Core\Auth;
 
-use App\Models\User;
 use SensitiveParameter; // For method params
 use Sensitive;          // For properties (PHP 8.2+)
 
-use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
 use LDAP\Connection as LdapConnection;

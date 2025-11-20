@@ -10,7 +10,6 @@
 
 namespace App\Services;
 
-use App\Core\Config;
 use App\Controllers\ViewController;
 
 use Psr\Log\LoggerInterface;

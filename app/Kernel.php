@@ -15,8 +15,6 @@ use App\Core\Config;
 use App\Core\Logging\LoggerService;
 use App\Utils\Helper;
 
-use App\Router;
-
 use Dotenv\Dotenv;
 use Exception;
 use RuntimeException;

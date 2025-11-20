@@ -10,19 +10,8 @@
 
 namespace App\Api;
 
-use App\Core\Config;
-use App\Utils\Helper;
-
-use App\Core\Auth\BasicAuth;
-
 use App\Models\MailLog;
-use App\Inventory\MailObject;
-use App\Services\MailLogService;
 
-use PhpMimeMailParser\Parser;
-
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 

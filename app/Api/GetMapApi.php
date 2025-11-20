@@ -10,10 +10,7 @@
 
 namespace App\Api;
 
-use App\Core\Config;
 use App\Utils\Helper;
-use Psr\Log\LoggerInterface;
-use App\Core\Auth\BasicAuth;
 
 use App\Models\MapCombined;
 use App\Models\MapActivityLog;
@@ -21,8 +18,6 @@ use App\Inventory\MapInventory;
 
 use Illuminate\Database\Eloquent\Builder;
 
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class GetMapApi extends RqwatchApi
