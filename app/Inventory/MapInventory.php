@@ -43,10 +43,6 @@ class MapInventory
 		MapMimeFromRcptToForm::class => MapMimeFromRcptToUserForm::class,
 	];
 
-	/**
-	 * @param class-string<MapWithTwoFieldsForm> $adminFormClass
-	 * @return class-string<MapWithTwoFieldsForm>
-	*/
 	private static function getUserOverrideFormClass(string $adminFormClass): string {
 		return self::USER_FORM_OVERRIDES[$adminFormClass] ?? $adminFormClass;
 	}
@@ -348,7 +344,6 @@ class MapInventory
 					$config['fields'][1] === 'rcpt_to'
 					) {
 						// override the form class and apply user form
-						/** @var class-string<MapWithTwoFieldsForm> $config['map_form'] */
 						$config['map_form'] = self::getUserOverrideFormClass($config['map_form']);
 					}
 
