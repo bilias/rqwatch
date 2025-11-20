@@ -39,6 +39,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use PhpMimeMailParser\Parser;
 
+use DateTime;
+use DateInterval;
+
 use Exception;
 use InvalidArgumentException;
 
@@ -1019,8 +1022,8 @@ class MailLogService
 		$fields = MailLog::SELECT_FIELDS;
 
 		$days = (int) ($_ENV['QUARANTINE_DAYS'] ?? 365);
-		$cutoffDate = new \DateTime();
-		$cutoffDate->sub(new \DateInterval("P{$days}D")); // Subtract days
+		$cutoffDate = new DateTime();
+		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 
 		$query = MailLog::select($fields)
 					->where('mail_stored', 1)
