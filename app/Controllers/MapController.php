@@ -207,7 +207,6 @@ class MapController extends ViewController
 			$map_comb_total = null;
 			$map_gen_entries = null;
 			$map_gen_total = null;
-			$filter_maps = null;
 			$map_custom_entries = $service->showPaginatedAllMapCustom($page, $this->mapShowAllCustomUrl);
 			$map_custom_total = $map_custom_entries->total();
 
@@ -381,7 +380,7 @@ class MapController extends ViewController
 			$data['field_label'] = trim($data['field_label']);
 
 			$service = new MapService($this->getFileLogger(), $this->session);
-			$model = 'MapCustom';
+			//$model = 'MapCustom';
 
 			$map_name = $data['map_name'];
 			if ($map_name === 'manage_custom_maps') {
@@ -471,7 +470,7 @@ class MapController extends ViewController
 			$data['field_label'] = trim($data['field_label']);
 
 			$service = new MapService($this->getFileLogger(), $this->session);
-			$model = 'MapCustom';
+			//$model = 'MapCustom';
 
 			$edit_url = $this->url(RouteName::ADMIN_MAPS_CUSTOM_EDIT, [ 'id' => $id ]);
 
@@ -1196,7 +1195,6 @@ class MapController extends ViewController
 			$map_comb_total = null;
 			$map_gen_entries = null;
 			$map_gen_total = null;
-			$filter_maps = null;
 			$map_custom_entries = $service->searchPaginatedMapCustom($page, $this->mapSearchEntryUrl, $search, $map_name);
 			$map_custom_total = $map_custom_entries->total();
 
