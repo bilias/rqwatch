@@ -247,6 +247,7 @@ class MetadataImporterApi extends RqwatchApi
 		$data['headers'] = $headersText;
 		*/
 
+		$db_id = null;
 		try {
 			$db_id = $this->capsule::table($_ENV['MAILLOGS_TABLE'])
 				->insertGetId($data);

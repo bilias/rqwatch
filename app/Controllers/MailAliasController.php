@@ -114,6 +114,7 @@ class MailAliasController extends ViewController
 		$page = $this->request->query->getInt('page', 1);
 
 		$mail_alias_search_form = $this->request->get('mail_alias_search_form');
+		$aliases = null;
 		if (!empty($mail_alias_search_form['alias'])) {
 			$search = $mail_alias_search_form['alias'];
 

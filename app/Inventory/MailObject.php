@@ -68,6 +68,7 @@ class MailObject
 	public function setAttached(): void {
 		$attachments = $this->parser->getAttachments();
 
+		$attached = [];
 		if (count($attachments) > 0) {
 			foreach($attachments as $key => $attachment) {
 				$attached[$key]['filename'] = $attachment->getFilename();
