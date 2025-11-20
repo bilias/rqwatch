@@ -426,7 +426,7 @@ class Helper {
 		$symbols = array();
 		$virus_found = null;
 
-		foreach ($sorted_symbols as $num => $symbol) {
+		foreach ($sorted_symbols as $symbol) {
 			 $name = $symbol['name'];
 			 $score = $symbol['score'];
 
@@ -460,16 +460,20 @@ class Helper {
             $error = "ID wrong format";
          } else {
             $id = (int) $value;
+				/*
             $where = 'id';
             $what = $id;
+				*/
          }
       } elseif ($type === 'qid') {
          if (!preg_match('/^[a-zA-Z0-9]+$/', $value)) {
             $error = "QID wrong format";
          } else {
             $qid = $value;
+				/*
             $where = 'qid';
             $what = $qid;
+				*/
          }
       } else {
          $error = "Unknown error";
