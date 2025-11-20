@@ -14,6 +14,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Exception\InvalidArgumentException;
 
+use Throwable;
+
 class RedisFactory
 {
 	private static \Redis|\Predis\Client|null $client = null;
@@ -32,7 +34,7 @@ class RedisFactory
 			} catch (InvalidArgumentException $e) {
 				self::$logger->error('[RedisFactory]: ' . $e->getMessage());
 				throw $e;
-			} catch (\Throwable $e) {
+			} catch (Throwable $e) {
 				self::$logger->error('[RedisFactory]: ' . $e->getMessage());
 				throw $e;
 			}

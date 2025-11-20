@@ -17,6 +17,8 @@ use Sensitive;          // For properties (PHP 8.2+)
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
+use RuntimeException;
+
 class LdapAuth implements AuthInterface {
 	private string $username;
 	private string $password;
@@ -208,35 +210,35 @@ class LdapAuth implements AuthInterface {
 
 	public function getAuthenticatedUser(): string {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->authenticatedUser;
 	}
 
 	public function getIsAdmin(): bool {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->is_admin;
 	}
 
 	public function getEmail(): ?string {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->email;
 	}
 
 	public function getFirstName(): ?string {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->firstname;
 	}
 
 	public function getLastName(): ?string {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->lastname;
 	}

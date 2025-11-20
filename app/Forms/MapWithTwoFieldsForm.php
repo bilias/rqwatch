@@ -42,6 +42,8 @@ use App\Core\RouteName;
 use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 
+use RuntimeException;
+
 class MapWithTwoFieldsForm extends AbstractType
 {
 	protected static string $firstFieldName = '';
@@ -49,7 +51,7 @@ class MapWithTwoFieldsForm extends AbstractType
 
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
 		if (static::$firstFieldName === '' || static::$secondFieldName === '') {
-			throw new \RuntimeException("Field names must be defined in child class: " . static::class);
+			throw new RuntimeException("Field names must be defined in child class: " . static::class);
 		}
 
 		$firstField = MapInventory::getFieldDefinitions(static::$firstFieldName);

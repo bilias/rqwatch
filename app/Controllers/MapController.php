@@ -34,6 +34,8 @@ use App\Models\MapActivityLog;
 use App\Models\User;
 use App\Models\MailAlias;
 
+use RuntimeException;
+
 class MapController extends ViewController
 {
 	protected int $refresh_rate;
@@ -712,7 +714,7 @@ class MapController extends ViewController
 		// Dynamically call the correct form class's `create()` method
 		$mapFormClass = $config['map_form'];
 		if (!is_callable([$mapFormClass, 'create'])) {
-			throw new \RuntimeException("Form class $mapFormClass does not have a static create() method");
+			throw new RuntimeException("Form class $mapFormClass does not have a static create() method");
 		}
 
 		$options = [
@@ -878,7 +880,7 @@ class MapController extends ViewController
 		// Dynamically call the correct form class's `create()` method
 		$mapFormClass = $config['map_form'];
 		if (!is_callable([$mapFormClass, 'create'])) {
-			throw new \RuntimeException("Form class $mapFormClass does not have a static create() method");
+			throw new RuntimeException("Form class $mapFormClass does not have a static create() method");
 		}
 
 		$options = [
@@ -1399,7 +1401,7 @@ class MapController extends ViewController
 		} elseif ($model === 'MapCustom') {
 			$form_name = 'map_custom_form';
 		} else {
-			throw new \RuntimeException("Wrong model {$model} requested");
+			throw new RuntimeException("Wrong model {$model} requested");
 		}
 
 		$this->initMapUrls();

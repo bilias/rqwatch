@@ -32,6 +32,9 @@ use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use DateTime;
+use DateInterval;
+
 #[AsCommand(
 	name: 'cron:quarantine',
 	description: 'Clean Quarantine',
@@ -89,8 +92,8 @@ class CronQuarantine extends RqwatchCliCommand
 		}
 
 		$days = (int) ($_ENV['QUARANTINE_DAYS'] ?? 365);
-		$cutoffDate = new \DateTime();
-		$cutoffDate->sub(new \DateInterval("P{$days}D")); // Subtract days
+		$cutoffDate = new DateTime();
+		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 		$qtime = $cutoffDate->format('Y-m-d H:i:s');
 
 		if (($count = count($logs)) < 1) {

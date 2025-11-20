@@ -24,6 +24,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
+use Throwable;
+
 class SessionManager
 {
 	private static ?Session $session = null;
@@ -77,7 +79,7 @@ class SessionManager
 					'cookie_lifetime' => 0,
 					'name' => 'RQWATCHSESSID',
 				], $handler);
-			} catch (\Throwable $e) {
+			} catch (Throwable $e) {
 				self::$logger->error("[SessionManager] Redis conection problem: " . $e->getMessage());
 				return;
 			}

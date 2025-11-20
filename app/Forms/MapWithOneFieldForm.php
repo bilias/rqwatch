@@ -42,13 +42,15 @@ use App\Core\RouteName;
 use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 
+use RuntimeException;
+
 class MapWithOneFieldForm extends AbstractType
 {
 	protected static string $fieldName = '';
 
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
 		if (static::$fieldName === '') {
-			throw new \RuntimeException("Field name must be defined in child class: " . static::class);
+			throw new RuntimeException("Field name must be defined in child class: " . static::class);
 		}
 
 		$field = MapInventory::getFieldDefinitions(static::$fieldName);

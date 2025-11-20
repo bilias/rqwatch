@@ -13,6 +13,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Utils\Helper;
 
+use Throwable;
+
 class MailLog extends Model
 {
 	/*
@@ -166,7 +168,7 @@ class MailLog extends Model
 			if (!empty($parsed[0]['address'])) {
 				return $parsed[0]['address'];
 			}
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			// In case parsing fails, fallback gracefully
 			return $this->getMailFrom();
 		}

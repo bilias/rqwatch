@@ -31,6 +31,9 @@ use App\Services\MailLogService;
 
 use App\Inventory\MapInventory;
 
+use Exception;
+use InvalidArgumentException;
+
 class MailLogController extends ViewController
 {
 	protected int $refresh_rate;
@@ -383,7 +386,7 @@ class MailLogController extends ViewController
 
 		try {
 			$ar = $service->detail($type, $value);
-		} catch (\InvalidArgumentException $e) {
+		} catch (InvalidArgumentException $e) {
 			$this->flashbag->add('error', $e->getMessage());
 			$this->initUrls();
 			return new RedirectResponse($this->homepageUrl);
@@ -457,7 +460,7 @@ class MailLogController extends ViewController
 		try {
 			// has applyUserScope()
 			$maillog = $service->showQuarantinedMail($id);
-		} catch (\InvalidArgumentException $e) {
+		} catch (InvalidArgumentException $e) {
 			$this->syslogLogger->warning("{$this->email} tried to release mail with id: {$id}. Either mail does not exist or user does not have access to it.", ['email' => $this->email, 'is_admin' => $this->is_admin]);
 			$this->flashbag->add('error', $e->getMessage());
 			$this->initUrls();
@@ -594,7 +597,7 @@ class MailLogController extends ViewController
 		try {
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->fileLogger->warning("showMail() problem: " . $e->getMessage());
 			$this->flashbag->add('error', $e->getMessage());
 			$this->initUrls();
@@ -626,7 +629,7 @@ class MailLogController extends ViewController
 		try {
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->fileLogger->warning("saveAttachment() problem: " . $e->getMessage());
 			$this->flashbag->add('error', $e->getMessage());
 			return new RedirectResponse($this->homepageUrl);
@@ -634,7 +637,7 @@ class MailLogController extends ViewController
 
 		try {
 			$attachment = $service->getAttachment($mailobject->getAttachments(), $attach_id);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->flashbag->add('warning', $e->getMessage());
 			return new RedirectResponse($this->homepageUrl);
 		}
@@ -670,7 +673,7 @@ class MailLogController extends ViewController
 		try {
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->fileLogger->warning("openAttachment() problem: " . $e->getMessage());
 			$this->flashbag->add('error', $e->getMessage());
 			return new RedirectResponse($this->homepageUrl);
@@ -678,7 +681,7 @@ class MailLogController extends ViewController
 
 		try {
 			$attachment = $service->getAttachment($mailobject->getAttachments(), $attach_id);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->flashbag->add('warning', $e->getMessage());
 			return new RedirectResponse($this->homepageUrl);
 		}

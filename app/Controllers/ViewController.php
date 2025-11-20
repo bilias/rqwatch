@@ -43,6 +43,8 @@ use App\Core\RouteName;
 use App\Core\Config;
 use App\Utils\Helper;
 
+use RuntimeException;
+
 class ViewController extends Controller
 {
 	protected ?Environment $twig = null;
@@ -70,7 +72,7 @@ class ViewController extends Controller
 		$this->twig->addFunction(new TwigFunction('route', function (string $caseName, array $params = []) {
 			$enumClass = RouteName::class;
 			if (!defined("$enumClass::$caseName")) {
-				throw new \RuntimeException("Unknown RouteName enum case: $caseName");
+				throw new RuntimeException("Unknown RouteName enum case: $caseName");
 			}
 
 			$enumCase = constant("$enumClass::$caseName"); // gets the enum case object

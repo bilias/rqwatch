@@ -12,6 +12,8 @@ namespace App\Core\Auth;
 
 use Psr\Log\LoggerInterface;
 
+use RuntimeException;
+
 class CustomBasicAuth implements AuthInterface {
 	protected string $username;
 	protected string $password;
@@ -54,7 +56,7 @@ class CustomBasicAuth implements AuthInterface {
 
 	public function getAuthenticatedUser(): string {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->authenticatedUser;
 	}

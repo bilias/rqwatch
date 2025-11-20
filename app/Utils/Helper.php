@@ -19,6 +19,9 @@ use PhpIP\IP;
 use DateTime;
 use DateTimeZone;
 
+use Exception;
+use InvalidArgumentException;
+
 class Helper {
 
 	private static ?LoggerInterface $logger = null;
@@ -693,7 +696,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 				if (!empty($geo['country']['names']['en'])) {
 					return $geo['country']['names']['en'];
 				}
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				self::$logger->error("GeoIP problem: " . $e->getMessage());
 				return null;
 			}
@@ -704,7 +707,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 	public static function isLocalOrReservedIp(string $ip): bool {
 		try {
 			$ipObj = IP::create($ip);
-		} catch (\InvalidArgumentException $e) {
+		} catch (InvalidArgumentException $e) {
 			return false; // Invalid IP format
 		}
 

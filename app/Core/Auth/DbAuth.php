@@ -18,6 +18,8 @@ use App\Utils\Helper;
 
 use Psr\Log\LoggerInterface;
 
+use RuntimeException;
+
 class DbAuth implements AuthInterface {
 	private string $username;
 	private string $password;
@@ -70,28 +72,28 @@ class DbAuth implements AuthInterface {
 
 	public function getAuthenticatedUser(): string {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->authenticatedUser;
 	}
 
 	public function getIsAdmin(): bool {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->is_admin;
 	}
 
 	public function getEmail(): ?string {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->email;
 	}
 
 	public function getId(): ?int {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->user_id;
 	}

@@ -31,6 +31,10 @@ use Illuminate\Database\QueryException;
 
 use Symfony\Component\HttpFoundation\Session\Session;
 
+use Exception;
+use Throwable;
+use RuntimeException;
+
 class MapService
 {
 	private LoggerInterface $logger;
@@ -145,7 +149,7 @@ class MapService
 		try {
 			$maps = $query
 				->get();
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -160,7 +164,7 @@ class MapService
 		try {
 			$field = $query
 				->first()->toArray();
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -210,7 +214,7 @@ class MapService
 			$map_entries = $query
 				->paginate($this->items_per_page, ['*'], 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -240,7 +244,7 @@ class MapService
 			$map_entries = $query
 				->paginate($this->items_per_page, ['*'], 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -261,7 +265,7 @@ class MapService
 			$map_entries = $query
 				->paginate($this->items_per_page, ['*'], 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -296,7 +300,7 @@ class MapService
 			$map_entries = $query
 				->paginate($this->items_per_page, ['*'], 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -316,7 +320,7 @@ class MapService
 			$map_entries = $query
 				->paginate($this->items_per_page, ['*'], 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -337,7 +341,7 @@ class MapService
 			$map_configs = $query
 				->paginate($this->items_per_page, ['*'], 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -355,7 +359,7 @@ class MapService
 		try {
 			$map = $query
 				->get();
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -374,7 +378,7 @@ class MapService
 			$map = $query
 				->paginate($this->items_per_page, ['*'], 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -389,7 +393,7 @@ class MapService
 		try {
 			$map = $query
 				->get();
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -405,7 +409,7 @@ class MapService
 			$map = $query
 				->paginate($this->items_per_page, ['*'], 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -419,7 +423,7 @@ class MapService
 		try {
 			$map = $query
 				->get();
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -434,7 +438,7 @@ class MapService
 			$map = $query
 				->paginate($this->items_per_page, ['*'], 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -461,7 +465,7 @@ class MapService
 			$values = array_unique(array_filter(array_map('trim', $lines)));
 			$query = $query->whereIn('pattern', $values);
 		} else {
-			throw new \RuntimeException("Unknown map model");
+			throw new RuntimeException("Unknown map model");
 		}
 
 		// XXX strtolower might break some maps???
@@ -529,7 +533,7 @@ class MapService
 		// Delete leftovers map files not in config
 		$mapDir = rtrim(Config::get('MAP_DIR'), DIRECTORY_SEPARATOR);
 		if (!is_dir($mapDir)) {
-			throw new \RuntimeException("Map directory not found: {$mapDir}");
+			throw new RuntimeException("Map directory not found: {$mapDir}");
 		}
 
 		$files = glob($mapDir . DIRECTORY_SEPARATOR . '*.txt');
@@ -699,7 +703,7 @@ class MapService
 				$this->logger->error("[addMapCombinedEntry] Query save failed");
 				return false;
 			}
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->logger->error("[addMapCombinedEntry] Query save error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}
@@ -774,7 +778,7 @@ class MapService
 				$this->logger->error("[addMapCombinedEntry] Query save failed");
 				return false;
 			}
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->logger->error("[addMapCombinedEntry] Query save error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}
@@ -887,7 +891,7 @@ class MapService
 				return false;
 			}
 
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->logger->error("[addMapCustomEntry] Query insert error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}
@@ -944,7 +948,7 @@ class MapService
 				return false;
 			}
 
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->logger->error("[updateMapCustomEntry] Query update error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}
@@ -1031,7 +1035,7 @@ class MapService
 				$this->logger->error("[updateCustomMapConfig] Query update failed");
 				return false;
 			}
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->logger->error("[updateCustomMapConfig] Query update error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}

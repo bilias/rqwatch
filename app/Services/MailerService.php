@@ -25,6 +25,9 @@ use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Twig\Environment;
 use Symfony\Bridge\Twig\Mime\BodyRenderer;
 
+use Throwable;
+use RuntimeException;
+
 class MailerService
 {
 	private Mailer $mailer;
@@ -37,7 +40,7 @@ class MailerService
 		$dsn = $_ENV['MAILER_DSN'] ?? null;
 
 		if (!$dsn) {
-			throw new \RuntimeException('MAILER_DSN is not set in .env');
+			throw new RuntimeException('MAILER_DSN is not set in .env');
 		}
 
 		$transport = Transport::fromDsn($dsn);
@@ -92,7 +95,7 @@ class MailerService
 
 			$this->mailer->send($email);
 			return true;
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->logger->error('[MailerService] Email failed: ' . $e->getMessage());
 			return false;
 		}
@@ -148,7 +151,7 @@ class MailerService
 
 			$this->mailer->send($email);
 			return true;
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->logger->error('[MailerService] Email failed: ' . $e->getMessage());
 			return false;
 		}

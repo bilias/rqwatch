@@ -15,6 +15,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 use Psr\Log\LoggerInterface;
 
+use RuntimeException;
+
 class TestAuth implements AuthInterface {
 	private string $username;
 	private string $password;
@@ -69,7 +71,7 @@ class TestAuth implements AuthInterface {
 
 	public function getAuthenticatedUser(): string {
 		if (!$this->authenticatedUser) {
-			throw new \RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->authenticatedUser;
 	}

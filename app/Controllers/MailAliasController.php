@@ -28,6 +28,8 @@ use App\Models\User;
 use App\Services\MailAliasService;
 use App\Services\UserService;
 
+use Exception;
+
 //use Illuminate\Database\Capsule\Manager as DB;
 
 class MailAliasController extends ViewController
@@ -199,7 +201,7 @@ class MailAliasController extends ViewController
 				}
 				$url = $this->getAdminAliasesUrl();
 				return new RedirectResponse($url);
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				$error = $e->getMessage();
 				$this->flashbag->add('error', $error);
 			}
@@ -292,7 +294,7 @@ class MailAliasController extends ViewController
 					}
 					$url = $this->getAdminAliasesUrl();
 					return new RedirectResponse($url);
-				} catch (\Exception $e) {
+				} catch (Exception $e) {
 					$error = $e->getMessage();
 					$this->flashbag->add('error', $error);
 				}

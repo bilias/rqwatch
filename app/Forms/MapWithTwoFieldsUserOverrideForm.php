@@ -29,11 +29,13 @@ use Symfony\Component\Validator\Constraints\Regex;
 
 use App\Inventory\MapInventory;
 
+use RuntimeException;
+
 class MapWithTwoFieldsUserOverrideForm extends MapWithTwoFieldsForm
 {
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
 		if (static::$firstFieldName === '' || static::$secondFieldName === '') {
-			throw new \RuntimeException("Field names must be defined in child class: " . static::class);
+			throw new RuntimeException("Field names must be defined in child class: " . static::class);
 		}
 
 		$firstField = MapInventory::getFieldDefinitions(static::$firstFieldName);

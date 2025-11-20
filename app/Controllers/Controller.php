@@ -28,8 +28,14 @@ use App\Utils\Helper;
 
 use App\Services\ApiClient;
 
-use Throwable;
 use Psr\Log\LoggerInterface;
+
+use DateTimeImmutable;
+use DateInterval;
+
+use Exception;
+use Throwable;
+use RuntimeException;
 
 class Controller
 {
@@ -56,7 +62,7 @@ class Controller
 	public function setRequest(Request $request): void {
 		$this->request = $request;
 		if (!$request->hasSession()) {
-			throw new \RuntimeException("Session not initialized on request.");
+			throw new RuntimeException("Session not initialized on request.");
 		}
 
 		$this->session = $request->getSession();
@@ -235,7 +241,7 @@ class Controller
 				} else {
 					$this->fileLogger->error("Stat request to '{$api_server}' failed with error code " . $responseCode . ": " . $response->getContent());
 				}
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				$this->fileLogger->error("Stat request to '{$api_server}' failed: " . $e->getMessage());
 				continue;
 			}
@@ -270,7 +276,7 @@ class Controller
 			];
 		}
 
-		$expiresAt = (new \DateTimeImmutable())->add(new \DateInterval('PT' . $ttl . 'S'));
+		$expiresAt = (new DateTimeImmutable())->add(new DateInterval('PT' . $ttl . 'S'));
 		return [
 			'ttl' => "$ttl sec",
 			'ttl_human' => Helper::formatTtlHuman($ttl),

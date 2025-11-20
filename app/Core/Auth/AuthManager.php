@@ -13,6 +13,8 @@ namespace App\Core\Auth;
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
+use RuntimeException;
+
 class AuthManager
 {
 	private ?AuthInterface $provider = null;
@@ -36,7 +38,7 @@ class AuthManager
 		$provider = $this->selectAuthProvider($username, $password);
 
 		if (!$provider) {
-			throw new \RuntimeException("Authentication provider problem");
+			throw new RuntimeException("Authentication provider problem");
 		}
 
 		if (method_exists($provider, 'setLogger') && $this->logger) {
@@ -46,7 +48,7 @@ class AuthManager
 			// API passes logger on ther BasicAuth constructor
 			$provider->setLogger($this->logger);
 		} else {
-			throw new \RuntimeException("Logging interface problem");
+			throw new RuntimeException("Logging interface problem");
 		}
 
 		if (method_exists($provider, 'authenticate') && $provider->authenticate()) {

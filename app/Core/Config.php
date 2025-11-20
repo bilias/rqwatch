@@ -16,6 +16,8 @@ use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 use App\Core\RedisFactory;
 
+use Throwable;
+
 // Store selected config vars in a static array
 class Config {
 	private static array $vars = [];
@@ -109,7 +111,7 @@ class Config {
 			} else {
 				self::$logger->debug("Config [loadAndInitWithRedisCache]: Forced reload requested, skipping cache");
 			}
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			self::$logger->error("Config [loadAndInitWithRedisCache1]: " . $e->getMessage());
 		}
 
@@ -123,7 +125,7 @@ class Config {
 				// cache/save config in Redis
 				$redisConnection->set($redisKey, json_encode($toCache), ['ex' => $ttlSeconds]);
 				self::$logger->debug("Config [loadAndInitWithRedisCache]: " . "Cached data in Redis");
-			} catch (\Throwable $e) {
+			} catch (Throwable $e) {
 				self::$logger->error("Config [loadAndInitWithRedisCache2]: " . $e->getMessage());
 			}
 		}
@@ -151,7 +153,7 @@ class Config {
 					$redisKey,
 					$ttlSeconds
 				);
-			} catch (\Throwable $e) {
+			} catch (Throwable $e) {
 				$fileLogger->error('Config [loadConfig] Redis connection failed: ' . $e->getMessage());
 				self::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
 			}
@@ -171,7 +173,7 @@ class Config {
 				return $ttl; // seconds left
 			}
 			return null; // either -1 (no expiry) or -2 (not found)
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			self::$logger?->error("Config [getRedisConfigTTL]: " . $e->getMessage());
 			return null;
 		}

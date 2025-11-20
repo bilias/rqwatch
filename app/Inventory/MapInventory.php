@@ -36,6 +36,8 @@ use App\Forms\MapWithCustomFieldForm;
 
 use App\Services\MapService;
 
+use RuntimeException;
+
 class MapInventory
 {
 	private const array USER_FORM_OVERRIDES = [
@@ -187,7 +189,7 @@ class MapInventory
 		foreach ($configs as $key => $config) {
 			foreach ($requiredFields as $field) {
 				if (!array_key_exists($field, $config) || $config[$field] === null) {
-					throw new \RuntimeException("Missing or null required field '$field' in map config '$key'");
+					throw new RuntimeException("Missing or null required field '$field' in map config '$key'");
 				}
 			}
 		}

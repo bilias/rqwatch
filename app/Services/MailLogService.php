@@ -39,6 +39,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use PhpMimeMailParser\Parser;
 
+use Exception;
+use InvalidArgumentException;
+
 class MailLogService
 {
 	private LoggerInterface $logger;
@@ -152,7 +155,7 @@ class MailLogService
 		$log = $query->first();
 
 		if (!$log) {
-			throw new \InvalidArgumentException("Mail with ID '{$id}' not found");
+			throw new InvalidArgumentException("Mail with ID '{$id}' not found");
 		}
 
 		return $log;
@@ -174,7 +177,7 @@ class MailLogService
 		$log = $query->first();
 
 		if (!$log) {
-			throw new \InvalidArgumentException("Mail with ID '{$id}' not found");
+			throw new InvalidArgumentException("Mail with ID '{$id}' not found");
 		}
 
 		return $log;
@@ -232,7 +235,7 @@ class MailLogService
 			);
 
 			$logs = $paginator->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage());
 			exit("Query error");
 		}
@@ -255,7 +258,7 @@ class MailLogService
 			$logs = $query
 				->paginate($this->items_per_page, $fields, 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage());
 			exit("Query error");
 		}
@@ -293,7 +296,7 @@ class MailLogService
 				})
 				->toArray();
 				*/
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage());
 			exit("Query error");
 		}
@@ -344,7 +347,7 @@ class MailLogService
 
 		try {
 			$logs = $query->get();
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage());
 			exit("Query error");
 		}
@@ -490,7 +493,7 @@ class MailLogService
 		$log = $query->first();
 
 		if (!$log) {
-			throw new \InvalidArgumentException("Mail with ID '{$id}' not found");
+			throw new InvalidArgumentException("Mail with ID '{$id}' not found");
 		}
 
 		return $log;
@@ -507,7 +510,7 @@ class MailLogService
 
 		$log = $query->first();
 		if (!$log) {
-			throw new \InvalidArgumentException("Mail with QID '{$qid}' not found");
+			throw new InvalidArgumentException("Mail with QID '{$qid}' not found");
 		}
 		return $log;
 	}
@@ -523,7 +526,7 @@ class MailLogService
 
 		$log = $query->first();
 		if (!$log) {
-			throw new \InvalidArgumentException("{$type} '{$value}' not found");
+			throw new InvalidArgumentException("{$type} '{$value}' not found");
 		}
 		return $log;
 	}
@@ -532,7 +535,7 @@ class MailLogService
 		$check = Helper::check_id_qid($type, $value);
 
 		if ($check['error']) {
-			throw new \InvalidArgumentException("Error: {$check['error']}");
+			throw new InvalidArgumentException("Error: {$check['error']}");
 		}
 
 		if($check['id']) {
@@ -546,7 +549,7 @@ class MailLogService
 			$log = $this->detailByQid($check['qid']);
 		}
 		else {
-			throw new \InvalidArgumentException("Unknown error");
+			throw new InvalidArgumentException("Unknown error");
 		}
 
 		// order symbols by score and show printable information only
@@ -577,25 +580,25 @@ class MailLogService
 
 		if (empty($id)) {
 			$this->logger->error("{$lf} empty mail id");
-			throw new \Exception("Error. Contact admin");
+			throw new Exception("Error. Contact admin");
 		}
 
 		try {
 			// has applyUserScope
 			$ar = $this->detail('id', $id);
-		} catch (\InvalidArgumentException $e) {
-			throw new \Exception("Mail with ID '{$id}' not found");
+		} catch (InvalidArgumentException $e) {
+			throw new Exception("Mail with ID '{$id}' not found");
 		}
 
 		$mailobject = new MailObject($ar);
 
 		if (!$mailobject->isMailStored()) {
-			throw new \Exception("Mail with ID '{$id}' not stored");
+			throw new Exception("Mail with ID '{$id}' not stored");
 		}
 
 		$location = $mailobject->getMailLocation();
 		if (!file_exists($location)) {
-			throw new \Exception("File '$location' not found");
+			throw new Exception("File '$location' not found");
 		}
 
 		$mailobject->setParser(new Parser());
@@ -612,27 +615,27 @@ class MailLogService
 
 		if (empty($id)) {
 			$this->logger->error("{$lf} empty mail id");
-			throw new \Exception("Error. Contact admin");
+			throw new Exception("Error. Contact admin");
 		}
 		if (empty($api_server)) {
 			$this->logger->error("{$lf} empty api server");
-			throw new \Exception("Error. Contact admin");
+			throw new Exception("Error. Contact admin");
 		}
 
 		// get details from DB locally
 		try {
 			// has applyUserScope
 			$ar = $this->detail('id', $id);
-		} catch (\InvalidArgumentException $e) {
+		} catch (InvalidArgumentException $e) {
 			$this->logger->error("{$lf} InvalidArgumentException for id {$id}: " . $e->getMessage());
-			throw new \Exception($e->getMessage());
+			throw new Exception($e->getMessage());
 		}
 
 		$mailobject = new MailObject($ar);
 
 		if (!$mailobject->isMailStored()) {
 			$this->logger->error("{$lf} Mail with id {$id} is not stored");
-			throw new \Exception("Mail with id {$id} is not stored");
+			throw new Exception("Mail with id {$id} is not stored");
 		}
 
 		// get raw mail from remote API server
@@ -640,7 +643,7 @@ class MailLogService
 
 		if (!array_key_exists($api_server, $api_servers) or empty($api_servers[$api_server]['url'])) {
 			$this->logger->error("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
-			throw new \Exception("Error. Contact admin");
+			throw new Exception("Error. Contact admin");
 		}
 		// XXX have not checked if it works with remote /subfolder in WEB_BASE
 		$url = $api_servers[$api_server]['url'] . Config::get('GET_MAIL_API_PATH');
@@ -677,18 +680,18 @@ class MailLogService
 					// apache returns full http response
 					$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
 				}
-				throw new \Exception("Error. Contact admin");
+				throw new Exception("Error. Contact admin");
 			} else if ($statusCode !== Response::HTTP_OK) {
 				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. API server said: '{$mail_file}'");
-				throw new \Exception("Error. Contact admin");
+				throw new Exception("Error. Contact admin");
 			}
 		// SSL/TLS problems
 		} catch (TransportException $e) {
 			$this->logger->error("{$lf} problem: " . $e->getMessage());
-			throw new \Exception("Error. Contact admin");
-		} catch (\Exception $e) {
+			throw new Exception("Error. Contact admin");
+		} catch (Exception $e) {
 			$this->logger->error("{$lf} problem: " . $e->getMessage());
-			throw new \Exception("Error. Contact admin");
+			throw new Exception("Error. Contact admin");
 		}
 
 		$mailobject->setParser(new Parser());
@@ -703,19 +706,19 @@ class MailLogService
 
 		if (empty($id)) {
 			$this->logger->error("{$lf} empty mail id");
-			throw new \Exception("Error. Contact admin");
+			throw new Exception("Error. Contact admin");
 		}
 
 		try {
 			// has applyUserScope
 			$maillog = $this->showOne($id);
-		} catch (\InvalidArgumentException $e) {
+		} catch (InvalidArgumentException $e) {
 			$this->logger->warning("{$lf} " . $e->getMessage() . ". Mail does not exist or user does not have access to it" , ['email' => $this->email, 'is_admin' => $this->is_admin]);
-			throw new \Exception($e->getMessage());
+			throw new Exception($e->getMessage());
 		}
 
 		if (!$maillog->mail_stored) {
-			throw new \Exception("Mail with ID '{$id}' not stored");
+			throw new Exception("Mail with ID '{$id}' not stored");
 		}
 
 		// Mail stored locally
@@ -723,8 +726,8 @@ class MailLogService
 			try {
 				// has applyUserScope
 				$mailobject = $this->getMailObjectLocal($id);
-			} catch (\Exception $e) {
-				throw new \Exception($e->getMessage());
+			} catch (Exception $e) {
+				throw new Exception($e->getMessage());
 			}
 		// Mail stored in remote server. Call their API
 		} else {
@@ -732,11 +735,11 @@ class MailLogService
 				// has applyUserScope
 				if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS'])) {
 					$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set");
-					throw new \Exception("Error. Contact admin");
+					throw new Exception("Error. Contact admin");
 				}
 				$mailobject = $this->getMailObjectViaApi($maillog->id, $maillog->server);
-			} catch (\Exception $e) {
-				throw new \Exception($e->getMessage());
+			} catch (Exception $e) {
+				throw new Exception($e->getMessage());
 			}
 		}
 
@@ -745,7 +748,7 @@ class MailLogService
 
 	public function getAttachment(array $attached, int $id): MailAttachment {
 		if (!isset($attached[$id])) {
-			throw new \Exception("Attachment not found");
+			throw new Exception("Attachment not found");
 		}
 
 		return new MailAttachment($attached[$id]);

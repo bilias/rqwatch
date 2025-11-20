@@ -19,6 +19,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+use RuntimeException;
+
 // cannot be intantiated as new RqwatchApi(), only children
 abstract class RqwatchApi
 {
@@ -73,7 +75,7 @@ abstract class RqwatchApi
 		if (empty($allowedIps)) {
 			$msg = "getAllowedIps() returned empty IP ACL in " . static::class;
 			$this->fileLogger->error($msg);
-			throw new \RuntimeException("getAllowedIps() returned empty IP ACL in " .
+			throw new RuntimeException("getAllowedIps() returned empty IP ACL in " .
 				static::class);
 			exit;
 		}
@@ -93,7 +95,7 @@ abstract class RqwatchApi
 		if (empty($username) or empty($password)) {
 			$msg = "getAuthCredentials() returned empty username or password in " . static::class;
 			$this->fileLogger->error($msg);
-			throw new \RuntimeException("getAuthCredentials() returned empty username or password in " .
+			throw new RuntimeException("getAuthCredentials() returned empty username or password in " .
 				static::class);
 			exit;
 		}
@@ -110,7 +112,7 @@ abstract class RqwatchApi
 			$msg = "Authentication failed in " . static::class;
 			$this->fileLogger->error($msg);
 			// we should never be here
-			throw new \RuntimeException("Authentication failed in " . static::class);
+			throw new RuntimeException("Authentication failed in " . static::class);
 			exit;
 		}
 	}

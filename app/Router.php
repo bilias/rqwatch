@@ -34,6 +34,8 @@ use Psr\Log\LoggerInterface;
 
 use App\Core\Exception\SessionExpired;
 
+// use RuntimeException
+
 // https://symfony.com/doc/current/create_framework/http_kernel_controller_resolver.html
 
 class Router
@@ -107,7 +109,7 @@ class Router
 			// play safe incase route is missing from $middlewareMap
 			if (empty($middlewareClasses)) {
 				/*
-				throw new \RuntimeException("Middleware missing for route '" .
+				throw new RuntimeException("Middleware missing for route '" .
 					$request->attributes->get('_route') .
 					"'. Check middlewareMap in config/routes.php");
 				*/

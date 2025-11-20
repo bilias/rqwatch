@@ -26,6 +26,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 use PhpMimeMailParser\Parser;
 
+use Exception;
+use Throwable;
+
 class MetadataImporterApi extends RqwatchApi
 {
 	protected string $logPrefix = 'MetadataImporterApi';
@@ -64,7 +67,7 @@ class MetadataImporterApi extends RqwatchApi
 		try {
 			$headers = $this->request->headers->all(); // array of lowercased header names
 			$rawEmail = $this->request->getContent(); // instead of php://input
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->fileLogger->error("[{$this->logPrefix}] Request parse error: " . $e->getMessage(), [
 				'trace' => $e->getTraceAsString(),
 			]);
@@ -264,7 +267,7 @@ class MetadataImporterApi extends RqwatchApi
 				$this->dropLogResponse(
 					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
 					$err_msg, 'critical');
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 				$err_msg = "DB insert error: " . $e->getMessage();
 				$response_msg = "Unexpected error";
 				$this->dropLogResponse(

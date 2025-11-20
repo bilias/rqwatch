@@ -26,6 +26,8 @@ use Illuminate\Database\QueryException;
 
 use Symfony\Component\HttpFoundation\Session\Session;
 
+use Exception;
+
 class UserService
 {
 	private ?string $username = null;
@@ -144,7 +146,7 @@ class UserService
 			$logs = $query
 				->paginate($this->items_per_page, $fields, 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -169,7 +171,7 @@ class UserService
 			$logs = $query
 				->paginate($this->items_per_page, $fields, 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -199,7 +201,7 @@ class UserService
 			$logs = $query
 				->paginate($this->items_per_page, $fields, 'page', $page)
 				->withPath($url);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
@@ -250,7 +252,7 @@ class UserService
 				return true;
 			}
 			return false;
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			$error = $e->getMessage();
 			$this->logger->error("userAdd error: " . $e->getMessage() . PHP_EOL);
 			return false;
