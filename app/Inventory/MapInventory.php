@@ -348,6 +348,7 @@ class MapInventory
 					$config['fields'][1] === 'rcpt_to'
 					) {
 						// override the form class and apply user form
+						/** @var class-string<MapWithTwoFieldsForm> $config['map_form'] */
 						$config['map_form'] = self::getUserOverrideFormClass($config['map_form']);
 					}
 
