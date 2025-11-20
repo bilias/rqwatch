@@ -253,7 +253,6 @@ class UserService
 			}
 			return false;
 		} catch (Exception $e) {
-			$error = $e->getMessage();
 			$this->logger->error("userAdd error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}

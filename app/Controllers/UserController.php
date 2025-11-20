@@ -467,7 +467,6 @@ class UserController extends ViewController
 				$this->session->set('is_admin', $user->is_admin);
 
 				// need this to get the auth_provider description
-				$auth = new AuthManager($this->fileLogger);
 				$this->session->set('auth_provider', AuthManager::getAuthProviderById($user->auth_provider));
 				$aliases = array_unique(array_map('strtolower', array_filter(
 					$user->mailAliases()->pluck('alias')->toArray(),
