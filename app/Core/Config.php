@@ -14,7 +14,7 @@ use App\Config\AppConfig;
 
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
-use App\Core\RedisFactory;
+//use App\Core\RedisFactory;
 
 use Throwable;
 

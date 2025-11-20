@@ -19,18 +19,18 @@ use App\Inventory\MailAttachment;
 
 use Psr\Log\LoggerInterface;
 
-use App\Services\MailerService;
+//use App\Services\MailerService;
+//use App\Services\ApiClient;
+
 use Twig\Environment;
 
-use App\Services\ApiClient;
 use Symfony\Component\HttpClient\Exception\TransportException;
-use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Component\HttpFoundation\Response;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Database\QueryException;
+
 use Illuminate\Database\Capsule\Manager as DB;
 
 use Symfony\Component\HttpFoundation\Session\Session;

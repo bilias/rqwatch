@@ -13,12 +13,8 @@ namespace App\Inventory;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
-use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Type;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\Regex;
 
@@ -30,8 +26,8 @@ use App\Forms\MapMimeFromRcptToUserForm;
 use App\Forms\MapMailFromForm;
 use App\Forms\MapMimeFromForm;
 use App\Forms\MapIpForm;
-use App\Forms\MapUrlForm;
-use App\Forms\MapEmailForm;
+//use App\Forms\MapUrlForm;
+//use App\Forms\MapEmailForm;
 use App\Forms\MapWithCustomFieldForm;
 
 use App\Services\MapService;
