@@ -24,6 +24,7 @@ use Symfony\Component\Routing\Exception\NoConfigurationException;
 
 use App\Config\AppConfig;
 use App\Core\RouteName;
+use App\Utils\Helper;
 
 use App\Core\SessionManager;
 use App\Core\Middleware\AuthMiddleware;
@@ -194,5 +195,43 @@ class Router
 			default =>
 				new $middlewareClass($urlGenerator), // fallback for simple middleware
 		};
+	}
+
+	public static function run(array $services): void {
+
+		$fileLogger = $services['fileLogger'];
+		$syslogLogger = $services['syslogLogger'];
+
+		// we do not need Router in our API or CLI
+		if (!defined('WEB_MODE') || defined('API_MODE') || defined('CLI_MODE')) {
+			$fileLogger->error("Router requested with wrong mode");
+			exit();
+		}
+
+		if (!Helper::env_bool('WEB_ENABLE')) {
+			$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+			$fileLogger->warning("Client '{$ip}' requested '" . $_SERVER['REQUEST_URI'] . "' but Web is disabled.");
+			exit("Web is disabled");
+		}
+
+		// Load routes and default middleware classes
+		if (!file_exists(AppConfig::ROUTES_PATH)) {
+			$fileLogger->error("Routes file missing: " . AppConfig::ROUTES_PATH);
+			exit();
+		}
+		/** @var \Symfony\Component\Routing\RouteCollection $routes */
+		/** @var array $defaultMiddlewareClasses */
+		include AppConfig::ROUTES_PATH;
+
+		if (!isset($routes) || !isset($defaultMiddlewareClasses)) {
+			$fileLogger->error(AppConfig::ROUTES_PATH . " did not define required variables.");
+			exit("Routes misconfigured.");
+		}
+
+		// Instantiate Router and handle the request
+		$router = new self();
+		$response = $router($routes, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
+		$response->send();
+		exit();
 	}
 }

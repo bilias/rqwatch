@@ -92,34 +92,4 @@ class Kernel
 		];
 	}
 
-	public static function runRouter(array $services): void {
-
-		$fileLogger = $services['fileLogger'];
-		$syslogLogger = $services['syslogLogger'];
-
-		// we do not need Router in our API or CLI
-		if (!defined('API_MODE') && !defined('CLI_MODE') && defined('WEB_MODE')) {
-			if (Helper::env_bool('WEB_ENABLE')) {
-				// Load routes and default middleware classes
-				if (!file_exists(AppConfig::ROUTES_PATH)) {
-					$fileLogger->error("Routes file missing: " . AppConfig::ROUTES_PATH);
-					exit;
-				}
-				/** @var RouteCollection $routes */
-				/** @var array $defaultMiddlewareClasses */
-				include AppConfig::ROUTES_PATH;
-
-				// Instantiate Router and handle the request
-				$router = new Router();
-				$response = $router($routes, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
-				$response->send();
-				exit;
-			} else {
-				$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-				$fileLogger->warning("Client '{$ip}' requested '" . $_SERVER['REQUEST_URI'] . "' but Web is disabled.");
-				exit("Web is disabled");
-			}
-		}
-	}
-
 }

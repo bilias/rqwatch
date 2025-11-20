@@ -11,8 +11,10 @@
 define('WEB_MODE', true);
 
 use App\Kernel;
+use App\Router;
 
 require_once __DIR__ . '/../app/Kernel.php';
+require_once __DIR__ . '/../app/Router.php';
 
 $services = Kernel::boot();
-Kernel::runRouter($services);
+Router::run($services);
