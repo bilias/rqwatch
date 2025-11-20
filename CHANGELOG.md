@@ -2,6 +2,17 @@
 
 ## Master Dev Branch
 
+### 2025-11-20
+- Router refactoring
+
+### 2025-11-19
+- Create Kernel.php and use it in web
+- Add DB_CONFIG_PATH and ROUTER_PATH ROUTES_PATH REDIS_CONFIG_KEY REDIS_CONFIG_CACHE_TTL
+  in AppConfig
+- Add ext-iconv in composer
+- Update symfony (security)
+- Log IP in login
+
 ### 2025-11-18
 - Add noindex tag
 - Percentages in Total records
