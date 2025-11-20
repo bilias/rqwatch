@@ -38,13 +38,21 @@ use App\Core\Exception\SessionExpired;
 
 class Router
 {
-	public function __invoke(
+
+	public function __construct(
+		private LoggerInterface $fileLogger,
+		private LoggerInterface $syslogLogger
+	) {}
+
+	public function dispatch(
 			RouteCollection $routes,
 			// array $middlewareMap,
 			array $defaultMiddlewareClasses,
-			LoggerInterface $fileLogger,
-			LoggerInterface $syslogLogger
 	) {
+
+		$fileLogger = $this->fileLogger;
+		$syslogLogger = $this->syslogLogger;
+
 		// Request initialization
 		$request = Request::createFromGlobals();
 
@@ -229,8 +237,8 @@ class Router
 		}
 
 		// Instantiate Router and handle the request
-		$router = new self();
-		$response = $router($routes, $defaultMiddlewareClasses, $fileLogger, $syslogLogger);
+		$router = new self($fileLogger, $syslogLogger);
+		$response = $router->dispatch($routes, $defaultMiddlewareClasses);
 		$response->send();
 		exit();
 	}
