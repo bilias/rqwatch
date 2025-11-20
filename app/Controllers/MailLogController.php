@@ -586,7 +586,7 @@ class MailLogController extends ViewController
 
 	public function showMail(int $id): Response {
 		// enable form rendering support
-		$this->twigView($this->request);
+		$this->twigView();
 
 		$error = null;
 		$service = new MailLogService($this->getFileLogger(), $this->session);
