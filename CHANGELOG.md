@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2025-11-20
+- Use FIND_IN_SET in applyUserScope() for faster results
 - Rename Controler.php -> Controller.php (`composer dump-autoload` might needed)
 - FormFactoryInterface returns FormInterface, not Form
 - Router refactoring

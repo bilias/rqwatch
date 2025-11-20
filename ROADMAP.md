@@ -4,7 +4,6 @@
 -
 
 ## Features bellow are in todo list.
-- Replace use search. Check for FIND_IN_SET / CONCAT LIKE speed
 - Clean up database CLI tool
 
 ## Features bellow might be implemented
