@@ -126,7 +126,7 @@ class MailLogController extends ViewController
 			$value = $this->request->query->get($field);
 			if ($value !== null) {
 				$key = array_search($field, FormHelper::getFilters());
-				if ($key != false) {
+				if ($key !== false) {
 					$filters[] = [
 						'filter' => $key,
 						'choice' => 'is equal to',
