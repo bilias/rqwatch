@@ -12,7 +12,7 @@ namespace App\Utils;
 
 use Symfony\Component\HttpFoundation\Request;
 
-use Symfony\Component\Form\Form;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 
 class FormHelper
@@ -23,7 +23,7 @@ class FormHelper
 		string $formTypeClass,
 		$data = null,
 		array $options = []
-	): Form {
+	): FormInterface {
 
 		// Get form name from options, default to null or '' for unnamed form
 		$formName = $options['form_name'] ?? null;
