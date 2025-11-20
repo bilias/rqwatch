@@ -11,7 +11,11 @@
 namespace App\Forms;
 
 use Symfony\Component\Form\AbstractType;
+
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormBuilderInterface;
+
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -21,8 +25,6 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Type;
 use Symfony\Component\Validator\Constraints\Regex;
 
-use Symfony\Component\Form\Form;
-use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -65,7 +67,7 @@ class MailAliasSearchForm extends AbstractType
 			Request $request,
 			UrlGeneratorInterface $urlGenerator,
 			array $data = null
-	): Form {
+	): FormInterface {
 
 		$url = $urlGenerator->generate(RouteName::ADMIN_ALIASES_SEARCH->value);
 
@@ -82,7 +84,7 @@ class MailAliasSearchForm extends AbstractType
 	}
 
 	public static function check_form(
-		Form $form,
+		FormInterface $form,
 		UrlGeneratorInterface $urlGenerator
 	): ?RedirectResponse {
 

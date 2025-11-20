@@ -11,10 +11,12 @@
 namespace App\Forms;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
+
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormBuilderInterface;
+
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Form;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
@@ -85,12 +87,12 @@ class MapSelectForm extends AbstractType
 			FormFactoryInterface $formFactory,
 			Request $request,
 			$data = null,
-			array $options = []): Form {
+			array $options = []): FormInterface {
 
 		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
 	}
 
-	public static function check_form_show(Form $form, UrlGeneratorInterface $urlGenerator, bool $is_admin): ?RedirectResponse {
+	public static function check_form_show(FormInterface $form, UrlGeneratorInterface $urlGenerator, bool $is_admin): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
 			$data = $form->getData();
 			$map = $data['map_name'];

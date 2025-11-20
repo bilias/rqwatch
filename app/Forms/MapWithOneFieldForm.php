@@ -11,10 +11,12 @@
 namespace App\Forms;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
+
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormBuilderInterface;
+
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Form;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
@@ -62,14 +64,14 @@ class MapWithOneFieldForm extends AbstractType
 			FormFactoryInterface $formFactory,
 			Request $request,
 			array $data = null,
-			array $options = []): Form {
+			array $options = []): FormInterface {
 
 		// Merge class with any existing class
 		$options['attr']['class'] = trim(($options['attr']['class'] ?? '') . ' onefieldform');
 		return FormHelper::formCreator($formFactory, $request, static::class, $data, $options);
 	}
 
-	public static function check_form(Form $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
+	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
 			$data = $form->getData();
 			$map = $data['map_name'];

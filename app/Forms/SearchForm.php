@@ -11,7 +11,11 @@
 namespace App\Forms;
 
 use Symfony\Component\Form\AbstractType;
+
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormBuilderInterface;
+
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -23,8 +27,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Type;
 
-use Symfony\Component\Form\Form;
-use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -72,12 +74,12 @@ class SearchForm extends AbstractType
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,
-			array $data = null): Form {
+			array $data = null): FormInterface {
 
 		return FormHelper::formCreator($formFactory, $request, self::class, $data);
 	}
 
-	public static function check_form(Form $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
+	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
 
 			$url = $urlGenerator->generate(RouteName::SEARCH->value);

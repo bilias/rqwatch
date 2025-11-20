@@ -11,7 +11,11 @@
 namespace App\Forms;
 
 use Symfony\Component\Form\AbstractType;
+
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormBuilderInterface;
+
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -20,8 +24,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Type;
 
-use Symfony\Component\Form\Form;
-use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -80,12 +82,12 @@ class MailReleaseForm extends AbstractType
 			FormFactoryInterface $formFactory,
 			Request $request,
 			array $data = null,
-			array $options = []): Form {
+			array $options = []): FormInterface {
 
 		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
 	}
 
-	public static function check_form(Form $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
+	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
 			$data = $form->getData();
 			$username = $data['username'];

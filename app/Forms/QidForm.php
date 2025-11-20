@@ -11,7 +11,11 @@
 namespace App\Forms;
 
 use Symfony\Component\Form\AbstractType;
+
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormBuilderInterface;
+
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
@@ -20,8 +24,6 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Type;
 use Symfony\Component\Validator\Constraints\Regex;
 
-use Symfony\Component\Form\Form;
-use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -61,13 +63,13 @@ class QidForm extends AbstractType
 
 	public static function create(
 			FormFactoryInterface $formFactory,
-			Request $request): Form {
+			Request $request): FormInterface {
 
 		return FormHelper::formCreator($formFactory, $request, self::class);
 	}
 
 	public static function check_form(
-		Form $form,
+		FormInterface $form,
 		UrlGeneratorInterface $urlGenerator,
 		bool $is_admin = false
 	): ?RedirectResponse {
