@@ -35,11 +35,11 @@ class Config {
 		return self::$vars[$key] ?? null;
 	}
 
-	public static function set(string $key, mixed $value) {
+	public static function set(string $key, mixed $value): void {
 		self::$vars[$key] = $value;
 	}
 
-	public static function getAll() {
+	public static function getAll(): array {
 		return self::$vars;
 	}
 
