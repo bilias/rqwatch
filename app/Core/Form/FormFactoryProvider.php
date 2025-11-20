@@ -50,9 +50,11 @@ class FormFactoryProvider
 			$csrfStorage = new SessionTokenStorage($requestStack);
 			$csrfManager = new CsrfTokenManager($csrfGenerator, $csrfStorage);
 
+			/*
 			$vendorDirectory = realpath(__DIR__.'/../vendor');
 			$vendorFormDirectory = $vendorDirectory.'/symfony/form';
 			$vendorValidatorDirectory = $vendorDirectory.'/symfony/validator';
+			*/
 
 			// creates the validator - details will vary
 			$validator = Validation::createValidator();
