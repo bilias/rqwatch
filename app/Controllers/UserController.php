@@ -187,8 +187,6 @@ class UserController extends ViewController
 			return $response;
 		}
 
-		$profileform_t = null;
-
 		$service = new UserService($this->getFileLogger(), $this->session);
 		$user = $service->profile();
 
