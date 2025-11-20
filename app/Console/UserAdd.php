@@ -10,7 +10,7 @@
 
 namespace App\Console;
 
-use App\Console\RqwatchCliCommand;
+//use App\Console\RqwatchCliCommand;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -22,23 +22,12 @@ use Symfony\Component\Console\Command\LockableTrait;
 
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Helper\QuestionHelper;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
 
-use App\Core\Config;
 use App\Utils\Helper;
 
 use App\Services\UserService;
 
 use Psr\Log\LoggerInterface;
-
-use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Routing\Generator\UrlGenerator;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
-use DateTime;
-use DateTimeZone;
 
 #[AsCommand(
 	name: 'user:add',
