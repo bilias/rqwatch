@@ -42,6 +42,7 @@ class UserController extends ViewController
 	public function __construct() {
 	//	parent::__construct();
 
+		$this->refresh_rate = Config::get('refresh_rate');
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
 	}
