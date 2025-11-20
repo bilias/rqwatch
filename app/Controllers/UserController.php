@@ -159,6 +159,8 @@ class UserController extends ViewController
 		
 		if (!$user) {
 			$this->flashbag->add('error', "User not found");
+			$this->initUrls();
+			return new RedirectResponse($this->getAdminUsersUrl());
 		}
 
 		$mail_aliases = $this->getMailAliases($user);
@@ -316,7 +318,7 @@ class UserController extends ViewController
 		}
 
 		// user does not exist
-		if (!$user) {
+		if (empty($user)) {
 			// get back to search page
 			$this->flashbag->add('error', 'User not found.');
 			$url = $this->getAdminUsersUrl();
