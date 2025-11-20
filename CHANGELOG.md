@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 ### 2025-11-20
+- Rename Controler.php -> Controller.php (`composer dump-autoload` might needed)
+- FormFactoryInterface returns FormInterface, not Form
 - Router refactoring
 
 ### 2025-11-19
