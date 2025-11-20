@@ -528,7 +528,7 @@ class MailLogService
 		return $log;
 	}
 
-	public function detail(string $type, string|int $value): Array {
+	public function detail(string $type, string|int $value): array {
 		$check = Helper::check_id_qid($type, $value);
 
 		if ($check['error']) {
