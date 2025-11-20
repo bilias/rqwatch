@@ -65,7 +65,7 @@ class MetadataImporterApi extends RqwatchApi
 	public function handle(): void {
 
 		try {
-			$headers = $this->request->headers->all(); // array of lowercased header names
+			//$headers = $this->request->headers->all(); // array of lowercased header names
 			$rawEmail = $this->request->getContent(); // instead of php://input
 		} catch (Throwable $e) {
 			$this->fileLogger->error("[{$this->logPrefix}] Request parse error: " . $e->getMessage(), [
@@ -94,7 +94,7 @@ class MetadataImporterApi extends RqwatchApi
 		$subject  = mb_decode_mimeheader($web_headers['X-Rspamd-Subject']);
 		$score    = @$web_headers['X-Rspamd-Score'];
 		$rcpt_to  = @$web_headers['X-Rspamd-Rcpt'];
-		$user     = @$web_headers['X-Rspamd-User'];
+		//$user     = @$web_headers['X-Rspamd-User'];
 		$ip       = @$web_headers['X-Rspamd-Ip'];
 		$action   = @$web_headers['X-Rspamd-Action'];
 		$mail_from= @$web_headers['X-Rspamd-From'];
