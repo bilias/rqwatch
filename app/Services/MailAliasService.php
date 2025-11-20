@@ -48,7 +48,7 @@ class MailAliasService
 		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 	}
 
-	public function getSearchQuery(array $fields, int $limit=null): Builder {
+	public function getSearchQuery(int $limit=null): Builder {
 		if ($limit) {
 			$query = MailAlias::with('user')
 									  ->join('users', 'mail_aliases.user_id', '=', 'users.id')
@@ -78,7 +78,7 @@ class MailAliasService
 	public function showAll(): Collection {
 		$fields = MailAlias::SELECT_FIELDS;
 
-		$query = self::getSearchQuery($fields);
+		$query = self::getSearchQuery();
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -90,7 +90,7 @@ class MailAliasService
 	public function showOne(int $id): ?MailAlias {
 		$fields = MailAlias::SELECT_FIELDS;
 
-		$query = self::getSearchQuery($fields);
+		$query = self::getSearchQuery();
 		$query = $query->where('mail_aliases.id', $id);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
@@ -103,7 +103,7 @@ class MailAliasService
 	public function aliasExists(int $user_id, string $alias): bool {
 		$fields = MailAlias::SELECT_FIELDS;
 
-		$query = self::getSearchQuery($fields);
+		$query = self::getSearchQuery();
 		$query = $query->where('user_id', $user_id)
 							->where('alias', $alias);
 
@@ -117,7 +117,7 @@ class MailAliasService
 	public function showPaginatedAll(string $url, int $page = 1): ?LengthAwarePaginator {
 		$fields = MailAlias::SELECT_FIELDS;
 
-		$query = self::getSearchQuery($fields);
+		$query = self::getSearchQuery();
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -138,7 +138,7 @@ class MailAliasService
 	public function searchPaginatedAll(string $url, string $search, int $page = 1): ?LengthAwarePaginator {
 		$fields = MailAlias::SELECT_FIELDS;
 
-		$query = self::getSearchQuery($fields);
+		$query = self::getSearchQuery();
 		$query->where('username', 'LIKE', "%{$search}%")
 		      ->orWhere('email', 'LIKE', "%{$search}%")
 		      ->orWhere('alias', 'LIKE', "%{$search}%");
