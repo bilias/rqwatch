@@ -41,6 +41,7 @@ class MailAliasController extends ViewController
 	public function __construct() {
 	//	parent::__construct();
 
+		$this->refresh_rate = Config::get('refresh_rate');
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
 	}
@@ -105,7 +106,7 @@ class MailAliasController extends ViewController
 
 		if ($mailAliasSearchForm->isSubmitted() && !$mailAliasSearchForm->isValid()) {
 			$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
-			return new RedirectResponse($this-getAdminAliasesUrl());
+			return new RedirectResponse($this->getAdminAliasesUrl());
 		}
 
 		// Get page from ?page=, default 1
