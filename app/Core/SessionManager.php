@@ -17,10 +17,6 @@ use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use App\Core\RedisFactory;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler;
 
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 

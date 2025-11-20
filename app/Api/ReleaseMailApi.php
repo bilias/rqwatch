@@ -10,16 +10,9 @@
 
 namespace App\Api;
 
-use App\Core\Config;
-use App\Utils\Helper;
-
-use App\Core\Auth\BasicAuth;
-
 use App\Models\MailLog;
 use App\Services\MailLogService;
 
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class ReleaseMailApi extends RqwatchApi

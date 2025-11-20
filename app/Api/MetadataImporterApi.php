@@ -13,14 +13,12 @@ namespace App\Api;
 use App\Core\Config;
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
-use App\Core\Auth\BasicAuth;
 
 use App\Models\MailLog;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 use Illuminate\Database\QueryException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
