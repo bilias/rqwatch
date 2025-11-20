@@ -41,7 +41,6 @@ class FormFactoryProvider
 
 	public static function getFactory(Request $request): FormFactoryInterface {
 		if (self::$formFactory === null) {
-			$session = $request->getSession();
 
 			// creates a RequestStack object using the current request
 			$requestStack = new RequestStack([$request]);
@@ -51,6 +50,7 @@ class FormFactoryProvider
 			$csrfManager = new CsrfTokenManager($csrfGenerator, $csrfStorage);
 
 			/*
+			$session = $request->getSession();
 			$vendorDirectory = realpath(__DIR__.'/../vendor');
 			$vendorFormDirectory = $vendorDirectory.'/symfony/form';
 			$vendorValidatorDirectory = $vendorDirectory.'/symfony/validator';
