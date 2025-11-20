@@ -11,7 +11,6 @@
 namespace App\Core\Auth;
 
 use SensitiveParameter; // For method params
-use Sensitive;          // For properties (PHP 8.2+)
 
 use Psr\Log\LoggerInterface;
 
