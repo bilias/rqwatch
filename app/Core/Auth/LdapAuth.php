@@ -17,6 +17,8 @@ use Sensitive;          // For properties (PHP 8.2+)
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
+use LDAP\Connection as LdapConnection;
+
 use RuntimeException;
 
 class LdapAuth implements AuthInterface {
@@ -202,7 +204,7 @@ class LdapAuth implements AuthInterface {
 		return false;
 	}
 
-	private static function getError(\LDAP\Connection $ldap): string {
+	private static function getError(LdapConnection $ldap): string {
 		$ldap_error = ldap_error($ldap);
 		ldap_get_option($ldap, LDAP_OPT_DIAGNOSTIC_MESSAGE, $ldap_diag);
 		return "{$ldap_error}. {$ldap_diag}";
