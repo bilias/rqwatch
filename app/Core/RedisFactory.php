@@ -20,7 +20,7 @@ use Throwable;
 
 class RedisFactory
 {
-	private static Redis|null $client = null;
+	private static ?Redis $client = null;
 	private static ?LoggerInterface $logger = null;
 
 	public static function setLogger(LoggerInterface $logger): void {
