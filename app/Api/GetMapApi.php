@@ -237,7 +237,6 @@ class GetMapApi extends RqwatchApi
 		$configs = MapInventory::getMapConfigs();
 		$map = strtolower($map);
 
-		$api_config = [];
 		foreach ($configs as $key => $config) {
 			$api_key = strtolower(str_replace("_", "", $key));
 
