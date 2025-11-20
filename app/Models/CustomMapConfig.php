@@ -13,8 +13,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-use Illuminate\Database\Eloquent\Builder;
-
 class CustomMapConfig extends Model
 {
 	protected $table = 'custom_map_config';

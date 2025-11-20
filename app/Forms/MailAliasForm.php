@@ -26,7 +26,6 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\HttpFoundation\Request;
 
 use App\Utils\FormHelper;
-use App\Models\MailAlias;
 
 class MailAliasForm extends AbstractType
 {
