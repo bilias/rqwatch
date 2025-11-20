@@ -13,3 +13,4 @@ NOTES
 *.md.orig.*
 *.md.toc.*
 gh-md-toc
+.idea
