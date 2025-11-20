@@ -14,18 +14,21 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Exception\InvalidArgumentException;
 
+use Redis;
+use Predis\Client as PredisClient;
+
 use Throwable;
 
 class RedisFactory
 {
-	private static \Redis|\Predis\Client|null $client = null;
+	private static Redis|PredisClient|null $client = null;
 	private static ?LoggerInterface $logger = null;
 
 	public static function setLogger(LoggerInterface $logger): void {
 		self::$logger = $logger;
 	}
 
-	public static function get(): \Redis|\Predis\Client {
+	public static function get(): Redis|PredisClient {
 		if (self::$client === null) {
 			// Redis Sentinel connection via phpredis or predis
 			try {
