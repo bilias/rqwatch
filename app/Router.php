@@ -50,9 +50,6 @@ class Router
 			array $defaultMiddlewareClasses,
 	) {
 
-		$fileLogger = $this->fileLogger;
-		$syslogLogger = $this->syslogLogger;
-
 		// Request initialization
 		$request = Request::createFromGlobals();
 
@@ -82,7 +79,7 @@ class Router
 				if ($controller[0] instanceof \App\Controllers\Controller) {
 					// Session initialization
 					// $session = SessionManager::getSession();
-					SessionManager::setLogger($fileLogger);
+					SessionManager::setLogger($this->fileLogger);
 					$request->setSession(SessionManager::getSession());
 
 					// $request->attributes->set('request_id', spl_object_id($request));
@@ -114,16 +111,16 @@ class Router
 					$request->attributes->get('_route') .
 					"'. Check middlewareMap in config/routes.php");
 				*/
-				$fileLogger->warning("$request_route does not have a _middleware. Using defaultMiddlewareClasses");
+				$this->fileLogger->warning("$request_route does not have a _middleware. Using defaultMiddlewareClasses");
 				$middlewareClasses = $defaultMiddlewareClasses;
 			}
 
 			// Final callable that runs the controller
 			$controllerHandler = function (Request $request)
-				use ($controller, $arguments, $fileLogger, $syslogLogger) 
+				use ($controller, $arguments)
 			{
 				if (is_array($controller) && $controller[0] instanceof \App\Controllers\Controller) {
-					$controller[0]->setLoggers($fileLogger, $syslogLogger);
+					$controller[0]->setLoggers($this->fileLogger, $this->syslogLogger);
 				}
 				return call_user_func_array($controller, $arguments);
 			};
@@ -139,12 +136,11 @@ class Router
 					$middlewareChain = function (Request $request) use (
 						$middlewareClass,
 						$next,
-						$urlGenerator,
-						$fileLogger
+						$urlGenerator
 					) {
 						//$middleware = new $middlewareClass($urlGenerator);
-						// add logger
-						$middleware = $this->resolveMiddleware($middlewareClass, $urlGenerator, $fileLogger);
+						// add logger in middleware
+						$middleware = $this->resolveMiddleware($middlewareClass, $urlGenerator);
 						return $middleware->handle($request, $next);
 					};
 				}
@@ -153,7 +149,7 @@ class Router
 			} else  {
 				// NO_MIDDLEWARE: response without Middleware, and invoke controller
 				if (is_array($controller) && $controller[0] instanceof \App\Controllers\Controller) {
-					$controller[0]->setLoggers($fileLogger, $syslogLogger);
+					$controller[0]->setLoggers($this->fileLogger, $this->syslogLogger);
 					$response = call_user_func_array($controller, $arguments);
 				}
 			}
@@ -168,7 +164,7 @@ class Router
 		} catch (ResourceNotFoundException $e) {
 			// invalid route
 			// Session initialization
-			SessionManager::setLogger($fileLogger);
+			SessionManager::setLogger($this->fileLogger);
 			$session = SessionManager::getSession();
 			$request->setSession($session);
 			if ($request->hasSession() && $session->has('username')) {
@@ -194,12 +190,12 @@ class Router
 		return $response;
 	}
 
-	private function resolveMiddleware(string $middlewareClass, UrlGenerator $urlGenerator, LoggerInterface $fileLogger): object {
+	private function resolveMiddleware(string $middlewareClass, UrlGenerator $urlGenerator): object {
 		return match ($middlewareClass) {
 			AuthMiddleware::class =>
-				new $middlewareClass($urlGenerator, $fileLogger),
+				new $middlewareClass($urlGenerator, $this->fileLogger),
 			Authorization::class =>
-				new $middlewareClass($urlGenerator, $fileLogger),
+				new $middlewareClass($urlGenerator, $this->fileLogger),
 			default =>
 				new $middlewareClass($urlGenerator), // fallback for simple middleware
 		};
