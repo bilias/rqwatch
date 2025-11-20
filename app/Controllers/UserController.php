@@ -315,32 +315,31 @@ class UserController extends ViewController
 			$user = User::find($id);
 		}
 
-		// DB User
-		if ($user) {
-			// or $user->toArray() if empty attribute and not getter in Model
-			$userform = UserForm::create($this->formFactory, $this->request, $user->toArray(), ['is_edit' => true]);
-
-			// Do not allow delete of admin user
-			if ($user->username !== 'admin') {
-				$userdelform = UserDeleteForm::create($this->formFactory, $this->request,
-					['id' => $user->id,
-					 'username' => $user->username,
-					]);
-
-				if ($response = UserDeleteForm::check_form($userdelform, $this->urlGenerator)) {
-					// form submitted and valid
-					return $response;
-				}
-				$userdelform = $userdelform->createView();
-			} else {
-				$userdelform = null;
-			}
-		} else {
-			// user does not exist
+		// user does not exist
+		if (!$user) {
 			// get back to search page
 			$this->flashbag->add('error', 'User not found.');
 			$url = $this->getAdminUsersUrl();
 			return new RedirectResponse($url);
+		}
+
+		// or $user->toArray() if empty attribute and not getter in Model
+		$userform = UserForm::create($this->formFactory, $this->request, $user->toArray(), ['is_edit' => true]);
+
+		// Do not allow delete of admin user
+		if ($user->username !== 'admin') {
+			$userdelform = UserDeleteForm::create($this->formFactory, $this->request,
+				['id' => $user->id,
+				 'username' => $user->username,
+				]);
+
+			if ($response = UserDeleteForm::check_form($userdelform, $this->urlGenerator)) {
+				// form submitted and valid
+				return $response;
+			}
+			$userdelform = $userdelform->createView();
+		} else {
+			$userdelform = null;
 		}
 
 		$error = null;
