@@ -21,6 +21,8 @@ use Dotenv\Dotenv;
 use Exception;
 use RuntimeException;
 
+use Illuminate\Database\Capsule\Manager as Capsule;
+
 class Kernel
 {
 	public static function boot(): array {
@@ -72,7 +74,7 @@ class Kernel
 
 		// test DB connection
 		try {
-			/** @var \Illuminate\Database\Capsule\Manager $capsule */
+			/** @var Capsule $capsule */
 			$capsule->getConnection()->getPdo();
 		} catch (Exception $e) {
 			$fileLogger->error("DB error: " . $e->getMessage());
