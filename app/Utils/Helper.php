@@ -15,6 +15,7 @@ use Psr\Log\LoggerInterface;
 use App\Core\Auth\AuthManager;
 
 use PhpIP\IP;
+use MaxMind\Db\Reader as MaxMindDbReader;
 
 use DateTime;
 use DateTimeZone;
@@ -689,7 +690,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 		if (Config::get('geoip_enable') && ($geoip_db = Config::get('geoip_country_db')) &&
 				!self::isLocalOrReservedIp($ip)) {
 			try {
-				$geoip_reader = new \MaxMind\Db\Reader($geoip_db);
+				$geoip_reader = new MaxMindDbReader($geoip_db);
 				$geo = $geoip_reader->get($ip);
 				$geoip_reader->close();
 
