@@ -76,8 +76,6 @@ class MailAliasService
 
 
 	public function showAll(): Collection {
-		$fields = MailAlias::SELECT_FIELDS;
-
 		$query = self::getSearchQuery();
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
@@ -88,8 +86,6 @@ class MailAliasService
 	}
 
 	public function showOne(int $id): ?MailAlias {
-		$fields = MailAlias::SELECT_FIELDS;
-
 		$query = self::getSearchQuery();
 		$query = $query->where('mail_aliases.id', $id);
 
@@ -101,8 +97,6 @@ class MailAliasService
 	}
 
 	public function aliasExists(int $user_id, string $alias): bool {
-		$fields = MailAlias::SELECT_FIELDS;
-
 		$query = self::getSearchQuery();
 		$query = $query->where('user_id', $user_id)
 							->where('alias', $alias);
