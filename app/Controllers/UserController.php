@@ -277,7 +277,7 @@ class UserController extends ViewController
 				}
 				$data['password'] = Helper::passwordHash($newPassword);
 
-				if ($service->userAdd($data) {
+				if ($service->userAdd($data)) {
 					$this->flashbag->add('success', "User '{$data['username']}' created");
 				} else {
 					$this->flashbag->add('error', "User creation failed");
