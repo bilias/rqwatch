@@ -64,8 +64,6 @@ class MailLogController extends ViewController
 			return $response;
 		}
 
-		$fields = MailLog::SELECT_FIELDS;
-
 		/* without Pagination
 		$service = new MailLogService($this->getFileLogger(), $this->session);
 		$logs = $service->showAll();
@@ -112,8 +110,6 @@ class MailLogController extends ViewController
 			// form submitted and valid
 			return $response;
 		}
-
-		$fields = MailLog::SELECT_FIELDS;
 
 		// get filters from session
 		$filters = $this->session->get('filters');
@@ -248,8 +244,6 @@ class MailLogController extends ViewController
 			return $response;
 		}
 
-		$fields = MailLog::SELECT_FIELDS;
-
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
@@ -291,8 +285,6 @@ class MailLogController extends ViewController
 			// form submitted and valid
 			return $response;
 		}
-
-		$fields = MailLog::SELECT_FIELDS;
 
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
@@ -455,7 +447,6 @@ class MailLogController extends ViewController
 		}
 
 		$service = new MailLogService($this->getFileLogger(), $this->session);
-		$error = null;
 
 		try {
 			// has applyUserScope()
@@ -790,7 +781,6 @@ class MailLogController extends ViewController
 	}
 
 	public function search_filter_del(int $filter_id = null): Response {
-		$filters_ar = array();
 
 		// user asked to delete a specific filter number
 		if (!is_null($filter_id) and is_int($filter_id)) {

@@ -469,7 +469,7 @@ class MapService
 		}
 
 		// XXX strtolower might break some maps???
-		$data = self::trimLower($data);
+		//$data = self::trimLower($data);
 
 		$query = $this->applyUserRcptToScope($query);
 
