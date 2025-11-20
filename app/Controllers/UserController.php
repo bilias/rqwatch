@@ -27,6 +27,8 @@ use App\Forms\ProfileForm;
 use App\Models\User;
 use App\Services\UserService;
 
+use Exception;
+
 //use Illuminate\Database\Capsule\Manager as DB;
 
 class UserController extends ViewController
@@ -224,7 +226,7 @@ class UserController extends ViewController
 				}
 				$this->initUrls();
 				return new RedirectResponse($this->homepageUrl);
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 				$error = $e->getMessage();
 				$this->flashbag->add('error', $error);
 			}
@@ -384,7 +386,7 @@ class UserController extends ViewController
 					}
 					$url = $this->getAdminUsersUrl();
 					return new RedirectResponse($url);
-				} catch (\Exception $e) {
+				} catch (Exception $e) {
 					$error = $e->getMessage();
 					$this->flashbag->add('error', $error);
 				}
