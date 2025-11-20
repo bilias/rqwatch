@@ -37,11 +37,14 @@ use Symfony\Component\Form\FormFactoryInterface;
 use App\Core\Form\FormFactoryProvider;
 
 use Twig\TwigFunction;
+use Twig\TwigFilter;
 
 use App\Config\AppConfig;
 use App\Core\RouteName;
 use App\Core\Config;
 use App\Utils\Helper;
+
+use ReflectionClass;
 
 use RuntimeException;
 
@@ -123,7 +126,7 @@ class ViewController extends Controller
 			return Helper::getAuthProvider($id);
 		}));
 
-		$this->twig->addFilter(new \Twig\TwigFilter('nf', function ($number, $decimals = 0) {
+		$this->twig->addFilter(new TwigFilter('nf', function ($number, $decimals = 0) {
 			return number_format($number, $decimals, ',', '.');
 		}));
 
@@ -180,7 +183,7 @@ class ViewController extends Controller
 
 		// the path to TwigBridge library so Twig can locate the
 		// form_div_layout.html.twig file
-      $appVariableReflection = new \ReflectionClass('\Symfony\Bridge\Twig\AppVariable');
+      $appVariableReflection = new ReflectionClass('\Symfony\Bridge\Twig\AppVariable');
       $vendorTwigBridgeDirectory = dirname($appVariableReflection->getFileName());
 
 		$this->twig->getLoader()->addPath($vendorTwigBridgeDirectory . '/Resources/views/Form');
