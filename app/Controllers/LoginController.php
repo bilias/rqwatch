@@ -189,8 +189,8 @@ class LoginController extends ViewController
 	}
 
 	protected static function getMailAliases(User $user): array {
-		$mail_aliases = [];
 		/*
+		$mail_aliases = [];
 		foreach ($user->mailAliases as $mail_alias) {
 			$mail_aliases[] = strtolower(trim($mail_alias->alias));
 		}
