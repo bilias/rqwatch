@@ -13,6 +13,8 @@ namespace App\Core\Auth;
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
+use SensitiveParameter;
+
 use RuntimeException;
 
 class AuthManager
@@ -33,7 +35,7 @@ class AuthManager
 
 	public function authenticate(
 		string $username,
-		#[\SensitiveParameter] string $password
+		#[SensitiveParameter] string $password
 	): bool {
 		$provider = $this->selectAuthProvider($username, $password);
 

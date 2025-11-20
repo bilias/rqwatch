@@ -29,7 +29,7 @@ class LdapAuth implements AuthInterface {
 	private ?string $lastname = null;
 	private ?LoggerInterface $logger = null;
 
-	public function __construct(string $username, #[\SensitiveParameter] string $password) {
+	public function __construct(string $username, #[SensitiveParameter] string $password) {
 		$this->username = $username;
 		$this->password = $password;
 	}

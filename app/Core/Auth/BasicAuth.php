@@ -15,6 +15,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 use Psr\Log\LoggerInterface;
 
+use SensitiveParameter;
+
 use RuntimeException;
 
 class BasicAuth implements AuthInterface {
@@ -23,7 +25,7 @@ class BasicAuth implements AuthInterface {
 	protected ?string $authenticatedUser = null;
 	private ?LoggerInterface $logger = null;
 
-	public function __construct(string $username, #[\SensitiveParameter] string $password, LoggerInterface $logger) {
+	public function __construct(string $username, #[SensitiveParameter] string $password, LoggerInterface $logger) {
 		if (empty($username) or empty($password)) {
 			throw new HttpException(500, 'API credentials not configured');
 		}
