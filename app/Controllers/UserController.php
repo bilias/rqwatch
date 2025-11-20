@@ -30,6 +30,7 @@ use App\Services\UserService;
 use Exception;
 
 //use Illuminate\Database\Capsule\Manager as DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends ViewController
 {
@@ -313,13 +314,15 @@ class UserController extends ViewController
 			return $response;
 		}
 
-		if (!empty($id)) {
-			$user = User::find($id);
+		if (is_null($id) || !is_int($id)) {
+			$this->flashbag->add('error', 'User ID problem');
+			$url = $this->getAdminUsersUrl();
+			return new RedirectResponse($url);
 		}
 
-		// user does not exist
-		if (empty($user)) {
-			// get back to search page
+		try {
+			$user = User::findOrFail($id);
+		} catch (ModelNotFoundException $e) {
 			$this->flashbag->add('error', 'User not found.');
 			$url = $this->getAdminUsersUrl();
 			return new RedirectResponse($url);
@@ -412,7 +415,7 @@ class UserController extends ViewController
 
 	public function del(int $id): Response {
 
-		if (!is_null($id) and is_int($id)) {
+		if (!is_null($id) && is_int($id)) {
 			$user = User::find($id);
 			if ($user) {
 				if ($user->username !== 'admin') {
