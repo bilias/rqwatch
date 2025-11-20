@@ -14,6 +14,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel;
 
+use Symfony\Component\HttpKernel\Controller\ControllerResolver;
+use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
+
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
@@ -29,6 +32,8 @@ use App\Utils\Helper;
 use App\Core\SessionManager;
 use App\Core\Middleware\AuthMiddleware;
 use App\Core\Middleware\Authorization;
+
+use App\Controllers\Controller;
 
 use Psr\Log\LoggerInterface;
 
@@ -70,15 +75,15 @@ class Router
 		try {
 			$request->attributes->add($matcher->match($request->getPathInfo()));
 
-			$controllerResolver = new HttpKernel\Controller\ControllerResolver();
+			$controllerResolver = new ControllerResolver();
 			$controller = $controllerResolver->getController($request);
 
-			$argumentResolver = new HttpKernel\Controller\ArgumentResolver();
+			$argumentResolver = new ArgumentResolver();
 			$arguments = $argumentResolver->getArguments($request, $controller);
 
 			// Inject request and session into controllers:
 			if (is_array($controller) && is_object($controller[0])) {
-				if ($controller[0] instanceof \App\Controllers\Controller) {
+				if ($controller[0] instanceof Controller) {
 					// Session initialization
 					// $session = SessionManager::getSession();
 					SessionManager::setLogger($this->fileLogger);
@@ -121,7 +126,7 @@ class Router
 			$controllerHandler = function (Request $request)
 				use ($controller, $arguments)
 			{
-				if (is_array($controller) && $controller[0] instanceof \App\Controllers\Controller) {
+				if (is_array($controller) && $controller[0] instanceof Controller) {
 					$controller[0]->setLoggers($this->fileLogger, $this->syslogLogger);
 				}
 				return call_user_func_array($controller, $arguments);
@@ -150,7 +155,7 @@ class Router
 				$response = $middlewareChain($request);
 			} else  {
 				// NO_MIDDLEWARE: response without Middleware, and invoke controller
-				if (is_array($controller) && $controller[0] instanceof \App\Controllers\Controller) {
+				if (is_array($controller) && $controller[0] instanceof Controller) {
 					$controller[0]->setLoggers($this->fileLogger, $this->syslogLogger);
 					$response = call_user_func_array($controller, $arguments);
 				}
