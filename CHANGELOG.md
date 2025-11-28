@@ -2,6 +2,11 @@
 
 ## Master Dev Branch
 
+### 2025-11-18
+- Show statistics for users toggle
+- Wrap applyUserScope filters as one WHERE in DB (bug)
+- Fix error on empty result set (bug)
+
 ## Version v1.6.8 - Released: 2025-11-28
 
 ### 2025-11-20
