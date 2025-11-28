@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v1.6.8 - Released: 2025-11-28
+
 ### 2025-11-20
 - Use FIND_IN_SET in applyUserScope() for faster results
 - Rename Controler.php -> Controller.php (`composer dump-autoload` might needed)
