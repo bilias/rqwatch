@@ -791,17 +791,19 @@ class MailLogService
 			});
 			*/
 
-			$query->whereRaw("FIND_IN_SET('{$this->email}', rcpt_to)");
+			$query->where(function ($q) {
+				$q->whereRaw("FIND_IN_SET('{$this->email}', rcpt_to)");
 
-			/* XXX if aliases change and user is logged in,
-			   old values remain in user's session.
-				User has to logout/login to update values
-			*/
-			if (!empty($this->user_aliases)) {
-				foreach ($this->user_aliases as $user_alias) {
-					$query->orWhereRaw("FIND_IN_SET('{$user_alias}', rcpt_to)");
+				/* XXX if aliases change and user is logged in,
+				   old values remain in user's session.
+					User has to logout/login to update values
+				*/
+				if (!empty($this->user_aliases)) {
+					foreach ($this->user_aliases as $user_alias) {
+						$q->orWhereRaw("FIND_IN_SET('{$user_alias}', rcpt_to)");
+					}
 				}
-			}
+			});
 		}
 
 		return $query;
