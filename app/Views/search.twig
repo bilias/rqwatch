@@ -101,7 +101,6 @@
 <div class='reports'>
 <span class='descr'>Results and Reports</span>
 <ul>
-{% if stats.count > 0 %}
  {% if is_admin %}
  <li><a href='{{ route('ADMIN_SEARCH_RESULTS') }}'>Search Results</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'day' }) }}'>Mails by Day</a>
@@ -155,9 +154,6 @@
  <li><a href='{{ route('REPORTS', { field: 'server'}) }}'>Top Servers by Quantity</a>
  / <a href='{{ route('REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
  {% endif %}
-{% else %}
-No results found
-{% endif %}
 </ul>
 
 </div>

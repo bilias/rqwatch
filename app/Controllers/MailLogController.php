@@ -751,20 +751,13 @@ class MailLogController extends ViewController
 
 		// get current stats
 		$service = new MailLogService($this->getFileLogger(), $this->session);
-		// array with results
-		if (Config::get('show_mail_stats')) {
-			// has applyUserScope
-			$stats = $service->showStats($filters);
-		} else {
-			$stats = array();
-		}
 
 		$configTTLData = $this->getRedisConfigTTLData();
 
 		return new Response($this->twig->render('search.twig', [
 			'qidform' => $qidform->createView(),
 			'filters' => $filters,
-			'stats'   => $stats,
+			'stats'   => $this->showMailStats($service, $filters),
 			'searchform' => $searchform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
@@ -860,6 +853,17 @@ class MailLogController extends ViewController
 		unset($cfg);
 
 		return $configs;
+	}
+
+	private function showMailStats(MailLogService $service, array $filters): array {
+		if (Config::get('show_mail_stats')) {
+			if ($this->getIsAdmin() || Config::get('show_user_mail_stats')) {
+				// has applyUserScope
+				return $service->showStats($filters);
+			}
+		}
+
+		return array();
 	}
 
 }
