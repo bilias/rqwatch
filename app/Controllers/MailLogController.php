@@ -211,9 +211,11 @@ class MailLogController extends ViewController
 			$sum['size'] += $log['total_size'];
 		}
 
+		$field = isset($logs[0]) ? array_key_first($logs[0]) : null;
+
 		return new Response($this->twig->render('reports.twig', [
 			'qidform' => $qidform->createView(),
-			'field' => array_keys($logs[0])[0],
+			'field' => $field,
 			'reportFields' => MailLog::REPORT_DYN_FIELDS,
 			'mode' => $mode,
 			'logs' => $logs,
