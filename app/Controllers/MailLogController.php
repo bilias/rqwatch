@@ -634,7 +634,13 @@ class MailLogController extends ViewController
 		}
 
 		$filename = $attachment->getFilename();
-		$filenameFallback = base64_encode($filename);
+		//$filenameFallback = base64_encode($filename);
+		//$filenameFallback = transliterator_transliterate('Any-Latin; Latin-ASCII; [^A-Za-z0-9_.-] remove', $filename);
+		$filenameFallback = preg_replace(
+			'#^.*\.#',
+			md5($filename) . '.', $filename
+		);
+
 		$filetype = $attachment->getFileType();
 		$content = $attachment->getContent();
 		$size = $attachment->getSize();
@@ -679,7 +685,13 @@ class MailLogController extends ViewController
 
 
 		$filename = $attachment->getFilename();
-		$filenameFallback = base64_encode($filename);
+		//$filenameFallback = base64_encode($filename);
+		//$filenameFallback = transliterator_transliterate('Any-Latin; Latin-ASCII; [^A-Za-z0-9_.-] remove', $filename);
+		$filenameFallback = preg_replace(
+			'#^.*\.#',
+			md5($filename) . '.', $filename
+		);
+
 		$filetype = $attachment->getFileType();
 		$content = $attachment->getContent();
 		$size = $attachment->getSize();
