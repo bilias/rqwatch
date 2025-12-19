@@ -77,7 +77,13 @@ Total {{ totalRecords|nf }} mails
 {% endif %}
 
 {% if log.has_virus %}
-  <td class='center action'>{{ log_action }}<br/><span class='virus'>{{ log.virus_from_symbol }}</span></td>
+  <td class='center action'>
+	{{ log_action }}<br/>
+	<span class='virus'>{{ log.virus_from_symbol }}</span>
+	{% if action_details == 'rqwatch_map' %}
+		<span class='rqwatch_map'>[map]</span>
+	{% endif %}
+  </td>
 {% elseif action_details == 'rqwatch_map' %}
   <td class='center'>{{ log_action }}<br/><span class='rqwatch_map'>[map]</span></td>
 {% else %}
