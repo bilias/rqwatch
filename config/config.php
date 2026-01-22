@@ -77,7 +77,7 @@ $API_SERVERS = array(
 $rspamd_stat_disable = false;
 
 # Timeout for Rspamd statistics (float, seconds)
-$rspamd_stat_api_timeout = 1.0;
+$rspamd_stat_api_timeout = 3.0;
 
 # Redis key for caching rspamd stats
 $rspamd_stat_redis_key = "rqwatch_rspamd_stats";
