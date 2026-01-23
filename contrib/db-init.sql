@@ -162,5 +162,8 @@ CREATE TABLE `mail_logs` (
   KEY `rcpt_to_index` (`rcpt_to`),
   KEY `mime_to_index` (`mime_to`),
   KEY `mail_stored_index` (`mail_stored`),
+  KEY `has_virus_index` (`has_virus`),
+  KEY `notified_index` (`notified`),
+  KEY `released_index` (`released`),
   KEY `notification_pending_index` (`notification_pending`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;

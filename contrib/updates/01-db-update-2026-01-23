@@ -1,0 +1,6 @@
+# sql
+ALTER TABLE mail_logs
+ADD INDEX has_virus_index (has_virus),
+ADD INDEX notified_index (notified),
+ADD INDEX released_index (released);
+
