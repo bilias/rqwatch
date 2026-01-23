@@ -2,6 +2,12 @@
 
 ## Master Dev Branch
 
+### 2026-01-23
+- Add db indexes (contrib/updates/01-db-update-2026-01-23)
+
+### 2026-01-22
+- Increase rspamd stat timeout
+
 ### 2025-11-18
 - Show statistics for users toggle
 - Wrap applyUserScope filters as one WHERE in DB (bug)
