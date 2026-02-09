@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+# 2026-02-09
+- Enforce LDAP version 3
+Fixed https://github.com/bilias/rqwatch/issues/3
+
 ### 2026-01-23
 - Add db indexes (contrib/updates/01-db-update-2026-01-23)
 

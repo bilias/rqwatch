@@ -68,6 +68,7 @@ class LdapAuth implements AuthInterface {
 		];
 
 		$ldap = ldap_connect($ldap_uri);
+		ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
 
 		if (!$ldap) {
 			$this->logger->error("ldap_connect failed. Check LDAP_URI");
