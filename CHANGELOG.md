@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 # 2026-02-09
+- Return 401 for authentication failures
+Fixed https://github.com/bilias/rqwatch/issues/4
 - Enforce LDAP version 3
 Fixed https://github.com/bilias/rqwatch/issues/3
 

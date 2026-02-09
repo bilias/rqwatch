@@ -56,6 +56,9 @@ class LoginController extends ViewController
 			$this->session->getFlashBag()->clear();
 		}
 
+		// Standard: Status 200
+		$statusCode = Response::HTTP_OK;
+
 		if ($loginform->isSubmitted() && $loginform->isValid()) {
 			// get new session if it is expired
 			SessionManager::checkSessionExpired();
@@ -169,6 +172,7 @@ class LoginController extends ViewController
 			if ($db_user_not_found) {
 				$this->fileLogger->warning("Authenticated user '$username' not found in DB.");
 				$this->flashbag->add('error', "Authentication problem. Contact admin");
+				$statusCode = Response::HTTP_INTERNAL_SERVER_ERROR;
 			// authenticate() failed
 			} else {
 				$auth_provider = $auth->getAuthProvider();
@@ -176,6 +180,7 @@ class LoginController extends ViewController
 				$this->fileLogger->warning("($auth_provider) Login failed for user: '{$username}' via IP:{$client_ip}");
 				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 				$this->flashbag->add('error', "Wrong username or password");
+				$statusCode = Response::HTTP_UNAUTHORIZED;
 			}
 		}
 
@@ -183,7 +188,8 @@ class LoginController extends ViewController
 			'loginform' => $loginform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
-		]));
+		]),
+		$statusCode);
 	}
 
 	protected static function getMailAliases(User $user): array {
