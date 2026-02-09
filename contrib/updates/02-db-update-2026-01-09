@@ -1,0 +1,15 @@
+# Also add in .env
+# MAIL_RECIPIENTS_TABLE=mail_log_recipients
+
+# sql
+CREATE TABLE mail_log_recipients (
+  mail_log_id INT(10) UNSIGNED NOT NULL,
+  recipient_email VARCHAR(255) NOT NULL,
+  PRIMARY KEY (mail_log_id, recipient_email),
+  KEY recipient_email_idx (recipient_email),
+  CONSTRAINT fk_mail
+    FOREIGN KEY (mail_log_id)
+    REFERENCES mail_logs(id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+

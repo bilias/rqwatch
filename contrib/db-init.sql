@@ -167,3 +167,16 @@ CREATE TABLE `mail_logs` (
   KEY `released_index` (`released`),
   KEY `notification_pending_index` (`notification_pending`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+
+DROP TABLE IF EXISTS `mail_log_recipients`;
+
+CREATE TABLE mail_log_recipients (
+  mail_log_id INT(10) UNSIGNED NOT NULL,
+  recipient_email VARCHAR(255) NOT NULL,
+  PRIMARY KEY (mail_log_id, recipient_email),
+  KEY recipient_email_idx (recipient_email),
+  CONSTRAINT fk_mail
+    FOREIGN KEY (mail_log_id)
+    REFERENCES mail_logs(id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;

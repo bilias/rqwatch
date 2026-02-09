@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+# 2026-02-09 - mail_log_recipients branch
+- Modify MetadataImporterApi.php to write to mail_log_recipients table
+- Create mail_log_recipients table
+
 ## Version v1.6.10 - Released: 2026-02-10
 
 # 2026-02-09

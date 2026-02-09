@@ -249,10 +249,40 @@ class MetadataImporterApi extends RqwatchApi
 
 		$db_id = null;
 		try {
-			$db_id = $this->capsule::table($_ENV['MAILLOGS_TABLE'])
-				->insertGetId($data);
+			// old code without MAIL_RECIPIENTS_TABLE
+			//$db_id = $this->capsule::table($_ENV['MAILLOGS_TABLE'])
+			//	->insertGetId($data);
 			// This also works but uses 10MB instead of 5MB
 			//$db_id = MailLog::create($data)->id;
+
+			$this->capsule::connection()->transaction(function () use ($data, $rcpt_to, &$db_id) {
+
+				$db_id = $this->capsule::table($_ENV['MAILLOGS_TABLE'])
+					->insertGetId($data);
+
+				if ($db_id && $rcpt_to !== "unknown" && !empty($rcpt_to)) {
+					$recipients = json_decode($rcpt_to, true);
+
+					if (is_array($recipients)) {
+						$rows = [];
+
+						foreach ($recipients as $email) {
+							$email = strtolower(trim($email));
+							if ($email !== '') {
+								$rows[] = [
+									'mail_log_id'     => $db_id,
+									'recipient_email' => $email,
+								];
+							}
+						}
+
+						if (!empty($rows)) {
+							$this->capsule::table($_ENV['MAIL_RECIPIENTS_TABLE'])
+								->insert($rows);
+						}
+					}
+				}
+			});
 		} catch (QueryException $e) {
 				// $bindings = $e->getBindings(); // array
 				// $sql = $e->getSql(); // array
