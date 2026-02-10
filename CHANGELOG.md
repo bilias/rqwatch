@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+# 2026-02-10 - mail_log_recipients branch
+- Create MigrateMailRecipients cli tool
+
 # 2026-02-09 - mail_log_recipients branch
 - Modify MetadataImporterApi.php to write to mail_log_recipients table
 - Create mail_log_recipients table

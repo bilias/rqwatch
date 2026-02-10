@@ -11,8 +11,9 @@
 namespace App\Console;
 
 use Symfony\Component\Console\Command\Command;
-
 use Symfony\Component\Console\Output\OutputInterface;
+
+use Illuminate\Database\Query\Builder;
 
 use App\Core\Config;
 use App\Utils\Helper;
@@ -30,5 +31,9 @@ class RqwatchCliCommand extends Command
 		$runtime = $this->getRuntime();
 		$output->writeln("<info>{$runtime}</info>",
 			OutputInterface::VERBOSITY_VERY_VERBOSE);
+	}
+
+	public static function getSqlFromQuery(Builder $query): string {
+		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 	}
 }

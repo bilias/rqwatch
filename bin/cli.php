@@ -21,10 +21,12 @@ use App\Console\CronNotifications;
 use App\Console\CronQuarantine;
 use App\Console\CronUpdateMapFiles;
 use App\Console\UserAdd;
+use App\Console\MigrateMailRecipients;
 
 $services = Kernel::boot();
 $fileLogger = $services['fileLogger'];
 $syslogLogger = $services['syslogLogger'];
+$capsule = $services['capsule'];
 
 $application = new Application();
 
@@ -34,5 +36,6 @@ $application->add(new CronNotifications($fileLogger, $syslogLogger));
 $application->add(new CronQuarantine($fileLogger, $syslogLogger));
 $application->add(new CronUpdateMapFiles($fileLogger, $syslogLogger));
 $application->add(new UserAdd($fileLogger, $syslogLogger));
+$application->add(new MigrateMailRecipients($fileLogger, $syslogLogger, $capsule));
 
 $application->run();
