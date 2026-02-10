@@ -261,7 +261,7 @@ class MetadataImporterApi extends RqwatchApi
 					->insertGetId($data);
 
 				if ($db_id && $rcpt_to !== "unknown" && !empty($rcpt_to)) {
-					$recipients = json_decode($rcpt_to, true);
+					$recipients = array_unique(json_decode($rcpt_to, true));
 
 					if (is_array($recipients)) {
 						$rows = [];
