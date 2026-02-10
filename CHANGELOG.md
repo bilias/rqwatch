@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v1.6.10 - Released: 2026-02-10
+
 # 2026-02-09
 - Return 401 for authentication failures
 Fixed https://github.com/bilias/rqwatch/issues/4
@@ -19,7 +21,7 @@ Fixed https://github.com/bilias/rqwatch/issues/3
 - Wrap applyUserScope filters as one WHERE in DB (bug)
 - Fix error on empty result set (bug)
 
-## Version v1.6.8 - Released: 2025-11-28
+## Version v1.6.9 - Released: 2025-11-28
 
 ### 2025-11-20
 - Use FIND_IN_SET in applyUserScope() for faster results
