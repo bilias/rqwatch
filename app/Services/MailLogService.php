@@ -72,7 +72,12 @@ class MailLogService
 		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 	}
 
-	public function getSearchQuery(array $filters, array $fields, int $limit=null): Builder {
+	public function getSearchQuery(
+		array $filters,
+		array $fields,
+		int $limit = null,
+		bool $withRecipients = true
+	): Builder {
 		if ($limit) {
 			$query = MailLog::select($fields)
 				->orderBy('id', 'DESC')
@@ -80,6 +85,10 @@ class MailLogService
 		} else {
 			$query = MailLog::select($fields)
 				->orderBy('id', 'DESC');
+		}
+
+		if ($withRecipients) {
+			$query->with('recipients');
 		}
 
 		return $this->getQueryByFilters($query, $filters);
@@ -95,33 +104,58 @@ class MailLogService
 				if (array_key_exists('filter', $filter) &&
 				    array_key_exists('choice', $filter) &&
 					 array_key_exists('value', $filter) &&
-					 !empty($filter['filter'])) {
-							$f = $filter['filter'];
-							$c = $filter['choice'];
-							$v = $filter['value'];
+					 !empty($filter['filter'])
+				) {
+						$f = $filter['filter'];
+						$c = $filter['choice'];
+						$v = $filter['value'];
 
-							if ($c === 'LIKE') {
-								$v = "%{$v}%";
+						if ($f === 'rcpt_to') {
+							$email = strtolower(trim((string)$v));
+
+							if ($c === '=' ) {
+								$query->whereHas('recipients', function ($q) use ($email) {
+								    $q->where('recipient_email', '=', $email);
+								});
+							} elseif ($c === 'LIKE') {
+								$query->whereHas('recipients', function ($q) use ($email) {
+								    $q->where('recipient_email', 'LIKE', "%{$email}%");
+								});
+							} elseif ($c === 'NOT LIKE') {
+								$query->whereDoesntHave('recipients', function ($q) use ($email) {
+								    $q->where('recipient_email', 'LIKE', "%{$email}%");
+								});
+							} elseif ($c === '!=' || $c === '<>') {
+								$query->whereDoesntHave('recipients', function ($q) use ($email) {
+								    $q->where('recipient_email', '=', $email);
+								});
 							}
-							if ($c === 'NOT LIKE') {
-								$v = "%{$v}%";
-							}
-							if ($c === '=' and $f === 'created_at') {
-								$c = 'LIKE';
-								$v = "{$v}%";
-							}
-							$query->where($f, $c, $v);
-				}
-				/* support NULL/NOT NULL
-				else {
-					if ($c === 'is null') {
-						$query->whereNull($f);
+
+							continue; // don't run $query->where('rcpt_to', ...) on mail_logs
+						}
+
+						if ($c === 'LIKE') {
+							$v = "%{$v}%";
+						}
+						if ($c === 'NOT LIKE') {
+							$v = "%{$v}%";
+						}
+						if ($c === '=' and $f === 'created_at') {
+							$c = 'LIKE';
+							$v = "{$v}%";
+						}
+						$query->where($f, $c, $v);
 					}
-					if ($c === 'is not null') {
-						$query->whereNotNull($f);
+					/* support NULL/NOT NULL
+					else {
+						if ($c === 'is null') {
+							$query->whereNull($f);
+						}
+						if ($c === 'is not null') {
+							$query->whereNotNull($f);
+						}
 					}
-				}
-				*/
+					*/
 			}
 		}
 		return $query;
@@ -167,9 +201,10 @@ class MailLogService
 	public function showQuarantinedMail(int $id): MailLog {
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = MailLog::select($fields)
-								->where('id', $id)
-								->where('mail_stored', 1);
+		$query = MailLog::with('recipients')
+			->select($fields)
+			->where('id', $id)
+			->where('mail_stored', 1);
 
 		$query = $this->applyUserScope($query);
 
@@ -408,7 +443,8 @@ class MailLogService
 			$date = Helper::get_today();
 		}
 
-		$query = MailLog::select($fields)
+		$query = MailLog::with('recipients')
+			->select($fields)
 			->where('created_at', 'LIKE', "{$date}%")
 			->orderBy('id', 'DESC');
 
@@ -485,7 +521,8 @@ class MailLogService
 	}
 
 	public function detailById(int $id): MailLog {
-		$query = MailLog::where('id', $id);
+		$query = MailLog::with('recipients')
+			->where('id', $id);
 
 		$query = $this->applyUserScope($query);
 
@@ -503,7 +540,8 @@ class MailLogService
 	}
 
 	public function detailByQid(string $qid): MailLog {
-		$query = MailLog::where('qid', $qid);
+		$query = MailLog::with('recipients')
+			->where('qid', $qid);
 
 		$query = $this->applyUserScope($query);
 
@@ -764,49 +802,66 @@ class MailLogService
 		if (empty($this->email)) {
 			return $query->where('id', null);
 		}
-		if(!$this->is_admin) {
-			/* Old code, works for single rcpt_to entries only.
-			   We might have comma separeted values
-			// user has no aliases
-			if (empty($this->user_aliases)) {
-				return $query->where('rcpt_to', $this->email);
-			}
-			// Combine primary email with mail aliases
-			$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
-			return $query->whereIn('rcpt_to', $emails);
-			*/
-
-			/* old code. slow
-			$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
-			return $query->where(function ($q) use ($emails) {
-				foreach ($emails as $email) {
-					$q->orWhere(function ($subQ) use ($email) {
-						// Remove spaces in rcpt_to to normalize
-						$subQ->whereRaw('REPLACE(rcpt_to, " ", "") = ?', [$email])
-							  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', [$email . ',%'])
-							  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', ['%,' . $email])
-							  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', ['%,' . $email . ',%']);
-					});
-				}
-			});
-			*/
-
-			$query->where(function ($q) {
-				$q->whereRaw("FIND_IN_SET('{$this->email}', rcpt_to)");
-
-				/* XXX if aliases change and user is logged in,
-				   old values remain in user's session.
-					User has to logout/login to update values
-				*/
-				if (!empty($this->user_aliases)) {
-					foreach ($this->user_aliases as $user_alias) {
-						$q->orWhereRaw("FIND_IN_SET('{$user_alias}', rcpt_to)");
-					}
-				}
-			});
+		if($this->is_admin) {
+			return $query;
 		}
 
+		/* Old code, works for single rcpt_to entries only.
+		   We might have comma separeted values
+		// user has no aliases
+		if (empty($this->user_aliases)) {
+			return $query->where('rcpt_to', $this->email);
+		}
+		// Combine primary email with mail aliases
+		$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
+		return $query->whereIn('rcpt_to', $emails);
+		*/
+
+		/* old code. slow
+		$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
+		return $query->where(function ($q) use ($emails) {
+			foreach ($emails as $email) {
+				$q->orWhere(function ($subQ) use ($email) {
+					// Remove spaces in rcpt_to to normalize
+					$subQ->whereRaw('REPLACE(rcpt_to, " ", "") = ?', [$email])
+						  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', [$email . ',%'])
+						  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', ['%,' . $email])
+						  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', ['%,' . $email . ',%']);
+				});
+			}
+		});
+		*/
+
+		/* OLD code 2. Also slow for more than 200K mail_logs
+		$query->where(function ($q) {
+			$q->whereRaw("FIND_IN_SET('{$this->email}', rcpt_to)");
+
+			// XXX if aliases change and user is logged in,
+			//   old values remain in user's session.
+			//	User has to logout/login to update values
+
+			if (!empty($this->user_aliases)) {
+				foreach ($this->user_aliases as $user_alias) {
+					$q->orWhereRaw("FIND_IN_SET('{$user_alias}', rcpt_to)");
+				}
+			}
+		});
+
 		return $query;
+		*/
+
+		// Build list of allowed recipient emails: primary + aliases
+		$emails = array_filter(array_map(
+			fn ($e) => strtolower(trim($e)),
+			array_merge([$this->email], $this->user_aliases ?? [])
+		));
+
+		return $query->whereExists(function ($q) use ($emails) {
+			$q->selectRaw('1')
+				->from($_ENV['MAIL_RECIPIENTS_TABLE'] . ' as r')
+				->whereColumn('r.mail_log_id', 'mail_logs.id')   // IMPORTANT: table name here
+				->whereIn('r.recipient_email', $emails);
+			});
 	}
 
 	// twig can be null, it will be created
@@ -997,7 +1052,8 @@ class MailLogService
 
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = MailLog::select($fields)
+		$query = MailLog::with('recipients')
+					->select($fields)
 					->where('notification_pending', 1);
 					/*
 					->orderBy('id', 'ASC')
@@ -1038,7 +1094,8 @@ class MailLogService
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 
-		$query = MailLog::select($fields)
+		$query = MailLog::with('recipients')
+					->select($fields)
 					->where('mail_stored', 1)
 					->where('created_at', '<', $cutoffDate->format('Y-m-d H:i:s'));
 

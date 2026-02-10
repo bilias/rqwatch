@@ -11,6 +11,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 use App\Utils\Helper;
 
 use Throwable;
@@ -179,6 +181,28 @@ class MailLog extends Model
 
 	private function getMailFrom() {
 		return empty($this->mail_from) ? '' : (string) $this->mail_from;
+	}
+
+	public function recipients() {
+		return $this->hasMany(
+			MailLogRecipient::class,
+			'mail_log_id',
+			'id'
+		);
+	}
+
+	public function getRcptToAttribute($value): string {
+		if ($this->relationLoaded('recipients') && $this->recipients->isNotEmpty()) {
+			$emails = $this->recipients
+				->pluck('recipient_email')
+				->map(fn ($e) => strtolower(trim($e)))
+				->unique()
+				->values()
+				->all();
+
+			return implode(', ', $emails);
+		}
+		return (string) $value;
 	}
 
 }

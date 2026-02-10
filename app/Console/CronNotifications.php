@@ -106,7 +106,10 @@ class CronNotifications extends RqwatchCliCommand
 
 		// identify empty rcpt_to logs. Just to track their id for debugging
 		$removedLogs = $logs->filter(function ($log) {
-			return $log->rcpt_to === 'unknown';
+			//return $log->rcpt_to === 'unknown';
+			// if recipients are loaded, this catches true empties too
+			$rcpt = trim((string) $log->rcpt_to);
+			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
 		if (count($removedLogs) > 0) {
@@ -124,7 +127,9 @@ class CronNotifications extends RqwatchCliCommand
 
 		// filter out empty rcpt_to logs
 		$logs = $logs->reject(function ($log) {
-			return $log->rcpt_to === 'unknown';
+			// return $log->rcpt_to === 'unknown';
+			$rcpt = trim((string) $log->rcpt_to);
+			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
 		// identify blacklisted mails and remove them if send_blacklisted is not set

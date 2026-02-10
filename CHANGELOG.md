@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 # 2026-02-10 - mail_log_recipients branch
+- Update CLI tools to use mail_log_recipients table
+- Update MailLogServices to use mail_log_recipients table for (much) better performance
 - Create MigrateMailRecipients cli tool
 
 # 2026-02-09 - mail_log_recipients branch
