@@ -471,6 +471,8 @@ on maillogs pages.\
 
 - `$show_mail_stats` - Calculate statistics on the mail search page
 
+- `$show_user_mail_stats` - Show mail stats to users
+
 - `$password_hash` - Default password hash for local users\
   See PHP's [password_hash](https://www.php.net/manual/en/function.password-hash.php)
   documentation for details.
