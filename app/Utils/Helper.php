@@ -710,10 +710,14 @@ You can view mail details and optionally release it from quarantine by clicking 
 	}
 
 	public static function isLocalOrReservedIp(string $ip): bool {
+		if ($ip == 'unknown') {
+			return true;
+		}
+
 		try {
 			$ipObj = IP::create($ip);
 		} catch (InvalidArgumentException $e) {
-			return false; // Invalid IP format
+			return true; // Invalid IP format
 		}
 
 		return $ipObj->isPrivate()
