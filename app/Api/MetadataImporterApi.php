@@ -146,7 +146,7 @@ class MetadataImporterApi extends RqwatchApi
 		$store_settings = Config::get('store_settings');
 		
 		if ((!empty($action) && !empty($store_settings[$action])) || $has_virus) {
-			if ($mail_location = Helper::store_raw_mail($_ENV['QUARANTINE_DIR'], $qid)) {
+			if ($mail_location = Helper::store_raw_mail($_ENV['QUARANTINE_DIR'], $qid, $rawEmail)) {
 				$this->syslogLogger->info("$qid stored in quarantine: $mail_location");
 				$mail_stored = 1;
 			} else {

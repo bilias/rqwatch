@@ -2,12 +2,15 @@
 
 ## Master Dev Branch
 
-# 2026-02-10 - mail_log_recipients branch
+# 2026-02-11
+- Update storage of raw mail to be used my legacy and multipart formatter
+
+# 2026-02-10
 - Update CLI tools to use mail_log_recipients table
 - Update MailLogServices to use mail_log_recipients table for (much) better performance
 - Create MigrateMailRecipients cli tool
 
-# 2026-02-09 - mail_log_recipients branch
+# 2026-02-09
 - Modify MetadataImporterApi.php to write to mail_log_recipients table
 - Create mail_log_recipients table
 

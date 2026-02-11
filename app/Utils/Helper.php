@@ -32,7 +32,7 @@ class Helper {
 	}
 
 	// Stores raw mail into filesystem. Can be used for release to user
-	public static function store_raw_mail($dir, $qid) {
+	public static function store_raw_mail(string $dir, string $qid, ?string $rawEmail = null) {
 		if (!is_dir($dir)) {
 			self::$logger->error("$dir does not exist");
 			return false;
@@ -43,7 +43,12 @@ class Helper {
 			return false;
 		}
 
-		$raw_input = file_get_contents('php://input');
+		if ($rawEmail !== null && $rawEmail !== '') {
+			$raw_input = $rawEmail;
+		} else {
+			// Legacy fallback only for 'default' formatter
+			$raw_input = file_get_contents('php://input');
+		}
 
 		if (empty($raw_input)) {
 			self::$logger->error("No input received.");
