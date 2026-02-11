@@ -188,7 +188,8 @@ php_value[date.timezone]  = Europe/Athens
 php_admin_value[upload_tmp_dir] = /quarantine/tmp
 EOF
 ```
-Modify `upload_tmp_dir` to match a folder inside your [QUARANTINE_DIR](/docs/CONFIGURE.md#quarantine-settings). See [Quarantine location](/docs/INSTALL.md#quarantine-location)
+Modify `upload_tmp_dir` to match a folder inside your [QUARANTINE_DIR](/docs/CONFIGURE.md#quarantine-settings).\
+See [Quarantine location](/docs/INSTALL.md#quarantine-location).
 
 Modify `date.timezone` to match your local [timezone](https://www.php.net/manual/en/timezones.php).
 
