@@ -140,11 +140,14 @@ class MailLogService
 						if ($c === 'NOT LIKE') {
 							$v = "%{$v}%";
 						}
-						if ($c === '=' and $f === 'created_at') {
-							$c = 'LIKE';
-							$v = "{$v}%";
+						if ($c === '=' && $f === 'created_at') {
+							$query->whereBetween('created_at', [
+								"{$v} 00:00:00",
+								"{$v} 23:59:59"
+							]);
+						} else {
+							$query->where($f, $c, $v);
 						}
-						$query->where($f, $c, $v);
 					}
 					/* support NULL/NOT NULL
 					else {
@@ -470,7 +473,10 @@ class MailLogService
 		}
 
 		$query = MailLog::select($fields)
-			->where('created_at', 'LIKE', "{$date}%")
+			->whereBetween('created_at', [
+				"{$date} 00:00:00",
+				"{$date} 23:59:59"
+			])
 			->where('mail_stored', 1)
 			->orderBy('created_at', 'DESC');
 
