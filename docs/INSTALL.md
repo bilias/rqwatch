@@ -284,7 +284,7 @@ chown rqwatch:rqwatch /quarantine
 chmod 750 /quarantine
 ```
 
-It is also recommended to use a tmp folder there to avoid copying files between different filesystems.
+It is also recommended to use a tmp folder there to avoid copying files between different filesystems.\
 See `upload_tmp_dir` in [PHP-FPM](/docs/INSTALL.md#user-content-php-fpm)
 ```
 mkdir /quarantine/tmp
