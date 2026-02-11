@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+# 2026-02-11
+- Refactor deleteDirectory() for quarantine delete 
+- Use hash_equals for username/password checking to mitigate timing attacks
+
 ## Version v1.7.0 - Released: 2026-02-11
 Warning, schema change. See docs/MAIL_RECIPIENTS_UPDATE.md
 
