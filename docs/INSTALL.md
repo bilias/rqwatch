@@ -50,7 +50,7 @@ However, Rqwatch should run on any system with minor adjustments, as it requires
 
 - git
 
-**Rspamd 3.12**
+**Rspamd 3.14.2+**
 
 ## Installation
 All commands below are run as root/sudo unless told otherwise.
