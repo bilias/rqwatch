@@ -1,9 +1,9 @@
 # CHANGELOG
 
+## Master Dev Branch
+
 ## Version v1.7.0 - Released: 2026-02-11
 Warning, schema change. See docs/MAIL_RECIPIENTS_UPDATE.md
-
-## Master Dev Branch
 
 # 2026-02-11
 - Created MetadataImporterMultipartApi for new multipart formatter of metadata exporter
