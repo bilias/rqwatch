@@ -739,33 +739,89 @@ You can view mail details and optionally release it from quarantine by clicking 
 	}
 
 	public static function deleteDirectory(string $dir): bool {
-		$quarantineDir = rtrim($_ENV['QUARANTINE_DIR'], DIRECTORY_SEPARATOR);
+		$quarantineEnv = trim((string)($_ENV['QUARANTINE_DIR'] ?? ''));
+		if ($quarantineEnv === '' || $quarantineEnv === DIRECTORY_SEPARATOR) {
+			self::$logger->warning("QUARANTINE_DIR is empty or points to root /");
+			return false;
+		}
+
+		$quarantineDir = rtrim($quarantineEnv, DIRECTORY_SEPARATOR);
 
 		// Resolve real paths for security
-		$realDir = realpath($dir);
 		$realQuarantine = realpath($quarantineDir);
+		$realDir = realpath($dir);
 
-		// Safety check: ensure $dir is inside quarantine directory
-		if (!$realDir || !$realQuarantine || strpos($realDir, $realQuarantine) !== 0) {
-			// Not inside QUARANTINE_DIR, do NOT delete
+		if ($realDir === false || $realQuarantine === false) {
+			self::$logger->warning("Quarantine directory problem");
+			return false;
+		}
+
+		if (!is_dir($realQuarantine)) {
+			self::$logger->warning("QUARANTINE_DIR is not a directory");
+			return false;
+		}
+
+		// Don't allow operations on filesystem root
+		if ($realQuarantine === DIRECTORY_SEPARATOR || $realDir === DIRECTORY_SEPARATOR) {
+			self::$logger->warning("Quarantine points to root /");
+			return false;
+		}
+
+		// Safety check: ensure $dir is inside quarantine directory and not just
+		// sharing a common prefix (e.g. /var/q and /var/q-backup)
+		$quarantinePrefix = rtrim($realQuarantine, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+		$isInsideQuarantine = str_starts_with($realDir, $quarantinePrefix);
+
+		if (!$isInsideQuarantine) {
+			self::$logger->warning("Quarantine $realDir is not inside QUARANTINE_DIR");
 			return false;
 		}
 
 		if (!is_dir($realDir)) {
+			self::$logger->warning("Quarantine $realDir is not a directory");
 			return false;
 		}
 
-		$files = array_diff(scandir($realDir), ['.', '..']);
-		foreach ($files as $file) {
-			$path = $realDir . DIRECTORY_SEPARATOR . $file;
-			if (is_dir($path)) {
-				self::deleteDirectory($path);
-			} else {
-				unlink($path);
-			}
+		$files = scandir($realDir);
+		if ($files === false) {
+			self::$logger->warning("Quarantine $realDir scan problem");
+			return false;
 		}
 
-		rmdir($realDir);
+		foreach ($files as $file) {
+			if ($file === '.' || $file === '..') {
+				continue;
+			}
+
+			$path = $realDir . DIRECTORY_SEPARATOR . $file;
+
+			// Never follow symlinks; just unlink them
+			if (is_link($path) || is_file($path)) {
+				if (!unlink($path)) {
+					self::$logger->warning("Cannot unlink file in quarantine: $path");
+					return false;
+				}
+				continue;
+			}
+
+			if (is_dir($path)) {
+				if (!self::deleteDirectory($path)) {
+					self::$logger->warning("Cannot delete directory in quarantine: $path");
+					return false;
+				}
+				continue;
+			}
+
+			// Unknown filesystem object (fifo/socket/etc) - fail closed
+			self::$logger->warning("Unknown file type in quarantine: $path");
+			return false;
+		}
+
+		if (!rmdir($realDir)) {
+			self::$logger->warning("Cannot remove directory in quarantine: $realDir");
+			return false;
+		}
+
 		return true;
 	}
 
