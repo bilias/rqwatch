@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 # 2026-02-11
+- Day queries optimizations
 - Refactor deleteDirectory() for quarantine delete 
 - Use hash_equals for username/password checking to mitigate timing attacks
 
