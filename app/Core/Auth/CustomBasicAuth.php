@@ -33,22 +33,25 @@ class CustomBasicAuth implements AuthInterface {
 	}
 
 	public function authenticate(): bool {
-		if (empty($_SERVER['PHP_AUTH_USER']) or empty($_SERVER['PHP_AUTH_PW'])) {
+		if (empty($_SERVER['PHP_AUTH_USER']) || empty($_SERVER['PHP_AUTH_PW'])) {
 			$this->failAuth();
 		}
 
-		if (($_SERVER['PHP_AUTH_USER'] !== $this->username) or
-			 ($_SERVER['PHP_AUTH_PW'] !== $this->password)) {
+		$providedUser = (string) $_SERVER['PHP_AUTH_USER'];
+		$providedPass = (string) $_SERVER['PHP_AUTH_PW'];
+
+		if (!hash_equals($this->username, $providedUser) ||
+			!hash_equals($this->password, $providedPass)) {
 			if (API_MODE) {
 				$mode = " API ";
 			} else {
 				$mode = "";
 			}
-			$this->logger->warning("Failed" . $mode . "Basic Auth user: '{$_SERVER['PHP_AUTH_USER']}' from '{$_SERVER['REMOTE_ADDR']}'");
+			$this->logger->warning("Failed" . $mode . "Basic Auth user: '{$providedUser}' from '{$_SERVER['REMOTE_ADDR']}'");
 			sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 			$this->failAuth();
 		} else {
-			$this->authenticatedUser = $_SERVER['PHP_AUTH_USER'];
+			$this->authenticatedUser = $providedUser;
 			return true; // authenticated
 		}
 		return false;
