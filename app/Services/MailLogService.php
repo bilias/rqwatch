@@ -80,11 +80,11 @@ class MailLogService
 	): Builder {
 		if ($limit) {
 			$query = MailLog::select($fields)
-				->orderBy('id', 'DESC')
+				->orderBy('created_at', 'DESC')
 				->limit($limit);
 		} else {
 			$query = MailLog::select($fields)
-				->orderBy('id', 'DESC');
+				->orderBy('created_at', 'DESC');
 		}
 
 		if ($withRecipients) {
@@ -407,8 +407,8 @@ class MailLogService
 		$stats['count'] = $query->count();
 
 		if (($stats['count']) > 0) {
-			$stats['first'] = (clone $query)->select('created_at')->orderBy('id', 'ASC')->first()->created_at->toDateTimeString();
-			$stats['last'] = (clone $query)->select('created_at')->orderBy('id', 'DESC')->first()->created_at->toDateTimeString();
+			$stats['first'] = (clone $query)->select('created_at')->orderBy('created_at', 'ASC')->first()->created_at->toDateTimeString();
+			$stats['last'] = (clone $query)->select('created_at')->orderBy('created_at', 'DESC')->first()->created_at->toDateTimeString();
 			$stats['stored'] = (clone $query)->where('mail_stored', 1)->count();
 			$stats['notified'] = (clone $query)->where('notified', 1)->count();
 			$stats['released'] = (clone $query)->where('released', 1)->count();
@@ -445,8 +445,11 @@ class MailLogService
 
 		$query = MailLog::with('recipients')
 			->select($fields)
-			->where('created_at', 'LIKE', "{$date}%")
-			->orderBy('id', 'DESC');
+			->whereBetween('created_at', [
+				"{$date} 00:00:00",
+				"{$date} 23:59:59"
+			])
+			->orderBy('created_at', 'DESC');
 
 		$query = $this->applyUserScope($query);
 
@@ -469,7 +472,7 @@ class MailLogService
 		$query = MailLog::select($fields)
 			->where('created_at', 'LIKE', "{$date}%")
 			->where('mail_stored', 1)
-			->orderBy('id', 'DESC');
+			->orderBy('created_at', 'DESC');
 
 		$query = $this->applyUserScope($query);
 

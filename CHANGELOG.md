@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 # 2026-02-11
+- Faster performance for some queries
 - Update storage of raw mail to be used my legacy and multipart formatter
 
 # 2026-02-10
