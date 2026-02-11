@@ -5,7 +5,7 @@ when mail logs are more than 250K.
 
 Here is the procedure to apply this update:
 
-- edit `.env` file and add `MAIL_RECIPIENTS_TABLE` entry:
+- edit `.env` file and add `MAIL_RECIPIENTS_TABLE` entry on all of your servers (WEB/API):
   ```
   MAILLOGS_TABLE=mail_logs
   MAIL_RECIPIENTS_TABLE=mail_log_recipients
@@ -30,10 +30,10 @@ Here is the procedure to apply this update:
   This script also exists in `contrib/updates/02-db-update-2026-01-09`
   but you don't have it yet.
 
-- Stop cron jobs:\
+- Stop cron jobs on all API servers:\
 `systemctl stop crond`
 
-- Update code from git\
+- Update code from git on all API servers\
 `git pull`
 
 - Migrate mail recipient entries. This will take rcpt_to entries from mail_logs and insert them in `mail_log_recipients` table:
@@ -41,6 +41,11 @@ Here is the procedure to apply this update:
   ./bin/cli.php mail:migrate_mail_recipients
   ```
 
-- Start cron jobs:\
+- Start cron jobs on all API servers:\
 `systemctl start crond`
+
+- Update code from git on all WEB servers\
+`git pull`
+
+- `composer dump-autoload` will be needed if you have run it in the past
 
