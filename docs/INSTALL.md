@@ -185,6 +185,7 @@ php_value[post_max_size] = 64M
 php_value[upload_max_filesize] = 64M
 php_admin_value[memory_limit] = 128M
 php_value[date.timezone]  = Europe/Athens
+php_admin_value[upload_tmp_dir] = /quarantine/tmp
 EOF
 ```
 Modify `date.timezone` to match your local [timezone](https://www.php.net/manual/en/timezones.php).
@@ -281,6 +282,16 @@ mkdir /quarantine
 chown rqwatch:rqwatch /quarantine
 
 chmod 750 /quarantine
+```
+
+It is also recommended to use a tmp folder there to avoid copying files between different filesystems.
+See `upload_tmp_dir` in [PHP-FPM](/docs/INSTALL.md#user-content-php-fpm)
+```
+mkdir /quarantine/tmp
+
+chown rqwatch:rqwatch /quarantine/tmp
+
+chmod 750 /quarantine/tmp
 ```
 
 # [Configuration](CONFIGURE.md)
