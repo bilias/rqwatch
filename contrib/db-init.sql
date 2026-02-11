@@ -170,13 +170,14 @@ CREATE TABLE `mail_logs` (
 
 DROP TABLE IF EXISTS `mail_log_recipients`;
 
-CREATE TABLE mail_log_recipients (
-  mail_log_id INT(10) UNSIGNED NOT NULL,
-  recipient_email VARCHAR(255) NOT NULL,
-  PRIMARY KEY (mail_log_id, recipient_email),
-  KEY recipient_email_idx (recipient_email),
-  CONSTRAINT fk_mail
-    FOREIGN KEY (mail_log_id)
-    REFERENCES mail_logs(id)
+CREATE TABLE `mail_log_recipients` (
+  `mail_log_id` int(10) unsigned NOT NULL,
+  `recipient_email` varchar(255) NOT NULL,
+  PRIMARY KEY (`mail_log_id`,`recipient_email`),
+  KEY `recipient_email_idx` (`recipient_email`),
+  KEY `recipient_email_mail_log_id_idx` (`recipient_email`,`mail_log_id`),
+  CONSTRAINT `fk_mail`
+    FOREIGN KEY (`mail_log_id`)
+    REFERENCES `mail_logs`
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
