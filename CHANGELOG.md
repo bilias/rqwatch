@@ -2,13 +2,13 @@
 
 ## Master Dev Branch
 
+## Version v1.7.0 - Released: 2026-02-11
+Warning, schema change. See docs/MAIL_RECIPIENTS_UPDATE.md
+
 # 2026-02-11
 - Day queries optimizations
 - Refactor deleteDirectory() for quarantine delete 
 - Use hash_equals for username/password checking to mitigate timing attacks
-
-## Version v1.7.0 - Released: 2026-02-11
-Warning, schema change. See docs/MAIL_RECIPIENTS_UPDATE.md
 
 # 2026-02-11
 - Created MetadataImporterMultipartApi for new multipart formatter of metadata exporter
