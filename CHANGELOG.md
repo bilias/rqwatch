@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 # 2026-02-11
+- Created MetadataImporterMultipartApi for new multipart formatter of metadata exporter
 - Faster performance for some queries
 - Update storage of raw mail to be used my legacy and multipart formatter
 
