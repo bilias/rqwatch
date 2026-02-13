@@ -89,7 +89,7 @@ class MetadataImporterApi extends RqwatchApi
 		$qid      = @$web_headers['X-Rspamd-Qid'];
 		$fuzzy    = @$web_headers['X-Rspamd-Fuzzy'];
 		//$subject_old  = iconv_mime_decode($web_headers['X-Rspamd-Subject'], 2);
-		$subject  = mb_decode_mimeheader($web_headers['X-Rspamd-Subject']);
+		$subject = mb_decode_mimeheader($web_headers['X-Rspamd-Subject'] ?? '');
 		$score    = @$web_headers['X-Rspamd-Score'];
 		$rcpt_to  = @$web_headers['X-Rspamd-Rcpt'];
 		//$user     = @$web_headers['X-Rspamd-User'];
