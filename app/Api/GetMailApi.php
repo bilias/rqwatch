@@ -19,14 +19,17 @@ class GetMailApi extends RqwatchApi
 {
 	protected string $logPrefix = 'GetMailApi';
 
+	#[\Override]
 	protected function getAllowedIps(): array {
 		return array_map('trim', explode(',', $_ENV['MAIL_API_ACL']));
 	}
 
+	#[\Override]
 	protected function getAuthCredentials(): array {
 		return [$_ENV['MAIL_API_USER'], $_ENV['MAIL_API_PASS']];
 	}
 
+	#[\Override]
 	public function handle(): void {
 		$id = $this->request->request->get('id');
 		$remote_user = $this->request->request->get('remote_user');

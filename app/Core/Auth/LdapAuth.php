@@ -45,6 +45,7 @@ class LdapAuth implements AuthInterface {
 		];
 	}
 
+	#[\Override]
 	public function authenticate(): bool {
 		if (empty($this->username) or empty($this->password)) {
 			return false;
@@ -207,6 +208,7 @@ class LdapAuth implements AuthInterface {
 		return "{$ldap_error}. {$ldap_diag}";
 	}
 
+	#[\Override]
 	public function getAuthenticatedUser(): string {
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");

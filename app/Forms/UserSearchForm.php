@@ -32,6 +32,7 @@ use App\Utils\FormHelper;
 
 class UserSearchForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
             ->add('user', TextType::class, [

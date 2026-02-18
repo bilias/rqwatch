@@ -43,6 +43,7 @@ class BasicAuth implements AuthInterface {
 		];
 	}
 
+	#[\Override]
 	public function authenticate(): bool {
 		if (empty($_SERVER['PHP_AUTH_USER']) || empty($_SERVER['PHP_AUTH_PW'])) {
 			$this->doBasicAuth(); // end exit
@@ -75,6 +76,7 @@ class BasicAuth implements AuthInterface {
 		exit;
 	}
 
+	#[\Override]
 	public function getAuthenticatedUser(): string {
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");

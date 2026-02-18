@@ -24,6 +24,7 @@ use RuntimeException;
 
 class MapWithTwoFieldsUserOverrideForm extends MapWithTwoFieldsForm
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
 		if (static::$firstFieldName === '' || static::$secondFieldName === '') {
 			throw new RuntimeException("Field names must be defined in child class: " . static::class);
@@ -60,6 +61,7 @@ class MapWithTwoFieldsUserOverrideForm extends MapWithTwoFieldsForm
 			]);
 	}
 
+	#[\Override]
 	public function configureOptions(OptionsResolver $resolver): void {
 		// Define allowed custom options
 		$resolver->setDefined(['role']);

@@ -30,6 +30,7 @@ use App\Utils\FormHelper;
 
 class MailReleaseForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
             ->add('email', EmailType::class, [

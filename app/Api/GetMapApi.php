@@ -24,14 +24,17 @@ class GetMapApi extends RqwatchApi
 {
 	protected string $logPrefix = 'GetMapApi';
 
+	#[\Override]
 	protected function getAllowedIps(): array {
 		return array_map('trim', explode(',', $_ENV['MAP_API_ACL']));
 	}
 
+	#[\Override]
 	protected function getAuthCredentials(): array {
 		return [$_ENV['MAP_API_USER'], $_ENV['MAP_API_PASS']];
 	}
 
+	#[\Override]
 	public function handle(): void {
 		$map = $this->request->query->get('map');
 		if (!$map) {

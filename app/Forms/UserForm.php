@@ -38,6 +38,7 @@ use App\Utils\FormHelper;
 
 class UserForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
             ->add('username', TextType::class, [
@@ -185,6 +186,7 @@ class UserForm extends AbstractType
 		return null;
 	}
 
+	#[\Override]
 	public function configureOptions(OptionsResolver $resolver) {
         $resolver->setDefaults([
             //'data_class' => User::class,

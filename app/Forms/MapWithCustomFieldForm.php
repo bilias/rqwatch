@@ -36,6 +36,7 @@ class MapWithCustomFieldForm extends AbstractType
 {
 	protected static string $fieldName = 'custom';
 
+	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
 
 		$field = MapInventory::getFieldDefinitions(static::$fieldName);
@@ -106,6 +107,7 @@ class MapWithCustomFieldForm extends AbstractType
 	}
 
 
+	#[\Override]
 	public function configureOptions(OptionsResolver $resolver): void {
 		$resolver->setDefined(['role']);
 		$resolver->setDefined(['map']);

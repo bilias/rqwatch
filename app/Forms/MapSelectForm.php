@@ -33,6 +33,7 @@ use App\Inventory\MapInventory;
 
 class MapSelectForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
 		// Dynamically populate based on MapDefinitions
 		//$configs = MapInventory::getMapConfigs();
@@ -114,6 +115,7 @@ class MapSelectForm extends AbstractType
 		return null;
 	}
 
+	#[\Override]
 	public function configureOptions(OptionsResolver $resolver): void {
 		/*
 		$resolver->setDefaults([

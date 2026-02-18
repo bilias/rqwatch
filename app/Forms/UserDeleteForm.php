@@ -29,6 +29,7 @@ use App\Utils\FormHelper;
 
 class UserDeleteForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
 		  $username = htmlspecialchars($options['data']['username'] ?? 'this user', ENT_QUOTES);
         $formFactory

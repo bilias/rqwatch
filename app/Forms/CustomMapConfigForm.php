@@ -32,6 +32,7 @@ use App\Utils\FormHelper;
 
 class CustomMapConfigForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
             ->add('map_name', TextType::class, [

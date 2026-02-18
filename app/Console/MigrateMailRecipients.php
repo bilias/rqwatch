@@ -60,6 +60,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 		$this->capsule = $capsule;
 	}
 
+	#[\Override]
 	protected function configure(): void {
 		$this
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
@@ -68,6 +69,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 		;
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		if (!$this->lock()) {
 			$output->writeln('<comment>Already running in another process.</comment>');

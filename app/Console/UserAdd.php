@@ -52,6 +52,7 @@ class UserAdd extends RqwatchCliCommand
 		$this->syslogLogger = $syslogLogger;
 	}
 
+	#[\Override]
 	protected function configure(): void {
 		$this
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
@@ -66,6 +67,7 @@ class UserAdd extends RqwatchCliCommand
 		;
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		if (!$this->lock()) {
 			$output->writeln('<comment>Already running in another process.</comment>');

@@ -36,6 +36,7 @@ class MapWithTwoFieldsForm extends AbstractType
 	protected static string $firstFieldName = '';
 	protected static string $secondFieldName = '';
 
+	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
 		if (static::$firstFieldName === '' || static::$secondFieldName === '') {
 			throw new RuntimeException("Field names must be defined in child class: " . static::class);
@@ -77,6 +78,7 @@ class MapWithTwoFieldsForm extends AbstractType
 		return null;
 	}
 
+	#[\Override]
 	public function configureOptions(OptionsResolver $resolver): void {
 		/*
 		$resolver->setDefaults([

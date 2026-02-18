@@ -35,6 +35,7 @@ class MapWithOneFieldForm extends AbstractType
 {
 	protected static string $fieldName = '';
 
+	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
 		if (static::$fieldName === '') {
 			throw new RuntimeException("Field name must be defined in child class: " . static::class);
@@ -75,6 +76,7 @@ class MapWithOneFieldForm extends AbstractType
 	}
 
 
+	#[\Override]
 	public function configureOptions(OptionsResolver $resolver): void {
 		$resolver->setDefined(['role']);
 	}

@@ -54,6 +54,7 @@ class CronUpdateMapFiles extends RqwatchCliCommand
 		$this->syslogLogger = $syslogLogger;
 	}
 
+	#[\Override]
 	protected function configure(): void {
 		$this
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
@@ -94,6 +95,7 @@ class CronUpdateMapFiles extends RqwatchCliCommand
 		return true;
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		if (!$this->lock()) {
 			$output->writeln('<comment>Already running in another process.</comment>');

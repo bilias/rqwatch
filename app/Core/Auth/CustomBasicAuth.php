@@ -32,6 +32,7 @@ class CustomBasicAuth implements AuthInterface {
 		$this->password = trim($_ENV['API_PASS']);
 	}
 
+	#[\Override]
 	public function authenticate(): bool {
 		if (empty($_SERVER['PHP_AUTH_USER']) || empty($_SERVER['PHP_AUTH_PW'])) {
 			$this->failAuth();
@@ -57,6 +58,7 @@ class CustomBasicAuth implements AuthInterface {
 		return false;
 	}
 
+	#[\Override]
 	public function getAuthenticatedUser(): string {
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");

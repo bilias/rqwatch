@@ -32,6 +32,7 @@ use App\Utils\FormHelper;
 
 class MapSearchForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
             ->add('field', TextType::class, [

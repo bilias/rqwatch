@@ -30,6 +30,7 @@ use App\Utils\FormHelper;
 
 class ProfileForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
             ->add('firstname', TextType::class, [

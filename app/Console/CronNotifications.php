@@ -56,6 +56,7 @@ class CronNotifications extends RqwatchCliCommand
 		$this->syslogLogger = $syslogLogger;
 	}
 
+	#[\Override]
 	protected function configure(): void {
 		$this
 			// ->setDescription('Notifications for stored mails')
@@ -67,6 +68,7 @@ class CronNotifications extends RqwatchCliCommand
 		;
 	}
 
+	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		if (!$this->lock()) {
 			$output->writeln('<comment>Already running in another process.</comment>');

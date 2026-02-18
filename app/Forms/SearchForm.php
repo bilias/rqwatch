@@ -33,6 +33,7 @@ use App\Utils\FormHelper;
 
 class SearchForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
             ->add('filter', ChoiceType::class, [

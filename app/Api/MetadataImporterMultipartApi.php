@@ -52,14 +52,17 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			$this->capsule = $capsule;
 	}
 
+	#[\Override]
 	protected function getAllowedIps(): array {
 		return array_map('trim', explode(',', $_ENV['RSPAMD_API_ACL']));
 	}
 
+	#[\Override]
 	protected function getAuthCredentials(): array {
 		return [$_ENV['RSPAMD_API_USER'], $_ENV['RSPAMD_API_PASS']];
 	}
 
+	#[\Override]
 	public function handle(): void {
 
 		try {

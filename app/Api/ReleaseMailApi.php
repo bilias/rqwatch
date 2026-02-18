@@ -19,14 +19,17 @@ class ReleaseMailApi extends RqwatchApi
 {
 	protected string $logPrefix = 'ReleaseMailApi';
 
+	#[\Override]
 	protected function getAllowedIps(): array {
 		return array_map('trim', explode(',', $_ENV['MAIL_API_ACL']));
 	}
 
+	#[\Override]
 	protected function getAuthCredentials(): array {
 		return [$_ENV['MAIL_API_USER'], $_ENV['MAIL_API_PASS']];
 	}
 
+	#[\Override]
 	public function handle(): void {
 		$post = $this->request->request->all();
 

@@ -32,6 +32,7 @@ use App\Utils\FormHelper;
 
 class MailAliasSearchForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
             ->add('alias', TextType::class, [

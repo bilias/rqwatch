@@ -29,6 +29,7 @@ use App\Utils\FormHelper;
 
 class MailAliasForm extends AbstractType
 {
+	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
             ->add('username', TextType::class, [
