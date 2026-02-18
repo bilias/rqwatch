@@ -68,7 +68,6 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		try {
 			$contentType = (string) $this->request->headers->get('Content-Type', '');
 
-			$meta = [];
 			$rawEmail = '';
 
 			if (stripos($contentType, 'multipart/form-data') === false) {
