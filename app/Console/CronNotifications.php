@@ -241,7 +241,6 @@ class CronNotifications extends RqwatchCliCommand
 			$log->symbols = $ar[$key]['symbols'];
 			$log->virus_found = $ar[$key]['virus_found'];
 
-			$virus_name = '';
 			if (!empty($ar[$key]['virus_found'])) {
 				$log->virus_name = $ar[$key]['virus_found'];
 			}
