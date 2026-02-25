@@ -75,6 +75,11 @@ class CronQuarantine extends RqwatchCliCommand
 		$prune_quaranatine = $input->getOption('prune');
 		$show_quaranatine = $input->getOption('show');
 
+		// check for prune
+		if ($prune_quaranatine) {
+			$this->pruneEmptyQuarantineDateDirs($output);
+		}
+
 		$service = new MailLogService($this->fileLogger);
 
 		// MailLog Collection
@@ -152,10 +157,6 @@ class CronQuarantine extends RqwatchCliCommand
 		}
 
 		if (!$delete_quarantine) {
-			// check for prune
-			if ($prune_quaranatine) {
-				$this->pruneEmptyQuarantineDateDirs($output);
-			}
 			$output->writeln("<info>Use -d to delete entries from quarantine{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
 			$this->printRuntime($output);
@@ -166,11 +167,6 @@ class CronQuarantine extends RqwatchCliCommand
 		$service->cleanQuarantine($logs, $output);
 
 		//$logs_ar = $logs->toArray();
-
-		// check for prune
-		if ($prune_quaranatine) {
-			$this->pruneEmptyQuarantineDateDirs($output);
-		}
 
 		$this->printRuntime($output);
 		return Command::SUCCESS;

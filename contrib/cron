@@ -7,4 +7,4 @@
 */5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:updatemapfiles
 
 # clean quarantine (local only) daily
-01 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:quarantine -d -l
+01 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:quarantine -d -l -p

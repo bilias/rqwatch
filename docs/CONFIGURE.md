@@ -582,6 +582,7 @@ Available commands for the "cron" namespace:
     Options:
       -d, --delete          Delete entries from quarantine
       -l, --local           Clean quarantine for local server only
+      -p, --prune           Prune empty directories from quarantine
       -s, --show            Show entries in quaranting pending to be deleted
     ```
 
@@ -617,7 +618,7 @@ The default cron template suggests:
 */5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:updatemapfiles
 
 # clean quarantine (local only) daily
-01 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:quarantine -d -l
+01 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:quarantine -d -l -p
 ```
 - Sends notification every 5 minutes for mails stored locally (API servers)
 - Update Map files every 5 minutes (API servers)

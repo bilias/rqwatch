@@ -2,6 +2,16 @@
 
 ## Master Dev Branch
 
+# 2026-02-25
+- Prune empty directories from Quarantine
+
+# 2026-02-18
+- Remove unused vars
+
+# 2026-02-13
+- Add CGIPassAuth On
+- Check subject before mb_decode_mimeheader
+
 ## Version v1.7.0 - Released: 2026-02-11
 Warning, schema change. See docs/MAIL_RECIPIENTS_UPDATE.md
 
