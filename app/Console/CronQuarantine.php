@@ -56,6 +56,7 @@ class CronQuarantine extends RqwatchCliCommand
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
 			->addOption('delete', 'd', InputOption::VALUE_NONE, 'Delete entries from quarantine')
 			->addOption('local', 'l', InputOption::VALUE_NONE, 'Clean quarantine for local server only')
+			->addOption('prune', 'p', InputOption::VALUE_NONE, 'Prune empty directories from quarantine')
 			->addOption('show', 's', InputOption::VALUE_NONE, 'Show entries in quaranting pending to be deleted')
 		;
 	}
@@ -71,6 +72,7 @@ class CronQuarantine extends RqwatchCliCommand
 		//$param = $input->getArgument('param');
 		$delete_quarantine = $input->getOption('delete');
 		$show_local_only = $input->getOption('local');
+		$prune_quaranatine = $input->getOption('prune');
 		$show_quaranatine = $input->getOption('show');
 
 		$service = new MailLogService($this->fileLogger);
@@ -150,6 +152,10 @@ class CronQuarantine extends RqwatchCliCommand
 		}
 
 		if (!$delete_quarantine) {
+			// check for prune
+			if ($prune_quaranatine) {
+				$this->pruneEmptyQuarantineDateDirs($output);
+			}
 			$output->writeln("<info>Use -d to delete entries from quarantine{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
 			$this->printRuntime($output);
@@ -161,7 +167,76 @@ class CronQuarantine extends RqwatchCliCommand
 
 		//$logs_ar = $logs->toArray();
 
+		// check for prune
+		if ($prune_quaranatine) {
+			$this->pruneEmptyQuarantineDateDirs($output);
+		}
+
 		$this->printRuntime($output);
 		return Command::SUCCESS;
 	}
+
+	private function pruneEmptyQuarantineDateDirs(OutputInterface $output): void {
+		$root = $_ENV['QUARANTINE_DIR'] ?? null;
+
+		if (!$root) {
+			$output->writeln(
+				'<comment>QUARANTINE_DIR not set; skipping prune</comment>',
+				OutputInterface::VERBOSITY_NORMAL
+			);
+			return;
+		}
+
+		$rootReal = rtrim(realpath($root) ?: $root, DIRECTORY_SEPARATOR);
+
+		if (!is_dir($rootReal)) {
+			$output->writeln(
+				"<comment>Quarantine root not found: {$rootReal}; skipping prune</comment>",
+				OutputInterface::VERBOSITY_NORMAL
+			);
+			return;
+		}
+
+		$entries = @scandir($rootReal) ?: [];
+
+		foreach ($entries as $name) {
+			if ($name === '.' || $name === '..') {
+				continue;
+			}
+
+			// Only YYYY-MM-DD
+			if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $name)) {
+				continue;
+			}
+
+			// Validate real calendar date
+			[$y, $m, $d] = explode('-', $name);
+			if (!checkdate((int)$m, (int)$d, (int)$y)) {
+				continue;
+			}
+
+			$dateDir = $rootReal . DIRECTORY_SEPARATOR . $name;
+			$dateDirReal = rtrim(realpath($dateDir) ?: $dateDir, DIRECTORY_SEPARATOR);
+
+			// Safety: must be directory and inside root
+			if (!is_dir($dateDirReal) ||
+				!str_starts_with($dateDirReal, $rootReal . DIRECTORY_SEPARATOR)) {
+				continue;
+			}
+
+			// Delete only if empty
+			$items = array_diff(@scandir($dateDirReal) ?: [], ['.', '..']);
+			if (count($items) > 0) {
+				continue;
+			}
+
+			if (@rmdir($dateDirReal)) {
+				$output->writeln(
+				    "<info>Pruned empty quarantine date dir {$dateDirReal}</info>",
+				    OutputInterface::VERBOSITY_NORMAL
+				);
+			}
+		}
+	}
+
 }
