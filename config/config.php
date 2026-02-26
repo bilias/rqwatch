@@ -139,6 +139,9 @@ $notify_mail_subject = "New message stored in quarantine";
 # Mails with score more than this don't get notifications
 $notification_score = 50.1;
 
+# How many days back to look for notifications. Use 0 for full table scan
+$notification_days = 30;
+
 # Default mail signature
 $mail_signature = $APP_NAME;
 

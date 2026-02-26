@@ -441,6 +441,8 @@ based on action taken by Rspamd\
 
 - `$notification_score` - Mails with score more than this don't get notifications
 
+- `$notification_days` - How many days back to look for notifications
+
 - `$mail_signature` - Default mail signature
 
 ### Application Settings
@@ -552,6 +554,10 @@ Available commands for the "cron" namespace:
 
   Users are also able to disable notifications by visiting their Profile page and
   opting out of notifications. This also applies for their aliases.
+
+  Option `$notification_days` limits the days the tool searches the database
+  for pending notifications. Use `0` for full table scan.\
+  Default is to search only the last `30` days.
 
   Finally, config option `$notification_score` also disables notifications
   for emails having a score higher that this.\

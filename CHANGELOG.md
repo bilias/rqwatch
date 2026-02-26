@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 # 2026-02-26
+- Limit notification scan by days
 - Use mail_log_recipients for mail notifications
 
 # 2026-02-25

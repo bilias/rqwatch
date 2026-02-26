@@ -1072,6 +1072,17 @@ class MailLogService
 					->whereIn('action', ['discard', 'reject']); // undelivered
 					*/
 
+		$notification_days = Config::get('notification_days');
+
+		// Apply date filter only if > 0
+		if (is_numeric($notification_days) && (int)$notification_days > 0)
+			$cutoffDate = (new \DateTimeImmutable())
+				->sub(new \DateInterval("P{$notification_days}D"))
+				->format('Y-m-d H:i:s');
+
+			$query->where('created_at', '>=', $cutoffDate);
+		}
+
 		if ($server) {
 			$query = $query->where('server', $server);
 		}
