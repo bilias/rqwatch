@@ -161,22 +161,31 @@ class CronNotifications extends RqwatchCliCommand
 
 		// Filter out logs for users with notifications disabled
 		$userService = new UserService($this->fileLogger);
+		$service->filterDisabledRecipients($logs, $userService);
 
-		$removedLogs = $logs->filter(function ($log) use ($userService) {
-			return $userService->notificationsDisabledFor($log->rcpt_to);
+		// Logs where everyone is disabled (or no recipients)
+		$removedLogs = $logs->filter(function ($log) {
+			$rcpt = trim((string) $log->rcpt_to);
+			return $rcpt === '' || $rcpt === 'unknown';
 		});
+
 
 		if ($removedLogs->isNotEmpty()) {
 			foreach ($removedLogs as $log) {
-				$output->writeln("<comment>Notifications disabled for recipient: {$log->rcpt_to} (mail id: {$log->id})</comment>{$local}", OutputInterface::VERBOSITY_VERBOSE);
+				$disabledList = $log->disabled_rcpt_to ?? 'n/a';
+				$output->writeln(
+					"<comment>Notifications disabled for recipient: {$disabledList} (mail id: {$log->id}})</comment>{$local}",
+					OutputInterface::VERBOSITY_VERBOSE
+				);
 			}
 		}
 
-		unset($removedLogs);
-
-		$logs = $logs->reject(function ($log) use ($userService) {
-			return $userService->notificationsDisabledFor($log->rcpt_to);
+		$logs = $logs->reject(function ($log) {
+			$rcpt = trim((string) $log->rcpt_to);
+			return $rcpt === '' || $rcpt === 'unknown';
 		});
+
+		unset($removedLogs);
 
 		$notification_score = Config::get('notification_score');
 

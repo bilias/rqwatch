@@ -1039,6 +1039,7 @@ class MailLogService
 			unset($maillog->virus_name);
 			unset($maillog->virus_found);
 			unset($maillog->symbols);
+			unset($maillog->disabled_rcpt_to);
 			/*
 			$maillog->notified = 1;
 			$maillog->notify_date = date("Y-m-d H:i:s");
@@ -1089,6 +1090,49 @@ class MailLogService
 
 		// logs
 		return $query->get();
+	}
+
+	public function filterDisabledRecipients(Collection $logs, UserService $userService): void {
+	 $logs->each(function ($log) use ($userService) {
+
+		// Prefer normalized recipients
+		if ($log->relationLoaded('recipients') && $log->recipients->isNotEmpty()) {
+			$emails = $log->recipients->pluck('recipient_email')->all();
+		} else {
+			$emails = explode(',', strtolower((string) $log->rcpt_to));
+		}
+
+		$emails = array_values(array_unique(array_filter(array_map(
+			fn ($e) => strtolower(trim((string) $e)),
+			$emails
+		))));
+
+		$enabled = [];
+		$disabled = [];
+
+		foreach ($emails as $email) {
+			if ($userService->notificationsDisabledFor($email)) {
+			    $disabled[] = $email;
+			} else {
+			    $enabled[] = $email;
+			}
+		}
+
+		// Store disabled list for logging/debugging
+		$log->disabled_rcpt_to = implode(', ', $disabled);
+
+		// Overwrite rcpt_to in-memory with enabled recipients only
+		$log->rcpt_to = implode(', ', $enabled);
+		// ALSO update the recipients relation so accessor matches
+		if ($log->relationLoaded('recipients')) {
+			$log->setRelation(
+				'recipients',
+				$log->recipients->filter(function ($r) use ($enabled) {
+					return in_array(strtolower(trim($r->recipient_email)), $enabled, true);
+				})->values()
+			);
+		}
+	 });
 	}
 
 	// returns mail_logs in quarantine before QUARANTINE_DAYS

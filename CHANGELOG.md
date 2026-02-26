@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+# 2026-02-26
+- Use mail_log_recipients for mail notifications
+
 # 2026-02-25
 - Prune empty directories from Quarantine
 

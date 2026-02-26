@@ -208,18 +208,20 @@ class UserService
 	}
 
 	public function notificationsDisabledFor(string $email): bool {
+		$email = strtolower(trim($email));
+
 		$user = User::where('email', $email)->first();
 
 		// check if email matches a user's email
 		if ($user) {
-			return $user->disable_notifications;
+			return (bool) $user->disable_notifications;
 		}
 
 		// check if email matches an alias
 		$alias = MailAlias::with('user')->where('alias', $email)->first();
 
 		if ($alias && $alias->user) {
-			return $alias->user->disable_notifications;
+			return (bool) $alias->user->disable_notifications;
 		}
 
 		// not found, notifications enabled by default
