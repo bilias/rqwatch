@@ -169,7 +169,6 @@ class CronNotifications extends RqwatchCliCommand
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
-
 		if ($removedLogs->isNotEmpty()) {
 			foreach ($removedLogs as $log) {
 				$disabledList = $log->disabled_rcpt_to ?? 'n/a';
