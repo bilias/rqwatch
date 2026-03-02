@@ -229,7 +229,7 @@ class CronQuarantine extends RqwatchCliCommand
 			if (@rmdir($dateDirReal)) {
 				$output->writeln(
 				    "<info>Pruned empty quarantine date dir {$dateDirReal}</info>",
-				    OutputInterface::VERBOSITY_NORMAL
+				    OutputInterface::VERBOSITY_VERBOSE
 				);
 			}
 		}
