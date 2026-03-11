@@ -595,7 +595,8 @@ class MailLogController extends ViewController
 			return new RedirectResponse($this->homepageUrl);
 		}
 
-		return new Response($this->twig->render('mail.twig', [
+		//return new Response($this->twig->render('mail.twig', [
+		$response = new Response($this->twig->render('mail.twig', [
 			'textBody' => $mailobject->getTextBody(),
 			'htmlBody' => $mailobject->getHtmlBody(),
 			'attached' => $mailobject->getAttached(),
@@ -611,6 +612,8 @@ class MailLogController extends ViewController
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
+		$response->headers->set('Content-Security-Policy', "sandbox");
+		return $response;
 	}
 
 	public function saveAttachment(int $id, int $attach_id): Response {

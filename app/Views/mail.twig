@@ -165,7 +165,12 @@ Please be very carefull before opening or saving any of the files bellow.
 Please be very carefull before clicking any link bellow.
 </p>
 <hr/>
-{{ htmlBody|raw }}
+<iframe
+    srcdoc="{{ htmlBody|e('html_attr') }}"
+    sandbox="allow-same-origin"
+    style="width:100%; height:600px; border:1px solid #ccc;"
+    title="Quarantined Email">
+</iframe>
 {% endif %}
 </div>
 

@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 # 2026-03-11
+- Prevent XSS from quarantined raw mails
 - Verify redirect url
 - Escape ldap search filter
 - Update composer.lock
