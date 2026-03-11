@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 # 2026-03-11
+- Verify redirect url
 - Escape ldap search filter
 - Update composer.lock
 - Update illuminate to 12.54

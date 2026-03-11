@@ -156,7 +156,11 @@ class LoginController extends ViewController
 						    $login_redirect !== $this->url(RouteName::ADMIN_HOMEPAGE) and
 						    $login_redirect !== $this->url(RouteName::HOMEPAGE) and
 							 $login_redirect !== $this->homepageUrl) {
-								$url = $login_redirect;
+								if (str_starts_with($login_redirect, '/') && !str_starts_with($login_redirect, '//')) {
+									$url = $login_redirect;
+								} else {
+									$url = $this->homepageUrl;
+								}
 								$this->session->remove('login_redirect');
 						} else {
 							$url = $this->homepageUrl;
