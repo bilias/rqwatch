@@ -84,7 +84,7 @@ class LdapAuth implements AuthInterface {
 
 		// search for user based on ldap_login_attr,
 		// mail by default
-		$filter = "({$ldap_login_attr}={$this->username})";
+		$filter = "({$ldap_login_attr}=".ldap_escape($this->username, "", LDAP_ESCAPE_FILTER).")";
 
 		$res = ldap_search($ldap, $ldap_base, $filter, $ldap_attrs);
 
