@@ -2,6 +2,11 @@
 
 ## Master Dev Branch
 
+# 2026-03-11
+- Update composer.lock
+- Update illuminate to 12.54
+- Update symfony to 7.4
+
 # 2026-02-26
 - Limit notification scan by days
 - Use mail_log_recipients for mail notifications
