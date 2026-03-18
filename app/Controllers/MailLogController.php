@@ -612,7 +612,8 @@ class MailLogController extends ViewController
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
-		$response->headers->set('Content-Security-Policy', "sandbox");
+		// this stopped our javascript for on/off toggle
+		//$response->headers->set('Content-Security-Policy', "sandbox");
 		return $response;
 	}
 

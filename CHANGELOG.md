@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+# 2026-03-18
+- Sandbox in iframe only and not whole page
+
 # 2026-03-11
 - Prevent XSS from quarantined raw mails
 - Verify redirect url
