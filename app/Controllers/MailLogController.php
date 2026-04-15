@@ -595,10 +595,12 @@ class MailLogController extends ViewController
 			return new RedirectResponse($this->homepageUrl);
 		}
 
+		$htmlBody = Helper::normalizeToUtf8($mailobject->getHtmlBody());
+
 		//return new Response($this->twig->render('mail.twig', [
 		$response = new Response($this->twig->render('mail.twig', [
 			'textBody' => $mailobject->getTextBody(),
-			'htmlBody' => $mailobject->getHtmlBody(),
+			'htmlBody' => $htmlBody,
 			'attached' => $mailobject->getAttached(),
 			'log' => $mailobject->getMailLog(),
 			'virus_found' => $mailobject->getVirusFound(),

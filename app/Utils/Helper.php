@@ -873,4 +873,28 @@ You can view mail details and optionally release it from quarantine by clicking 
 		return $parse[0]['address'] ? $parse[0]['address'] : '';
 	}
 
+	public static function normalizeToUtf8(?string $input): string {
+		if ($input === null || $input === '') {
+			return '';
+		}
+
+		$encodings = [
+			'UTF-8',
+			'Windows-1253',
+			'ISO-8859-7',
+			'ISO-8859-1',
+			'Windows-1252'
+		];
+
+		foreach ($encodings as $enc) {
+			$converted = @mb_convert_encoding($input, 'UTF-8', $enc);
+
+			if ($converted !== false && mb_check_encoding($converted, 'UTF-8')) {
+				return iconv('UTF-8', 'UTF-8//IGNORE', $converted);
+			}
+		}
+
+		return iconv('UTF-8', 'UTF-8//IGNORE', $input);
+	}
+
 }
