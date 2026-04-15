@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+# 2026-04-15
+- Normalize mail to UTF8
+
 # 2026-03-18
 - Sandbox in iframe only and not whole page
 
