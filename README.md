@@ -65,6 +65,7 @@ with extra tools to make the most of Rspamd’s powerful anti-spam capabilities.
    * [<a href="ROADMAP.md">Roadmap</a>](ROADMAP.md)
    * [<a href="NOTICE.md">Third-Party Software Notice</a>](NOTICE.md)
    * [<a href="LICENSE">License: Mozilla Public License Version 2.0</a>](LICENSE)
+   * [<a href="SECURITY.md">Security</a>](SECURITY.md)
 <!--te-->
 
 # Features
@@ -209,3 +210,5 @@ it's a completely different project - a rewrite without any code from there.
 ## [Third-Party Software Notice](NOTICE.md)
 
 ## [License: Mozilla Public License Version 2.0](LICENSE)
+
+## [Security](SECURITY.md)
