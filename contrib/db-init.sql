@@ -124,10 +124,12 @@ CREATE TABLE custom_map_config (
 # (4, 'from_whitelist', 'Mail/MIME From Whitelist', 'from', 'From', NOW(), NOW()),
 # (5, 'from_blacklist', 'Mail/MIME From Blacklist', 'from', 'From', NOW(), NOW());
 
+DROP TABLE IF EXISTS `mail_log_recipients`;
+
 DROP TABLE IF EXISTS `mail_logs`;
 
 CREATE TABLE `mail_logs` (
- `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+ `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
  `qid` VARCHAR(30) DEFAULT NULL,
  `server` VARCHAR(10) DEFAULT NULL,
  `subject` VARCHAR(1024) DEFAULT NULL,
@@ -168,8 +170,6 @@ CREATE TABLE `mail_logs` (
   KEY `notification_pending_index` (`notification_pending`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
-DROP TABLE IF EXISTS `mail_log_recipients`;
-
 CREATE TABLE `mail_log_recipients` (
   `mail_log_id` int(10) unsigned NOT NULL,
   `recipient_email` varchar(255) NOT NULL,
@@ -178,6 +178,6 @@ CREATE TABLE `mail_log_recipients` (
   KEY `recipient_email_mail_log_id_idx` (`recipient_email`,`mail_log_id`),
   CONSTRAINT `fk_mail`
     FOREIGN KEY (`mail_log_id`)
-    REFERENCES `mail_logs`
+    REFERENCES `mail_logs` (`id`)
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
