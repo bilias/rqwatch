@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+# 2026-04-29
+- Fix wrong foreign key reference in db-init.sql
+
 # 2026-04-15
 - Normalize mail to UTF8
 
