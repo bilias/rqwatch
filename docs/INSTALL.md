@@ -143,7 +143,7 @@ su - rqwatch -s /bin/bash
 
 Remove write permissions:
 ```
-chown root /var/www/htmp/rqwatch
+chown root /var/www/html/rqwatch
 ```
 
 ### PHP-FPM
