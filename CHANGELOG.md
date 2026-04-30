@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+# 2026-04-30
+- Fix bug in custom maps. Don't unset the pattern
+
 # 2026-04-29
 - Fix wrong foreign key reference in db-init.sql
 
