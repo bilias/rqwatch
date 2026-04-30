@@ -911,7 +911,7 @@ class MapController extends ViewController
 			if ($model === 'MapCustom') {
 				$field_db = MapService::getCustomField($options['map']);
 				$data['pattern'] = trim($data[$field_db['field_name']]);
-				unset($data[$field_db['field_name']]);
+				//unset($data[$field_db['field_name']]);
 				$pairs[] = $field_db['field_label'] . ": " . $data['pattern'];
 			} else {
 				foreach ($fields as $field) {
