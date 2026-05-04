@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+# 2026-05-04
+- Add debug to exceptions in MailLogService
+
 # 2026-04-29
 - Fix wrong foreign key reference in db-init.sql
 

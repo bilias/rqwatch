@@ -181,6 +181,7 @@ class MailLogService
 	}
 
 	public function showOne(int $id): MailLog {
+		$lf = "[MailLogService_showOne]";
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::select($fields)
@@ -195,13 +196,14 @@ class MailLogService
 		$log = $query->first();
 
 		if (!$log) {
-			throw new InvalidArgumentException("Mail with ID '{$id}' not found");
+			throw new InvalidArgumentException("{$lf} Mail with ID '{$id}' not found");
 		}
 
 		return $log;
 	}
 
 	public function showQuarantinedMail(int $id): MailLog {
+		$lf = "[MailLogService_showQuarantinedMail]";
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::with('recipients')
@@ -218,13 +220,15 @@ class MailLogService
 		$log = $query->first();
 
 		if (!$log) {
-			throw new InvalidArgumentException("Mail with ID '{$id}' not found");
+			throw new InvalidArgumentException("{$lf} Mail with ID '{$id}' not found");
 		}
 
 		return $log;
 	}
 
 	public function showPaginatedAll(array $filters, string $url, int $page = 1): ?LengthAwarePaginator {
+		$lf = "MailLogService_showPaginatedAll";
+
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = self::getSearchQuery($filters, $fields);
@@ -277,7 +281,7 @@ class MailLogService
 
 			$logs = $paginator->withPath($url);
 		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage());
+			$this->logger->error("{$lf} Query error: " . $e->getMessage());
 			exit("Query error");
 		}
 
@@ -285,6 +289,8 @@ class MailLogService
 	}
 
 	public function showPaginatedResults(array $filters, string $url, int $page = 1): ?LengthAwarePaginator {
+		$lf = "MailLogService_showPaginatedResults";
+
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = self::getSearchQuery($filters, $fields);
@@ -300,7 +306,7 @@ class MailLogService
 				->paginate($this->items_per_page, $fields, 'page', $page)
 				->withPath($url);
 		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage());
+			$this->logger->error("{$lf} Query error: " . $e->getMessage());
 			exit("Query error");
 		}
 
@@ -308,6 +314,8 @@ class MailLogService
 	}
 
 	public function showResults(array $filters, array $fields = null): ?Collection {
+		$lf = "MailLogService_showResults";
+
 		if (!$fields) {
 			$fields = MailLog::SELECT_FIELDS;
 			// remove unneeded keys
@@ -338,7 +346,7 @@ class MailLogService
 				->toArray();
 				*/
 		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage());
+			$this->logger->error("{$lf} Query error: " . $e->getMessage());
 			exit("Query error");
 		}
 
@@ -346,6 +354,8 @@ class MailLogService
 	}
 
 	public function showReports(array $filters, string $field, string $mode = 'count'): ?Collection {
+		$lf = "MailLogService_showReports";
+
 		switch($field) {
 			case 'mail_from_domain':
 			case 'rcpt_to_domain':
@@ -389,7 +399,7 @@ class MailLogService
 		try {
 			$logs = $query->get();
 		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage());
+			$this->logger->error("{$lf} Query error: " . $e->getMessage());
 			exit("Query error");
 		}
 
@@ -530,6 +540,7 @@ class MailLogService
 	}
 
 	public function detailById(int $id): MailLog {
+		$lf = "[MailLogService_detailById]";
 		$query = MailLog::with('recipients')
 			->where('id', $id);
 
@@ -542,7 +553,7 @@ class MailLogService
 		$log = $query->first();
 
 		if (!$log) {
-			throw new InvalidArgumentException("Mail with ID '{$id}' not found");
+			throw new InvalidArgumentException("{$lf} Mail with ID '{$id}' not found");
 		}
 
 		return $log;
@@ -626,7 +637,7 @@ class MailLogService
 	}
 
 	public function getMailObjectLocal(int $id): MailObject {
-		$lf = "[getMailObjectLocal]";
+		$lf = "[MailLogService_getMailObjectLocal]";
 
 		if (empty($id)) {
 			$this->logger->error("{$lf} empty mail id");
@@ -637,18 +648,18 @@ class MailLogService
 			// has applyUserScope
 			$ar = $this->detail('id', $id);
 		} catch (InvalidArgumentException $e) {
-			throw new Exception("Mail with ID '{$id}' not found");
+			throw new Exception("{$lf} Mail with ID '{$id}' not found");
 		}
 
 		$mailobject = new MailObject($ar);
 
 		if (!$mailobject->isMailStored()) {
-			throw new Exception("Mail with ID '{$id}' not stored");
+			throw new Exception("{$lf} Mail with ID '{$id}' not stored");
 		}
 
 		$location = $mailobject->getMailLocation();
 		if (!file_exists($location)) {
-			throw new Exception("File '$location' not found");
+			throw new Exception("{$lf} File '$location' not found");
 		}
 
 		$mailobject->setParser(new Parser());
@@ -752,7 +763,7 @@ class MailLogService
 	}
 
 	public function getMailObject(int $id): MailObject {
-		$lf = "[getMailObject]";
+		$lf = "[MailLogService_getMailObject]";
 
 		if (empty($id)) {
 			$this->logger->error("{$lf} empty mail id");
@@ -764,11 +775,11 @@ class MailLogService
 			$maillog = $this->showOne($id);
 		} catch (InvalidArgumentException $e) {
 			$this->logger->warning("{$lf} " . $e->getMessage() . ". Mail does not exist or user does not have access to it" , ['email' => $this->email, 'is_admin' => $this->is_admin]);
-			throw new Exception($e->getMessage());
+			throw new Exception($lf . " " . $e->getMessage());
 		}
 
 		if (!$maillog->mail_stored) {
-			throw new Exception("Mail with ID '{$id}' not stored");
+			throw new Exception("{$lf} Mail with ID '{$id}' not stored");
 		}
 
 		// Mail stored locally
@@ -777,7 +788,7 @@ class MailLogService
 				// has applyUserScope
 				$mailobject = $this->getMailObjectLocal($id);
 			} catch (Exception $e) {
-				throw new Exception($e->getMessage());
+				throw new Exception($lf . " " . $e->getMessage());
 			}
 		// Mail stored in remote server. Call their API
 		} else {
@@ -789,7 +800,7 @@ class MailLogService
 				}
 				$mailobject = $this->getMailObjectViaApi($maillog->id, $maillog->server);
 			} catch (Exception $e) {
-				throw new Exception($e->getMessage());
+				throw new Exception($lf . " " . $e->getMessage());
 			}
 		}
 
