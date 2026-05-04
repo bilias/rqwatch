@@ -905,15 +905,19 @@ You can view mail details and optionally release it from quarantine by clicking 
 		$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
 
 		// Index 0 = current function, 1 = caller
-		$caller = $trace[1] ?? null;
+		foreach ($trace as $frame) {
+			if (isset($frame['file']) && strpos($frame['file'], 'Helper.php') === false) {
+				$file = $frame['file'];
+				$line = $frame['line'] ?? '?';
 
-		$file = $caller['file'] ?? 'unknown file';
-		$line = $caller['line'] ?? 'unknown line';
+				$err_msg = "{$file}:{$line} '{$input}'";
+				self::$logger->error($err_msg);
+				return $err_msg;
+				//break;
+			}
+		}
 
-		$err_msg = "{$file}:{$line} '{$input}'";
-		self::$logger->error($err_msg);
-
-		return $err_msg;
+		return $input;
 	}
 
 }
