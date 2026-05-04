@@ -196,7 +196,9 @@ class MailLogService
 		$log = $query->first();
 
 		if (!$log) {
-			throw new InvalidArgumentException(Helper::debug_exception_err("{$lf} Mail with ID '{$id}' not found"));
+			$err = "Mail with ID '{$id}' not found";
+			Helper::debug_exception_err("{$lf} $err");
+			throw new InvalidArgumentException($err);
 		}
 
 		return $log;
@@ -220,7 +222,9 @@ class MailLogService
 		$log = $query->first();
 
 		if (!$log) {
-			throw new InvalidArgumentException(Helper::debug_exception_err("{$lf} Mail with ID '{$id}' not found"));
+			$err = "Mail with ID '{$id}' not found";
+			Helper::debug_exception_err("{$lf} {$err}");
+			throw new InvalidArgumentException($err);
 		}
 
 		return $log;
@@ -553,13 +557,17 @@ class MailLogService
 		$log = $query->first();
 
 		if (!$log) {
-			throw new InvalidArgumentException(Helper::debug_exception_err("{$lf} Mail with ID '{$id}' not found"));
+			$err = "Mail with ID '{$id}' not found";
+			Helper::debug_exception_err("{$lf} {$err}");
+			throw new InvalidArgumentException($err);
 		}
 
 		return $log;
 	}
 
 	public function detailByQid(string $qid): MailLog {
+		$lf = "MailLogService_detailByQid";
+
 		$query = MailLog::with('recipients')
 			->where('qid', $qid);
 
@@ -571,12 +579,16 @@ class MailLogService
 
 		$log = $query->first();
 		if (!$log) {
-			throw new InvalidArgumentException(Helper::debug_exception_err("Mail with QID '{$qid}' not found"));
+			$err = "Mail with QID '{$qid}' not found";
+			Helper::debug_exception_err("{$lf} {$err}");
+			throw new InvalidArgumentException($err);
 		}
 		return $log;
 	}
 
 	public function detailByType(string $type, string|int $value): MailLog {
+		$lf = "MailLogService_detailByType";
+
 		$query = MailLog::where($type, $value);
 
 		$query = $this->applyUserScope($query);
@@ -587,17 +599,22 @@ class MailLogService
 
 		$log = $query->first();
 		if (!$log) {
-			throw new InvalidArgumentException(Helper::debug_exception_err("{$type} '{$value}' not found"));
+			$err = "{$type} '{$value}' not found";
+			Helper::debug_exception_err("{$lf} {$err}");
+			throw new InvalidArgumentException($err);
 		}
 		return $log;
 	}
 
 	public function detail(string $type, string|int $value): array {
+		$lf = "MailLogService_detail";
+
 		$check = Helper::check_id_qid($type, $value);
 
 		if ($check['error']) {
 			$err = "Error: {$check['error']}";
-			throw new InvalidArgumentException(Helper::debug_exception_err("Error: {$check['error']}"));
+			Helper::debug_exception_err("{$lf} {$err}");
+			throw new InvalidArgumentException($err);
 		}
 
 		if($check['id']) {
@@ -611,7 +628,9 @@ class MailLogService
 			$log = $this->detailByQid($check['qid']);
 		}
 		else {
-			throw new InvalidArgumentException(Helper::debug_exception_err("Unknown error"));
+			$err = "Unknown error";
+			Helper::debug_exception_err("{$lf} {$err}");
+			throw new InvalidArgumentException($err);
 		}
 
 		// order symbols by score and show printable information only
@@ -642,25 +661,32 @@ class MailLogService
 
 		if (empty($id)) {
 			$this->logger->error("{$lf} empty mail id");
-			throw new Exception(Helper::debug_exception_err("Error. Contact admin"));
+			$Helper::debug_exception_err("{$lf} empty mail id");
+			throw new Exception("Error. Contact admin");
 		}
 
 		try {
 			// has applyUserScope
 			$ar = $this->detail('id', $id);
 		} catch (InvalidArgumentException $e) {
-			throw new Exception(Helper::debug_exception_err("{$lf} Mail with ID '{$id}' not found"));
+			$err = "{$lf} Mail with ID '{$id}' not found";
+			Helper::debug_exception_err($err);
+			throw new Exception($err);
 		}
 
 		$mailobject = new MailObject($ar);
 
 		if (!$mailobject->isMailStored()) {
-			throw new Exception(Helper::debug_exception_err("{$lf} Mail with ID '{$id}' not stored"));
+			$err = "{$lf} Mail with ID '{$id}' not stored";
+			Helper::debug_exception_err($err);
+			throw new Exception($err);
 		}
 
 		$location = $mailobject->getMailLocation();
 		if (!file_exists($location)) {
-			throw new Exception(Helper::debug_exception_err("{$lf} File '$location' not found"));
+			$err = "{$lf} File '$location' not found";
+			Helper::debug_exception_err($err);
+			throw new Exception($err);
 		}
 
 		$mailobject->setParser(new Parser());
@@ -676,12 +702,12 @@ class MailLogService
 		$lf = "[getMailObjectViaApi]";
 
 		if (empty($id)) {
-			$this->logger->error("{$lf} empty mail id");
-			throw new Exception(Helper::debug_exception_err("Error. Contact admin"));
+			Helper::debug_exception_err("{$lf} empty mail id");
+			throw new Exception("Error. Contact admin");
 		}
 		if (empty($api_server)) {
-			$this->logger->error("{$lf} empty api server");
-			throw new Exception(Helper::debug_exception_err("Error. Contact admin"));
+			Helper::debug_exception_err("{$lf} empty api server");
+			throw new Exception("Error. Contact admin");
 		}
 
 		// get details from DB locally
@@ -689,23 +715,23 @@ class MailLogService
 			// has applyUserScope
 			$ar = $this->detail('id', $id);
 		} catch (InvalidArgumentException $e) {
-			$this->logger->error("{$lf} InvalidArgumentException for id {$id}: " . $e->getMessage());
-			throw new Exception(Helper::debug_exception_err($e->getMessage()));
+			Helper::debug_exception_err("{$lf} InvalidArgumentException for id {$id}: " . $e->getMessage());
+			throw new Exception($e->getMessage());
 		}
 
 		$mailobject = new MailObject($ar);
 
 		if (!$mailobject->isMailStored()) {
-			$this->logger->error("{$lf} Mail with id {$id} is not stored");
-			throw new Exception(Helper::debug_exception_err("Mail with id {$id} is not stored"));
+			Helper::debug_exception_err("{$lf} Mail with id {$id} is not stored");
+			throw new Exception("Mail with id {$id} is not stored");
 		}
 
 		// get raw mail from remote API server
 		$api_servers = Config::get('API_SERVERS');
 
 		if (!array_key_exists($api_server, $api_servers) or empty($api_servers[$api_server]['url'])) {
-			$this->logger->error("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
-			throw new Exception(Helper::debug_exception_err("Error. Contact admin"));
+			Helper::debug_exception_err("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
+			throw new Exception("Error. Contact admin");
 		}
 		// XXX have not checked if it works with remote /subfolder in WEB_BASE
 		$url = $api_servers[$api_server]['url'] . Config::get('GET_MAIL_API_PATH');
@@ -742,18 +768,18 @@ class MailLogService
 					// apache returns full http response
 					$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
 				}
-				throw new Exception(Helper::debug_exception_err("Error. Contact admin"));
+				throw new Exception("Error. Contact admin");
 			} else if ($statusCode !== Response::HTTP_OK) {
 				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. API server said: '{$mail_file}'");
-				throw new Exception(Helper::debug_exception_err("Error. Contact admin"));
+				throw new Exception("Error. Contact admin");
 			}
 		// SSL/TLS problems
 		} catch (TransportException $e) {
-			$this->logger->error("{$lf} problem: " . $e->getMessage());
-			throw new Exception(Helper::debug_exception_err("Error. Contact admin"));
+			Helper::debug_exception_err("{$lf} problem: " . $e->getMessage());
+			throw new Exception("Error. Contact admin");
 		} catch (Exception $e) {
-			$this->logger->error("{$lf} problem: " . $e->getMessage());
-			throw new Exception(Helper::debug_exception_err("Error. Contact admin"));
+			Helper::debug_exception_err("{$lf} problem: " . $e->getMessage());
+			throw new Exception("Error. Contact admin");
 		}
 
 		$mailobject->setParser(new Parser());
@@ -767,8 +793,8 @@ class MailLogService
 		$lf = "[MailLogService_getMailObject]";
 
 		if (empty($id)) {
-			$this->logger->error("{$lf} empty mail id");
-			throw new Exception(Helper::debug_exception_err("Error. Contact admin"));
+			Helper::debug_exception_err("{$lf} empty mail id");
+			throw new Exception("Error. Contact admin");
 		}
 
 		try {
@@ -776,11 +802,15 @@ class MailLogService
 			$maillog = $this->showOne($id);
 		} catch (InvalidArgumentException $e) {
 			$this->logger->warning("{$lf} " . $e->getMessage() . ". Mail does not exist or user does not have access to it" , ['email' => $this->email, 'is_admin' => $this->is_admin]);
-			throw new Exception(Helper::debug_exception_err($lf . " " . $e->getMessage()));
+			$err = $e->getMessage();
+			Helper::debug_exception_err("$lf " . $err);
+			throw new Exception($err);
 		}
 
 		if (!$maillog->mail_stored) {
-			throw new Exception(Helper::debug_exception_err("{$lf} Mail with ID '{$id}' not stored"));
+			$err = "Mail with ID '{$id}' not stored";
+			Helper::debug_exception_err("$lf " . $err);
+			throw new Exception($err);
 		}
 
 		// Mail stored locally
@@ -789,7 +819,9 @@ class MailLogService
 				// has applyUserScope
 				$mailobject = $this->getMailObjectLocal($id);
 			} catch (Exception $e) {
-				throw new Exception(Helper::debug_exception_err($lf . " " . $e->getMessage()));
+				$err = $e->getMessage();
+				Helper::debug_exception_err("$lf " . $err);
+				throw new Exception($err);
 			}
 		// Mail stored in remote server. Call their API
 		} else {
@@ -797,11 +829,13 @@ class MailLogService
 				// has applyUserScope
 				if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS'])) {
 					$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set");
-					throw new Exception(Helper::debug_exception_err("Error. Contact admin"));
+					throw new Exception("Error. Contact admin");
 				}
 				$mailobject = $this->getMailObjectViaApi($maillog->id, $maillog->server);
 			} catch (Exception $e) {
-				throw new Exception(Helper::debug_exception_err($lf . " " . $e->getMessage()));
+				$err = $e->getMessage();
+				Helper::debug_exception_err("{$lf} {$err}");
+				throw new Exception($err);
 			}
 		}
 
@@ -809,8 +843,12 @@ class MailLogService
 	}
 
 	public function getAttachment(array $attached, int $id): MailAttachment {
+		$lf = "MailLogService_getAttachment";
+
 		if (!isset($attached[$id])) {
-			throw new Exception(Helper::debug_exception_err("Attachment not found"));
+			$err = "Attachment not found";
+			Helper::debug_exception_err("{$lf} {$err}");
+			throw new Exception("Attachment not found");
 		}
 
 		return new MailAttachment($attached[$id]);
