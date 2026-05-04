@@ -897,4 +897,23 @@ You can view mail details and optionally release it from quarantine by clicking 
 		return iconv('UTF-8', 'UTF-8//IGNORE', $input);
 	}
 
+	public static function debug_exception_err(?string $input): string {
+		if ($input === null) {
+			$input == '';
+		}
+
+		$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+
+		// Index 0 = current function, 1 = caller
+		$caller = $trace[1] ?? null;
+
+		$file = $caller['file'] ?? 'unknown file';
+		$line = $caller['line'] ?? 'unknown line';
+
+		$err_msg = "{$file}:{$line} '{$input}'";
+		self::$logger->error($err_msg);
+
+		return $err_msg;
+	}
+
 }
