@@ -36,6 +36,9 @@ Here is the procedure to apply this update:
 - Update code from git on all API servers\
 `git pull`
 
+- Update dependencies\
+`composer install`
+
 - Migrate mail recipient entries. This will take rcpt_to entries from mail_logs and insert them in `mail_log_recipients` table:
   ```
   ./bin/cli.php mail:migrate_mail_recipients
@@ -46,6 +49,9 @@ Here is the procedure to apply this update:
 
 - Update code from git on all WEB servers\
 `git pull`
+
+- Update dependencies\
+`composer install`
 
 - `composer dump-autoload` will be needed if you have run it in the past
 

@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 # 2026-05-22
+- Update MAIL_RECIPIENTS_UPDATE.md
 - Updated components (SECURITY)
 
 # 2026-05-04
