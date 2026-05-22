@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 # 2026-05-22
+- Update rspamd metadata_exporter to use the multipart formatter 
 - Update MAIL_RECIPIENTS_UPDATE.md
 - Updated components (SECURITY)
 
