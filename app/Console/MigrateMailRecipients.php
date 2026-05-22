@@ -139,7 +139,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 				$this->capsule->getConnection()->beginTransaction();
 
 				try {
-					$this->capsule::table($_ENV['MAIL_RECIPIENTS_TABLE'])->insert($rows);
+					$this->capsule::table($_ENV['MAIL_RECIPIENTS_TABLE'])->insertOrIgnore($rows);
 					$this->capsule->getConnection()->commit();
 				} catch (\Exception $e) {
 					$this->capsule->getConnection()->rollBack();
