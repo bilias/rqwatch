@@ -298,7 +298,8 @@ chmod 750 /quarantine/tmp
 ```
 
 # [Configuration](/docs/CONFIGURE.md)
-You should now read [Configuration](/docs/CONFIGURE.md) and especially the parts about
+You should now read [Configuration](/docs/CONFIGURE.md) to finish setup.\
+Pay attention to:
 - [Rspamd metadata_export](/docs/CONFIGURE.md#rspamd-metadata_export)
 - [.env Configuration file](/docs/CONFIGURE.md#env-configuration-file)
 - [config.local.php (and config.php) Configuration file](/docs/CONFIGURE.md#configlocalphp-and-configphp-configuration-file)
