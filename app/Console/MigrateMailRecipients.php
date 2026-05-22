@@ -40,7 +40,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 	private string $app_name = "mail:migrate_mail_recipients";
 	private ?LoggerInterface $fileLogger;
 	private ?LoggerInterface $syslogLogger;
-	private $default_batch_size = 1000;
+	private $default_batch_size = 10000;
 	// micro seconds (default 1/5 of a second)
 	private $default_sleep = 200000;
 
@@ -82,25 +82,32 @@ class MigrateMailRecipients extends RqwatchCliCommand
 
 		$output->writeln("<comment>Starting migration of mail_log recipients in batches of {$batch}</comment>");
 		$output->writeln("<comment>This will take some time, please be patient</comment>");
-		$output->write("<info>Total records: </info>");
+		$output->write("<info>Total recipients: </info>");
 
 		$baseQuery = $this->capsule::table($_ENV['MAILLOGS_TABLE'] . ' as ml')
-			->leftJoin($_ENV['MAIL_RECIPIENTS_TABLE'] . ' as r', 'r.mail_log_id', '=', 'ml.id')
-			->whereNull('r.mail_log_id')
-			->where('ml.rcpt_to', '!=', 'unknown');
+			->select('ml.id', 'ml.rcpt_to', 'r.mail_log_id')
+			->leftJoin($_ENV['MAIL_RECIPIENTS_TABLE'] . ' as r', 'r.mail_log_id', '=', 'ml.id');
+			//->whereNull('r.mail_log_id');
+			//->where('ml.rcpt_to', '!=', 'unknown');
 
 		$total = (clone $baseQuery)->count('ml.id');
+
+		$unknown = (clone $baseQuery)
+							->where('ml.rcpt_to', '=', 'unknown')
+							->count('ml.id');
+
+		$total = $total - $unknown;
 		$output->writeln("<info>{$total}</info>");
 		if ($total == 0) {
 			return Command::SUCCESS;
 		}
 
 		$lastId = 0;
-		$processed = 0;
+		$scanned = 0;
+		$migrated = 0;
 
 		while (true) {
 			$query = (clone $baseQuery)
-				->select('ml.id', 'ml.rcpt_to')
 				->where('ml.id', '>', $lastId)
 				->orderBy('ml.id')
 				->limit($batch);
@@ -116,43 +123,87 @@ class MigrateMailRecipients extends RqwatchCliCommand
 				break;
 			}
 
+			$batchRows = [];
+			$inserted = 0;
 			foreach ($logs as $log) {
-				$recipients = array_map(
-					'trim',
-					explode(',', strtolower($log->rcpt_to))
-				);
 
-				$recipients = array_unique(array_filter($recipients));
+				// already migrated mail_log id
+				if ($log->mail_log_id !== null) {
+					continue;
+				}
+
+				/*
+				$rcptTo = trim(strtolower((string)$log->rcpt_to));
+				if ($rcptTo === '' || $rcptTo === 'unknown') {
+					continue;
+				}
+
+				$recipients = array_unique(array_filter(
+					array_map(
+						static fn(string $email) => trim(strtolower($email)),
+						explode(',', $log->rcpt_to)
+					)
+				));
+				*/
+
+				if ($log->rcpt_to === null || $log->rcpt_to === '') {
+					continue;
+				}
+
+				$recipients = [];
+				foreach (explode(',', $log->rcpt_to) as $email) {
+					$email = strtolower(trim($email));
+					if ($email === '' || $email === 'unknown') {
+						continue;
+					}
+
+					$recipients[$email] = true;
+				}
+
+				$recipients = array_keys($recipients);
 
 				if (empty($recipients)) {
 					continue;
 				}
 
-				$rows = [];
+				//$rows = [];
 				foreach ($recipients as $email) {
-					$rows[] = [
+					// $rows[] = [
+					$batchRows[] = [
 						'mail_log_id'     => $log->id,
 						'recipient_email' => $email,
 					];
 				}
 
-				$this->capsule->getConnection()->beginTransaction();
+				//$this->capsule->getConnection()->beginTransaction();
 
+				/*
 				try {
-					$this->capsule::table($_ENV['MAIL_RECIPIENTS_TABLE'])->insertOrIgnore($rows);
-					$this->capsule->getConnection()->commit();
+					$inserted += $this->capsule::table($_ENV['MAIL_RECIPIENTS_TABLE'])->insertOrIgnore($rows);
+					//$this->capsule->getConnection()->commit();
 				} catch (\Exception $e) {
-					$this->capsule->getConnection()->rollBack();
+					//$this->capsule->getConnection()->rollBack();
+					throw $e;
+				}
+				*/
+			}
+
+			// insert in batches
+			if (!empty($batchRows)) {
+				try {
+					$inserted += $this->capsule::table($_ENV['MAIL_RECIPIENTS_TABLE'])->insertOrIgnore($batchRows);
+				} catch (\Exception $e) {
 					throw $e;
 				}
 			}
 
 			$lastId = $logs->last()->id;
-			$processed += $logs->count();
-			$remaining = max(0, $total - $processed);
-			$output->writeln("<info>(Processed: {$processed} / {$total} (Remaining: {$remaining}) entries</info>");
+			$scanned += $logs->count();
+			$migrated += $inserted;
+			$remaining = max(0, $total - $scanned);
+			$output->writeln("<info>Scanned: {$scanned}, Remaining: {$remaining}, Migrated: {$migrated} (recipients)</info>"
+);
 			usleep($sleep);
-
 		}
 
 		return Command::SUCCESS;
