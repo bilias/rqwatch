@@ -15,7 +15,7 @@
       * [Database creation](#database-creation)
       * [Admin user](#admin-user)
       * [Quarantine location](#quarantine-location)
-      * [Configuration](#configuration)
+* [Configuration](#configuration)
 <!--te-->
 
 ## Setup
