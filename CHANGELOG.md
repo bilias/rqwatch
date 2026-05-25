@@ -2,28 +2,28 @@
 
 ## Master Dev Branch
 
-# 2026-05-22
+### 2026-05-22
 - MAIL_RECIPIENTS_UPDATE optimizations
 - Update rspamd metadata_exporter to use the multipart formatter 
 - Update MAIL_RECIPIENTS_UPDATE.md
 - Updated components (SECURITY)
 
-# 2026-05-04
+### 2026-05-04
 - Add debug to exceptions in MailLogService
 
-# 2026-04-30
+### 2026-04-30
 - Fix bug in custom maps. Don't unset the pattern
 
-# 2026-04-29
+### 2026-04-29
 - Fix wrong foreign key reference in db-init.sql
 
-# 2026-04-15
+### 2026-04-15
 - Normalize mail to UTF8
 
-# 2026-03-18
+### 2026-03-18
 - Sandbox in iframe only and not whole page
 
-# 2026-03-11
+### 2026-03-11
 - Prevent XSS from quarantined raw mails
 - Verify redirect url
 - Escape ldap search filter
@@ -31,45 +31,45 @@
 - Update illuminate to 12.54
 - Update symfony to 7.4
 
-# 2026-02-26
+### 2026-02-26
 - Limit notification scan by days
 - Use mail_log_recipients for mail notifications
 
-# 2026-02-25
+### 2026-02-25
 - Prune empty directories from Quarantine
 
-# 2026-02-18
+### 2026-02-18
 - Remove unused vars
 
-# 2026-02-13
+### 2026-02-13
 - Add CGIPassAuth On
 - Check subject before mb_decode_mimeheader
 
 ## Version v1.7.0 - Released: 2026-02-11
 Warning, schema change. See docs/MAIL_RECIPIENTS_UPDATE.md
 
-# 2026-02-11
+### 2026-02-11
 - Day queries optimizations
 - Refactor deleteDirectory() for quarantine delete 
 - Use hash_equals for username/password checking to mitigate timing attacks
 
-# 2026-02-11
+### 2026-02-11
 - Created MetadataImporterMultipartApi for new multipart formatter of metadata exporter
 - Faster performance for some queries
 - Update storage of raw mail to be used my legacy and multipart formatter
 
-# 2026-02-10
+### 2026-02-10
 - Update CLI tools to use mail_log_recipients table
 - Update MailLogServices to use mail_log_recipients table for (much) better performance
 - Create MigrateMailRecipients cli tool
 
-# 2026-02-09
+### 2026-02-09
 - Modify MetadataImporterApi.php to write to mail_log_recipients table
 - Create mail_log_recipients table
 
 ## Version v1.6.10 - Released: 2026-02-10
 
-# 2026-02-09
+### 2026-02-09
 - Return 401 for authentication failures
 Fixed https://github.com/bilias/rqwatch/issues/4
 - Enforce LDAP version 3
