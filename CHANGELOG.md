@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-05-27
+- Sort maps by key
+
 ### 2026-05-22
 - MAIL_RECIPIENTS_UPDATE optimizations
 - Update rspamd metadata_exporter to use the multipart formatter 

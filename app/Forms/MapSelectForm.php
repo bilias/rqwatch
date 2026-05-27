@@ -48,6 +48,7 @@ class MapSelectForm extends AbstractType
 				$choices[$config['description']] = $key;
 			}
 		}
+		ksort($choices);
 
 		$choices = ['All Map Entries' => 'all'] + $choices;
 
