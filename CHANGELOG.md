@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-06-02
+- Updates for components
 - Security updates for components
 
 ### 2026-05-27
