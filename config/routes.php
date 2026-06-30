@@ -47,6 +47,20 @@ $routes->add(RouteName::LOGIN->value, new Route(
 	],
 ));
 
+$routes->add(RouteName::LOGIN_OPENIDC->value, new Route(
+	'/openidc/login',
+	[ '_controller' => 'App\\Controllers\\LoginController::openidc_login',
+	  '_middleware' => $noMiddlewareClasses,
+	],
+));
+
+$routes->add(RouteName::OPENIDC_CALLBACK->value, new Route(
+	'/openidc/callback',
+	[ '_controller' => 'App\\Controllers\\LoginController::openidc_callback',
+	  '_middleware' => $noMiddlewareClasses,
+	],
+));
+
 $routes->add(RouteName::LOGOUT->value, new Route(
 	'/logout',
 	[ '_controller' => 'App\\Controllers\\LoginController::logout',

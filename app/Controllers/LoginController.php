@@ -22,6 +22,7 @@ use App\Models\User;
 use Illuminate\Database\Capsule\Manager as DB;
 
 use App\Core\Auth\AuthManager;
+use Jumbojett\OpenIDConnectClientException;
 //use App\Core\Auth\DbAuth;
 
 class LoginController extends ViewController
@@ -190,10 +191,92 @@ class LoginController extends ViewController
 
 		return new Response($this->twig->render('login.twig', [
 			'loginform' => $loginform->createView(),
+			'openidc_enabled' => Helper::env_bool('OPENIDC_AUTH_ENABLED'),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 		]),
 		$statusCode);
+	}
+
+	public function openidc_login(): Response {
+		$this->initUrls();
+		if (!empty($this->session->get('username'))) {
+			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
+			$this->flashbag->add('info', "Already logged in");
+			return new RedirectResponse($this->homepageUrl);
+		}
+
+		// session expired and user clicked logout.
+		// don't show session expired warning
+		if($this->session->get('login_redirect') === $this->url(RouteName::LOGOUT)) {
+			$this->session->getFlashBag()->clear();
+		}
+
+		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
+			$this->flashbag->add('info', "OpenID Connect disabled");
+			return new RedirectResponse($this->homepageUrl);
+		}
+
+		// get new session if it is expired
+		SessionManager::checkSessionExpired();
+
+		$auth = new AuthManager($this->fileLogger, $this->urlGenerator);
+
+		try {
+			$auth->startOpenIdConnectAuthentication();
+
+			// We should never get here because authenticate() redirects.
+			throw new \LogicException('OIDC authenticate() returned unexpectedly.');
+		} catch (\Throwable $e) {
+			$this->fileLogger->warning($e->getMessage());
+			$this->flashbag->add('error', "Authentication failed");
+			return new RedirectResponse($this->loginUrl);
+		}
+
+	}
+
+	public function openidc_callback(): Response {
+		$this->initUrls();
+		if (!empty($this->session->get('username'))) {
+			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
+			$this->flashbag->add('info', "Already logged in");
+			return new RedirectResponse($this->homepageUrl);
+		}
+
+		// session expired and user clicked logout.
+		// don't show session expired warning
+		if($this->session->get('login_redirect') === $this->url(RouteName::LOGOUT)) {
+			$this->session->getFlashBag()->clear();
+		}
+
+		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
+			$this->flashbag->add('info', "OpenID Connect disabled");
+			return new RedirectResponse($this->homepageUrl);
+		}
+
+		// get new session if it is expired
+		SessionManager::checkSessionExpired();
+
+		try {
+			$auth = new AuthManager($this->fileLogger, $this->urlGenerator);
+			$userInfo = $auth->finishOpenIdConnectAuthentication();
+		} catch (OpenIDConnectClientException $e) {
+			$this->fileLogger->warning('OIDC callback failed: ' . $e->getMessage());
+			$this->flashbag->add('error', "OpenID Connect authentication failed");
+			return new RedirectResponse($this->loginUrl);
+		} catch (\Throwable $e) {
+			$this->fileLogger->error($e->getMessage());
+			$this->flashbag->add('error', "An unexpected authentication error occurred");
+			return new RedirectResponse($this->loginUrl);
+		}
+
+		if (!empty($userInfo)) {
+			dump($userInfo);
+			dump($userInfo->preferred_username);
+			dump($userInfo->email);
+		}
+		dd("ok");
+
 	}
 
 	protected static function getMailAliases(User $user): array {

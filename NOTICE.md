@@ -77,3 +77,6 @@ https://github.com/rlanvin/php-ip
 
 - maxmind-db/reader: Apache-2.0 license\
 https://github.com/maxmind/MaxMind-DB-Reader-php
+
+- jumbojett/openid-connect-php: Apache-2.0 license\
+https://github.com/jumbojett/OpenID-Connect-PHP

@@ -10,6 +10,8 @@
 
 namespace App\Core\Auth;
 
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
@@ -23,14 +25,20 @@ class AuthManager
 	private int $providerId = 0;
 	private ?string $providerDescr = null;
 	private ?LoggerInterface $logger;
+	private ?UrlGeneratorInterface $urlGenerator = null;
 
 	public static array $authProviders = [
 		0 => 'DB',
 		1 => 'LDAP',
+		2 => 'OPENIDC',
 	];
 
-	public function __construct(LoggerInterface $logger) {
+	public function __construct(
+	   LoggerInterface $logger, 
+		?UrlGeneratorInterface $urlGenerator = null
+	) {
 		$this->logger = $logger;
+		$this->urlGenerator = $urlGenerator;
 	}
 
 	public function authenticate(
@@ -59,6 +67,67 @@ class AuthManager
 		}
 
 		return false;
+	}
+
+	public function startOpenIdConnectAuthentication(): bool {
+		$provider = new OpenIDConnectAuth();
+
+		if (!$provider) {
+			throw new RuntimeException("Authentication provider problem");
+		}
+
+		if (method_exists($provider, 'setLogger') && $this->logger) {
+			// DbAuth and LdapAuth use the setLogger setter
+			// API does not use AuthManager but BasicAuth directly
+			// because we want to catch early constructor errors.
+			// API passes logger on ther BasicAuth constructor
+			$provider->setLogger($this->logger);
+		} else {
+			throw new RuntimeException("Logging interface problem");
+		}
+
+		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
+			$provider->setUrlGenerator($this->urlGenerator);
+		} else {
+			throw new RuntimeException("Logging interface problem");
+		}
+
+		if (method_exists($provider, 'authenticate') && $provider->authenticate()) {
+			$this->provider = $provider;
+			return true;
+		}
+
+		return false;
+	}
+
+	public function finishOpenIdConnectAuthentication(): object {
+		$this->providerDescr = "OPENIDC";
+		$this->providerId = array_search("OPENIDC", self::$authProviders);
+
+		$provider = new OpenIDConnectAuth();
+
+		if (!$provider) {
+			throw new RuntimeException("Authentication provider problem");
+		}
+
+		if (method_exists($provider, 'setLogger') && $this->logger) {
+			// DbAuth and LdapAuth use the setLogger setter
+			// API does not use AuthManager but BasicAuth directly
+			// because we want to catch early constructor errors.
+			// API passes logger on ther BasicAuth constructor
+			$provider->setLogger($this->logger);
+		} else {
+			throw new RuntimeException("Logging interface problem");
+		}
+
+		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
+			$provider->setUrlGenerator($this->urlGenerator);
+		} else {
+			throw new RuntimeException("Logging interface problem");
+		}
+
+		$this->provider = $provider;
+		return $provider->finishAuthentication();
 	}
 
 	public function getAuthProvider(): ?string {

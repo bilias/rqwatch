@@ -29,8 +29,14 @@
 </div>
 
 {{ form_end(loginform) }}
-</div>
 
+{% if openidc_enabled %}
+<div class="row btn">
+<a href='{{ route('LOGIN_OPENIDC') }}'><button>{{ OPENIDC_LABEL }}</button></a>
+</div>
+{% endif %}
+
+</div>
 </div>
 {% endif %}
 {% endblock %}

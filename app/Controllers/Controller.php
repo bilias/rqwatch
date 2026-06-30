@@ -163,6 +163,8 @@ class Controller
 			return;
 		}
 
+		$this->loginUrl = $this->url(RouteName::LOGIN);
+
 		if ($this->getIsAdmin()) {
 			$this->homepageUrl = $this->url(RouteName::ADMIN_DAY_LOGS);
 			$this->searchUrl = $this->url(RouteName::ADMIN_SEARCH);

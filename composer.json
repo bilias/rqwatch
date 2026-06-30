@@ -51,6 +51,7 @@
         "symfony/lock": "^7.3",
         "symfony/cache": "^7.3",
         "rlanvin/php-ip": "^3.0",
-        "maxmind-db/reader": "^1.12.1"
+        "maxmind-db/reader": "^1.12.1",
+        "jumbojett/openid-connect-php": "^1.0"
     }
 }

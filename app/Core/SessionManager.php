@@ -69,7 +69,7 @@ class SessionManager
 				$storage = new NativeSessionStorage([
 					'cookie_secure' => self::checkSecureCookie(),
 					'cookie_httponly' => '1',
-					'cookie_samesite' => Cookie::SAMESITE_STRICT,
+					'cookie_samesite' => Cookie::SAMESITE_LAX,
 					// not needed
 					//'cookie_lifetime' => self::$session_timeout ?? 0,
 					'cookie_lifetime' => 0,
@@ -83,7 +83,7 @@ class SessionManager
 			$storage = new NativeSessionStorage([
 				'cookie_secure' => self::checkSecureCookie(),
 				'cookie_httponly' => '1',
-				'cookie_samesite' => Cookie::SAMESITE_STRICT,
+				'cookie_samesite' => Cookie::SAMESITE_LAX,
 				// not needed
 				//'cookie_lifetime' => self::$session_timeout ?? 0,
 				'cookie_lifetime' => 0,

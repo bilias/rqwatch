@@ -135,6 +135,7 @@ class ViewController extends Controller
 		$this->twig->addGlobal('FOOTER_VERSION', Config::get('FOOTER_VERSION') ?? AppConfig::APP_NAME);
 		$this->twig->addGlobal('WEB_BASE', $_ENV['WEB_BASE'] ?? '');
 		$this->twig->addGlobal('NOTIFICATION_SCORE', Config::get('notification_score') ?? 1000);
+		$this->twig->addGlobal('OPENIDC_LABEL', $_ENV['OPENIDC_LABEL'] ?? 'Login with OpenID Connect');
 
 		return $this->twig;
 	}
