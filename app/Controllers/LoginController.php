@@ -173,12 +173,12 @@ class LoginController extends ViewController
 					return new RedirectResponse($url);
 				}
 			}
+			// authenticate() failed
 			// db user not found after auth
 			if ($db_user_not_found) {
 				$this->fileLogger->warning("Authenticated user '$username' not found in DB.");
 				$this->flashbag->add('error', "Authentication problem. Contact admin");
 				$statusCode = Response::HTTP_INTERNAL_SERVER_ERROR;
-			// authenticate() failed
 			} else {
 				$auth_provider = $auth->getAuthProvider();
 				$client_ip = $_SERVER['REMOTE_ADDR'];
@@ -198,8 +198,14 @@ class LoginController extends ViewController
 		$statusCode);
 	}
 
-	public function openidc_login(): Response {
+	public function login_openidc(): Response {
 		$this->initUrls();
+
+		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
+			$this->flashbag->add('info', "OpenID Connect disabled");
+			return new RedirectResponse($this->homepageUrl);
+		}
+
 		if (!empty($this->session->get('username'))) {
 			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
 			$this->flashbag->add('info', "Already logged in");
@@ -210,11 +216,6 @@ class LoginController extends ViewController
 		// don't show session expired warning
 		if($this->session->get('login_redirect') === $this->url(RouteName::LOGOUT)) {
 			$this->session->getFlashBag()->clear();
-		}
-
-		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
-			$this->flashbag->add('info', "OpenID Connect disabled");
-			return new RedirectResponse($this->homepageUrl);
 		}
 
 		// get new session if it is expired
@@ -235,8 +236,14 @@ class LoginController extends ViewController
 
 	}
 
-	public function openidc_callback(): Response {
+	public function login_openidc_callback(): Response {
 		$this->initUrls();
+
+		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
+			$this->flashbag->add('warning', "OpenID Connect disabled");
+			return new RedirectResponse($this->homepageUrl);
+		}
+
 		if (!empty($this->session->get('username'))) {
 			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
 			$this->flashbag->add('info', "Already logged in");
@@ -249,17 +256,15 @@ class LoginController extends ViewController
 			$this->session->getFlashBag()->clear();
 		}
 
-		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
-			$this->flashbag->add('info', "OpenID Connect disabled");
-			return new RedirectResponse($this->homepageUrl);
-		}
-
 		// get new session if it is expired
 		SessionManager::checkSessionExpired();
 
 		try {
 			$auth = new AuthManager($this->fileLogger, $this->urlGenerator);
-			$userInfo = $auth->finishOpenIdConnectAuthentication();
+			if (!$auth->finishOpenIdConnectAuthentication()) {
+				$this->flashbag->add('error', "Authentication failed");
+				return new RedirectResponse($this->loginUrl);
+			}
 		} catch (OpenIDConnectClientException $e) {
 			$this->fileLogger->warning('OIDC callback failed: ' . $e->getMessage());
 			$this->flashbag->add('error', "OpenID Connect authentication failed");
@@ -270,13 +275,23 @@ class LoginController extends ViewController
 			return new RedirectResponse($this->loginUrl);
 		}
 
-		if (!empty($userInfo)) {
-			dump($userInfo);
-			dump($userInfo->preferred_username);
-			dump($userInfo->email);
-		}
-		dd("ok");
+		// user is authenticated
 
+		// User does not exist is DB after auth
+		if (!$this->updateCreateUser($auth)) {
+			$username = $auth->getAuthenticatedUser();
+			$this->fileLogger->error("Authenticated user '$username' not found in DB after auth");
+			$this->flashbag->add('error', "Authentication problem. Contact admin");
+			return new RedirectResponse($this->loginUrl);
+		}
+
+		if (!empty($login_redirect = $this->session->get('login_redirect'))) {
+			$url = $this->getRedirectUrl($login_redirect);
+		} else {
+			$url = $this->homepageUrl;
+		}
+
+		return new RedirectResponse($url);
 	}
 
 	protected static function getMailAliases(User $user): array {
@@ -290,6 +305,98 @@ class LoginController extends ViewController
 		   $user->mailAliases()->pluck('alias')->toArray(),
 		   fn($alias) => !empty(trim($alias))
 		)));
+	}
+
+	// update last_login and user information
+	// if user does not exists it is created
+	private function updateCreateUser(AuthManager $auth): bool {
+		$username = $auth->getAuthenticatedUser();
+		$is_admin = $auth->getIsAdmin();
+		$email = $auth->getUserEmail();
+		$auth_provider = $auth->getAuthProvider();
+		$auth_provider_id = $auth->getAuthProviderId();
+
+		$update = [
+			'last_login' => date("Y-m-d H:i:s")
+		];
+
+		// EXTERNAL AUTH (LDAP/OPENIDC)
+		if ($auth_provider !== "DB") {
+			$user = User::where('username', $username)->first();
+			// EXTERNAL user does not exist in DB, create him
+			if (!$user) {
+				$user = new User();
+				$user->username = $username;
+				$user->email = $email;
+				$user->firstname = $auth->getUserFirstName();
+				$user->lastname = $auth->getUserLastName();
+				$user->is_admin = $is_admin;
+				$user->auth_provider = $auth_provider_id;
+				$user->password = "EXTERNAL_AUTH";
+				$user->save();
+			}
+		}
+		$user_id = $user->id;
+
+		$this->fileLogger->info("User login: '{$username}' ($auth_provider)", [
+			'is_admin' => $is_admin,
+			'email' => $email,
+			'ip' => $_SERVER['REMOTE_ADDR'],
+		]);
+
+		$user = User::where('username', $username)->first();
+		if (!$user) {
+			$this->fileLogger->warning("Authenticated user '$username' not found in DB.");
+			$this->flashbag->add('error', "Authentication problem. Contact admin");
+			return false;
+		}
+		// user is authenticated and exists in DB
+
+		// update auth_provider
+		if (($auth_provider === 'LDAP' || $auth_provider === 'OPENIDC') &&
+		    ($auth_provider_id !== $user->auth_provider)) {
+				$update['auth_provider'] = $auth_provider_id;
+		}
+
+		// update first/last name
+		if (($auth_provider === 'LDAP' && Helper::env_bool('LDAP_UPDATE_NAME_ON_LOGIN')) ||
+		    ($auth_provider === 'OPENIDC' && Helper::env_bool('OPENIDC_UPDATE_NAME_ON_LOGIN'))) {
+				$update['firstname'] = $auth->getUserFirstName();
+				$update['lastname'] = $auth->getUserlastName();
+		}
+
+		// update DB user info including last_login
+		User::where('username', $username)
+			->update($update);
+
+		$this->session->set('username', $username);
+		$this->session->set('email', $email);
+		$this->session->set('is_admin', $is_admin);
+		$this->session->set('auth_provider', $auth_provider);
+		$this->session->set('user_id', $user_id);
+
+		// Load user aliases and set them in session
+		$aliases = $this->getMailAliases($user);
+		$this->session->set('user_aliases', $aliases);
+
+		$this->setSessionVars($this->session);
+		return true;
+	}
+
+	private function getRedirectUrl(string $login_redirect): string {
+		$url = $this->homepageUrl;
+		if ($login_redirect !== $this->url(RouteName::LOGIN) and
+		    $login_redirect !== $this->url(RouteName::LOGOUT) and
+		    $login_redirect !== $this->url(RouteName::ADMIN_HOMEPAGE) and
+		    $login_redirect !== $this->url(RouteName::HOMEPAGE) and
+			 $login_redirect !== $this->homepageUrl) {
+				if (str_starts_with($login_redirect, '/') && !str_starts_with($login_redirect, '//')) {
+					$url = $login_redirect;
+				}
+				$this->session->remove('login_redirect');
+		}
+
+		return $url;
 	}
 
 }

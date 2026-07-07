@@ -62,7 +62,7 @@ class OpenIDConnectAuth implements AuthInterface {
 		return false;
 	}
 
-	public function finishAuthentication(): object {
+	public function finishAuthentication(): bool {
 		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
 			$this->logger->error("OpenID Connect disabled");
 			return false;
@@ -72,7 +72,29 @@ class OpenIDConnectAuth implements AuthInterface {
 
 		$oidc->authenticate();
 
-		return $oidc->requestUserInfo();
+		$userInfo = $oidc->requestUserInfo();
+		if (empty($userInfo) || empty($userInfo->preferred_username)) {
+			$this->logger->error("Empty userinfo or preferred_username from OIDC");
+			return false;
+		}
+		$this->authenticatedUser = strtolower(trim($userInfo->preferred_username));
+
+		// search if user is admin
+		if (array_key_exists('OPENIDC_ADMINS', $_ENV) && !empty($_ENV['OPENIDC_ADMINS'])) {
+			$openidc_admins_ar = array_map(
+				fn($a) => strtolower(trim($a)),
+				explode(',', $_ENV['OPENIDC_ADMINS'])
+			);
+			if (in_array($this->authenticatedUser, $openidc_admins_ar, true)) {
+				$this->is_admin = true;
+			}
+		}
+
+		$this->email = $userInfo->email ?? null;
+		$this->lastname = $userInfo->family_name ?? null;
+		$this->firstname = $userInfo->given_name ?? null;
+
+		return true;
 	}
 
 	#[\Override]

@@ -14,8 +14,8 @@ enum RouteName: string
 {
 	case CONFIG_RELOAD = 'config_reload';
 	case LOGIN = 'login';
-	case LOGIN_OPENIDC = 'openidc_login';
-	case OPENIDC_CALLBACK = 'openidc_callback';
+	case LOGIN_OPENIDC = 'login_openidc';
+	case OPENIDC_CALLBACK = 'login_openidc_callback';
 	case LOGOUT = 'logout';
 	case HOMEPAGE = 'homepage';
 	case ADMIN_HOMEPAGE = 'admin_homepage';

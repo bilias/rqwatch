@@ -100,7 +100,7 @@ class AuthManager
 		return false;
 	}
 
-	public function finishOpenIdConnectAuthentication(): object {
+	public function finishOpenIdConnectAuthentication(): bool {
 		$this->providerDescr = "OPENIDC";
 		$this->providerId = array_search("OPENIDC", self::$authProviders);
 
