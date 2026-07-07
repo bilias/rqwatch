@@ -26,6 +26,7 @@ class AuthManager
 	private ?string $providerDescr = null;
 	private ?LoggerInterface $logger;
 	private ?UrlGeneratorInterface $urlGenerator = null;
+	private ?string $callbackUrl = null;
 
 	public static array $authProviders = [
 		0 => 'DB',
@@ -35,10 +36,12 @@ class AuthManager
 
 	public function __construct(
 	   LoggerInterface $logger, 
-		?UrlGeneratorInterface $urlGenerator = null
+		?UrlGeneratorInterface $urlGenerator = null,
+		?string $callbackUrl = null
 	) {
 		$this->logger = $logger;
 		$this->urlGenerator = $urlGenerator;
+		$this->callbackUrl = $callbackUrl;
 	}
 
 	public function authenticate(
@@ -90,6 +93,12 @@ class AuthManager
 			$provider->setUrlGenerator($this->urlGenerator);
 		} else {
 			throw new RuntimeException("Logging interface problem");
+		}
+
+		if (method_exists($provider, 'setCallbackUrl') && $this->callbackUrl) {
+			$provider->setCallbackUrl($this->callbackUrl);
+		} else {
+			throw new RuntimeException("OPENIDC redirect URL problem");
 		}
 
 		if (method_exists($provider, 'authenticate') && $provider->authenticate()) {

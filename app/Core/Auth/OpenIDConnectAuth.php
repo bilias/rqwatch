@@ -33,6 +33,7 @@ class OpenIDConnectAuth implements AuthInterface {
 	private ?string $lastname = null;
 	private ?LoggerInterface $logger = null;
 	private ?UrlGeneratorInterface $urlGenerator = null;
+	private ?string $callbackUrl = null;
 
 	public function __debugInfo(): array {
 		return [
@@ -141,12 +142,19 @@ class OpenIDConnectAuth implements AuthInterface {
 		$this->urlGenerator = $urlGenerator;
 	}
 
+	public function setCallbackUrl(string $url): void {
+		$this->callbackUrl = $url;
+	}
+
 	private function getCallbackUrl(): string {
+		/*
 		return $this->urlGenerator->generate(
 			RouteName::OPENIDC_CALLBACK->value,
 			[],
 			UrlGeneratorInterface::ABSOLUTE_URL
 		);
+		*/
+		return $this->callbackUrl ?? throw new \LogicException('OPENIDC redirect URL not set');
 	}
 
 	private function createClient(): OpenIDConnectClient {

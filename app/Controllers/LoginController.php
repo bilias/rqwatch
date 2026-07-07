@@ -137,7 +137,8 @@ class LoginController extends ViewController
 		// get new session if it is expired
 		SessionManager::checkSessionExpired();
 
-		$auth = new AuthManager($this->fileLogger, $this->urlGenerator);
+		$callbackUrl = $this->request->getSchemeAndHttpHost() . $this->url(RouteName::OPENIDC_CALLBACK);
+		$auth = new AuthManager($this->fileLogger, $this->urlGenerator, $callbackUrl);
 
 		try {
 			$auth->startOpenIdConnectAuthentication();
