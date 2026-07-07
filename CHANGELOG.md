@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-07-07
+- Show mail aliases in user profile
 - Use new helper methods in login()
 - Implement OpenID Connect Authentication
 

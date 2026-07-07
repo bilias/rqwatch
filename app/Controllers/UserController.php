@@ -234,10 +234,14 @@ class UserController extends ViewController
 			}
 		}
 
+		$mail_aliases = $this->getMailAliases($user);
+		$aliases_str = implode(', ', array_map('trim', $mail_aliases));
+
 		return new Response($this->twig->render('user.twig', [
 			'qidform' => $qidform->createView(),
 			'profileform' => $profileform_t,
 			'user' => $user,
+			'mail_aliases' => $aliases_str,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->session->get('is_admin'),
