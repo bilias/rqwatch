@@ -355,7 +355,7 @@ System supports LDAP Authentication.
 
 ### OpenID Connect Settings
 System supports OpenID Connect Authentication.
-- `OPENIDC_AUTH_ENABLED` - Set to `true` to enable OpenID Connect
+- `OPENIDC_AUTH_ENABLED` - Set to `true` to enable OpenID Connect Authentication
 
 - `OPENIDC_LABEL` - Label to show for login button
 
