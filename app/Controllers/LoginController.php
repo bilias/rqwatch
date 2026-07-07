@@ -270,12 +270,15 @@ class LoginController extends ViewController
 			'ip' => $_SERVER['REMOTE_ADDR'],
 		]);
 
-		// update auth_provider
-		if (($auth_provider === 'LDAP' || $auth_provider === 'OPENIDC') &&
-		    ($auth_provider_id !== $user->auth_provider)) {
+		if (($auth_provider === 'LDAP' || $auth_provider === 'OPENIDC')) {
+			// update auth_provider in DB
+			if ($auth_provider_id !== $user->auth_provider) {
 				$update['auth_provider'] = $auth_provider_id;
-				// get updated e-mail from external system
-				// $update['email'] = $email;
+			}
+			// update email in DB
+			if (!empty($email) && $email !== $user->email) {
+				$update['email'] = $email;
+			}
 		}
 
 		// update first/last name
