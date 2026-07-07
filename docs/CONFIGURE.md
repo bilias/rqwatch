@@ -24,6 +24,7 @@ All passwords provided are dummy entries and **should not be used**, as this is 
       * [Mail Notifications/Release from Quarantine](#mail-notificationsrelease-from-quarantine)
       * [Redis Settings](#redis-settings)
       * [LDAP Settings](#ldap-settings)
+      * [OpenID Connect Settings](#openid-connect-settings)
    * [config.local.php (and config.php) Configuration file](#configlocalphp-and-configphp-configuration-file)
       * [Web API Settings](#web-api-settings)
       * [Rspamd Statistics](#rspamd-statistics)
@@ -351,6 +352,24 @@ System supports LDAP Authentication.
   Specifies the certificate checking strategy. This must be one of: `never, demand, allow, try`
 
 - `LDAP_ADMINS` - Define LDAP admin usernames, comma-separated
+
+### OpenID Connect Settings
+System supports OpenID Connect Authentication.
+- `OPENIDC_AUTH_ENABLED` - Set to `true` to enable OpenID Connect
+
+- `OPENIDC_LABEL` - Label to show for login button
+
+- `OPENIDC_REQUIRE_PKCE` - Set to `true` to enable PKCE
+
+- `OPENIDC_URL` - Provider url
+
+- `OPENIDC_CLIENT_ID` - Client ID
+
+- `OPENIDC_CLIENT_SECRET` - Client secret
+
+- `OPENIDC_UPDATE_NAME_ON_LOGIN - Update user's first/last name on every login
+
+- `OPENIDC_ADMINS` - Define OpenID Connect admin usernames, comma-separated
 
 ## config.local.php (and config.php) Configuration file
 `config.local.php` can override all default configuration options found in `config.php`

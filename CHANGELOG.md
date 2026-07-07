@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2026-07-07
+- Use new helper methods in login()
+- Implement OpenID Connect Authentication
+
 ### 2026-06-02
 - Updates for components
 - Security updates for components

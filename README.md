@@ -124,11 +124,12 @@ Admin users have full access. Users have limited access and only to their data.
 - Basic authentication
 - Database authentication
 - LDAP authentication
+- OpenID Connect authentication
 
 ### Access Control
 - Admin users can read/release all emails and edit all maps
 - Normal users can read/release only their emails (+ aliases) and edit their maps
-- DB Admin users / LDAP Admin users
+- DB Admin users / LDAP Admin users / OpenID Connect Admin users
 - /admin web endpoint for admins
 
 ### Users
