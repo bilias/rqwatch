@@ -361,13 +361,13 @@ System supports OpenID Connect Authentication.
 
 - `OPENIDC_REQUIRE_PKCE` - Set to `true` to enable PKCE
 
-- `OPENIDC_URL` - Provider url
+- `OPENIDC_URL` - Provider URL
 
 - `OPENIDC_CLIENT_ID` - Client ID
 
-- `OPENIDC_CLIENT_SECRET` - Client secret
+- `OPENIDC_CLIENT_SECRET` - Client Secret
 
-- `OPENIDC_UPDATE_NAME_ON_LOGIN - Update user's first/last name on every login
+- `OPENIDC_UPDATE_NAME_ON_LOGIN` - Update user's first/last name on every login
 
 - `OPENIDC_ADMINS` - Define OpenID Connect admin usernames, comma-separated
 
