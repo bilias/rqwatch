@@ -74,7 +74,10 @@ class AuthManager
 	}
 
 	public static function getAuthProviderById(int $id): string {
-		return self::$authProviders[$id];
+		if (!empty(self::$authProviders[$id])) {
+			return self::$authProviders[$id];
+		}
+		return 'UNKNOWN';
 	}
 
 	private function selectAuthProvider(string $username, string $password): AuthInterface {
