@@ -88,7 +88,7 @@ class LoginController extends ViewController
 				// user is authenticated
 
 				// User does not exist is DB after auth
-				if (!$this->updateCreateUser($auth)) {
+				if (!$this->finalizeAuthenticatedUser($auth)) {
 					$username = $auth->getAuthenticatedUser();
 					$this->fileLogger->error("Authenticated user '$username' not found in DB after auth");
 					$this->flashbag->add('error', "Authentication problem. Contact admin");
@@ -194,7 +194,7 @@ class LoginController extends ViewController
 		// user is authenticated
 
 		// User does not exist is DB after auth
-		if (!$this->updateCreateUser($auth)) {
+		if (!$this->finalizeAuthenticatedUser($auth)) {
 			$username = $auth->getAuthenticatedUser();
 			$this->fileLogger->error("Authenticated user '$username' not found in DB after auth");
 			$this->flashbag->add('error', "Authentication problem. Contact admin");
@@ -225,16 +225,12 @@ class LoginController extends ViewController
 
 	// update last_login and user information
 	// if user does not exists it is created
-	private function updateCreateUser(AuthManager $auth): bool {
+	private function finalizeAuthenticatedUser(AuthManager $auth): bool {
 		$username = $auth->getAuthenticatedUser();
 		$is_admin = $auth->getIsAdmin();
 		$email = $auth->getUserEmail();
 		$auth_provider = $auth->getAuthProvider();
 		$auth_provider_id = $auth->getAuthProviderId();
-
-		$update = [
-			'last_login' => date("Y-m-d H:i:s")
-		];
 
 		$user = User::where('username', $username)->first();
 
@@ -250,8 +246,23 @@ class LoginController extends ViewController
 			$user->is_admin = $is_admin;
 			$user->auth_provider = $auth_provider_id;
 			$user->password = "EXTERNAL_AUTH";
+			$user->save();
 		}
+
+		// DB user missing
+		if (!$user) {
+			$this->fileLogger->warning("Authenticated user '$username' not found in DB.");
+			$this->flashbag->add('error', "Authentication problem. Contact admin");
+			return false;
+		}
+
+		// user is authenticated and exists in DB
+
 		$user_id = $user->id;
+
+		$update = [
+			'last_login' => date("Y-m-d H:i:s")
+		];
 
 		$this->fileLogger->info("User login: '{$username}' ($auth_provider)", [
 			'is_admin' => $is_admin,
@@ -259,18 +270,12 @@ class LoginController extends ViewController
 			'ip' => $_SERVER['REMOTE_ADDR'],
 		]);
 
-		$user = User::where('username', $username)->first();
-		if (!$user) {
-			$this->fileLogger->warning("Authenticated user '$username' not found in DB.");
-			$this->flashbag->add('error', "Authentication problem. Contact admin");
-			return false;
-		}
-		// user is authenticated and exists in DB
-
 		// update auth_provider
 		if (($auth_provider === 'LDAP' || $auth_provider === 'OPENIDC') &&
 		    ($auth_provider_id !== $user->auth_provider)) {
 				$update['auth_provider'] = $auth_provider_id;
+				// get updated e-mail from external system
+				// $update['email'] = $email;
 		}
 
 		// update first/last name
@@ -281,8 +286,10 @@ class LoginController extends ViewController
 		}
 
 		// update DB user info including last_login
-		User::where('username', $username)
-			->update($update);
+		if (!$user->update($update)) {
+			$this->fileLogger->error("Failed to update user '$username' in DB");
+			return false;
+		}
 
 		$this->session->set('username', $username);
 		$this->session->set('email', $email);
