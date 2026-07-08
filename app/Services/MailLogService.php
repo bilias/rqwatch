@@ -52,6 +52,7 @@ class MailLogService
 	protected $q_items_per_page;
 	protected $max_items;
 	private ?bool $is_admin = null;
+	private ?string $username = null;
 	private ?string $email = null;
 	private ?array $user_aliases = null;
 
@@ -60,6 +61,7 @@ class MailLogService
 
 		if (!empty($session)) {
 			$this->is_admin = $session->get('is_admin');
+			$this->username = $session->get('username');
 			$this->email = $session->get('email');
 			$this->user_aliases = $session->get('user_aliases');
 		}
@@ -580,7 +582,7 @@ class MailLogService
 		$log = $query->first();
 		if (!$log) {
 			$err = "Mail with QID '{$qid}' not found";
-			Helper::debug_exception_err("{$lf} {$err}");
+			Helper::debug_exception_err("{$lf} {$err} by user: '" . $this->username . "'");
 			throw new InvalidArgumentException($err);
 		}
 		return $log;
