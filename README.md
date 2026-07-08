@@ -124,7 +124,7 @@ Admin users have full access. Users have limited access and only to their data.
 - Basic authentication
 - Database authentication
 - LDAP authentication
-- OpenID Connect authentication
+- OpenID Connect authentication (and RP-Initiated Logout)
 
 ### Access Control
 - Admin users can read/release all emails and edit all maps
