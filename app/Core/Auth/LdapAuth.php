@@ -139,11 +139,15 @@ class LdapAuth implements AuthInterface {
 			return false;
 		}
 
-		// having more than 1 mail attribute produces error
 		$mail_count = $mail_ar['count'];
 		if ($mail_count !== 1) {
+			// having more than 1 mail attribute produces error
+			/*
 			$this->logger->error("User '{$this->username}' has {$mail_count} {$ldap_mail_attr} attributes");
 			return false;
+			*/
+			unset($mail_ar['count']);
+			sort($mail_ar, SORT_STRING);
 		}
 		
 		if (array_key_exists(0, $mail_ar)) {
