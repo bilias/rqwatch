@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-07-08
+- Implement RP Initiated Logout for OpenIDC
+
 ### 2026-07-07
 - Show mail aliases in user profile
 - Use new helper methods in login()
