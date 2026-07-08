@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-07-08
+- Support multiple mail attrs from LDAP
 - Implement RP Initiated Logout for OpenIDC
 
 ### 2026-07-07
