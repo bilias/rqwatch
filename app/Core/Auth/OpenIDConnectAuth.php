@@ -34,6 +34,8 @@ class OpenIDConnectAuth implements AuthInterface {
 	private ?LoggerInterface $logger = null;
 	private ?UrlGeneratorInterface $urlGenerator = null;
 	private ?string $callbackUrl = null;
+	private ?string $postLogoutRedirectUrl = null;
+	private ?string $idToken = null;
 
 	public function __debugInfo(): array {
 		return [
@@ -43,6 +45,8 @@ class OpenIDConnectAuth implements AuthInterface {
 			'firstname' => $this->firstname,
 			'lastname' => $this->lastname,
 			'authenticatedUser' => $this->authenticatedUser,
+			'callbackUrl' => $this->callbackUrl,
+			'postLogoutRedirectUrl' => $this->postLogoutRedirectUrl,
 		];
 	}
 
@@ -73,6 +77,8 @@ class OpenIDConnectAuth implements AuthInterface {
 
 		$oidc->authenticate();
 
+		$this->idToken = $oidc->getIdToken();
+
 		$userInfo = $oidc->requestUserInfo();
 		if (empty($userInfo) || empty($userInfo->preferred_username)) {
 			$this->logger->error("Empty userinfo or preferred_username from OIDC");
@@ -95,6 +101,25 @@ class OpenIDConnectAuth implements AuthInterface {
 		$this->lastname = $userInfo->family_name ?? null;
 		$this->firstname = $userInfo->given_name ?? null;
 
+		return true;
+	}
+
+	public function logout(?string $idToken): bool {
+		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
+			$this->logger->error("OpenID Connect disabled");
+			return false;
+		}
+
+		if (empty($idToken)) {
+			$this->logger->error("Empty OpenID ID Token");
+			return false;
+		}
+
+		$oidc = $this->createClient();
+
+		$oidc->signOut($idToken, $this->postLogoutRedirectUrl);
+
+		// unreachable
 		return true;
 	}
 
@@ -155,6 +180,18 @@ class OpenIDConnectAuth implements AuthInterface {
 		);
 		*/
 		return $this->callbackUrl ?? throw new \LogicException('OPENIDC redirect URL not set');
+	}
+
+	public function setPostLogoutRedirectUrl(string $url): void {
+		$this->postLogoutRedirectUrl = $url;
+	}
+
+	public function getPostLogoutRedirectUrl(string $url): string {
+		return $this->postLogoutRedirectUrl ?? throw new \LogicException('OPENIDC post logout redirect URL not set');
+	}
+
+	public function getIdToken(): ?string {
+		return $this->idToken;
 	}
 
 	private function createClient(): OpenIDConnectClient {

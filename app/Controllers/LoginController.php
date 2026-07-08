@@ -29,11 +29,46 @@ class LoginController extends ViewController
 {
 
 	public function logout(): Response {
+		$this->loginUrl = $this->url(RouteName::LOGIN);
+
 		if ($username = $this->session->get('username')) {
 			$this->fileLogger->info("User logout: '{$username}'");
 		}
+
+		if ($this->session->get('auth_provider') === 'OPENIDC'
+			&& Helper::env_bool('OPENIDC_RP_INITIATED_LOGOUT')) {
+
+			return $this->logout_openidc();
+		}
+
 		$this->clearSession();
-		$this->loginUrl = $this->url(RouteName::LOGIN);
+		return new RedirectResponse($this->loginUrl);
+	}
+
+	public function logout_openidc(): Response {
+		$idToken = $this->session->get('openidc_id_token');
+
+		$this->clearSession();
+
+		if (empty($idToken)) {
+			$this->fileLogger->warning('OPENIDC ID Token empty');
+			return new RedirectResponse($this->loginUrl);
+		}
+
+		$postLogoutRedirectUrl = $this->request->getSchemeAndHttpHost() . $this->url(RouteName::LOGIN);
+		$auth = new AuthManager($this->fileLogger, $this->urlGenerator, $postLogoutRedirectUrl);
+
+		try {
+			if (!$auth->logoutOpenIdConnect($idToken)) {
+				$this->fileLogger->warning('OPENIDC logout could not be started');
+				return new RedirectResponse($this->loginUrl);
+			}
+		} catch (\Throwable $e) {
+			$this->fileLogger->warning( 'OPENIDC logout failed: ' . $e->getMessage());
+			return new RedirectResponse($this->loginUrl);
+		}
+
+		// unreachable
 		return new RedirectResponse($this->loginUrl);
 	}
 
@@ -208,6 +243,7 @@ class LoginController extends ViewController
 			$url = $this->homepageUrl;
 		}
 
+		$this->session->set('openidc_id_token', $auth->getIdToken());
 		return new RedirectResponse($url);
 	}
 

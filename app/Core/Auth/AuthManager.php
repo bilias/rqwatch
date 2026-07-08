@@ -26,7 +26,7 @@ class AuthManager
 	private ?string $providerDescr = null;
 	private ?LoggerInterface $logger;
 	private ?UrlGeneratorInterface $urlGenerator = null;
-	private ?string $callbackUrl = null;
+	private ?string $redirectUrl = null;
 
 	public static array $authProviders = [
 		0 => 'DB',
@@ -37,11 +37,11 @@ class AuthManager
 	public function __construct(
 	   LoggerInterface $logger, 
 		?UrlGeneratorInterface $urlGenerator = null,
-		?string $callbackUrl = null
+		?string $redirectUrl = null
 	) {
 		$this->logger = $logger;
 		$this->urlGenerator = $urlGenerator;
-		$this->callbackUrl = $callbackUrl;
+		$this->redirectUrl = $redirectUrl;
 	}
 
 	public function authenticate(
@@ -95,8 +95,8 @@ class AuthManager
 			throw new RuntimeException("Logging interface problem");
 		}
 
-		if (method_exists($provider, 'setCallbackUrl') && $this->callbackUrl) {
-			$provider->setCallbackUrl($this->callbackUrl);
+		if (method_exists($provider, 'setCallbackUrl') && $this->redirectUrl) {
+			$provider->setCallbackUrl($this->redirectUrl);
 		} else {
 			throw new RuntimeException("OPENIDC redirect URL problem");
 		}
@@ -139,6 +139,48 @@ class AuthManager
 		return $provider->finishAuthentication();
 	}
 
+	public function logoutOpenIdConnect(?string $idToken): bool {
+		if (empty($idToken)) {
+			$this->logger->error("Empty OpenID ID Token");
+			return false;
+		}
+
+		$provider = new OpenIDConnectAuth();
+
+		if (!$provider) {
+			throw new RuntimeException("Authentication provider problem");
+		}
+
+		if (method_exists($provider, 'setLogger') && $this->logger) {
+			// DbAuth and LdapAuth use the setLogger setter
+			// API does not use AuthManager but BasicAuth directly
+			// because we want to catch early constructor errors.
+			// API passes logger on ther BasicAuth constructor
+			$provider->setLogger($this->logger);
+		} else {
+			throw new RuntimeException("Logging interface problem");
+		}
+
+		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
+			$provider->setUrlGenerator($this->urlGenerator);
+		} else {
+			throw new RuntimeException("Logging interface problem");
+		}
+
+		if (method_exists($provider, 'setPostLogoutRedirectUrl') && $this->redirectUrl) {
+			$provider->setPostLogoutRedirectUrl($this->redirectUrl);
+		} else {
+			throw new RuntimeException("OPENIDC post logout redirect URL problem");
+		}
+
+		if (method_exists($provider, 'logout')) {
+			return $provider->logout($idToken);
+		}
+
+		// unreachable
+		throw new RuntimeException("OPENIDC logout method missing");
+	}
+
 	public function getAuthProvider(): ?string {
 		return $this->providerDescr;
 	}
@@ -175,6 +217,13 @@ class AuthManager
 		// Default to DB
 		$this->providerDescr = "DB";
 		return new DbAuth($username, $password);
+	}
+
+	public function getIdToken(): ?string {
+		if ($this->provider && method_exists($this->provider, 'getIdToken')) {
+			return $this->provider->getIdToken();
+		}
+		return null;
 	}
 
 	public function getAuthenticatedUser(): ?string {

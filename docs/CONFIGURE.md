@@ -357,6 +357,8 @@ System supports LDAP Authentication.
 System supports OpenID Connect Authentication.
 - `OPENIDC_AUTH_ENABLED` - Set to `true` to enable OpenID Connect Authentication
 
+- `OPENIDC_RP_INITIATED_LOGOUT` - Set to `true` to enable logout from OpenID Provider
+
 - `OPENIDC_LABEL` - Label to show for login button
 
 - `OPENIDC_REQUIRE_PKCE` - Set to `true` to enable PKCE
