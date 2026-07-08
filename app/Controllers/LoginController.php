@@ -35,10 +35,17 @@ class LoginController extends ViewController
 			$this->fileLogger->info("User logout: '{$username}'");
 		}
 
-		if ($this->session->get('auth_provider') === 'OPENIDC'
-			&& Helper::env_bool('OPENIDC_RP_INITIATED_LOGOUT')) {
+		if ($this->session->get('auth_provider') === 'OPENIDC') {
+			if (Helper::env_bool('OPENIDC_RP_INITIATED_LOGOUT')) {
+				return $this->logout_openidc();
+			}
+			// OPENIDC_RP_INITIATED_LOGOUT=false
+			$loginUrl = $this->request->getSchemeAndHttpHost()
+				. $this->loginUrl
+				. '?openidc_session_active=1';
 
-			return $this->logout_openidc();
+			$this->clearSession();
+			return new RedirectResponse($loginUrl);
 		}
 
 		$this->clearSession();
@@ -74,6 +81,11 @@ class LoginController extends ViewController
 
 	public function login(): Response {
 		$this->initUrls();
+
+		if ($this->request->query->get('openidc_session_active') === '1') {
+			$this->flashbag->add('warning', "You are logged out, but your SSO session is still active. Close your browser to delete the session.");
+			return new RedirectResponse($this->loginUrl);
+		}
 
 		if (!empty($this->session->get('username'))) {
 			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
