@@ -161,6 +161,19 @@ class LoginController extends ViewController
 		}
 
 		$openidcLogoutUrl = $this->session->get('openidc_logout_url');
+		if (Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
+			$clientId = $_ENV['OPENIDC_CLIENT_ID'] ?? null;
+
+			if ($openidcLogoutUrl && $clientId) {
+				$separator = str_contains($openidcLogoutUrl, '?') ? '&' : '?';
+
+				$loginUrl = $this->request->getSchemeAndHttpHost() . $this->loginUrl;
+				$openidcLogoutUrl .= $separator . http_build_query([
+					'client_id' => $clientId,
+					'post_logout_redirect_uri' => $loginUrl,
+				]);
+			}
+		}
 		$this->session->remove('openidc_logout_url');
 
 		return new Response($this->twig->render('login.twig', [
