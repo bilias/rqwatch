@@ -191,9 +191,13 @@ class LoginController extends ViewController
 			$auth->startOpenIdConnectAuthentication();
 
 			// We should never get here because authenticate() redirects.
-			throw new \LogicException('OIDC authenticate() returned unexpectedly.');
+			throw new \LogicException('OPENIDC authenticate() returned unexpectedly.');
+		} catch (OpenIDConnectClientException $e) {
+			$this->fileLogger->warning("OPENIDC startOpenIdConnectAuthentication() failed with error: " . $e->getMessage());
+			$this->flashbag->add('error', "The SSO service is currently unavailable");
+			return new RedirectResponse($this->loginUrl);
 		} catch (\Throwable $e) {
-			$this->fileLogger->warning($e->getMessage());
+			$this->fileLogger->warning("OPENIDC startOpenIdConnectAuthentication() failed with error: " . $e->getMessage());
 			$this->flashbag->add('error', "Authentication failed");
 			return new RedirectResponse($this->loginUrl);
 		}
@@ -230,7 +234,7 @@ class LoginController extends ViewController
 				return new RedirectResponse($this->loginUrl);
 			}
 		} catch (OpenIDConnectClientException $e) {
-			$this->fileLogger->warning('OIDC callback failed: ' . $e->getMessage());
+			$this->fileLogger->warning('OPENIDC callback failed: ' . $e->getMessage());
 			$this->flashbag->add('error', "OpenID Connect authentication failed");
 			return new RedirectResponse($this->loginUrl);
 		} catch (\Throwable $e) {
