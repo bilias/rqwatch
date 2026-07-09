@@ -14,8 +14,5 @@
 ### Translations
 - Multi lang support
 
-### Authentication
-- OpenID Authentication 
-
 ### UI
 - Responsive design (help would be appreciated for this)
