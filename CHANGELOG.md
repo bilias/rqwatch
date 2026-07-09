@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v1.7.2 - Released: 2026-07-09
+
 ### 2026-07-08
 - Support multiple mail attrs from LDAP
 - Implement RP Initiated Logout for OpenIDC
@@ -10,6 +12,8 @@
 - Show mail aliases in user profile
 - Use new helper methods in login()
 - Implement OpenID Connect Authentication
+
+## Version v1.7.1 - Released: 2026-07-08
 
 ### 2026-06-02
 - Updates for components
