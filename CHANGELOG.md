@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-07-08
+- Provide link for OIDC logout to user after logout from Rqwatch if OPENIDC_RP_INITIATED_LOGOUT is false
+
 ## Version v1.7.2 - Released: 2026-07-09
 
 ### 2026-07-08

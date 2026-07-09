@@ -82,8 +82,16 @@ class LoginController extends ViewController
 	public function login(): Response {
 		$this->initUrls();
 
-		if ($this->request->query->get('openidc_session_active') === '1') {
-			$this->flashbag->add('warning', "You are logged out, but your SSO session is still active. Close your browser to delete the session.");
+		if (Helper::env_bool('OPENIDC_AUTH_ENABLED') &&
+			 $this->request->query->get('openidc_session_active') === '1') {
+
+			$this->flashbag->add('warning', "You are logged out, but your '{$_ENV['OPENIDC_LABEL']}' session is still active. Close your browser to delete the session or click the link bellow.");
+			$auth = new AuthManager($this->fileLogger, $this->urlGenerator);
+			$this->session->set(
+				'openidc_logout_url',
+				$auth->getOpenIdConnectLogoutUrl()
+			);
+
 			return new RedirectResponse($this->loginUrl);
 		}
 
@@ -152,9 +160,13 @@ class LoginController extends ViewController
 			}
 		}
 
+		$openidcLogoutUrl = $this->session->get('openidc_logout_url');
+		$this->session->remove('openidc_logout_url');
+
 		return new Response($this->twig->render('login.twig', [
 			'loginform' => $loginform->createView(),
 			'openidc_enabled' => Helper::env_bool('OPENIDC_AUTH_ENABLED'),
+			'openidc_logout_url' => $openidcLogoutUrl,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 		]),
@@ -194,7 +206,7 @@ class LoginController extends ViewController
 			throw new \LogicException('OPENIDC authenticate() returned unexpectedly.');
 		} catch (OpenIDConnectClientException $e) {
 			$this->fileLogger->warning("OPENIDC startOpenIdConnectAuthentication() failed with error: " . $e->getMessage());
-			$this->flashbag->add('error', "The SSO service is currently unavailable");
+			$this->flashbag->add('error', "The '{$_ENV['OPENIDC_LABEL']}' service is currently unavailable");
 			return new RedirectResponse($this->loginUrl);
 		} catch (\Throwable $e) {
 			$this->fileLogger->warning("OPENIDC startOpenIdConnectAuthentication() failed with error: " . $e->getMessage());

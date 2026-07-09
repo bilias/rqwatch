@@ -181,6 +181,14 @@ class AuthManager
 		throw new RuntimeException("OPENIDC logout method missing");
 	}
 
+	public function getOpenIdConnectLogoutUrl(): ?string {
+		$provider = new OpenIDConnectAuth();
+		$provider->setLogger($this->logger);
+		$provider->setUrlGenerator($this->urlGenerator);
+
+		return $provider->getLogoutUrl();
+	}
+
 	public function getAuthProvider(): ?string {
 		return $this->providerDescr;
 	}

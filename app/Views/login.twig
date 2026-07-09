@@ -1,6 +1,15 @@
 {% extends 'minimal.html.twig' %}
 
 {% block content %}
+{% if openidc_logout_url %}
+  <div class='flash_messages'>
+    <div class="flash-warning">
+      <a href="{{ openidc_logout_url|e('html_attr') }}" target="_blank" rel="noopener">
+        Click here to log out from {{ OPENIDC_LABEL }}
+      </a>
+    </div>
+  </div>
+{% endif %}
 {% if loginform %}
 <div class='loginform'>
 <span class='logindescr'>User Login</span>
@@ -32,7 +41,7 @@
 
 {% if openidc_enabled %}
 <div class="row btn">
-<a href='{{ route('LOGIN_OPENIDC') }}'><button>{{ OPENIDC_LABEL }}</button></a>
+<a href='{{ route('LOGIN_OPENIDC') }}'><button>Login with {{ OPENIDC_LABEL }}</button></a>
 </div>
 {% endif %}
 

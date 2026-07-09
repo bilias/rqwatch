@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-use Jumbojett\OpenIDConnectClient;
+//use Jumbojett\OpenIDConnectClient;
 
 use App\Core\RouteName;
 
@@ -194,12 +194,12 @@ class OpenIDConnectAuth implements AuthInterface {
 		return $this->idToken;
 	}
 
-	private function createClient(): OpenIDConnectClient {
+	private function createClient(): RqwatchOpenIDConnectClient {
 		$openidc_url = $_ENV['OPENIDC_URL'];
 		$openidc_client_id = $_ENV['OPENIDC_CLIENT_ID'];
 		$openidc_client_secret = $_ENV['OPENIDC_CLIENT_SECRET'];
 
-		$oidc = new OpenIDConnectClient(
+		$oidc = new RqwatchOpenIDConnectClient(
 			$_ENV['OPENIDC_URL'],
 			$_ENV['OPENIDC_CLIENT_ID'],
 			$_ENV['OPENIDC_CLIENT_SECRET']
@@ -213,15 +213,13 @@ class OpenIDConnectAuth implements AuthInterface {
 		return $oidc;
 	}
 
-	public function getAttr(array $attrs, string $field): ?string {
-		$baseAttr = strtok($field, ';');
-		if (array_key_exists($baseAttr, $attrs)) {
-			if (array_key_exists(0, $attrs[$baseAttr])) {
-				return $attrs[$baseAttr][0];
-			}
+	public function getLogoutUrl(): ?string {
+		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
+			return null;
 		}
 
-		return null;
+		$oidc = $this->createClient();
+		return $oidc->getEndSessionEndpoint();
 	}
 
 }
