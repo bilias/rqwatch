@@ -466,6 +466,7 @@ class UserController extends ViewController
 			// user found
 			if ($user) {
 				$old_username = $this->session->get('username');
+				$old_auth_provider = $this->session->get('auth_provider');
 
 				// only clears $this->vars from base Controller
 				$this->unsetSessionVars();
@@ -483,6 +484,7 @@ class UserController extends ViewController
 				)));
 				$this->session->set('user_aliases', $aliases);
 				$this->session->set('old_username', $old_username);
+				$this->session->set('old_auth_provider', $old_auth_provider);
 
 				// push session vars to $this->vars
 				$this->setSessionVars($this->session);

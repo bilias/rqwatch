@@ -2,7 +2,10 @@
 
 ## Master Dev Branch
 
-### 2026-07-08
+### 2026-07-10
+- Cover logout when loginAs and OPENIDC
+
+### 2026-07-09
 - Provide link for OIDC logout to user after logout from Rqwatch
   if OPENIDC_RP_INITIATED_LOGOUT is false
 - Redirect back to Rqwatch after manual OIDC logout

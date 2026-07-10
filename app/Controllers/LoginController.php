@@ -35,7 +35,13 @@ class LoginController extends ViewController
 			$this->fileLogger->info("User logout: '{$username}'");
 		}
 
-		if ($this->session->get('auth_provider') === 'OPENIDC') {
+		$auth_provider = $this->session->get('auth_provider');
+		// maybe we are in loginAs
+		$old_auth_provider = $this->session->get('old_auth_provider');
+		// normal OPENIDC login without loginAs
+		if (($auth_provider === 'OPENIDC' && !$old_auth_provider) ||
+			 // original login via OPENIDC, ignore current auth_provider from loginAs
+			 ($old_auth_provider === 'OPENIDC')) {
 			if (Helper::env_bool('OPENIDC_RP_INITIATED_LOGOUT')) {
 				return $this->logout_openidc();
 			}
