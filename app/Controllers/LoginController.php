@@ -294,17 +294,50 @@ class LoginController extends ViewController
 		return new RedirectResponse($url);
 	}
 
-	protected static function getMailAliases(User $user): array {
+	protected static function getMailAliases(
+		User $user,
+		array $externalAliases = []
+	): array {
 		/*
 		$mail_aliases = [];
 		foreach ($user->mailAliases as $mail_alias) {
 			$mail_aliases[] = strtolower(trim($mail_alias->alias));
 		}
 		*/
+
+		/*
 		return array_unique(array_map('strtolower', array_filter(
 		   $user->mailAliases()->pluck('alias')->toArray(),
 		   fn($alias) => !empty(trim($alias))
 		)));
+		*/
+
+		$dbAliases = array_map(
+			'strtolower',
+			array_filter(
+				$user->mailAliases()->pluck('alias')->toArray(),
+				fn($alias) => !empty(trim($alias))
+			)
+		);
+
+		$externalAliases = array_map(
+			fn($alias) => strtolower(trim($alias)),
+			array_filter(
+				$externalAliases,
+				fn($alias) => !empty(trim($alias))
+			)
+		);
+
+		$aliases = array_unique(array_merge($dbAliases, $externalAliases));
+		$primaryEmail = strtolower(trim((string) $user->email));
+
+		// Remove the primary email if it appears as an alias
+		$aliases = array_filter(
+			$aliases,
+			fn($alias) => $alias !== $primaryEmail
+		);
+
+		return array_values($aliases);
 	}
 
 	// update last_login and user information
@@ -358,10 +391,12 @@ class LoginController extends ViewController
 			// update auth_provider in DB
 			if ($auth_provider_id !== $user->auth_provider) {
 				$update['auth_provider'] = $auth_provider_id;
+				$user->auth_provider = $auth_provider_id;
 			}
 			// update email in DB
 			if (!empty($email) && $email !== $user->email) {
 				$update['email'] = $email;
+				$user->email = $email;
 			}
 		}
 
@@ -385,7 +420,7 @@ class LoginController extends ViewController
 		$this->session->set('user_id', $user_id);
 
 		// Load user aliases and set them in session
-		$aliases = $this->getMailAliases($user);
+		$aliases = $this->getMailAliases($user, $auth->getUserEmailAliases());
 		$this->session->set('user_aliases', $aliases);
 
 		$this->setSessionVars($this->session);

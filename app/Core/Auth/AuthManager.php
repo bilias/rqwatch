@@ -255,6 +255,13 @@ class AuthManager
 		return null;
 	}
 
+	public function getUserEmailAliases(): ?array {
+		if ($this->provider && method_exists($this->provider, 'getEmailAliases')) {
+			return $this->provider->getEmailAliases();
+		}
+		return [];
+	}
+
 	public function getUserFirstName(): ?string {
 		if ($this->provider && method_exists($this->provider, 'getFirstName')) {
 			return $this->provider->getFirstName();

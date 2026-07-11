@@ -23,6 +23,7 @@ class LdapAuth implements AuthInterface {
 	private string $password;
 	private bool $is_admin = false;
 	private ?string $email = null;
+	private array $mail_aliases = [];
 	private ?string $authenticatedUser = null;
 	private ?string $firstname = null;
 	private ?string $lastname = null;
@@ -39,6 +40,7 @@ class LdapAuth implements AuthInterface {
 			'password' => '***REDACTED***',
 			'is_admin' => $this->is_admin,
 			'email' => $this->email,
+			'mail_aliases' => $this->mail_aliases,
 			'firstname' => $this->firstname,
 			'lastname' => $this->lastname,
 			'authenticatedUser' => $this->authenticatedUser,
@@ -153,6 +155,10 @@ class LdapAuth implements AuthInterface {
 		if (array_key_exists(0, $mail_ar)) {
 			// we store this for later, so we don't search again after user bind.
 			$ldap_mail = strtolower(trim($mail_ar[0]));
+			unset($mail_ar[0]);
+			if (count($mail_ar) >= 1) {
+				$this->mail_aliases = $mail_ar;
+			}
 		} else {
 			$this->logger->error("Something went wrong with mail attributes: " . print_r($mail_ar, true));
 			return false;
@@ -232,6 +238,13 @@ class LdapAuth implements AuthInterface {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->email;
+	}
+
+	public function getEmailAliases(): ?array {
+		if (!$this->authenticatedUser) {
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+		}
+		return $this->mail_aliases;
 	}
 
 	public function getFirstName(): ?string {

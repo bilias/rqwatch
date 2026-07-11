@@ -447,10 +447,29 @@ class UserController extends ViewController
 			$mail_aliases[] = strtolower(trim($mail_alias->alias));
 		}
 		*/
+		/*
 		return array_unique(array_map('strtolower', array_filter(
 		   $user->mailAliases()->pluck('alias')->toArray(),
 		   fn($alias) => !empty(trim($alias))
 		)));
+		*/
+		$dbAliases = array_map(
+			'strtolower',
+			array_filter(
+				$user->mailAliases()->pluck('alias')->toArray(),
+				fn($alias) => !empty(trim($alias))
+			)
+		);
+
+		$sessionAliases = array_map(
+			'strtolower',
+			array_filter(
+				$this->session->get('user_aliases', []),
+				fn($alias) => !empty(trim($alias))
+			)
+		);
+
+		return array_values(array_unique(array_merge($dbAliases, $sessionAliases)));
 	}
 
 	public function loginAs(int $id): Response {
