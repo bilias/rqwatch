@@ -198,7 +198,7 @@ class Controller
 	}
 
 	public function getRspamdStat(): array {
-		if (Config::get('rspamd_stat_disable')) {
+		if (!$this->getIsAdmin() || Config::get('rspamd_stat_disable')) {
 			return [];
 		}
 
