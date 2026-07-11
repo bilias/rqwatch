@@ -28,6 +28,7 @@ class OpenIDConnectAuth implements AuthInterface {
 	private bool $is_admin = false;
 	private ?string $username = null;
 	private ?string $email = null;
+	private array $mail_aliases = [];
 	private ?string $authenticatedUser = null;
 	private ?string $firstname = null;
 	private ?string $lastname = null;
@@ -42,6 +43,7 @@ class OpenIDConnectAuth implements AuthInterface {
 			'username' => $this->username,
 			'is_admin' => $this->is_admin,
 			'email' => $this->email,
+			'mail_aliases' => $this->mail_aliases,
 			'firstname' => $this->firstname,
 			'lastname' => $this->lastname,
 			'authenticatedUser' => $this->authenticatedUser,
@@ -143,6 +145,13 @@ class OpenIDConnectAuth implements AuthInterface {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->email;
+	}
+
+	public function getEmailAliases(): array {
+		if (!$this->authenticatedUser) {
+			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
+		}
+		return $this->mail_aliases;
 	}
 
 	public function getFirstName(): ?string {

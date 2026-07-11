@@ -255,7 +255,7 @@ class AuthManager
 		return null;
 	}
 
-	public function getUserEmailAliases(): ?array {
+	public function getUserEmailAliases(): array {
 		if ($this->provider && method_exists($this->provider, 'getEmailAliases')) {
 			return $this->provider->getEmailAliases();
 		}

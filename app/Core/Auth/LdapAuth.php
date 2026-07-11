@@ -247,7 +247,7 @@ class LdapAuth implements AuthInterface {
 		return $this->email;
 	}
 
-	public function getEmailAliases(): ?array {
+	public function getEmailAliases(): array {
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
