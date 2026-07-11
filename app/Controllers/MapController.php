@@ -723,7 +723,8 @@ class MapController extends ViewController
 		}
 
 		if (!$this->getIsAdmin()) {
-			// override user form fields. rcpt_to drop down based on user email and aliases
+			// override user form fields. rcpt_to drop down based on
+			// user email and aliases from session
 			$options = [
 				'user_emails' => $this->getUserEmailAddresses(),
 			];
@@ -890,7 +891,8 @@ class MapController extends ViewController
 		}
 
 		if (!$this->getIsAdmin()) {
-			// override user form fields. rcpt_to drop down based on user email and aliases
+			// override user form fields. rcpt_to drop down based on
+			// user email and aliases from session
 			$options = [
 				'user_emails' => $this->getUserEmailAddresses(),
 			];
@@ -1339,24 +1341,6 @@ class MapController extends ViewController
 			$url = $this->mapsUrl;
 		}
 		return new RedirectResponse($url);
-	}
-
-	private function getUserRcptAddresses(): array {
-		if (!$this->username) {
-			return [];
-		}
-		$user = User::where('username', $this->username)->first();
-
-		if (!$user) {
-			return [];
-		}
-
-		if (!$this->email) {
-			return [];
-		}
-		$aliases = MailAlias::where('user_id', $user->id)->pluck('alias')->toArray();
-		$aliases[] = $this->email;
-		return $aliases;
 	}
 
 	private function getUserCanDelete(string $username, ?string $map_creator = ''): bool {
