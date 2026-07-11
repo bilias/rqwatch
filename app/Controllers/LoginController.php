@@ -324,7 +324,7 @@ class LoginController extends ViewController
 			fn($alias) => strtolower(trim($alias)),
 			array_filter(
 				$externalAliases,
-				fn($alias) => !empty(trim($alias))
+				fn($alias) => is_string($alias) && !empty(trim($alias))
 			)
 		);
 

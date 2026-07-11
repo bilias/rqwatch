@@ -158,7 +158,7 @@ class LdapAuth implements AuthInterface {
 			$ldap_mail = strtolower(trim($mail_ar[0]));
 			unset($mail_ar[0]);
 			if (count($mail_ar) >= 1) {
-				$this->mail_aliases = $mail_ar;
+				$this->mail_aliases = array_values($mail_ar);
 			}
 		} else {
 			$this->logger->error("Something went wrong with mail attributes: " . print_r($mail_ar, true));
@@ -251,7 +251,10 @@ class LdapAuth implements AuthInterface {
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
-		return $this->mail_aliases;
+		return array_values(array_filter(
+			$this->mail_aliases,
+			fn($alias) => is_string($alias) && !empty(trim($alias))
+		));
 	}
 
 	public function getFirstName(): ?string {
