@@ -4,6 +4,7 @@
 
 ### 2026-07-11
 - Get dynamic aliases from multivalued LDAP mail attr
+- OPENIDC improvements
 
 ### 2026-07-10
 - Cover logout when loginAs and OPENIDC
@@ -16,7 +17,7 @@
 ## Version v1.7.2 - Released: 2026-07-09
 
 ### 2026-07-08
-- Support multiple mail attrs from LDAP
+- Allow multiple mail attrs in LDAP authenticate
 - Implement RP Initiated Logout for OpenIDC
 
 ### 2026-07-07
