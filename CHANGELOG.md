@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-07-11
+- Get dynamic aliases from multivalued LDAP mail attr
+
 ### 2026-07-10
 - Cover logout when loginAs and OPENIDC
 
