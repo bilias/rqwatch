@@ -32,7 +32,12 @@ class LoginController extends ViewController
 		$this->loginUrl = $this->url(RouteName::LOGIN);
 
 		if ($username = $this->session->get('username')) {
-			$this->fileLogger->info("User logout: '{$username}'");
+			$this->fileLogger->info("User logout: '{$username}'", [
+				'is_admin' => $this->getIsAdmin(),
+				'email' => $this->getEmail(),
+				'ip' => $_SERVER['REMOTE_ADDR'],
+				'session_id' => $this->session->getId(),
+			]);
 		}
 
 		$auth_provider = $this->session->get('auth_provider');
@@ -385,6 +390,7 @@ class LoginController extends ViewController
 			'is_admin' => $is_admin,
 			'email' => $email,
 			'ip' => $_SERVER['REMOTE_ADDR'],
+			'session_id' => $this->session->getId(),
 		]);
 
 		if (($auth_provider === 'LDAP' || $auth_provider === 'OPENIDC')) {

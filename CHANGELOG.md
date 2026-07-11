@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-07-11
+- Log session id in login/logout information
 - Get dynamic aliases from multivalued LDAP mail attr
 - OPENIDC improvements
 
