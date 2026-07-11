@@ -4,7 +4,7 @@
 {% if openidc_logout_url %}
   <div class='flash_messages'>
     <div class="flash-info">
-      <a href="{{ openidc_logout_url|e('html_attr') }}" target="_blank" rel="noopener">
+      <a href="{{ openidc_logout_url|e('html_attr') }}" rel="noopener">
         Click here to log out from '{{ OPENIDC_LABEL }}'
       </a>
     </div>
