@@ -142,13 +142,14 @@ class LdapAuth implements AuthInterface {
 		}
 
 		$mail_count = $mail_ar['count'];
+		unset($mail_ar['count']);
+
 		if ($mail_count !== 1) {
 			// having more than 1 mail attribute produces error
 			/*
 			$this->logger->error("User '{$this->username}' has {$mail_count} {$ldap_mail_attr} attributes");
 			return false;
 			*/
-			unset($mail_ar['count']);
 			sort($mail_ar, SORT_STRING);
 		}
 		
@@ -173,43 +174,49 @@ class LdapAuth implements AuthInterface {
 		
 		// Authentication OK
 		// user mail from first search
-		if ($this->email = $ldap_mail) {
-			$this->authenticatedUser = strtolower(trim($this->username));
+		$this->email = $ldap_mail;
 
-			// search if user is admin
-			if (array_key_exists('LDAP_ADMINS', $_ENV) && !empty($_ENV['LDAP_ADMINS'])) {
-				$ldap_admins_ar = array_map(
-					fn($a) => strtolower(trim($a)),
-					explode(',', $_ENV['LDAP_ADMINS'])
-				);
-				if (in_array($this->authenticatedUser, $ldap_admins_ar, true)) {
-					$this->is_admin = true;
-				}
-			}
-
-			$sn = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_sn_attr);
-			if (!empty($sn)) {
-				$this->lastname = $sn;
-			} else {
-				$sn_fallback = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_sn_attr_fallback);
-				if (!empty($sn_fallback)) {
-					$this->lastname = $sn_fallback;
-				}
-			}
-
-			$givenName = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_givenname_attr);
-			if (!empty($givenName)) {
-				$this->firstname = $givenName;
-			} else {
-				$givenName_fallback = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_givenname_attr_fallback);
-				if (!empty($givenName_fallback)) {
-					$this->firstname = $givenName_fallback;
-				}
-			}
-
-			return true;
+		if (empty($this->email)) {
+			$this->logger->error(
+				"LDAP user '{$this->username}' has empty '{$ldap_mail_attr}' attribute after authentication"
+			);
+			return false;
 		}
-		return false;
+
+		$this->authenticatedUser = strtolower(trim($this->username));
+
+		// search if user is admin
+		if (array_key_exists('LDAP_ADMINS', $_ENV) && !empty($_ENV['LDAP_ADMINS'])) {
+			$ldap_admins_ar = array_map(
+				fn($a) => strtolower(trim($a)),
+				explode(',', $_ENV['LDAP_ADMINS'])
+			);
+			if (in_array($this->authenticatedUser, $ldap_admins_ar, true)) {
+				$this->is_admin = true;
+			}
+		}
+
+		$sn = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_sn_attr);
+		if (!empty($sn)) {
+			$this->lastname = $sn;
+		} else {
+			$sn_fallback = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_sn_attr_fallback);
+			if (!empty($sn_fallback)) {
+				$this->lastname = $sn_fallback;
+			}
+		}
+
+		$givenName = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_givenname_attr);
+		if (!empty($givenName)) {
+			$this->firstname = $givenName;
+		} else {
+			$givenName_fallback = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_givenname_attr_fallback);
+			if (!empty($givenName_fallback)) {
+				$this->firstname = $givenName_fallback;
+			}
+		}
+
+		return true;
 	}
 
 	private static function getError(LdapConnection $ldap): string {
