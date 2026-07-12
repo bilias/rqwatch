@@ -60,7 +60,7 @@ class LdapAuth implements AuthInterface {
 		$ldap_mail_attr = $_ENV['LDAP_MAIL_ATTR'] ?? 'mail';
 		$ldap_mail_alias_attr = $_ENV['LDAP_MAIL_ALIAS_ATTR'] ?? null;
 		$ldap_sn_attr = $_ENV['LDAP_SN_ATTR'] ?? 'sn';
-		$ldap_sn_attr_fallback = $_ENV['LDAP_SN_ATTR_FALLBAK'] ?? 'sn';
+		$ldap_sn_attr_fallback = $_ENV['LDAP_SN_ATTR_FALLBACK'] ?? 'sn';
 		$ldap_givenname_attr = $_ENV['LDAP_GIVENNAME_ATTR'] ?? 'givenName';
 		$ldap_givenname_attr_fallback = $_ENV['LDAP_GIVENNAME_ATTR_FALLBACK'] ?? 'givenName';
 		$ldap_attrs = [
@@ -102,7 +102,13 @@ class LdapAuth implements AuthInterface {
 		}
 
 		$count = ldap_count_entries($ldap, $res);
-		if ($count == 0) {
+		if ($count === -1) {
+			$error = $this->getError($ldap);
+			$this->logger->error("ldap_count_entries failed: {$error}");
+			return false;
+		}
+
+		if ($count === 0) {
 			$this->logger->warning("User '{$this->username}' not found in LDAP");
 			return false;
 		}
@@ -110,14 +116,6 @@ class LdapAuth implements AuthInterface {
 		// having more than 1 users with same mail will produce error
 		if ($count !== 1) {
 			$this->logger->error("LDAP search for {$ldap_login_attr} '{$this->username}' returned {$count} users");
-			return false;
-		}
-
-		$users = ldap_get_entries($ldap, $res);
-
-		if (!$users) {
-			$error = $this->getError($ldap);
-			$this->logger->error("ldap_get_entries failed: {$error}");
 			return false;
 		}
 
@@ -140,6 +138,12 @@ class LdapAuth implements AuthInterface {
 
 		$attrs = ldap_get_attributes($ldap, $entry);
 
+		if ($attrs === false) {
+			$error = $this->getError($ldap);
+			$this->logger->error("ldap_get_attributes failed: {$error}");
+			return false;
+		}
+
 		$mail_ar = $this->getAttrs($attrs, $ldap_mail_attr);
 		$mail_alias_ar = $this->getAttrs($attrs, $ldap_mail_alias_attr);
 
@@ -148,9 +152,7 @@ class LdapAuth implements AuthInterface {
 			return false;
 		}
 
-		if (count($mail_ar) !== 1) {
-			sort($mail_ar, SORT_STRING);
-		}
+		sort($mail_ar, SORT_STRING);
 		
 		if (!array_key_exists(0, $mail_ar)) {
 			$this->logger->error("Something went wrong with mail attributes: " . print_r($mail_ar, true));
@@ -162,10 +164,7 @@ class LdapAuth implements AuthInterface {
 		unset($mail_ar[0]);
 
 		// Combine aliases from both LDAP attributes
-		$aliases = array_merge(
-			array_values($mail_ar),
-			is_array($mail_alias_ar) ? array_values($mail_alias_ar) : []
-		);
+		$aliases = array_merge($mail_ar, $mail_alias_ar);
 
 		// Normalize, deduplicate and remove primary mail
 		$this->mail_aliases = array_values(array_unique(array_filter(
@@ -286,7 +285,11 @@ class LdapAuth implements AuthInterface {
 		$this->logger = $logger;
 	}
 
-	public function getAttr(array $attrs, string $field): ?string {
+	public function getAttr(array $attrs, ?string $field): ?string {
+		if (empty($field)) {
+			return null;
+		}
+
 		$baseAttr = strtok($field, ';');
 		if (array_key_exists($baseAttr, $attrs)) {
 			if (array_key_exists(0, $attrs[$baseAttr])) {
@@ -297,7 +300,11 @@ class LdapAuth implements AuthInterface {
 		return null;
 	}
 
-	public function getAttrs(array $attrs, string $field): array {
+	public function getAttrs(array $attrs, ?string $field): array {
+		if (empty($field)) {
+			return [];
+		}
+
 		$baseAttr = strtok($field, ';');
 
 		if (!array_key_exists($baseAttr, $attrs)) {

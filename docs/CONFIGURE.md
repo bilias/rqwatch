@@ -339,7 +339,7 @@ System supports LDAP Authentication.
 
 - `LDAP_SN_ATTR` - LDAP attribute for getting user's surname
 
-- `LDAP_SN_ATTR_FALLBAK` - Fallback LDAP attribute for getting user's surname
+- `LDAP_SN_ATTR_FALLBACK` - Fallback LDAP attribute for getting user's surname
 
 - `LDAP_GIVENNAME_ATTR` - LDAP attribute for getting user's first name
 
