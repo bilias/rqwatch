@@ -335,6 +335,8 @@ System supports LDAP Authentication.
 
 - `LDAP_MAIL_ATTR` - LDAP mail attribute
 
+- `LDAP_MAIL_ALIAS_ATTR` - LDAP mail alias attribute for dynamic user (mail) aliases
+
 - `LDAP_SN_ATTR` - LDAP attribute for getting user's surname
 
 - `LDAP_SN_ATTR_FALLBAK` - Fallback LDAP attribute for getting user's surname

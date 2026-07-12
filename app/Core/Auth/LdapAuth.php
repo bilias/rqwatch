@@ -58,6 +58,7 @@ class LdapAuth implements AuthInterface {
 		$ldap_bind_pass = $_ENV['LDAP_BIND_PASS'] ?? '';
 		$ldap_login_attr = $_ENV['LDAP_LOGIN_ATTR'] ?? 'mail';
 		$ldap_mail_attr = $_ENV['LDAP_MAIL_ATTR'] ?? 'mail';
+		$ldap_mail_alias_attr = $_ENV['LDAP_MAIL_ALIAS_ATTR'] ?? null;
 		$ldap_sn_attr = $_ENV['LDAP_SN_ATTR'] ?? 'sn';
 		$ldap_sn_attr_fallback = $_ENV['LDAP_SN_ATTR_FALLBAK'] ?? 'sn';
 		$ldap_givenname_attr = $_ENV['LDAP_GIVENNAME_ATTR'] ?? 'givenName';
@@ -69,6 +70,10 @@ class LdapAuth implements AuthInterface {
 			$ldap_givenname_attr,
 			$ldap_givenname_attr_fallback,
 		];
+
+		if ($ldap_mail_alias_attr) {
+			$ldap_attrs[] = $ldap_mail_alias_attr;
+		}
 
 		$ldap = ldap_connect($ldap_uri);
 		ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
@@ -133,37 +138,43 @@ class LdapAuth implements AuthInterface {
 			return false;
 		}
 
-		$mail_ar = ldap_get_values($ldap, $entry, $ldap_mail_attr);
+		$attrs = ldap_get_attributes($ldap, $entry);
 
-		if (!$mail_ar) {
-			$error = $this->getError($ldap);
-			$this->logger->error("ldap_get_values failed: {$error}");
+		$mail_ar = $this->getAttrs($attrs, $ldap_mail_attr);
+		$mail_alias_ar = $this->getAttrs($attrs, $ldap_mail_alias_attr);
+
+		if (empty($mail_ar)) {
+			$this->logger->error("Empty {$ldap_mail_attr} attribute for LDAP user '{$this->username}'");
 			return false;
 		}
 
-		$mail_count = $mail_ar['count'];
-		unset($mail_ar['count']);
-
-		if ($mail_count !== 1) {
-			// having more than 1 mail attribute produces error
-			/*
-			$this->logger->error("User '{$this->username}' has {$mail_count} {$ldap_mail_attr} attributes");
-			return false;
-			*/
+		if (count($mail_ar) !== 1) {
 			sort($mail_ar, SORT_STRING);
 		}
 		
-		if (array_key_exists(0, $mail_ar)) {
-			// we store this for later, so we don't search again after user bind.
-			$ldap_mail = strtolower(trim($mail_ar[0]));
-			unset($mail_ar[0]);
-			if (count($mail_ar) >= 1) {
-				$this->mail_aliases = array_values($mail_ar);
-			}
-		} else {
+		if (!array_key_exists(0, $mail_ar)) {
 			$this->logger->error("Something went wrong with mail attributes: " . print_r($mail_ar, true));
 			return false;
 		}
+
+		// we store primary e-mail for later, so we don't search again after user bind.
+		$ldap_mail = strtolower(trim($mail_ar[0]));
+		unset($mail_ar[0]);
+
+		// Combine aliases from both LDAP attributes
+		$aliases = array_merge(
+			array_values($mail_ar),
+			is_array($mail_alias_ar) ? array_values($mail_alias_ar) : []
+		);
+
+		// Normalize, deduplicate and remove primary mail
+		$this->mail_aliases = array_values(array_unique(array_filter(
+			array_map(
+				fn($mail) => strtolower(trim($mail)),
+				$aliases
+			),
+			fn($mail) => $mail !== '' && $mail !== $ldap_mail
+		)));
 
 		// we now have a user DN to bind with
 		if (!ldap_bind($ldap, $user_dn, $this->password)) {
@@ -196,21 +207,21 @@ class LdapAuth implements AuthInterface {
 			}
 		}
 
-		$sn = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_sn_attr);
+		$sn = $this->getAttr($attrs, $ldap_sn_attr);
 		if (!empty($sn)) {
 			$this->lastname = $sn;
 		} else {
-			$sn_fallback = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_sn_attr_fallback);
+			$sn_fallback = $this->getAttr($attrs, $ldap_sn_attr_fallback);
 			if (!empty($sn_fallback)) {
 				$this->lastname = $sn_fallback;
 			}
 		}
 
-		$givenName = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_givenname_attr);
+		$givenName = $this->getAttr($attrs, $ldap_givenname_attr);
 		if (!empty($givenName)) {
 			$this->firstname = $givenName;
 		} else {
-			$givenName_fallback = $this->getAttr(ldap_get_attributes($ldap, $entry), $ldap_givenname_attr_fallback);
+			$givenName_fallback = $this->getAttr($attrs, $ldap_givenname_attr_fallback);
 			if (!empty($givenName_fallback)) {
 				$this->firstname = $givenName_fallback;
 			}
@@ -284,6 +295,24 @@ class LdapAuth implements AuthInterface {
 		}
 
 		return null;
+	}
+
+	public function getAttrs(array $attrs, string $field): array {
+		$baseAttr = strtok($field, ';');
+
+		if (!array_key_exists($baseAttr, $attrs)) {
+			return [];
+		}
+
+		$values = $attrs[$baseAttr];
+
+		// Remove LDAP metadata
+		unset($values['count']);
+
+		return array_values(array_filter(
+			$values,
+			fn($value) => is_string($value) && trim($value) !== ''
+		));
 	}
 
 }
