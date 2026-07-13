@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-07-12
+- Strict checking in LDAP methods
 - Support LDAP mail alias from alternative attribute.\
   Added new .env LDAP_MAIL_ALIAS_ATTR
 - Fixed typo in .env LDAP_SN_ATTR_FALLBAK -> LDAP_SN_ATTR_FALLBACK
