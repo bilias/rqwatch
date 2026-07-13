@@ -333,7 +333,7 @@ System supports LDAP Authentication.
 - `LDAP_LOGIN_ATTR` - The LDAP attribute we use to search for the user\
   It's the user's username for login.
 
-- `LDAP_MAIL_ATTR` - LDAP mail attribute. If more than values are listed then we sort the values, keep the first for primary email and use the reset for dynamic user aliases.
+- `LDAP_MAIL_ATTR` - LDAP mail attribute. If more than one values are listed then we sort the values, keep the first for primary email and use the rest for dynamic user aliases.
 
 - `LDAP_MAIL_ALIAS_ATTR` - LDAP mail alias attribute for dynamic user (mail) aliases
 
