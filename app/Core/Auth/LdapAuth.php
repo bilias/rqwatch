@@ -272,10 +272,7 @@ class LdapAuth implements AuthInterface {
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
-		return array_values(array_filter(
-			$this->mail_aliases,
-			fn($alias) => is_string($alias) && !empty(trim($alias))
-		));
+		return $this->mail_aliases;
 	}
 
 	public function getFirstName(): ?string {
