@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v1.7.3 - Released: 2026-07-13
+
 ### 2026-07-12
 - Strict checking in LDAP methods
 - Support LDAP mail alias from alternative attribute.\
