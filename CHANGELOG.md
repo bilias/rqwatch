@@ -4,8 +4,8 @@
 
 ### 2026-07-12
 - Support LDAP mail alias from alternative attribute.\
-  Added new `.env` LDAP_MAIL_ALIAS_ATTR
-- Fixed typo in `.env` LDAP_SN_ATTR_FALLBAK -> LDAP_SN_ATTR_FALLBACK
+  Added new .env LDAP_MAIL_ALIAS_ATTR
+- Fixed typo in .env LDAP_SN_ATTR_FALLBAK -> LDAP_SN_ATTR_FALLBACK
 
 ### 2026-07-11
 - Log session id in login/logout information
