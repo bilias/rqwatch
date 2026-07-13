@@ -60,30 +60,39 @@ class LdapAuth implements AuthInterface {
 		$ldap_mail_attr = $_ENV['LDAP_MAIL_ATTR'] ?? 'mail';
 		$ldap_mail_alias_attr = $_ENV['LDAP_MAIL_ALIAS_ATTR'] ?? null;
 		$ldap_sn_attr = $_ENV['LDAP_SN_ATTR'] ?? 'sn';
-		$ldap_sn_attr_fallback = $_ENV['LDAP_SN_ATTR_FALLBACK'] ?? 'sn';
 		$ldap_givenname_attr = $_ENV['LDAP_GIVENNAME_ATTR'] ?? 'givenName';
-		$ldap_givenname_attr_fallback = $_ENV['LDAP_GIVENNAME_ATTR_FALLBACK'] ?? 'givenName';
+		$ldap_sn_attr_fallback = $_ENV['LDAP_SN_ATTR_FALLBACK'] ?? null;
+		$ldap_givenname_attr_fallback = $_ENV['LDAP_GIVENNAME_ATTR_FALLBACK'] ?? null;
 		$ldap_attrs = [
 			$ldap_mail_attr,
 			$ldap_sn_attr,
-			$ldap_sn_attr_fallback,
 			$ldap_givenname_attr,
-			$ldap_givenname_attr_fallback,
 		];
 
 		if ($ldap_mail_alias_attr) {
 			$ldap_attrs[] = $ldap_mail_alias_attr;
 		}
 
-		$ldap = ldap_connect($ldap_uri);
-		ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
+		if ($ldap_sn_attr_fallback) {
+			$ldap_attrs[] = $ldap_sn_attr_fallback;
+		}
 
-		if (!$ldap) {
+		if ($ldap_givenname_attr_fallback) {
+			$ldap_attrs[] = $ldap_givenname_attr_fallback;
+		}
+
+		$ldap = ldap_connect($ldap_uri);
+		if ($ldap === false) {
 			$this->logger->error("ldap_connect failed. Check LDAP_URI");
 			return false;
 		}
 
-		if (!ldap_bind($ldap, $ldap_bind_dn, $ldap_bind_pass)) {
+		if (ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3) === false) {
+			$this->logger->error("ldap_set_option(LDAP_OPT_PROTOCOL_VERSION) failed");
+			return false;
+		}
+
+		if (ldap_bind($ldap, $ldap_bind_dn, $ldap_bind_pass) === false) {
 			$error = $this->getError($ldap);
 			$this->logger->error("ldap_bind failed: {$error}. Check LDAP_BIND_DN and LDAP_BIND_PASS");
 			return false;
@@ -95,7 +104,7 @@ class LdapAuth implements AuthInterface {
 
 		$res = ldap_search($ldap, $ldap_base, $filter, $ldap_attrs);
 
-		if (!$res) {
+		if ($res === false) {
 			$error = $this->getError($ldap);
 			$this->logger->error("ldap_search failed: {$error}");
 			return false;
