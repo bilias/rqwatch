@@ -6,7 +6,7 @@ Rqwatch 1.7+ requires Rspamd 3.14.2+ and contains important performance optimiza
 There is also a **change in the DB schema** and upgrade must be done is steps.
 
 ## Update instructions
-You should first follow [MAIL_RECIPIENTS_UPDATE](https://github.com/bilias/rqwatch/blob/master/docs/MAIL_RECIPIENTS_UPDATE.md)
+You should first follow [MAIL_RECIPIENTS_UPDATE](MAIL_RECIPIENTS_UPDATE.md)
 in order to **update your database prior upgrading Rqwatch** code and migrate data to the new mail recipients table.
 
 ## Rspamd metadata_exporter multipart formatter
