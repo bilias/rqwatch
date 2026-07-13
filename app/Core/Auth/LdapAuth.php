@@ -121,7 +121,7 @@ class LdapAuth implements AuthInterface {
 
 		$entry = ldap_first_entry($ldap, $res);
 
-		if (!$entry) {
+		if ($entry === false) {
 			$error = $this->getError($ldap);
 			$this->logger->error("ldap_first_entry failed: {$error}");
 			return false;
@@ -130,7 +130,7 @@ class LdapAuth implements AuthInterface {
 		// search for user DN
 		$user_dn = ldap_get_dn($ldap, $entry);
 
-		if (!$user_dn) {
+		if ($user_dn === false) {
 			$error = $this->getError($ldap);
 			$this->logger->error("ldap_get_dn failed: {$error}");
 			return false;
@@ -144,8 +144,8 @@ class LdapAuth implements AuthInterface {
 			return false;
 		}
 
-		$mail_ar = $this->getAttrs($attrs, $ldap_mail_attr);
-		$mail_alias_ar = $this->getAttrs($attrs, $ldap_mail_alias_attr);
+		$mail_ar = $this->getValues($attrs, $ldap_mail_attr);
+		$mail_alias_ar = $this->getValues($attrs, $ldap_mail_alias_attr);
 
 		if (empty($mail_ar)) {
 			$this->logger->error("Empty {$ldap_mail_attr} attribute for LDAP user '{$this->username}'");
@@ -206,21 +206,21 @@ class LdapAuth implements AuthInterface {
 			}
 		}
 
-		$sn = $this->getAttr($attrs, $ldap_sn_attr);
+		$sn = $this->getValue($attrs, $ldap_sn_attr);
 		if (!empty($sn)) {
 			$this->lastname = $sn;
 		} else {
-			$sn_fallback = $this->getAttr($attrs, $ldap_sn_attr_fallback);
+			$sn_fallback = $this->getValue($attrs, $ldap_sn_attr_fallback);
 			if (!empty($sn_fallback)) {
 				$this->lastname = $sn_fallback;
 			}
 		}
 
-		$givenName = $this->getAttr($attrs, $ldap_givenname_attr);
+		$givenName = $this->getValue($attrs, $ldap_givenname_attr);
 		if (!empty($givenName)) {
 			$this->firstname = $givenName;
 		} else {
-			$givenName_fallback = $this->getAttr($attrs, $ldap_givenname_attr_fallback);
+			$givenName_fallback = $this->getValue($attrs, $ldap_givenname_attr_fallback);
 			if (!empty($givenName_fallback)) {
 				$this->firstname = $givenName_fallback;
 			}
@@ -285,7 +285,7 @@ class LdapAuth implements AuthInterface {
 		$this->logger = $logger;
 	}
 
-	public function getAttr(array $attrs, ?string $field): ?string {
+	public function getValue(array $attrs, ?string $field): ?string {
 		if (empty($field)) {
 			return null;
 		}
@@ -300,7 +300,7 @@ class LdapAuth implements AuthInterface {
 		return null;
 	}
 
-	public function getAttrs(array $attrs, ?string $field): array {
+	public function getValues(array $attrs, ?string $field): array {
 		if (empty($field)) {
 			return [];
 		}
