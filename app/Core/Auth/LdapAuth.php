@@ -49,7 +49,7 @@ class LdapAuth implements AuthInterface {
 
 	#[\Override]
 	public function authenticate(): bool {
-		if (empty($this->username) or empty($this->password)) {
+		if (empty($this->username) || empty($this->password)) {
 			return false;
 		}
 		$ldap_uri = $_ENV['LDAP_URI']; 
@@ -147,9 +147,9 @@ class LdapAuth implements AuthInterface {
 
 		$attrs = ldap_get_attributes($ldap, $entry);
 
-		if ($attrs === false) {
+		if (empty($attrs)) {
 			$error = $this->getError($ldap);
-			$this->logger->error("ldap_get_attributes failed: {$error}");
+			$this->logger->error("ldap_get_attributes returned empty attributes");
 			return false;
 		}
 
@@ -185,7 +185,7 @@ class LdapAuth implements AuthInterface {
 		)));
 
 		// we now have a user DN to bind with
-		if (!ldap_bind($ldap, $user_dn, $this->password)) {
+		if (ldap_bind($ldap, $user_dn, $this->password) === false) {
 			$error = $this->getError($ldap);
 			$this->logger->warning("LDAP Authentication for user '{$this->username}' failed: {$error}");
 			return false;
@@ -240,8 +240,10 @@ class LdapAuth implements AuthInterface {
 
 	private static function getError(LdapConnection $ldap): string {
 		$ldap_error = ldap_error($ldap);
+
+		$ldap_diag = '';
 		ldap_get_option($ldap, LDAP_OPT_DIAGNOSTIC_MESSAGE, $ldap_diag);
-		return "{$ldap_error}. {$ldap_diag}";
+		return trim("error: '{$ldap_error}'. diag: '{$ldap_diag}'");
 	}
 
 	#[\Override]
@@ -302,7 +304,7 @@ class LdapAuth implements AuthInterface {
 		$baseAttr = strtok($field, ';');
 		if (array_key_exists($baseAttr, $attrs)) {
 			if (array_key_exists(0, $attrs[$baseAttr])) {
-				return $attrs[$baseAttr][0];
+				return trim($attrs[$baseAttr][0]);
 			}
 		}
 
