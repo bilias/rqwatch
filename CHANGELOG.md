@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-07-13
+- Add LDAP_MAIL_ATTR_MULTIVALUE to control multi value mail attribute
+
 ## Version v1.7.3 - Released: 2026-07-13
 
 ### 2026-07-12

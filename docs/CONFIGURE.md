@@ -335,6 +335,8 @@ System supports LDAP Authentication.
 
 - `LDAP_MAIL_ATTR` - LDAP mail attribute. If more than one values are listed then we sort the values, keep the first for primary email and use the rest for dynamic user aliases.
 
+- `LDAP_MAIL_ATTR_MULTIVALUE` - Set to `false` to deny authentication if `LDAP_MAIL_ATTR` contains multiple values. Defaults to `true`, in which case additional values are treated as mail aliases.
+
 - `LDAP_MAIL_ALIAS_ATTR` - LDAP mail alias attribute for dynamic user (mail) aliases
 
 - `LDAP_SN_ATTR` - LDAP attribute for getting user's surname

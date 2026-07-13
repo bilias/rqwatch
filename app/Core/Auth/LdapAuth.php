@@ -16,6 +16,8 @@ use Psr\Log\LoggerInterface;
 
 use LDAP\Connection as LdapConnection;
 
+use App\Utils\Helper;
+
 use RuntimeException;
 
 class LdapAuth implements AuthInterface {
@@ -158,6 +160,17 @@ class LdapAuth implements AuthInterface {
 
 		if (empty($mail_ar)) {
 			$this->logger->error("Empty {$ldap_mail_attr} attribute for LDAP user '{$this->username}'");
+			return false;
+		}
+
+		$ldap_mail_allow_multivalue = Helper::env_bool('LDAP_MAIL_ATTR_MULTIVALUE', true);
+
+		if (count($mail_ar) > 1 && !$ldap_mail_allow_multivalue) {
+			$this->logger->error(
+				"LDAP user '{$this->username}' has multiple values in '{$ldap_mail_attr}' attribute. Authentication denied", [
+				'values' => $mail_ar,
+				'hint' => 'Set LDAP_MAIL_ATTR_MULTIVALUE=true in .env to allow and treat additional values as aliases.',
+			]);
 			return false;
 		}
 
