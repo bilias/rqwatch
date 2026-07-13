@@ -166,7 +166,7 @@ class LdapAuth implements AuthInterface {
 		$ldap_mail_allow_multivalue = Helper::env_bool('LDAP_MAIL_ATTR_MULTIVALUE', true);
 
 		if (count($mail_ar) > 1 && !$ldap_mail_allow_multivalue) {
-			$this->logger->error(
+			$this->logger->warning(
 				"LDAP user '{$this->username}' has multiple values in '{$ldap_mail_attr}' attribute. Authentication denied", [
 				'values' => $mail_ar,
 				'hint' => 'Set LDAP_MAIL_ATTR_MULTIVALUE=true in .env to allow and treat additional values as aliases.',
