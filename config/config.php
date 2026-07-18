@@ -174,6 +174,19 @@ $show_mail_stats = true;
 # Show mail statistics to users. Requires $show_mail_stats = true
 $show_user_mail_stats = false;
 
+# Enable mail reports
+$show_mail_reports = true;
+
+# Enable mail reports to users. Requires $show_mail_reports = true
+$show_user_mail_reports = false;
+
+# Show mail reports when no active filters
+$show_unfiltered_mail_reports = true;
+
+# Show user mail reports when no active filters
+# Requires $show_unfiltered_mail_reports = true
+$show_unfiltered_user_mail_reports = false;
+
 # Default password hash for local users
 # https://www.php.net/manual/en/function.password-hash.php
 $password_hash = AppConfig::DEFAULT_PASSWORD_HASH;

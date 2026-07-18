@@ -99,12 +99,6 @@ class MailLogController extends ViewController
 	}
 
 	public function showResults(): Response {
-		if (!$this->showMailStats()) {
-			$this->flashbag->add('warning', "Results are disabled");
-			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
-		}
-
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -181,12 +175,6 @@ class MailLogController extends ViewController
 	}
 
 	public function showReports(string $field, string $mode = 'count'): Response {
-		if (!$this->showMailStats()) {
-			$this->flashbag->add('warning', "Reports are disabled");
-			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
-		}
-
 		if (empty($field) || !in_array($field, MailLog::REPORT_FIELDS)) {
 			$this->flashbag->add('error', "Field '{$field}' does not exist");
 			$this->initUrls();
@@ -209,6 +197,12 @@ class MailLogController extends ViewController
 			$filters = json_decode($filters, true);
 		} else {
 			$filters = array();
+		}
+
+		if (!$this->mailReportsEnabled($filters)) {
+			$this->flashbag->add('warning', "Mail Reports are disabled");
+			$this->initUrls();
+			return new RedirectResponse($this->homepageUrl);
 		}
 
 		$service = new MailLogService($this->getFileLogger(), $this->session);
@@ -790,6 +784,7 @@ class MailLogController extends ViewController
 			'qidform' => $qidform->createView(),
 			'filters' => $filters,
 			'stats'   => $this->getMailStats($service, $filters),
+			'show_reports' => $this->mailReportsEnabled($filters),
 			'searchform' => $searchform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
@@ -887,7 +882,31 @@ class MailLogController extends ViewController
 		return $configs;
 	}
 
-	private function showMailStats(): bool {
+	private function mailReportsEnabled($filters): bool {
+		if (!Config::get('show_mail_reports')) {
+			return false;
+		}
+
+		if (!$this->getIsAdmin() && !Config::get('show_user_mail_reports')) {
+			return false;
+		}
+
+		if (!empty($filters)) {
+			return true;
+		}
+
+		if (!Config::get('show_unfiltered_mail_reports')) {
+			return false;
+		}
+
+		if (!$this->getIsAdmin() && !Config::get('show_unfiltered_user_mail_reports')) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private function mailStatsEnabled(): bool {
 		if (Config::get('show_mail_stats') &&
 			 ($this->getIsAdmin() || Config::get('show_user_mail_stats'))) {
 			 return true;
@@ -896,7 +915,7 @@ class MailLogController extends ViewController
 	}
 
 	private function getMailStats(MailLogService $service, array $filters): array {
-		if ($this->showMailStats()) {
+		if ($this->mailStatsEnabled()) {
 			// has applyUserScope
 			return $service->showStats($filters);
 		}

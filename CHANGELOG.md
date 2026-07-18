@@ -3,7 +3,10 @@
 ## Master Dev Branch
 
 ### 2026-07-18
-- Don't show reports/results for users if mail stats are disabled
+- Don't show reports to users with empty search filters.\
+ New config values show_unfiltered_mail_reports and show_unfiltered_user_mail_reports
+- Don't show reports to users if mail reports are disabled.\
+ New config values show_mail_reports and show_user_mail_reports
 
 ### 2026-07-13
 - Add LDAP_MAIL_ATTR_MULTIVALUE to control multi value mail attribute

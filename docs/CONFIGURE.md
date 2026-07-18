@@ -498,7 +498,18 @@ on maillogs pages.\
 
 - `$show_mail_stats` - Calculate statistics on the mail search page
 
-- `$show_user_mail_stats` - Show mail stats to users
+- `$show_user_mail_stats` - Show mail stats to users.\
+ Requires `$show_mail_stats = true`
+
+- `$show_mail_reports` - Enable reports on the mail search page
+
+- `$show_user_mail_reports` - Show mail reports to users.\
+ Requires `$show_mail_reports = true`
+
+- `$show_unfiltered_mail_reports` - Show mail reports when no active filters
+
+- `$show_unfiltered_user_mail_reports` - Show user mail reports when no active filters.\
+ Requires `$show_unfiltered_mail_reports = true`
 
 - `$password_hash` - Default password hash for local users\
   See PHP's [password_hash](https://www.php.net/manual/en/function.password-hash.php)

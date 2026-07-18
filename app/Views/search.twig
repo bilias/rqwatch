@@ -99,10 +99,16 @@
 {% endif %}
 
 <div class='reports'>
-<span class='descr'>Results and Reports</span>
+{% if show_reports %}
+ <span class='descr'>Results and Reports</span>
+{% else %}
+ <span class='descr'>Results</span>
+{% endif %}
+
 <ul>
  {% if is_admin %}
  <li><a href='{{ route('ADMIN_SEARCH_RESULTS') }}'>Search Results</a></li>
+  {% if show_reports %}
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'day' }) }}'>Mails by Day</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'count' }) }}'>Quantity</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'volume' }) }}'>Volume</a>
@@ -127,8 +133,10 @@
  / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_to_domain', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'server'}) }}'>Top Servers by Quantity</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
+  {% endif %}
  {% else %}
  <li><a href='{{ route('SEARCH_RESULTS') }}'>Search Results</a></li>
+  {% if show_reports %}
  <li><a href='{{ route('REPORTS', { field: 'date', mode: 'day' }) }}'>Mails by Day</a>
  / <a href='{{ route('REPORTS', { field: 'date', mode: 'count' }) }}'>Quantity</a>
  / <a href='{{ route('REPORTS', { field: 'date', mode: 'volume' }) }}'>Volume</a>
@@ -153,6 +161,7 @@
  / <a href='{{ route('REPORTS', { field: 'mime_to_domain', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('REPORTS', { field: 'server'}) }}'>Top Servers by Quantity</a>
  / <a href='{{ route('REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
+  {% endif %}
  {% endif %}
 </ul>
 
