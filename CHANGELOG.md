@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-07-18
+- Don't show reports/results for users if mail stats are disabled
+
 ### 2026-07-13
 - Add LDAP_MAIL_ATTR_MULTIVALUE to control multi value mail attribute
 
