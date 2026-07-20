@@ -496,25 +496,33 @@ on maillogs pages.\
 
 - `$subject_privacy` - Hide the email subject on the web interface
 
-- `$show_mail_stats` - Calculate statistics on the mail search page
+- `$show_mail_stats` - Calculate statistics on the mail search page.\
+ Default is `true`
 
 - `$show_user_mail_stats` - Show mail stats to users.\
- Requires `$show_mail_stats = true`
+ Requires `$show_mail_stats = true`.\
+ Default is `true`
 
-- `$show_unfiltered_mail_stats` - Show mail stats when no active filters
+- `$show_unfiltered_mail_stats` - Show mail stats when no active filters.\
+ Default is `true`
 
 - `$show_unfiltered_user_mail_stats` - Show user mail stats when no active filters.\
- Requires `$show_unfiltered_mail_stats = true`
+ Requires `$show_unfiltered_mail_stats = true`.\
+ Default is `true`
 
-- `$show_mail_reports` - Enable reports on the mail search page
+- `$show_mail_reports` - Enable reports on the mail search page.\
+ Default is `true`
 
 - `$show_user_mail_reports` - Show mail reports to users.\
- Requires `$show_mail_reports = true`
+ Requires `$show_mail_reports = true`.\
+ Default is `true`
 
-- `$show_unfiltered_mail_reports` - Show mail reports when no active filters
+- `$show_unfiltered_mail_reports` - Show mail reports when no active filters.\
+ Default is `true`
 
 - `$show_unfiltered_user_mail_reports` - Show user mail reports when no active filters.\
- Requires `$show_unfiltered_mail_reports = true`
+ Requires `$show_unfiltered_mail_reports = true`.\
+ Default is `false`
 
 - `$password_hash` - Default password hash for local users\
   See PHP's [password_hash](https://www.php.net/manual/en/function.password-hash.php)

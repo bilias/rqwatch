@@ -103,7 +103,8 @@ mail data and release messages as needed.
 
 The following functionalities are supported:
 - Search mails by filters
-- Top reports
+- Mail statistics (by filters)
+- Top mail reports (by filters)
 - Show mail metadata
 - Show mail headers
 - Show Rspamd symbols
