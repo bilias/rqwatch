@@ -212,9 +212,11 @@ class MailLogController extends ViewController
 
 		$sum['count'] = 0;
 		$sum['size'] = 0;
+		$sum['stored'] = 0;
 		foreach ($logs as $log) {
 			$sum['count'] += $log['total'];
 			$sum['size'] += $log['total_size'];
+			$sum['stored'] += $log['total_stored'];
 		}
 
 		$field = isset($logs[0]) ? array_key_first($logs[0]) : null;

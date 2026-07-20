@@ -368,19 +368,19 @@ class MailLogService
 			case 'mime_from_domain':
 			case 'mime_to_domain':
 				$baseField = str_replace('_domain', '', $field);
-				$query = MailLog::selectRaw("LOWER(TRIM(TRAILING '>' FROM SUBSTRING_INDEX({$baseField}, '@', -1))) AS {$field}, COUNT(*) AS total, SUM(size) as total_size")
+				$query = MailLog::selectRaw("LOWER(TRIM(TRAILING '>' FROM SUBSTRING_INDEX({$baseField}, '@', -1))) AS {$field}, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
 				                ->where($baseField, 'LIKE', '%@%')
 				                ->groupBy($field)
 				                ->orderByDesc('total');
 				break;
 			case 'date':
-				$query = MailLog::selectRaw('DATE(created_at) AS date, COUNT(*) AS total, SUM(size) as total_size')
+				$query = MailLog::selectRaw("DATE(created_at) AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
 				                ->groupBy(DB::raw('DATE(created_at)'));
 				break;
 			default:
 				//$fields = [ $field, DB::raw('count(*) as total') ];
 				//$query = MailLog::select($fields);
-				$query = MailLog::selectRaw("LOWER({$field}) AS {$field}, COUNT(*) AS total, SUM(size) as total_size")
+				$query = MailLog::selectRaw("LOWER({$field}) AS {$field}, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
 				                ->groupBy($field);
 				break;
 		}
@@ -390,6 +390,8 @@ class MailLogService
 
 		if ($mode === 'volume') {
 			$query->orderBy('total_size', 'DESC');
+		} elseif ($mode === 'stored') {
+			$query->orderBy('total_stored', 'DESC');
 		} elseif ($field == 'date' && $mode === 'day') {
 			$query->orderByDesc('date');
 		} else {

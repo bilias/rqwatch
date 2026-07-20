@@ -17,7 +17,8 @@
 
  <div class="row caption">
    <div class="cell left">{{ field|replace({'_': ' '})|upper }}</div>
-   <div class="cell right"># of mails</div>
+   <div class="cell right"># mails</div>
+   <div class="cell right"># stored mails</div>
    <div class="cell right">Total size</div>
  </div>
 
@@ -41,12 +42,14 @@
   {% endif %}
   </div>
   <div class='cell right cnt'>{{ log.total|nf }}</div>
+  <div class='cell right cnt'>{{ log.total_stored }}</div>
   <div class='cell right cnt'>{{ formatSizeUnits(log.total_size) }}</div>
  </div>
 {% endfor %}
  <div class="row caption">
   <div class='cell day'>Total:</div>
   <div class='cell right cnt'>{{ sum.count|nf }}</div>
+  <div class='cell right cnt'>{{ sum.stored|nf }}</div>
   <div class='cell right cnt'>{{ formatSizeUnits(sum.size) }}</div>
  </div>
  </div>

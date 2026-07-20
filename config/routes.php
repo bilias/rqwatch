@@ -104,7 +104,7 @@ $routes->add(RouteName::REPORTS->value, new Route(
 	],
 	// requirements
 	[ 'field' => '[a-zA-Z_0-9]{1,64}',
-	  'mode' => 'count|volume|day',
+	  'mode' => 'count|volume|day|stored',
 	],
 ));
 
@@ -116,7 +116,7 @@ $routes->add(RouteName::ADMIN_REPORTS->value, new Route(
 	],
 	// requirements
 	[ 'field' => '[a-zA-Z_0-9]{1,64}',
-	  'mode' => 'count|volume|day',
+	  'mode' => 'count|volume|day|stored',
 	],
 ));
 

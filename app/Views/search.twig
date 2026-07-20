@@ -121,27 +121,38 @@
   {% if show_reports %}
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'day' }) }}'>Mails by Day</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'count' }) }}'>Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'stored' }) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'date', mode: 'volume' }) }}'>Volume</a>
  </li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'ip'}) }}'>Top IPs by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'ip', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'ip', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'mail_from'}) }}'>Top Mail From by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mail_from', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'mail_from', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'mime_from'}) }}'>Top MIME From by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_from', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_from', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'rcpt_to'}) }}'>Top RCPT To by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'rcpt_to', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'rcpt_to', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'mime_to'}) }}'>Top MIME To by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_to', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_to', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'mail_from_domain'}) }}'>Top Mail From Domains by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mail_from_domain', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'mail_from_domain', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'mime_from_domain'}) }}'>Top MIME From Domains by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_from_domain', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_from_domain', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'rcpt_to_domain'}) }}'>Top RCPT To Domains by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'rcpt_to_domain', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'rcpt_to_domain', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'mime_to_domain'}) }}'>Top MIME To Domains by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_to_domain', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_to_domain', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'server'}) }}'>Top Servers by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'server', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
   {% endif %}
  {% else %}
@@ -149,27 +160,38 @@
   {% if show_reports %}
  <li><a href='{{ route('REPORTS', { field: 'date', mode: 'day' }) }}'>Mails by Day</a>
  / <a href='{{ route('REPORTS', { field: 'date', mode: 'count' }) }}'>Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'date', mode: 'stored' }) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'date', mode: 'volume' }) }}'>Volume</a>
  </li>
  <li><a href='{{ route('REPORTS', { field: 'ip'}) }}'>Top IPs by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'ip', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'ip', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('REPORTS', { field: 'mail_from'}) }}'>Top Mail From by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mail_from', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'mail_from', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('REPORTS', { field: 'mime_from'}) }}'>Top MIME From by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mime_from', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'mime_from', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('REPORTS', { field: 'rcpt_to'}) }}'>Top RCPT To by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'rcpt_to', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'rcpt_to', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('REPORTS', { field: 'mime_to'}) }}'>Top MIME To by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mime_to', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'mime_to', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('REPORTS', { field: 'mail_from_domain'}) }}'>Top Mail From Domains by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mail_from_domain', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'mail_from_domain', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('REPORTS', { field: 'mime_from_domain'}) }}'>Top MIME From Domains by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mime_from_domain', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'mime_from_domain', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('REPORTS', { field: 'rcpt_to_domain'}) }}'>Top RCPT To Domains by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'rcpt_to_domain', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'rcpt_to_domain', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('REPORTS', { field: 'mime_to_domain'}) }}'>Top MIME To Domains by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'mime_to_domain', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'mime_to_domain', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('REPORTS', { field: 'server'}) }}'>Top Servers by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'server', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
   {% endif %}
  {% endif %}
