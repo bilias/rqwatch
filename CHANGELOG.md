@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-07-20
+- Show user stats and reports by default
+
 ### 2026-07-18
 - Don't show reports to users with empty search filters.\
  New config values show_unfiltered_mail_reports and show_unfiltered_user_mail_reports

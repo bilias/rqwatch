@@ -172,13 +172,13 @@ $subject_privacy = false;
 $show_mail_stats = true;
 
 # Show mail statistics to users. Requires $show_mail_stats = true
-$show_user_mail_stats = false;
+$show_user_mail_stats = true;
 
 # Enable mail reports
 $show_mail_reports = true;
 
 # Enable mail reports to users. Requires $show_mail_reports = true
-$show_user_mail_reports = false;
+$show_user_mail_reports = true;
 
 # Show mail reports when no active filters
 $show_unfiltered_mail_reports = true;
