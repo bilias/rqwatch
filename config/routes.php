@@ -216,6 +216,20 @@ $routes->add(RouteName::ADMIN_SEARCH_FILTER_DEL->value, new Route(
 	[ 'filter_id' => '\d{1,2}' ] // requirements
 ));
 
+$routes->add(RouteName::SEARCH_FILTER_ADD_DAY->value, new Route(
+	'/search/add_day', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::search_filter_add_day',
+	  '_middleware' => $userMiddlewareClasses,
+	]
+));
+
+$routes->add(RouteName::ADMIN_SEARCH_FILTER_ADD_DAY->value, new Route(
+	'/admin/search/add_day', // path
+	[ '_controller' => 'App\\Controllers\\MailLogController::search_filter_add_day',
+	  '_middleware' => $adminMiddlewareClasses,
+	]
+));
+
 $routes->add(RouteName::ADMIN_USERS->value, new Route(
 	'/admin/users', // path
 	[ '_controller' => 'App\\Controllers\\UserController::showAll',

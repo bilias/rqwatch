@@ -624,14 +624,24 @@ span.stored {
  margin-bottom: 0px;
 }
 
+.active_filters .filter-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 5px 0;
+}
+
+.active_filters .addday,
+.active_filters .delall {
+ display: block;
+}
+
 @media (max-width: 600px) {
   .active_filters ul {
     padding-left: 0px;
   }
 
-  .active_filters .delall {
-    display: block;
-    text-align: right;
+  .active_filters .filter-actions {
     margin-top: 10px;
   }
 }
@@ -646,11 +656,15 @@ span.stored {
  padding-right: 5px;
 }
 
+.active_filters .addday,
 .active_filters .delall {
-	display: block;
-	text-align: right;
-	padding-right: 5px;
-	padding-top: 15px;
+ display: block;
+ text-align: right;
+ padding-top: 15px;
+}
+
+.active_filters .addday {
+ padding-left: 5px;
 }
 
 .statistics,

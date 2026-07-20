@@ -19,13 +19,23 @@
 <li>No filters</li>
 {% endfor %}
 </ul>
-<span class='delall'>
-{% if is_admin %}
-<a href="{{ route('ADMIN_SEARCH_FILTER_DEL') }}">Remove all</a>
-{% else %}
-<a href="{{ route('SEARCH_FILTER_DEL') }}">Remove all</a>
-{% endif %}
-</span>
+<div class="filter-actions">
+    <span class="addday">
+        {% if is_admin %}
+            <a href="{{ route('ADMIN_SEARCH_FILTER_ADD_DAY') }}">Add today</a>
+        {% else %}
+            <a href="{{ route('SEARCH_FILTER_ADD_DAY') }}">Add today</a>
+        {% endif %}
+    </span>
+
+    <span class="delall">
+        {% if is_admin %}
+            <a href="{{ route('ADMIN_SEARCH_FILTER_DEL') }}">Remove all</a>
+        {% else %}
+            <a href="{{ route('SEARCH_FILTER_DEL') }}">Remove all</a>
+        {% endif %}
+    </span>
+</div>
 </div>
 
 {% if searchform %}

@@ -35,6 +35,8 @@ enum RouteName: string
 	case ADMIN_SEARCH = 'admin_search';
 	case SEARCH_FILTER_DEL = 'search_filter_del';
 	case ADMIN_SEARCH_FILTER_DEL = 'admin_search_filter_del';
+	case SEARCH_FILTER_ADD_DAY = 'search_filter_add_day';
+	case ADMIN_SEARCH_FILTER_ADD_DAY = 'admin_search_filter_add_day';
 	case ADMIN_USERS = 'admin_users';
 	case ADMIN_USERADD = 'admin_useradd';
 	case ADMIN_USEREDIT = 'admin_useredit';

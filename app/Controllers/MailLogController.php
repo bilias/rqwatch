@@ -798,7 +798,30 @@ class MailLogController extends ViewController
 		]));
 	}
 
-	public function search_filter_del(int $filter_id = null): Response {
+	public function search_filter_add_day(): RedirectResponse {
+		$today = date("Y-m-d");
+		$today_filter = array(
+			'filter' => 'Date',
+			'choice' => 'is equal to',
+			'value' => $today
+		);
+
+		$filters = $this->session->get('filters');
+		if ($filters) {
+			$filters = json_decode($filters, true);
+			$filters[] = $today_filter;
+		} else {
+			$filters = [$today_filter];
+		}
+
+		$this->session->set('filters', json_encode($filters));
+
+		// get back to search page
+		$this->initUrls();
+		return new RedirectResponse($this->searchUrl);
+	}
+
+	public function search_filter_del(int $filter_id = null): RedirectResponse {
 
 		// user asked to delete a specific filter number
 		if (!is_null($filter_id) and is_int($filter_id)) {

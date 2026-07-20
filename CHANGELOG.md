@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-07-20
+- Add quick today filter in search
 - Show user stats even without filter by default
 - Show user stats and reports by default
 - Don't show stats to users with empty search filters.\
