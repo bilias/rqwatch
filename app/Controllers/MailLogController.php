@@ -906,16 +906,32 @@ class MailLogController extends ViewController
 		return true;
 	}
 
-	private function mailStatsEnabled(): bool {
-		if (Config::get('show_mail_stats') &&
-			 ($this->getIsAdmin() || Config::get('show_user_mail_stats'))) {
-			 return true;
+	private function mailStatsEnabled($filters): bool {
+		if (!Config::get('show_mail_stats')) {
+			return false;
 		}
-		return false;
+
+		if (!$this->getIsAdmin() && !Config::get('show_user_mail_stats')) {
+			return false;
+		}
+
+		if (!empty($filters)) {
+			return true;
+		}
+
+		if (!Config::get('show_unfiltered_mail_stats')) {
+			return false;
+		}
+
+		if (!$this->getIsAdmin() && !Config::get('show_unfiltered_user_mail_stats')) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private function getMailStats(MailLogService $service, array $filters): array {
-		if ($this->mailStatsEnabled()) {
+		if ($this->mailStatsEnabled($filters)) {
 			// has applyUserScope
 			return $service->showStats($filters);
 		}

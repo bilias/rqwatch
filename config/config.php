@@ -174,6 +174,13 @@ $show_mail_stats = true;
 # Show mail statistics to users. Requires $show_mail_stats = true
 $show_user_mail_stats = true;
 
+# Show mail stats when no active filters
+$show_unfiltered_mail_stats = true;
+
+# Show user mail stats when no active filters
+# Requires $show_unfiltered_mail_stats = true
+$show_unfiltered_user_mail_stats = false;
+
 # Enable mail reports
 $show_mail_reports = true;
 

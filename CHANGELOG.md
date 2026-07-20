@@ -4,6 +4,8 @@
 
 ### 2026-07-20
 - Show user stats and reports by default
+- Don't show stats to users with empty search filters.\
+ New config values show_unfiltered_mail_stats and show_unfiltered_user_mail_stats
 
 ### 2026-07-18
 - Don't show reports to users with empty search filters.\

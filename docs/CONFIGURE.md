@@ -501,6 +501,11 @@ on maillogs pages.\
 - `$show_user_mail_stats` - Show mail stats to users.\
  Requires `$show_mail_stats = true`
 
+- `$show_unfiltered_mail_stats` - Show mail stats when no active filters
+
+- `$show_unfiltered_user_mail_stats` - Show user mail stats when no active filters.\
+ Requires `$show_unfiltered_mail_stats = true`
+
 - `$show_mail_reports` - Enable reports on the mail search page
 
 - `$show_user_mail_reports` - Show mail reports to users.\
