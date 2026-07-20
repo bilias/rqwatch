@@ -32,6 +32,7 @@ All passwords provided are dummy entries and **should not be used**, as this is 
       * [Logging Settings](#logging-settings)
       * [Quarantine and Notification Settings](#quarantine-and-notification-settings)
       * [Application Settings](#application-settings)
+      * [Reports and Statistics Settings](#reports-and-statistics-settings)
       * [GeoIP](#geoip)
 * [CLI](#cli)
    * [User](#user)
@@ -492,6 +493,11 @@ on maillogs pages.\
 
 - `$max_items` - Certain pages have an SQL restriction on upper items returned
 
+- `$password_hash` - Default password hash for local users\
+  See PHP's [password_hash](https://www.php.net/manual/en/function.password-hash.php)
+  documentation for details.
+
+### Reports and Statistics Settings
 - `$top_reports` - How many items to show in Top reports
 
 - `$subject_privacy` - Hide the email subject on the web interface
@@ -523,10 +529,6 @@ on maillogs pages.\
 - `$show_unfiltered_user_mail_reports` - Show user mail reports when no active filters.\
  Requires `$show_unfiltered_mail_reports = true`.\
  Default is `false`
-
-- `$password_hash` - Default password hash for local users\
-  See PHP's [password_hash](https://www.php.net/manual/en/function.password-hash.php)
-  documentation for details.
 
 ### GeoIP
 GeoIP is used to show country location for each for mail relays in detailed mail log.
