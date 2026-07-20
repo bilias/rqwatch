@@ -179,7 +179,7 @@ $show_unfiltered_mail_stats = true;
 
 # Show user mail stats when no active filters
 # Requires $show_unfiltered_mail_stats = true
-$show_unfiltered_user_mail_stats = false;
+$show_unfiltered_user_mail_stats = true;
 
 # Enable mail reports
 $show_mail_reports = true;
