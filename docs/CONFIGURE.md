@@ -269,8 +269,8 @@ If the server runs the Web service then the following settings are relevant:
   Used for routing and constructing URLs for maps
 
 - `WEB_SCHEME` - Web scheme to use (https/http)\
-  Default is https.\
-  If you have https WEB_SCHEME and access the site by http then you might a get error\
+  Default is `https`.\
+  If you have `https` WEB_SCHEME and access the site by http then you might a get error\
   "*The CSRF token is invalid*"
 
 - `WEB_BASE` - Default is empty if the web server runs on `/`\
@@ -282,8 +282,8 @@ If the server runs the Web service then the following settings are relevant:
   Nevertheless failed logins, including IPs, are logged in Rqwatch's log file
   (`$LOG_FILE`) and Fail2Ban can be applied.
 
-- `IDLE_TIMEOUT` - Login Session timeout.\
-  Default 4 hours. Set to `0` to disable it.
+- `IDLE_TIMEOUT` - Login Session timeout is seconds.\
+  Default is `14400` which is 4 hours. Set to `0` to disable it.
 
 - `RSPAMD_CONTROLLER_PASS` - Rspamd [Controller worker](https://docs.rspamd.com/workers/controller/) password.\
   This is needed to get stats from Rspamd.
@@ -413,11 +413,13 @@ In all other cases, a call to the remote API server is made.
 ### Rspamd Statistics
 - `$rspamd_stat_disable` - Set to `true` to disable fetching statistics from Rspamd servers
 
-- `$rspamd_stat_api_timeout` - Timeout for Rspamd statistics (float, seconds)
+- `$rspamd_stat_api_timeout` - Timeout for Rspamd statistics (float, seconds).\
+ Default is `3.0`
 
 - `$rspamd_stat_redis_key` - Redis key for caching Rspamd statistics
 
-- `$rspamd_stat_redis_cache_ttl` - How many seconds to cache Rspamd statistics in Redis
+- `$rspamd_stat_redis_cache_ttl` - How many seconds to cache Rspamd statistics in Redis.\
+ Default is `300`
 
 ### Map Settings
 - `$MAP_DIR` - Directory for storing and serving map files\
@@ -465,9 +467,11 @@ based on action taken by Rspamd\
 
 - `$notify_mail_subject` - Default subject in notification mail
 
-- `$notification_score` - Mails with score more than this don't get notifications
+- `$notification_score` - Mails with score higher than this don't get notifications.\
+ Default is `50.1`
 
-- `$notification_days` - How many days back to look for notifications
+- `$notification_days` - How many days back to look for notifications.\
+ Default is `30`
 
 - `$mail_signature` - Default mail signature
 
@@ -480,54 +484,61 @@ based on action taken by Rspamd\
 
 - `$FOOTER` - Footer on HTML pages
 
-- `$refresh_rate` - Auto-refresh rate for maillogs web pages
+- `$refresh_rate` - Auto-refresh rate for maillogs web pages.\
+ Default is `60` seconds
 
 - `$refresh` - Auto-refresh is disabled by default on all web pages and explicitly enabled
 on maillogs pages.\
-  Set to `true` to enable globally.
+  Set to `true` to enable globally.\
+  Default is `false`
 
-- `$items_per_page` - Number of pager items to show per page\
-  Used in maillogs, users, aliases etc
+- `$items_per_page` - Number of pager items to show per page.\
+  Used in maillogs, users, aliases etc.\
+  Default is `50`
 
-- `$q_items_per_page` - Pager quarantine days to show
+- `$q_items_per_page` - Pager quarantine days to show.\
+  Default is `31`
 
-- `$max_items` - Certain pages have an SQL restriction on upper items returned
+- `$max_items` - Certain pages have an SQL restriction on upper items returned.\
+  Default is `10000`
+
+- `$subject_privacy` - Hide the email subject on the web interface.\
+ Default is `false`
 
 - `$password_hash` - Default password hash for local users\
   See PHP's [password_hash](https://www.php.net/manual/en/function.password-hash.php)
   documentation for details.
 
 ### Reports and Statistics Settings
-- `$top_reports` - How many items to show in Top reports
+- `$top_reports` - How many items to show in Top reports under Search.\
+ Default is `30`
 
-- `$subject_privacy` - Hide the email subject on the web interface
-
-- `$show_mail_stats` - Calculate statistics on the mail search page.\
+- `$show_mail_stats` - Calculate and show statistics on the mail search page.\
  Default is `true`
 
 - `$show_user_mail_stats` - Show mail stats to users.\
- Requires `$show_mail_stats = true`.\
+ Requires `$show_mail_stats = true`\
  Default is `true`
 
 - `$show_unfiltered_mail_stats` - Show mail stats when no active filters.\
  Default is `true`
 
 - `$show_unfiltered_user_mail_stats` - Show user mail stats when no active filters.\
- Requires `$show_unfiltered_mail_stats = true`.\
+ Requires `$show_unfiltered_mail_stats = true`\
  Default is `true`
 
 - `$show_mail_reports` - Enable reports on the mail search page.\
  Default is `true`
 
 - `$show_user_mail_reports` - Show mail reports to users.\
- Requires `$show_mail_reports = true`.\
+ Requires `$show_mail_reports = true`\
  Default is `true`
 
 - `$show_unfiltered_mail_reports` - Show mail reports when no active filters.\
  Default is `true`
 
 - `$show_unfiltered_user_mail_reports` - Show user mail reports when no active filters.\
- Requires `$show_unfiltered_mail_reports = true`.\
+ Requires `$show_unfiltered_mail_reports = true`\
  Default is `false`
 
 ### GeoIP
