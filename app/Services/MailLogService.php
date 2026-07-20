@@ -370,8 +370,7 @@ class MailLogService
 				$baseField = str_replace('_domain', '', $field);
 				$query = MailLog::selectRaw("LOWER(TRIM(TRAILING '>' FROM SUBSTRING_INDEX({$baseField}, '@', -1))) AS {$field}, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
 				                ->where($baseField, 'LIKE', '%@%')
-				                ->groupBy($field)
-				                ->orderByDesc('total');
+				                ->groupBy($field);
 				break;
 			case 'date':
 				$query = MailLog::selectRaw("DATE(created_at) AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
