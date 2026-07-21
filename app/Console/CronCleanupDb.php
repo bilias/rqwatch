@@ -131,6 +131,7 @@ class CronCleanupDb extends RqwatchCliCommand
 
 		$output->writeln("<info>{$deleted} entries deleted from database{$local}</info>",
 			OutputInterface::VERBOSITY_VERBOSE);
+		$this->fileLogger->info("{$this->app_name} {$deleted} entries deleted from database{$local}");
 
 		$this->printRuntime($output);
 		return Command::SUCCESS;
