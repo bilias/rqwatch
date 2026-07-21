@@ -8,3 +8,6 @@
 
 # clean quarantine (local only) daily
 01 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:quarantine -d -l -p
+
+# clean database (local only) daily
+04 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:cleanupdb -d -l
