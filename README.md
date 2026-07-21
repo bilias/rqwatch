@@ -57,6 +57,7 @@ with extra tools to make the most of Rspamd’s powerful anti-spam capabilities.
    * [Mail API](#mail-api)
    * [CLI](#cli)
 * [<a href="docs/INSTALL.md">Installation</a>](docs/INSTALL.md)
+* [<a href="docs/UPGRADE.md">Upgrade</a>](docs/UPGRADE.md)
 * [<a href="docs/CONFIGURE.md">Configuration</a>](docs/CONFIGURE.md)
 * [<a href="docs/SCREENSHOTS.md">Screenshots</a>](docs/SCREENSHOTS.md)
 * [INFO](#info)
@@ -185,6 +186,8 @@ The Mail API is used in [Distributed](docs/DISTRIBUTED.md) mode, where Web compo
 - User add
 
 # [Installation](docs/INSTALL.md)
+
+# [Upgrade](docs/UPGRADE.md)
 
 # [Configuration](docs/CONFIGURE.md)
 

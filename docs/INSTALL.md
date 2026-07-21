@@ -15,6 +15,7 @@
       * [Database creation](#database-creation)
       * [Admin user](#admin-user)
       * [Quarantine location](#quarantine-location)
+* [Upgrade](#upgrade)
 * [Configuration](#configuration)
 <!--te-->
 
@@ -296,6 +297,8 @@ chown rqwatch:rqwatch /quarantine/tmp
 
 chmod 750 /quarantine/tmp
 ```
+
+# [Upgrade](/docs/UPGRADE.md)
 
 # [Configuration](/docs/CONFIGURE.md)
 You should now read [Configuration](/docs/CONFIGURE.md) to finish setup.\

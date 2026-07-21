@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-07-21
+- Add Upgrade doc
 - Clean up database CLI tool
 
 ### 2026-07-20
