@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-07-21
+- Clean up database CLI tool
+
 ### 2026-07-20
 - Add sorted reports by number of mails stored
 - Add quick today filter in search

@@ -166,6 +166,53 @@ class MailLogService
 		return $query;
 	}
 
+	public function cleanDb(Collection $logs): int {
+		if ($logs->isEmpty()) {
+			return 0;
+		}
+
+		$ids = $logs->modelKeys();
+		$primaryKey = $logs->first()->getKeyName();
+		$deleted = MailLog::whereIn($primaryKey, $ids)->delete();
+
+		return $deleted;
+	}
+
+	public function getCleanUpDb(
+		?OutputInterface $cli_output = null,
+		?string $server = null
+	): Collection {
+		$fields = MailLog::SELECT_FIELDS;
+
+		$query = MailLog::select($fields)
+					->orderBy('id', 'DESC');
+
+		$days = (int) ($_ENV['DATABASE_DAYS'] ?? 366);
+		$cutoffDate = new DateTime();
+		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
+
+		$query = MailLog::select($fields)
+					->where('created_at', '<', $cutoffDate->format('Y-m-d H:i:s'));
+
+		if ($server) {
+			$query = $query->where('server', $server);
+		}
+
+		$query = $this->applyUserScope($query);
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$query_str = self::getSqlFromQuery($query);
+			if ($cli_output) {
+				$cli_output->writeln("<info>{$query_str}</info>",
+					OutputInterface::VERBOSITY_VERBOSE);
+			} else {
+				$this->logger->info($query_str);
+			}
+		}
+
+		return $query->get();
+	}
+
 	public function showAll(): Collection {
 		$fields = MailLog::SELECT_FIELDS;
 
@@ -1207,7 +1254,7 @@ class MailLogService
 
 		$fields = MailLog::SELECT_FIELDS;
 
-		$days = (int) ($_ENV['QUARANTINE_DAYS'] ?? 365);
+		$days = (int) ($_ENV['QUARANTINE_DAYS'] ?? 366);
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 

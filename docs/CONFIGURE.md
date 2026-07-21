@@ -224,8 +224,13 @@ cp .env-example .env
 - `QUARANTINE_DIR` - Local Quarantine directory\
   rqwatch user must have read/write access in this directory.
 
-- `QUARANTINE_DAYS` - Number of days to keep emails in quarantine\
+- `QUARANTINE_DAYS` - Number of days to keep emails in quarantine.\
+  Default is `180`
   Cleanup is performed by `cron:quarantine`
+
+- `DATABASE_DAYS` - Number of days to keep emails in database.\
+  Default is `366`
+  Cleanup is performed by `cron:cleanupdb`
 
 ### API Settings
 If the server runs the API (MetadataImporter, GetMail, ReleaseMail) the following settings apply:
@@ -601,6 +606,7 @@ For instance, in order to create an admin user after Installation and Configurat
 Available commands for the "cron" namespace:
   cron:notifications   Notifications for stored mails
   cron:quarantine      Clean Quarantine
+  cron:cleanupdb       Clean Database
   cron:updatemapfiles  Update Map Files
 ```
 
@@ -652,6 +658,21 @@ Available commands for the "cron" namespace:
       -l, --local           Clean quarantine for local server only
       -p, --prune           Prune empty directories from quarantine
       -s, --show            Show entries in quaranting pending to be deleted
+    ```
+
+- **cron:cleanupdb**\
+  This command scans the Rqwatch database and cleans old entries.
+
+  Depending on the value set in .env `DATABASE_DAYS` (default 366),
+  Rqwatch database in being searched for emails stored before that date.
+  If `-d` command option is used then those emails are deleted from Database.
+    ```
+    ./bin/cli.php cron:cleanupdb -h
+
+    Options:
+      -d, --delete          Delete entries from database
+      -l, --local           Delete entries for local server only
+      -s, --show            Show entries to be deleted from database
     ```
 
 - **cron:updatemapfiles**\

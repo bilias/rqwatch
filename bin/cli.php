@@ -19,6 +19,7 @@ use Symfony\Component\Console\Application;
 
 use App\Console\CronNotifications;
 use App\Console\CronQuarantine;
+use App\Console\CronCleanupDb;
 use App\Console\CronUpdateMapFiles;
 use App\Console\UserAdd;
 use App\Console\MigrateMailRecipients;
@@ -34,6 +35,7 @@ $application = new Application();
 // fileLogger and syslogLogger come from bootstrap
 $application->add(new CronNotifications($fileLogger, $syslogLogger));
 $application->add(new CronQuarantine($fileLogger, $syslogLogger));
+$application->add(new CronCleanupDb($fileLogger, $syslogLogger));
 $application->add(new CronUpdateMapFiles($fileLogger, $syslogLogger));
 $application->add(new UserAdd($fileLogger, $syslogLogger));
 $application->add(new MigrateMailRecipients($fileLogger, $syslogLogger, $capsule));

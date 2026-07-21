@@ -4,7 +4,7 @@
 -
 
 ## Features bellow are in todo list.
-- Clean up database CLI tool
+-
 
 ## Features bellow might be implemented
 
