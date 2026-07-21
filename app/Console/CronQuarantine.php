@@ -73,7 +73,7 @@ class CronQuarantine extends RqwatchCliCommand
 		$delete_quarantine = $input->getOption('delete');
 		$show_local_only = $input->getOption('local');
 		$prune_quaranatine = $input->getOption('prune');
-		$show_quaranatine = $input->getOption('show');
+		$show_quarantine = $input->getOption('show');
 
 		// check for prune
 		if ($prune_quaranatine) {
@@ -92,7 +92,7 @@ class CronQuarantine extends RqwatchCliCommand
 			$logs = $service->getQuarantine($output);
 		}
 
-		$days = (int) ($_ENV['QUARANTINE_DAYS'] ?? 365);
+		$days = (int) ($_ENV['QUARANTINE_DAYS'] ?? 366);
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 		$qtime = $cutoffDate->format('Y-m-d H:i:s');
@@ -104,9 +104,9 @@ class CronQuarantine extends RqwatchCliCommand
 			$this->printRuntime($output);
 			return Command::SUCCESS;
 		} else {
-			$output->writeln("<info>{$count} entries found in quarantin before {$qtime}{$local}</info>",
+			$output->writeln("<info>{$count} entries found in quarantine before {$qtime}{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
-			$this->fileLogger->info("{$this->app_name} {$count} entries found in quarantin before {$qtime}{$local}");
+			$this->fileLogger->info("{$this->app_name} {$count} entries found in quarantine before {$qtime}{$local}");
 		}
 
 		// identify empty mail_location logs. Just to track their id for debugging
@@ -147,7 +147,7 @@ class CronQuarantine extends RqwatchCliCommand
 		// Ensure indexes are sequential after reject()
 		$logs = $logs->values();
 
-		if ($show_quaranatine) {
+		if ($show_quarantine) {
 			$output->writeln("<comment>Quarantine pending delete{$local}:</comment>",
 				OutputInterface::VERBOSITY_NORMAL);
 			foreach ($logs as $log) {
