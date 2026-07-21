@@ -438,6 +438,7 @@ span.stored {
 
 .quarantine_days .row {
  border-bottom: 1px solid white;
+ align-items: flex-start;
 }
 
 .quarantine_days .row:last-child {
@@ -913,9 +914,16 @@ span.stored {
   padding: 0 10px;
 }
 
+.cell.day {
+    flex: 1;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
 .cell.right {
+  flex: 0 0 5.5em;   /* about 74-88px depending on font */
   text-align: right;
-  max-width: 63px;
 }
 
 .cell.center {
