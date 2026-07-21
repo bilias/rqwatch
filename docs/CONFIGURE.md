@@ -708,10 +708,14 @@ The default cron template suggests:
 
 # clean quarantine (local only) daily
 01 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:quarantine -d -l -p
+
+# clean database (local only) daily
+04 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:cleanupdb -d -l
 ```
 - Sends notification every 5 minutes for mails stored locally (API servers)
 - Update Map files every 5 minutes (API servers)
 - Cleans Quarantine once every day for mails stored locally (API servers) 
+- Cleans Database once every day for mails stored locally (API servers) 
 
 Frequency can be adjusted to suite your setup.
 
