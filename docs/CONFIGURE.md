@@ -715,7 +715,7 @@ The default cron template suggests:
 - Sends notification every 5 minutes for mails stored locally (API servers)
 - Update Map files every 5 minutes (API servers)
 - Cleans Quarantine once every day for mails stored locally (API servers) 
-- Cleans Database once every day for mails stored locally (API servers) 
+- Cleans Database once every day for mails stored locally (API servers)
 
 Frequency can be adjusted to suite your setup.
 
