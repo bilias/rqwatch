@@ -426,7 +426,7 @@ class MailLogService
 			default:
 				//$fields = [ $field, DB::raw('count(*) as total') ];
 				//$query = MailLog::select($fields);
-				$query = MailLog::selectRaw("LOWER({$field}) AS {$field}, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
+				$query = MailLog::selectRaw("{$field} AS {$field}, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
 				                ->groupBy($field);
 				break;
 		}
