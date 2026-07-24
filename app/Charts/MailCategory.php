@@ -26,9 +26,9 @@ enum MailCategory
 			self::TOTAL   => 'Total',
 			self::STORED  => 'Stored',
 			self::VIRUS   => 'Virus',
-			self::CLEAN   => 'Clean',
-			self::HEADER  => 'Add Header',
-			self::SUBJECT => 'Rewrite Subject',
+			self::CLEAN   => 'No action',
+			self::HEADER  => 'Add header',
+			self::SUBJECT => 'Rewrite subject',
 			self::REJECT  => 'Reject',
 			self::DISCARD => 'Discard',
 		};
