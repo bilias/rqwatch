@@ -786,7 +786,10 @@ class MailLogController extends ViewController
 		$configTTLData = $this->getRedisConfigTTLData();
 
 		$stats = $this->getMailStats($service, $filters);
-		$chart = $this->createChart('createSearchChart', $stats);
+		$chart = $this->createChart(
+			[ChartBuilder::class, 'createSearchChart'],
+			$stats
+		);
 
 		return new Response($this->twig->render('search.twig', [
 			'qidform' => $qidform->createView(),
@@ -927,12 +930,12 @@ class MailLogController extends ViewController
 		return true;
 	}
 
-	private function createChart(string $method, array $stats): ?Chart {
+	private function createChart(callable $builder, array $stats): ?Chart {
 		if (!$this->chartsEnabled()) {
 			return null;
 		}
 
-		return ChartBuilder::$method($stats);
+		return $builder($stats);
 	}
 
 	private function mailReportsEnabled($filters): bool {
