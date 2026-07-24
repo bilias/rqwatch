@@ -490,6 +490,14 @@ class MailLogService
 				->mapWithKeys(fn($item) => [$item['action'] => $item['cnt']])
 				->toArray();
 
+			$stats['action'] = array_merge([
+				'no action'       => 0,
+				'add header'      => 0,
+				'rewrite subject' => 0,
+				'reject'          => 0,
+				'discard'         => 0,
+			], $stats['action']);
+
 			return $stats;
 		}
 
@@ -500,6 +508,13 @@ class MailLogService
 			'stored' => 0,
 			'notified' => 0,
 			'released' => 0,
+			'action' => [
+				'no action' => 0,
+				'add header' => 0,
+				'rewrite subject' => 0,
+				'reject' => 0,
+				'discard' => 0,
+			],
 		);
 	}
 
