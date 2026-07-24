@@ -101,7 +101,7 @@ class MailLogService
 			$filters = FormHelper::getFilterByName($filters);
 		}
 
-		if (is_array($filters) and count($filters) > 0) {
+		if (is_array($filters) and !empty($filters)) {
 			foreach ($filters as $filter) {
 				if (array_key_exists('filter', $filter) &&
 				    array_key_exists('choice', $filter) &&

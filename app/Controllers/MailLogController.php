@@ -112,13 +112,7 @@ class MailLogController extends ViewController
 			return $response;
 		}
 
-		// get filters from session
-		$filters = $this->session->get('filters');
-		if ($filters) {
-			$filters = json_decode($filters, true);
-		} else {
-			$filters = array();
-		}
+		$filters = $this->getFiltersFromSession();
 
 		// merge GET filters
 		$queryParams = [];
@@ -194,13 +188,7 @@ class MailLogController extends ViewController
 			return $response;
 		}
 
-		// get filters from session
-		$filters = $this->session->get('filters');
-		if ($filters) {
-			$filters = json_decode($filters, true);
-		} else {
-			$filters = array();
-		}
+		$filters = $this->getFiltersFromSession();
 
 		if (!$this->mailReportsEnabled($filters)) {
 			$this->flashbag->add('warning', "Mail Reports are disabled");
@@ -754,31 +742,18 @@ class MailLogController extends ViewController
 		if ($searchform->isSubmitted() && $searchform->isValid()) {
 			$data = $searchform->getData();
 
-			// get old filters from session
-			$filters = $this->session->get('filters');
-			if ($filters) {
-				$filters = json_decode($filters, true);
-			} else {
-				$filters = array();
-			}
-
+			$filters = $this->getFiltersFromSession();
 			// add new filters
-			$filters[] = array(
+			$filters[] = [
 				'filter' => $data['filter'],
 				'choice' => $data['choice'],
 				'value' => $data['value'],
-			);
-			$this->session->set('filters', json_encode($filters));
+			];
+			$this->saveFiltersToSession($filters);
 		}
 
 		// show active filters
-		$filters = $this->session->get('filters');
-
-		if ($filters) {
-			$filters = json_decode($filters, true);
-		} else {
-			$filters = array();
-		}
+		$filters = $this->getFiltersFromSession();
 
 		// get current stats
 		$service = new MailLogService($this->getFileLogger(), $this->session);
@@ -819,15 +794,9 @@ class MailLogController extends ViewController
 			'value' => $today
 		);
 
-		$filters = $this->session->get('filters');
-		if ($filters) {
-			$filters = json_decode($filters, true);
-			$filters[] = $today_filter;
-		} else {
-			$filters = [$today_filter];
-		}
-
-		$this->session->set('filters', json_encode($filters));
+		$filters = $this->getFiltersFromSession();
+		$filters[] = $today_filter;
+		$this->saveFiltersToSession($filters);
 
 		// get back to search page
 		$this->initUrls();
@@ -838,26 +807,19 @@ class MailLogController extends ViewController
 
 		// user asked to delete a specific filter number
 		if (!is_null($filter_id) and is_int($filter_id)) {
-			$filters = $this->session->get('filters');
+			$filters = $this->getFiltersFromSession();
 
 			if (!empty($filters)) {
-				$filters_ar = json_decode($filters, true);
-
-				if (array_key_exists($filter_id, $filters_ar)) {
-					$this->flashbag->set('deleted_filter', $filters_ar[$filter_id]);
-					unset($filters_ar[$filter_id]);
+				if (array_key_exists($filter_id, $filters)) {
+					$this->flashbag->set('deleted_filter', $filters[$filter_id]);
+					unset($filters[$filter_id]);
 				}
 
-				if (count($filters_ar) > 0) {
-					$filters_ar = array_values($filters_ar);
-					$this->session->set('filters', json_encode($filters_ar));
-				} else { // no more filters left
-					$this->session->set('filters', null);
-				}
+				$this->saveFiltersToSession($filters);
 			}
 		} else {
 			// if no filter_id (/del) delete all filters
-			$this->session->set('filters', null);
+			$this->saveFiltersToSession([]);
 		}
 
 		// get back to search page
@@ -993,6 +955,20 @@ class MailLogController extends ViewController
 		}
 
 		return [];
+	}
+
+	private function getFiltersFromSession(): array {
+		$filters = $this->session->get('filters');
+		if (empty($filters)) {
+			return [];
+		}
+		$decoded = json_decode($filters, true);
+
+		return is_array($decoded) ? $decoded : [];
+	}
+
+	private function saveFiltersToSession(array $filters): void {
+		$this->session->set('filters', json_encode(array_values($filters)));
 	}
 
 }
