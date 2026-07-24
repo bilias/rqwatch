@@ -81,5 +81,7 @@ https://github.com/maxmind/MaxMind-DB-Reader-php
 - jumbojett/openid-connect-php: Apache-2.0 license\
 https://github.com/jumbojett/OpenID-Connect-PHP
 
+### Third-party software included in the distributed codebase
+
 - Chart.js: MIT license\
 https://github.com/chartjs/Chart.js
