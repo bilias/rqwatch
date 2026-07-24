@@ -10,9 +10,9 @@
  */
 
 /*
-	Imported from symfony/ux-chartjs 2.36.0
-	vendor/symfony/ux-chartjs/src/Model/Chart.php
-*/
+ * Imported from https://github.com/symfony/ux-chartjs/blob/3.x/src/Model/Chart.php
+ * MIT license
+ */
 
 namespace App\Charts;
 

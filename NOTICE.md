@@ -85,3 +85,6 @@ https://github.com/jumbojett/OpenID-Connect-PHP
 
 - Chart.js: MIT license\
 https://github.com/chartjs/Chart.js
+
+- symfony/ux-chartjs, Chart Model only: MIT license\
+https://github.com/symfony/ux-chartjs/blob/3.x/src/Model/Chart.php
