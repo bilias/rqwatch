@@ -1,0 +1,14 @@
+<div class="header-chart">
+    <canvas id="{{ id }}"></canvas>
+</div>
+
+<script>
+new Chart(
+    document.getElementById({{ id|json_encode|raw }}),
+    {
+        type: {{ chart.getType()|json_encode|raw }},
+        data: {{ chart.getData()|json_encode|raw }},
+        options: {{ chart.getOptions()|json_encode|raw }}
+    }
+);
+</script>

@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-07-24
+- Initial Charts support via Chart.js
+
 ### 2026-07-21
 - Add Upgrade doc
 - Clean up database CLI tool

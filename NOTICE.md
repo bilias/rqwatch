@@ -80,3 +80,6 @@ https://github.com/maxmind/MaxMind-DB-Reader-php
 
 - jumbojett/openid-connect-php: Apache-2.0 license\
 https://github.com/jumbojett/OpenID-Connect-PHP
+
+- Chart.js: MIT license\
+https://github.com/chartjs/Chart.js

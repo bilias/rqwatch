@@ -20,6 +20,8 @@ use App\Core\Config;
 use App\Utils\Helper;
 use App\Utils\FormHelper;
 
+use App\Charts\ChartBuilder;
+
 use App\Forms\QidForm;
 use App\Forms\SearchForm;
 use App\Forms\MailReleaseForm;
@@ -782,10 +784,14 @@ class MailLogController extends ViewController
 
 		$configTTLData = $this->getRedisConfigTTLData();
 
+		$stats = $this->getMailStats($service, $filters);
+		$chart = ChartBuilder::createSearchChart($stats);
+
 		return new Response($this->twig->render('search.twig', [
 			'qidform' => $qidform->createView(),
 			'filters' => $filters,
-			'stats'   => $this->getMailStats($service, $filters),
+			'chart'   => $chart,
+			'stats'   => $stats,
 			'show_reports' => $this->mailReportsEnabled($filters),
 			'searchform' => $searchform->createView(),
 			'runtime' => $this->getRuntime(),

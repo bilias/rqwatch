@@ -1284,3 +1284,13 @@ table.attachments .filename {
 .inline-list li:last-child::after {
   content: "";
 }
+
+.header-chart {
+ flex: 1;
+ margin: 0 20px;
+ min-height: 200px;
+ max-height: 300px;
+ min-width: 200px;
+ max-width: 800px;
+ border: 1px solid #B0B0B0;
+}

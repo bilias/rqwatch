@@ -7,6 +7,16 @@
 #}
  </div>
  {% if is_admin and rspamd_stats is not empty %}
+  {% if chart is defined and chart %}
+   <script src="/js/chart.umd.min.js"></script>
+
+   {% set chart_id = 'chart-' ~ random() %}
+
+   {% include 'partials/chart.html.twig' with {
+    chart: chart,
+    id: chart_id
+   } %}
+  {% endif %}
  <div class="header-right">
   <div class='descr'>{#Rspamd Stats#}
   <button onclick="toggleDisplay('right-content', this)">Rspamd stats</button>
