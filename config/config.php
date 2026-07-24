@@ -210,6 +210,9 @@ $geoip_enable = false;
 # GeoIP Country database (requires maxmind account)
 $geoip_country_db = "/usr/share/GeoIP/GeoLite2-Country.mmdb";
 
+# Set to false in config.local.php to disable Charts
+$charts_enable = true;
+
 # Set to true in config.local.php to store details into files
 # Used for debugging to see what type of information
 # comes from rspamd to rqwatch api

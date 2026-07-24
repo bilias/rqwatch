@@ -546,6 +546,8 @@ on maillogs pages.\
  Requires `$show_unfiltered_mail_reports = true`\
  Default is `false`
 
+- `$charts_enable` - Set to `false` to disable charts
+
 ### GeoIP
 GeoIP is used to show country location for each for mail relays in detailed mail log.
 

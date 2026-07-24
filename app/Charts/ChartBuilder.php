@@ -10,9 +10,15 @@
 
 namespace App\Charts;
 
+use App\Core\Config;
+
 class ChartBuilder {
 
-	public static function createSearchChart(array $stats): Chart {
+	public static function createSearchChart(array $stats): ?Chart {
+		if (!Config::get('charts_enable')) {
+			return null;
+		}
+
 		$chart = new Chart(Chart::TYPE_BAR);
 
 		$chart->setData([
