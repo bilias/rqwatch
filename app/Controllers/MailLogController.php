@@ -20,6 +20,7 @@ use App\Core\Config;
 use App\Utils\Helper;
 use App\Utils\FormHelper;
 
+use App\Charts\Chart;
 use App\Charts\ChartBuilder;
 
 use App\Forms\QidForm;
@@ -785,13 +786,14 @@ class MailLogController extends ViewController
 		$configTTLData = $this->getRedisConfigTTLData();
 
 		$stats = $this->getMailStats($service, $filters);
-		$chart = ChartBuilder::createSearchChart($stats);
+		$chart = $this->createChart('createSearchChart', $stats);
 
 		return new Response($this->twig->render('search.twig', [
 			'qidform' => $qidform->createView(),
 			'filters' => $filters,
-			'chart'   => $chart,
 			'stats'   => $stats,
+			'chart'   => $chart,
+			'show_charts' => $chart !== null,
 			'show_reports' => $this->mailReportsEnabled($filters),
 			'searchform' => $searchform->createView(),
 			'runtime' => $this->getRuntime(),
@@ -911,6 +913,26 @@ class MailLogController extends ViewController
 		unset($cfg);
 
 		return $configs;
+	}
+
+	private function chartsEnabled(): bool {
+		if (!Config::get('show_charts')) {
+			return false;
+		}
+
+		if (!$this->getIsAdmin() && !Config::get('show_user_charts')) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private function createChart(string $method, array $stats): ?Chart {
+		if (!$this->chartsEnabled()) {
+			return null;
+		}
+
+		return ChartBuilder::$method($stats);
 	}
 
 	private function mailReportsEnabled($filters): bool {

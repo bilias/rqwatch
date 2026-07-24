@@ -546,7 +546,12 @@ on maillogs pages.\
  Requires `$show_unfiltered_mail_reports = true`\
  Default is `false`
 
-- `$charts_enable` - Set to `false` to disable charts
+- `$show_charts` - Set to `false` to disable charts.\
+ Default is `true`
+
+- `$show_user_charts` - Set to `true` to enable charts for users.\
+ Requires `$show_charts = true`\
+ Default is `false`
 
 ### GeoIP
 GeoIP is used to show country location for each for mail relays in detailed mail log.

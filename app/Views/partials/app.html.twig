@@ -6,8 +6,7 @@
   <h4>{{ APP_INFO }}</h4>
 #}
  </div>
- {% if is_admin and rspamd_stats is not empty %}
-  {% if chart is defined and chart %}
+  {% if show_charts %}
    <script src="/js/chart.umd.min.js"></script>
 
    {% set chart_id = 'chart-' ~ random() %}
@@ -17,6 +16,7 @@
     id: chart_id
    } %}
   {% endif %}
+ {% if is_admin and rspamd_stats is not empty %}
  <div class="header-right">
   <div class='descr'>{#Rspamd Stats#}
   <button onclick="toggleDisplay('right-content', this)">Rspamd stats</button>

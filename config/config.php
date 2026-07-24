@@ -211,7 +211,11 @@ $geoip_enable = false;
 $geoip_country_db = "/usr/share/GeoIP/GeoLite2-Country.mmdb";
 
 # Set to false in config.local.php to disable Charts
-$charts_enable = true;
+$show_charts = true;
+
+# Set to true in config.local.php to enable Charts for users
+# Requires $show_charts = true
+$show_user_charts = false;
 
 # Set to true in config.local.php to store details into files
 # Used for debugging to see what type of information
