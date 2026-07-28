@@ -35,7 +35,7 @@ use App\Core\Form\FormFactoryProvider;
 use Twig\TwigFunction;
 use Twig\TwigFilter;
 
-use App\Config\AppConfig;
+use App\Configuration\AppConfig;
 use App\Core\RouteName;
 use App\Core\Config;
 use App\Utils\Helper;

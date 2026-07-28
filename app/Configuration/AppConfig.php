@@ -8,7 +8,7 @@
  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-namespace App\Config;
+namespace App\Configuration;
 
 // Root path of the project (without trailing slash)
 define('APP_ROOT', realpath(__DIR__ . '/../..'));

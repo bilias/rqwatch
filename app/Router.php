@@ -24,7 +24,7 @@ use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Exception\NoConfigurationException;
 
-use App\Config\AppConfig;
+use App\Configuration\AppConfig;
 use App\Core\RouteName;
 use App\Utils\Helper;
 

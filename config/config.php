@@ -22,7 +22,7 @@
 ### Default configuration variables for Rqwatch
 ### Use config.local.php for making changes
 
-use App\Config\AppConfig;
+use App\Configuration\AppConfig;
 
 # Name to use on HTML pages
 $APP_NAME = AppConfig::APP_NAME;

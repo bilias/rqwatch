@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-use App\Config\AppConfig;
+use App\Configuration\AppConfig;
 use App\Core\RouteName;
 use App\Utils\UrlHelper;
 use App\Core\Config;

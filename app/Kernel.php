@@ -10,7 +10,7 @@
 
 namespace App;
 
-use App\Config\AppConfig;
+use App\Configuration\AppConfig;
 use App\Core\Config;
 use App\Core\Logging\LoggerService;
 use App\Utils\Helper;
@@ -27,7 +27,7 @@ class Kernel
 		$startTime = microtime(true);
 		$startMemory = memory_get_usage();
 
-		require_once __DIR__ . '/Config/AppConfig.php';
+		require_once __DIR__ . '/Configuration/AppConfig.php';
 
 		if (!defined('APP_ROOT')) {
 			throw new RuntimeException("APP_ROOT is not defined. Check AppConfig.");
