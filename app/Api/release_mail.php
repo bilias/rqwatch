@@ -9,9 +9,9 @@
 */
 define('API_MODE', true);
 
-use App\Kernel;
+use App\Core\Kernel;
 
-require_once __DIR__ . '/../Kernel.php';
+require_once __DIR__ . '/../Core/Kernel.php';
 
 use Symfony\Component\HttpFoundation\Request;
 use App\Api\ReleaseMailApi;

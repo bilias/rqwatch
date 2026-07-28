@@ -25,8 +25,10 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Exception\NoConfigurationException;
 
 use App\Configuration\AppConfig;
-use App\Core\Routing\RouteName;
 use App\Utils\Helper;
+
+use App\Core\Routing\Routes;
+use App\Core\Routing\RouteName;
 
 use App\Core\SessionManager;
 use App\Core\Middleware\AuthMiddleware;
@@ -110,11 +112,6 @@ class Router
 
 			// play safe incase route is missing from $middlewareMap
 			if (empty($middlewareClasses)) {
-				/*
-				throw new RuntimeException("Middleware missing for route '" .
-					$request->attributes->get('_route') .
-					"'. Check middlewareMap in config/routes.php");
-				*/
 				$this->fileLogger->warning("$request_route does not have a _middleware. Using defaultMiddlewareClasses");
 				$middlewareClasses = $defaultMiddlewareClasses;
 			}
@@ -223,16 +220,17 @@ class Router
 		}
 
 		// Load routes and default middleware classes
-		if (!file_exists(AppConfig::ROUTES_PATH)) {
-			$fileLogger->error("Routes file missing: " . AppConfig::ROUTES_PATH);
-			exit();
+		try {
+			$routeConfig = Routes::load();
+			$routes = $routeConfig['routes'];
+			$defaultMiddlewareClasses = $routeConfig['defaultMiddlewareClasses'];
+		} catch (Throwable $e) {
+			$fileLogger->error("Routes loading failed: " . $e->getMessage());
+			exit("Routes misconfigured.");
 		}
-		/** @var \Symfony\Component\Routing\RouteCollection $routes */
-		/** @var array $defaultMiddlewareClasses */
-		include AppConfig::ROUTES_PATH;
 
 		if (!isset($routes) || !isset($defaultMiddlewareClasses)) {
-			$fileLogger->error(AppConfig::ROUTES_PATH . " did not define required variables.");
+			$fileLogger->error("Routes loading failed: " . $e->getMessage());
 			exit("Routes misconfigured.");
 		}
 

@@ -20,7 +20,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
+use App\Core\Routing\Routes;
 use App\Core\Routing\RouteName;
+
+use App\Configuration\AppConfig;
 use App\Configuration\Config;
 use App\Utils\Helper;
 use App\Services\MailLogService;
@@ -257,7 +260,9 @@ class CronNotifications extends RqwatchCliCommand
 		//$logs_ar = $logs->toArray();
 
 		// get detail link url
-		$routes = include __DIR__.'/../../config/routes.php';
+		$routeConfig = Routes::load();
+		$routes = $routeConfig['routes'];
+
 		$context = new RequestContext();
 		$context->setHost($_ENV['WEB_HOST_NOTIFICATIONS']);
 		$context->setScheme($_ENV['WEB_SCHEME']);

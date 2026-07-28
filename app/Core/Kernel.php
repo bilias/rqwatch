@@ -8,7 +8,7 @@
  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-namespace App;
+namespace App\Core;
 
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
@@ -29,7 +29,7 @@ class Kernel
 		$startTime = microtime(true);
 		$startMemory = memory_get_usage();
 
-		require_once __DIR__ . '/Configuration/AppConfig.php';
+		require_once __DIR__ . '/../Configuration/AppConfig.php';
 
 		if (!defined('APP_ROOT')) {
 			throw new RuntimeException("APP_ROOT is not defined. Check AppConfig.");

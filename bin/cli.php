@@ -11,9 +11,9 @@
 
 define('CLI_MODE', true);
 
-use App\Kernel;
+use App\Core\Kernel;
 
-require_once __DIR__ . '/../app/Kernel.php';
+require_once __DIR__ . '/../app/Core/Kernel.php';
 
 use Symfony\Component\Console\Application;
 

@@ -38,9 +38,6 @@ public const string CONFIG_LOCAL_PATH   = APP_ROOT . '/config/config.local.php';
 // Composer autoload
 public const string VENDOR_PATH = APP_ROOT . '/vendor/autoload.php';
 
-// Routes Path
-public const string ROUTES_PATH = APP_ROOT . '/config/routes.php';
-
 // Environment file
 public const string ENV_PATH = APP_ROOT . '/.env';
 
