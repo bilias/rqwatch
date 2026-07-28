@@ -12,6 +12,7 @@ namespace App;
 
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
+use App\Configuration\Database;
 
 use App\Core\Logging\LoggerService;
 use App\Utils\Helper;
@@ -69,11 +70,10 @@ class Kernel
 		);
 
 		// setup DB connection
-		require_once AppConfig::DB_CONFIG_PATH;
+		$capsule = Database::boot();
 
 		// test DB connection
 		try {
-			/** @var Capsule $capsule */
 			$capsule->getConnection()->getPdo();
 		} catch (Exception $e) {
 			$fileLogger->error("DB error: " . $e->getMessage());
