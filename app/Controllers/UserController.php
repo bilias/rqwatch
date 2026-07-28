@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use App\Core\RouteName;
-use App\Core\Config;
+use App\Configuration\Config;
 use App\Core\Auth\AuthManager;
 use App\Utils\Helper;
 

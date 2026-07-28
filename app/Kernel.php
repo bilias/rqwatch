@@ -11,7 +11,8 @@
 namespace App;
 
 use App\Configuration\AppConfig;
-use App\Core\Config;
+use App\Configuration\Config;
+
 use App\Core\Logging\LoggerService;
 use App\Utils\Helper;
 

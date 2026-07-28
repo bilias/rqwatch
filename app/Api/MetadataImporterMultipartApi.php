@@ -10,7 +10,7 @@
 
 namespace App\Api;
 
-use App\Core\Config;
+use App\Configuration\Config;
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 

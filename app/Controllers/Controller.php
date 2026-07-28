@@ -21,7 +21,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use App\Configuration\AppConfig;
 use App\Core\RouteName;
 use App\Utils\UrlHelper;
-use App\Core\Config;
+use App\Configuration\Config;
 use App\Core\SessionManager;
 use App\Core\RedisFactory;
 use App\Utils\Helper;

@@ -10,7 +10,7 @@
 
 namespace App\Utils;
 
-use App\Core\Config;
+use App\Configuration\Config;
 use Psr\Log\LoggerInterface;
 use App\Core\Auth\AuthManager;
 

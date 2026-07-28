@@ -21,7 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
 use App\Core\RouteName;
-use App\Core\Config;
+use App\Configuration\Config;
 use App\Utils\Helper;
 use App\Services\MailLogService;
 use App\Services\UserService;

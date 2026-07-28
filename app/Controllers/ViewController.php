@@ -37,7 +37,7 @@ use Twig\TwigFilter;
 
 use App\Configuration\AppConfig;
 use App\Core\RouteName;
-use App\Core\Config;
+use App\Configuration\Config;
 use App\Utils\Helper;
 
 use ReflectionClass;

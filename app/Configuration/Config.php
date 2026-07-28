@@ -8,13 +8,11 @@
  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-namespace App\Core;
-
-use App\Configuration\AppConfig;
+namespace App\Configuration;
 
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
-//use App\Core\RedisFactory;
+use App\Core\RedisFactory;
 
 use Throwable;
 

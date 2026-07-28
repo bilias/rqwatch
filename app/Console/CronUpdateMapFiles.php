@@ -20,7 +20,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
-use App\Core\Config;
+use App\Configuration\Config;
 
 use App\Models\MapActivityLog;
 use App\Inventory\MapInventory;

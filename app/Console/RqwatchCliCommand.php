@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use Illuminate\Database\Query\Builder;
 
-use App\Core\Config;
+use App\Configuration\Config;
 use App\Utils\Helper;
 
 class RqwatchCliCommand extends Command

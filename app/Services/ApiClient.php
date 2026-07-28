@@ -10,7 +10,7 @@
 
 namespace App\Services;
 
-use App\Core\Config;
+use App\Configuration\Config;
 
 use Symfony\Component\HttpClient\HttpClient;
 //use Symfony\Component\HttpClient\CurlHttpClient;

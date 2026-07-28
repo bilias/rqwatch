@@ -10,7 +10,7 @@
 
 namespace App\Services;
 
-use App\Core\Config;
+use App\Configuration\Config;
 use App\Utils\Helper;
 
 use App\Models\MailAlias;

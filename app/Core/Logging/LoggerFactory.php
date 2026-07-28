@@ -16,7 +16,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogHandler;
 use Monolog\Formatter\LineFormatter;
 
-use App\Core\Config;
+use App\Configuration\Config;
 
 /*
 Method               Level     Severity (Monolog constant)
