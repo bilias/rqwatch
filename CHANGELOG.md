@@ -9,7 +9,7 @@
 - AppConfig in app/Configuration
 - Config in app/Configuration
 - config/db.php in app/Configuration/Database.php as class
-- app/Utils/UrlHelper.php in app/Core/Routing/UrlHelper.php
+- app/Utils/UrlHelper.php in app/Core/Routing/UrlBuilder.php
 
 ### 2026-07-24
 - Better filter handling via session

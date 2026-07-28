@@ -22,7 +22,7 @@ use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
 use App\Core\Routing\RouteName;
-use App\Core\Routing\UrlHelper;
+use App\Core\Routing\UrlBuilder;
 
 use App\Core\SessionManager;
 use App\Core\RedisFactory;
@@ -116,7 +116,7 @@ class Controller
 	}
 
 	protected function url(RouteName $route, array $parameters = []): string {
-		return UrlHelper::generate($this->urlGenerator, $route, $parameters);
+		return UrlBuilder::generate($this->urlGenerator, $route, $parameters);
 	}
 
 	public function setRoutes(RouteCollection $routes): void {

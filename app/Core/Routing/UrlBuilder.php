@@ -12,7 +12,7 @@ namespace App\Core\Routing;
 
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-class UrlHelper
+class UrlBuilder
 {
 	public static function generate(
 		UrlGeneratorInterface $urlGenerator,
