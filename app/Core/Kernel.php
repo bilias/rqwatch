@@ -31,8 +31,8 @@ class Kernel
 
 		require_once __DIR__ . '/../Configuration/AppConfig.php';
 
-		if (!defined('APP_ROOT')) {
-			throw new RuntimeException("APP_ROOT is not defined. Check AppConfig.");
+		if (!defined('RQWATCH_ROOT')) {
+			throw new RuntimeException("RQWATCH_ROOT is not defined. Check AppConfig.");
 		}
 
 		require_once AppConfig::VENDOR_PATH;
@@ -50,7 +50,7 @@ class Kernel
 			   AppConfig::ENV_PATH);
 		}
 
-		$dotenv = Dotenv::createImmutable(APP_ROOT);
+		$dotenv = Dotenv::createImmutable(RQWATCH_ROOT);
 		try {
 			$dotenv->load();
 		} catch (Exception $e) {

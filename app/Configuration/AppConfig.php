@@ -11,7 +11,7 @@
 namespace App\Configuration;
 
 // Root path of the project (without trailing slash)
-define('APP_ROOT', realpath(__DIR__ . '/../..'));
+define('RQWATCH_ROOT', realpath(__DIR__ . '/../..'));
 
 class AppConfig {
 
@@ -23,7 +23,7 @@ public const string APP_NAME = 'Rqwatch';
 // Prefix to use in syslog
 public const string SYSLOG_PREFIX = 'rqwatch';
 
-public const string LOG_FILE = APP_ROOT . '/logs/rqwatch.log';
+public const string LOG_FILE = RQWATCH_ROOT . '/logs/rqwatch.log';
 
 public const string APP_INFO = 'Rspamd Quarantine Watch';
 
@@ -32,21 +32,21 @@ public const string APP_LOGO_PATH = '/images/logo.png';
 public const string APP_LOGO_ALT = self::APP_NAME . ' logo';
 
 // Paths to configuration files
-public const string CONFIG_DEFAULT_PATH = APP_ROOT . '/config/config.php';
-public const string CONFIG_LOCAL_PATH   = APP_ROOT . '/config/config.local.php';
+public const string CONFIG_DEFAULT_PATH = RQWATCH_ROOT . '/config/config.php';
+public const string CONFIG_LOCAL_PATH   = RQWATCH_ROOT . '/config/config.local.php';
 
 // Composer autoload
-public const string VENDOR_PATH = APP_ROOT . '/vendor/autoload.php';
+public const string VENDOR_PATH = RQWATCH_ROOT . '/vendor/autoload.php';
 
 // Environment file
-public const string ENV_PATH = APP_ROOT . '/.env';
+public const string ENV_PATH = RQWATCH_ROOT . '/.env';
 
 // Views directory
-public const string VIEWS_PATH = APP_ROOT . '/app/Views';
+public const string VIEWS_PATH = RQWATCH_ROOT . '/app/Views';
 
 // Directory for storing and serving map files
 
-public const string MAP_DIR = APP_ROOT . '/web/maps/';
+public const string MAP_DIR = RQWATCH_ROOT . '/web/maps/';
 
 public const string GITHUB = 'https://github.com/bilias/rqwatch/';
 
