@@ -13,7 +13,7 @@ namespace App\Controllers;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use App\Core\RouteName;
+use App\Core\Routing\RouteName;
 use App\Configuration\Config;
 
 use App\Forms\QidForm;

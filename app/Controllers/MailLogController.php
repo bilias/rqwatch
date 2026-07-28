@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
-use App\Core\RouteName;
+use App\Core\Routing\RouteName;
 use App\Configuration\Config;
 use App\Utils\Helper;
 use App\Utils\FormHelper;

@@ -20,7 +20,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
-use App\Core\RouteName;
+use App\Core\Routing\RouteName;
 use App\Configuration\Config;
 use App\Utils\Helper;
 use App\Services\MailLogService;

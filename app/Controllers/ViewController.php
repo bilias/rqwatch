@@ -36,7 +36,7 @@ use Twig\TwigFunction;
 use Twig\TwigFilter;
 
 use App\Configuration\AppConfig;
-use App\Core\RouteName;
+use App\Core\Routing\RouteName;
 use App\Configuration\Config;
 use App\Utils\Helper;
 

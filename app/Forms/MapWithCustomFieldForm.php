@@ -27,7 +27,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use App\Core\RouteName;
+use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 use App\Services\MapService;

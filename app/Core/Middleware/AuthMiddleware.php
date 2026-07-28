@@ -10,7 +10,7 @@
 
 namespace App\Core\Middleware;
 
-use App\Core\RouteName;
+use App\Core\Routing\RouteName;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

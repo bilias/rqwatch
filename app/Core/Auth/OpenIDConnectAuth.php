@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 //use Jumbojett\OpenIDConnectClient;
 
-use App\Core\RouteName;
+use App\Core\Routing\RouteName;
 
 use App\Utils\Helper;
 

@@ -10,7 +10,7 @@
 
 namespace App\Utils;
 
-use App\Core\RouteName;
+use App\Core\Routing\RouteName;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class UrlHelper
