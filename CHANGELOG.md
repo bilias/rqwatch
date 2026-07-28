@@ -2,6 +2,14 @@
 
 ## Master Dev Branch
 
+### 2026-07-28
+- Kernel.php in app/Core
+- RouteName.php, Router.php in app/Core/Routing
+- config/routes.php in app/Core/Routing/Routes.php as class
+- AppConfig in app/Configuration
+- Config in app/Configuration
+- config/db.php in app/Configuration/Database.php as class
+
 ### 2026-07-24
 - Better filter handling via session
 - Initial Charts support via Chart.js
