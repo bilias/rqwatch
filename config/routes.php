@@ -11,7 +11,7 @@
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 
-use App\Core\RouteName;
+use App\Core\Routing\RouteName;
 
 // Routes system
 $routes = new RouteCollection();

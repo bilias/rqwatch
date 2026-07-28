@@ -25,7 +25,7 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Exception\NoConfigurationException;
 
 use App\Configuration\AppConfig;
-use App\Core\RouteName;
+use App\Core\Routing\RouteName;
 use App\Utils\Helper;
 
 use App\Core\SessionManager;
