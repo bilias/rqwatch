@@ -21,87 +21,87 @@ class Routes
 	public static function load(): array {
 		// Routes system
 		$routes = new RouteCollection();
-		
+
 		// default middleware classes incase route does not have _middleware
 		$defaultMiddlewareClasses = [
 			AuthMiddleware::class,
 			Authorization::class		// require admin
 		];
-		
+
 		$adminMiddlewareClasses = [
 			AuthMiddleware::class,
 			Authorization::class		// require admin
 		];
-		
+
 		$userMiddlewareClasses = [
 			AuthMiddleware::class,
 		];
-		
+
 		$noMiddlewareClasses = ['NO_MIDDLEWARE'];
-		
+
 		$routes->add(RouteName::CONFIG_RELOAD->value, new Route(
 			'/admin/config/reload', // path
 			[ '_controller' => 'App\\Controllers\\Controller::redisConfigReload',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::LOGIN->value, new Route(
 			'/login',
 			[ '_controller' => 'App\\Controllers\\LoginController::login',
 			  '_middleware' => $noMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::LOGIN_OPENIDC->value, new Route(
 			'/openidc/login',
 			[ '_controller' => 'App\\Controllers\\LoginController::login_openidc',
 			  '_middleware' => $noMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::OPENIDC_CALLBACK->value, new Route(
 			'/openidc/callback',
 			[ '_controller' => 'App\\Controllers\\LoginController::login_openidc_callback',
 			  '_middleware' => $noMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::LOGOUT->value, new Route(
 			'/logout',
 			[ '_controller' => 'App\\Controllers\\LoginController::logout',
 			  '_middleware' => $userMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::HOMEPAGE->value, new Route(
 			'/',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showAll',
 			  '_middleware' => $userMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_HOMEPAGE->value, new Route(
 			'/admin',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showAll',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::SEARCH_RESULTS->value, new Route(
 			'/results',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showResults',
 			  '_middleware' => $userMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_SEARCH_RESULTS->value, new Route(
 			'/admin/results',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showResults',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::REPORTS->value, new Route(
 			'/reports/{field}/{mode}',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showReports',
@@ -113,7 +113,7 @@ class Routes
 			  'mode' => 'count|volume|day|stored',
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_REPORTS->value, new Route(
 			'/admin/reports/{field}/{mode}',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showReports',
@@ -125,7 +125,7 @@ class Routes
 			  'mode' => 'count|volume|day|stored',
 			],
 		));
-		
+
 		$routes->add(RouteName::DAY_LOGS->value, new Route(
 			'/day/{date}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::showDay',
@@ -134,7 +134,7 @@ class Routes
 			],
 			[ 'date' => '\d{4}-\d{2}-\d{2}' ] // requirements, YYYY-MM-DD format
 		));
-		
+
 		$routes->add(RouteName::ADMIN_DAY_LOGS->value, new Route(
 			'/admin/day/{date}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::showDay',
@@ -143,21 +143,21 @@ class Routes
 			],
 			[ 'date' => '\d{4}-\d{2}-\d{2}' ] // requirements, YYYY-MM-DD format
 		));
-		
+
 		$routes->add(RouteName::QUARANTINE->value, new Route(
 			'/quarantine',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantine',
 			  '_middleware' => $userMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_QUARANTINE->value, new Route(
 			'/admin/quarantine',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantine',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::QUARANTINE_DAY->value, new Route(
 			'/quarantine/{date}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineDay',
@@ -165,7 +165,7 @@ class Routes
 			],
 			[ 'date' => '\d{4}-\d{2}-\d{2}' ] // requirements, YYYY-MM-DD format
 		));
-		
+
 		$routes->add(RouteName::ADMIN_QUARANTINE_DAY->value, new Route(
 			'/admin/quarantine/{date}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineDay',
@@ -173,7 +173,7 @@ class Routes
 			],
 			[ 'date' => '\d{4}-\d{2}-\d{2}' ] // requirements, YYYY-MM-DD format
 		));
-		
+
 		$routes->add(RouteName::DETAIL->value, new Route(
 			'/detail/{type}/{value}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::detail',
@@ -181,7 +181,7 @@ class Routes
 			],
 			[ 'type' => 'id|qid' ] // requirements: only 'id' or 'qid' allowed for {type}
 		));
-		
+
 		$routes->add(RouteName::ADMIN_DETAIL->value, new Route(
 			'/admin/detail/{type}/{value}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::detail',
@@ -189,21 +189,21 @@ class Routes
 			],
 			[ 'type' => 'id|qid' ] // requirements: only 'id' or 'qid' allowed for {type}
 		));
-		
+
 		$routes->add(RouteName::SEARCH->value, new Route(
 			'/search', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::search',
 			  '_middleware' => $userMiddlewareClasses,
 			]
 		));
-		
+
 		$routes->add(RouteName::ADMIN_SEARCH->value, new Route(
 			'/admin/search', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::search',
 			  '_middleware' => $adminMiddlewareClasses,
 			]
 		));
-		
+
 		$routes->add(RouteName::SEARCH_FILTER_DEL->value, new Route(
 			'/search/del/{filter_id}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::search_filter_del',
@@ -212,7 +212,7 @@ class Routes
 			],
 			[ 'filter_id' => '\d{1,2}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_SEARCH_FILTER_DEL->value, new Route(
 			'/admin/search/del/{filter_id}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::search_filter_del',
@@ -221,35 +221,35 @@ class Routes
 			],
 			[ 'filter_id' => '\d{1,2}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::SEARCH_FILTER_ADD_DAY->value, new Route(
 			'/search/add_day', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::search_filter_add_day',
 			  '_middleware' => $userMiddlewareClasses,
 			]
 		));
-		
+
 		$routes->add(RouteName::ADMIN_SEARCH_FILTER_ADD_DAY->value, new Route(
 			'/admin/search/add_day', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::search_filter_add_day',
 			  '_middleware' => $adminMiddlewareClasses,
 			]
 		));
-		
+
 		$routes->add(RouteName::ADMIN_USERS->value, new Route(
 			'/admin/users', // path
 			[ '_controller' => 'App\\Controllers\\UserController::showAll',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_USERADD->value, new Route(
 			'/admin/user/add', // path
 			[ '_controller' => 'App\\Controllers\\UserController::add',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_USEREDIT->value, new Route(
 			'/admin/user/edit/{id}', // path
 			[ '_controller' => 'App\\Controllers\\UserController::edit',
@@ -257,7 +257,7 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_USERDEL->value, new Route(
 			'/admin/user/del/{id}', // path
 			[ '_controller' => 'App\\Controllers\\UserController::del',
@@ -265,7 +265,7 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_USERSEARCH->value, new Route(
 			'/admin/user/search', // path
 			[ '_controller' => 'App\\Controllers\\UserController::searchUser',
@@ -277,7 +277,7 @@ class Routes
 			[], // schemes
 			['POST'] // methods
 		));
-		
+
 		$routes->add(RouteName::ADMIN_USERLOGINAS->value, new Route(
 			'/admin/user/login/{id}', // path
 			[ '_controller' => 'App\\Controllers\\UserController::loginAs',
@@ -285,7 +285,7 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_USER->value, new Route(
 			'/admin/user/{id}', // path
 			[ '_controller' => 'App\\Controllers\\UserController::showOne',
@@ -293,14 +293,14 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_ALIASES->value, new Route(
 			'/admin/aliases', // path
 			[ '_controller' => 'App\\Controllers\\MailAliasController::showAll',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_ALIASES_SEARCH->value, new Route(
 			'/admin/aliases/search', // path
 			[ '_controller' => 'App\\Controllers\\MailAliasController::searchAlias',
@@ -312,14 +312,14 @@ class Routes
 			[], // schemes
 			['POST'] // methods
 		));
-		
+
 		$routes->add(RouteName::ADMIN_ALIASES_ADD->value, new Route(
 			'/admin/aliases/add', // path
 			[ '_controller' => 'App\\Controllers\\MailAliasController::add',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_ALIASES_EDIT->value, new Route(
 			'/admin/aliases/edit/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MailAliasController::edit',
@@ -327,7 +327,7 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_ALIASES_DEL->value, new Route(
 			'/admin/aliases/del/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MailAliasController::del',
@@ -335,14 +335,14 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::PROFILE->value, new Route(
 			'/profile', // path
 			[ '_controller' => 'App\\Controllers\\UserController::profile',
 			  '_middleware' => $userMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::SHOWMAIL->value, new Route(
 			'/mail/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::showMail',
@@ -350,7 +350,7 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_SHOWMAIL->value, new Route(
 			'/admin/mail/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::showMail',
@@ -358,7 +358,7 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ATTACHSAVE->value, new Route(
 			'/attach/save/{id}/{attach_id}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::saveAttachment',
@@ -369,7 +369,7 @@ class Routes
 			  'attach_id' => '\d{1,2}',
 			]
 		));
-		
+
 		$routes->add(RouteName::ADMIN_ATTACHSAVE->value, new Route(
 			'/admin/attach/save/{id}/{attach_id}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::saveAttachment',
@@ -380,7 +380,7 @@ class Routes
 			  'attach_id' => '\d{1,2}',
 			]
 		));
-		
+
 		$routes->add(RouteName::ATTACHOPEN->value, new Route(
 			'/attach/open/{id}/{attach_id}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::openAttachment',
@@ -391,7 +391,7 @@ class Routes
 			  'attach_id' => '\d{1,2}',
 			]
 		));
-		
+
 		$routes->add(RouteName::ADMIN_ATTACHOPEN->value, new Route(
 			'/admin/attach/open/{id}/{attach_id}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::openAttachment',
@@ -402,7 +402,7 @@ class Routes
 			  'attach_id' => '\d{1,2}',
 			]
 		));
-		
+
 		$routes->add(RouteName::RELEASEMAIL->value, new Route(
 			'/release/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::releaseMail',
@@ -410,7 +410,7 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_RELEASEMAIL->value, new Route(
 			'/admin/release/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::releaseMail',
@@ -418,21 +418,21 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAPS->value, new Route(
 			'/admin/maps', // path
 			[ '_controller' => 'App\\Controllers\\MapController::showSelectMap',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::MAPS->value, new Route(
 			'/user/maps', // path
 			[ '_controller' => 'App\\Controllers\\MapController::showSelectMap',
 			  '_middleware' => $userMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAP_SHOW_ALL->value, new Route(
 			'/admin/map/all/{model}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::showAllMaps',
@@ -441,21 +441,21 @@ class Routes
 			],
 			[ 'model' => '[a-zA-Z_]{1,64}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAPS_CUSTOM_SHOW->value, new Route(
 			'/admin/maps/custom', // path
 			[ '_controller' => 'App\\Controllers\\MapController::showCustomMapsConfig',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAPS_CUSTOM_ADD->value, new Route(
 			'/admin/maps/custom/add', // path
 			[ '_controller' => 'App\\Controllers\\MapController::addCustomMap',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAPS_CUSTOM_EDIT->value, new Route(
 			'/admin/maps/custom/edit/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::editCustomMap',
@@ -463,7 +463,7 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAPS_CUSTOM_DEL->value, new Route(
 			'/admin/maps/custom/del/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::delCustomMap',
@@ -471,7 +471,7 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAP_SEARCH_ENTRY->value, new Route(
 			'/admin/map/search', // path
 			[ '_controller' => 'App\\Controllers\\MapController::searchMapEntry',
@@ -483,14 +483,14 @@ class Routes
 			[], // schemes
 			['POST'] // methods
 		));
-		
+
 		$routes->add(RouteName::MAP_SHOW_ALL->value, new Route(
 			'/user/map/all', // path
 			[ '_controller' => 'App\\Controllers\\MapController::showAllMaps',
 			  '_middleware' => $userMiddlewareClasses,
 			],
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAP_SHOW->value, new Route(
 			'/admin/map/{map}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::showMap',
@@ -498,7 +498,7 @@ class Routes
 			],
 			[ 'map' => '[a-zA-Z_0-9]{1,64}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::MAP_SHOW->value, new Route(
 			'/user/map/{map}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::showMap',
@@ -506,7 +506,7 @@ class Routes
 			],
 			[ 'map' => '[a-zA-Z_]{1,64}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAP_ADD_ENTRY->value, new Route(
 			'/admin/map/{map}/add', // path
 			[ '_controller' => 'App\\Controllers\\MapController::addMapEntry',
@@ -514,7 +514,7 @@ class Routes
 			],
 			[ 'map' => '[a-zA-Z_0-9]{1,64}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::MAP_ADD_ENTRY->value, new Route(
 			'/user/map/{map}/add', // path
 			[ '_controller' => 'App\\Controllers\\MapController::addMapEntry',
@@ -522,7 +522,7 @@ class Routes
 			],
 			[ 'map' => '[a-zA-Z_]{1,64}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAP_EDIT_ENTRY->value, new Route(
 			'/admin/map/{map}/edit/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::editMapEntry',
@@ -533,7 +533,7 @@ class Routes
 			  'id' => '\d{1,8}',
 			]
 		));
-		
+
 		$routes->add(RouteName::MAP_EDIT_ENTRY->value, new Route(
 			'/user/map/{map}/edit/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::editMapEntry',
@@ -544,7 +544,7 @@ class Routes
 			  'id' => '\d{1,8}'
 			]
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAP_DEL_ALL_ENTRIES->value, new Route(
 			'/admin/map/{map}/delall', // path
 			[ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries',
@@ -552,7 +552,7 @@ class Routes
 			],
 			[ 'map' => '[a-zA-Z_0-9]{1,64}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::MAP_DEL_ALL_ENTRIES->value, new Route(
 			'/user/map/{map}/delall', // path
 			[ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries',
@@ -560,7 +560,7 @@ class Routes
 			],
 			[ 'map' => '[a-zA-Z_]{1,64}' ] // requirements
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAP_DEL_ENTRY->value, new Route(
 			'/admin/map/{map}/del/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::delMapEntry',
@@ -571,7 +571,7 @@ class Routes
 			  'id' => '\d{1,8}',
 			]
 		));
-		
+
 		$routes->add(RouteName::MAP_DEL_ENTRY->value, new Route(
 			'/user/map/{map}/del/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::delMapEntry',
@@ -582,7 +582,7 @@ class Routes
 			  'id' => '\d{1,8}',
 			]
 		));
-		
+
 		$routes->add(RouteName::ADMIN_MAP_TOGGLE_ENTRY->value, new Route(
 			'/admin/map/{map}/toggle/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::toggleMapEntry',
@@ -593,7 +593,7 @@ class Routes
 			  'id' => '\d{1,8}',
 			]
 		));
-		
+
 		$routes->add(RouteName::MAP_TOGGLE_ENTRY->value, new Route(
 			'/user/map/{map}/toggle/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MapController::toggleMapEntry',
@@ -604,7 +604,7 @@ class Routes
 			  'id' => '\d{1,8}',
 			]
 		));
-		
+
 		// Moved inside routes
 		// attach middleware to routes
 		/*
@@ -675,7 +675,7 @@ class Routes
 			'admin_maps_custom_del' => $adminMiddlewareClasses,
 		];
 		*/
-		
+
 		return [
 			'routes' => $routes,
 			'defaultMiddlewareClasses' => $defaultMiddlewareClasses,

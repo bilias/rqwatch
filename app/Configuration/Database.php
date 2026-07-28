@@ -27,27 +27,27 @@ class Database {
 			'fetch'    => 'FETCH_ASSOC',
 		//	'prefix'   => 'my_',
 		);
-		
+
 		$capsule = new Capsule;
-		
+
 		$capsule->addConnection($db_config);
-		
+
 		$capsule->bootEloquent();
-		
+
 		// Make this Capsule instance available globally via static methods... (optional)
 		$capsule->setAsGlobal();
-		
+
 		/*
 		// have DB:: and query builder
 		use Illuminate\Container\Container;
 		use Illuminate\Support\Facades\Facade;
-		
+
 		// Set up a container manually
 		$container = new Container();
-		
+
 		// Bind the container to facades
 		Facade::setFacadeApplication($container);
-		
+
 		// Bind 'db' to the capsule instance, so DB:: works
 		$container->instance('db', $capsule->getDatabaseManager());
 		*/
