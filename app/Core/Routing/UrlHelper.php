@@ -8,9 +8,8 @@
  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-namespace App\Utils;
+namespace App\Core\Routing;
 
-use App\Core\Routing\RouteName;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class UrlHelper
