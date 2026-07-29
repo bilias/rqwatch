@@ -35,7 +35,7 @@ class Kernel
 			throw new RuntimeException("RQWATCH_ROOT is not defined. Check AppConfig.");
 		}
 
-		require_once AppConfig::VENDOR_PATH;
+		require_once AppConfig::VENDOR_AUTOLOAD;
 
 		// configure loggers
 		$loggerService = new LoggerService();

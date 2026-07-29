@@ -36,7 +36,7 @@ public const string CONFIG_DEFAULT_PATH = RQWATCH_ROOT . '/config/config.php';
 public const string CONFIG_LOCAL_PATH   = RQWATCH_ROOT . '/config/config.local.php';
 
 // Composer autoload
-public const string VENDOR_PATH = RQWATCH_ROOT . '/vendor/autoload.php';
+public const string VENDOR_AUTOLOAD = RQWATCH_ROOT . '/vendor/autoload.php';
 
 // Environment file
 public const string ENV_PATH = RQWATCH_ROOT . '/.env';
