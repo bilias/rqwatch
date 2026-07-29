@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v1.7.4 - Released: 2026-07-29
+
 ### 2026-07-29
 - Deprecate MAILLOGS_TABLE and MAIL_RECIPIENTS_TABLE from .env
 
