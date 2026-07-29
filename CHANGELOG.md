@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-07-29
+- Initial DB Migrations
+
 ## Version v1.7.4 - Released: 2026-07-29
 
 ### 2026-07-29
