@@ -8,7 +8,7 @@
  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-namespace App\Configuration;
+namespace App\Core\Database;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
