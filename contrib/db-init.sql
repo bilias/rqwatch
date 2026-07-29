@@ -150,7 +150,7 @@ CREATE TABLE `mail_logs` (
  `notify_date` DATETIME(0) DEFAULT NULL,
  `released` TINYINT(1) DEFAULT '0',
  `release_date` DATETIME(0) DEFAULT NULL,
- `notification_pending` TINYINT(1) AS ( (`mail_stored` = 1) AND (`notified` = 0) AND (`action` IN ('discard', 'reject'))) STORED,
+ `notification_pending` TINYINT(1) GENERATED ALWAYS AS (`mail_stored` = 1 and `notified` = 0 and `action` in ('discard','reject')) STORED,
  `headers` longtext DEFAULT NULL,
  `message_id` VARCHAR(1024) DEFAULT NULL,
  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
