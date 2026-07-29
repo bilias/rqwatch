@@ -67,5 +67,6 @@ public const int REDIS_CONFIG_CACHE_TTL = 300;
 // default TABLES
 public const string MAIL_LOGS_TABLE = 'mail_logs';
 public const string MAIL_LOG_RECIPIENTS_TABLE = 'mail_log_recipients';
+public const string MIGRATIONS_TABLE = 'migrations';
 
 }

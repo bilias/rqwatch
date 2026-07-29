@@ -86,7 +86,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 
 		$migration = new MigrationRunner($this->fileLogger, $this->capsule);
 
-		if($migration->hasMigration($migration::MIGRATE_MAIL_RECIPIENTS)) {
+		if($migration->hasMigration($migration::MIGRATION_MAIL_RECIPIENTS)) {
 			$output->writeln("<comment>Migration of mail_log recipients has already performed</comment>");
 			return Command::SUCCESS;
 		}
@@ -223,7 +223,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 		}
 
 		// record the migration
-		$migration->recordMigration(MigrationRunner::MIGRATE_MAIL_RECIPIENTS);
+		$migration->recordMigration($migrationn::MIGRATION_MAIL_RECIPIENTS);
 
 		return Command::SUCCESS;
 	}
