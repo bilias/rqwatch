@@ -25,6 +25,8 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 
 use App\Configuration\AppConfig;
 
+use App\Core\Database\MigrationRunner;
+
 use App\Utils\Helper;
 
 use Psr\Log\LoggerInterface;
@@ -81,6 +83,13 @@ class MigrateMailRecipients extends RqwatchCliCommand
 
 		$batch = $input->getOption('batch');
 		$sleep = $input->getOption('sleep');
+
+		$migration = new MigrationRunner($this->fileLogger, $this->capsule);
+
+		if($migration->hasMigration($migration::MIGRATE_MAIL_RECIPIENTS)) {
+			$output->writeln("<comment>Migration of mail_log recipients has already performed</comment>");
+			return Command::SUCCESS;
+		}
 
 		$output->writeln("<comment>Starting migration of mail_log recipients in batches of {$batch}</comment>");
 		$output->writeln("<comment>This will take some time, please be patient</comment>");
@@ -207,6 +216,14 @@ class MigrateMailRecipients extends RqwatchCliCommand
 );
 			usleep($sleep);
 		}
+
+		if (!$migration->hasTable(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)) {
+			$output->writeln("<error>Migration failed: mail_log_recipients table does not exist</error>");
+			return Command::FAILURE;
+		}
+
+		// record the migration
+		$migration->recordMigration(MigrationRunner::MIGRATE_MAIL_RECIPIENTS);
 
 		return Command::SUCCESS;
 	}

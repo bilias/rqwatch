@@ -14,6 +14,7 @@ use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
 use App\Core\Database\Database;
+use App\Core\Database\MigrationRunner;
 
 use App\Core\Logging\LoggerService;
 use App\Utils\Helper;
@@ -21,6 +22,7 @@ use App\Utils\Helper;
 use Dotenv\Dotenv;
 use Exception;
 use RuntimeException;
+use Throwable;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
@@ -72,6 +74,21 @@ class Kernel
 
 		// setup DB connection
 		$capsule = Database::boot();
+
+		// check for migrations
+		try {
+			$migrations = new MigrationRunner($fileLogger, $capsule);
+			$migrations->check();
+		} catch (Throwable $e) {
+			$fileLogger->error("DB Migration error: " . $e->getMessage());
+
+			if (defined('WEB_MODE')) {
+				echo "Database migration error. Check logs.";
+				exit;
+			}
+
+			throw $e;
+		}
 
 		// test DB connection
 		try {

@@ -181,3 +181,13 @@ CREATE TABLE `mail_log_recipients` (
     REFERENCES `mail_logs` (`id`)
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+DROP TABLE IF EXISTS `migrations`;
+
+CREATE TABLE `migrations` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) NOT NULL,
+  `executed_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `migrations_migration_unique` (`migration`)
+) ENGINE=InnoDB;
