@@ -10,7 +10,9 @@
 
 namespace App\Api;
 
+use App\Configuration\AppConfig;
 use App\Configuration\Config;
+
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
@@ -252,15 +254,15 @@ class MetadataImporterApi extends RqwatchApi
 
 		$db_id = null;
 		try {
-			// old code without MAIL_RECIPIENTS_TABLE
-			//$db_id = $this->capsule::table($_ENV['MAILLOGS_TABLE'])
+			// old code without MAIL_LOG_RECIPIENTS_TABLE
+			//$db_id = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE)
 			//	->insertGetId($data);
 			// This also works but uses 10MB instead of 5MB
 			//$db_id = MailLog::create($data)->id;
 
 			$this->capsule::connection()->transaction(function () use ($data, $rcpt_to, &$db_id) {
 
-				$db_id = $this->capsule::table($_ENV['MAILLOGS_TABLE'])
+				$db_id = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE)
 					->insertGetId($data);
 
 				if ($db_id && $rcpt_to !== "unknown" && !empty($rcpt_to)) {
@@ -280,7 +282,7 @@ class MetadataImporterApi extends RqwatchApi
 						}
 
 						if (!empty($rows)) {
-							$this->capsule::table($_ENV['MAIL_RECIPIENTS_TABLE'])
+							$this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)
 								->insert($rows);
 						}
 					}

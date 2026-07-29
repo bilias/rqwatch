@@ -5,12 +5,6 @@ when mail logs are more than 250K.
 
 Here is the procedure to apply this update:
 
-- edit `.env` file and add `MAIL_RECIPIENTS_TABLE` entry on all of your servers (WEB/API):
-  ```
-  MAILLOGS_TABLE=mail_logs
-  MAIL_RECIPIENTS_TABLE=mail_log_recipients
-  ```
-
 - Run the following SQL code:
   ```
   USE rqwatch;

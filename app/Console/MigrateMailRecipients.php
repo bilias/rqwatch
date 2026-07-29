@@ -23,6 +23,8 @@ use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Helper\QuestionHelper;
 
+use App\Configuration\AppConfig;
+
 use App\Utils\Helper;
 
 use Psr\Log\LoggerInterface;
@@ -84,9 +86,9 @@ class MigrateMailRecipients extends RqwatchCliCommand
 		$output->writeln("<comment>This will take some time, please be patient</comment>");
 		$output->write("<info>Total recipients: </info>");
 
-		$baseQuery = $this->capsule::table($_ENV['MAILLOGS_TABLE'] . ' as ml')
+		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
 			->select('ml.id', 'ml.rcpt_to', 'r.mail_log_id')
-			->leftJoin($_ENV['MAIL_RECIPIENTS_TABLE'] . ' as r', 'r.mail_log_id', '=', 'ml.id');
+			->leftJoin(AppConfig::MAIL_LOG_RECIPIENTS_TABLE . ' as r', 'r.mail_log_id', '=', 'ml.id');
 			//->whereNull('r.mail_log_id');
 			//->where('ml.rcpt_to', '!=', 'unknown');
 
@@ -179,7 +181,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 
 				/*
 				try {
-					$inserted += $this->capsule::table($_ENV['MAIL_RECIPIENTS_TABLE'])->insertOrIgnore($rows);
+					$inserted += $this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)->insertOrIgnore($rows);
 					//$this->capsule->getConnection()->commit();
 				} catch (\Exception $e) {
 					//$this->capsule->getConnection()->rollBack();
@@ -191,7 +193,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 			// insert in batches
 			if (!empty($batchRows)) {
 				try {
-					$inserted += $this->capsule::table($_ENV['MAIL_RECIPIENTS_TABLE'])->insertOrIgnore($batchRows);
+					$inserted += $this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)->insertOrIgnore($batchRows);
 				} catch (\Exception $e) {
 					throw $e;
 				}

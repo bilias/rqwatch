@@ -217,9 +217,6 @@ cp .env-example .env
 
 - `DB_PORT` - Database port
 
-- `MAILLOGS_TABLE` - The main table where email metadata is stored\
-  Default is `mail_logs`
-
 ### Quarantine Settings
 - `QUARANTINE_DIR` - Local Quarantine directory\
   rqwatch user must have read/write access in this directory.

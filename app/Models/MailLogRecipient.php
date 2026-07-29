@@ -13,6 +13,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+//use App\Configuration\AppConfig;
+
 use App\Utils\Helper;
 
 use Throwable;
@@ -20,7 +22,7 @@ use Throwable;
 class MailLogRecipient extends Model
 {
 	/*
-	protected $table = $_ENV['MAIL_RECIPIENTS_TABLE'];
+	protected $table = AppConfig::MAIL_LOG_RECIPIENTS_TABLE;
 	const CREATED_AT = 'created_at';
 	const UPDATED_AT = 'updated_at';
 	*/

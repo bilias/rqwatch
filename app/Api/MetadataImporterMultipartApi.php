@@ -10,7 +10,9 @@
 
 namespace App\Api;
 
+use App\Configuration\AppConfig;
 use App\Configuration\Config;
+
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
@@ -302,7 +304,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		try {
 			$this->capsule::connection()->transaction(function () use ($data, $rcptArr, &$db_id) {
 
-				$db_id = $this->capsule::table($_ENV['MAILLOGS_TABLE'])
+				$db_id = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE)
 					->insertGetId($data);
 
 				if ($db_id && !empty($rcptArr)) {
@@ -320,7 +322,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 					}
 
 					if (!empty($rows)) {
-						$this->capsule::table($_ENV['MAIL_RECIPIENTS_TABLE'])
+						$this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)
 							->insert($rows);
 					}
 				}

@@ -1,6 +1,3 @@
-# First add in .env
-# MAIL_RECIPIENTS_TABLE=mail_log_recipients
-
 # sql
 CREATE TABLE `mail_log_recipients` (
   `mail_log_id` int(10) unsigned NOT NULL,

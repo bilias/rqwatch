@@ -13,14 +13,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+//use App\Configuration\AppConfig;
+
 use App\Utils\Helper;
 
 use Throwable;
 
 class MailLog extends Model
 {
+
 	/*
-	protected $table = $_ENV['MAILLOGS_TABLE'];
+	protected $table = AppConfig::MAIL_LOGS_TABLE;
 	const CREATED_AT = 'created_at';
 	const UPDATED_AT = 'updated_at';
 	*/
@@ -146,7 +149,7 @@ class MailLog extends Model
 
 	/* not needed now
 	public function getTable() {
-		return $_ENV['MAILLOGS_TABLE'] ?? 'mail_logs';
+		return AppConfig::MAIL_LOGS_TABLE ?? 'mail_logs';
 	}
 	*/
 

@@ -10,7 +10,9 @@
 
 namespace App\Services;
 
+use App\Configuration\AppConfig;
 use App\Configuration\Config;
+
 use App\Utils\Helper;
 use App\Utils\FormHelper;
 use App\Models\MailLog;
@@ -982,7 +984,7 @@ class MailLogService
 
 		return $query->whereExists(function ($q) use ($emails) {
 			$q->selectRaw('1')
-				->from($_ENV['MAIL_RECIPIENTS_TABLE'] . ' as r')
+				->from(AppConfig::MAIL_LOG_RECIPIENTS_TABLE . ' as r')
 				->whereColumn('r.mail_log_id', 'mail_logs.id')   // IMPORTANT: table name here
 				->whereIn('r.recipient_email', $emails);
 			});

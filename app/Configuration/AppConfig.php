@@ -64,4 +64,8 @@ public const string GET_MAIL_API_PATH = '/api/get_mail.php';
 public const string REDIS_CONFIG_KEY = 'rqwatch_config';
 public const int REDIS_CONFIG_CACHE_TTL = 300;
 
+// default TABLES
+public const string MAIL_LOGS_TABLE = 'mail_logs';
+public const string MAIL_LOG_RECIPIENTS_TABLE = 'mail_log_recipients';
+
 }

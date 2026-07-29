@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-07-29
+- Deprecate MAILLOGS_TABLE and MAIL_RECIPIENTS_TABLE from .env
+
 ### 2026-07-28
 - Kernel.php in app/Core
 - RouteName.php, Router.php in app/Core/Routing
