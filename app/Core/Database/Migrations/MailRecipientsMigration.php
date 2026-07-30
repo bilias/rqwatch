@@ -200,7 +200,15 @@ class MailRecipientsMigration extends AbstractMigration {
 			return;
 		}
 
-		$this->createRecipientsTable($output);
+		try {
+			$this->createRecipientsTable($output);
+		} catch (\Throwable $e) {
+			$this->fileLogger?->error(
+				"createRecipientsTable failed: " . $e->getMessage()
+			);
+
+			throw $e;
+		}
 
 		if (!$this->hasTable(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)) {
 			throw new RuntimeException("Failed to create ". AppConfig::MAIL_LOG_RECIPIENTS_TABLE . " table");
