@@ -25,7 +25,9 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 
 use App\Configuration\AppConfig;
 
+use App\Configuration\MigrationList;
 use App\Core\Database\MigrationRunner;
+use App\Core\Database\Migrations\MailRecipientsMigration;
 
 use App\Utils\Helper;
 
@@ -34,14 +36,14 @@ use Psr\Log\LoggerInterface;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 #[AsCommand(
-	name: 'mail:migrate_mail_recipients',
+	name: 'db:migrate_mail_recipients',
 	description: 'Migrate mail recipients from mail_logs/rcpt_to to mail_log_recipients',
 	help: 'This command migrates mail recipients from mail_logs/rcpt_to to mail_log_recipients
 ',
 )]
 class MigrateMailRecipients extends RqwatchCliCommand
 {
-	private string $app_name = "mail:migrate_mail_recipients";
+	private string $app_name = "db:migrate_mail_recipients";
 	private ?LoggerInterface $fileLogger;
 	private ?LoggerInterface $syslogLogger;
 	private $default_batch_size = 10000;
@@ -84,146 +86,15 @@ class MigrateMailRecipients extends RqwatchCliCommand
 		$batch = $input->getOption('batch');
 		$sleep = $input->getOption('sleep');
 
-		$migration = new MigrationRunner($this->fileLogger, $this->capsule);
+		// run the migration
+		$migration = new MailRecipientsMigration(
+			$this->capsule,
+			$this->fileLogger
+		);
 
-		if($migration->hasMigration($migration::MIGRATION_MAIL_RECIPIENTS)) {
-			$output->writeln("<comment>Migration of mail_log recipients has already performed</comment>");
-			return Command::SUCCESS;
-		}
-
-		$output->writeln("<comment>Starting migration of mail_log recipients in batches of {$batch}</comment>");
-		$output->writeln("<comment>This will take some time, please be patient</comment>");
-		$output->write("<info>Total recipients: </info>");
-
-		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
-			->select('ml.id', 'ml.rcpt_to', 'r.mail_log_id')
-			->leftJoin(AppConfig::MAIL_LOG_RECIPIENTS_TABLE . ' as r', 'r.mail_log_id', '=', 'ml.id');
-			//->whereNull('r.mail_log_id');
-			//->where('ml.rcpt_to', '!=', 'unknown');
-
-		$total = (clone $baseQuery)->count('ml.id');
-
-		$unknown = (clone $baseQuery)
-							->where('ml.rcpt_to', '=', 'unknown')
-							->count('ml.id');
-
-		$total = $total - $unknown;
-		$output->writeln("<info>{$total}</info>");
-		if ($total == 0) {
-			return Command::SUCCESS;
-		}
-
-		$lastId = 0;
-		$scanned = 0;
-		$migrated = 0;
-
-		while (true) {
-			$query = (clone $baseQuery)
-				->where('ml.id', '>', $lastId)
-				->orderBy('ml.id')
-				->limit($batch);
-
-			/*
-			$sql = $query->toSql();
-			$bindings = implode(', ', $query->getBindings());
-			$output->writeln("SQL iteration, lastId={$lastId}: {$sql} | Bindings: {$bindings}");
-			*/
-			$logs = $query->get();
-
-			if ($logs->isEmpty()) {
-				break;
-			}
-
-			$batchRows = [];
-			$inserted = 0;
-			foreach ($logs as $log) {
-
-				// already migrated mail_log id
-				if ($log->mail_log_id !== null) {
-					continue;
-				}
-
-				/*
-				$rcptTo = trim(strtolower((string)$log->rcpt_to));
-				if ($rcptTo === '' || $rcptTo === 'unknown') {
-					continue;
-				}
-
-				$recipients = array_unique(array_filter(
-					array_map(
-						static fn(string $email) => trim(strtolower($email)),
-						explode(',', $log->rcpt_to)
-					)
-				));
-				*/
-
-				if ($log->rcpt_to === null || $log->rcpt_to === '') {
-					continue;
-				}
-
-				$recipients = [];
-				foreach (explode(',', $log->rcpt_to) as $email) {
-					$email = strtolower(trim($email));
-					if ($email === '' || $email === 'unknown') {
-						continue;
-					}
-
-					$recipients[$email] = true;
-				}
-
-				$recipients = array_keys($recipients);
-
-				if (empty($recipients)) {
-					continue;
-				}
-
-				//$rows = [];
-				foreach ($recipients as $email) {
-					// $rows[] = [
-					$batchRows[] = [
-						'mail_log_id'     => $log->id,
-						'recipient_email' => $email,
-					];
-				}
-
-				//$this->capsule->getConnection()->beginTransaction();
-
-				/*
-				try {
-					$inserted += $this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)->insertOrIgnore($rows);
-					//$this->capsule->getConnection()->commit();
-				} catch (\Exception $e) {
-					//$this->capsule->getConnection()->rollBack();
-					throw $e;
-				}
-				*/
-			}
-
-			// insert in batches
-			if (!empty($batchRows)) {
-				try {
-					$inserted += $this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)->insertOrIgnore($batchRows);
-				} catch (\Exception $e) {
-					throw $e;
-				}
-			}
-
-			$lastId = $logs->last()->id;
-			$scanned += $logs->count();
-			$migrated += $inserted;
-			$remaining = max(0, $total - $scanned);
-			$output->writeln("<info>Scanned: {$scanned}, Remaining: {$remaining}, Migrated: {$migrated} (recipients)</info>"
-);
-			usleep($sleep);
-		}
-
-		if (!$migration->hasTable(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)) {
-			$output->writeln("<error>Migration failed: mail_log_recipients table does not exist</error>");
+		if (!$migration->run($batch, $sleep, $output)) {
 			return Command::FAILURE;
 		}
-
-		// record the migration
-		$migration->recordMigration($migrationn::MIGRATION_MAIL_RECIPIENTS);
 
 		return Command::SUCCESS;
 	}

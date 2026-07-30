@@ -12,6 +12,7 @@ namespace App\Core;
 
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
+use App\Configuration\MigrationList;
 
 use App\Core\Database\Database;
 use App\Core\Database\MigrationRunner;
@@ -75,10 +76,11 @@ class Kernel
 		// setup DB connection
 		$capsule = Database::boot();
 
+		/*
 		// check for migrations
 		try {
-			$migrations = new MigrationRunner($fileLogger, $capsule);
-			$migrations->check();
+			$migrations = new MigrationRunner($capsule, $fileLogger);
+			$migrations->check(MigrationList::MIGRATIONS);
 		} catch (Throwable $e) {
 			$fileLogger->error("DB Migration error: " . $e->getMessage());
 
@@ -89,6 +91,7 @@ class Kernel
 
 			throw $e;
 		}
+		*/
 
 		// test DB connection
 		try {

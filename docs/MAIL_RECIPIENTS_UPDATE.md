@@ -35,7 +35,7 @@ Here is the procedure to apply this update:
 
 - Migrate mail recipient entries. This will take rcpt_to entries from mail_logs and insert them in `mail_log_recipients` table:
   ```
-  ./bin/cli.php mail:migrate_mail_recipients
+  ./bin/cli.php db:migrate_mail_recipients
   ```
 
 - Start cron jobs on all API servers:\

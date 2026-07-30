@@ -23,6 +23,7 @@ use App\Console\CronCleanupDb;
 use App\Console\CronUpdateMapFiles;
 use App\Console\UserAdd;
 use App\Console\MigrateMailRecipients;
+use App\Console\MigrateCreatedDay;
 
 $services = Kernel::boot();
 $fileLogger = $services['fileLogger'];
@@ -39,5 +40,6 @@ $application->add(new CronCleanupDb($fileLogger, $syslogLogger));
 $application->add(new CronUpdateMapFiles($fileLogger, $syslogLogger));
 $application->add(new UserAdd($fileLogger, $syslogLogger));
 $application->add(new MigrateMailRecipients($fileLogger, $syslogLogger, $capsule));
+$application->add(new MigrateCreatedDay($fileLogger, $syslogLogger, $capsule));
 
 $application->run();
