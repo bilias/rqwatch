@@ -20,26 +20,23 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
-use App\Core\Database\Migrations\MailRecipientsMigration;
+use App\Core\Database\Migrations\CreatedDayMigration;
 
 use Psr\Log\LoggerInterface;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 #[AsCommand(
-	name: 'db:migrate_mail_recipients',
-	description: 'Migrate mail recipients from mail_logs/rcpt_to to mail_log_recipients',
-	help: 'This command migrates mail recipients from mail_logs/rcpt_to to mail_log_recipients
+	name: 'db:migrate_created_day',
+	description: 'Add created_day column to mail_logs table',
+	help: 'This command adds created_day column to mail_logs table
 ',
 )]
-class MigrateMailRecipients extends RqwatchCliCommand
+class MigrateCreatedDay extends RqwatchCliCommand
 {
-	private string $app_name = "db:migrate_mail_recipients";
+	private string $app_name = "db:migrate_created_day";
 	private ?LoggerInterface $fileLogger;
 	private ?LoggerInterface $syslogLogger;
-	private $default_batch_size = 10000;
-	// micro seconds (default 1/5 of a second)
-	private $default_sleep = 200000;
 
 	use LockableTrait;
 
@@ -58,15 +55,6 @@ class MigrateMailRecipients extends RqwatchCliCommand
 	}
 
 	#[\Override]
-	protected function configure(): void {
-		$this
-			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
-			->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', $this->default_batch_size)
-			->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', $this->default_sleep)
-		;
-	}
-
-	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		if (!$this->lock()) {
 			$output->writeln('<comment>Already running in another process.</comment>');
@@ -74,16 +62,13 @@ class MigrateMailRecipients extends RqwatchCliCommand
 			return Command::FAILURE;
 		}
 
-		$batch = $input->getOption('batch');
-		$sleep = $input->getOption('sleep');
-
 		// run the migration
-		$migration = new MailRecipientsMigration(
+		$migration = new CreatedDayMigration(
 			$this->capsule,
 			$this->fileLogger
 		);
 
-		if (!$migration->run($batch, $sleep, $output)) {
+		if (!$migration->run($output)) {
 			return Command::FAILURE;
 		}
 

@@ -20,7 +20,12 @@ use App\Configuration\MigrationList;
 
 use RuntimeException;
 
-class MigrationRunner extends AbstractMigration {
+class MigrationRunner
+{
+	public function __construct(
+		private Capsule $capsule,
+		private ?LoggerInterface $fileLogger
+	) {}
 
 	public function check(array $migrations): void {
 		$this->ensureMigrationsTable();

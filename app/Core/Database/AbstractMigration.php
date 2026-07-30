@@ -28,13 +28,8 @@ abstract class AbstractMigration {
 		protected ?LoggerInterface $fileLogger
 	) {}
 
-	public function getName(): string {
-		throw new RuntimeException('Migration getName() not implemented');
-	}
-
-	public function verify(): bool {
-		throw new RuntimeException('Migration verify() not implemented');
-	}
+	abstract public function getName(): string;
+	abstract protected function verify(): bool;
 
 	protected function hasTable(string $table): bool {
 		return $this->capsule->schema()->hasTable($table);
@@ -42,6 +37,15 @@ abstract class AbstractMigration {
 
 	protected function hasColumn(string $table, string $column): bool {
 		return $this->capsule->schema()->hasColumn($table, $column);
+	}
+
+	protected function hasIndex(string $table, string $index): bool {
+		return !empty(
+			$this->capsule->getConnection()->select(
+				"SHOW INDEX FROM `$table` WHERE Key_name = ?",
+				[$index]
+			)
+		);
 	}
 
 	protected function createTable(string $tableName, Closure $callback): void {
@@ -52,18 +56,36 @@ abstract class AbstractMigration {
 		$this->capsule->schema()->table($tableName, $callback);
 	}
 
-	protected function hasMigration(string $name): bool {
+	protected function hasMigration(): bool {
 		return $this->capsule
 			->table(AppConfig::MIGRATIONS_TABLE)
-			->where('migration', $name)
+			->where('migration', $this->getName())
 			->exists();
 	}
 
-	protected function recordMigration(string $migration): void {
+	public function verifyMigration(): bool {
+		$recorded = $this->hasMigration();
+		$verified = $this->verify();
+
+		if ($recorded && $verified) {
+			return true;
+		}
+
+		$this->fileLogger?->warning(
+			"DB Migration {$this->getName()} requires manual execution"
+		);
+		$this->fileLogger?->warning(
+			"See: " . MigrationList::MIGRATION_HELP[$this->getName()]
+		);
+
+		return false;
+	}
+
+	protected function recordMigration(): void {
 		$this->capsule
 			->table(AppConfig::MIGRATIONS_TABLE)
 			->insert([
-				'migration' => $migration,
+				'migration' => $this->getName(),
 			]);
 	}
 
@@ -71,6 +93,12 @@ abstract class AbstractMigration {
 		if (!$this->hasTable(AppConfig::MIGRATIONS_TABLE)) {
 			$this->fileLogger->warning("DB Schema does not have 'MIGRATIONS_TABLE', creating it.");
 			$this->createMigrationsTable();
+		}
+
+		if (!$this->hasTable(AppConfig::MIGRATIONS_TABLE)) {
+			throw new RuntimeException(
+				"Failed to create " . AppConfig::MIGRATIONS_TABLE . " table"
+			);
 		}
 	}
 
@@ -83,28 +111,6 @@ abstract class AbstractMigration {
 				$table->timestamp('executed_at')->useCurrent();
 			}
 		);
-	}
-
-	private function migrateCreatedDay(): void {
-		if ($this->capsule->schema()->hasColumn(
-			AppConfig::MAIL_LOGS_TABLE,
-			'created_day'
-		)) {
-			$this->recordMigration(self::MIGRATION_ADD_CREATED_DAY);
-			return;
-		}
-
-		$this->fileLogger?->info("Running migration: " . self::MIGRATION_ADD_CREATED_DAY);
-		$this->capsule->getConnection()->statement("
-			ALTER TABLE " . AppConfig::MAIL_LOGS_TABLE . "
-			ADD COLUMN created_day DATE
-				AS (DATE(created_at)) STORED
-				AFTER updated_at,
-			ADD INDEX created_day_index (created_day)
-		");
-
-		$this->fileLogger?->info("Migration: " . self::MIGRATION_ADD_CREATED_DAY . " finished");
-		$this->recordMigration(self::MIGRATION_ADD_CREATED_DAY);
 	}
 
 }

@@ -26,4 +26,9 @@ class MigrationList
 		self::MAIL_RECIPIENTS => MailRecipientsMigration::class,
 		self::ADD_CREATED_DAY => CreatedDayMigration::class,
 	];
+
+	public const array MIGRATION_HELP = [
+		self::MAIL_RECIPIENTS => "https://github.com/bilias/rqwatch/blob/master/docs/MAIL_RECIPIENTS_UPDATE.md",
+		self::ADD_CREATED_DAY => "https://github.com/bilias/rqwatch/blob/master/docs/CREATED_DAY_UPDATE.md",
+	];
 }

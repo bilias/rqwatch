@@ -33,22 +33,43 @@ class MailRecipientsMigration extends AbstractMigration {
 	public function run(int $batch, int $sleep, ?OutputInterface $output = null): bool {
 		$this->ensureMigrationsTable();
 
-		if ($this->hasMigration($this->getName())) {
-			$output?->writeln("<info>Migration {$this->getName()} is already performed</info>");
+		if ($this->hasMigration()) {
+			$output?->writeln("<info>Migration {$this->getName()} is already recorded</info>");
 			return true;
 		}
 
-		$this->ensureRecipientsTable($output);
-
-		if (!$this->hasTable(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)) {
-			throw new RuntimeException(
-				"Failed to create " . AppConfig::MAIL_LOG_RECIPIENTS_TABLE
-			);
+		if ($this->verify()) {
+			$output?->writeln("<info>Migration {$this->getName()} exists, recording status</info>");
+			$this->recordMigration();
+			return true;
 		}
 
 		$this->fileLogger?->info("Starting migration {$this->getName()}");
 		$output?->writeln("<comment>Starting migration {$this->getName()} in batches of {$batch}</comment>");
 		$output?->writeln("<comment>This will take some time, please be patient</comment>");
+
+		try {
+			// create table if does not exist, then check and throw if not exist
+			$this->ensureRecipientsTable($output);
+			$this->runMigration($batch, $sleep, $output);
+			$this->recordMigration();
+		} catch (\Throwable $e) {
+			$this->fileLogger?->error(
+				"Migration {$this->getName()} failed: " . $e->getMessage()
+			);
+
+			$output?->writeln(
+				"<error>Migration {$this->getName()} failed: {$e->getMessage()}</error>"
+			);
+
+			return false;
+		}
+
+		$this->fileLogger?->info("Finished migration {$this->getName()}");
+		return true;
+	}
+
+	private function runMigration(int $batch, int $sleep, ?OutputInterface $output = null): void {
 		$output?->write("<info>Total recipients: </info>");
 
 		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
@@ -66,7 +87,7 @@ class MailRecipientsMigration extends AbstractMigration {
 		$total = $total - $unknown;
 		$output?->writeln("<info>{$total}</info>");
 		if ($total == 0) {
-			return true;
+			return;
 		}
 
 		$lastId = 0;
@@ -172,10 +193,6 @@ class MailRecipientsMigration extends AbstractMigration {
 );
 			usleep($sleep);
 		}
-
-		$this->recordMigration($this->getName());
-		$this->fileLogger?->info("Finished migration {$this->getName()}");
-		return true;
 	}
 
 	private function ensureRecipientsTable(OutputInterface $output): void {
@@ -184,6 +201,10 @@ class MailRecipientsMigration extends AbstractMigration {
 		}
 
 		$this->createRecipientsTable($output);
+
+		if (!$this->hasTable(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)) {
+			throw new RuntimeException("Failed to create ". AppConfig::MAIL_LOG_RECIPIENTS_TABLE . " table");
+		}
 	}
 
 	private function createRecipientsTable(OutputInterface $output): void
@@ -223,23 +244,10 @@ class MailRecipientsMigration extends AbstractMigration {
 		);
 	}
 
-	public function verify(): bool {
-		if ($this->hasMigration($this->getName())) {
-			return true; // already done
-		}
-
-		if (!$this->hasTable(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)) {
-			$this->fileLogger?->warning(
-				"DB Migration {$this->getName()} requires manual execution"
-			);
-			$this->fileLogger?->warning(
-				"See: https://github.com/bilias/rqwatch/blob/master/docs/MAIL_RECIPIENTS_UPDATE.md"
-			);
-
-			return false;
-		}
-
-		return true;
+	protected function verify(): bool {
+		return $this->hasTable(
+			AppConfig::MAIL_LOG_RECIPIENTS_TABLE
+		);
 	}
 
 }
