@@ -1238,7 +1238,7 @@ class MailLogService
 	 $logs->each(function ($log) use ($userService) {
 
 		// Prefer normalized recipients
-		if ($log->relationLoaded('recipients') && $log->recipients->isNotEmpty()) {
+		if ($log->relationLoaded('recipients')) {
 			$emails = $log->recipients->pluck('recipient_email')->all();
 		} else {
 			$emails = explode(',', strtolower((string) $log->rcpt_to));

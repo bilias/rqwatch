@@ -195,7 +195,7 @@ class MailLog extends Model
 	}
 
 	public function getRcptToAttribute($value): string {
-		if ($this->relationLoaded('recipients') && $this->recipients->isNotEmpty()) {
+		if ($this->relationLoaded('recipients')) {
 			$emails = $this->recipients
 				->pluck('recipient_email')
 				->map(fn ($e) => strtolower(trim($e)))
