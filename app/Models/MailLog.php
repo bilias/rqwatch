@@ -208,4 +208,36 @@ class MailLog extends Model
 		return (string) $value;
 	}
 
+	public function mailLogData() {
+		return $this->hasOne(
+			MailLogData::class,
+			'mail_log_id',
+			'id'
+		);
+	}
+
+	public function getHeadersAttribute($value): ?string {
+		if ($this->relationLoaded('mailLogData') && $this->mailLogData !== null) {
+			return $this->mailLogData->headers;
+		}
+
+		return $value;
+	}
+
+	public function getSymbolsAttribute($value): ?array {
+		if ($this->relationLoaded('mailLogData') && $this->mailLogData !== null) {
+			return $this->mailLogData->symbols;
+		}
+
+		return is_string($value) ? json_decode($value, true) : $value;
+	}
+
+	public function getFuzzyHashesAttribute($value): ?array {
+		if ($this->relationLoaded('mailLogData') && $this->mailLogData !== null) {
+			return $this->mailLogData->fuzzy_hashes;
+		}
+
+		return is_string($value) ? json_decode($value, true) : $value;
+	}
+
 }

@@ -613,7 +613,7 @@ class MailLogService
 
 	public function detailById(int $id): MailLog {
 		$lf = "[MailLogService_detailById]";
-		$query = MailLog::with('recipients')
+		$query = MailLog::with(['recipients', 'mailLogData'])
 			->where('id', $id);
 
 		$query = $this->applyUserScope($query);
@@ -636,7 +636,7 @@ class MailLogService
 	public function detailByQid(string $qid): MailLog {
 		$lf = "MailLogService_detailByQid";
 
-		$query = MailLog::with('recipients')
+		$query = MailLog::with(['recipients', 'mailLogData'])
 			->where('qid', $qid);
 
 		$query = $this->applyUserScope($query);
