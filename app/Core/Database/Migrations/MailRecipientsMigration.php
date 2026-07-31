@@ -16,7 +16,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Psr\Log\LoggerInterface;
 
 use App\Configuration\AppConfig;
-use App\Configuration\MigrationList;
+use App\Inventory\Migrations;
 
 use App\Core\Database\AbstractMigration;
 
@@ -27,7 +27,7 @@ use RuntimeException;
 class MailRecipientsMigration extends AbstractMigration {
 
 	public function getName(): string {
-		return MigrationList::MAIL_RECIPIENTS;
+		return Migrations::MAIL_RECIPIENTS;
 	}
 
 	public function run(int $batch, int $sleep, bool $force, ?OutputInterface $output = null): bool {

@@ -16,7 +16,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Psr\Log\LoggerInterface;
 
 use App\Configuration\AppConfig;
-use App\Configuration\MigrationList;
+use App\Inventory\Migrations;
 
 use App\Core\Database\AbstractMigration;
 
@@ -30,7 +30,7 @@ class CreatedDayMigration extends AbstractMigration {
 	private const string INDEX_CREATED_DAY = 'created_day_index';
 
 	public function getName(): string {
-		return MigrationList::ADD_CREATED_DAY;
+		return Migrations::ADD_CREATED_DAY;
 	}
 
 	public function run(?OutputInterface $output = null): bool {

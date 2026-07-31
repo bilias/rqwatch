@@ -16,7 +16,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Psr\Log\LoggerInterface;
 
 use App\Configuration\AppConfig;
-use App\Configuration\MigrationList;
+use App\Inventory\Migrations;
 
 use RuntimeException;
 
@@ -47,11 +47,11 @@ class MigrationRunner
 	}
 
 	private function verifyMigration(string $migration): void {
-		if (!array_key_exists($migration, MigrationList::MIGRATION_CLASSES)) {
+		if (!array_key_exists($migration, Migrations::MIGRATION_CLASSES)) {
 			throw new RuntimeException("Unknown migration: $migration");
 		}
 
-		$class = MigrationList::MIGRATION_CLASSES[$migration];
+		$class = Migrations::MIGRATION_CLASSES[$migration];
 		if (!is_subclass_of($class, AbstractMigration::class)) {
 			throw new RuntimeException("$class is not a valid migration");
 		}

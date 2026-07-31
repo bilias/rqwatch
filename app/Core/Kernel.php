@@ -12,7 +12,6 @@ namespace App\Core;
 
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
-use App\Configuration\MigrationList;
 
 use App\Core\Database\Database;
 use App\Core\Database\MigrationStatus;

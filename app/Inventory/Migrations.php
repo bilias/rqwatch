@@ -8,13 +8,13 @@
  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-namespace App\Configuration;
+namespace App\Inventory;
 
 use App\Core\Database\Migrations\MailRecipientsMigration;
 use App\Core\Database\Migrations\CreatedDayMigration;
 use App\Core\Database\Migrations\MailLogDataMigration;
 
-class MigrationList
+class Migrations
 {
 	public const string MAIL_RECIPIENTS = '20260729_migrate_mail_recipients';
 	public const string ADD_CREATED_DAY = '20260729_add_created_day';

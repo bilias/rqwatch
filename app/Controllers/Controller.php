@@ -21,7 +21,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
-use App\Configuration\MigrationList;
+use App\Inventory\Migrations;
 use App\Core\Database\MigrationStatus;
 
 use App\Core\Routing\RouteName;
@@ -350,9 +350,9 @@ class Controller
 		foreach ($migrations as $migration => $applied) {
 			if (!$applied) {
 				$message = "Database migration missing: '" .
-					MigrationList::MIGRATION_DESCR[$migration] .
+					Migrations::MIGRATION_DESCR[$migration] .
 					"'. See " .
-					MigrationList::MIGRATION_HELP[$migration];
+					Migrations::MIGRATION_HELP[$migration];
 
 				$this->flashbag->add('warning', $message);
 				$this->fileLogger->warning($message);

@@ -16,7 +16,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Psr\Log\LoggerInterface;
 
 use App\Configuration\AppConfig;
-use App\Configuration\MigrationList;
+use App\Inventory\Migrations;
 
 use Closure;
 use RuntimeException;
@@ -72,7 +72,7 @@ abstract class AbstractMigration {
 			"DB Migration {$this->getName()} requires manual execution"
 		);
 		$this->fileLogger?->warning(
-			"See: " . MigrationList::MIGRATION_HELP[$this->getName()]
+			"See: " . Migrations::MIGRATION_HELP[$this->getName()]
 		);
 
 		return false;

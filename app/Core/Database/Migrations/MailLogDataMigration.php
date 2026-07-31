@@ -16,7 +16,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Psr\Log\LoggerInterface;
 
 use App\Configuration\AppConfig;
-use App\Configuration\MigrationList;
+use App\Inventory\Migrations;
 
 use App\Core\Database\AbstractMigration;
 
@@ -33,7 +33,7 @@ class MailLogDataMigration extends AbstractMigration {
 	];
 
 	public function getName(): string {
-		return MigrationList::MAIL_LOG_DATA;
+		return Migrations::MAIL_LOG_DATA;
 	}
 
 	public function run(int $batch, int $sleep, bool $force, ?OutputInterface $output = null): bool {

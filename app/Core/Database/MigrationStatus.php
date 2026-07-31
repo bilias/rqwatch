@@ -14,7 +14,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 
 use Psr\Log\LoggerInterface;
 
-use App\Configuration\MigrationList;
+use App\Inventory\Migrations;
 use App\Core\Database\Migrations\MailRecipientsMigration;
 use App\Core\Database\Migrations\MailLogDataMigration;
 
@@ -31,19 +31,19 @@ final class MigrationStatus
 
 	public function hasMailRecipients(): bool {
 		return $this->check(
-			MigrationList::MAIL_RECIPIENTS
+			Migrations::MAIL_RECIPIENTS
 		);
 	}
 
 	public function hasCreatedDay(): bool {
 		return $this->check(
-			MigrationList::ADD_CREATED_DAY
+			Migrations::ADD_CREATED_DAY
 		);
 	}
 
 	public function hasMailLogData(): bool {
 		return $this->check(
-			MigrationList::MAIL_LOG_DATA
+			Migrations::MAIL_LOG_DATA
 		);
 	}
 
@@ -52,11 +52,11 @@ final class MigrationStatus
 			return $this->cache[$key];
 		}
 
-		if (!isset(MigrationList::MIGRATION_CLASSES[$key])) {
+		if (!isset(Migrations::MIGRATION_CLASSES[$key])) {
 			throw new RuntimeException("Unknown migration key: {$key}");
 		}
 
-		$migrationClass = MigrationList::MIGRATION_CLASSES[$key];
+		$migrationClass = Migrations::MIGRATION_CLASSES[$key];
 
 		$migration = new $migrationClass(
 			$this->capsule,
@@ -69,7 +69,7 @@ final class MigrationStatus
 	public function getMigrationStatus(): array {
 		$status = [];
 
-		foreach (MigrationList::MIGRATIONS as $migration) {
+		foreach (Migrations::MIGRATIONS as $migration) {
 			$status[$migration] = $this->check($migration);
 		}
 
