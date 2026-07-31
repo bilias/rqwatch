@@ -20,7 +20,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
-use App\Core\Database\Migrations\MailRecipientsMigration;
+use App\Inventory\Migrations;
 
 use Psr\Log\LoggerInterface;
 
@@ -35,6 +35,8 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 class MigrateMailRecipients extends RqwatchCliCommand
 {
 	private string $app_name = "db:migrate_mail_recipients";
+	private const string MIGRATION = Migrations::MAIL_RECIPIENTS;
+
 	private ?LoggerInterface $fileLogger;
 	private ?LoggerInterface $syslogLogger;
 	private $default_batch_size = 10000;
@@ -80,7 +82,8 @@ class MigrateMailRecipients extends RqwatchCliCommand
 		$force = $input->getOption('force');
 
 		// run the migration
-		$migration = new MailRecipientsMigration(
+		$migration = Migrations::create(
+			self::MIGRATION,
 			$this->capsule,
 			$this->fileLogger
 		);

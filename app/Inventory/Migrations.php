@@ -10,9 +10,16 @@
 
 namespace App\Inventory;
 
+use App\Core\Database\AbstractMigration;
 use App\Core\Database\Migrations\MailRecipientsMigration;
 use App\Core\Database\Migrations\CreatedDayMigration;
 use App\Core\Database\Migrations\MailLogDataMigration;
+
+use Illuminate\Database\Capsule\Manager as Capsule;
+
+use Psr\Log\LoggerInterface;
+
+use InvalidArgumentException;
 
 class Migrations
 {
@@ -43,4 +50,19 @@ class Migrations
 		self::ADD_CREATED_DAY => "https://github.com/bilias/rqwatch/blob/master/docs/CREATED_DAY_UPDATE.md",
 		self::MAIL_LOG_DATA => "https://github.com/bilias/rqwatch/blob/master/docs/MAIL_LOG_DATA_UPDATE.md",
 	];
+
+	public static function create(
+		string $migration,
+		Capsule $capsule,
+		LoggerInterface $logger
+	): AbstractMigration {
+
+		if (!isset(self::MIGRATION_CLASSES[$migration])) {
+			throw new InvalidArgumentException("Unknown migration: {$migration}");
+		}
+
+		$class = self::MIGRATION_CLASSES[$migration];
+		return new $class($capsule, $logger);
+	}
+
 }

@@ -20,7 +20,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
-use App\Core\Database\Migrations\CreatedDayMigration;
+use App\Inventory\Migrations;
 
 use Psr\Log\LoggerInterface;
 
@@ -35,6 +35,8 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 class MigrateCreatedDay extends RqwatchCliCommand
 {
 	private string $app_name = "db:migrate_created_day";
+	private const string MIGRATION = Migrations::ADD_CREATED_DAY;
+
 	private ?LoggerInterface $fileLogger;
 	private ?LoggerInterface $syslogLogger;
 
@@ -63,7 +65,8 @@ class MigrateCreatedDay extends RqwatchCliCommand
 		}
 
 		// run the migration
-		$migration = new CreatedDayMigration(
+		$migration = Migrations::create(
+			self::MIGRATION,
 			$this->capsule,
 			$this->fileLogger
 		);
