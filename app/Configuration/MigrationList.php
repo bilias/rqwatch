@@ -32,6 +32,12 @@ class MigrationList
 		self::MAIL_LOG_DATA => MailLogDataMigration::class,
 	];
 
+	public const array MIGRATION_DESCR = [
+		self::MAIL_RECIPIENTS => "Mail Log Recipients",
+		self::ADD_CREATED_DAY => "Mail Log Created Day",
+		self::MAIL_LOG_DATA => "Mail Log Data",
+	];
+
 	public const array MIGRATION_HELP = [
 		self::MAIL_RECIPIENTS => "https://github.com/bilias/rqwatch/blob/master/docs/MAIL_RECIPIENTS_UPDATE.md",
 		self::ADD_CREATED_DAY => "https://github.com/bilias/rqwatch/blob/master/docs/CREATED_DAY_UPDATE.md",
