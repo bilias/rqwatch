@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 /*
  Rqwatch
- Copyright (C) 2025 Giannis Kapetanakis
+ Copyright (C) 2026 Giannis Kapetanakis
 
  This Source Code Form is subject to the terms of the Mozilla Public
  License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,20 +27,20 @@ use Psr\Log\LoggerInterface;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 #[AsCommand(
-	name: 'db:migrate_mail_log_data',
-	description: 'Migrate data from mail_logs to mail_log_Data',
-	help: 'This command migrates data from mail_logs to mail_log_Data
+	name: 'db:migrate',
+	description: 'Perform pending database migrations',
+	help: 'This command performs pending database migrations
 ',
 )]
-class MigrateMailLogData extends RqwatchCliCommand
+class MigrateDB extends RqwatchCliCommand
 {
-	private string $app_name = "db:migrate_mail_log_data";
-	private const string MIGRATION = Migrations::MAIL_LOG_DATA;
-	private const int BATCH = Migrations::MIGRATION_BATCH[self::MIGRATION];
-	private const int SLEEP = Migrations::MIGRATION_SLEEP[self::MIGRATION];
+	private string $app_name = "db:migrate";
 
 	private ?LoggerInterface $fileLogger;
 	private ?LoggerInterface $syslogLogger;
+	private $default_batch_size = 1000;
+	// micro seconds (default 1/5 of a second)
+	private $default_sleep = 200000;
 
 	use LockableTrait;
 
@@ -62,8 +62,8 @@ class MigrateMailLogData extends RqwatchCliCommand
 	protected function configure(): void {
 		$this
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
-			->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', self::BATCH)
-			->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', self::SLEEP)
+			->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', $this->default_batch_size)
+			->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', $this->default_sleep)
 			->addOption('force', 'f', InputOption::VALUE_NONE, 'Force restart/continue migration');
 		;
 	}
@@ -80,15 +80,23 @@ class MigrateMailLogData extends RqwatchCliCommand
 		$sleep = $input->getOption('sleep');
 		$force = $input->getOption('force');
 
-		// run the migration
-		$migration = Migrations::create(
-			self::MIGRATION,
-			$this->capsule,
-			$this->fileLogger
-		);
+		foreach (Migrations::MIGRATIONS as $migration_str) {
+			// run each the migration
+			$migration = Migrations::create(
+				$migration_str,
+				$this->capsule,
+				$this->fileLogger
+			);
 
-		if (!$migration->run($batch, $sleep, $force, $output)) {
-			return Command::FAILURE;
+			$migration->ensureMigrationsTable();
+			if ($migration->isApplied()) {
+				$output->writeln("<info>Migration {$migration->getName()} is already recorded</info>");
+				continue;
+			}
+
+			if (!$migration->run($batch, $sleep, $force, $output)) {
+				return Command::FAILURE;
+			}
 		}
 
 		return Command::SUCCESS;

@@ -36,12 +36,11 @@ class MigrateMailRecipients extends RqwatchCliCommand
 {
 	private string $app_name = "db:migrate_mail_recipients";
 	private const string MIGRATION = Migrations::MAIL_RECIPIENTS;
+	private const int BATCH = Migrations::MIGRATION_BATCH[self::MIGRATION];
+	private const int SLEEP = Migrations::MIGRATION_SLEEP[self::MIGRATION];
 
 	private ?LoggerInterface $fileLogger;
 	private ?LoggerInterface $syslogLogger;
-	private $default_batch_size = 10000;
-	// micro seconds (default 1/5 of a second)
-	private $default_sleep = 200000;
 
 	use LockableTrait;
 
@@ -63,8 +62,8 @@ class MigrateMailRecipients extends RqwatchCliCommand
 	protected function configure(): void {
 		$this
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
-			->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', $this->default_batch_size)
-			->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', $this->default_sleep)
+			->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', self::BATCH)
+			->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', self::SLEEP)
 			->addOption('force', 'f', InputOption::VALUE_NONE, 'Force restart/continue migration');
 		;
 	}

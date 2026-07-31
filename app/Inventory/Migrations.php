@@ -45,6 +45,18 @@ class Migrations
 		self::MAIL_LOG_DATA => "Mail Log Data",
 	];
 
+	public const array MIGRATION_BATCH = [
+		self::MAIL_RECIPIENTS => 10000,
+		self::ADD_CREATED_DAY => 0,
+		self::MAIL_LOG_DATA => 1000,
+	];
+
+	public const array MIGRATION_SLEEP = [
+		self::MAIL_RECIPIENTS => 200000,
+		self::ADD_CREATED_DAY => 0,
+		self::MAIL_LOG_DATA => 200000,
+	];
+
 	public const array MIGRATION_HELP = [
 		self::MAIL_RECIPIENTS => "https://github.com/bilias/rqwatch/blob/master/docs/MAIL_RECIPIENTS_UPDATE.md",
 		self::ADD_CREATED_DAY => "https://github.com/bilias/rqwatch/blob/master/docs/CREATED_DAY_UPDATE.md",

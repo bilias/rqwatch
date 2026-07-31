@@ -33,7 +33,7 @@ class CreatedDayMigration extends AbstractMigration {
 		return Migrations::ADD_CREATED_DAY;
 	}
 
-	public function run(?OutputInterface $output = null): bool {
+	public function run(int $batch, int $sleep, bool $force, ?OutputInterface $output = null) {
 		$this->ensureMigrationsTable();
 
 		if ($this->hasMigration()) {

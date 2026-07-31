@@ -101,7 +101,7 @@ abstract class AbstractMigration {
 			);
 	}
 
-	protected function ensureMigrationsTable(): void {
+	public function ensureMigrationsTable(): void {
 		if (!$this->hasTable(AppConfig::MIGRATIONS_TABLE)) {
 			$this->fileLogger->warning("DB Schema does not have 'MIGRATIONS_TABLE', creating it.");
 			$this->createMigrationsTable();
