@@ -1,4 +1,4 @@
-<?php 
+<?php declare(strict_types=1);
 /*
  Rqwatch
  Copyright (C) 2025 Giannis Kapetanakis
