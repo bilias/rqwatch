@@ -184,6 +184,20 @@ CREATE TABLE `mail_log_recipients` (
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+DROP TABLE IF EXISTS `mail_log_data`;
+
+CREATE TABLE `mail_logs_data` (
+  `mail_log_id` int(10) unsigned NOT NULL,
+  `headers` longtext DEFAULT NULL,
+  `symbols` JSON DEFAULT NULL,
+  `fuzzy_hashes` JSON DEFAULT NULL,
+  PRIMARY KEY (`mail_log_id`),
+  CONSTRAINT `fk_mail_logs_data_mail_logs`
+    FOREIGN KEY (`mail_log_id`)
+	 REFERENCES `mail_logs` (`id`)
+	 ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 DROP TABLE IF EXISTS `migrations`;
 
 CREATE TABLE `migrations` (
@@ -193,3 +207,7 @@ CREATE TABLE `migrations` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `migrations_migration_unique` (`migration`)
 ) ENGINE=InnoDB;
+
+INSERT INTO migrations (migration) VALUES
+('20260729_add_created_day'),
+('20260729_migrate_mail_recipients');

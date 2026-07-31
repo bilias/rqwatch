@@ -11,24 +11,30 @@
 namespace App\Configuration;
 
 use App\Core\Database\Migrations\MailRecipientsMigration;
+use App\Core\Database\Migrations\CreatedDayMigration;
+use App\Core\Database\Migrations\MailLogDataMigration;
 
 class MigrationList
 {
 	public const string MAIL_RECIPIENTS = '20260729_migrate_mail_recipients';
 	public const string ADD_CREATED_DAY = '20260729_add_created_day';
+	public const string MAIL_LOG_DATA = '20260731_mail_log_data';
 
 	public const array MIGRATIONS = [
 		self::MAIL_RECIPIENTS,
 		self::ADD_CREATED_DAY,
+		self::MAIL_LOG_DATA,
 	];
 
 	public const array MIGRATION_CLASSES = [
 		self::MAIL_RECIPIENTS => MailRecipientsMigration::class,
 		self::ADD_CREATED_DAY => CreatedDayMigration::class,
+		self::MAIL_LOG_DATA => MailLogDataMigration::class,
 	];
 
 	public const array MIGRATION_HELP = [
 		self::MAIL_RECIPIENTS => "https://github.com/bilias/rqwatch/blob/master/docs/MAIL_RECIPIENTS_UPDATE.md",
 		self::ADD_CREATED_DAY => "https://github.com/bilias/rqwatch/blob/master/docs/CREATED_DAY_UPDATE.md",
+		self::MAIL_LOG_DATA => "https://github.com/bilias/rqwatch/blob/master/docs/MAIL_LOG_DATA_UPDATE.md",
 	];
 }
