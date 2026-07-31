@@ -1348,11 +1348,16 @@ class MailLogService
 	}
 
 	private function mailLogRelations(): array {
+		/*
 		$relations = [];
 
 		if ($this->migrationStatus->hasMailRecipients()) {
 			$relations[] = 'recipients';
 		}
+		*/
+		$relations = [
+			'recipients'
+		];
 
 		if ($this->migrationStatus->hasMailLogData()) {
 			$relations[] = 'mailLogData';
