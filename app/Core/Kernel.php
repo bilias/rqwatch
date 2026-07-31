@@ -15,6 +15,7 @@ use App\Configuration\Config;
 use App\Configuration\MigrationList;
 
 use App\Core\Database\Database;
+use App\Core\Database\MigrationStatus;
 
 use App\Core\Logging\LoggerService;
 use App\Utils\Helper;
@@ -87,12 +88,15 @@ class Kernel
 		// pass fileLogger to Helper methods
 		Helper::setLogger($fileLogger);
 
+		$migrationStatus = new MigrationStatus($capsule, $fileLogger);
+
 		return [
 			'startTime' => $startTime,
 			'startMemory' => $startMemory,
 			'fileLogger' => $fileLogger,
 			'syslogLogger' => $syslogLogger,
 			'capsule' => $capsule,
+			'migrationStatus' => $migrationStatus,
 		];
 	}
 

@@ -16,6 +16,7 @@ use App\Configuration\Config;
 use App\Utils\Helper;
 use App\Utils\FormHelper;
 use App\Models\MailLog;
+use App\Core\Database\MigrationStatus;
 use App\Inventory\MailObject;
 use App\Inventory\MailAttachment;
 
@@ -50,6 +51,7 @@ use InvalidArgumentException;
 class MailLogService
 {
 	private LoggerInterface $logger;
+	private MigrationStatus $migrationStatus;
 	protected $items_per_page;
 	protected $q_items_per_page;
 	protected $max_items;
@@ -58,8 +60,13 @@ class MailLogService
 	private ?string $email = null;
 	private ?array $user_aliases = null;
 
-	public function __construct(LoggerInterface $logger, ?Session $session = null) {
+	public function __construct(
+		LoggerInterface $logger,
+		MigrationStatus $migrationStatus,
+		?Session $session = null
+	) {
 		$this->logger = $logger;
+		$this->migrationStatus = $migrationStatus;
 
 		if (!empty($session)) {
 			$this->is_admin = $session->get('is_admin');
@@ -613,7 +620,7 @@ class MailLogService
 
 	public function detailById(int $id): MailLog {
 		$lf = "[MailLogService_detailById]";
-		$query = MailLog::with(['recipients', 'mailLogData'])
+		$query = MailLog::with($this->mailLogRelations())
 			->where('id', $id);
 
 		$query = $this->applyUserScope($query);
@@ -636,7 +643,7 @@ class MailLogService
 	public function detailByQid(string $qid): MailLog {
 		$lf = "MailLogService_detailByQid";
 
-		$query = MailLog::with(['recipients', 'mailLogData'])
+		$query = MailLog::with($this->mailLogRelations())
 			->where('qid', $qid);
 
 		$query = $this->applyUserScope($query);
@@ -1338,5 +1345,19 @@ class MailLogService
 					OutputInterface::VERBOSITY_VERBOSE);
 				}
 		}
+	}
+
+	private function mailLogRelations(): array {
+		$relations = [];
+
+		if ($this->migrationStatus->hasMailRecipients()) {
+			$relations[] = 'recipients';
+		}
+
+		if ($this->migrationStatus->hasMailLogData()) {
+			$relations[] = 'mailLogData';
+		}
+
+		return $relations;
 	}
 }

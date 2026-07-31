@@ -31,6 +31,8 @@ use App\Core\SessionManager;
 use App\Core\Middleware\AuthMiddleware;
 use App\Core\Middleware\Authorization;
 
+use App\Core\Database\MigrationStatus;
+
 use App\Controllers\Controller;
 
 use Psr\Log\LoggerInterface;
@@ -44,7 +46,8 @@ class Router
 
 	public function __construct(
 		private LoggerInterface $fileLogger,
-		private LoggerInterface $syslogLogger
+		private LoggerInterface $syslogLogger,
+		private MigrationStatus $migrationStatus
 	) {}
 
 	public function dispatch(
@@ -118,7 +121,11 @@ class Router
 				use ($controller, $arguments)
 			{
 				if (is_array($controller) && $controller[0] instanceof Controller) {
-					$controller[0]->setLoggers($this->fileLogger, $this->syslogLogger);
+					$controller[0]->setServices(
+						$this->fileLogger,
+						$this->syslogLogger,
+						$this->migrationStatus
+					);
 				}
 				return call_user_func_array($controller, $arguments);
 			};
@@ -147,7 +154,11 @@ class Router
 			} else  {
 				// NO_MIDDLEWARE: response without Middleware, and invoke controller
 				if (is_array($controller) && $controller[0] instanceof Controller) {
-					$controller[0]->setLoggers($this->fileLogger, $this->syslogLogger);
+					$controller[0]->setServices(
+						$this->fileLogger,
+						$this->syslogLogger,
+						$this->migrationStatus
+					);
 					$response = call_user_func_array($controller, $arguments);
 				}
 			}
@@ -203,6 +214,7 @@ class Router
 
 		$fileLogger = $services['fileLogger'];
 		$syslogLogger = $services['syslogLogger'];
+		$migrationStatus = $services['migrationStatus'];
 
 		// we do not need Router in our API or CLI
 		if (!defined('WEB_MODE') || defined('API_MODE') || defined('CLI_MODE')) {
@@ -232,7 +244,7 @@ class Router
 		}
 
 		// Instantiate Router and handle the request
-		$router = new self($fileLogger, $syslogLogger);
+		$router = new self($fileLogger, $syslogLogger, $migrationStatus);
 		$response = $router->dispatch($routes, $defaultMiddlewareClasses);
 		$response->send();
 		exit();

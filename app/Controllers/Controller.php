@@ -21,6 +21,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
+use App\Core\Database\MigrationStatus;
+
 use App\Core\Routing\RouteName;
 use App\Core\Routing\UrlBuilder;
 
@@ -60,6 +62,8 @@ class Controller
 
 	protected LoggerInterface $fileLogger;
 	protected LoggerInterface $syslogLogger;
+
+	protected ?MigrationStatus $migrationStatus = null;
 
 	public function setRequest(Request $request): void {
 		$this->request = $request;
@@ -194,9 +198,26 @@ class Controller
 		$this->syslogLogger = $logger;
 	}
 
-	public function setLoggers(LoggerInterface $fileLogger, LoggerInterface $syslogLogger): void {
+	public function setMigrationStatus(MigrationStatus $migrationStatus): void {
+		$this->migrationStatus = $migrationStatus;
+	}
+
+	public function getMigrationStatus(): MigrationStatus {
+		if ($this->migrationStatus === null) {
+			throw new RuntimeException('MigrationStatus not initialized');
+		}
+
+		return $this->migrationStatus;
+	}
+
+	public function setServices(
+		LoggerInterface $fileLogger,
+		LoggerInterface $syslogLogger,
+		MigrationStatus $migrationStatus
+	): void {
 		$this->setFileLogger($fileLogger);
 		$this->setSyslogLogger($syslogLogger);
+		$this->setMigrationStatus($migrationStatus);
 	}
 
 	public function getRspamdStat(): array {
