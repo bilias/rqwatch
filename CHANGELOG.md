@@ -7,6 +7,7 @@
 - Migration Classes
 - Migration Status
 - Full Migration CLI tool
+- New MailLogWriter for Import
 
 ### 2026-07-29
 - Initial DB Migrations
