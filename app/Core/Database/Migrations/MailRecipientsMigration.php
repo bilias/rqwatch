@@ -30,15 +30,15 @@ class MailRecipientsMigration extends AbstractMigration {
 		return MigrationList::MAIL_RECIPIENTS;
 	}
 
-	public function run(int $batch, int $sleep, ?OutputInterface $output = null): bool {
+	public function run(int $batch, int $sleep, bool $force, ?OutputInterface $output = null): bool {
 		$this->ensureMigrationsTable();
 
-		if ($this->hasMigration()) {
+		if (!$force && $this->hasMigration()) {
 			$output?->writeln("<info>Migration {$this->getName()} is already recorded</info>");
 			return true;
 		}
 
-		if ($this->verify()) {
+		if (!$force && $this->verify()) {
 			$output?->writeln("<info>Migration {$this->getName()} exists, recording status</info>");
 			$this->recordMigration();
 			return true;

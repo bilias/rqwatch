@@ -63,6 +63,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
 			->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', $this->default_batch_size)
 			->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', $this->default_sleep)
+			->addOption('force', 'f', InputOption::VALUE_NONE, 'Force restart/continue migration');
 		;
 	}
 
@@ -76,6 +77,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 
 		$batch = $input->getOption('batch');
 		$sleep = $input->getOption('sleep');
+		$force = $input->getOption('force');
 
 		// run the migration
 		$migration = new MailRecipientsMigration(
@@ -83,7 +85,7 @@ class MigrateMailRecipients extends RqwatchCliCommand
 			$this->fileLogger
 		);
 
-		if (!$migration->run($batch, $sleep, $output)) {
+		if (!$migration->run($batch, $sleep, $force, $output)) {
 			return Command::FAILURE;
 		}
 
