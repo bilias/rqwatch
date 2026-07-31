@@ -129,19 +129,12 @@ final class MailLogWriter
 			return true;
 		}
 
-		$this->supportsMailLogData =
-			$this->capsule->schema()->hasTable(AppConfig::MAIL_LOG_DATA_TABLE);
-
-		return $this->supportsMailLogData;
-		/*
-		XXX use MailLogDataMigration
 		$migration = new MailLogDataMigration(
 			$this->capsule,
 			$this->fileLogger
 		);
 
 		return $this->supportsMailLogData = $migration->isApplied();
-		*/
 	}
 
 	private function splitMailData(array $mailData): array {
