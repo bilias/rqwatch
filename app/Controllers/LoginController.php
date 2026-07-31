@@ -167,6 +167,7 @@ class LoginController extends ViewController
 					$url = $this->homepageUrl;
 				}
 
+				$this->getAdminWarnings($auth);
 				return new RedirectResponse($url);
 			}
 		}
@@ -447,6 +448,18 @@ class LoginController extends ViewController
 		}
 
 		return $url;
+	}
+
+	private function getAdminWarnings(AuthManager $auth): void {
+		if (!$this->getIsAdmin()) {
+			return;
+		}
+		if (!$this->migrationStatus->hasMailRecipients()) {
+			$this->flashbag->add('warning', "Mail Recipients Migration is missing");
+		}
+		if (!$this->migrationStatus->hasMailLogData()) {
+			$this->flashbag->add('warning', "Mail Log Data Migration is missing");
+		}
 	}
 
 }
