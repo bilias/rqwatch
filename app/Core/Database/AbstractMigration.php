@@ -64,10 +64,7 @@ abstract class AbstractMigration {
 	}
 
 	public function verifyMigration(): bool {
-		$recorded = $this->hasMigration();
-		$verified = $this->verify();
-
-		if ($recorded && $verified) {
+		if ($this->isApplied()) {
 			return true;
 		}
 
@@ -81,12 +78,27 @@ abstract class AbstractMigration {
 		return false;
 	}
 
+	public function isApplied(): bool {
+		return $this->hasMigration() && $this->verify();
+	}
+
 	protected function recordMigration(): void {
 		$this->capsule
 			->table(AppConfig::MIGRATIONS_TABLE)
-			->insert([
-				'migration' => $this->getName(),
-			]);
+			->upsert(
+				[
+					[
+						'migration' => $this->getName(),
+						'executed_at' => date('Y-m-d H:i:s'),
+					]
+				],
+				[
+					'migration'
+				],
+				[
+					'executed_at'
+				]
+			);
 	}
 
 	protected function ensureMigrationsTable(): void {
