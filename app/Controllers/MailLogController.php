@@ -523,9 +523,6 @@ class MailLogController extends ViewController
 				return $this->getDetailIdResponse($maillog->id);
 			}
 
-			// rcpt_to is different than session email (or aliases).
-			// Should NOT happen, unless we are admin
-
 			// get all emails from user (primary + aliases)
 			$emails = array_unique(array_filter(array_map('strtolower', array_merge([$this->getEmail()], $this->user_aliases ?? []))));
 			// split DB recipients into array
@@ -533,11 +530,6 @@ class MailLogController extends ViewController
 			// split form's original recipients
 			$formEmailList = array_map(fn($e) => strtolower(trim($e)), explode(',', $data['email']));
 
-			/* Old code, works for single rcpt_to
-			if (((!in_array($maillog->rcpt_to, $emails, true)) or
-			    ($maillog->rcpt_to !== $data['email']))				// rcpt_to defferent than form's original recipient
-				  and !$this->getIsAdmin()) {								// admin can release everything
-			*/
 			if (
 				 // none of user's emails match recipients
 				 (count(array_intersect($emails, $rcptToList)) === 0
