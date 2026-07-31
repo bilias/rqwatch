@@ -6,6 +6,9 @@
 - Migrations Repository
 - Migration Classes
 - Migration Status
+- New DB migration for created_day in mail_logs
+- New DB migration for mail_log_data (headers, symbols, fuzzy_hashes)
+- New MailLogData Model
 - Full Migration CLI tool
 - New MailLogWriter for Import
 
