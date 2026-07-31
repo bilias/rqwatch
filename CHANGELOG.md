@@ -2,6 +2,12 @@
 
 ## Master Dev Branch
 
+### 2026-07-31
+- Migrations Repository
+- Migration Classes
+- Migration Status
+- Full Migration CLI tool
+
 ### 2026-07-29
 - Initial DB Migrations
 
