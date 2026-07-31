@@ -17,6 +17,7 @@ use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
 use App\Models\MailLog;
+use App\Services\Import\MailLogWriter;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
@@ -301,32 +302,9 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		*/
 
 		$db_id = null;
+		$mailLogWriter = new MailLogWriter($this->capsule, $this->fileLogger);
 		try {
-			$this->capsule::connection()->transaction(function () use ($data, $rcptArr, &$db_id) {
-
-				$db_id = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE)
-					->insertGetId($data);
-
-				if ($db_id && !empty($rcptArr)) {
-					$recipients = array_unique($rcptArr);
-
-					$rows = [];
-
-					foreach ($recipients as $email) {
-						if ($email !== '') {
-							$rows[] = [
-								'mail_log_id'     => $db_id,
-								'recipient_email' => $email,
-							];
-						}
-					}
-
-					if (!empty($rows)) {
-						$this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)
-							->insert($rows);
-					}
-				}
-			});
+			$db_id = $mailLogWriter->insert($data, $rcptArr);
 		} catch (QueryException $e) {
 				// $bindings = $e->getBindings(); // array
 				// $sql = $e->getSql(); // array
