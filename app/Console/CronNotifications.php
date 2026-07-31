@@ -30,6 +30,7 @@ use App\Services\MailLogService;
 use App\Services\UserService;
 
 use Psr\Log\LoggerInterface;
+use App\Core\Database\MigrationStatus;
 
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Generator\UrlGenerator;
@@ -45,18 +46,24 @@ and then sends notification mails to recipients.
 class CronNotifications extends RqwatchCliCommand
 {
 	private string $app_name = "cron:notifications";
-	private ?LoggerInterface $fileLogger;
-	private ?LoggerInterface $syslogLogger;
+	private LoggerInterface $fileLogger;
+	private LoggerInterface $syslogLogger;
+	private MigrationStatus $migrationStatus;
 
 	use LockableTrait;
 
-	public function __construct(LoggerInterface $fileLogger, LoggerInterface $syslogLogger) {
+	public function __construct(
+		LoggerInterface $fileLogger,
+		LoggerInterface $syslogLogger,
+		MigrationStatus $migrationStatus
+	) {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
 
 		$this->fileLogger = $fileLogger;
 		$this->syslogLogger = $syslogLogger;
+		$this->migrationStatus = $migrationStatus;
 	}
 
 	#[\Override]
@@ -85,7 +92,7 @@ class CronNotifications extends RqwatchCliCommand
 		$show_local_only = $input->getOption('local');
 		$send_blacklisted = $input->getOption('blacklisted');
 
-		$service = new MailLogService($this->fileLogger);
+		$service = new MailLogService($this->fileLogger, $this->migrationStatus);
 
 		// MailLog Collection
 		$local = '';

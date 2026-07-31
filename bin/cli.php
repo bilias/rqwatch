@@ -30,14 +30,15 @@ $services = Kernel::boot();
 $fileLogger = $services['fileLogger'];
 $syslogLogger = $services['syslogLogger'];
 $capsule = $services['capsule'];
+$migrationStatus = $services['migrationStatus'];
 
 $application = new Application();
 
 // ... register commands
 // fileLogger and syslogLogger come from bootstrap
-$application->add(new CronNotifications($fileLogger, $syslogLogger));
-$application->add(new CronQuarantine($fileLogger, $syslogLogger));
-$application->add(new CronCleanupDb($fileLogger, $syslogLogger));
+$application->add(new CronNotifications($fileLogger, $syslogLogger, $migrationStatus));
+$application->add(new CronQuarantine($fileLogger, $syslogLogger, $migrationStatus));
+$application->add(new CronCleanupDb($fileLogger, $syslogLogger, $migrationStatus));
 $application->add(new CronUpdateMapFiles($fileLogger, $syslogLogger));
 $application->add(new UserAdd($fileLogger, $syslogLogger));
 $application->add(new MigrateMailRecipients($fileLogger, $syslogLogger, $capsule));
