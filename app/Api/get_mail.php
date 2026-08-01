@@ -16,15 +16,11 @@ require_once __DIR__ . '/../Core/Kernel.php';
 use Symfony\Component\HttpFoundation\Request;
 use App\Api\GetMailApi;
 
-$services = Kernel::boot();
-$fileLogger = $services['fileLogger'];
-$syslogLogger = $services['syslogLogger'];
-$startTime = $services['startTime'];
-$startMemory = $services['startMemory'];
+Kernel::boot();
 
 // Create request from globals
 $request = Request::createFromGlobals();
 
 // Instantiate and execute the API handler
-$api = new GetMailApi($request, $fileLogger, $syslogLogger, $startTime, $startMemory);
+$api = new GetMailApi($request);
 $api->handle();
