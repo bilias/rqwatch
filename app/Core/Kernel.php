@@ -28,7 +28,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 
 class Kernel
 {
-	public static function boot(): array {
+	public static function boot(): void {
 		$startTime = microtime(true);
 		$startMemory = memory_get_usage();
 
@@ -104,15 +104,6 @@ class Kernel
 			$fileLogger,
 			$migrationStatus
 		);
-
-		return [
-			'startTime' => $startTime,
-			'startMemory' => $startMemory,
-			'fileLogger' => $fileLogger,
-			'syslogLogger' => $syslogLogger,
-			'capsule' => $capsule,
-			'migrationStatus' => $migrationStatus,
-		];
 	}
 
 }
