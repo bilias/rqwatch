@@ -65,9 +65,17 @@ class MapController extends ViewController
 
 	private function getMapService(): MapService {
 		if ($this->mapService === null) {
+			$userContext = [
+				'is_admin' => $this->session->get('is_admin'),
+				'username' => $this->session->get('username'),
+				'user_id' => $this->session->get('user_id'),
+				'email' => $this->session->get('email'),
+				'user_aliases' => $this->session->get('user_aliases'),
+			];
+
 			$this->mapService = new MapService(
 				$this->getFileLogger(),
-				$this->session
+				$userContext
 			);
 		}
 
