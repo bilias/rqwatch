@@ -17,6 +17,8 @@ use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 //use App\Core\RedisFactory;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler;
 
+use App\Core\App;
+
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
@@ -26,11 +28,6 @@ class SessionManager
 {
 	private static ?Session $session = null;
 	private static ?int $session_timeout = null;
-	private static ?LoggerInterface $logger = null;
-
-	public static function setLogger(LoggerInterface $logger): void {
-		self::$logger = $logger;
-	}
 
 	public static function getSession(): Session {
 		if (self::$session === null) {
@@ -76,7 +73,7 @@ class SessionManager
 					'name' => 'RQWATCHSESSID',
 				], $handler);
 			} catch (Throwable $e) {
-				self::$logger->error("[SessionManager] Redis conection problem: " . $e->getMessage());
+				App::fileLogger()->error("[SessionManager] Redis conection problem: " . $e->getMessage());
 				return;
 			}
 		} else {

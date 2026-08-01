@@ -84,7 +84,6 @@ class Router
 				if ($controller[0] instanceof Controller) {
 					// Session initialization
 					// $session = SessionManager::getSession();
-					SessionManager::setLogger($fileLogger);
 					$request->setSession(SessionManager::getSession());
 
 					// $request->attributes->set('request_id', spl_object_id($request));
@@ -160,7 +159,6 @@ class Router
 		} catch (ResourceNotFoundException $e) {
 			// invalid route
 			// Session initialization
-			SessionManager::setLogger($fileLogger);
 			$session = SessionManager::getSession();
 			$request->setSession($session);
 			if ($request->hasSession() && $session->has('username')) {
