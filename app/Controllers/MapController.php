@@ -36,6 +36,8 @@ use RuntimeException;
 
 class MapController extends ViewController
 {
+	private ?MapService $mapService = null;
+
 	protected int $refresh_rate;
 	protected int $items_per_page;
 	protected int $max_items;
@@ -59,6 +61,17 @@ class MapController extends ViewController
 
 		$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, $_ENV['WEB_HOST']);
+	}
+
+	private function getMapService(): MapService {
+		if ($this->mapService === null) {
+			$this->mapService = new MapService(
+				$this->getFileLogger(),
+				$this->session
+			);
+		}
+
+		return $this->mapService;
 	}
 
 	public function initMapUrls(?string $map = null): void {
@@ -188,7 +201,7 @@ class MapController extends ViewController
 
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MapService($this->getFileLogger(), $this->session);
+		$service = $this->getMapService();
 
 		$configs = MapInventory::getAvailableMapConfigs($this->getRole()) ?? null;
 
@@ -300,7 +313,7 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$service = new MapService($this->getFileLogger(), $this->session);
+		$service = $this->getMapService();
 
 		$page = $this->request->query->getInt('page', 1);
 
@@ -377,7 +390,7 @@ class MapController extends ViewController
 			$data['map_description'] = trim($data['map_description']);
 			$data['field_label'] = trim($data['field_label']);
 
-			$service = new MapService($this->getFileLogger(), $this->session);
+			$service = $this->getMapService();
 			//$model = 'MapCustom';
 
 			$map_name = $data['map_name'];
@@ -467,7 +480,7 @@ class MapController extends ViewController
 			$data['map_description'] = trim($data['map_description']);
 			$data['field_label'] = trim($data['field_label']);
 
-			$service = new MapService($this->getFileLogger(), $this->session);
+			$service = $this->getMapService();
 			//$model = 'MapCustom';
 
 			$edit_url = $this->url(RouteName::ADMIN_MAPS_CUSTOM_EDIT, [ 'id' => $id ]);
@@ -578,7 +591,7 @@ class MapController extends ViewController
 
 		$descriptions[] = 'Created';
 		$mapdescr = $config['description'];
-		$service = new MapService($this->getFileLogger(), $this->session);
+		$service = $this->getMapService();
 
 		// without pagination
 		// has applyUserRcptToScope
@@ -751,7 +764,7 @@ class MapController extends ViewController
 			}
 			$entry_str = implode(', ', $pairs);
 
-			$service = new MapService($this->getFileLogger(), $this->session);
+			$service = $this->getMapService();
 
 			$model = $config['model'];
 			// entry already exists
@@ -922,7 +935,7 @@ class MapController extends ViewController
 			}
 			$entry_str = implode(', ', $pairs);
 
-			$service = new MapService($this->getFileLogger(), $this->session);
+			$service = $this->getMapService();
 
 			if ($this->getIsAdmin()) {
 				$map_edit_url = $this->url(RouteName::ADMIN_MAP_EDIT_ENTRY, [ 'map' => $map, 'id' => $id ]);
@@ -981,7 +994,7 @@ class MapController extends ViewController
 			if (is_null($custom_map)) {
 				$this->flashbag->add('error', 'Custom map not found!');
 			}
-			$service = new MapService($this->getFileLogger(), $this->session);
+			$service = $this->getMapService();
 			if ($service->delCustomMap($id)) {
 				$this->flashbag->add('success', "Custom Map '{$custom_map->map_name}' deleted.");
 			} else {
@@ -1039,7 +1052,7 @@ class MapController extends ViewController
 					$entry_str = implode(', ', $pairs);
 				}
 
-				$service = new MapService($this->getFileLogger(), $this->session);
+				$service = $this->getMapService();
 
 				if ($fields) {
 					// has applyUseScope for MapCombined
@@ -1102,7 +1115,7 @@ class MapController extends ViewController
 		$mapdescr = $config['description'] ?? null;
 		$fields = $config['fields'] ?? null;
 
-		$service = new MapService($this->getFileLogger(), $this->session);
+		$service = $this->getMapService();
 
 		if ($fields) {
 			// has applyUseScope for MapCombined
@@ -1178,7 +1191,7 @@ class MapController extends ViewController
 
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MapService($this->getFileLogger(), $this->session);
+		$service = $this->getMapService();
 
 		$configs = MapInventory::getAvailableMapConfigs($this->getRole()) ?? null;
 
@@ -1309,7 +1322,7 @@ class MapController extends ViewController
 					$entry_str = implode(', ', $pairs);
 				}
 
-				$service = new MapService($this->getFileLogger(), $this->session);
+				$service = $this->getMapService();
 
 				if ($fields) {
 					// has applyUseScope for MapCombined
