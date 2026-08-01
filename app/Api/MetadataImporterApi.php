@@ -13,6 +13,8 @@ namespace App\Api;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
+use App\Core\App;
+
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
@@ -35,23 +37,10 @@ class MetadataImporterApi extends RqwatchApi
 	protected Capsule $capsule;
 
 	// this constructor overrides RqwatchApi constructor
-	public function __construct(
-		Request $request,
-		LoggerInterface $fileLogger,
-		LoggerInterface $syslogLogger,
-		float $startTime,
-		float $startMemory,
-		Capsule $capsule
-	) {
-			parent::__construct(
-				$request,
-				$fileLogger,
-				$syslogLogger,
-				$startTime,
-				$startMemory
-			);
+	public function __construct(Request $request) {
+			parent::__construct($request);
 
-			$this->capsule = $capsule;
+			$this->capsule = App::capsule();
 	}
 
 	#[\Override]
