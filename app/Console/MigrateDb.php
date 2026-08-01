@@ -68,11 +68,7 @@ class MigrateDB extends MigrateCliCommand
 
 		foreach (Migrations::MIGRATIONS as $migration_str) {
 			// run each migration
-			$migration = Migrations::create(
-				$migration_str,
-				$this->capsule,
-				$this->fileLogger
-			);
+			$migration = $this->createMigration($migration_str);
 
 			$migration->ensureMigrationsTable();
 			if ($migration->isApplied()) {

@@ -54,11 +54,7 @@ class MigrateCreatedDay extends MigrateCliCommand
 		}
 
 		// run the migration
-		$migration = Migrations::create(
-			self::MIGRATION,
-			$this->capsule,
-			$this->fileLogger
-		);
+		$migration = $this->createMigration(self::MIGRATION);
 
 		if (!$migration->run(self::BATCH, self::SLEEP, false, $output)) {
 			return Command::FAILURE;

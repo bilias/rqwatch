@@ -12,6 +12,9 @@ namespace App\Console;
 
 use App\Core\App;
 
+use App\Inventory\Migrations;
+use App\Core\Database\AbstractMigration;
+
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 class MigrateCliCommand extends RqwatchCliCommand
@@ -22,6 +25,14 @@ class MigrateCliCommand extends RqwatchCliCommand
 		parent::__construct();
 
 		$this->capsule = App::capsule();
+	}
+
+	protected function createMigration(string $migration): AbstractMigration {
+		return Migrations::create(
+			$migration,
+			$this->capsule,
+			$this->fileLogger
+		);
 	}
 
 }

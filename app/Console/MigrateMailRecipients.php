@@ -66,11 +66,7 @@ class MigrateMailRecipients extends MigrateCliCommand
 		$force = $input->getOption('force');
 
 		// run the migration
-		$migration = Migrations::create(
-			self::MIGRATION,
-			$this->capsule,
-			$this->fileLogger
-		);
+		$migration = $this->createMigration(self::MIGRATION);
 
 		if (!$migration->run($batch, $sleep, $force, $output)) {
 			return Command::FAILURE;
