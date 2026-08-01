@@ -60,7 +60,7 @@ class MailLogController extends ViewController
 		$this->quarantine_dir = $_ENV['QUARANTINE_DIR'];
 	}
 
-	protected function getMailLogService(): MailLogService {
+	private function getMailLogService(): MailLogService {
 		if ($this->mailLogService === null) {
 			$this->mailLogService = new MailLogService(
 				$this->getFileLogger(),
