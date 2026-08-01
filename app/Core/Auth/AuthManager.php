@@ -73,7 +73,7 @@ class AuthManager
 	}
 
 	public function startOpenIdConnectAuthentication(): bool {
-		$provider = new OpenIDConnectAuth();
+		$provider = new OpenIDConnectAuth($this->logger);
 
 		if (!$provider) {
 			throw new RuntimeException("Authentication provider problem");
@@ -113,7 +113,7 @@ class AuthManager
 		$this->providerDescr = "OPENIDC";
 		$this->providerId = array_search("OPENIDC", self::$authProviders);
 
-		$provider = new OpenIDConnectAuth();
+		$provider = new OpenIDConnectAuth($this->logger);
 
 		if (!$provider) {
 			throw new RuntimeException("Authentication provider problem");
@@ -145,7 +145,7 @@ class AuthManager
 			return false;
 		}
 
-		$provider = new OpenIDConnectAuth();
+		$provider = new OpenIDConnectAuth($this->logger);
 
 		if (!$provider) {
 			throw new RuntimeException("Authentication provider problem");
@@ -182,7 +182,7 @@ class AuthManager
 	}
 
 	public function getOpenIdConnectLogoutUrl(): ?string {
-		$provider = new OpenIDConnectAuth();
+		$provider = new OpenIDConnectAuth($this->logger);
 		$provider->setLogger($this->logger);
 		$provider->setUrlGenerator($this->urlGenerator);
 
