@@ -91,6 +91,8 @@ class Kernel
 
 		App::init(
 			new AppContainer(
+				$startTime,
+				$startMemory,
 				$fileLogger,
 				$syslogLogger,
 				$capsule,

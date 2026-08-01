@@ -18,6 +18,8 @@ use App\Core\Database\MigrationStatus;
 final class AppContainer
 {
 	public function __construct(
+		public readonly float $startTime,
+		public readonly int $startMemory,
 		public readonly LoggerInterface $fileLogger,
 		public readonly LoggerInterface $syslogLogger,
 		public readonly ?Capsule $capsule,

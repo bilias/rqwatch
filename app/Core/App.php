@@ -31,6 +31,14 @@ final class App
 			self::$instance = $container;
 	}
 
+	public static function startTime(): float {
+			return self::instance()->startTime;
+	}
+
+	public static function startMemory(): int {
+			return self::instance()->startMemory;
+	}
+
 	public static function fileLogger(): LoggerInterface {
 			return self::instance()->fileLogger;
 	}
