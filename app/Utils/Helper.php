@@ -218,7 +218,7 @@ class Helper {
 		return $symbols_ar;
 	}
 
-	public static function getRuntime($startTime, $startMemory) {
+	public static function getRuntime(float $startTime, int $startMemory): string {
 		$endTime = microtime(true);
 		$endMemory = memory_get_usage();
 		$peakMemory = memory_get_peak_usage();
