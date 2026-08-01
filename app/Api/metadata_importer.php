@@ -16,8 +16,7 @@ require_once __DIR__ . '/../Core/Kernel.php';
 use Symfony\Component\HttpFoundation\Request;
 use App\Api\MetadataImporterApi;
 
-$kernel = new Kernel();
-$kernel->boot();
+(new Kernel())->boot();
 
 // Create request from globals
 $request = Request::createFromGlobals();

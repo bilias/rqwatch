@@ -16,7 +16,7 @@ require_once __DIR__ . '/../Core/Kernel.php';
 use Symfony\Component\HttpFoundation\Request;
 use App\Api\GetMailApi;
 
-Kernel::boot();
+(new Kernel())->boot();
 
 // Create request from globals
 $request = Request::createFromGlobals();

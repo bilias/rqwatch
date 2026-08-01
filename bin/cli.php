@@ -27,8 +27,7 @@ use App\Console\MigrateCreatedDay;
 use App\Console\MigrateMailLogData;
 use App\Console\MigrateDb;
 
-$kernel = new Kernel();
-$kernel->boot();
+(new Kernel())->boot();
 
 $application = new Application();
 
