@@ -51,7 +51,7 @@ use InvalidArgumentException;
 class MailLogService
 {
 	private LoggerInterface $logger;
-	private MigrationStatus $migrationStatus;
+	private ?MigrationStatus $migrationStatus = null;
 	protected $items_per_page;
 	protected $q_items_per_page;
 	protected $max_items;
@@ -62,7 +62,7 @@ class MailLogService
 
 	public function __construct(
 		LoggerInterface $logger,
-		MigrationStatus $migrationStatus,
+		?MigrationStatus $migrationStatus = null,
 		?Session $session = null
 	) {
 		$this->logger = $logger;
@@ -1359,7 +1359,7 @@ class MailLogService
 			'recipients'
 		];
 
-		if ($this->migrationStatus->hasMailLogData()) {
+		if ($this->migrationStatus && $this->migrationStatus->hasMailLogData()) {
 			$relations[] = 'mailLogData';
 		}
 
