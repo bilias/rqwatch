@@ -35,7 +35,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 	protected string $logPrefix = 'MetadataImporterMultipartApi';
 	protected Capsule $capsule;
 
-	// this constructor overrides RqwatchApi contructor
+	// this constructor overrides RqwatchApi constructor
 	public function __construct(
 		Request $request,
 		LoggerInterface $fileLogger,
