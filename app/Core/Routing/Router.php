@@ -120,14 +120,8 @@ class Router
 			$controllerHandler = function (Request $request)
 				use ($controller, $arguments)
 			{
-				if (is_array($controller) && $controller[0] instanceof Controller) {
-					$controller[0]->setServices(
-						$this->fileLogger,
-						$this->syslogLogger,
-						$this->migrationStatus
-					);
-				}
-				return call_user_func_array($controller, $arguments);
+				//return call_user_func_array($controller, $arguments);
+				return $controller(...$arguments);
 			};
 
 			$response = null;
@@ -153,14 +147,8 @@ class Router
 				$response = $middlewareChain($request);
 			} else  {
 				// NO_MIDDLEWARE: response without Middleware, and invoke controller
-				if (is_array($controller) && $controller[0] instanceof Controller) {
-					$controller[0]->setServices(
-						$this->fileLogger,
-						$this->syslogLogger,
-						$this->migrationStatus
-					);
-					$response = call_user_func_array($controller, $arguments);
-				}
+				//$response = call_user_func_array($controller, $arguments);
+				$response = $controller(...$arguments);
 			}
 
 			if (!$response instanceof Response) {
