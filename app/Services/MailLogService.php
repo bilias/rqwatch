@@ -1351,7 +1351,7 @@ class MailLogService
 		/*
 		$relations = [];
 
-		if ($this->migrationStatus->hasMailRecipients()) {
+		if ($this->migrationStatus && $this->migrationStatus->hasMailRecipients()) {
 			$relations[] = 'recipients';
 		}
 		*/
