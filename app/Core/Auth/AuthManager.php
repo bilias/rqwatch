@@ -48,7 +48,7 @@ class AuthManager
 		string $username,
 		#[SensitiveParameter] string $password
 	): bool {
-		$provider = $this->selectAuthProvider($username, $password);
+		$provider = $this->selectAuthProvider($username, $password, $this->logger);
 
 		if (!$provider) {
 			throw new RuntimeException("Authentication provider problem");
@@ -208,23 +208,28 @@ class AuthManager
 		return 'UNKNOWN';
 	}
 
-	private function selectAuthProvider(string $username, string $password): AuthInterface {
+	private function selectAuthProvider(
+		string $username,
+		string $password,
+		LoggerInterface $logger
+	): AuthInterface {
+
 		if ($username === 'admin') {
 			$this->providerDescr = "DB";
-			return new DbAuth($username, $password);
+			return new DbAuth($username, $password, $logger);
 		}
 
 		if (Helper::env_bool('LDAP_AUTH_ENABLED')) {
 			if (str_contains($username, '@')) {
 				$this->providerDescr = "LDAP";
 				$this->providerId = array_search("LDAP", self::$authProviders);
-				return new LdapAuth($username, $password);
+				return new LdapAuth($username, $password, $logger);
 			}
 		}
 
 		// Default to DB
 		$this->providerDescr = "DB";
-		return new DbAuth($username, $password);
+		return new DbAuth($username, $password, $logger);
 	}
 
 	public function getIdToken(): ?string {

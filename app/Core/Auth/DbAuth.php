@@ -22,15 +22,21 @@ use RuntimeException;
 class DbAuth implements AuthInterface {
 	private string $username;
 	private string $password;
+	private LoggerInterface $logger;
+
 	private bool $is_admin = false;
 	private ?string $email = null;
 	private ?string $authenticatedUser = null;
 	private ?int $user_id = null;
-	private ?LoggerInterface $logger = null;
 
-	public function __construct(string $username, #[SensitiveParameter] string $password) {
+	public function __construct(
+		string $username,
+		#[SensitiveParameter] string $password,
+		LoggerInterface $logger
+	) {
 		$this->username = $username;
 		$this->password = $password;
+		$this->logger = $logger;
 	}
 
 	public function __debugInfo(): array {
