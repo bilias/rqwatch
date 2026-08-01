@@ -160,13 +160,7 @@ class Controller
 	}
 
 	protected function getRuntime(): string {
-		$startTime = Config::get('startTime');
-		$startMemory = Config::get('startMemory');
-
-		$runtime = Helper::get_runtime($startTime, $startMemory);
-		Config::set('startTime', microtime(true));
-		Config::set('startMemory', memory_get_usage());
-		return $runtime;
+		return App::getRuntime();
 	}
 
 	public function unsetUrls(): void {

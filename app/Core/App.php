@@ -15,6 +15,8 @@ use Psr\Log\LoggerInterface;
 
 use App\Core\Database\MigrationStatus;
 
+use App\Utils\Helper;
+
 use RuntimeException;
 
 final class App
@@ -42,6 +44,13 @@ final class App
 
 	public static function startMemory(): int {
 			return self::instance()->startMemory;
+	}
+
+	public static function getRuntime(): string {
+		return Helper::getRuntime(
+			self::startTime(),
+			self::startMemory()
+		);
 	}
 
 	public static function fileLogger(): LoggerInterface {

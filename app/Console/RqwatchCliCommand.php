@@ -36,10 +36,7 @@ class RqwatchCliCommand extends Command
 	}
 
 	public function getRuntime(): string {
-		return Helper::get_runtime(
-			Config::get('startTime'),
-			Config::get('startMemory')
-		);
+		return App::getRuntime();
 	}
 
 	public function printRuntime(OutputInterface $output): void {

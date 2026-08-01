@@ -28,8 +28,6 @@ abstract class RqwatchApi
 {
 	protected Request $request;
 
-	protected float $startTime;
-	protected float $startMemory;
 	protected LoggerInterface $fileLogger;
 	protected LoggerInterface $syslogLogger;
 
@@ -41,8 +39,6 @@ abstract class RqwatchApi
 	{
 		$this->request = $request;
 
-		$this->startTime = App::startTime();
-		$this->startMemory = App::startMemory();
 		$this->fileLogger = App::fileLogger();
 		$this->syslogLogger = App::syslogLogger();
 
@@ -141,6 +137,6 @@ abstract class RqwatchApi
 	}
 
 	protected function getRuntime(): string {
-		return Helper::get_runtime($this->startTime, $this->startMemory);
+		return App::getRuntime();
 	}
 }
