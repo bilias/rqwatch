@@ -22,8 +22,6 @@ use Symfony\Component\Console\Command\LockableTrait;
 
 use App\Core\App;
 
-use App\Core\Database\MigrationStatus;
-
 use App\Services\MailLogService;
 
 use DateTime;
@@ -38,17 +36,16 @@ use DateInterval;
 class CronCleanupDb extends RqwatchCliCommand
 {
 	private string $app_name = "cron:cleanupdb";
-	private MigrationStatus $migrationStatus;
 
 	use LockableTrait;
 
+	/*
 	public function __construct() {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
-
-		$this->migrationStatus = App::migrationStatus();
 	}
+	*/
 
 	#[\Override]
 	protected function configure(): void {
@@ -82,7 +79,7 @@ class CronCleanupDb extends RqwatchCliCommand
 		$show_db = $input->getOption('show');
 		$local_only = $input->getOption('local');
 
-		$service = new MailLogService($this->fileLogger, $this->migrationStatus);
+		$service = new MailLogService($this->fileLogger);
 
 		// MailLog Collection
 		$local = '';

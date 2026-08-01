@@ -22,8 +22,6 @@ use Symfony\Component\Console\Command\LockableTrait;
 
 use App\Core\App;
 
-use App\Core\Database\MigrationStatus;
-
 use App\Core\Routing\Routes;
 use App\Core\Routing\RouteName;
 
@@ -47,17 +45,16 @@ and then sends notification mails to recipients.
 class CronNotifications extends RqwatchCliCommand
 {
 	private string $app_name = "cron:notifications";
-	private MigrationStatus $migrationStatus;
 
 	use LockableTrait;
 
+	/*
 	public function __construct() {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
-
-		$this->migrationStatus = App::migrationStatus();
 	}
+	*/
 
 	#[\Override]
 	protected function configure(): void {
@@ -85,7 +82,7 @@ class CronNotifications extends RqwatchCliCommand
 		$show_local_only = $input->getOption('local');
 		$send_blacklisted = $input->getOption('blacklisted');
 
-		$service = new MailLogService($this->fileLogger, $this->migrationStatus);
+		$service = new MailLogService($this->fileLogger);
 
 		// MailLog Collection
 		$local = '';
