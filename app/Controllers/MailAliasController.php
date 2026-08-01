@@ -40,7 +40,7 @@ class MailAliasController extends ViewController
 	private ?string $adminAliasesUrl = null;
 
 	public function __construct() {
-	//	parent::__construct();
+		parent::__construct();
 
 		$this->refresh_rate = Config::get('refresh_rate');
 		$this->items_per_page = Config::get('items_per_page');

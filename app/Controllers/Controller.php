@@ -21,6 +21,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
+use App\Core\App;
+
 use App\Inventory\Migrations;
 use App\Core\Database\MigrationStatus;
 
@@ -65,6 +67,12 @@ class Controller
 	protected LoggerInterface $syslogLogger;
 
 	protected ?MigrationStatus $migrationStatus = null;
+
+	public function __construct() {
+		$this->fileLogger = App::fileLogger();
+		$this->syslogLogger = App::syslogLogger();
+		$this->migrationStatus = App::migrationStatus();
+	}
 
 	public function setRequest(Request $request): void {
 		$this->request = $request;

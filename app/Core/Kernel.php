@@ -89,7 +89,6 @@ class Kernel
 
 		$migrationStatus = new MigrationStatus($capsule, $fileLogger);
 
-		/* not used yet
 		App::init(
 			new AppContainer(
 				$fileLogger,
@@ -103,7 +102,6 @@ class Kernel
 			$fileLogger,
 			$migrationStatus
 		);
-		*/
 
 		return [
 			'startTime' => $startTime,
