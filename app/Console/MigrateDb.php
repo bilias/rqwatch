@@ -67,7 +67,7 @@ class MigrateDB extends MigrateCliCommand
 		$force = $input->getOption('force');
 
 		foreach (Migrations::MIGRATIONS as $migration_str) {
-			// run each the migration
+			// run each migration
 			$migration = Migrations::create(
 				$migration_str,
 				$this->capsule,
