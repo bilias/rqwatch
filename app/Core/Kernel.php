@@ -84,9 +84,6 @@ class Kernel
 			exit;
 		}
 
-		// pass fileLogger to Helper methods
-		Helper::setLogger($fileLogger);
-
 		$migrationStatus = new MigrationStatus($capsule, $fileLogger);
 
 		App::init(
