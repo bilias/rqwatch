@@ -761,10 +761,14 @@ class MailLogController extends ViewController
 		$configTTLData = $this->getRedisConfigTTLData();
 
 		$stats = $this->getMailStats($service, $filters);
-		$chart = $this->createChart(
-			[ChartBuilder::class, 'createSearchChart'],
-			$stats
-		);
+
+		$chart = null;
+		if ($stats['count'] > 0) {
+			$chart = $this->createChart(
+				[ChartBuilder::class, 'createSearchChart'],
+				$stats
+			);
+		}
 
 		return new Response($this->twig->render('search.twig', [
 			'qidform' => $qidform->createView(),
