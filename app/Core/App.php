@@ -75,13 +75,6 @@ final class App
 				);
 	}
 
-	/*
-	public static function serviceFactory(): ServiceFactory
-	{
-			return self::instance()->serviceFactory;
-	}
-	*/
-
 	// Mainly for PHPUnit/testing.
 	public static function swap(AppContainer $container): void
 	{

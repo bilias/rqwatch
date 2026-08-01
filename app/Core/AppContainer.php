@@ -29,7 +29,6 @@ final class AppContainer
 		public readonly LoggerInterface $syslogLogger,
 		public readonly ?Capsule $capsule,
 		public readonly ?MigrationStatus $migrationStatus,
-		//public readonly ServiceFactory $serviceFactory,
     ) { }
 }
 

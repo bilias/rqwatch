@@ -96,11 +96,6 @@ class Kernel
 				$migrationStatus
 			)
 		);
-
-		$serviceFactory = new ServiceFactory(
-			$fileLogger,
-			$migrationStatus
-		);
 	}
 
 }
