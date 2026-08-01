@@ -28,15 +28,10 @@ use Symfony\Component\HttpFoundation\Session\Session;
 
 class MailAliasService
 {
-	private ?string $username = null;
 	private LoggerInterface $logger;
 
-	public function __construct(LoggerInterface $logger, ?Session $session = null) {
+	public function __construct(LoggerInterface $logger) {
 		$this->logger = $logger;
-
-		if (!empty($session)) {
-			$this->username = $session->get('username');
-		}
 
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
