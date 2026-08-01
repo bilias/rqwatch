@@ -12,8 +12,8 @@ namespace App\Core;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Psr\Log\LoggerInterface;
-use App\Database\MigrationStatus;
-//use App\Services\ServiceFactory;
+
+use App\Core\Database\MigrationStatus;
 
 use RuntimeException;
 
@@ -59,7 +59,6 @@ final class App
 			return self::instance()->services;
 	}
 	*/
-
 
 	// Mainly for PHPUnit/testing.
 	public static function swap(AppContainer $container): void

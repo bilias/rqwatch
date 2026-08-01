@@ -89,6 +89,22 @@ class Kernel
 
 		$migrationStatus = new MigrationStatus($capsule, $fileLogger);
 
+		/* not used yet
+		App::init(
+			new AppContainer(
+				$fileLogger,
+				$syslogLogger,
+				$capsule,
+				$migrationStatus
+			)
+		);
+
+		$serviceFactory = new ServiceFactory(
+			$fileLogger,
+			$migrationStatus
+		);
+		*/
+
 		return [
 			'startTime' => $startTime,
 			'startMemory' => $startMemory,

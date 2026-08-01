@@ -10,19 +10,24 @@
 
 namespace App\Core;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
 use Psr\Log\LoggerInterface;
-
 use App\Core\Database\MigrationStatus;
 
-final class AppContainer
+use App\Services\MailLogService;
+
+final class ServiceFactory
 {
 	public function __construct(
-		public readonly LoggerInterface $fileLogger,
-		public readonly LoggerInterface $syslogLogger,
-		public readonly ?Capsule $capsule,
-		public readonly ?MigrationStatus $migrationStatus,
-		//public readonly ServiceFactory $services,
-    ) { }
-}
+		private readonly LoggerInterface $fileLogger,
+		private readonly MigrationStatus $migrationStatus,
+	) {}
 
+	public function mailLogService(?Session $session = null): MailLogService {
+		return new MailLogService(
+			$this->fileLogger,
+			$this->migrationStatus,
+			$session
+		);
+	}
+
+}
