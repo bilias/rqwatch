@@ -49,9 +49,11 @@ class ViewController extends Controller
 	protected ?Environment $twig = null;
 	protected ?FormFactoryInterface $formFactory = null;
 
+	/*
 	public function __construct() {
 		parent::__construct();
 	}
+	*/
 
 	final public function twigView(): Environment {
 		if (!$this->twig ) {
