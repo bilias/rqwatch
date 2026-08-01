@@ -83,6 +83,8 @@ class MigrateDB extends MigrateCliCommand
 			if (!$migration->run($batch, $sleep, $force, $output)) {
 				return Command::FAILURE;
 			}
+
+			usleep($sleep);
 		}
 
 		return Command::SUCCESS;
