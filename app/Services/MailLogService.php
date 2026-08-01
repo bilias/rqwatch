@@ -510,6 +510,7 @@ class MailLogService
 			'stored' => 0,
 			'notified' => 0,
 			'released' => 0,
+			'has_virus' => 0,
 			'action' => [
 				'no action' => 0,
 				'add header' => 0,
