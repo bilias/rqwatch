@@ -32,12 +32,12 @@ class RedisFactory
 			// Redis Sentinel connection via phpredis or predis
 			try {
 				self::$client = RedisAdapter::createConnection($_ENV['REDIS_DSN']);
-				self::$logger->debug('[RedisFactory] Redis connection established');
+				self::$logger?->debug('[RedisFactory] Redis connection established');
 			} catch (InvalidArgumentException $e) {
-				self::$logger->error('[RedisFactory]: ' . $e->getMessage());
+				self::$logger?->error('[RedisFactory]: ' . $e->getMessage());
 				throw $e;
 			} catch (Throwable $e) {
-				self::$logger->error('[RedisFactory]: ' . $e->getMessage());
+				self::$logger?->error('[RedisFactory]: ' . $e->getMessage());
 				throw $e;
 			}
 		}
