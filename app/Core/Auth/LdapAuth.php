@@ -308,10 +308,6 @@ class LdapAuth implements AuthInterface {
 		return $this->lastname;
 	}
 
-	public function setLogger(LoggerInterface $logger): void {
-		$this->logger = $logger;
-	}
-
 	public function getValue(array $attrs, ?string $field): ?string {
 		if (empty($field)) {
 			return null;

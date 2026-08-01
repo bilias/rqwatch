@@ -22,16 +22,22 @@ use RuntimeException;
 class TestAuth implements AuthInterface {
 	private string $username;
 	private string $password;
-	protected ?string $authenticatedUser = null;
-	private ?LoggerInterface $logger = null;
+	private LoggerInterface $logger;
 
-	public function __construct(string $username, #[SensitiveParameter] string $password) {
+	protected ?string $authenticatedUser = null;
+
+	public function __construct(
+		string $username,
+		#[SensitiveParameter] string $password,
+		LoggerInterface $logger
+	) {
 		if (empty($username) or empty($password)) {
 			throw new HttpException(500, 'API credentials not configured');
 		}
 
 		$this->username = trim($username);
 		$this->password = trim($password);
+		$this->logger = $logger
 	}
 
 	public function __debugInfo(): array {
@@ -83,7 +89,4 @@ class TestAuth implements AuthInterface {
 		return $this->authenticatedUser;
 	}
 
-	public function setLogger(LoggerInterface $logger): void {
-		$this->logger = $logger;
-	}
 }

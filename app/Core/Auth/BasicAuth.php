@@ -85,8 +85,4 @@ class BasicAuth implements AuthInterface {
 		return $this->authenticatedUser;
 	}
 
-	// not used by API
-	public function setLogger(LoggerInterface $logger): void {
-		$this->logger = $logger;
-	}
 }

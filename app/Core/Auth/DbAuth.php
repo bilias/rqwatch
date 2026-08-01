@@ -105,7 +105,4 @@ class DbAuth implements AuthInterface {
 		return $this->user_id;
 	}
 
-	public function setLogger(LoggerInterface $logger): void {
-		$this->logger = $logger;
-	}
 }

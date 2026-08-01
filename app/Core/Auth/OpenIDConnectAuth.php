@@ -173,10 +173,6 @@ class OpenIDConnectAuth implements AuthInterface {
 		return $this->lastname;
 	}
 
-	public function setLogger(LoggerInterface $logger): void {
-		$this->logger = $logger;
-	}
-
 	public function setUrlGenerator(UrlGeneratorInterface $urlGenerator): void {
 		$this->urlGenerator = $urlGenerator;
 	}
