@@ -5,6 +5,7 @@
 ### 2026-08-01
 - Added application service registry (App::)
  for centralized access to shared services
+- Use App logger in SessionManager, Auth Providers and Helper
 
 ### 2026-07-31
 - Migrations Repository
