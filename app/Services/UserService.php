@@ -31,12 +31,8 @@ class UserService
 	private ?string $username = null;
 	private LoggerInterface $logger;
 
-	public function __construct(LoggerInterface $logger, ?Session $session = null) {
+	public function __construct(LoggerInterface $logger) {
 		$this->logger = $logger;
-
-		if (!empty($session)) {
-			$this->username = $session->get('username');
-		}
 
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
@@ -104,7 +100,7 @@ class UserService
 		return $query->first();
 	}
 
-	public function profile(): ?User {
+	public function profile(string $username): ?User {
 		$fields = [
 			'id',
 			'username',
@@ -122,7 +118,7 @@ class UserService
 		$query = User::select($fields)
 			// show profile only for DB Users
 			//->where('auth_provider', 0)
-			->where('username', $this->username);
+			->where('username', $username);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
