@@ -196,7 +196,7 @@ class Router
 		};
 	}
 
-	public static function run(array $services): void {
+	public static function run(): void {
 
 		$fileLogger = App::fileLogger();
 		$syslogLogger = App::syslogLogger();

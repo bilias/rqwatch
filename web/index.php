@@ -17,4 +17,4 @@ require_once __DIR__ . '/../app/Core/Kernel.php';
 require_once __DIR__ . '/../app/Core/Routing/Router.php';
 
 $services = Kernel::boot();
-Router::run($services);
+Router::run();
