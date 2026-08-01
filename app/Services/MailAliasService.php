@@ -24,8 +24,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-use Symfony\Component\HttpFoundation\Session\Session;
-
 class MailAliasService
 {
 	private LoggerInterface $logger;
