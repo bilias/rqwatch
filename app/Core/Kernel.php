@@ -62,12 +62,17 @@ class Kernel
 			exit;
 		}
 
+		$extra_cached_data = [
+			'startTime' => $startTime,
+			'startMemory' => $startMemory,
+		];
+
 		// load configuration
 		Config::loadConfig(
 			$fileLogger,
 			AppConfig::CONFIG_DEFAULT_PATH,
 			AppConfig::CONFIG_LOCAL_PATH,
-			[ 'startTime' => $startTime, 'startMemory' => $startMemory ],
+			$extra_cached_data,
 			$_ENV['REDIS_CONFIG_KEY'],             // optional Redis key
 			(int) $_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
 		);
