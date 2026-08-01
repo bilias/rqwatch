@@ -36,8 +36,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 use Illuminate\Database\Capsule\Manager as DB;
 
-use Symfony\Component\HttpFoundation\Session\Session;
-
 use Symfony\Component\Console\Output\OutputInterface;
 
 use PhpMimeMailParser\Parser;
@@ -63,17 +61,18 @@ class MailLogService
 	public function __construct(
 		LoggerInterface $logger,
 		?MigrationStatus $migrationStatus = null,
-		?Session $session = null
+		?array $userContext = null
 	) {
 		$this->logger = $logger;
 		$this->migrationStatus = $migrationStatus;
 
-		if (!empty($session)) {
-			$this->is_admin = $session->get('is_admin');
-			$this->username = $session->get('username');
-			$this->email = $session->get('email');
-			$this->user_aliases = $session->get('user_aliases');
+		if (!empty($userContext)) {
+			$this->is_admin = $userContext['is_admin'] ?? null;
+			$this->username = $userContext['username'] ?? null;
+			$this->email = $userContext['email'] ?? null;
+			$this->user_aliases = $userContext['user_aliases'] ?? null;
 		}
+
 		$this->items_per_page = Config::get('items_per_page');
 		$this->q_items_per_page = Config::get('q_items_per_page');
 		$this->max_items = Config::get('max_items');

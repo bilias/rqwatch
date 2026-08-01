@@ -65,7 +65,7 @@ class MailLogController extends ViewController
 			$this->mailLogService = new MailLogService(
 				$this->getFileLogger(),
 				$this->getMigrationStatus(),
-				$this->session
+				$this->getUserContext()
 			);
 		}
 
