@@ -219,6 +219,7 @@ class Controller
 		return $this->migrationStatus;
 	}
 
+	// deprecated
 	public function setServices(
 		LoggerInterface $fileLogger,
 		LoggerInterface $syslogLogger,
