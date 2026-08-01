@@ -27,11 +27,7 @@ use App\Console\MigrateCreatedDay;
 use App\Console\MigrateMailLogData;
 use App\Console\MigrateDb;
 
-$services = Kernel::boot();
-$fileLogger = $services['fileLogger'];
-$syslogLogger = $services['syslogLogger'];
-$capsule = $services['capsule'];
-$migrationStatus = $services['migrationStatus'];
+Kernel::boot();
 
 $application = new Application();
 
