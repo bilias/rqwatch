@@ -22,8 +22,9 @@ use RuntimeException;
 class BasicAuth implements AuthInterface {
 	private string $username;
 	private string $password;
+	private LoggerInterface $logger;
+
 	protected ?string $authenticatedUser = null;
-	private ?LoggerInterface $logger = null;
 
 	public function __construct(string $username, #[SensitiveParameter] string $password, LoggerInterface $logger) {
 		if (empty($username) or empty($password)) {
