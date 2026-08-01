@@ -41,6 +41,8 @@ use InvalidArgumentException;
 
 class MailLogController extends ViewController
 {
+	private ?MailLogService $mailLogService = null;
+
 	protected int $refresh_rate;
 	protected int $items_per_page;
 	protected int $q_items_per_page;
@@ -58,6 +60,18 @@ class MailLogController extends ViewController
 		$this->quarantine_dir = $_ENV['QUARANTINE_DIR'];
 	}
 
+	protected function getMailLogService(): MailLogService {
+		if ($this->mailLogService === null) {
+			$this->mailLogService = new MailLogService(
+				$this->getFileLogger(),
+				$this->getMigrationStatus(),
+				$this->session
+			);
+		}
+
+		return $this->mailLogService;
+	}
+
 	public function showAll(): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
@@ -70,22 +84,15 @@ class MailLogController extends ViewController
 		}
 
 		/* without Pagination
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
+
 		$logs = $service->showAll();
 		*/
 
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
 
 		if ($this->getIsAdmin()) {
 			$url = $this->url(RouteName::ADMIN_HOMEPAGE);
@@ -155,11 +162,7 @@ class MailLogController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
 
 		if ($this->getIsAdmin()) {
 			$url = $this->url(RouteName::ADMIN_SEARCH_RESULTS);
@@ -212,11 +215,7 @@ class MailLogController extends ViewController
 			return new RedirectResponse($this->homepageUrl);
 		}
 
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
 
 		// has applyUserScope
 		$logs = $service->showReports($filters, $field, $mode)->toArray();
@@ -266,11 +265,7 @@ class MailLogController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
 
 		if ($this->getIsAdmin()) {
 			$url = $this->url(RouteName::ADMIN_DAY_LOGS, ['date' => $date]);
@@ -312,11 +307,8 @@ class MailLogController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
+
 		if ($this->getIsAdmin()) {
 			$url = $this->url(RouteName::ADMIN_QUARANTINE_DAY, ['date' => $date]);
 		} else {
@@ -354,11 +346,8 @@ class MailLogController extends ViewController
 			return $response;
 		}
 
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
+
 		//$days = $service->showQuarantine();
 
 		// Get page from ?page=, default 1
@@ -404,11 +393,7 @@ class MailLogController extends ViewController
 			return $response;
 		}
 
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
 		$error = null;
 
 		try {
@@ -481,11 +466,7 @@ class MailLogController extends ViewController
 			return new RedirectResponse($this->homepageUrl);
 		}
 
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
 
 		try {
 			// has applyUserScope()
@@ -615,11 +596,7 @@ class MailLogController extends ViewController
 		$this->twigView();
 
 		$error = null;
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
 
 		try {
 			// has applyUserScope
@@ -656,11 +633,7 @@ class MailLogController extends ViewController
 	}
 
 	public function saveAttachment(int $id, int $attach_id): Response {
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
 
 		$this->initUrls();
 		try {
@@ -710,11 +683,7 @@ class MailLogController extends ViewController
 	}
 
 	public function openAttachment(int $id, int $attach_id): Response {
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
 
 		$this->initUrls();
 		try {
@@ -801,11 +770,7 @@ class MailLogController extends ViewController
 		$filters = $this->getFiltersFromSession();
 
 		// get current stats
-		$service = new MailLogService(
-			$this->getFileLogger(),
-			$this->getMigrationStatus(),
-			$this->session
-		);
+		$service = $this->getMailLogService();
 
 		$configTTLData = $this->getRedisConfigTTLData();
 
