@@ -38,19 +38,16 @@ use Psr\Log\LoggerInterface;
 class UserAdd extends RqwatchCliCommand
 {
 	private string $app_name = "user:add";
-	private ?LoggerInterface $fileLogger;
-	private ?LoggerInterface $syslogLogger;
 
 	use LockableTrait;
 
-	public function __construct(LoggerInterface $fileLogger, LoggerInterface $syslogLogger) {
+/*
+	public function __construct() {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
-
-		$this->fileLogger = $fileLogger;
-		$this->syslogLogger = $syslogLogger;
 	}
+*/
 
 	#[\Override]
 	protected function configure(): void {

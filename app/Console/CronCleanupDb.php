@@ -37,23 +37,15 @@ use DateInterval;
 class CronCleanupDb extends RqwatchCliCommand
 {
 	private string $app_name = "cron:cleanupdb";
-	private LoggerInterface $fileLogger;
-	private LoggerInterface $syslogLogger;
 	private MigrationStatus $migrationStatus;
 
 	use LockableTrait;
 
-	public function __construct(
-		LoggerInterface $fileLogger,
-		LoggerInterface $syslogLogger,
-		MigrationStatus $migrationStatus
-	) {
+	public function __construct(MigrationStatus $migrationStatus) {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
 
-		$this->fileLogger = $fileLogger;
-		$this->syslogLogger = $syslogLogger;
 		$this->migrationStatus = $migrationStatus;
 	}
 

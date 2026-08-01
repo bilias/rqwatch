@@ -36,25 +36,17 @@ class MigrateDB extends RqwatchCliCommand
 {
 	private string $app_name = "db:migrate";
 
-	private ?LoggerInterface $fileLogger;
-	private ?LoggerInterface $syslogLogger;
 	private $default_batch_size = 1000;
 	// micro seconds (default 1/5 of a second)
 	private $default_sleep = 200000;
 
 	use LockableTrait;
 
-	public function __construct(
-		LoggerInterface $fileLogger,
-		LoggerInterface $syslogLogger,
-		Capsule $capsule
-	) {
+	public function __construct(Capsule $capsule) {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
 
-		$this->fileLogger = $fileLogger;
-		$this->syslogLogger = $syslogLogger;
 		$this->capsule = $capsule;
 	}
 

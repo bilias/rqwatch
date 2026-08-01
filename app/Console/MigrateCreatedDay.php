@@ -39,22 +39,13 @@ class MigrateCreatedDay extends RqwatchCliCommand
 	private const int BATCH = Migrations::MIGRATION_BATCH[self::MIGRATION];
 	private const int SLEEP = Migrations::MIGRATION_SLEEP[self::MIGRATION];
 
-	private ?LoggerInterface $fileLogger;
-	private ?LoggerInterface $syslogLogger;
-
 	use LockableTrait;
 
-	public function __construct(
-		LoggerInterface $fileLogger,
-		LoggerInterface $syslogLogger,
-		Capsule $capsule
-	) {
+	public function __construct(Capsule $capsule) {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
 
-		$this->fileLogger = $fileLogger;
-		$this->syslogLogger = $syslogLogger;
 		$this->capsule = $capsule;
 	}
 
