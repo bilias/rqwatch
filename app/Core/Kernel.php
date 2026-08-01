@@ -13,24 +13,30 @@ namespace App\Core;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
+use Dotenv\Dotenv;
+
+use Illuminate\Database\Capsule\Manager as Capsule;
 use App\Core\Database\Database;
 use App\Core\Database\MigrationStatus;
 
 use App\Core\Logging\LoggerService;
-use App\Utils\Helper;
+use Psr\Log\LoggerInterface;
 
-use Dotenv\Dotenv;
-use Exception;
 use RuntimeException;
 use Throwable;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
-
-class Kernel
+final class Kernel
 {
-	public static function boot(): void {
-		$startTime = microtime(true);
-		$startMemory = memory_get_usage();
+	private float $startTime;
+	private int $startMemory;
+	private LoggerInterface $fileLogger;
+	private LoggerInterface $syslogLogger;
+	private Capsule $capsule;
+	private MigrationStatus $migrationStatus;
+
+	public function boot(): void {
+		$this->startTime = microtime(true);
+		$this->startMemory = memory_get_usage();
 
 		require_once __DIR__ . '/../Configuration/AppConfig.php';
 
@@ -40,11 +46,29 @@ class Kernel
 
 		require_once AppConfig::VENDOR_AUTOLOAD;
 
+		$this->createLoggers();
+
+		$this->loadDotenv();
+
+		$extra_cached_data = [
+			'startTime' => $this->startTime,
+			'startMemory' => $this->startMemory,
+		];
+		$this->loadConfig($extra_cached_data);
+
+		$this->bootDatabase();
+		$this->getMigrationStatus();
+		$this->initApp();
+	}
+
+	private function createLoggers(): void {
 		// configure loggers
 		$loggerService = new LoggerService();
-		$fileLogger = $loggerService->getFileLogger();
-		$syslogLogger = $loggerService->getSyslogLogger();
+		$this->fileLogger = $loggerService->getFileLogger();
+		$this->syslogLogger = $loggerService->getSyslogLogger();
+	}
 
+	private function loadDotenv(): void {
 		// load config from .env
 		if (!file_exists(AppConfig::ENV_PATH)) {
 			echo "<h1 style='color:red'>Application configuration error</h1>";
@@ -53,52 +77,53 @@ class Kernel
 			   AppConfig::ENV_PATH);
 		}
 
-		$dotenv = Dotenv::createImmutable(RQWATCH_ROOT);
 		try {
+			$dotenv = Dotenv::createImmutable(RQWATCH_ROOT);
 			$dotenv->load();
-		} catch (Exception $e) {
-			$fileLogger->error("Error loading .env: " . $e->getMessage());
-			echo "Error loading .env";
-			exit;
+		} catch (Throwable $e) {
+			$this->fileLogger->error("Error loading .env: " . $e->getMessage());
+			throw new RuntimeException("Failed to load .env file", previous: $e);
 		}
+	}
 
-		$extra_cached_data = [
-			'startTime' => $startTime,
-			'startMemory' => $startMemory,
-		];
-
-		// load configuration
+	private function loadConfig(array $extra_cached_data): void {
+		// load (and cache) configuration
 		Config::loadConfig(
-			$fileLogger,
+			$this->fileLogger,
 			AppConfig::CONFIG_DEFAULT_PATH,
 			AppConfig::CONFIG_LOCAL_PATH,
 			$extra_cached_data,
 			$_ENV['REDIS_CONFIG_KEY'],             // optional Redis key
 			(int) $_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
 		);
+	}
 
-		// setup DB connection
-		$capsule = Database::boot();
-
-		// test DB connection
+	private function bootDatabase(): void {
 		try {
-			$capsule->getConnection()->getPdo();
-		} catch (Exception $e) {
-			$fileLogger->error("DB error: " . $e->getMessage());
+			// setup DB connection
+			$this->capsule = Database::boot();
+			// test DB connection
+			$this->capsule->getConnection()->getPdo();
+		} catch (Throwable $e) {
+			$this->fileLogger->error("DB error: " . $e->getMessage());
 			echo "Database connection problem!";
 			exit;
 		}
+	}
 
-		$migrationStatus = new MigrationStatus($capsule, $fileLogger);
+	private function getMigrationStatus(): void {
+		$this->migrationStatus = new MigrationStatus($this->capsule, $this->fileLogger);
+	}
 
+	private function initApp(): void {
 		App::init(
 			new AppContainer(
-				$startTime,
-				$startMemory,
-				$fileLogger,
-				$syslogLogger,
-				$capsule,
-				$migrationStatus
+				$this->startTime,
+				$this->startMemory,
+				$this->fileLogger,
+				$this->syslogLogger,
+				$this->capsule,
+				$this->migrationStatus
 			)
 		);
 	}

@@ -20,7 +20,8 @@ require_once __DIR__ . '/../Core/Kernel.php';
 use Symfony\Component\HttpFoundation\Request;
 use App\Api\GetMapApi;
 
-Kernel::boot();
+$kernel = new Kernel();
+$kernel->boot();
 
 // Create request from globals
 $request = Request::createFromGlobals();

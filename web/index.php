@@ -16,5 +16,6 @@ use App\Core\Routing\Router;
 require_once __DIR__ . '/../app/Core/Kernel.php';
 require_once __DIR__ . '/../app/Core/Routing/Router.php';
 
-Kernel::boot();
+$kernel = new Kernel();
+$kernel->boot();
 Router::run();
