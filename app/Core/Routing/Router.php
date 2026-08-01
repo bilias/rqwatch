@@ -119,8 +119,8 @@ class Router
 			$controllerHandler = function (Request $request)
 				use ($controller, $arguments)
 			{
-				//return call_user_func_array($controller, $arguments);
-				return $controller(...$arguments);
+				return call_user_func_array($controller, $arguments);
+				//return $controller(...$arguments);
 			};
 
 			$response = null;
@@ -146,8 +146,8 @@ class Router
 				$response = $middlewareChain($request);
 			} else  {
 				// NO_MIDDLEWARE: response without Middleware, and invoke controller
-				//$response = call_user_func_array($controller, $arguments);
-				$response = $controller(...$arguments);
+				$response = call_user_func_array($controller, $arguments);
+				//$response = $controller(...$arguments);
 			}
 
 			if (!$response instanceof Response) {
