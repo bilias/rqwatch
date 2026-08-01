@@ -19,6 +19,11 @@ use RuntimeException;
 
 final class App
 {
+	/*
+	 * Registry/Facade that provides access to the AppContainer
+	 * that stores application services
+	 * XXX Not to be used for Request/User/Session lifetime objects
+	 */
 	private static ?AppContainer $instance = null;
 
 	public static function init(AppContainer $container): void {

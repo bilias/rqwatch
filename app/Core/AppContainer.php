@@ -17,6 +17,11 @@ use App\Core\Database\MigrationStatus;
 
 final class AppContainer
 {
+	/*
+	 * Container for Application lifetime objects
+	 * Stores application services
+	 * XXX Not to be used for Request/User/Session lifetime objects
+	 */
 	public function __construct(
 		public readonly float $startTime,
 		public readonly int $startMemory,
