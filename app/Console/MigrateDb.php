@@ -22,17 +22,13 @@ use Symfony\Component\Console\Command\LockableTrait;
 
 use App\Inventory\Migrations;
 
-use Psr\Log\LoggerInterface;
-
-use Illuminate\Database\Capsule\Manager as Capsule;
-
 #[AsCommand(
 	name: 'db:migrate',
 	description: 'Perform pending database migrations',
 	help: 'This command performs pending database migrations
 ',
 )]
-class MigrateDB extends RqwatchCliCommand
+class MigrateDB extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate";
 
@@ -42,12 +38,10 @@ class MigrateDB extends RqwatchCliCommand
 
 	use LockableTrait;
 
-	public function __construct(Capsule $capsule) {
+	public function __construct() {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
-
-		$this->capsule = $capsule;
 	}
 
 	#[\Override]

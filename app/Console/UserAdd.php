@@ -27,8 +27,6 @@ use App\Utils\Helper;
 
 use App\Services\UserService;
 
-use Psr\Log\LoggerInterface;
-
 #[AsCommand(
 	name: 'user:add',
 	description: 'Create a user',

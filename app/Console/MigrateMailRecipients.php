@@ -22,17 +22,13 @@ use Symfony\Component\Console\Command\LockableTrait;
 
 use App\Inventory\Migrations;
 
-use Psr\Log\LoggerInterface;
-
-use Illuminate\Database\Capsule\Manager as Capsule;
-
 #[AsCommand(
 	name: 'db:migrate_mail_recipients',
 	description: 'Migrate mail recipients from mail_logs/rcpt_to to mail_log_recipients',
 	help: 'This command migrates mail recipients from mail_logs/rcpt_to to mail_log_recipients
 ',
 )]
-class MigrateMailRecipients extends RqwatchCliCommand
+class MigrateMailRecipients extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_mail_recipients";
 	private const string MIGRATION = Migrations::MAIL_RECIPIENTS;
@@ -41,12 +37,10 @@ class MigrateMailRecipients extends RqwatchCliCommand
 
 	use LockableTrait;
 
-	public function __construct(Capsule $capsule) {
+	public function __construct() {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
-
-		$this->capsule = $capsule;
 	}
 
 	#[\Override]

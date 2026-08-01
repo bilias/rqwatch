@@ -20,6 +20,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
+use App\Core\App;
+
+use App\Core\Database\MigrationStatus;
+
 use App\Core\Routing\Routes;
 use App\Core\Routing\RouteName;
 
@@ -28,9 +32,6 @@ use App\Configuration\Config;
 use App\Utils\Helper;
 use App\Services\MailLogService;
 use App\Services\UserService;
-
-use Psr\Log\LoggerInterface;
-use App\Core\Database\MigrationStatus;
 
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Generator\UrlGenerator;
@@ -50,12 +51,12 @@ class CronNotifications extends RqwatchCliCommand
 
 	use LockableTrait;
 
-	public function __construct(MigrationStatus $migrationStatus) {
+	public function __construct() {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
 
-		$this->migrationStatus = $migrationStatus;
+		$this->migrationStatus = App::migrationStatus();
 	}
 
 	#[\Override]

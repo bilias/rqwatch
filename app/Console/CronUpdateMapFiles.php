@@ -26,8 +26,6 @@ use App\Models\MapActivityLog;
 use App\Inventory\MapInventory;
 use App\Services\MapService;
 
-use Psr\Log\LoggerInterface;
-
 use DateTime;
 use DateTimeZone;
 

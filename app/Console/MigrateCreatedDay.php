@@ -22,17 +22,13 @@ use Symfony\Component\Console\Command\LockableTrait;
 
 use App\Inventory\Migrations;
 
-use Psr\Log\LoggerInterface;
-
-use Illuminate\Database\Capsule\Manager as Capsule;
-
 #[AsCommand(
 	name: 'db:migrate_created_day',
 	description: 'Add created_day column to mail_logs table',
 	help: 'This command adds created_day column to mail_logs table
 ',
 )]
-class MigrateCreatedDay extends RqwatchCliCommand
+class MigrateCreatedDay extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_created_day";
 	private const string MIGRATION = Migrations::ADD_CREATED_DAY;
@@ -41,13 +37,13 @@ class MigrateCreatedDay extends RqwatchCliCommand
 
 	use LockableTrait;
 
-	public function __construct(Capsule $capsule) {
+	/*
+	public function __construct() {
 		// set command name
 		//parent::__construct($this->app_name);
 		parent::__construct();
-
-		$this->capsule = $capsule;
 	}
+	*/
 
 	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {

@@ -37,14 +37,14 @@ $application = new Application();
 
 // ... register commands
 // fileLogger and syslogLogger come from bootstrap
-$application->add(new CronNotifications($migrationStatus));
-$application->add(new CronQuarantine($migrationStatus));
-$application->add(new CronCleanupDb($migrationStatus));
+$application->add(new CronNotifications());
+$application->add(new CronQuarantine());
+$application->add(new CronCleanupDb());
 $application->add(new CronUpdateMapFiles());
 $application->add(new UserAdd());
-$application->add(new MigrateMailRecipients($capsule));
-$application->add(new MigrateCreatedDay($capsule));
-$application->add(new MigrateMailLogData($capsule));
-$application->add(new MigrateDb($capsule));
+$application->add(new MigrateMailRecipients());
+$application->add(new MigrateCreatedDay());
+$application->add(new MigrateMailLogData());
+$application->add(new MigrateDb());
 
 $application->run();
