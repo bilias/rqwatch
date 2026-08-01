@@ -62,9 +62,9 @@ final class App
 	}
 
 	/*
-	public static function services(): ServiceFactory
+	public static function serviceFactory(): ServiceFactory
 	{
-			return self::instance()->services;
+			return self::instance()->serviceFactory;
 	}
 	*/
 
