@@ -33,6 +33,8 @@ use Exception;
 
 class MailAliasController extends ViewController
 {
+	private ?MailAliasService $mailAliasService = null;
+
 	protected int $refresh_rate;
 	protected int $items_per_page;
 	protected int $max_items;
@@ -45,6 +47,14 @@ class MailAliasController extends ViewController
 		$this->refresh_rate = Config::get('refresh_rate');
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
+	}
+
+	private function getMailAliasService(): MailAliasService {
+		if ($this->mailAliasService === null) {
+			$this->mailAliasService = new MailAliasService($this->getFileLogger());
+		}
+
+		return $this->mailAliasService;
 	}
 
 	private function getAdminAliasesUrl(): string {
@@ -69,7 +79,7 @@ class MailAliasController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MailAliasService($this->getFileLogger());
+		$service = $this->getMailAliasService();
 		$url = $this->getAdminAliasesUrl();
 		$aliases = $service->showPaginatedAll($url, $page);
 
@@ -118,7 +128,7 @@ class MailAliasController extends ViewController
 		if (!empty($mail_alias_search_form['alias'])) {
 			$search = $mail_alias_search_form['alias'];
 
-			$service = new MailAliasService($this->getFileLogger());
+			$service = $this->getMailAliasService();
 			$url = $this->getAdminAliasesUrl();
 			$aliases = $service->searchPaginatedAll($url, $search, $page);
 		}
@@ -179,7 +189,7 @@ class MailAliasController extends ViewController
 			$user_id = $user->id;
 			$username = $user->username;
 
-			$service = new MailAliasService($this->getFileLogger());
+			$service = $this->getMailAliasService();
 			if ($service->aliasExists($user_id, $alias)) {
 				$this->flashbag->add('error', "Alias '{$alias}' already exists for user '{$username}'");
 				return new RedirectResponse($url);
