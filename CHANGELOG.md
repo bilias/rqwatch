@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2026-08-01
+- Added application service registry (App::)
+ for centralized access to shared services
+
 ### 2026-07-31
 - Migrations Repository
 - Migration Classes
