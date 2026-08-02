@@ -52,7 +52,7 @@ class UserController extends ViewController
 
 	private function getUserService(): UserService {
 		if ($this->userService === null) {
-			$this->userService = new UserService($this->getFileLogger());
+			$this->userService = new UserService();
 		}
 
 		return $this->userService;

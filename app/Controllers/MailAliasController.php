@@ -179,7 +179,7 @@ class MailAliasController extends ViewController
 			$username = strtolower(trim($data['username']));
 			$alias = strtolower(trim($data['alias']));
 
-			$service = new UserService($this->getFileLogger());
+			$service = new UserService();
 			$user = $service->showOneByUsername($username);
 
 			if (empty($user)) {

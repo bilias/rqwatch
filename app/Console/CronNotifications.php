@@ -151,7 +151,7 @@ class CronNotifications extends RqwatchCliCommand
 		}
 
 		// Filter out logs for users with notifications disabled
-		$userService = new UserService($this->fileLogger);
+		$userService = new UserService();
 		$service->filterDisabledRecipients($logs, $userService);
 
 		// Logs where everyone is disabled (or no recipients)

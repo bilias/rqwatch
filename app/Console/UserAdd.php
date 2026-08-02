@@ -65,7 +65,7 @@ class UserAdd extends RqwatchCliCommand
 		//$param = $input->getArgument('param');
 		$username = strtolower(trim($input->getArgument('username')));
 
-		$service = new UserService($this->fileLogger);
+		$service = new UserService();
 
 		if ($service->userExists($username)) {
 			$output->writeln("<comment>Username '{$username}' already exists.</comment>");
