@@ -71,7 +71,7 @@ class CronCleanupDb extends RqwatchCliCommand
 		$show_db = $input->getOption('show');
 		$local_only = $input->getOption('local');
 
-		$service = new MailLogService($this->fileLogger);
+		$service = new MailLogService($this->fileLogger, App::migrationStatus());
 
 		// MailLog Collection
 		$local = '';
