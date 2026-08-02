@@ -82,7 +82,7 @@ class MigrateDB extends MigrateCliCommand
 				return Command::FAILURE;
 			}
 
-			sleep($default_sleep);
+			sleep($this->default_sleep);
 		}
 
 		return Command::SUCCESS;
