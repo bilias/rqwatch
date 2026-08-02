@@ -46,20 +46,26 @@ final class Kernel
 
 		require_once AppConfig::VENDOR_AUTOLOAD;
 
+		// create fileLogger and syslogLogger
 		$this->createLoggers();
 
+		// load .env
 		$this->loadDotenv();
 
 		$extra_cached_data = [
 			'startTime' => $this->startTime,
 			'startMemory' => $this->startMemory,
 		];
+		// load config
 		$this->loadConfig($extra_cached_data);
 
+		// connect to db
 		$this->bootDatabase();
+
+		// get migration status
 		$this->getMigrationStatus();
 
-		// last
+		// last: create App registry
 		$this->initApp();
 	}
 
