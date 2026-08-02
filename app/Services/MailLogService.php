@@ -1350,7 +1350,7 @@ class MailLogService
 		/*
 		$relations = [];
 
-		if ($this->migrationStatus && $this->migrationStatus->hasMailRecipients()) {
+		if ($this->migrationStatus->hasMailRecipients()) {
 			$relations[] = 'recipients';
 		}
 		*/
@@ -1358,7 +1358,7 @@ class MailLogService
 			'recipients'
 		];
 
-		if ($this->migrationStatus && $this->migrationStatus->hasMailLogData()) {
+		if ($this->migrationStatus->hasMailLogData()) {
 			$relations[] = 'mailLogData';
 		}
 
