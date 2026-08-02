@@ -287,8 +287,8 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		*/
 
 		$db_id = null;
-		$mailLogWriter = new MailLogWriter();
 		try {
+			$mailLogWriter = new MailLogWriter();
 			$db_id = $mailLogWriter->insert($data, $rcptArr);
 		} catch (QueryException $e) {
 				// $bindings = $e->getBindings(); // array
@@ -303,7 +303,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 				$this->dropLogResponse(
 					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
 					$err_msg, 'critical');
-		} catch (Exception $e) {
+		} catch (Throwable $e) {
 				$err_msg = "DB insert error: " . $e->getMessage();
 				$response_msg = "Unexpected error";
 				$this->dropLogResponse(
