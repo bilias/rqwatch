@@ -49,18 +49,20 @@ use InvalidArgumentException;
 class MailLogService
 {
 	private LoggerInterface $logger;
-	private ?MigrationStatus $migrationStatus = null;
-	protected $items_per_page;
-	protected $q_items_per_page;
-	protected $max_items;
+	private MigrationStatus $migrationStatus;
+
 	private ?bool $is_admin = null;
 	private ?string $username = null;
 	private ?string $email = null;
 	private ?array $user_aliases = null;
 
+	protected $items_per_page;
+	protected $q_items_per_page;
+	protected $max_items;
+
 	public function __construct(
 		LoggerInterface $logger,
-		?MigrationStatus $migrationStatus = null,
+		MigrationStatus $migrationStatus,
 		?array $userContext = null
 	) {
 		$this->logger = $logger;

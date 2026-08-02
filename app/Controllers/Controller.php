@@ -65,8 +65,7 @@ class Controller
 
 	protected LoggerInterface $fileLogger;
 	protected LoggerInterface $syslogLogger;
-
-	protected ?MigrationStatus $migrationStatus = null;
+	protected MigrationStatus $migrationStatus;
 
 	public function __construct() {
 		$this->fileLogger = App::fileLogger();
