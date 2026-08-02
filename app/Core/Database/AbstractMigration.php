@@ -23,13 +23,25 @@ use RuntimeException;
 
 abstract class AbstractMigration {
 
+	protected const MIGRATION_NAME = '';
+
 	public function __construct(
 		protected Capsule $capsule,
 		protected ?LoggerInterface $fileLogger
 	) {}
 
-	abstract public function getName(): string;
 	abstract protected function verify(): bool;
+
+	public function getName(): string {
+		return static::MIGRATION_NAME;
+	}
+
+	public function getDescr(): string {
+		return Migrations::MIGRATION_DESCR[$this->getName()]
+			?? throw new RuntimeException(
+					"No description for migration '{$this->getName()}'."
+				);
+	}
 
 	protected function hasTable(string $table): bool {
 		return $this->capsule->schema()->hasTable($table);

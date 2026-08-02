@@ -26,32 +26,34 @@ use RuntimeException;
 
 class MailLogDataMigration extends AbstractMigration {
 
+	protected const string MIGRATION_NAME = Migrations::MAIL_RECIPIENTS;
+
 	private const DATA_COLUMNS = [
 		'headers',
 		'symbols',
 		'fuzzy_hashes',
 	];
 
-	public function getName(): string {
-		return Migrations::MAIL_LOG_DATA;
-	}
-
 	public function run(int $batch, int $sleep, bool $force, ?OutputInterface $output = null): bool {
 		$this->ensureMigrationsTable();
 
+		$name = $this->getName();
+		$descr = $this->getDescr();
+		$details = "'{$descr}' ($name)";
+
 		if (!$force && $this->hasMigration()) {
-			$output?->writeln("<info>Migration {$this->getName()} is already recorded</info>");
+			$output?->writeln("<info>Migration $details is already recorded</info>");
 			return true;
 		}
 
 		if (!$force && $this->verify()) {
-			$output?->writeln("<info>Migration {$this->getName()} exists, recording status</info>");
+			$output?->writeln("<info>Migration $details exists, recording status</info>");
 			$this->recordMigration();
 			return true;
 		}
 
-		$this->fileLogger?->info("Starting migration {$this->getName()}");
-		$output?->writeln("<comment>Starting migration {$this->getName()} in batches of {$batch}</comment>");
+		$this->fileLogger?->info("Starting migration $name");
+		$output?->writeln("<comment>Starting migration $details in batches of {$batch}</comment>");
 		$output?->writeln("<comment>This will take some time, please be patient</comment>");
 
 		try {
@@ -61,17 +63,17 @@ class MailLogDataMigration extends AbstractMigration {
 			$this->recordMigration();
 		} catch (\Throwable $e) {
 			$this->fileLogger?->error(
-				"Migration {$this->getName()} failed: " . $e->getMessage()
+				"Migration $name failed: " . $e->getMessage()
 			);
 
 			$output?->writeln(
-				"<error>Migration {$this->getName()} failed: {$e->getMessage()}</error>"
+				"<error>Migration $details failed: {$e->getMessage()}</error>"
 			);
 
 			return false;
 		}
 
-		$this->fileLogger?->info("Finished migration {$this->getName()}");
+		$this->fileLogger?->info("Finished migration $name");
 		return true;
 	}
 

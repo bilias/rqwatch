@@ -63,7 +63,14 @@ class MigrateDB extends MigrateCliCommand
 
 			$migration->ensureMigrationsTable();
 			if (!$force && $migration->isApplied()) {
-				$output->writeln("<info>Migration {$migration->getName()} is already recorded</info>");
+
+				$name = $migration->getName();
+				$descr = $migration->getDescr();
+				$details = "'{$descr}' ($name)";
+
+				$output->writeln(
+					"<info>Migration $details is already recorded</info>"
+				);
 				continue;
 			}
 
