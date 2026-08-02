@@ -200,27 +200,12 @@ class Controller
 		$this->syslogLogger = $logger;
 	}
 
-	public function setMigrationStatus(MigrationStatus $migrationStatus): void {
-		$this->migrationStatus = $migrationStatus;
-	}
-
 	public function getMigrationStatus(): MigrationStatus {
 		if ($this->migrationStatus === null) {
 			throw new RuntimeException('MigrationStatus not initialized');
 		}
 
 		return $this->migrationStatus;
-	}
-
-	// deprecated
-	public function setServices(
-		LoggerInterface $fileLogger,
-		LoggerInterface $syslogLogger,
-		MigrationStatus $migrationStatus
-	): void {
-		$this->setFileLogger($fileLogger);
-		$this->setSyslogLogger($syslogLogger);
-		$this->setMigrationStatus($migrationStatus);
 	}
 
 	public function getRspamdStat(): array {
