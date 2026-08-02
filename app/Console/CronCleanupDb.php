@@ -103,7 +103,7 @@ class CronCleanupDb extends RqwatchCliCommand
 			$output->writeln("<comment>Database pending delete{$local}:</comment>",
 				OutputInterface::VERBOSITY_NORMAL);
 			foreach ($logs as $log) {
-				$output->writeln("QID: {$log->qid}, to: {$log->rcpt_to}",
+				$output->writeln("QID: {$log->qid}",
 					OutputInterface::VERBOSITY_NORMAL);
 			}
 		}
