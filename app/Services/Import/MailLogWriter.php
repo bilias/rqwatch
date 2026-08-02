@@ -12,6 +12,8 @@ namespace App\Services\Import;
 
 use App\Configuration\AppConfig;
 
+use App\Core\App;
+
 use Psr\Log\LoggerInterface;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
@@ -21,13 +23,16 @@ use App\Core\Database\Migrations\MailLogDataMigration;
 
 final class MailLogWriter
 {
+	private Capsule $capsule,
+	private LoggerInterface $fileLogger
+
 	private ?bool $supportsRecipients = null;
 	private ?bool $supportsMailLogData = null;
 
-	public function __construct(
-		private Capsule $capsule,
-		private ?LoggerInterface $fileLogger
-	) {}
+	public function __construct() {
+		$this->capsule = App::capsule();
+		$this->fileLogger = App:fileLogger();
+	}
 
 	public function insert(array $mailData, array $recipients): int {
 		return $this->capsule

@@ -287,7 +287,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		*/
 
 		$db_id = null;
-		$mailLogWriter = new MailLogWriter(App::capsule(), $this->fileLogger);
+		$mailLogWriter = new MailLogWriter();
 		try {
 			$db_id = $mailLogWriter->insert($data, $rcptArr);
 		} catch (QueryException $e) {
