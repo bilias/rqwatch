@@ -10,7 +10,6 @@
 
 namespace App\Api;
 
-use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
 use App\Core\App;
