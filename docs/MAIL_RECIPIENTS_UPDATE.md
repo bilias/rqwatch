@@ -1,8 +1,8 @@
 # Mail Log Recipients update --- IMPORTANT NOTICE
 
-Versions 1.7.0 - 1.7.4 of Rqwatch containes important update to DB schema for better performance.
+Versions 1.7+ of Rqwatch containes important update to DB schema for better performance.
 
-If you are on version 1.7.5+ you can follow the [DB_MIGRATION_GUIDE](DB_MIGRATION.md).
+If you are on version 1.8+ you can follow the [DB_MIGRATION_GUIDE](DB_MIGRATION.md).
 
 Here is the procedure to apply this update:
 
