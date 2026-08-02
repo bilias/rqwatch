@@ -28,7 +28,7 @@ class MailLogDataMigration extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_RECIPIENTS;
 
-	private const DATA_COLUMNS = [
+	public const DATA_COLUMNS = [
 		'headers',
 		'symbols',
 		'fuzzy_hashes',
