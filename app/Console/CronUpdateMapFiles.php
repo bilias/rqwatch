@@ -116,7 +116,7 @@ class CronUpdateMapFiles extends RqwatchCliCommand
 			return (string) $value;
 		})->toArray();
 
-		$service = new MapService($this->fileLogger);
+		$service = new MapService();
 
 		// delete from activity log and map files if not found in config
 		$service->syncMaps();

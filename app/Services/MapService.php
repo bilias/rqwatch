@@ -11,6 +11,9 @@
 namespace App\Services;
 
 use App\Configuration\Config;
+
+use App\Core\App;
+
 use App\Utils\Helper;
 
 use App\Models\MapCombined;
@@ -40,11 +43,8 @@ class MapService
 	private ?string $email = null;
 	private ?array $user_aliases = null;
 
-	public function __construct(
-		LoggerInterface $logger,
-		?array $userContect = null
-	) {
-		$this->logger = $logger;
+	public function __construct(?array $userContect = null) {
+		$this->logger = App::fileLogger();
 
 		if (!empty($userContect)) {
 			$this->is_admin = $userContect['is_admin'] ?? null;

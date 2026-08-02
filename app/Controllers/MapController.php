@@ -65,10 +65,7 @@ class MapController extends ViewController
 
 	private function getMapService(): MapService {
 		if ($this->mapService === null) {
-			$this->mapService = new MapService(
-				$this->getFileLogger(),
-				$this->getUserContext()
-			);
+			$this->mapService = new MapService($this->getUserContext());
 		}
 
 		return $this->mapService;
