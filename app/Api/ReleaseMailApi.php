@@ -10,6 +10,8 @@
 
 namespace App\Api;
 
+use App\Core\App;
+
 use App\Models\MailLog;
 use App\Services\MailLogService;
 
@@ -60,7 +62,10 @@ class ReleaseMailApi extends RqwatchApi
 		}
 		$release_to = $post['email'];
 		
-		$maillog = MailLog::find($id);
+		$service = new MailLogService($this->fileLogger, App::migrationStatus());
+
+		$maillog = MailLog::with($service->mailLogRelations())
+			->where('id', $id)->first();
 		
 		if (empty($maillog)) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested release of mail with id {$id} which does no exist";
@@ -69,8 +74,6 @@ class ReleaseMailApi extends RqwatchApi
 				Response::HTTP_BAD_REQUEST, $response_msg,
 				$err_msg, 'warning');
 		}
-		
-		$service = new MailLogService($this->fileLogger);
 		
 		if ($service->releaseHtmlMail($release_to, $maillog)) {
 			$runtime = $this->getRuntime();

@@ -1346,7 +1346,7 @@ class MailLogService
 		}
 	}
 
-	private function mailLogRelations(): array {
+	public function mailLogRelations(): array {
 		/*
 		$relations = [];
 
