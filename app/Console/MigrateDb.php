@@ -32,9 +32,8 @@ class MigrateDB extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate";
 
-	private $default_batch_size = 1000;
-	// micro seconds (default 1/5 of a second)
-	private $default_sleep = 200000;
+	// default seconds to sleep between migrations
+	private $default_sleep = 2;
 
 	use LockableTrait;
 
@@ -48,8 +47,8 @@ class MigrateDB extends MigrateCliCommand
 	protected function configure(): void {
 		$this
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
-			->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', $this->default_batch_size)
-			->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', $this->default_sleep)
+			// ->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', $this->default_batch_size)
+			// ->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', $this->default_sleep)
 			->addOption('force', 'f', InputOption::VALUE_NONE, 'Force restart/continue migration');
 		;
 	}
@@ -62,8 +61,6 @@ class MigrateDB extends MigrateCliCommand
 			return Command::FAILURE;
 		}
 
-		$batch = $input->getOption('batch');
-		$sleep = $input->getOption('sleep');
 		$force = $input->getOption('force');
 
 		foreach (Migrations::MIGRATIONS as $migration_str) {
@@ -71,16 +68,20 @@ class MigrateDB extends MigrateCliCommand
 			$migration = $this->createMigration($migration_str);
 
 			$migration->ensureMigrationsTable();
-			if ($migration->isApplied()) {
+			if (!$force && $migration->isApplied()) {
 				$output->writeln("<info>Migration {$migration->getName()} is already recorded</info>");
 				continue;
 			}
+
+			// take defaults from Inventory
+			$batch = Migrations::MIGRATION_BATCH[$migration_str];
+			$sleep = Migrations::MIGRATION_SLEEP[$migration_str];
 
 			if (!$migration->run($batch, $sleep, $force, $output)) {
 				return Command::FAILURE;
 			}
 
-			usleep($sleep);
+			sleep($default_sleep);
 		}
 
 		return Command::SUCCESS;
