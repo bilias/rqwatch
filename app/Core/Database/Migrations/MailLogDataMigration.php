@@ -27,7 +27,7 @@ use RuntimeException;
 
 class MailLogDataMigration extends AbstractMigration {
 
-	protected const string MIGRATION_NAME = Migrations::MAIL_RECIPIENTS;
+	protected const string MIGRATION_NAME = Migrations::MAIL_LOG_DATA;
 
 	public function run(int $batch, int $sleep, bool $force, ?OutputInterface $output = null): bool {
 		$this->ensureMigrationsTable();
