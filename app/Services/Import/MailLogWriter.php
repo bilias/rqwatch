@@ -75,6 +75,15 @@ final class MailLogWriter
 			->insertGetId($mailData);
 	}
 
+	// Insert into mail_logs_data.
+	private function insertMailLogData(int $mailLogId, array $mailData): void {
+		$mailData['mail_log_id'] = $mailLogId;
+
+		$this->capsule
+			->table(AppConfig::MAIL_LOG_DATA_TABLE)
+			->insert($mailData);
+	}
+
 	// Insert recipients.
 	private function insertRecipients(int $mailLogId, array $recipients): void {
 		if (!$this->supportsRecipients()) {
@@ -107,15 +116,6 @@ final class MailLogWriter
 		$this->capsule
 			->table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)
 			->insert($rows);
-	}
-
-	// Insert into mail_logs_data.
-	private function insertMailLogData(int $mailLogId, array $mailData): void {
-		$mailData['mail_log_id'] = $mailLogId;
-
-		$this->capsule
-			->table(AppConfig::MAIL_LOG_DATA_TABLE)
-			->insert($mailData);
 	}
 
 	private function supportsRecipients(): bool {
