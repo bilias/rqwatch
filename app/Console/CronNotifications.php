@@ -73,7 +73,7 @@ class CronNotifications extends RqwatchCliCommand
 		$show_local_only = $input->getOption('local');
 		$send_blacklisted = $input->getOption('blacklisted');
 
-		$service = new MailLogService($this->fileLogger, App::migrationStatus());
+		$service = new MailLogService();
 
 		// MailLog Collection
 		$local = '';

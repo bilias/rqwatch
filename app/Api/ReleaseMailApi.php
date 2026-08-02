@@ -62,7 +62,7 @@ class ReleaseMailApi extends RqwatchApi
 		}
 		$release_to = $post['email'];
 		
-		$service = new MailLogService($this->fileLogger, App::migrationStatus());
+		$service = new MailLogService();
 
 		$maillog = MailLog::with($service->mailLogRelations())
 			->where('id', $id)->first();

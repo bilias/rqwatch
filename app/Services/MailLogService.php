@@ -13,6 +13,8 @@ namespace App\Services;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
+use App\Core\App;
+
 use App\Utils\Helper;
 use App\Utils\FormHelper;
 use App\Models\MailLog;
@@ -60,13 +62,9 @@ class MailLogService
 	protected $q_items_per_page;
 	protected $max_items;
 
-	public function __construct(
-		LoggerInterface $logger,
-		MigrationStatus $migrationStatus,
-		?array $userContext = null
-	) {
-		$this->logger = $logger;
-		$this->migrationStatus = $migrationStatus;
+	public function __construct(?array $userContext = null) {
+		$this->logger = App::fileLogger();
+		$this->migrationStatus = App::migrationStatus();
 
 		if (!empty($userContext)) {
 			$this->is_admin = $userContext['is_admin'] ?? null;

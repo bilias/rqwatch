@@ -69,7 +69,7 @@ class CronQuarantine extends RqwatchCliCommand
 			$this->pruneEmptyQuarantineDateDirs($output);
 		}
 
-		$service = new MailLogService($this->fileLogger, App::migrationStatus());
+		$service = new MailLogService();
 
 		// MailLog Collection
 		$local = '';

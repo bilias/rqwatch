@@ -62,11 +62,7 @@ class MailLogController extends ViewController
 
 	private function getMailLogService(): MailLogService {
 		if ($this->mailLogService === null) {
-			$this->mailLogService = new MailLogService(
-				$this->getFileLogger(),
-				$this->getMigrationStatus(),
-				$this->getUserContext()
-			);
+			$this->mailLogService = new MailLogService($this->getUserContext());
 		}
 
 		return $this->mailLogService;
