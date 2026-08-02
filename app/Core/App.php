@@ -39,11 +39,17 @@ final class App
 	}
 
 	public static function startTime(): float {
-			return self::instance()->startTime;
+			return self::instance()->startTime
+				?? throw new RuntimeException(
+					'startTime is not available in this context.'
+				);
 	}
 
 	public static function startMemory(): int {
-			return self::instance()->startMemory;
+			return self::instance()->startMemory
+				?? throw new RuntimeException(
+					'startMemory is not available in this context.'
+				);
 	}
 
 	public static function getRuntime(): string {
@@ -54,11 +60,17 @@ final class App
 	}
 
 	public static function fileLogger(): LoggerInterface {
-			return self::instance()->fileLogger;
+			return self::instance()->fileLogger
+				?? throw new RuntimeException(
+					'fileLogger is not available in this context.'
+				);
 	}
 
 	public static function syslogLogger(): LoggerInterface {
-			return self::instance()->syslogLogger;
+			return self::instance()->syslogLogger
+				?? throw new RuntimeException(
+					'syslogLogger is not available in this context.'
+				);
 	}
 
 	public static function capsule(): Capsule {
