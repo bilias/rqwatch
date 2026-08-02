@@ -332,9 +332,9 @@ class Controller
 			return;
 		}
 
-		$migrations = $this->migrationStatus->getMigrationStatus();
+		$migrations_status = $this->migrationStatus->getStatus();
 
-		foreach ($migrations as $migration => $applied) {
+		foreach ($migrations_status as $migration => $applied) {
 			if (!$applied) {
 				$message = "Database migration missing: '" .
 					Migrations::MIGRATION_DESCR[$migration] .

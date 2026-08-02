@@ -66,7 +66,7 @@ final class MigrationStatus
 		return $this->cache[$key] = $migration->isApplied();
 	}
 
-	public function getMigrationStatus(): array {
+	public function getStatus(): array {
 		$status = [];
 
 		foreach (Migrations::MIGRATIONS as $migration) {
