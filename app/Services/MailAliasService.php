@@ -11,6 +11,9 @@
 namespace App\Services;
 
 use App\Configuration\Config;
+
+use App\Core\App;
+
 use App\Utils\Helper;
 
 use App\Models\MailAlias;
@@ -28,8 +31,8 @@ class MailAliasService
 {
 	private LoggerInterface $logger;
 
-	public function __construct(LoggerInterface $logger) {
-		$this->logger = $logger;
+	public function __construct() {
+		$this->logger = App::fileLogger();
 
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');

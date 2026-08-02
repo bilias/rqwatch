@@ -51,7 +51,7 @@ class MailAliasController extends ViewController
 
 	private function getMailAliasService(): MailAliasService {
 		if ($this->mailAliasService === null) {
-			$this->mailAliasService = new MailAliasService($this->getFileLogger());
+			$this->mailAliasService = new MailAliasService();
 		}
 
 		return $this->mailAliasService;
