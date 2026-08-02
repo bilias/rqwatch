@@ -47,6 +47,12 @@ class MailLogData extends Model
 		'fuzzy_hashes',
 	];
 
+	public const DATA_COLUMNS = [
+		'headers',
+		'symbols',
+		'fuzzy_hashes',
+	];
+
 	public function mailLog() {
 		return $this->belongsTo(
 			MailLog::class,

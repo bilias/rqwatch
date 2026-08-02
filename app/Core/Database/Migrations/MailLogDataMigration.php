@@ -17,6 +17,7 @@ use Psr\Log\LoggerInterface;
 
 use App\Configuration\AppConfig;
 use App\Inventory\Migrations;
+use App\Models\MailLogData;
 
 use App\Core\Database\AbstractMigration;
 
@@ -27,12 +28,6 @@ use RuntimeException;
 class MailLogDataMigration extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_RECIPIENTS;
-
-	public const DATA_COLUMNS = [
-		'headers',
-		'symbols',
-		'fuzzy_hashes',
-	];
 
 	public function run(int $batch, int $sleep, bool $force, ?OutputInterface $output = null): bool {
 		$this->ensureMigrationsTable();
@@ -133,7 +128,7 @@ class MailLogDataMigration extends AbstractMigration {
 					'mail_log_id' => $log->id,
 				];
 
-				foreach (self::DATA_COLUMNS as $column) {
+				foreach (MailLogData::DATA_COLUMNS as $column) {
 					$row[$column] = $log->$column;
 				}
 

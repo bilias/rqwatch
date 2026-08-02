@@ -21,6 +21,8 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use App\Core\Database\Migrations\MailRecipientsMigration;
 use App\Core\Database\Migrations\MailLogDataMigration;
 
+use App\Models\MailLogData;
+
 final class MailLogWriter
 {
 	private Capsule $capsule;
@@ -146,7 +148,7 @@ final class MailLogWriter
 		$main = $mailData;
 		$extra = [];
 
-		foreach (MailLogDataMigration::DATA_COLUMNS as $column) {
+		foreach (MailLogData::DATA_COLUMNS as $column) {
 			if (array_key_exists($column, $main)) {
 				$extra[$column] = $main[$column];
 				unset($main[$column]);
