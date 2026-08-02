@@ -20,8 +20,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
-use App\Core\App;
-
 use App\Core\Routing\Routes;
 use App\Core\Routing\RouteName;
 
