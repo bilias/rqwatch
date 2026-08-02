@@ -24,11 +24,6 @@ final class MigrationStatus
 {
 	private array $cache = [];
 
-	public function __construct(
-		private Capsule $capsule,
-		private ?LoggerInterface $fileLogger
-	) {}
-
 	public function hasMailRecipients(): bool {
 		return $this->check(
 			Migrations::MAIL_RECIPIENTS
@@ -58,10 +53,7 @@ final class MigrationStatus
 
 		$migrationClass = Migrations::MIGRATION_CLASSES[$key];
 
-		$migration = new $migrationClass(
-			$this->capsule,
-			$this->fileLogger
-		);
+		$migration = new $migrationClass();
 
 		return $this->cache[$key] = $migration->isApplied();
 	}

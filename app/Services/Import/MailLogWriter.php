@@ -125,10 +125,7 @@ final class MailLogWriter
 			return true;
 		}
 
-		$migration = new MailRecipientsMigration(
-			$this->capsule,
-			$this->fileLogger
-		);
+		$migration = new MailRecipientsMigration();
 
 		// migration is recorded and schema exists
 		return $this->supportsRecipients = $migration->isApplied();
@@ -139,10 +136,7 @@ final class MailLogWriter
 			return true;
 		}
 
-		$migration = new MailLogDataMigration(
-			$this->capsule,
-			$this->fileLogger
-		);
+		$migration = new MailLogDataMigration();
 
 		// migration is recorded and schema exists
 		return $this->supportsMailLogData = $migration->isApplied();

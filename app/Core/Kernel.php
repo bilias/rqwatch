@@ -58,6 +58,8 @@ final class Kernel
 
 		$this->bootDatabase();
 		$this->getMigrationStatus();
+
+		// last
 		$this->initApp();
 	}
 
@@ -112,7 +114,7 @@ final class Kernel
 	}
 
 	private function getMigrationStatus(): void {
-		$this->migrationStatus = new MigrationStatus($this->capsule, $this->fileLogger);
+		$this->migrationStatus = new MigrationStatus();
 	}
 
 	private function initApp(): void {

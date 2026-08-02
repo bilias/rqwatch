@@ -10,13 +10,16 @@
 
 namespace App\Core\Database;
 
+use App\Configuration\AppConfig;
+
+use App\Core\App;
+
+use App\Inventory\Migrations;
+
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Schema\Blueprint;
 
 use Psr\Log\LoggerInterface;
-
-use App\Configuration\AppConfig;
-use App\Inventory\Migrations;
 
 use Closure;
 use RuntimeException;
@@ -25,10 +28,13 @@ abstract class AbstractMigration {
 
 	protected const MIGRATION_NAME = '';
 
-	public function __construct(
-		protected Capsule $capsule,
-		protected ?LoggerInterface $fileLogger
-	) {}
+	protected Capsule $capsule;
+	protected LoggerInterface $fileLogger;
+
+	public function __construct() {
+		$this->capsule = App::capsule();
+		$this->fileLogger = App::fileLogger();
+	}
 
 	abstract protected function verify(): bool;
 
