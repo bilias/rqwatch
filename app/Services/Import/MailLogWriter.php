@@ -23,15 +23,15 @@ use App\Core\Database\Migrations\MailLogDataMigration;
 
 final class MailLogWriter
 {
-	private Capsule $capsule,
-	private LoggerInterface $fileLogger
+	private Capsule $capsule;
+	private LoggerInterface $fileLogger;
 
 	private ?bool $supportsRecipients = null;
 	private ?bool $supportsMailLogData = null;
 
 	public function __construct() {
 		$this->capsule = App::capsule();
-		$this->fileLogger = App:fileLogger();
+		$this->fileLogger = App::fileLogger();
 	}
 
 	public function insert(array $mailData, array $recipients): int {
