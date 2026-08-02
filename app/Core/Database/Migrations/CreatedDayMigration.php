@@ -49,7 +49,7 @@ class CreatedDayMigration extends AbstractMigration {
 			return true;
 		}
 
-		$this->fileLogger?->info("Starting migration $name");
+		$this->fileLogger->info("Starting migration $name");
 		$output?->writeln("<comment>Starting migration $details</comment>");
 		$output?->writeln("<comment>This will take some time, please be patient</comment>");
 
@@ -63,7 +63,7 @@ class CreatedDayMigration extends AbstractMigration {
 			}
 			$this->recordMigration();
 		} catch (\Throwable $e) {
-			$this->fileLogger?->error(
+			$this->fileLogger->error(
 				"Migration $name failed: " . $e->getMessage()
 			);
 
@@ -74,7 +74,7 @@ class CreatedDayMigration extends AbstractMigration {
 			return false;
 		}
 
-		$this->fileLogger?->info("Finished migration $name");
+		$this->fileLogger->info("Finished migration $name");
 		return true;
 	}
 

@@ -47,7 +47,7 @@ class MailLogDataMigration extends AbstractMigration {
 			return true;
 		}
 
-		$this->fileLogger?->info("Starting migration $name");
+		$this->fileLogger->info("Starting migration $name");
 		$output?->writeln("<comment>Starting migration $details in batches of {$batch}</comment>");
 		$output?->writeln("<comment>This will take some time, please be patient</comment>");
 
@@ -57,7 +57,7 @@ class MailLogDataMigration extends AbstractMigration {
 			$this->runMigration($batch, $sleep, $output);
 			$this->recordMigration();
 		} catch (\Throwable $e) {
-			$this->fileLogger?->error(
+			$this->fileLogger->error(
 				"Migration $name failed: " . $e->getMessage()
 			);
 
@@ -68,7 +68,7 @@ class MailLogDataMigration extends AbstractMigration {
 			return false;
 		}
 
-		$this->fileLogger?->info("Finished migration $name");
+		$this->fileLogger->info("Finished migration $name");
 		return true;
 	}
 
@@ -158,7 +158,7 @@ class MailLogDataMigration extends AbstractMigration {
 		try {
 			$this->createMailLogDataTable($output);
 		} catch (\Throwable $e) {
-			$this->fileLogger?->error(
+			$this->fileLogger->error(
 				"createMailLogDataTable failed: " . $e->getMessage()
 			);
 
@@ -172,7 +172,7 @@ class MailLogDataMigration extends AbstractMigration {
 
 	private function createMailLogDataTable(OutputInterface $output): void
     {
-		$this->fileLogger?->info("Creating table " . AppConfig::MAIL_LOG_DATA_TABLE);
+		$this->fileLogger->info("Creating table " . AppConfig::MAIL_LOG_DATA_TABLE);
 		$output?->writeln("<comment>Creating table " . AppConfig::MAIL_LOG_DATA_TABLE . "</comment>");
 
 		$this->createTable(

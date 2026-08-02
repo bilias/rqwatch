@@ -86,10 +86,10 @@ abstract class AbstractMigration {
 			return true;
 		}
 
-		$this->fileLogger?->warning(
+		$this->fileLogger->warning(
 			"DB Migration {$this->getName()} requires manual execution"
 		);
-		$this->fileLogger?->warning(
+		$this->fileLogger->warning(
 			"See: " . Migrations::MIGRATION_HELP[$this->getName()]
 		);
 
