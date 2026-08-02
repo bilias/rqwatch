@@ -27,6 +27,7 @@ use App\Core\Routing\RouteName;
 
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
+use App\Core\App;
 use App\Utils\Helper;
 use App\Services\MailLogService;
 use App\Services\UserService;
@@ -74,7 +75,7 @@ class CronNotifications extends RqwatchCliCommand
 		$show_local_only = $input->getOption('local');
 		$send_blacklisted = $input->getOption('blacklisted');
 
-		$service = new MailLogService($this->fileLogger);
+		$service = new MailLogService($this->fileLogger, App::migrationStatus());
 
 		// MailLog Collection
 		$local = '';
