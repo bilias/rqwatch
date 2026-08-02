@@ -56,6 +56,8 @@ final class MailLogWriter
 	private function insertMailLog(array $mailData): int {
 		if ($this->supportsMailLogData()) {
 
+			// MailLogData column values from MailLog
+			// No dual writting to save space
 			[$mailLog, $mailLogData] = $this->splitMailData($mailData);
 
 			$mailLogId = $this->capsule
@@ -128,6 +130,7 @@ final class MailLogWriter
 			$this->fileLogger
 		);
 
+		// migration is recorded and schema exists
 		return $this->supportsRecipients = $migration->isApplied();
 	}
 
@@ -141,6 +144,7 @@ final class MailLogWriter
 			$this->fileLogger
 		);
 
+		// migration is recorded and schema exists
 		return $this->supportsMailLogData = $migration->isApplied();
 	}
 
