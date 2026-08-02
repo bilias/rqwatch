@@ -65,12 +65,10 @@ class Controller
 
 	protected LoggerInterface $fileLogger;
 	protected LoggerInterface $syslogLogger;
-	protected MigrationStatus $migrationStatus;
 
 	public function __construct() {
 		$this->fileLogger = App::fileLogger();
 		$this->syslogLogger = App::syslogLogger();
-		$this->migrationStatus = App::migrationStatus();
 	}
 
 	public function setRequest(Request $request): void {
@@ -200,14 +198,6 @@ class Controller
 		$this->syslogLogger = $logger;
 	}
 
-	public function getMigrationStatus(): MigrationStatus {
-		if ($this->migrationStatus === null) {
-			throw new RuntimeException('MigrationStatus not initialized');
-		}
-
-		return $this->migrationStatus;
-	}
-
 	public function getRspamdStat(): array {
 		if (!$this->getIsAdmin() || Config::get('rspamd_stat_disable')) {
 			return [];
@@ -332,7 +322,7 @@ class Controller
 			return;
 		}
 
-		$migrations_status = $this->migrationStatus->getStatus();
+		$migrations_status = App::migrationStatus()->getStatus();
 
 		foreach ($migrations_status as $migration => $applied) {
 			if (!$applied) {
