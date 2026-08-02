@@ -37,14 +37,6 @@ class MigrateCreatedDay extends MigrateCliCommand
 
 	use LockableTrait;
 
-	/*
-	public function __construct() {
-		// set command name
-		//parent::__construct($this->app_name);
-		parent::__construct();
-	}
-	*/
-
 	#[\Override]
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		if (!$this->lock()) {
