@@ -164,6 +164,11 @@ class Controller
 		$this->urlsInitialized = false;
 	}
 
+	public function refreshUrls(): void {
+		$this->urlsInitialized = false;
+		$this->initUrls();
+	}
+
 	public function initUrls(): void {
 		if ($this->urlsInitialized) {
 			return;
@@ -180,11 +185,6 @@ class Controller
 		}
 
 		$this->urlsInitialized = true;
-	}
-
-	public function refreshUrls(): void {
-		$this->urlsInitialized = false;
-		$this->initUrls();
 	}
 
 	public function getFileLogger(): LoggerInterface {
