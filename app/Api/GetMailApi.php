@@ -10,7 +10,7 @@
 
 namespace App\Api;
 
-use App\Models\MailLog;
+use App\Services\MailLogService;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -31,7 +31,7 @@ class GetMailApi extends RqwatchApi
 
 	#[\Override]
 	public function handle(): void {
-		$id = $this->request->request->get('id');
+		$id = $this->request->request->getInt('id');
 		$remote_user = $this->request->request->get('remote_user');
 
 		if (empty($remote_user)) {
@@ -42,7 +42,7 @@ class GetMailApi extends RqwatchApi
 				$err_msg, 'critical');
 		}
 
-		if (empty($id)) {
+		if ($id <= 0) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested mail without a mail id";
 			$response_msg = "Missing Required info";
 			$this->dropLogResponse(
@@ -50,7 +50,8 @@ class GetMailApi extends RqwatchApi
 				$err_msg, 'critical');
 		}
 		
-		$log = MailLog::find($id);
+		$service = $service = new MailLogService();
+		$log = $service->findMailLog($id);
 
 		if (empty($log)) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested mail with id {$id} which does no exist";

@@ -263,6 +263,27 @@ class MailLogService
 		return $log;
 	}
 
+	public function findMailLog(int $id): MailLog {
+		$lf = "[MailLogService_findMailLog]";
+
+		$query = MailLog::with($this->mailLogRelations());
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		$log = $query
+			->find($id);
+
+		if (!$log) {
+			$err = "Mail with ID '{$id}' not found";
+			Helper::debug_exception_err("{$lf} $err");
+			throw new InvalidArgumentException($err);
+		}
+
+		return $log;
+	}
+
 	public function showQuarantinedMail(int $id): MailLog {
 		$lf = "[MailLogService_showQuarantinedMail]";
 		$fields = MailLog::SELECT_FIELDS;
