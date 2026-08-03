@@ -348,14 +348,14 @@ class Controller
 			$message = "Database migration: '" .
 				Migrations::MIGRATION_DESCR[$migration] .
 				"' is " .
-				($status ?? Migrations::STATUS_PENDING) .
-				". See " .
-				Migrations::MIGRATION_HELP[$migration];
+				($status ?? Migrations::STATUS_PENDING);
 
 			if ($status === Migrations::STATUS_RUNNING) {
 				$this->flashbag->add('info', $message);
 				$this->fileLogger->info($message);
 			} else {
+				$message .= ". See " .
+					Migrations::MIGRATION_HELP[$migration];
 				$this->flashbag->add('warning', $message);
 				$this->fileLogger->warning($message);
 			}
