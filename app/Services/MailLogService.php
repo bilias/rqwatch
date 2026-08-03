@@ -18,7 +18,10 @@ use App\Core\App;
 use App\Utils\Helper;
 use App\Utils\FormHelper;
 use App\Models\MailLog;
+
 use App\Core\Database\MigrationStatus;
+use App\Inventory\Migrations;
+
 use App\Inventory\MailObject;
 use App\Inventory\MailAttachment;
 
@@ -97,9 +100,7 @@ class MailLogService
 				->orderBy('created_at', 'DESC');
 		}
 
-		if ($withRecipients) {
-			$query->with('recipients');
-		}
+		$query->with($this->mailLogRelations());
 
 		return $this->getQueryByFilters($query, $filters);
 	}
@@ -557,7 +558,7 @@ class MailLogService
 			$date = Helper::get_today();
 		}
 
-		$query = MailLog::with('recipients')
+		$query = MailLog::with($this->mailLogRelations())
 			->select($fields)
 			->whereBetween('created_at', [
 				"{$date} 00:00:00",
@@ -1371,18 +1372,13 @@ class MailLogService
 	}
 
 	public function mailLogRelations(): array {
-		/*
 		$relations = [];
 
-		if ($this->migrationStatus->hasMailRecipients()) {
+		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
 			$relations[] = 'recipients';
 		}
-		*/
-		$relations = [
-			'recipients'
-		];
 
-		if ($this->migrationStatus->hasMailLogData()) {
+		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_LOG_DATA)) {
 			$relations[] = 'mailLogData';
 		}
 
