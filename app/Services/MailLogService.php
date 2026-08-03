@@ -701,6 +701,9 @@ class MailLogService
 			throw new InvalidArgumentException($err);
 		}
 
+		if ($log->symbols === null) {
+			$log->symbols = [];
+		}
 		// order symbols by score and show printable information only
 		$ar = Helper::format_symbols($log->symbols, $log->score, $log->has_virus);
 
