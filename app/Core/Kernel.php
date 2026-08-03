@@ -120,7 +120,10 @@ final class Kernel
 	}
 
 	private function getMigrationStatus(): void {
-		$this->migrationStatus = new MigrationStatus();
+		$this->migrationStatus = new MigrationStatus(
+			$this->capsule,
+			$this->fileLogger
+		);
 	}
 
 	private function initApp(): void {

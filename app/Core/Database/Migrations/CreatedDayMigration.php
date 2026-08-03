@@ -38,14 +38,15 @@ class CreatedDayMigration extends AbstractMigration {
 		$descr = $this->getDescr();
 		$details = "'{$descr}' ($name)";
 
-		if ($this->hasMigration()) {
+		// completed and verified
+		if ($this->isApplied()) {
 			$output?->writeln("<info>Migration $details is already recorded</info>");
 			return true;
 		}
 
-		if ($this->verify()) {
+		if ($this->verifySchema()) {
 			$output?->writeln("<info>Migration $details exists, recording status</info>");
-			$this->recordMigration();
+			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 			return true;
 		}
 
@@ -54,14 +55,12 @@ class CreatedDayMigration extends AbstractMigration {
 		$output?->writeln("<comment>This will take some time, please be patient</comment>");
 
 		try {
+			// create table if does not exist, then check and throw if not exist
+			$this->ensureMailLogDataTable($output);
+			$this->recordMigrationStatus(Migrations::STATUS_RUNNING);
+
 			$this->runMigration();
-			if (!$this->verify()) {
-				throw new RuntimeException(
-					"Migration $name verification failed"
-				);
-				return false;
-			}
-			$this->recordMigration();
+			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 		} catch (\Throwable $e) {
 			$this->fileLogger->error(
 				"Migration $name failed: " . $e->getMessage()
@@ -88,7 +87,7 @@ class CreatedDayMigration extends AbstractMigration {
 		}
 	}
 
-	protected function verify(): bool {
+	protected function verifySchema(): bool {
 		return $this->hasColumn(
 			AppConfig::MAIL_LOGS_TABLE,
 			self::COLUMN_CREATED_DAY

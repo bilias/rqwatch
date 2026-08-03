@@ -35,14 +35,15 @@ class MailRecipientsMigration extends AbstractMigration {
 		$descr = $this->getDescr();
 		$details = "'{$descr}' ($name)";
 
-		if (!$force && $this->hasMigration()) {
-			$output?->writeln("<info>Migration $details is already recorded</info>");
+		// completed and verified
+		if (!$force && $this->isApplied()) {
+			$output?->writeln("<info>Migration $details is already applied</info>");
 			return true;
 		}
 
-		if (!$force && $this->verify()) {
+		if (!$force && $this->verifySchema()) {
 			$output?->writeln("<info>Migration $details exists, recording status</info>");
-			$this->recordMigration();
+			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 			return true;
 		}
 
@@ -53,8 +54,10 @@ class MailRecipientsMigration extends AbstractMigration {
 		try {
 			// create table if does not exist, then check and throw if not exist
 			$this->ensureRecipientsTable($output);
+			$this->recordMigrationStatus(Migrations::STATUS_RUNNING);
+
 			$this->runMigration($batch, $sleep, $output);
-			$this->recordMigration();
+			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 		} catch (\Throwable $e) {
 			$this->fileLogger->error(
 				"Migration $name failed: " . $e->getMessage()
@@ -254,7 +257,7 @@ class MailRecipientsMigration extends AbstractMigration {
 		);
 	}
 
-	protected function verify(): bool {
+	protected function verifySchema(): bool {
 		return $this->hasTable(
 			AppConfig::MAIL_LOG_RECIPIENTS_TABLE
 		);

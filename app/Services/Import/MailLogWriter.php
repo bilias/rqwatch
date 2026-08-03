@@ -18,6 +18,9 @@ use Psr\Log\LoggerInterface;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
+use App\Inventory\Migrations;
+use App\Core\Database\MigrationStatus;
+
 use App\Core\Database\Migrations\MailRecipientsMigration;
 use App\Core\Database\Migrations\MailLogDataMigration;
 
@@ -27,13 +30,14 @@ final class MailLogWriter
 {
 	private Capsule $capsule;
 	private LoggerInterface $fileLogger;
+	private MigrationStatus $migrationStatus;
 
 	private ?bool $supportsRecipients = null;
-	private ?bool $supportsMailLogData = null;
 
 	public function __construct() {
 		$this->capsule = App::capsule();
 		$this->fileLogger = App::fileLogger();
+		$this->migrationStatus = App::migrationStatus();
 	}
 
 	public function insert(array $mailData, array $recipients): int {
@@ -54,24 +58,60 @@ final class MailLogWriter
 
 	// Insert into mail_logs.
 	private function insertMailLog(array $mailData): int {
+		// we are in the middle of MAIL_LOG_DATA migration
+		// dual write to both tables
+		if ($this->migrationStatus->isMigrationRunning(Migrations::MAIL_LOG_DATA)) {
+			$this->fileLogger->info("dual write, migration running");
+			return $this->insertMailLogDualWrite($mailData);
+		}
+
+		// MAIL_LOG_DATA completed
 		if ($this->supportsMailLogData()) {
+			$this->fileLogger->info("split write, migration done");
+			return $this->insertMailLogSplitWrite($mailData);
+		}
 
-			// MailLogData column values from MailLog
-			// No dual writting to save space
-			[$mailLog, $mailLogData] = $this->splitMailData($mailData);
+		// legacy write
+		$this->fileLogger->info("legacy write");
+		return $this->insertMailLogLegacyWrite($mailData);
+	}
 
-			$mailLogId = $this->capsule
-				->table(AppConfig::MAIL_LOGS_TABLE)
-				->insertGetId($mailLog);
+	private function insertMailLogSplitWrite(array $mailData): int {
+		[$mailLog, $mailLogData] = $this->splitMailData($mailData);
+
+		$mailLogId = $this->capsule
+			->table(AppConfig::MAIL_LOGS_TABLE)
+			->insertGetId($mailLog);
 
 			$this->insertMailLogData(
 				$mailLogId,
 				$mailLogData
 			);
 
-			return $mailLogId;
-		}
+		return $mailLogId;
+	}
 
+	private function insertMailLogDualWrite(array $mailData): int {
+		$mailLogId = $this->capsule
+			->table(AppConfig::MAIL_LOGS_TABLE)
+			->insertGetId($mailData);
+
+		$mailLogData = [
+			'mail_log_id' => $mailLogId,
+			'headers' => $mailData['headers'] ?? null,
+			'symbols' => $mailData['symbols'] ?? null,
+			'fuzzy_hashes' => $mailData['fuzzy_hashes'] ?? null,
+		];
+
+		$this->insertMailLogData(
+			$mailLogId,
+			$mailLogData
+		);
+
+		return $mailLogId;
+	}
+
+	private function insertMailLogLegacyWrite(array $mailData): int {
 		return $this->capsule
 			->table(AppConfig::MAIL_LOGS_TABLE)
 			->insertGetId($mailData);
@@ -121,25 +161,27 @@ final class MailLogWriter
 	}
 
 	private function supportsRecipients(): bool {
-		if ($this->supportsRecipients === true) {
-			return true;
-		}
+		// this one gives warning/throw catch if table missing
+		// we loose mail
+		// return $this->migrationStatus->isMigrationCompleted(
 
-		$migration = new MailRecipientsMigration();
-
-		// migration is recorded and schema exists
-		return $this->supportsRecipients = $migration->isApplied();
+		// auto fallback to legacy mode
+		// XXX we need to log this somewhere
+		return $this->migrationStatus->isMigrationApplied(
+			Migrations::MAIL_RECIPIENTS
+		);
 	}
 
 	private function supportsMailLogData(): bool {
-		if ($this->supportsMailLogData === true) {
-			return true;
-		}
+		// this one gives warning/throw catch if table missing
+		// we loose mail
+		// return $this->migrationStatus->isMigrationCompleted(
 
-		$migration = new MailLogDataMigration();
-
-		// migration is recorded and schema exists
-		return $this->supportsMailLogData = $migration->isApplied();
+		// auto fallback to legacy mode
+		// XXX we need to log this somewhere
+		return $this->migrationStatus->isMigrationApplied(
+			Migrations::MAIL_LOG_DATA
+		);
 	}
 
 	private function splitMailData(array $mailData): array {

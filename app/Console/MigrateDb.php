@@ -62,6 +62,8 @@ class MigrateDB extends MigrateCliCommand
 			$migration = $this->createMigration($migration_str);
 
 			$migration->ensureMigrationsTable();
+
+			// completed and verified
 			if (!$force && $migration->isApplied()) {
 
 				$name = $migration->getName();
@@ -69,7 +71,7 @@ class MigrateDB extends MigrateCliCommand
 				$details = "'{$descr}' ($name)";
 
 				$output->writeln(
-					"<info>Migration $details is already recorded</info>"
+					"<info>Migration $details is already applied</info>"
 				);
 				continue;
 			}

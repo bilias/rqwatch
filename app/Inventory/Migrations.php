@@ -63,6 +63,18 @@ class Migrations
 		self::MAIL_LOG_DATA => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 	];
 
+	public const string STATUS_PENDING   = 'pending';
+	public const string STATUS_RUNNING   = 'running';
+	public const string STATUS_COMPLETED = 'completed';
+	public const string STATUS_FAILED    = 'failed';
+
+	public const array STATUSES = [
+		self::STATUS_PENDING,
+		self::STATUS_RUNNING,
+		self::STATUS_COMPLETED,
+		self::STATUS_FAILED,
+	];
+
 	public static function create(
 		string $migration,
 		Capsule $capsule,

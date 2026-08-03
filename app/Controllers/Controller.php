@@ -337,15 +337,25 @@ class Controller
 			return;
 		}
 
-		$migrations_status = App::migrationStatus()->getStatus();
+		$migrationsStatus = App::migrationStatus()->getMigrationStates();
 
-		foreach ($migrations_status as $migration => $applied) {
-			if (!$applied) {
-				$message = "Database migration missing: '" .
-					Migrations::MIGRATION_DESCR[$migration] .
-					"'. See " .
-					Migrations::MIGRATION_HELP[$migration];
+		foreach ($migrationsStatus as $migration => $status) {
 
+			if ($status === Migrations::STATUS_COMPLETED) {
+				continue;
+			}
+
+			$message = "Database migration: '" .
+				Migrations::MIGRATION_DESCR[$migration] .
+				"' is " .
+				($status ?? Migrations::STATUS_PENDING) .
+				". See " .
+				Migrations::MIGRATION_HELP[$migration];
+
+			if ($status === Migrations::STATUS_RUNNING) {
+				$this->flashbag->add('info', $message);
+				$this->fileLogger->info($message);
+			} else {
 				$this->flashbag->add('warning', $message);
 				$this->fileLogger->warning($message);
 			}

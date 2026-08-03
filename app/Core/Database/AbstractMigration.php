@@ -23,6 +23,7 @@ use Psr\Log\LoggerInterface;
 
 use Closure;
 use RuntimeException;
+use InvalidArgumentException;
 
 abstract class AbstractMigration {
 
@@ -36,7 +37,11 @@ abstract class AbstractMigration {
 		$this->fileLogger = App::fileLogger();
 	}
 
-	abstract protected function verify(): bool;
+	abstract protected function verifySchema(): bool;
+
+	public function verify(): bool {
+		return $this->verifySchema();
+	}
 
 	public function getName(): string {
 		return static::MIGRATION_NAME;
@@ -74,13 +79,41 @@ abstract class AbstractMigration {
 		$this->capsule->schema()->table($tableName, $callback);
 	}
 
+	/*
 	protected function hasMigration(): bool {
 		$this->ensureMigrationsTable();
 
 		return $this->capsule
 			->table(AppConfig::MIGRATIONS_TABLE)
 			->where('migration', $this->getName())
+			->where('status', Migrations::STATUS_COMPLETED)
 			->exists();
+	}
+	*/
+
+	protected function hasMigration(): bool {
+		return $this->getMigrationStatus() !== null;
+	}
+
+	protected function getMigrationStatus(): ?string {
+		$this->ensureMigrationsTable();
+
+		return $this->capsule
+			->table(AppConfig::MIGRATIONS_TABLE)
+			->where('migration', $this->getName())
+			->value('status');
+	}
+
+	protected function isMigrationRunning(): bool {
+		return $this->getMigrationStatus() === Migrations::STATUS_RUNNING;
+	}
+
+	protected function isMigrationCompleted(): bool {
+		return $this->getMigrationStatus() === Migrations::STATUS_COMPLETED;
+	}
+
+	protected function isMigrationFailed(): bool {
+		return $this->getMigrationStatus() === Migrations::STATUS_FAILED;
 	}
 
 	public function verifyMigration(): bool {
@@ -99,27 +132,30 @@ abstract class AbstractMigration {
 	}
 
 	public function isApplied(): bool {
-		return $this->hasMigration() && $this->verify();
+		return $this->isMigrationCompleted() && $this->verifySchema();
 	}
 
-	protected function recordMigration(): void {
+	protected function recordMigrationStatus(string $status): void {
 		$this->ensureMigrationsTable();
+
+		if (!in_array($status, Migrations::STATUSES, true)) {
+			throw new InvalidArgumentException(
+				"Unknown migration status '{$status}'."
+			);
+		}
+
+		$data = [
+			'migration'   => $this->getName(),
+			'status'      => $status,
+			'status_at' => date('Y-m-d H:i:s'),
+		];
 
 		$this->capsule
 			->table(AppConfig::MIGRATIONS_TABLE)
 			->upsert(
-				[
-					[
-						'migration' => $this->getName(),
-						'executed_at' => date('Y-m-d H:i:s'),
-					]
-				],
-				[
-					'migration'
-				],
-				[
-					'executed_at'
-				]
+				[ $data ],
+				[ 'migration' ],
+				[ 'status', 'status_at' ]
 			);
 	}
 
@@ -140,9 +176,9 @@ abstract class AbstractMigration {
 		$this->createTable(
 			AppConfig::MIGRATIONS_TABLE,
 			function (Blueprint $table) {
-				$table->increments('id');
-				$table->string('migration', 255)->unique();
-				$table->timestamp('executed_at')->useCurrent();
+				$table->string('migration', 255)->primary();
+				$table->string('status', 32)->default(Migrations::STATUS_PENDING);
+				$table->timestamp('status_at')->useCurrent();
 			}
 		);
 	}

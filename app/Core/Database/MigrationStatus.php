@@ -12,17 +12,33 @@ namespace App\Core\Database;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-use Psr\Log\LoggerInterface;
+use App\Configuration\AppConfig;
 
 use App\Inventory\Migrations;
+
 use App\Core\Database\Migrations\MailRecipientsMigration;
 use App\Core\Database\Migrations\MailLogDataMigration;
+
+use Illuminate\Database\QueryException;
+
+use Psr\Log\LoggerInterface;
 
 use RuntimeException;
 
 final class MigrationStatus
 {
 	private array $cache = [];
+
+	// migration status/state cache
+	private array $stateCache = [];
+
+	// migration applied cache
+	private array $appliedCache = [];
+
+	public function __construct(
+		private Capsule $capsule,
+		private LoggerInterface $fileLogger
+	) {}
 
 	public function hasMailRecipients(): bool {
 		return $this->check(
@@ -58,7 +74,7 @@ final class MigrationStatus
 		return $this->cache[$key] = $migration->isApplied();
 	}
 
-	public function getStatus(): array {
+	public function getAppliedStatus(): array {
 		$status = [];
 
 		foreach (Migrations::MIGRATIONS as $migration) {
@@ -66,6 +82,77 @@ final class MigrationStatus
 		}
 
 		return $status;
+	}
+
+	public function getMigrationState(string $migration): ?string {
+		if (array_key_exists($migration, $this->stateCache)) {
+			return $this->stateCache[$migration];
+		}
+
+		if (!in_array($migration, Migrations::MIGRATIONS, true)) {
+			throw new RuntimeException("Unknown migration : {$migration}");
+		}
+
+		try {
+			return $this->stateCache[$migration] = $this->capsule
+				->table(AppConfig::MIGRATIONS_TABLE)
+				->where('migration', $migration)
+				->value('status');
+		} catch (QueryException $e) {
+			// migrations table does not exist yet
+			if ($e->getCode() === '42S02') {
+				/*
+				$this->fileLogger->warning(
+					"Migration table '" . AppConfig::MIGRATIONS_TABLE .
+					"' does not exist"
+				);
+				*/
+				return $this->stateCache[$migration] = null;
+			}
+
+			throw $e;
+		}
+	}
+
+	public function isMigrationRunning(string $migration): bool {
+		return $this->getMigrationState($migration)
+			=== Migrations::STATUS_RUNNING;
+	}
+
+	public function isMigrationCompleted(string $migration): bool {
+		return $this->getMigrationState($migration)
+			=== Migrations::STATUS_COMPLETED;
+	}
+
+	public function isMigrationApplied(string $migration): bool {
+		if (array_key_exists($migration, $this->appliedCache)) {
+			return $this->appliedCache[$migration];
+		}
+
+		if (!isset(Migrations::MIGRATION_CLASSES[$migration])) {
+			throw new RuntimeException("Unknown migration: {$migration}");
+		}
+
+		if (!$this->isMigrationCompleted($migration)) {
+			return $this->appliedCache[$migration] = false;
+		}
+
+		$migrationClass = Migrations::MIGRATION_CLASSES[$migration];
+
+		$migrationInstance = new $migrationClass();
+
+		return $this->appliedCache[$migration] =
+			$migrationInstance->verify();
+	}
+
+	public function getMigrationStates(): array {
+		$states = [];
+
+		foreach (Migrations::MIGRATIONS as $migration) {
+			$states[$migration] = $this->getMigrationState($migration);
+		}
+
+		return $states;
 	}
 
 }
