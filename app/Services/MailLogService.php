@@ -776,7 +776,7 @@ class MailLogService
 	}
 
 	public function getMailObjectViaApi(int $id, string $api_server): MailObject {
-		$lf = "[getMailObjectViaApi]";
+		$lf = "[MailLogService_getMailObjectViaApi]";
 
 		if (empty($id)) {
 			Helper::debug_exception_err("{$lf} empty mail id");
