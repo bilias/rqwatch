@@ -169,7 +169,6 @@ class LoginController extends ViewController
 					$url = $this->homepageUrl;
 				}
 
-				$this->getAdminWarnings();
 				return new RedirectResponse($url);
 			}
 		}

@@ -67,6 +67,7 @@ class MailLogController extends ViewController
 	}
 
 	public function showAll(): Response {
+		$this->getAdminWarnings();
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -246,6 +247,7 @@ class MailLogController extends ViewController
 	}
 
 	public function showDay(string $date = null): Response {
+	$this->getAdminWarnings();
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -728,6 +730,7 @@ class MailLogController extends ViewController
 	}
 
 	public function search(): Response {
+		$this->getAdminWarnings();
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
