@@ -1001,6 +1001,9 @@ class MailLogService
 		$signature = Config::get('mail_signature');
 		$subject = Config::get('release_mail_subject');
 
+		if ($maillog->symbols === null) {
+			$maillog->symbols = [];
+		}
 		$ar = Helper::format_symbols($maillog->symbols, $maillog->score, $maillog->has_virus);
 		$vars = array(
 			'created_at' => $maillog->created_at,
