@@ -23,7 +23,7 @@ use InvalidArgumentException;
 
 class Migrations
 {
-	public const string MAIL_RECIPIENTS = '20260729_migrate_mail_recipients';
+	public const string MAIL_RECIPIENTS = '20260111_migrate_mail_recipients';
 	public const string ADD_CREATED_DAY = '20260729_add_created_day';
 	public const string MAIL_LOG_DATA = '20260731_mail_log_data';
 
