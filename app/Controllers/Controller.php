@@ -182,6 +182,11 @@ class Controller
 		$this->urlsInitialized = true;
 	}
 
+	public function refreshUrls(): void {
+		$this->urlsInitialized = false;
+		$this->initUrls();
+	}
+
 	public function getFileLogger(): LoggerInterface {
 		return $this->fileLogger;
 	}
