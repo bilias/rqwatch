@@ -58,9 +58,9 @@ class Migrations
 	];
 
 	public const array MIGRATION_HELP = [
-		self::MAIL_RECIPIENTS => "https://github.com/bilias/rqwatch/blob/master/docs/MAIL_RECIPIENTS_UPDATE.md",
-		self::CREATED_DAY => "https://github.com/bilias/rqwatch/blob/master/docs/CREATED_DAY_UPDATE.md",
-		self::MAIL_LOG_DATA => "https://github.com/bilias/rqwatch/blob/master/docs/MAIL_LOG_DATA_UPDATE.md",
+		self::MAIL_RECIPIENTS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
+		self::CREATED_DAY => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
+		self::MAIL_LOG_DATA => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 	];
 
 	public static function create(
