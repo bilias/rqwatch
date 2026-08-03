@@ -75,6 +75,8 @@ abstract class AbstractMigration {
 	}
 
 	protected function hasMigration(): bool {
+		$this->ensureMigrationsTable();
+
 		return $this->capsule
 			->table(AppConfig::MIGRATIONS_TABLE)
 			->where('migration', $this->getName())
@@ -101,6 +103,8 @@ abstract class AbstractMigration {
 	}
 
 	protected function recordMigration(): void {
+		$this->ensureMigrationsTable();
+
 		$this->capsule
 			->table(AppConfig::MIGRATIONS_TABLE)
 			->upsert(
