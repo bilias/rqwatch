@@ -572,8 +572,9 @@ class MailLogController extends ViewController
 			}
 
 			if ($success) {
-				$this->flashbag->add('success', "Message released to " .
-					implode(', ', $release_to) . " by " . $this->session->get('email'));
+				$this->flashbag->add('success', 
+					"Mail {$maillog->qid} released to " .
+					implode(', ', $release_to));
 				return $this->getDetailIdResponse($maillog->id);
 			} else {
 				$this->flashbag->add('error', "Message failed to be released");
