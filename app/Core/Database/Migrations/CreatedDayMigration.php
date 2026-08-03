@@ -26,7 +26,7 @@ use RuntimeException;
 
 class CreatedDayMigration extends AbstractMigration {
 
-	protected const string MIGRATION_NAME = Migrations::ADD_CREATED_DAY;
+	protected const string MIGRATION_NAME = Migrations::CREATED_DAY;
 
 	private const string COLUMN_CREATED_DAY = 'created_day';
 	private const string INDEX_CREATED_DAY = 'created_day_index';

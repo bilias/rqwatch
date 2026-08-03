@@ -32,7 +32,7 @@ final class MigrationStatus
 
 	public function hasCreatedDay(): bool {
 		return $this->check(
-			Migrations::ADD_CREATED_DAY
+			Migrations::CREATED_DAY
 		);
 	}
 

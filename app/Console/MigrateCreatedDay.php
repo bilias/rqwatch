@@ -31,7 +31,7 @@ use App\Inventory\Migrations;
 class MigrateCreatedDay extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_created_day";
-	private const string MIGRATION = Migrations::ADD_CREATED_DAY;
+	private const string MIGRATION = Migrations::CREATED_DAY;
 	private const int BATCH = Migrations::MIGRATION_BATCH[self::MIGRATION];
 	private const int SLEEP = Migrations::MIGRATION_SLEEP[self::MIGRATION];
 
