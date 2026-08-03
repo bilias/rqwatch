@@ -517,11 +517,11 @@ class UserController extends ViewController
 
 				// push session vars to $this->vars
 				$this->setSessionVars($this->session);
-				$this->unsetUrls();
 
 				$this->fileLogger->info("'{$old_username}' logged in as '{$user->username}'");
 				$this->flashbag->add('success', "You are now logged in as {$user->username}");
-				$this->initUrls();
+
+				$this->refreshUrls();
 				return new RedirectResponse($this->homepageUrl);
 			}
 		}
