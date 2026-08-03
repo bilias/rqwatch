@@ -144,7 +144,7 @@ class MailLogDataMigration extends AbstractMigration {
 			$scanned += $logs->count();
 			$migrated += $inserted;
 			$remaining = max(0, $total - $scanned);
-			$output?->writeln("<info>Scanned: {$scanned}, Remaining: {$remaining}, Migrated: {$migrated} (mails)</info>"
+			$output?->writeln("<info>Found: {$scanned}, Remaining: {$remaining}, Migrated: {$migrated} (mails)</info>"
 );
 			usleep($sleep);
 		}
