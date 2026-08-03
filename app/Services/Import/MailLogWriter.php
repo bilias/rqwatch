@@ -37,6 +37,7 @@ final class MailLogWriter
 	public function __construct() {
 		$this->capsule = App::capsule();
 		$this->fileLogger = App::fileLogger();
+		$this->syslogLogger = App::syslogLogger();
 		$this->migrationStatus = App::migrationStatus();
 	}
 
@@ -58,21 +59,25 @@ final class MailLogWriter
 
 	// Insert into mail_logs.
 	private function insertMailLog(array $mailData): int {
-		// we are in the middle of MAIL_LOG_DATA migration
-		// dual write to both tables
+		// MAIL_LOG_DATA migration in progress. Dual write
+		// data fields in both mail_logs and mail_log_data table
 		if ($this->migrationStatus->isMigrationRunning(Migrations::MAIL_LOG_DATA)) {
+			$this->fileLogger->info($mailData['qid'] . " MAIL_LOG_DATA DB migration in progress, writting in dual mode");
+			$this->syslogLogger->info($mailData['qid'] . " MAIL_LOG_DATA DB migration in progress, writting in dual mode");
 			$this->fileLogger->info("dual write, migration running");
 			return $this->insertMailLogDualWrite($mailData);
 		}
 
-		// MAIL_LOG_DATA completed
-		if ($this->supportsMailLogData()) {
-			$this->fileLogger->info("split write, migration done");
+		// MAIL_LOG_DATA migration completed. Split write
+		// data fields in mail_log_data table only
+		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_LOG_DATA)) {
+			// $this->fileLogger->info("split write, migration done");
 			return $this->insertMailLogSplitWrite($mailData);
 		}
 
-		// legacy write
-		$this->fileLogger->info("legacy write");
+		// MAIL_LOG_DATA migration pending. Legacy write (mail_logs table only)
+		$this->fileLogger->warning($mailData['qid'] . " was written in legacy mode. MAIL_LOG_DATA DB migration pending");
+		$this->syslogLogger->warning($mailData['qid'] . " was written in legacy mode. MAIL_LOG_DATA DB migration pending");
 		return $this->insertMailLogLegacyWrite($mailData);
 	}
 
