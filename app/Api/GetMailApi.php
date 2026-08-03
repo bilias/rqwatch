@@ -43,7 +43,7 @@ class GetMailApi extends RqwatchApi
 		}
 
 		if ($id <= 0) {
-			$err_msg = "{$remote_user} via {$this->clientIp} requested mail without a mail id";
+			$err_msg = "{$remote_user} via {$this->clientIp} requested mail with invalid mail id '{$id}'";
 			$response_msg = "Missing Required info";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,

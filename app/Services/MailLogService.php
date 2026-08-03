@@ -899,6 +899,7 @@ class MailLogService
 
 		try {
 			// has applyUserScope
+			// throws if mail not found
 			$maillog = $this->showOne($id);
 		} catch (InvalidArgumentException $e) {
 			$this->logger->warning("{$lf} " . $e->getMessage() . ". Mail does not exist or user does not have access to it" , ['email' => $this->email, 'is_admin' => $this->is_admin]);
