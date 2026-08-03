@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2026-08-03
+- Extended MigrationStatus
+- Legacy/Dual/Split Writes depending on Migration status
+
 ### 2026-08-01
 - Added application service registry (App::)
  for centralized access to shared services
