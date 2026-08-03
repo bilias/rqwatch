@@ -242,7 +242,8 @@ class MailLogService
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::select($fields)
-								->where('id', $id);
+			->with($this->mailLogRelations())
+			->where('id', $id);
 
 		$query = $this->applyUserScope($query);
 
@@ -250,7 +251,8 @@ class MailLogService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$log = $query->first();
+		$log = $query
+			->first();
 
 		if (!$log) {
 			$err = "Mail with ID '{$id}' not found";
