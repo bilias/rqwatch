@@ -317,6 +317,16 @@ class Controller
 
 	}
 
+	protected function getUserContext(): array {
+		return [
+			'is_admin' => $this->session->get('is_admin'),
+			'username' => $this->session->get('username'),
+			'user_id' => $this->session->get('user_id'),
+			'email' => $this->session->get('email'),
+			'user_aliases' => $this->session->get('user_aliases'),
+		];
+	}
+
 	protected function getAdminWarnings(): void {
 		if (!$this->getIsAdmin()) {
 			return;
@@ -335,16 +345,6 @@ class Controller
 				$this->fileLogger->warning($message);
 			}
 		}
-	}
-
-	protected function getUserContext(): array {
-		return [
-			'is_admin' => $this->session->get('is_admin'),
-			'username' => $this->session->get('username'),
-			'user_id' => $this->session->get('user_id'),
-			'email' => $this->session->get('email'),
-			'user_aliases' => $this->session->get('user_aliases'),
-		];
 	}
 
 }
