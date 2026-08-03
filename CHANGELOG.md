@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-08-03
+- Verify DB schema inside Kernel. Exit if there is error
 - Extended MigrationStatus
 - Legacy/Dual/Split Writes depending on Migration status
 

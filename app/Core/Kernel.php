@@ -65,6 +65,9 @@ final class Kernel
 		// get migration status
 		$this->getMigrationStatus();
 
+		// check db schema validity
+		$this->verifyDatabaseSchema();
+
 		// last: create App registry
 		$this->initApp();
 	}
@@ -115,6 +118,20 @@ final class Kernel
 		} catch (Throwable $e) {
 			$this->fileLogger->error("DB error: " . $e->getMessage());
 			echo "Database connection problem!";
+			exit;
+		}
+	}
+
+	private function verifyDatabaseSchema(): void {
+		try {
+			Database::verifySchema($this->capsule, $this->migrationStatus);
+		} catch (Throwable $e) {
+			$this->fileLogger->critical(
+				"Database schema verification failed: " .
+				$e->getMessage()
+			);
+
+			echo "Database schema problem!";
 			exit;
 		}
 	}

@@ -161,25 +161,17 @@ final class MailLogWriter
 	}
 
 	private function supportsRecipients(): bool {
-		// this one gives warning/throw catch if table missing
-		// we loose mail
-		// return $this->migrationStatus->isMigrationCompleted(
-
 		// auto fallback to legacy mode
-		// XXX we need to log this somewhere
-		return $this->migrationStatus->isMigrationApplied(
+		//return $this->migrationStatus->isMigrationApplied(
+		return $this->migrationStatus->isMigrationCompleted(
 			Migrations::MAIL_RECIPIENTS
 		);
 	}
 
 	private function supportsMailLogData(): bool {
-		// this one gives warning/throw catch if table missing
-		// we loose mail
-		// return $this->migrationStatus->isMigrationCompleted(
-
 		// auto fallback to legacy mode
-		// XXX we need to log this somewhere
-		return $this->migrationStatus->isMigrationApplied(
+		//return $this->migrationStatus->isMigrationApplied(
+		return $this->migrationStatus->isMigrationCompleted(
 			Migrations::MAIL_LOG_DATA
 		);
 	}

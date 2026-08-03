@@ -12,7 +12,16 @@ namespace App\Core\Database;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
+use App\Configuration\AppConfig;
+
+use App\Core\Database\MigrationStatus;
+use App\Inventory\Migrations;
+
+use RuntimeException;
+
 class Database {
+
+	private static array $schema = [];
 
 	public static function boot(): Capsule {
 		$db_config = Array (
@@ -54,4 +63,114 @@ class Database {
 
 		return $capsule;
 	}
+
+	public static function verifySchema(
+		Capsule $capsule,
+		MigrationStatus $migrationStatus
+	): void {
+
+		self::getDbSchema($capsule);
+
+		// Base schema
+		self::requireTable(AppConfig::MAIL_LOGS_TABLE);
+
+		// self::requireTable(AppConfig::MIGRATIONS_TABLE);
+
+		if ($migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
+			self::verifyMailRecipients();
+		}
+
+		if ($migrationStatus->isMigrationCompleted(Migrations::MAIL_LOG_DATA)) {
+			self::verifyMailLogData();
+		}
+
+		if ($migrationStatus->isMigrationCompleted(Migrations::CREATED_DAY)) {
+			self::verifyCreatedDay();
+		}
+	}
+
+	private static function verifyCreatedDay(): void {
+		self::requireColumn(
+			AppConfig::MAIL_LOGS_TABLE,
+			'created_day'
+		);
+	}
+
+	private static function verifyMailRecipients(): void {
+		self::requireTable(AppConfig::MAIL_LOG_RECIPIENTS_TABLE);
+
+		self::requireColumn(
+			AppConfig::MAIL_LOG_RECIPIENTS_TABLE,
+			'mail_log_id'
+		);
+
+		self::requireColumn(
+			AppConfig::MAIL_LOG_RECIPIENTS_TABLE,
+			'recipient_email'
+		);
+	}
+
+	private static function verifyMailLogData(): void {
+		self::requireTable(AppConfig::MAIL_LOG_DATA_TABLE);
+
+		self::requireColumn(
+			AppConfig::MAIL_LOG_DATA_TABLE,
+			'mail_log_id'
+		);
+
+		self::requireColumn(
+			AppConfig::MAIL_LOG_DATA_TABLE,
+			'headers'
+		);
+
+		self::requireColumn(
+			AppConfig::MAIL_LOG_DATA_TABLE,
+			'symbols'
+		);
+
+		self::requireColumn(
+			AppConfig::MAIL_LOG_DATA_TABLE,
+			'fuzzy_hashes'
+		);
+	}
+
+	private static function getDbSchema(Capsule $capsule): array {
+		if (!empty(self::$schema)) {
+			return self::schema;
+		}
+
+		$rows = $capsule
+			->getConnection()
+			->select("SELECT TABLE_NAME, COLUMN_NAME
+					FROM information_schema.COLUMNS
+					WHERE TABLE_SCHEMA = '" . $_ENV['DB_NAME'] . 
+					"' ORDER BY TABLE_NAME, ORDINAL_POSITION");
+
+		$schema = [];
+
+		foreach ($rows as $row) {
+			$schema[$row->TABLE_NAME][] = $row->COLUMN_NAME;
+		}
+
+		return self::$schema = $schema;
+	}
+
+	private static function requireTable(string $table): void {
+		if (!array_key_exists($table, self::$schema)) {
+			throw new RuntimeException(
+				"Required table '{$table}' is missing."
+			);
+		}
+	}
+
+	private static function requireColumn(string $table, string $column): void {
+		self::requireTable($table);
+
+		if (!in_array($column, self::$schema[$table], true)) {
+			throw new RuntimeException(
+				"Required column '{$table}.{$column}' is missing."
+			);
+		}
+	}
+
 }
