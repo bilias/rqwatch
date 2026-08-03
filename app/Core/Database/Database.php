@@ -76,6 +76,13 @@ class Database {
 
 		// self::requireTable(AppConfig::MIGRATIONS_TABLE);
 
+		$migrationStatus->setMigrationTableExists(
+			array_key_exists(
+				AppConfig::MIGRATIONS_TABLE,
+				self::$schema
+			)
+		);
+
 		if ($migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
 			self::verifyMailRecipients();
 		}

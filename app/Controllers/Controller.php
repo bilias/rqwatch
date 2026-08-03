@@ -337,6 +337,13 @@ class Controller
 			return;
 		}
 
+		if (!App::migrationStatus()->hasMigrationTable()) {
+			$message = "Migration tracking table is missing. Please run db:migrate";
+			$this->flashbag->add('info', $message);
+			$this->fileLogger->info($message);
+			return;
+		}
+
 		$migrationsStatus = App::migrationStatus()->getMigrationStates();
 
 		foreach ($migrationsStatus as $migration => $status) {

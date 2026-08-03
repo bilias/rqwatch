@@ -35,6 +35,8 @@ final class MigrationStatus
 	// migration applied cache
 	private array $appliedCache = [];
 
+	private bool $migrationTableExists = false;
+
 	public function __construct(
 		private Capsule $capsule,
 		private LoggerInterface $fileLogger
@@ -153,6 +155,14 @@ final class MigrationStatus
 		}
 
 		return $states;
+	}
+
+	public function setMigrationTableExists(bool $exists): void {
+		$this->migrationTableExists = $exists;
+	}
+
+	public function hasMigrationTable(): bool {
+		return $this->migrationTableExists;
 	}
 
 }
