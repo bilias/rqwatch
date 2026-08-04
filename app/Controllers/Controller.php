@@ -360,7 +360,6 @@ class Controller
 
 			if ($status === Migrations::STATUS_RUNNING) {
 				$this->flashbag->add('info', $message);
-				$this->fileLogger->info($message);
 			} else {
 				$message .= ". See " .
 					Migrations::MIGRATION_HELP[$migration];
