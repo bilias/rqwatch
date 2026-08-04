@@ -170,6 +170,9 @@ class Config {
 			if ($ttl >= 0) {
 				return $ttl; // seconds left
 			}
+			self::$logger?->warning(
+				"getRedisConfigTTL got ttl: {$ttl} for key '{$redisKey}'"
+			);
 			return null; // either -1 (no expiry) or -2 (not found)
 		} catch (Throwable $e) {
 			self::$logger?->error("Config [getRedisConfigTTL]: " . $e->getMessage());

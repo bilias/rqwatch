@@ -23,21 +23,24 @@ use App\Console\CronCleanupDb;
 use App\Console\CronUpdateMapFiles;
 use App\Console\UserAdd;
 use App\Console\MigrateMailRecipients;
+use App\Console\MigrateCreatedDay;
+use App\Console\MigrateMailLogData;
+use App\Console\MigrateDb;
 
-$services = Kernel::boot();
-$fileLogger = $services['fileLogger'];
-$syslogLogger = $services['syslogLogger'];
-$capsule = $services['capsule'];
+(new Kernel())->boot();
 
 $application = new Application();
 
 // ... register commands
 // fileLogger and syslogLogger come from bootstrap
-$application->add(new CronNotifications($fileLogger, $syslogLogger));
-$application->add(new CronQuarantine($fileLogger, $syslogLogger));
-$application->add(new CronCleanupDb($fileLogger, $syslogLogger));
-$application->add(new CronUpdateMapFiles($fileLogger, $syslogLogger));
-$application->add(new UserAdd($fileLogger, $syslogLogger));
-$application->add(new MigrateMailRecipients($fileLogger, $syslogLogger, $capsule));
+$application->add(new CronNotifications());
+$application->add(new CronQuarantine());
+$application->add(new CronCleanupDb());
+$application->add(new CronUpdateMapFiles());
+$application->add(new UserAdd());
+$application->add(new MigrateMailRecipients());
+$application->add(new MigrateCreatedDay());
+$application->add(new MigrateMailLogData());
+$application->add(new MigrateDb());
 
 $application->run();

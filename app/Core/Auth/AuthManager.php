@@ -48,20 +48,10 @@ class AuthManager
 		string $username,
 		#[SensitiveParameter] string $password
 	): bool {
-		$provider = $this->selectAuthProvider($username, $password);
+		$provider = $this->selectAuthProvider($username, $password, $this->logger);
 
 		if (!$provider) {
 			throw new RuntimeException("Authentication provider problem");
-		}
-
-		if (method_exists($provider, 'setLogger') && $this->logger) {
-			// DbAuth and LdapAuth use the setLogger setter
-			// API does not use AuthManager but BasicAuth directly
-			// because we want to catch early constructor errors.
-			// API passes logger on ther BasicAuth constructor
-			$provider->setLogger($this->logger);
-		} else {
-			throw new RuntimeException("Logging interface problem");
 		}
 
 		if (method_exists($provider, 'authenticate') && $provider->authenticate()) {
@@ -73,20 +63,10 @@ class AuthManager
 	}
 
 	public function startOpenIdConnectAuthentication(): bool {
-		$provider = new OpenIDConnectAuth();
+		$provider = new OpenIDConnectAuth($this->logger);
 
 		if (!$provider) {
 			throw new RuntimeException("Authentication provider problem");
-		}
-
-		if (method_exists($provider, 'setLogger') && $this->logger) {
-			// DbAuth and LdapAuth use the setLogger setter
-			// API does not use AuthManager but BasicAuth directly
-			// because we want to catch early constructor errors.
-			// API passes logger on ther BasicAuth constructor
-			$provider->setLogger($this->logger);
-		} else {
-			throw new RuntimeException("Logging interface problem");
 		}
 
 		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
@@ -113,20 +93,10 @@ class AuthManager
 		$this->providerDescr = "OPENIDC";
 		$this->providerId = array_search("OPENIDC", self::$authProviders);
 
-		$provider = new OpenIDConnectAuth();
+		$provider = new OpenIDConnectAuth($this->logger);
 
 		if (!$provider) {
 			throw new RuntimeException("Authentication provider problem");
-		}
-
-		if (method_exists($provider, 'setLogger') && $this->logger) {
-			// DbAuth and LdapAuth use the setLogger setter
-			// API does not use AuthManager but BasicAuth directly
-			// because we want to catch early constructor errors.
-			// API passes logger on ther BasicAuth constructor
-			$provider->setLogger($this->logger);
-		} else {
-			throw new RuntimeException("Logging interface problem");
 		}
 
 		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
@@ -145,20 +115,10 @@ class AuthManager
 			return false;
 		}
 
-		$provider = new OpenIDConnectAuth();
+		$provider = new OpenIDConnectAuth($this->logger);
 
 		if (!$provider) {
 			throw new RuntimeException("Authentication provider problem");
-		}
-
-		if (method_exists($provider, 'setLogger') && $this->logger) {
-			// DbAuth and LdapAuth use the setLogger setter
-			// API does not use AuthManager but BasicAuth directly
-			// because we want to catch early constructor errors.
-			// API passes logger on ther BasicAuth constructor
-			$provider->setLogger($this->logger);
-		} else {
-			throw new RuntimeException("Logging interface problem");
 		}
 
 		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
@@ -182,8 +142,7 @@ class AuthManager
 	}
 
 	public function getOpenIdConnectLogoutUrl(): ?string {
-		$provider = new OpenIDConnectAuth();
-		$provider->setLogger($this->logger);
+		$provider = new OpenIDConnectAuth($this->logger);
 		$provider->setUrlGenerator($this->urlGenerator);
 
 		return $provider->getLogoutUrl();
@@ -208,23 +167,28 @@ class AuthManager
 		return 'UNKNOWN';
 	}
 
-	private function selectAuthProvider(string $username, string $password): AuthInterface {
+	private function selectAuthProvider(
+		string $username,
+		string $password,
+		LoggerInterface $logger
+	): AuthInterface {
+
 		if ($username === 'admin') {
 			$this->providerDescr = "DB";
-			return new DbAuth($username, $password);
+			return new DbAuth($username, $password, $logger);
 		}
 
 		if (Helper::env_bool('LDAP_AUTH_ENABLED')) {
 			if (str_contains($username, '@')) {
 				$this->providerDescr = "LDAP";
 				$this->providerId = array_search("LDAP", self::$authProviders);
-				return new LdapAuth($username, $password);
+				return new LdapAuth($username, $password, $logger);
 			}
 		}
 
 		// Default to DB
 		$this->providerDescr = "DB";
-		return new DbAuth($username, $password);
+		return new DbAuth($username, $password, $logger);
 	}
 
 	public function getIdToken(): ?string {

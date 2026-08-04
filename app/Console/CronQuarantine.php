@@ -20,9 +20,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
-use App\Services\MailLogService;
+use App\Core\App;
 
-use Psr\Log\LoggerInterface;
+use App\Services\MailLogService;
 
 use DateTime;
 use DateInterval;
@@ -36,19 +36,8 @@ use DateInterval;
 class CronQuarantine extends RqwatchCliCommand
 {
 	private string $app_name = "cron:quarantine";
-	private ?LoggerInterface $fileLogger;
-	private ?LoggerInterface $syslogLogger;
 
 	use LockableTrait;
-
-	public function __construct(LoggerInterface $fileLogger, LoggerInterface $syslogLogger) {
-		// set command name
-		//parent::__construct($this->app_name);
-		parent::__construct();
-
-		$this->fileLogger = $fileLogger;
-		$this->syslogLogger = $syslogLogger;
-	}
 
 	#[\Override]
 	protected function configure(): void {
@@ -80,7 +69,7 @@ class CronQuarantine extends RqwatchCliCommand
 			$this->pruneEmptyQuarantineDateDirs($output);
 		}
 
-		$service = new MailLogService($this->fileLogger);
+		$service = new MailLogService();
 
 		// MailLog Collection
 		$local = '';
@@ -151,7 +140,7 @@ class CronQuarantine extends RqwatchCliCommand
 			$output->writeln("<comment>Quarantine pending delete{$local}:</comment>",
 				OutputInterface::VERBOSITY_NORMAL);
 			foreach ($logs as $log) {
-				$output->writeln("QID: {$log->qid}, to: {$log->rcpt_to}",
+				$output->writeln("QID: {$log->qid}",
 					OutputInterface::VERBOSITY_NORMAL);
 			}
 		}

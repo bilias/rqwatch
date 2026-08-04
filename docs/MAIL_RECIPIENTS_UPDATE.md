@@ -1,28 +1,10 @@
 # Mail Log Recipients update --- IMPORTANT NOTICE
 
-Version 1.7+ of Rqwatch containes important update to DB schema for better performance
-when mail logs are more than 250K.
+Versions 1.7+ of Rqwatch containes important update to DB schema for better performance.
+
+If you are on version 1.8+ you can follow the [DB_MIGRATION_GUIDE](DB_MIGRATION.md).
 
 Here is the procedure to apply this update:
-
-- Run the following SQL code:
-  ```
-  USE rqwatch;
-  
-  CREATE TABLE `mail_log_recipients` (
-    `mail_log_id` int(10) unsigned NOT NULL,
-    `recipient_email` varchar(255) NOT NULL,
-    PRIMARY KEY (`mail_log_id`,`recipient_email`),
-    KEY `recipient_email_idx` (`recipient_email`),
-    KEY `recipient_email_mail_log_id_idx` (`recipient_email`,`mail_log_id`),
-    CONSTRAINT `fk_mail`
-      FOREIGN KEY (`mail_log_id`)
-      REFERENCES `mail_logs`
-      ON DELETE CASCADE
-  ) ENGINE=InnoDB;
-  ```
-  This script also exists in `contrib/updates/02-db-update-2026-01-09`
-  but you don't have it yet.
 
 - Stop cron jobs on all API servers:\
 `systemctl stop crond`
@@ -35,7 +17,7 @@ Here is the procedure to apply this update:
 
 - Migrate mail recipient entries. This will take rcpt_to entries from mail_logs and insert them in `mail_log_recipients` table:
   ```
-  ./bin/cli.php mail:migrate_mail_recipients
+  ./bin/cli.php db:migrate_mail_recipients
   ```
 
 - Start cron jobs on all API servers:\

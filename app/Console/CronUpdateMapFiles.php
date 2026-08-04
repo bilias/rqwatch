@@ -26,8 +26,6 @@ use App\Models\MapActivityLog;
 use App\Inventory\MapInventory;
 use App\Services\MapService;
 
-use Psr\Log\LoggerInterface;
-
 use DateTime;
 use DateTimeZone;
 
@@ -40,19 +38,8 @@ use DateTimeZone;
 class CronUpdateMapFiles extends RqwatchCliCommand
 {
 	private string $app_name = "cron:updatemapfiles";
-	private ?LoggerInterface $fileLogger;
-	private ?LoggerInterface $syslogLogger;
 
 	use LockableTrait;
-
-	public function __construct(LoggerInterface $fileLogger, LoggerInterface $syslogLogger) {
-		// set command name
-		//parent::__construct($this->app_name);
-		parent::__construct();
-
-		$this->fileLogger = $fileLogger;
-		$this->syslogLogger = $syslogLogger;
-	}
 
 	#[\Override]
 	protected function configure(): void {
@@ -129,7 +116,7 @@ class CronUpdateMapFiles extends RqwatchCliCommand
 			return (string) $value;
 		})->toArray();
 
-		$service = new MapService($this->fileLogger);
+		$service = new MapService();
 
 		// delete from activity log and map files if not found in config
 		$service->syncMaps();

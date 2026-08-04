@@ -15,18 +15,21 @@ use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 class CustomBasicAuth implements AuthInterface {
+	private LoggerInterface $logger;
+
 	protected string $username;
 	protected string $password;
 	protected ?string $authenticatedUser = null;
-	private ?LoggerInterface $logger = null;
 
-	public function __construct() {
+	public function __construct(LoggerInterface $logger) {
 		if (empty($_ENV['API_USER']) or empty($_ENV['API_PASS'])) {	
 			http_response_code(500);
 			header('Content-Type: text/plain');
 			echo "Internal Server Error: Something went wrong.";
 			exit;
 		}
+
+		$this->logger = $logger;
 
 		$this->username = trim($_ENV['API_USER']);
 		$this->password = trim($_ENV['API_PASS']);
@@ -73,7 +76,4 @@ class CustomBasicAuth implements AuthInterface {
 		exit;
 	}
 
-	public function setLogger(LoggerInterface $logger): void {
-		$this->logger = $logger;
-	}
 }

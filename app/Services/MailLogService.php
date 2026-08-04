@@ -13,9 +13,15 @@ namespace App\Services;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
+use App\Core\App;
+
 use App\Utils\Helper;
 use App\Utils\FormHelper;
 use App\Models\MailLog;
+
+use App\Core\Database\MigrationStatus;
+use App\Inventory\Migrations;
+
 use App\Inventory\MailObject;
 use App\Inventory\MailAttachment;
 
@@ -35,8 +41,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 use Illuminate\Database\Capsule\Manager as DB;
 
-use Symfony\Component\HttpFoundation\Session\Session;
-
 use Symfony\Component\Console\Output\OutputInterface;
 
 use PhpMimeMailParser\Parser;
@@ -50,23 +54,28 @@ use InvalidArgumentException;
 class MailLogService
 {
 	private LoggerInterface $logger;
-	protected $items_per_page;
-	protected $q_items_per_page;
-	protected $max_items;
+	private MigrationStatus $migrationStatus;
+
 	private ?bool $is_admin = null;
 	private ?string $username = null;
 	private ?string $email = null;
 	private ?array $user_aliases = null;
 
-	public function __construct(LoggerInterface $logger, ?Session $session = null) {
-		$this->logger = $logger;
+	protected $items_per_page;
+	protected $q_items_per_page;
+	protected $max_items;
 
-		if (!empty($session)) {
-			$this->is_admin = $session->get('is_admin');
-			$this->username = $session->get('username');
-			$this->email = $session->get('email');
-			$this->user_aliases = $session->get('user_aliases');
+	public function __construct(?array $userContext = null) {
+		$this->logger = App::fileLogger();
+		$this->migrationStatus = App::migrationStatus();
+
+		if (!empty($userContext)) {
+			$this->is_admin = $userContext['is_admin'] ?? null;
+			$this->username = $userContext['username'] ?? null;
+			$this->email = $userContext['email'] ?? null;
+			$this->user_aliases = $userContext['user_aliases'] ?? null;
 		}
+
 		$this->items_per_page = Config::get('items_per_page');
 		$this->q_items_per_page = Config::get('q_items_per_page');
 		$this->max_items = Config::get('max_items');
@@ -91,9 +100,7 @@ class MailLogService
 				->orderBy('created_at', 'DESC');
 		}
 
-		if ($withRecipients) {
-			$query->with('recipients');
-		}
+		$query->with($this->mailLogRelations());
 
 		return $this->getQueryByFilters($query, $filters);
 	}
@@ -236,7 +243,8 @@ class MailLogService
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::select($fields)
-								->where('id', $id);
+			->with($this->mailLogRelations())
+			->where('id', $id);
 
 		$query = $this->applyUserScope($query);
 
@@ -244,7 +252,29 @@ class MailLogService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$log = $query->first();
+		$log = $query
+			->first();
+
+		if (!$log) {
+			$err = "Mail with ID '{$id}' not found";
+			Helper::debug_exception_err("{$lf} $err");
+			throw new InvalidArgumentException($err);
+		}
+
+		return $log;
+	}
+
+	public function findMailLog(int $id): MailLog {
+		$lf = "[MailLogService_findMailLog]";
+
+		$query = MailLog::with($this->mailLogRelations());
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		$log = $query
+			->find($id);
 
 		if (!$log) {
 			$err = "Mail with ID '{$id}' not found";
@@ -259,7 +289,7 @@ class MailLogService
 		$lf = "[MailLogService_showQuarantinedMail]";
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = MailLog::with('recipients')
+		$query = MailLog::with($this->mailLogRelations())
 			->select($fields)
 			->where('id', $id)
 			->where('mail_stored', 1);
@@ -528,7 +558,7 @@ class MailLogService
 			$date = Helper::get_today();
 		}
 
-		$query = MailLog::with('recipients')
+		$query = MailLog::with($this->mailLogRelations())
 			->select($fields)
 			->whereBetween('created_at', [
 				"{$date} 00:00:00",
@@ -613,7 +643,7 @@ class MailLogService
 
 	public function detailById(int $id): MailLog {
 		$lf = "[MailLogService_detailById]";
-		$query = MailLog::with('recipients')
+		$query = MailLog::with($this->mailLogRelations())
 			->where('id', $id);
 
 		$query = $this->applyUserScope($query);
@@ -636,7 +666,7 @@ class MailLogService
 	public function detailByQid(string $qid): MailLog {
 		$lf = "MailLogService_detailByQid";
 
-		$query = MailLog::with('recipients')
+		$query = MailLog::with($this->mailLogRelations())
 			->where('qid', $qid);
 
 		$query = $this->applyUserScope($query);
@@ -770,7 +800,7 @@ class MailLogService
 	}
 
 	public function getMailObjectViaApi(int $id, string $api_server): MailObject {
-		$lf = "[getMailObjectViaApi]";
+		$lf = "[MailLogService_getMailObjectViaApi]";
 
 		if (empty($id)) {
 			Helper::debug_exception_err("{$lf} empty mail id");
@@ -870,6 +900,7 @@ class MailLogService
 
 		try {
 			// has applyUserScope
+			// throws if mail not found
 			$maillog = $this->showOne($id);
 		} catch (InvalidArgumentException $e) {
 			$this->logger->warning("{$lf} " . $e->getMessage() . ". Mail does not exist or user does not have access to it" , ['email' => $this->email, 'is_admin' => $this->is_admin]);
@@ -1186,7 +1217,7 @@ class MailLogService
 
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = MailLog::with('recipients')
+		$query = MailLog::with($this->mailLogRelations())
 					->select($fields)
 					->where('notification_pending', 1);
 					/*
@@ -1231,7 +1262,7 @@ class MailLogService
 	 $logs->each(function ($log) use ($userService) {
 
 		// Prefer normalized recipients
-		if ($log->relationLoaded('recipients') && $log->recipients->isNotEmpty()) {
+		if ($log->relationLoaded('recipients')) {
 			$emails = $log->recipients->pluck('recipient_email')->all();
 		} else {
 			$emails = explode(',', strtolower((string) $log->rcpt_to));
@@ -1282,7 +1313,7 @@ class MailLogService
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 
-		$query = MailLog::with('recipients')
+		$query = MailLog::with($this->isRecipientsRelationCompleted())
 					->select($fields)
 					->where('mail_stored', 1)
 					->where('created_at', '<', $cutoffDate->format('Y-m-d H:i:s'));
@@ -1338,5 +1369,29 @@ class MailLogService
 					OutputInterface::VERBOSITY_VERBOSE);
 				}
 		}
+	}
+
+	private function isRecipientsRelationCompleted(): array {
+		$relations = [];
+
+		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
+			$relations[] = 'recipients';
+		}
+
+		return $relations;
+	}
+
+	public function mailLogRelations(): array {
+		$relations = [];
+
+		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
+			$relations[] = 'recipients';
+		}
+
+		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_LOG_DATA)) {
+			$relations[] = 'mailLogData';
+		}
+
+		return $relations;
 	}
 }

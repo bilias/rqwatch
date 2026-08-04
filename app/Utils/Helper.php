@@ -11,11 +11,15 @@
 namespace App\Utils;
 
 use App\Configuration\Config;
-use Psr\Log\LoggerInterface;
+
+use App\Core\App;
+
 use App\Core\Auth\AuthManager;
 
 use PhpIP\IP;
 use MaxMind\Db\Reader as MaxMindDbReader;
+
+use Psr\Log\LoggerInterface;
 
 use DateTime;
 use DateTimeZone;
@@ -25,21 +29,19 @@ use InvalidArgumentException;
 
 class Helper {
 
-	private static ?LoggerInterface $logger = null;
-
-	public static function setLogger(LoggerInterface $logger): void {
-		self::$logger = $logger;
+	private static function logger(): LoggerInterface {
+		return App::fileLogger();
 	}
 
 	// Stores raw mail into filesystem. Can be used for release to user
 	public static function store_raw_mail(string $dir, string $qid, ?string $rawEmail = null) {
 		if (!is_dir($dir)) {
-			self::$logger->error("$dir does not exist");
+			self::logger()->error("$dir does not exist");
 			return false;
 		}
 
 		if (!is_writable($dir)) {
-			self::$logger->error("$dir is not writable");
+			self::logger()->error("$dir is not writable");
 			return false;
 		}
 
@@ -51,7 +53,7 @@ class Helper {
 		}
 
 		if (empty($raw_input)) {
-			self::$logger->error("No input received.");
+			self::logger()->error("No input received.");
 			http_response_code(400);
 			return false;
 		}
@@ -68,13 +70,13 @@ class Helper {
 
 		if (!file_exists($dir_raw))
 			if (!mkdir($dir_raw, 0750, true)) {
-				self::$logger->error("Error creating directory $dir_raw");
+				self::logger()->error("Error creating directory $dir_raw");
 			}
 
 		$file_raw = $dir_raw . "/mail.eml";
 
 		if (file_put_contents($file_raw, $raw_input) === false) {
-			self::$logger->error("Failed to write raw email to file: $file_raw");
+			self::logger()->error("Failed to write raw email to file: $file_raw");
 		}
 		return $file_raw;
 	}
@@ -216,7 +218,7 @@ class Helper {
 		return $symbols_ar;
 	}
 
-	public static function get_runtime($startTime, $startMemory) {
+	public static function getRuntime(float $startTime, int $startMemory): string {
 		$endTime = microtime(true);
 		$endMemory = memory_get_usage();
 		$peakMemory = memory_get_peak_usage();
@@ -357,17 +359,17 @@ class Helper {
 
 	public static function log_to_files(string $dir, $symbols, $web_headers, $stringHeaders, $arrayHeaders): bool {
 		if (!is_dir($dir)) {
-			self::$logger->warning("$dir does not exist");
+			self::logger()->warning("$dir does not exist");
 			if (!mkdir($dir, 0750, true)) {
-				self::$logger->error("Error creating directory $dir");
+				self::logger()->error("Error creating directory $dir");
 				return false;
 			} else {
-				self::$logger->info("Created directory $dir");
+				self::logger()->info("Created directory $dir");
 			}
 		}
 
 		if (!is_writable($dir)) {
-			self::$logger->error("$dir is not writable");
+			self::logger()->error("$dir is not writable");
 			return false;
 		}
 
@@ -375,7 +377,7 @@ class Helper {
 		$symbols_array = print_r(json_decode($symbols, true), true);
 
 		if (!$fp_web_headers = fopen("{$dir}/web_headers", "w")) {
-			self::$logger->error("Cannot open file ({$dir}/web_headers)");
+			self::logger()->error("Cannot open file ({$dir}/web_headers)");
 		}
 
 		foreach ($web_headers as $key => $value) {
@@ -384,7 +386,7 @@ class Helper {
 		fclose($fp_web_headers);
 
 		if (!$fp_server = fopen("{$dir}/server", "w")) {
-			self::$logger->error("Cannot open file ({$dir}/server)");
+			self::logger()->error("Cannot open file ({$dir}/server)");
 		}
 
 		foreach ($_SERVER as $key => $value) {
@@ -393,21 +395,21 @@ class Helper {
 		fclose($fp_server);
 
 		if (!$fp_symbols = fopen("{$dir}/symbols", "w")) {
-			self::$logger->error("Cannot open file ({$dir}/symbols)");
+			self::logger()->error("Cannot open file ({$dir}/symbols)");
 		}
 
 		fwrite($fp_symbols, $symbols_array);
 		fclose($fp_symbols);
 
 		if (!$fp_headers = fopen("{$dir}/headers", "w")) {
-			self::$logger->error("Cannot open file ({$dir}/headers)");
+			self::logger()->error("Cannot open file ({$dir}/headers)");
 		}
 
 		fwrite($fp_headers, $stringHeaders);
 		fclose($fp_headers);
 
 		if (!$fp_headers_ar = fopen("{$dir}/headers_ar", "w")) {
-			self::$logger->error("Cannot open file ({$dir}/headers_ar)");
+			self::logger()->error("Cannot open file ({$dir}/headers_ar)");
 		}
 
 		foreach ($arrayHeaders as $key => $value) {
@@ -421,7 +423,7 @@ class Helper {
 		}
 		fclose($fp_headers_ar);
 
-		self::$logger->info("Saved debug files in $dir");
+		self::logger()->info("Saved debug files in $dir");
 		return true;
 	}
 
@@ -707,7 +709,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 					return $geo['country']['names']['en'];
 				}
 			} catch (Exception $e) {
-				self::$logger->error("GeoIP problem: " . $e->getMessage());
+				self::logger()->error("GeoIP problem: " . $e->getMessage());
 				return null;
 			}
 		}
@@ -741,7 +743,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 	public static function deleteDirectory(string $dir): bool {
 		$quarantineEnv = trim((string)($_ENV['QUARANTINE_DIR'] ?? ''));
 		if ($quarantineEnv === '' || $quarantineEnv === DIRECTORY_SEPARATOR) {
-			self::$logger->warning("QUARANTINE_DIR is empty or points to root /");
+			self::logger()->warning("QUARANTINE_DIR is empty or points to root /");
 			return false;
 		}
 
@@ -752,18 +754,18 @@ You can view mail details and optionally release it from quarantine by clicking 
 		$realDir = realpath($dir);
 
 		if ($realDir === false || $realQuarantine === false) {
-			self::$logger->warning("Quarantine directory problem");
+			self::logger()->warning("Quarantine directory problem");
 			return false;
 		}
 
 		if (!is_dir($realQuarantine)) {
-			self::$logger->warning("QUARANTINE_DIR is not a directory");
+			self::logger()->warning("QUARANTINE_DIR is not a directory");
 			return false;
 		}
 
 		// Don't allow operations on filesystem root
 		if ($realQuarantine === DIRECTORY_SEPARATOR || $realDir === DIRECTORY_SEPARATOR) {
-			self::$logger->warning("Quarantine points to root /");
+			self::logger()->warning("Quarantine points to root /");
 			return false;
 		}
 
@@ -773,18 +775,18 @@ You can view mail details and optionally release it from quarantine by clicking 
 		$isInsideQuarantine = str_starts_with($realDir, $quarantinePrefix);
 
 		if (!$isInsideQuarantine) {
-			self::$logger->warning("Quarantine $realDir is not inside QUARANTINE_DIR");
+			self::logger()->warning("Quarantine $realDir is not inside QUARANTINE_DIR");
 			return false;
 		}
 
 		if (!is_dir($realDir)) {
-			self::$logger->warning("Quarantine $realDir is not a directory");
+			self::logger()->warning("Quarantine $realDir is not a directory");
 			return false;
 		}
 
 		$files = scandir($realDir);
 		if ($files === false) {
-			self::$logger->warning("Quarantine $realDir scan problem");
+			self::logger()->warning("Quarantine $realDir scan problem");
 			return false;
 		}
 
@@ -798,7 +800,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 			// Never follow symlinks; just unlink them
 			if (is_link($path) || is_file($path)) {
 				if (!unlink($path)) {
-					self::$logger->warning("Cannot unlink file in quarantine: $path");
+					self::logger()->warning("Cannot unlink file in quarantine: $path");
 					return false;
 				}
 				continue;
@@ -806,19 +808,19 @@ You can view mail details and optionally release it from quarantine by clicking 
 
 			if (is_dir($path)) {
 				if (!self::deleteDirectory($path)) {
-					self::$logger->warning("Cannot delete directory in quarantine: $path");
+					self::logger()->warning("Cannot delete directory in quarantine: $path");
 					return false;
 				}
 				continue;
 			}
 
 			// Unknown filesystem object (fifo/socket/etc) - fail closed
-			self::$logger->warning("Unknown file type in quarantine: $path");
+			self::logger()->warning("Unknown file type in quarantine: $path");
 			return false;
 		}
 
 		if (!rmdir($realDir)) {
-			self::$logger->warning("Cannot remove directory in quarantine: $realDir");
+			self::logger()->warning("Cannot remove directory in quarantine: $realDir");
 			return false;
 		}
 
@@ -911,7 +913,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 				$line = $frame['line'] ?? '?';
 
 				$err_msg = "{$file}:{$line} '{$input}'";
-				self::$logger->error($err_msg);
+				self::logger()->error($err_msg);
 				return $err_msg;
 				//break;
 			}

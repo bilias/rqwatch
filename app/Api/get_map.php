@@ -20,13 +20,11 @@ require_once __DIR__ . '/../Core/Kernel.php';
 use Symfony\Component\HttpFoundation\Request;
 use App\Api\GetMapApi;
 
-$services = Kernel::boot();
-$fileLogger = $services['fileLogger'];
-$syslogLogger = $services['syslogLogger'];
+(new Kernel())->boot();
 
 // Create request from globals
 $request = Request::createFromGlobals();
 
 // Instantiate and execute the API handler
-$api = new GetMapApi($request, $fileLogger, $syslogLogger, $startTime, $startMemory);
+$api = new GetMapApi($request);
 $api->handle();

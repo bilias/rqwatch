@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  Rqwatch
  Copyright (C) 2025 Giannis Kapetanakis
@@ -13,22 +13,30 @@ namespace App\Core;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
-use App\Core\Database\Database;
-
-use App\Core\Logging\LoggerService;
-use App\Utils\Helper;
-
 use Dotenv\Dotenv;
-use Exception;
-use RuntimeException;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
+use App\Core\Database\Database;
+use App\Core\Database\MigrationStatus;
 
-class Kernel
+use App\Core\Logging\LoggerService;
+use Psr\Log\LoggerInterface;
+
+use RuntimeException;
+use Throwable;
+
+final class Kernel
 {
-	public static function boot(): array {
-		$startTime = microtime(true);
-		$startMemory = memory_get_usage();
+	private float $startTime;
+	private int $startMemory;
+	private LoggerInterface $fileLogger;
+	private LoggerInterface $syslogLogger;
+	private Capsule $capsule;
+	private MigrationStatus $migrationStatus;
+
+	public function boot(): void {
+		$this->startTime = microtime(true);
+		$this->startMemory = memory_get_usage();
 
 		require_once __DIR__ . '/../Configuration/AppConfig.php';
 
@@ -38,11 +46,40 @@ class Kernel
 
 		require_once AppConfig::VENDOR_AUTOLOAD;
 
+		// create fileLogger and syslogLogger
+		$this->createLoggers();
+
+		// load .env
+		$this->loadDotenv();
+
+		$extra_cached_data = [
+			'startTime' => $this->startTime,
+			'startMemory' => $this->startMemory,
+		];
+		// load config
+		$this->loadConfig($extra_cached_data);
+
+		// connect to db
+		$this->bootDatabase();
+
+		// get migration status
+		$this->getMigrationStatus();
+
+		// check db schema validity
+		$this->verifyDatabaseSchema();
+
+		// last: create App registry
+		$this->initApp();
+	}
+
+	private function createLoggers(): void {
 		// configure loggers
 		$loggerService = new LoggerService();
-		$fileLogger = $loggerService->getFileLogger();
-		$syslogLogger = $loggerService->getSyslogLogger();
+		$this->fileLogger = $loggerService->getFileLogger();
+		$this->syslogLogger = $loggerService->getSyslogLogger();
+	}
 
+	private function loadDotenv(): void {
 		// load config from .env
 		if (!file_exists(AppConfig::ENV_PATH)) {
 			echo "<h1 style='color:red'>Application configuration error</h1>";
@@ -51,47 +88,72 @@ class Kernel
 			   AppConfig::ENV_PATH);
 		}
 
-		$dotenv = Dotenv::createImmutable(RQWATCH_ROOT);
 		try {
+			$dotenv = Dotenv::createImmutable(RQWATCH_ROOT);
 			$dotenv->load();
-		} catch (Exception $e) {
-			$fileLogger->error("Error loading .env: " . $e->getMessage());
-			echo "Error loading .env";
-			exit;
+		} catch (Throwable $e) {
+			$this->fileLogger->error("Error loading .env: " . $e->getMessage());
+			throw new RuntimeException("Failed to load .env file", previous: $e);
 		}
+	}
 
-		// load configuration
+	private function loadConfig(array $extra_cached_data): void {
+		// load (and cache) configuration
 		Config::loadConfig(
-			$fileLogger,
+			$this->fileLogger,
 			AppConfig::CONFIG_DEFAULT_PATH,
 			AppConfig::CONFIG_LOCAL_PATH,
-			[ 'startTime' => $startTime, 'startMemory' => $startMemory ],
+			$extra_cached_data,
 			$_ENV['REDIS_CONFIG_KEY'],             // optional Redis key
 			(int) $_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
 		);
+	}
 
-		// setup DB connection
-		$capsule = Database::boot();
-
-		// test DB connection
+	private function bootDatabase(): void {
 		try {
-			$capsule->getConnection()->getPdo();
-		} catch (Exception $e) {
-			$fileLogger->error("DB error: " . $e->getMessage());
+			// setup DB connection
+			$this->capsule = Database::boot();
+			// test DB connection
+			$this->capsule->getConnection()->getPdo();
+		} catch (Throwable $e) {
+			$this->fileLogger->error("DB error: " . $e->getMessage());
 			echo "Database connection problem!";
 			exit;
 		}
+	}
 
-		// pass fileLogger to Helper methods
-		Helper::setLogger($fileLogger);
+	private function verifyDatabaseSchema(): void {
+		try {
+			Database::verifySchema($this->capsule, $this->migrationStatus);
+		} catch (Throwable $e) {
+			$this->fileLogger->critical(
+				"Database schema verification failed: " .
+				$e->getMessage()
+			);
 
-		return [
-			'startTime' => $startTime,
-			'startMemory' => $startMemory,
-			'fileLogger' => $fileLogger,
-			'syslogLogger' => $syslogLogger,
-			'capsule' => $capsule,
-		];
+			echo "Database schema problem!";
+			exit;
+		}
+	}
+
+	private function getMigrationStatus(): void {
+		$this->migrationStatus = new MigrationStatus(
+			$this->capsule,
+			$this->fileLogger
+		);
+	}
+
+	private function initApp(): void {
+		App::init(
+			new AppContainer(
+				$this->startTime,
+				$this->startMemory,
+				$this->fileLogger,
+				$this->syslogLogger,
+				$this->capsule,
+				$this->migrationStatus
+			)
+		);
 	}
 
 }

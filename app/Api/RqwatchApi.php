@@ -10,7 +10,7 @@
 
 namespace App\Api;
 
-use Psr\Log\LoggerInterface;
+use App\Core\App;
 
 use App\Core\Auth\BasicAuth;
 use App\Utils\Helper;
@@ -19,32 +19,29 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+use Psr\Log\LoggerInterface;
+
 use RuntimeException;
 
 // cannot be intantiated as new RqwatchApi(), only children
 abstract class RqwatchApi
 {
-	protected float $startTime;
-	protected float $startMemory;
+	protected Request $request;
+
 	protected LoggerInterface $fileLogger;
 	protected LoggerInterface $syslogLogger;
+
 	protected string $logPrefix = 'RqwatchApi';
-	protected Request $request;
 	protected string $clientIp;
 	protected BasicAuth $auth;
 
-	public function __construct(
-		Request $request,
-		LoggerInterface $fileLogger,
-		LoggerInterface $syslogLogger,
-		float $startTime,
-		float $startMemory)
+	public function __construct(Request $request)
 	{
-		$this->startTime = $startTime;
-		$this->startMemory = $startMemory;
-		$this->fileLogger = $fileLogger;
-		$this->syslogLogger = $syslogLogger;
 		$this->request = $request;
+
+		$this->fileLogger = App::fileLogger();
+		$this->syslogLogger = App::syslogLogger();
+
 		$this->clientIp = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
 
 		// Check if API is disabled
@@ -140,6 +137,6 @@ abstract class RqwatchApi
 	}
 
 	protected function getRuntime(): string {
-		return Helper::get_runtime($this->startTime, $this->startMemory);
+		return App::getRuntime();
 	}
 }

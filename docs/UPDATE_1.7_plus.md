@@ -1,4 +1,9 @@
-# Update instructions from < 1.7 Rqwatch versions
+# Rqwatch 1.7+ Update instructions
+
+Update to 1.8+ is recommended!
+
+After reading about Rspamd metadata_exporter multipart formatter bellow, 
+please follow the [UPDATE-1.8 GUIDE](UPDATE_1.8_plus.md).
 
 ## WARNING
 Rqwatch 1.7+ requires Rspamd 3.14.2+ and contains important performance optimizations.

@@ -10,15 +10,16 @@
 
 namespace App\Api;
 
-use App\Configuration\AppConfig;
 use App\Configuration\Config;
+
+use App\Core\App;
 
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
 use App\Models\MailLog;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
+use App\Services\Import\MailLogWriter;
 
 use Illuminate\Database\QueryException;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,27 +33,13 @@ use Throwable;
 class MetadataImporterMultipartApi extends RqwatchApi
 {
 	protected string $logPrefix = 'MetadataImporterMultipartApi';
-	protected Capsule $capsule;
 
-	// this constructor overrides RqwatchApi contructor
-	public function __construct(
-		Request $request,
-		LoggerInterface $fileLogger,
-		LoggerInterface $syslogLogger,
-		float $startTime,
-		float $startMemory,
-		Capsule $capsule
-	) {
-			parent::__construct(
-				$request,
-				$fileLogger,
-				$syslogLogger,
-				$startTime,
-				$startMemory
-			);
-
-			$this->capsule = $capsule;
+	/*
+	// this constructor overrides RqwatchApi constructor
+	public function __construct(Request $request) {
+			parent::__construct($request);
 	}
+	*/
 
 	#[\Override]
 	protected function getAllowedIps(): array {
@@ -302,31 +289,8 @@ class MetadataImporterMultipartApi extends RqwatchApi
 
 		$db_id = null;
 		try {
-			$this->capsule::connection()->transaction(function () use ($data, $rcptArr, &$db_id) {
-
-				$db_id = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE)
-					->insertGetId($data);
-
-				if ($db_id && !empty($rcptArr)) {
-					$recipients = array_unique($rcptArr);
-
-					$rows = [];
-
-					foreach ($recipients as $email) {
-						if ($email !== '') {
-							$rows[] = [
-								'mail_log_id'     => $db_id,
-								'recipient_email' => $email,
-							];
-						}
-					}
-
-					if (!empty($rows)) {
-						$this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)
-							->insert($rows);
-					}
-				}
-			});
+			$mailLogWriter = new MailLogWriter();
+			$db_id = $mailLogWriter->insert($data, $rcptArr);
 		} catch (QueryException $e) {
 				// $bindings = $e->getBindings(); // array
 				// $sql = $e->getSql(); // array
@@ -340,7 +304,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 				$this->dropLogResponse(
 					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
 					$err_msg, 'critical');
-		} catch (Exception $e) {
+		} catch (Throwable $e) {
 				$err_msg = "DB insert error: " . $e->getMessage();
 				$response_msg = "Unexpected error";
 				$this->dropLogResponse(

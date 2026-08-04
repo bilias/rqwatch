@@ -16,15 +16,27 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Illuminate\Database\Query\Builder;
 
 use App\Configuration\Config;
+
+use App\Core\App;
+
 use App\Utils\Helper;
+
+use Psr\Log\LoggerInterface;
 
 class RqwatchCliCommand extends Command
 {
+	protected LoggerInterface $fileLogger;
+	protected LoggerInterface $syslogLogger;
+
+	public function __construct() {
+		parent::__construct();
+
+		$this->fileLogger = App::fileLogger();
+		$this->syslogLogger = App::syslogLogger();
+	}
+
 	public function getRuntime(): string {
-		return Helper::get_runtime(
-			Config::get('startTime'),
-			Config::get('startMemory')
-		);
+		return App::getRuntime();
 	}
 
 	public function printRuntime(OutputInterface $output): void {

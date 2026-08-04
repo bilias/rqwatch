@@ -1,4 +1,4 @@
-<?php 
+<?php declare(strict_types=1);
 /*
  Rqwatch
  Copyright (C) 2025 Giannis Kapetanakis
@@ -25,11 +25,16 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Exception\NoConfigurationException;
 
 use App\Configuration\AppConfig;
+
+use App\Core\App;
+
 use App\Utils\Helper;
 
 use App\Core\SessionManager;
 use App\Core\Middleware\AuthMiddleware;
 use App\Core\Middleware\Authorization;
+
+use App\Core\Database\MigrationStatus;
 
 use App\Controllers\Controller;
 
@@ -41,11 +46,6 @@ use Psr\Log\LoggerInterface;
 
 class Router
 {
-
-	public function __construct(
-		private LoggerInterface $fileLogger,
-		private LoggerInterface $syslogLogger
-	) {}
 
 	public function dispatch(
 			RouteCollection $routes,
@@ -68,6 +68,8 @@ class Router
 		$urlGenerator = new UrlGenerator($routes, $context);
 		$loginUrl = $urlGenerator->generate(RouteName::LOGIN->value);
 
+		$fileLogger = App::fileLogger();
+
 		try {
 			$request->attributes->add($matcher->match($request->getPathInfo()));
 
@@ -82,7 +84,6 @@ class Router
 				if ($controller[0] instanceof Controller) {
 					// Session initialization
 					// $session = SessionManager::getSession();
-					SessionManager::setLogger($this->fileLogger);
 					$request->setSession(SessionManager::getSession());
 
 					// $request->attributes->set('request_id', spl_object_id($request));
@@ -109,7 +110,7 @@ class Router
 
 			// play safe incase route is missing from $middlewareMap
 			if (empty($middlewareClasses)) {
-				$this->fileLogger->warning("$request_route does not have a _middleware. Using defaultMiddlewareClasses");
+				$fileLogger->warning("$request_route does not have a _middleware. Using defaultMiddlewareClasses");
 				$middlewareClasses = $defaultMiddlewareClasses;
 			}
 
@@ -117,10 +118,8 @@ class Router
 			$controllerHandler = function (Request $request)
 				use ($controller, $arguments)
 			{
-				if (is_array($controller) && $controller[0] instanceof Controller) {
-					$controller[0]->setLoggers($this->fileLogger, $this->syslogLogger);
-				}
 				return call_user_func_array($controller, $arguments);
+				//return $controller(...$arguments);
 			};
 
 			$response = null;
@@ -146,10 +145,8 @@ class Router
 				$response = $middlewareChain($request);
 			} else  {
 				// NO_MIDDLEWARE: response without Middleware, and invoke controller
-				if (is_array($controller) && $controller[0] instanceof Controller) {
-					$controller[0]->setLoggers($this->fileLogger, $this->syslogLogger);
-					$response = call_user_func_array($controller, $arguments);
-				}
+				$response = call_user_func_array($controller, $arguments);
+				//$response = $controller(...$arguments);
 			}
 
 			if (!$response instanceof Response) {
@@ -162,7 +159,6 @@ class Router
 		} catch (ResourceNotFoundException $e) {
 			// invalid route
 			// Session initialization
-			SessionManager::setLogger($this->fileLogger);
 			$session = SessionManager::getSession();
 			$request->setSession($session);
 			if ($request->hasSession() && $session->has('username')) {
@@ -190,19 +186,19 @@ class Router
 
 	private function resolveMiddleware(string $middlewareClass, UrlGenerator $urlGenerator): object {
 		return match ($middlewareClass) {
-			AuthMiddleware::class =>
-				new $middlewareClass($urlGenerator, $this->fileLogger),
+			AuthMiddleware::class,
 			Authorization::class =>
-				new $middlewareClass($urlGenerator, $this->fileLogger),
+				new $middlewareClass($urlGenerator, App::fileLogger()),
 			default =>
 				new $middlewareClass($urlGenerator), // fallback for simple middleware
 		};
 	}
 
-	public static function run(array $services): void {
+	public static function run(): void {
 
-		$fileLogger = $services['fileLogger'];
-		$syslogLogger = $services['syslogLogger'];
+		$fileLogger = App::fileLogger();
+		$syslogLogger = App::syslogLogger();
+		$migrationStatus = App::migrationStatus();
 
 		// we do not need Router in our API or CLI
 		if (!defined('WEB_MODE') || defined('API_MODE') || defined('CLI_MODE')) {
@@ -232,7 +228,7 @@ class Router
 		}
 
 		// Instantiate Router and handle the request
-		$router = new self($fileLogger, $syslogLogger);
+		$router = new self();
 		$response = $router->dispatch($routes, $defaultMiddlewareClasses);
 		$response->send();
 		exit();

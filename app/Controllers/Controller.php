@@ -21,6 +21,11 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
+use App\Core\App;
+
+use App\Inventory\Migrations;
+use App\Core\Database\MigrationStatus;
+
 use App\Core\Routing\RouteName;
 use App\Core\Routing\UrlBuilder;
 
@@ -60,6 +65,11 @@ class Controller
 
 	protected LoggerInterface $fileLogger;
 	protected LoggerInterface $syslogLogger;
+
+	public function __construct() {
+		$this->fileLogger = App::fileLogger();
+		$this->syslogLogger = App::syslogLogger();
+	}
 
 	public function setRequest(Request $request): void {
 		$this->request = $request;
@@ -147,17 +157,16 @@ class Controller
 	}
 
 	protected function getRuntime(): string {
-		$startTime = Config::get('startTime');
-		$startMemory = Config::get('startMemory');
-
-		$runtime = Helper::get_runtime($startTime, $startMemory);
-		Config::set('startTime', microtime(true));
-		Config::set('startMemory', memory_get_usage());
-		return $runtime;
+		return App::getRuntime();
 	}
 
 	public function unsetUrls(): void {
 		$this->urlsInitialized = false;
+	}
+
+	public function refreshUrls(): void {
+		$this->urlsInitialized = false;
+		$this->initUrls();
 	}
 
 	public function initUrls(): void {
@@ -192,11 +201,6 @@ class Controller
 
 	public function setSyslogLogger(LoggerInterface $logger): void {
 		$this->syslogLogger = $logger;
-	}
-
-	public function setLoggers(LoggerInterface $fileLogger, LoggerInterface $syslogLogger): void {
-		$this->setFileLogger($fileLogger);
-		$this->setSyslogLogger($syslogLogger);
 	}
 
 	public function getRspamdStat(): array {
@@ -276,6 +280,7 @@ class Controller
 		if ($ttl === null || $ttl < 0) {
 			return [
 				'ttl' => $ttl,
+				'ttl_human' => null,
 				'expires_at' => null,
 			];
 		}
@@ -316,6 +321,53 @@ class Controller
 			return new RedirectResponse($this->searchUrl);
 		}
 
+	}
+
+	protected function getUserContext(): array {
+		return [
+			'is_admin' => $this->session->get('is_admin'),
+			'username' => $this->session->get('username'),
+			'user_id' => $this->session->get('user_id'),
+			'email' => $this->session->get('email'),
+			'user_aliases' => $this->session->get('user_aliases'),
+		];
+	}
+
+	protected function getAdminWarnings(): void {
+		if (!$this->getIsAdmin()) {
+			return;
+		}
+
+		if (!App::migrationStatus()->hasMigrationsTable()) {
+			$message = "Migration tracking table is missing. Please run db:migrate";
+			$this->flashbag->add('info', $message);
+			$this->fileLogger->info($message);
+			return;
+		}
+
+		$migrationsStatus = App::migrationStatus()->getMigrationStates();
+
+		foreach ($migrationsStatus as $migration => $status) {
+
+			if ($status === Migrations::STATUS_COMPLETED) {
+				continue;
+			}
+
+			$message = "Database migration: '" .
+				Migrations::MIGRATION_DESCR[$migration] .
+				"' is " .
+				($status ?? Migrations::STATUS_PENDING);
+
+			if ($status === Migrations::STATUS_RUNNING) {
+				$this->flashbag->add('info', $message);
+				$this->fileLogger->info($message);
+			} else {
+				$message .= ". See " .
+					Migrations::MIGRATION_HELP[$migration];
+				$this->flashbag->add('warning', $message);
+				$this->fileLogger->warning($message);
+			}
+		}
 	}
 
 }

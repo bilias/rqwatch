@@ -25,6 +25,8 @@ use App\Utils\Helper;
 use RuntimeException;
 
 class OpenIDConnectAuth implements AuthInterface {
+	private LoggerInterface $logger;
+
 	private bool $is_admin = false;
 	private ?string $username = null;
 	private ?string $email = null;
@@ -32,11 +34,14 @@ class OpenIDConnectAuth implements AuthInterface {
 	private ?string $authenticatedUser = null;
 	private ?string $firstname = null;
 	private ?string $lastname = null;
-	private ?LoggerInterface $logger = null;
 	private ?UrlGeneratorInterface $urlGenerator = null;
 	private ?string $callbackUrl = null;
 	private ?string $postLogoutRedirectUrl = null;
 	private ?string $idToken = null;
+
+	public function __construct(LoggerInterface $logger) {
+		$this->logger = $logger;
+	}
 
 	public function __debugInfo(): array {
 		return [
@@ -166,10 +171,6 @@ class OpenIDConnectAuth implements AuthInterface {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->lastname;
-	}
-
-	public function setLogger(LoggerInterface $logger): void {
-		$this->logger = $logger;
 	}
 
 	public function setUrlGenerator(UrlGeneratorInterface $urlGenerator): void {

@@ -102,9 +102,11 @@ class ViewController extends Controller
 			return Helper::check_virus_from_all($symbols);
 		}));
 	
+		/* unused
 		$this->twig->addFunction(new TwigFunction('get_runtime', function ($startTime, $startMemory) {
 			return $this->getRuntime();
 		}));
+		*/
 	
 		$this->twig->addFunction(new TwigFunction('gethostbyaddr', function ($ip) {
 			return gethostbyaddr($ip);

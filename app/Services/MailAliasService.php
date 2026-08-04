@@ -11,6 +11,9 @@
 namespace App\Services;
 
 use App\Configuration\Config;
+
+use App\Core\App;
+
 use App\Utils\Helper;
 
 use App\Models\MailAlias;
@@ -24,19 +27,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-use Symfony\Component\HttpFoundation\Session\Session;
-
 class MailAliasService
 {
-	private ?string $username = null;
 	private LoggerInterface $logger;
 
-	public function __construct(LoggerInterface $logger, ?Session $session = null) {
-		$this->logger = $logger;
-
-		if (!empty($session)) {
-			$this->username = $session->get('username');
-		}
+	public function __construct() {
+		$this->logger = App::fileLogger();
 
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');

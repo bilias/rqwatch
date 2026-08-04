@@ -2,6 +2,33 @@
 
 ## Master Dev Branch
 
+### 2026-08-04
+- Migrations Subsystem
+
+### 2026-08-03
+- Admin and log warnings for pending migrations
+- Verify DB schema inside Kernel. Exit if there is error
+- Extended MigrationStatus
+- Legacy/Dual/Split Writes depending on Migration status
+
+### 2026-08-01
+- Added application service registry (App::)
+ for centralized access to shared services
+- Use App logger in SessionManager, Auth Providers and Helper
+
+### 2026-07-31
+- Migrations Repository
+- Migration Classes
+- Migration Status
+- New DB migration for created_day in mail_logs
+- New DB migration for mail_log_data (headers, symbols, fuzzy_hashes)
+- New MailLogData Model
+- Full Migration CLI tool
+- New MailLogWriter for Import
+
+### 2026-07-29
+- Initial DB Migrations
+
 ## Version v1.7.4 - Released: 2026-07-29
 
 ### 2026-07-29

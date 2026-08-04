@@ -16,15 +16,11 @@ require_once __DIR__ . '/../Core/Kernel.php';
 use Symfony\Component\HttpFoundation\Request;
 use App\Api\ReleaseMailApi;
 
-$services = Kernel::boot();
-$fileLogger = $services['fileLogger'];
-$syslogLogger = $services['syslogLogger'];
-$startTime = $services['startTime'];
-$startMemory = $services['startMemory'];
+(new Kernel())->boot();
 
 // Create request from globals
 $request = Request::createFromGlobals();
 
 // Instantiate and execute the API handler
-$api = new ReleaseMailApi($request, $fileLogger, $syslogLogger, $startTime, $startMemory);
+$api = new ReleaseMailApi($request);
 $api->handle();

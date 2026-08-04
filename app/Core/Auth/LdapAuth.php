@@ -23,17 +23,23 @@ use RuntimeException;
 class LdapAuth implements AuthInterface {
 	private string $username;
 	private string $password;
+	private LoggerInterface $logger;
+
 	private bool $is_admin = false;
 	private ?string $email = null;
 	private array $mail_aliases = [];
 	private ?string $authenticatedUser = null;
 	private ?string $firstname = null;
 	private ?string $lastname = null;
-	private ?LoggerInterface $logger = null;
 
-	public function __construct(string $username, #[SensitiveParameter] string $password) {
+	public function __construct(
+		string $username,
+		#[SensitiveParameter] string $password,
+		LoggerInterface $logger
+	) {
 		$this->username = $username;
 		$this->password = $password;
+		$this->logger = $logger;
 	}
 
 	public function __debugInfo(): array {
@@ -300,10 +306,6 @@ class LdapAuth implements AuthInterface {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
 		return $this->lastname;
-	}
-
-	public function setLogger(LoggerInterface $logger): void {
-		$this->logger = $logger;
 	}
 
 	public function getValue(array $attrs, ?string $field): ?string {

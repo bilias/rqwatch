@@ -12,13 +12,16 @@ namespace App\Core\Logging;
 
 use Psr\Log\LoggerInterface;
 
-// used by Controllers
+// initialized by Kernel
 class LoggerService
 {
 	private LoggerInterface $fileLogger;
 	private LoggerInterface $syslogLogger;
 
-	public function __construct(?LoggerInterface $fileLogger = null, ?LoggerInterface $syslogLogger = null) {
+	public function __construct(
+		?LoggerInterface $fileLogger = null,
+		?LoggerInterface $syslogLogger = null
+	) {
 		$this->fileLogger = $fileLogger ?? LoggerFactory::createFileLogger();
 		$this->syslogLogger = $syslogLogger ?? LoggerFactory::createSyslogLogger();
 	}				          

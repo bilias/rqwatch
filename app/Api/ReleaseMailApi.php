@@ -10,7 +10,8 @@
 
 namespace App\Api;
 
-use App\Models\MailLog;
+use App\Core\App;
+
 use App\Services\MailLogService;
 
 use Symfony\Component\HttpFoundation\Response;
@@ -49,7 +50,7 @@ class ReleaseMailApi extends RqwatchApi
 				Response::HTTP_BAD_REQUEST, $response_msg,
 				$err_msg, 'critical');
 		}
-		$id = $post['id'];
+		$id = intval($post['id']);
 
 		if (!array_key_exists('email', $post)) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested mail release of mail with id {$id} without a destination email";
@@ -60,7 +61,9 @@ class ReleaseMailApi extends RqwatchApi
 		}
 		$release_to = $post['email'];
 		
-		$maillog = MailLog::find($id);
+		$service = new MailLogService();
+
+		$maillog  = $service->findMailLog($id);
 		
 		if (empty($maillog)) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested release of mail with id {$id} which does no exist";
@@ -69,8 +72,6 @@ class ReleaseMailApi extends RqwatchApi
 				Response::HTTP_BAD_REQUEST, $response_msg,
 				$err_msg, 'warning');
 		}
-		
-		$service = new MailLogService($this->fileLogger);
 		
 		if ($service->releaseHtmlMail($release_to, $maillog)) {
 			$runtime = $this->getRuntime();

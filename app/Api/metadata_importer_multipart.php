@@ -16,16 +16,11 @@ require_once __DIR__ . '/../Core/Kernel.php';
 use Symfony\Component\HttpFoundation\Request;
 use App\Api\MetadataImporterMultipartApi;
 
-$services = Kernel::boot();
-$fileLogger = $services['fileLogger'];
-$syslogLogger = $services['syslogLogger'];
-$startTime = $services['startTime'];
-$startMemory = $services['startMemory'];
-$capsule = $services['capsule'];
+(new Kernel())->boot();
 
 // Create request from globals
 $request = Request::createFromGlobals();
 
 // Instantiate and execute the API handler
-$api = new MetadataImporterMultipartApi($request, $fileLogger, $syslogLogger, $startTime, $startMemory, $capsule);
+$api = new MetadataImporterMultipartApi($request);
 $api->handle();

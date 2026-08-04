@@ -150,13 +150,15 @@ CREATE TABLE `mail_logs` (
  `notify_date` DATETIME(0) DEFAULT NULL,
  `released` TINYINT(1) DEFAULT '0',
  `release_date` DATETIME(0) DEFAULT NULL,
- `notification_pending` TINYINT(1) AS ( (`mail_stored` = 1) AND (`notified` = 0) AND (`action` IN ('discard', 'reject'))) STORED,
+ `notification_pending` TINYINT(1) GENERATED ALWAYS AS (`mail_stored` = 1 and `notified` = 0 and `action` in ('discard','reject')) STORED,
  `headers` longtext DEFAULT NULL,
  `message_id` VARCHAR(1024) DEFAULT NULL,
  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+ `created_day` date GENERATED ALWAYS AS (cast(`created_at` as date)) STORED,
   PRIMARY KEY (`id`),
   KEY `created_at_index` (`created_at`),
+  KEY `created_day_index` (`created_day`),
   KEY `qid_index` (`qid`),
   KEY `action_index` (`action`),
   KEY `mail_from_index` (`mail_from`),
@@ -181,3 +183,31 @@ CREATE TABLE `mail_log_recipients` (
     REFERENCES `mail_logs` (`id`)
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+DROP TABLE IF EXISTS `mail_log_data`;
+
+CREATE TABLE `mail_logs_data` (
+  `mail_log_id` int(10) unsigned NOT NULL,
+  `headers` longtext DEFAULT NULL,
+  `symbols` JSON DEFAULT NULL,
+  `fuzzy_hashes` JSON DEFAULT NULL,
+  PRIMARY KEY (`mail_log_id`),
+  CONSTRAINT `fk_mail_logs_data_mail_logs`
+    FOREIGN KEY (`mail_log_id`)
+	 REFERENCES `mail_logs` (`id`)
+	 ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+DROP TABLE IF EXISTS `migrations`;
+
+CREATE TABLE `migrations` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) NOT NULL,
+  `executed_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `migrations_migration_unique` (`migration`)
+) ENGINE=InnoDB;
+
+INSERT INTO migrations (migration) VALUES
+('20260729_add_created_day'),
+('20260729_migrate_mail_recipients');

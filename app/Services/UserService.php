@@ -11,6 +11,9 @@
 namespace App\Services;
 
 use App\Configuration\Config;
+
+use App\Core\App;
+
 use App\Utils\Helper;
 
 use App\Models\User;
@@ -22,8 +25,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-use Symfony\Component\HttpFoundation\Session\Session;
-
 use Exception;
 
 class UserService
@@ -31,12 +32,8 @@ class UserService
 	private ?string $username = null;
 	private LoggerInterface $logger;
 
-	public function __construct(LoggerInterface $logger, ?Session $session = null) {
-		$this->logger = $logger;
-
-		if (!empty($session)) {
-			$this->username = $session->get('username');
-		}
+	public function __construct() {
+		$this->logger = App::fileLogger();
 
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
@@ -104,7 +101,7 @@ class UserService
 		return $query->first();
 	}
 
-	public function profile(): ?User {
+	public function profile(string $username): ?User {
 		$fields = [
 			'id',
 			'username',
@@ -122,7 +119,7 @@ class UserService
 		$query = User::select($fields)
 			// show profile only for DB Users
 			//->where('auth_provider', 0)
-			->where('username', $this->username);
+			->where('username', $username);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));

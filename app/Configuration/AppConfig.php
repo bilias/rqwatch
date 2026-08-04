@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  Rqwatch
  Copyright (C) 2025 Giannis Kapetanakis
@@ -16,7 +16,7 @@ define('RQWATCH_ROOT', realpath(__DIR__ . '/../..'));
 class AppConfig {
 
 // Application version
-public const string VERSION = '1.7.4';
+public const string VERSION = '1.8.0';
 
 public const string APP_NAME = 'Rqwatch';
 
@@ -66,6 +66,8 @@ public const int REDIS_CONFIG_CACHE_TTL = 300;
 
 // default TABLES
 public const string MAIL_LOGS_TABLE = 'mail_logs';
+public const string MAIL_LOG_DATA_TABLE = 'mail_log_data';
 public const string MAIL_LOG_RECIPIENTS_TABLE = 'mail_log_recipients';
+public const string MIGRATIONS_TABLE = 'migrations';
 
 }

@@ -34,6 +34,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserController extends ViewController
 {
+	private ?UserService $userService = null;
+
 	protected int $refresh_rate;
 	protected int $items_per_page;
 	protected int $max_items;
@@ -41,11 +43,19 @@ class UserController extends ViewController
 	private ?string $adminUsersUrl = null;
 
 	public function __construct() {
-	//	parent::__construct();
+		parent::__construct();
 
 		$this->refresh_rate = Config::get('refresh_rate');
 		$this->items_per_page = Config::get('items_per_page');
 		$this->max_items = Config::get('max_items');
+	}
+
+	private function getUserService(): UserService {
+		if ($this->userService === null) {
+			$this->userService = new UserService();
+		}
+
+		return $this->userService;
 	}
 
 	private function getAdminUsersUrl(): string {
@@ -83,7 +93,7 @@ class UserController extends ViewController
 		if (!empty($user_search_form['user'])) {
 			$search = $user_search_form['user'];
 
-			$service = new UserService($this->getFileLogger());
+			$service = $this->getUserService();
 			$url = $this->getAdminUsersUrl();
 			$users = $service->searchPaginatedAll($page, $url, $search);
 			$totalRecords = $users->total();
@@ -121,7 +131,7 @@ class UserController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new UserService($this->getFileLogger());
+		$service = $this->getUserService();
 		$url = $this->getAdminUsersUrl();
 		$users = $service->showPaginatedAll($url, $page);
 
@@ -155,7 +165,7 @@ class UserController extends ViewController
 			return $response;
 		}
 
-		$service = new UserService($this->getFileLogger());
+		$service = $this->getUserService();
 		$user = $service->showOne($id);
 		
 		if (!$user) {
@@ -191,8 +201,8 @@ class UserController extends ViewController
 			return $response;
 		}
 
-		$service = new UserService($this->getFileLogger(), $this->session);
-		$user = $service->profile();
+		$service = $this->getUserService();
+		$user = $service->profile($this->session->get('username'));
 
 		if (!$user) {
 			$this->flashbag->add('error', "User not found");
@@ -268,7 +278,7 @@ class UserController extends ViewController
 
 		if ($userform->isSubmitted() && $userform->isValid()) {
 			$data = $userform->getData();
-			$service = new UserService($this->getFileLogger());
+			$service = $this->getUserService();
 
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
@@ -355,7 +365,7 @@ class UserController extends ViewController
 		if ($userform->isSubmitted() && $userform->isValid()) {
 			//$data = $userform->getData()->toArray();
 			$data = $userform->getData();
-			$service = new UserService($this->getFileLogger());
+			$service = $this->getUserService();
 			// username change and new username exists
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
@@ -507,11 +517,11 @@ class UserController extends ViewController
 
 				// push session vars to $this->vars
 				$this->setSessionVars($this->session);
-				$this->unsetUrls();
 
 				$this->fileLogger->info("'{$old_username}' logged in as '{$user->username}'");
 				$this->flashbag->add('success', "You are now logged in as {$user->username}");
-				$this->initUrls();
+
+				$this->refreshUrls();
 				return new RedirectResponse($this->homepageUrl);
 			}
 		}

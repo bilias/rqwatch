@@ -25,11 +25,10 @@ use App\Core\Routing\RouteName;
 
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
+use App\Core\App;
 use App\Utils\Helper;
 use App\Services\MailLogService;
 use App\Services\UserService;
-
-use Psr\Log\LoggerInterface;
 
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Generator\UrlGenerator;
@@ -45,19 +44,8 @@ and then sends notification mails to recipients.
 class CronNotifications extends RqwatchCliCommand
 {
 	private string $app_name = "cron:notifications";
-	private ?LoggerInterface $fileLogger;
-	private ?LoggerInterface $syslogLogger;
 
 	use LockableTrait;
-
-	public function __construct(LoggerInterface $fileLogger, LoggerInterface $syslogLogger) {
-		// set command name
-		//parent::__construct($this->app_name);
-		parent::__construct();
-
-		$this->fileLogger = $fileLogger;
-		$this->syslogLogger = $syslogLogger;
-	}
 
 	#[\Override]
 	protected function configure(): void {
@@ -85,7 +73,7 @@ class CronNotifications extends RqwatchCliCommand
 		$show_local_only = $input->getOption('local');
 		$send_blacklisted = $input->getOption('blacklisted');
 
-		$service = new MailLogService($this->fileLogger);
+		$service = new MailLogService();
 
 		// MailLog Collection
 		$local = '';
@@ -163,7 +151,7 @@ class CronNotifications extends RqwatchCliCommand
 		}
 
 		// Filter out logs for users with notifications disabled
-		$userService = new UserService($this->fileLogger);
+		$userService = new UserService();
 		$service->filterDisabledRecipients($logs, $userService);
 
 		// Logs where everyone is disabled (or no recipients)

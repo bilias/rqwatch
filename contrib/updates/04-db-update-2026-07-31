@@ -1,0 +1,12 @@
+# sql
+CREATE TABLE `mail_logs_data` (
+  `mail_log_id` int(10) unsigned NOT NULL,
+  `headers` longtext DEFAULT NULL,
+  `symbols` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`symbols`)),
+  `fuzzy_hashes` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`fuzzy_hashes`)),
+  PRIMARY KEY (`mail_log_id`),
+  CONSTRAINT `fk_mail_logs_data_mail_logs`
+    FOREIGN KEY (`mail_log_id`)
+    REFERENCES `mail_logs` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;

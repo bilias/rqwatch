@@ -27,8 +27,6 @@ use App\Utils\Helper;
 
 use App\Services\UserService;
 
-use Psr\Log\LoggerInterface;
-
 #[AsCommand(
 	name: 'user:add',
 	description: 'Create a user',
@@ -38,19 +36,8 @@ use Psr\Log\LoggerInterface;
 class UserAdd extends RqwatchCliCommand
 {
 	private string $app_name = "user:add";
-	private ?LoggerInterface $fileLogger;
-	private ?LoggerInterface $syslogLogger;
 
 	use LockableTrait;
-
-	public function __construct(LoggerInterface $fileLogger, LoggerInterface $syslogLogger) {
-		// set command name
-		//parent::__construct($this->app_name);
-		parent::__construct();
-
-		$this->fileLogger = $fileLogger;
-		$this->syslogLogger = $syslogLogger;
-	}
 
 	#[\Override]
 	protected function configure(): void {
@@ -78,7 +65,7 @@ class UserAdd extends RqwatchCliCommand
 		//$param = $input->getArgument('param');
 		$username = strtolower(trim($input->getArgument('username')));
 
-		$service = new UserService($this->fileLogger);
+		$service = new UserService();
 
 		if ($service->userExists($username)) {
 			$output->writeln("<comment>Username '{$username}' already exists.</comment>");

@@ -161,6 +161,8 @@ class LoginController extends ViewController
 					return new RedirectResponse($this->loginUrl);
 				}
 
+				$this->refreshUrls();
+
 				if (!empty($login_redirect = $this->session->get('login_redirect'))) {
 					$url = $this->getRedirectUrl($login_redirect);
 				} else {

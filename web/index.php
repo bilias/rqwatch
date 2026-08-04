@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  Rqwatch
  Copyright (C) 2025 Giannis Kapetanakis
@@ -16,5 +16,5 @@ use App\Core\Routing\Router;
 require_once __DIR__ . '/../app/Core/Kernel.php';
 require_once __DIR__ . '/../app/Core/Routing/Router.php';
 
-$services = Kernel::boot();
-Router::run($services);
+(new Kernel())->boot();
+Router::run();

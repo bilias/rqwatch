@@ -11,6 +11,9 @@
 namespace App\Services;
 
 use App\Configuration\Config;
+
+use App\Core\App;
+
 use App\Utils\Helper;
 
 use App\Models\MapCombined;
@@ -27,8 +30,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-use Symfony\Component\HttpFoundation\Session\Session;
-
 use Exception;
 use Throwable;
 use RuntimeException;
@@ -42,15 +43,15 @@ class MapService
 	private ?string $email = null;
 	private ?array $user_aliases = null;
 
-	public function __construct(LoggerInterface $logger, ?Session $session = null) {
-		$this->logger = $logger;
+	public function __construct(?array $userContect = null) {
+		$this->logger = App::fileLogger();
 
-		if (!empty($session)) {
-			$this->is_admin = $session->get('is_admin');
-			$this->username = $session->get('username');
-			$this->user_id = $session->get('user_id');
-			$this->email = $session->get('email');
-			$this->user_aliases = $session->get('user_aliases');
+		if (!empty($userContect)) {
+			$this->is_admin = $userContect['is_admin'] ?? null;
+			$this->username = $userContect['username'] ?? null;
+			$this->user_id = $userContect['user_id'] ?? null;
+			$this->email = $userContect['email'] ?? null;
+			$this->user_aliases = $userContect['user_aliases'] ?? null;
 		}
 
 		$this->items_per_page = Config::get('items_per_page');

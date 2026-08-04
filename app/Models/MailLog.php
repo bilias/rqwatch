@@ -12,6 +12,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 //use App\Configuration\AppConfig;
 
@@ -195,7 +196,7 @@ class MailLog extends Model
 	}
 
 	public function getRcptToAttribute($value): string {
-		if ($this->relationLoaded('recipients') && $this->recipients->isNotEmpty()) {
+		if ($this->relationLoaded('recipients')) {
 			$emails = $this->recipients
 				->pluck('recipient_email')
 				->map(fn ($e) => strtolower(trim($e)))
@@ -206,6 +207,38 @@ class MailLog extends Model
 			return implode(', ', $emails);
 		}
 		return (string) $value;
+	}
+
+	public function mailLogData() {
+		return $this->hasOne(
+			MailLogData::class,
+			'mail_log_id',
+			'id'
+		);
+	}
+
+	public function getHeadersAttribute($value): ?string {
+		if ($this->relationLoaded('mailLogData') && $this->mailLogData !== null) {
+			return $this->mailLogData->headers;
+		}
+
+		return $value;
+	}
+
+	public function getSymbolsAttribute($value): ?array {
+		if ($this->relationLoaded('mailLogData') && $this->mailLogData !== null) {
+			return $this->mailLogData->symbols;
+		}
+
+		return is_string($value) ? json_decode($value, true) : $value;
+	}
+
+	public function getFuzzyHashesAttribute($value): ?array {
+		if ($this->relationLoaded('mailLogData') && $this->mailLogData !== null) {
+			return $this->mailLogData->fuzzy_hashes;
+		}
+
+		return is_string($value) ? json_decode($value, true) : $value;
 	}
 
 }

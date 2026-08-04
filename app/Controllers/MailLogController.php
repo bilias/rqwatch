@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
+use App\Core\App;
+
 use App\Core\Routing\RouteName;
 use App\Configuration\Config;
 use App\Utils\Helper;
@@ -37,6 +39,8 @@ use InvalidArgumentException;
 
 class MailLogController extends ViewController
 {
+	private ?MailLogService $mailLogService = null;
+
 	protected int $refresh_rate;
 	protected int $items_per_page;
 	protected int $q_items_per_page;
@@ -44,7 +48,7 @@ class MailLogController extends ViewController
 	protected string $quarantine_dir;
 
 	public function __construct() {
-	//	parent::__construct();
+		parent::__construct();
 
 		$this->refresh_rate = Config::get('refresh_rate');
 		$this->items_per_page = Config::get('items_per_page');
@@ -54,7 +58,16 @@ class MailLogController extends ViewController
 		$this->quarantine_dir = $_ENV['QUARANTINE_DIR'];
 	}
 
+	private function getMailLogService(): MailLogService {
+		if ($this->mailLogService === null) {
+			$this->mailLogService = new MailLogService($this->getUserContext());
+		}
+
+		return $this->mailLogService;
+	}
+
 	public function showAll(): Response {
+		$this->getAdminWarnings();
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -66,14 +79,15 @@ class MailLogController extends ViewController
 		}
 
 		/* without Pagination
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
+
 		$logs = $service->showAll();
 		*/
 
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
 
 		if ($this->getIsAdmin()) {
 			$url = $this->url(RouteName::ADMIN_HOMEPAGE);
@@ -143,7 +157,7 @@ class MailLogController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
 
 		if ($this->getIsAdmin()) {
 			$url = $this->url(RouteName::ADMIN_SEARCH_RESULTS);
@@ -196,7 +210,7 @@ class MailLogController extends ViewController
 			return new RedirectResponse($this->homepageUrl);
 		}
 
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
 
 		// has applyUserScope
 		$logs = $service->showReports($filters, $field, $mode)->toArray();
@@ -233,6 +247,7 @@ class MailLogController extends ViewController
 	}
 
 	public function showDay(string $date = null): Response {
+	$this->getAdminWarnings();
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -246,7 +261,7 @@ class MailLogController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
 
 		if ($this->getIsAdmin()) {
 			$url = $this->url(RouteName::ADMIN_DAY_LOGS, ['date' => $date]);
@@ -288,7 +303,8 @@ class MailLogController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
+
 		if ($this->getIsAdmin()) {
 			$url = $this->url(RouteName::ADMIN_QUARANTINE_DAY, ['date' => $date]);
 		} else {
@@ -326,7 +342,8 @@ class MailLogController extends ViewController
 			return $response;
 		}
 
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
+
 		//$days = $service->showQuarantine();
 
 		// Get page from ?page=, default 1
@@ -372,7 +389,7 @@ class MailLogController extends ViewController
 			return $response;
 		}
 
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
 		$error = null;
 
 		try {
@@ -394,7 +411,7 @@ class MailLogController extends ViewController
 		if ($ar['log']->mail_stored && !empty($ar['log']->mail_location)) {
 			$form_data = array(
 				'id' => $ar['log']->id,
-				'email' => $ar['log']->rcpt_to,
+				'email' => $ar['log']->rcpt_to, // from mail_log_recipients
 			);
 
 			// mailreleaseform submit goes to seperate method releaseMail()
@@ -445,7 +462,7 @@ class MailLogController extends ViewController
 			return new RedirectResponse($this->homepageUrl);
 		}
 
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
 
 		try {
 			// has applyUserScope()
@@ -461,7 +478,7 @@ class MailLogController extends ViewController
 
 		$form_data = array(
 			'id' => $maillog->id,
-			'email' => $maillog->rcpt_to,
+			'email' => $maillog->rcpt_to, // from mail_log_recipients
 		);
 
 		$mailreleaseform = MailReleaseForm::create($this->formFactory, $this->request, $form_data);
@@ -485,21 +502,14 @@ class MailLogController extends ViewController
 				return $this->getDetailIdResponse($maillog->id);
 			}
 
-			// rcpt_to is different than session email (or aliases).
-			// Should NOT happen, unless we are admin
-
 			// get all emails from user (primary + aliases)
 			$emails = array_unique(array_filter(array_map('strtolower', array_merge([$this->getEmail()], $this->user_aliases ?? []))));
 			// split DB recipients into array
+			// rcpt_to from mail_log_recipients
 			$rcptToList = array_map(fn($e) => strtolower(trim($e)), explode(',', $maillog->rcpt_to));
 			// split form's original recipients
 			$formEmailList = array_map(fn($e) => strtolower(trim($e)), explode(',', $data['email']));
 
-			/* Old code, works for single rcpt_to
-			if (((!in_array($maillog->rcpt_to, $emails, true)) or
-			    ($maillog->rcpt_to !== $data['email']))				// rcpt_to defferent than form's original recipient
-				  and !$this->getIsAdmin()) {								// admin can release everything
-			*/
 			if (
 				 // none of user's emails match recipients
 				 (count(array_intersect($emails, $rcptToList)) === 0
@@ -562,8 +572,9 @@ class MailLogController extends ViewController
 			}
 
 			if ($success) {
-				$this->flashbag->add('success', "Message released to " .
-					implode(', ', $release_to) . " by " . $this->session->get('email'));
+				$this->flashbag->add('success', 
+					"Mail {$maillog->qid} released to " .
+					implode(', ', $release_to));
 				return $this->getDetailIdResponse($maillog->id);
 			} else {
 				$this->flashbag->add('error', "Message failed to be released");
@@ -582,7 +593,7 @@ class MailLogController extends ViewController
 		$this->twigView();
 
 		$error = null;
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
 
 		try {
 			// has applyUserScope
@@ -619,7 +630,7 @@ class MailLogController extends ViewController
 	}
 
 	public function saveAttachment(int $id, int $attach_id): Response {
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
 
 		$this->initUrls();
 		try {
@@ -669,7 +680,7 @@ class MailLogController extends ViewController
 	}
 
 	public function openAttachment(int $id, int $attach_id): Response {
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
 
 		$this->initUrls();
 		try {
@@ -720,6 +731,7 @@ class MailLogController extends ViewController
 	}
 
 	public function search(): Response {
+		$this->getAdminWarnings();
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -756,7 +768,7 @@ class MailLogController extends ViewController
 		$filters = $this->getFiltersFromSession();
 
 		// get current stats
-		$service = new MailLogService($this->getFileLogger(), $this->session);
+		$service = $this->getMailLogService();
 
 		$configTTLData = $this->getRedisConfigTTLData();
 
