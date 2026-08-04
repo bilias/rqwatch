@@ -345,7 +345,7 @@ class Controller
 			return;
 		}
 
-		$migrationsStatus = App::migrationStatus()->getMigrationStates();
+		$migrationsStatus = App::migrationStatus()->getAllMigrationStates();
 
 		foreach ($migrationsStatus as $migration => $status) {
 

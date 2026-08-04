@@ -165,16 +165,12 @@ final class MailLogWriter
 	}
 
 	private function supportsRecipients(): bool {
-		// auto fallback to legacy mode
-		//return $this->migrationStatus->isMigrationApplied(
 		return $this->migrationStatus->isMigrationCompleted(
 			Migrations::MAIL_RECIPIENTS
 		);
 	}
 
 	private function supportsMailLogData(): bool {
-		// auto fallback to legacy mode
-		//return $this->migrationStatus->isMigrationApplied(
 		return $this->migrationStatus->isMigrationCompleted(
 			Migrations::MAIL_LOG_DATA
 		);

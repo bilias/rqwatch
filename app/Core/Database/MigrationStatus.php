@@ -30,9 +30,6 @@ final class MigrationStatus
 	// migration status/state cache
 	private array $stateCache = [];
 
-	// migration applied cache
-	private array $appliedCache = [];
-
 	private bool $migrationTableExists = false;
 
 	public function __construct(
@@ -80,28 +77,7 @@ final class MigrationStatus
 			=== Migrations::STATUS_COMPLETED;
 	}
 
-	public function isMigrationApplied(string $migration): bool {
-		if (array_key_exists($migration, $this->appliedCache)) {
-			return $this->appliedCache[$migration];
-		}
-
-		if (!isset(Migrations::MIGRATION_CLASSES[$migration])) {
-			throw new RuntimeException("Unknown migration: {$migration}");
-		}
-
-		if (!$this->isMigrationCompleted($migration)) {
-			return $this->appliedCache[$migration] = false;
-		}
-
-		$migrationClass = Migrations::MIGRATION_CLASSES[$migration];
-
-		$migrationInstance = new $migrationClass();
-
-		return $this->appliedCache[$migration] =
-			$migrationInstance->verify();
-	}
-
-	public function getMigrationStates(): array {
+	public function getAllMigrationStates(): array {
 		$states = [];
 
 		foreach (Migrations::MIGRATIONS as $migration) {
