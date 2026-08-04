@@ -62,7 +62,7 @@ final class MailLogWriter
 		// MAIL_LOG_DATA migration in progress. Dual write
 		// data fields in both mail_logs and mail_log_data table
 		if ($this->migrationStatus->isMigrationRunning(Migrations::MAIL_LOG_DATA)) {
-			$this->fileLogger->info($mailData['qid'] . " MAIL_LOG_DATA DB migration in progress, writting in dual mode");
+			$this->fileLogger->info("Mail {$mailData['qid']} received while MAIL_LOG_DATA DB migration in progress, writting in dual mode");
 			$this->syslogLogger->info($mailData['qid'] . " MAIL_LOG_DATA DB migration in progress, writting in dual mode");
 			return $this->insertMailLogDualWrite($mailData);
 		}
@@ -75,7 +75,7 @@ final class MailLogWriter
 		}
 
 		// MAIL_LOG_DATA migration pending. Legacy write (mail_logs table only)
-		$this->fileLogger->warning($mailData['qid'] . " was written in legacy mode. MAIL_LOG_DATA DB migration pending");
+		$this->fileLogger->warning("Mail {$mailData['qid']} received and was written in legacy mode. MAIL_LOG_DATA DB migration pending");
 		$this->syslogLogger->warning($mailData['qid'] . " was written in legacy mode. MAIL_LOG_DATA DB migration pending");
 		return $this->insertMailLogLegacyWrite($mailData);
 	}
