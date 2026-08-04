@@ -50,7 +50,7 @@ class GetMailApi extends RqwatchApi
 				$err_msg, 'critical');
 		}
 		
-		$service = $service = new MailLogService();
+		$service = new MailLogService();
 		$log = $service->findMailLog($id);
 
 		if (empty($log)) {
