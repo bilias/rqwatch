@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-08-04
+- Migrations Subsystem
+
 ### 2026-08-03
 - Admin and log warnings for pending migrations
 - Verify DB schema inside Kernel. Exit if there is error
