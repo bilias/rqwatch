@@ -48,7 +48,7 @@ final class MailLogWriter
 
 				$mailLogId = $this->insertMailLog($mailData);
 
-				$this->insertRecipients(
+				$this->insertMailRecipients(
 					$mailLogId,
 					$recipients
 				);
@@ -64,7 +64,6 @@ final class MailLogWriter
 		if ($this->migrationStatus->isMigrationRunning(Migrations::MAIL_LOG_DATA)) {
 			$this->fileLogger->info($mailData['qid'] . " MAIL_LOG_DATA DB migration in progress, writting in dual mode");
 			$this->syslogLogger->info($mailData['qid'] . " MAIL_LOG_DATA DB migration in progress, writting in dual mode");
-			$this->fileLogger->info("dual write, migration running");
 			return $this->insertMailLogDualWrite($mailData);
 		}
 
@@ -132,8 +131,8 @@ final class MailLogWriter
 	}
 
 	// Insert recipients.
-	private function insertRecipients(int $mailLogId, array $recipients): void {
-		if (!$this->supportsRecipients()) {
+	private function insertMailRecipients(int $mailLogId, array $recipients): void {
+		if (!$this->migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
 			return;
 		}
 
