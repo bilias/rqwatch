@@ -71,8 +71,8 @@ class MailLogDataMigration extends AbstractMigration {
 			return false;
 		}
 
-		$this->fileLogger->info("Migration $name finished");
-		$output->writeln("<comment>Migration $details finished\n</comment>");
+		$this->fileLogger->info("Migration $name completed");
+		$output->writeln("<comment>Migration $details completed\n</comment>");
 		return true;
 	}
 
