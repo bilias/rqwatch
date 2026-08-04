@@ -144,8 +144,10 @@ abstract class AbstractMigration {
 			);
 		}
 
+		$migration = $this->getName();
+
 		$data = [
-			'migration'   => $this->getName(),
+			'migration'   => $migration,
 			'status'      => $status,
 			'status_at' => date('Y-m-d H:i:s'),
 		];
@@ -157,6 +159,12 @@ abstract class AbstractMigration {
 				[ 'migration' ],
 				[ 'status', 'status_at' ]
 			);
+
+		// update MigrationStatus stateCache
+		App::migrationStatus()->setMigrationState(
+			$migration,
+			$status
+		);
 	}
 
 	public function ensureMigrationsTable(): void {

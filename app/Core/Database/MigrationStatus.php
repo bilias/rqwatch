@@ -37,6 +37,14 @@ final class MigrationStatus
 		private LoggerInterface $fileLogger
 	) {}
 
+	public function setMigrationState(string $migration, ?string $status): void {
+		if (!in_array($migration, Migrations::MIGRATIONS, true)) {
+			throw new RuntimeException("Unknown migration: {$migration}");
+		}
+
+		$this->stateCache[$migration] = $status;
+	}
+
 	public function getMigrationState(string $migration): ?string {
 		if (array_key_exists($migration, $this->stateCache)) {
 			return $this->stateCache[$migration];
