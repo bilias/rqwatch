@@ -289,7 +289,7 @@ class MailLogService
 		$lf = "[MailLogService_showQuarantinedMail]";
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = MailLog::with('recipients')
+		$query = MailLog::with($this->mailLogRelations())
 			->select($fields)
 			->where('id', $id)
 			->where('mail_stored', 1);
@@ -1313,7 +1313,7 @@ class MailLogService
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 
-		$query = MailLog::with('recipients')
+		$query = MailLog::with($this->isRecipientsRelationCompleted())
 					->select($fields)
 					->where('mail_stored', 1)
 					->where('created_at', '<', $cutoffDate->format('Y-m-d H:i:s'));
@@ -1369,6 +1369,16 @@ class MailLogService
 					OutputInterface::VERBOSITY_VERBOSE);
 				}
 		}
+	}
+
+	private function isRecipientsRelationCompleted(): array {
+		$relations = [];
+
+		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
+			$relations[] = 'recipients';
+		}
+
+		return $relations;
 	}
 
 	public function mailLogRelations(): array {
