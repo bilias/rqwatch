@@ -9,7 +9,9 @@
 - Update dependencies\
 `composer install`
 
-- Start the migration
+- `composer dump-autoload` will be needed if you have run it in the past
+
+- Start the migration on **one** API server **only**\
   ```
   ./bin/cli.php db:migrate
   ```

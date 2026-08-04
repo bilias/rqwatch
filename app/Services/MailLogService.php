@@ -1217,7 +1217,7 @@ class MailLogService
 
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = MailLog::with('recipients')
+		$query = MailLog::with($this->mailLogRelations())
 					->select($fields)
 					->where('notification_pending', 1);
 					/*
