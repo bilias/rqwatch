@@ -107,7 +107,10 @@ class MailLogService
 
 	public function getQueryByFilters(Builder $query, array $filters): Builder {
 		if (!empty($filters)) {
-			$filters = FormHelper::getFilterByName($filters);
+			$filters = FormHelper::getFilterByName(
+				$filters,
+				$this->createdDayMigrationComplete()
+			);
 		}
 
 		if (is_array($filters) and !empty($filters)) {
@@ -289,8 +292,8 @@ class MailLogService
 		$lf = "[MailLogService_showQuarantinedMail]";
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = MailLog::with($this->getMailLogRelations())
-			->select($fields)
+		$query = MailLog::select($fields)
+			->with($this->getMailLogRelations())
 			->where('id', $id)
 			->where('mail_stored', 1);
 
@@ -452,8 +455,12 @@ class MailLogService
 				                ->groupBy($field);
 				break;
 			case 'date':
-				$query = MailLog::selectRaw("DATE(created_at) AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
-				                ->groupBy(DB::raw('DATE(created_at)'));
+				if ($this->createdDayMigrationComplete()) {
+					$query = MailLog::selectRaw("created_day AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored");
+				} else {
+					$query = MailLog::selectRaw("DATE(created_at) AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
+						->groupBy(DB::raw('DATE(created_at)'));
+				}
 				break;
 			default:
 				//$fields = [ $field, DB::raw('count(*) as total') ];
@@ -558,12 +565,20 @@ class MailLogService
 			$date = Helper::get_today();
 		}
 
-		$query = MailLog::with($this->getMailLogRelations())
-			->select($fields)
-			->whereBetween('created_at', [
+		$query = MailLog::select($fields)
+			->with($this->getMailLogRelations())
+			->select($fields);
+
+		if ($this->createdDayMigrationComplete()) {
+			$query->where('created_day', $date);
+		} else {
+			$query->whereBetween('created_at', [
 				"{$date} 00:00:00",
 				"{$date} 23:59:59"
-			])
+			]);
+		}
+
+		$query = $query
 			->orderBy('created_at', 'DESC');
 
 		$query = $this->applyUserScope($query);
@@ -584,11 +599,18 @@ class MailLogService
 			$date = Helper::get_today();
 		}
 
-		$query = MailLog::select($fields)
-			->whereBetween('created_at', [
+		$query = MailLog::select($fields);
+
+		if ($this->createdDayMigrationComplete()) {
+			$query->where('created_day', $date);
+		} else {
+			$query->whereBetween('created_at', [
 				"{$date} 00:00:00",
 				"{$date} 23:59:59"
-			])
+			]);
+		}
+
+		$query = $query
 			->where('mail_stored', 1)
 			->orderBy('created_at', 'DESC');
 
@@ -622,8 +644,13 @@ class MailLogService
 	}
 
 	public function showPaginatedQuarantine(string $url, int $page = 1): LengthAwarePaginator {
+		if ($this->createdDayMigrationComplete()) {
+			$query = MailLog::selectRaw('created_day as day, COUNT(*) as cnt');
+		} else {
+			$query = MailLog::selectRaw('DATE(created_at) as day, COUNT(*) as cnt');
+		}
 
-		$query = MailLog::selectRaw('DATE(created_at) as day, COUNT(*) as cnt')
+		$query = $query
 			->where('mail_stored', 1)
 			->groupByRaw('day')
 			->orderByDesc('day')
@@ -1217,8 +1244,8 @@ class MailLogService
 
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = MailLog::with($this->getMailLogRelations())
-					->select($fields)
+		$query = MailLog::select($fields)
+					->with($this->getMailLogRelations())
 					->where('notification_pending', 1);
 					/*
 					->orderBy('id', 'ASC')
@@ -1379,6 +1406,10 @@ class MailLogService
 		}
 
 		return $relations;
+	}
+
+	private function createdDayMigrationComplete(): bool {
+		return $this->migrationStatus->createdDayCompleted();
 	}
 
 	public function getMailLogRelations(): array {
