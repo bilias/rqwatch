@@ -209,5 +209,6 @@ CREATE TABLE `migrations` (
 ) ENGINE=InnoDB;
 
 INSERT INTO migrations (migration) VALUES
-('20260729_add_created_day'),
-('20260729_migrate_mail_recipients');
+('20260111_mail_recipients'),
+('20260729_created_day_day'),
+('20260731_mail_log_data');
