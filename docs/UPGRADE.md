@@ -32,7 +32,7 @@ origin	https://github.com/bilias/rqwatch/ (push)
 ```
 [rqwatch]$ git fetch origin
 
-[rqwatch]$ git checkout v1.8.1 (or latest release tag)
+[rqwatch]$ git checkout v1.8.2 (or latest release tag)
 
 # upgrade dependencies
 [rqwatch]$ composer install
