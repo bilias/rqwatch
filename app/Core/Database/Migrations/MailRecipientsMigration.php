@@ -37,19 +37,19 @@ class MailRecipientsMigration extends AbstractMigration {
 
 		// completed and verified
 		if (!$force && $this->isApplied()) {
-			$output->writeln("<comment>Migration $details is already applied</comment>");
+			$output->writeln("<comment>Migration $details is already applied\n</comment>");
 			return true;
 		}
 
 		if (!$force && $this->isMigrationCompleted()) {
-			$output->writeln("<comment>Migration $details exists, recording status</comment>");
+			$output->writeln("<comment>Migration $details exists, recording status\n</comment>");
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 			return true;
 		}
 
 		$this->fileLogger->info("Starting migration $name");
 		$output->writeln("<comment>Starting migration $details in batches of {$batch}</comment>");
-		$output->writeln("<comment>This will take some time, please be patient</comment>");
+		$output->writeln("<question>This will take some time, please be patient</question>");
 
 		try {
 			// create table if does not exist, then check and throw if not exist

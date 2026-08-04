@@ -40,19 +40,19 @@ class CreatedDayMigration extends AbstractMigration {
 
 		// completed and verified
 		if ($this->isApplied()) {
-			$output->writeln("<comment>Migration $details is already recorded</comment>");
+			$output->writeln("<comment>Migration $details is already recorded\n</comment>");
 			return true;
 		}
 
 		if ($this->verifySchema()) {
-			$output->writeln("<comment>Migration $details exists, recording status</comment>");
+			$output->writeln("<comment>Migration $details exists, recording status\n</comment>");
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 			return true;
 		}
 
 		$this->fileLogger->info("Starting migration $name");
 		$output->writeln("<comment>Starting migration $details</comment>");
-		$output->writeln("<comment>This will take some time, please be patient</comment>");
+		$output->writeln("<question>This will take some time, please be patient</question>");
 
 		try {
 			// create table if does not exist, then check and throw if not exist
