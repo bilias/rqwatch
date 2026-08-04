@@ -280,6 +280,7 @@ class Controller
 		if ($ttl === null || $ttl < 0) {
 			return [
 				'ttl' => $ttl,
+				'ttl_human' => null,
 				'expires_at' => null,
 			];
 		}
