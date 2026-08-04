@@ -161,7 +161,7 @@ final class MigrationStatus
 		$this->migrationTableExists = $exists;
 	}
 
-	public function hasMigrationTable(): bool {
+	public function hasMigrationsTable(): bool {
 		return $this->migrationTableExists;
 	}
 
