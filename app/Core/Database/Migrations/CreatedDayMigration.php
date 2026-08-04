@@ -31,7 +31,7 @@ class CreatedDayMigration extends AbstractMigration {
 	private const string COLUMN_CREATED_DAY = 'created_day';
 	private const string INDEX_CREATED_DAY = 'created_day_index';
 
-	public function run(int $batch, int $sleep, bool $force, ?OutputInterface $output = null) {
+	public function run(int $batch, int $sleep, bool $force, OutputInterface $output) {
 		$this->ensureMigrationsTable();
 
 		$name = $this->getName();
@@ -40,23 +40,22 @@ class CreatedDayMigration extends AbstractMigration {
 
 		// completed and verified
 		if ($this->isApplied()) {
-			$output?->writeln("<info>Migration $details is already recorded</info>");
+			$output->writeln("<comment>Migration $details is already recorded</comment>");
 			return true;
 		}
 
 		if ($this->verifySchema()) {
-			$output?->writeln("<info>Migration $details exists, recording status</info>");
+			$output->writeln("<comment>Migration $details exists, recording status</comment>");
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 			return true;
 		}
 
 		$this->fileLogger->info("Starting migration $name");
-		$output?->writeln("<comment>Starting migration $details</comment>");
-		$output?->writeln("<comment>This will take some time, please be patient</comment>");
+		$output->writeln("<comment>Starting migration $details</comment>");
+		$output->writeln("<comment>This will take some time, please be patient</comment>");
 
 		try {
 			// create table if does not exist, then check and throw if not exist
-			$this->ensureMailLogDataTable($output);
 			$this->recordMigrationStatus(Migrations::STATUS_RUNNING);
 
 			$this->runMigration();
@@ -66,14 +65,15 @@ class CreatedDayMigration extends AbstractMigration {
 				"Migration $name failed: " . $e->getMessage()
 			);
 
-			$output?->writeln(
+			$output->writeln(
 				"<error>Migration $details failed: {$e->getMessage()}</error>"
 			);
 
 			return false;
 		}
 
-		$this->fileLogger->info("Finished migration $name");
+		$this->fileLogger->info("Migration $name finished");
+		$output->writeln("<comment>Migration $details finished\n</comment>");
 		return true;
 	}
 

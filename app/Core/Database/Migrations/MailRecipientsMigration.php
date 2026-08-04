@@ -28,7 +28,7 @@ class MailRecipientsMigration extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_RECIPIENTS;
 
-	public function run(int $batch, int $sleep, bool $force, ?OutputInterface $output = null): bool {
+	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
 		$name = $this->getName();
@@ -37,19 +37,19 @@ class MailRecipientsMigration extends AbstractMigration {
 
 		// completed and verified
 		if (!$force && $this->isApplied()) {
-			$output?->writeln("<info>Migration $details is already applied</info>");
+			$output->writeln("<comment>Migration $details is already applied</comment>");
 			return true;
 		}
 
-		if (!$force && $this->verifySchema()) {
-			$output?->writeln("<info>Migration $details exists, recording status</info>");
+		if (!$force && $this->isMigrationCompleted()) {
+			$output->writeln("<comment>Migration $details exists, recording status</comment>");
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 			return true;
 		}
 
 		$this->fileLogger->info("Starting migration $name");
-		$output?->writeln("<comment>Starting migration $details in batches of {$batch}</comment>");
-		$output?->writeln("<comment>This will take some time, please be patient</comment>");
+		$output->writeln("<comment>Starting migration $details in batches of {$batch}</comment>");
+		$output->writeln("<comment>This will take some time, please be patient</comment>");
 
 		try {
 			// create table if does not exist, then check and throw if not exist
@@ -63,19 +63,20 @@ class MailRecipientsMigration extends AbstractMigration {
 				"Migration $name failed: " . $e->getMessage()
 			);
 
-			$output?->writeln(
+			$output->writeln(
 				"<error>Migration $details failed: {$e->getMessage()}</error>"
 			);
 
 			return false;
 		}
 
-		$this->fileLogger->info("Finished migration $name");
+		$this->fileLogger->info("Migration $name finished");
+		$output->writeln("<comment>Migration $details finished\n</comment>");
 		return true;
 	}
 
 	private function runMigration(int $batch, int $sleep, ?OutputInterface $output = null): void {
-		$output?->write("<info>Total recipients: </info>");
+		$output->write("<info>Total recipients: </info>");
 
 		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
 			->select('ml.id', 'ml.rcpt_to', 'r.mail_log_id')
@@ -90,7 +91,7 @@ class MailRecipientsMigration extends AbstractMigration {
 							->count('ml.id');
 
 		$total = $total - $unknown;
-		$output?->writeln("<info>{$total}</info>");
+		$output->writeln("<info>{$total}</info>");
 		if ($total == 0) {
 			return;
 		}
@@ -108,7 +109,7 @@ class MailRecipientsMigration extends AbstractMigration {
 			/*
 			$sql = $query->toSql();
 			$bindings = implode(', ', $query->getBindings());
-			$output?->writeln("SQL iteration, lastId={$lastId}: {$sql} | Bindings: {$bindings}");
+			$output->writeln("SQL iteration, lastId={$lastId}: {$sql} | Bindings: {$bindings}");
 			*/
 			$logs = $query->get();
 
@@ -194,7 +195,7 @@ class MailRecipientsMigration extends AbstractMigration {
 			$scanned += $logs->count();
 			$migrated += $inserted;
 			$remaining = max(0, $total - $scanned);
-			$output?->writeln("<info>Found: {$scanned}, Remaining: {$remaining}, Migrated: {$migrated} (recipients)</info>"
+			$output->writeln("<info>Found: {$scanned}, Remaining: {$remaining}, Migrated: {$migrated} (recipients)</info>"
 );
 			usleep($sleep);
 		}
@@ -223,7 +224,7 @@ class MailRecipientsMigration extends AbstractMigration {
 	private function createRecipientsTable(OutputInterface $output): void
     {
 		$this->fileLogger->info("Creating table " . AppConfig::MAIL_LOG_RECIPIENTS_TABLE);
-		$output?->writeln("<comment>Creating table " . AppConfig::MAIL_LOG_RECIPIENTS_TABLE . "</comment>");
+		$output->writeln("<comment>Creating table " . AppConfig::MAIL_LOG_RECIPIENTS_TABLE . "</comment>");
 
 		$this->createTable(
 			AppConfig::MAIL_LOG_RECIPIENTS_TABLE,
