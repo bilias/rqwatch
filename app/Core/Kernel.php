@@ -63,10 +63,13 @@ final class Kernel
 		$this->bootDatabase();
 
 		// get migration status
-		$this->getMigrationStatus();
+		$this->createMigrationStatus();
 
 		// check db schema validity
 		$this->verifyDatabaseSchema();
+
+		// find out about migrations and cache results
+		$this->warmMigrationStatusCache();
 
 		// last: create App registry
 		$this->initApp();
@@ -136,11 +139,15 @@ final class Kernel
 		}
 	}
 
-	private function getMigrationStatus(): void {
+	private function createMigrationStatus(): void {
 		$this->migrationStatus = new MigrationStatus(
 			$this->capsule,
 			$this->fileLogger
 		);
+	}
+
+	private function warmMigrationStatusCache(): void {
+		$this->migrationStatus->warmCache();
 	}
 
 	private function initApp(): void {

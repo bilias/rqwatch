@@ -30,12 +30,41 @@ final class MigrationStatus
 	// migration status/state cache
 	private array $stateCache = [];
 
+	private bool $cacheLoaded = false;
+
 	private bool $migrationTableExists = false;
 
 	public function __construct(
 		private Capsule $capsule,
 		private LoggerInterface $fileLogger
 	) {}
+
+	public function warmCache(): void {
+		if ($this->cacheLoaded) {
+			return;
+		}
+
+		if (!$this->migrationTableExists) {
+			return;
+		}
+
+		try {
+			$this->stateCache = $this->capsule
+				->table(AppConfig::MIGRATIONS_TABLE)
+				->pluck('status', 'migration')
+				->all();
+
+			$this->cacheLoaded = true;
+		} catch (QueryException $e) {
+			if ($e->getCode() === '42S02') {
+				// Table does not exist (or disappeared)
+				$this->stateCache = [];
+				return;
+			}
+
+			throw $e;
+		}
+	}
 
 	public function setMigrationState(string $migration, ?string $status): void {
 		if (!in_array($migration, Migrations::MIGRATIONS, true)) {
@@ -46,33 +75,15 @@ final class MigrationStatus
 	}
 
 	public function getMigrationState(string $migration): ?string {
-		if (array_key_exists($migration, $this->stateCache)) {
-			return $this->stateCache[$migration];
-		}
-
 		if (!in_array($migration, Migrations::MIGRATIONS, true)) {
 			throw new RuntimeException("Unknown migration : {$migration}");
 		}
 
-		try {
-			return $this->stateCache[$migration] = $this->capsule
-				->table(AppConfig::MIGRATIONS_TABLE)
-				->where('migration', $migration)
-				->value('status');
-		} catch (QueryException $e) {
-			// migrations table does not exist yet
-			if ($e->getCode() === '42S02') {
-				/*
-				$this->fileLogger->warning(
-					"Migration table '" . AppConfig::MIGRATIONS_TABLE .
-					"' does not exist"
-				);
-				*/
-				return $this->stateCache[$migration] = null;
-			}
-
-			throw $e;
+		if (!$this->cacheLoaded) {
+			$this->warmCache();
 		}
+
+		return $this->stateCache[$migration] ?? null;
 	}
 
 	public function isMigrationRunning(string $migration): bool {
