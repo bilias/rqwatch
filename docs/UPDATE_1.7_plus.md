@@ -1,4 +1,9 @@
-# Update instructions from < 1.7 Rqwatch versions
+# Rqwatch 1.7+ Update instructions
+
+Update to 1.8+ is recommended!
+
+After reading about Rspamd metadata_exporter multipart formatter bellow, 
+please follow the [UPDATE-1.8 GUIDE](UPDATE_1.8_plus.md).
 
 ## WARNING
 Rqwatch 1.7+ requires Rspamd 3.14.2+ and contains important performance optimizations.
@@ -8,8 +13,6 @@ There is also a **change in the DB schema** and upgrade must be done is steps.
 ## Update instructions
 You should first follow [MAIL_RECIPIENTS_UPDATE](MAIL_RECIPIENTS_UPDATE.md)
 in order to **update your database prior upgrading Rqwatch** code and migrate data to the new mail recipients table.
-
-If you are on version 1.8+ you can follow the [DB_MIGRATION_GUIDE](DB_MIGRATION.md).
 
 ## Rspamd metadata_exporter multipart formatter
 According to [Rspamd](https://docs.rspamd.com/modules/metadata_exporter/#settings-http-backend)
