@@ -7,8 +7,8 @@
    * [Installation](#installation-1)
       * [PHP](#php)
       * [Users and groups](#users-and-groups)
-      * [Download and setup directories](#download-and-setup-directories)
       * [Rqwatch Installation](#rqwatch-installation)
+      * [Rqwatch Dependencies](#rqwatch-dependencies)
       * [PHP-FPM](#php-fpm)
       * [Web Server](#web-server)
       * [Database Server](#database-server)
@@ -101,7 +101,7 @@ usermod -G rqwatch_web apache
 usermod -G rqwatch_web www-data
 ```
 
-### Download and setup directories
+### Rqwatch Installation
 ```
 cd /var/www/html
 git clone https://github.com/bilias/rqwatch/
@@ -124,7 +124,7 @@ chown root:rqwatch .env config/config.*
 chmod 640 .env config/config.*
 ```
 
-### Rqwatch Installation
+### Rqwatch Dependencies
 Temporarily give write access to rqwatch user in order to create `vendor/` and `composer.lock`:
 ```
 chown rqwatch /var/www/html/rqwatch
