@@ -201,14 +201,13 @@ CREATE TABLE `mail_logs_data` (
 DROP TABLE IF EXISTS `migrations`;
 
 CREATE TABLE `migrations` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `migration` varchar(255) NOT NULL,
-  `executed_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `migrations_migration_unique` (`migration`)
+  `status` varchar(32) NOT NULL DEFAULT 'pending',
+  `status_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`migration`)
 ) ENGINE=InnoDB;
 
-INSERT INTO migrations (migration) VALUES
-('20260111_mail_recipients'),
-('20260729_created_day_day'),
-('20260731_mail_log_data');
+INSERT INTO `migrations` VALUES
+('20260111_mail_recipients','completed',NOW()),
+('20260729_created_day','completed',NOW()),
+('20260731_mail_log_data','completed',NOW());
