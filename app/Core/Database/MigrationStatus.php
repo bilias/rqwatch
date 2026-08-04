@@ -27,8 +27,6 @@ use RuntimeException;
 
 final class MigrationStatus
 {
-	private array $cache = [];
-
 	// migration status/state cache
 	private array $stateCache = [];
 
@@ -41,50 +39,6 @@ final class MigrationStatus
 		private Capsule $capsule,
 		private LoggerInterface $fileLogger
 	) {}
-
-	public function hasMailRecipients(): bool {
-		return $this->check(
-			Migrations::MAIL_RECIPIENTS
-		);
-	}
-
-	public function hasCreatedDay(): bool {
-		return $this->check(
-			Migrations::CREATED_DAY
-		);
-	}
-
-	public function hasMailLogData(): bool {
-		return $this->check(
-			Migrations::MAIL_LOG_DATA
-		);
-	}
-
-	private function check(string $key): bool {
-		if (array_key_exists($key, $this->cache)) {
-			return $this->cache[$key];
-		}
-
-		if (!isset(Migrations::MIGRATION_CLASSES[$key])) {
-			throw new RuntimeException("Unknown migration key: {$key}");
-		}
-
-		$migrationClass = Migrations::MIGRATION_CLASSES[$key];
-
-		$migration = new $migrationClass();
-
-		return $this->cache[$key] = $migration->isApplied();
-	}
-
-	public function getAppliedStatus(): array {
-		$status = [];
-
-		foreach (Migrations::MIGRATIONS as $migration) {
-			$status[$migration] = $this->check($migration);
-		}
-
-		return $status;
-	}
 
 	public function getMigrationState(string $migration): ?string {
 		if (array_key_exists($migration, $this->stateCache)) {
