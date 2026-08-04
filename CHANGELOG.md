@@ -2,7 +2,7 @@
 
 ## Master Dev Branch
 
-## Version v1.8.0 - Released: 2026-08-04
+## Version v1.8.2 - Released: 2026-08-04
 
 ### 2026-08-04
 - Migrations Subsystem
