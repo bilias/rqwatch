@@ -34,8 +34,6 @@ use App\Core\SessionManager;
 use App\Core\Middleware\AuthMiddleware;
 use App\Core\Middleware\Authorization;
 
-use App\Core\Database\MigrationStatus;
-
 use App\Controllers\Controller;
 
 use Psr\Log\LoggerInterface;
