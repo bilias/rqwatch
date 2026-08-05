@@ -96,6 +96,18 @@ final class MigrationStatus
 			=== Migrations::STATUS_COMPLETED;
 	}
 
+	public function mailRecipientsCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::MAIL_RECIPIENTS);
+	}
+
+	public function mailLogDataCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::MAIL_LOG_DATA);
+	}
+
+	public function createdDayCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::CREATED_DAY);
+	}
+
 	public function getAllMigrationStates(): array {
 		$states = [];
 
