@@ -1374,7 +1374,7 @@ class MailLogService
 	private function isRecipientsRelationCompleted(): array {
 		$relations = [];
 
-		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
+		if ($this->migrationStatus->mailRecipientsCompleted()) {
 			$relations[] = 'recipients';
 		}
 
@@ -1384,11 +1384,11 @@ class MailLogService
 	public function mailLogRelations(): array {
 		$relations = [];
 
-		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
+		if ($this->migrationStatus->mailRecipientsCompleted()) {
 			$relations[] = 'recipients';
 		}
 
-		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_LOG_DATA)) {
+		if ($this->migrationStatus->mailLogDataCompleted()) {
 			$relations[] = 'mailLogData';
 		}
 
