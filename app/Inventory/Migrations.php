@@ -33,6 +33,12 @@ class Migrations
 		self::MAIL_LOG_DATA,
 	];
 
+	public const array REQUIRED = [
+		self::MAIL_RECIPIENTS,
+		self::CREATED_DAY,
+		self::MAIL_LOG_DATA,
+	];
+
 	public const array MIGRATION_CLASSES = [
 		self::MAIL_RECIPIENTS => MailRecipientsMigration::class,
 		self::CREATED_DAY => CreatedDayMigration::class,

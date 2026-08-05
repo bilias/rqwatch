@@ -39,6 +39,16 @@ final class MigrationStatus
 		private LoggerInterface $fileLogger
 	) {}
 
+	public function verifyRequiredMigrations(): void {
+		foreach (Migrations::REQUIRED as $migration) {
+			if (!$this->isMigrationCompleted($migration)) {
+				throw new RuntimeException(
+					"Required migration '{$migration}' is not completed."
+				);
+			}
+		}
+	}
+
 	public function warmCache(): void {
 		if ($this->cacheLoaded) {
 			return;

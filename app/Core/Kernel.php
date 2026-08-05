@@ -68,6 +68,9 @@ final class Kernel
 		// check db schema validity
 		$this->verifyDatabaseSchema();
 
+		// Future when migrations are required
+		// $this->verifyRequiredMigrations()
+
 		// find out about migrations and cache results
 		$this->warmMigrationStatusCache();
 
@@ -137,6 +140,10 @@ final class Kernel
 			echo "Database schema problem!";
 			exit;
 		}
+	}
+
+	private function verifyRequiredMigrations(): void {
+		$this->migrationStatus->verifyRequiredMigrations();
 	}
 
 	private function createMigrationStatus(): void {
