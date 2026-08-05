@@ -513,8 +513,8 @@ class MailLogService
 		$stats['count'] = $query->count();
 
 		if (($stats['count']) > 0) {
-			$stats['first'] = (clone $query)->select('created_at')->orderBy('created_at', 'ASC')->first()->created_at->toDateTimeString();
-			$stats['last'] = (clone $query)->select('created_at')->orderBy('created_at', 'DESC')->first()->created_at->toDateTimeString();
+			$stats['first'] = (clone $query)->select('created_day')->orderBy('created_day', 'ASC')->first()->created_day;
+			$stats['last'] = (clone $query)->select('created_day')->orderBy('created_day', 'DESC')->first()->created_day;
 			$stats['stored'] = (clone $query)->where('mail_stored', 1)->count();
 			$stats['notified'] = (clone $query)->where('notified', 1)->count();
 			$stats['released'] = (clone $query)->where('released', 1)->count();
