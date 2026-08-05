@@ -86,6 +86,10 @@ final class MigrationStatus
 		return $this->stateCache[$migration] ?? null;
 	}
 
+	public function mailLogDataState(): ?string {
+		return $this->getMigrationState(Migrations::MAIL_LOG_DATA);
+	}
+
 	public function isMigrationRunning(string $migration): bool {
 		return $this->getMigrationState($migration)
 			=== Migrations::STATUS_RUNNING;
