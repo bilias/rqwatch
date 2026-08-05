@@ -159,6 +159,8 @@ CREATE TABLE `mail_logs` (
   PRIMARY KEY (`id`),
   KEY `created_at_index` (`created_at`),
   KEY `created_day_index` (`created_day`),
+  KEY `created_day_action_index` (`created_day`,`action`),
+  KEY `has_virus_created_day_index` (`has_virus`,`created_day`)
   KEY `qid_index` (`qid`),
   KEY `action_index` (`action`),
   KEY `mail_from_index` (`mail_from`),
