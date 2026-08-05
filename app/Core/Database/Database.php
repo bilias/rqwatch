@@ -83,15 +83,15 @@ class Database {
 			)
 		);
 
-		if ($migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
+		if ($migrationStatus->mailRecipientsCompleted()) {
 			self::verifyMailRecipients();
 		}
 
-		if ($migrationStatus->isMigrationCompleted(Migrations::MAIL_LOG_DATA)) {
+		if ($migrationStatus->mailLogDataCompleted()) {
 			self::verifyMailLogData();
 		}
 
-		if ($migrationStatus->isMigrationCompleted(Migrations::CREATED_DAY)) {
+		if ($migrationStatus->createdDayCompleted()) {
 			self::verifyCreatedDay();
 		}
 	}
