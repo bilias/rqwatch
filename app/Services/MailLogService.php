@@ -100,7 +100,7 @@ class MailLogService
 				->orderBy('created_at', 'DESC');
 		}
 
-		$query->with($this->mailLogRelations());
+		$query->with($this->getMailLogRelations());
 
 		return $this->getQueryByFilters($query, $filters);
 	}
@@ -243,7 +243,7 @@ class MailLogService
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::select($fields)
-			->with($this->mailLogRelations())
+			->with($this->getMailLogRelations())
 			->where('id', $id);
 
 		$query = $this->applyUserScope($query);
@@ -267,7 +267,7 @@ class MailLogService
 	public function findMailLog(int $id): MailLog {
 		$lf = "[MailLogService_findMailLog]";
 
-		$query = MailLog::with($this->mailLogRelations());
+		$query = MailLog::with($this->getMailLogRelations());
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -289,7 +289,7 @@ class MailLogService
 		$lf = "[MailLogService_showQuarantinedMail]";
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = MailLog::with($this->mailLogRelations())
+		$query = MailLog::with($this->getMailLogRelations())
 			->select($fields)
 			->where('id', $id)
 			->where('mail_stored', 1);
@@ -558,7 +558,7 @@ class MailLogService
 			$date = Helper::get_today();
 		}
 
-		$query = MailLog::with($this->mailLogRelations())
+		$query = MailLog::with($this->getMailLogRelations())
 			->select($fields)
 			->whereBetween('created_at', [
 				"{$date} 00:00:00",
@@ -643,7 +643,7 @@ class MailLogService
 
 	public function detailById(int $id): MailLog {
 		$lf = "[MailLogService_detailById]";
-		$query = MailLog::with($this->mailLogRelations())
+		$query = MailLog::with($this->getMailLogRelations())
 			->where('id', $id);
 
 		$query = $this->applyUserScope($query);
@@ -666,7 +666,7 @@ class MailLogService
 	public function detailByQid(string $qid): MailLog {
 		$lf = "MailLogService_detailByQid";
 
-		$query = MailLog::with($this->mailLogRelations())
+		$query = MailLog::with($this->getMailLogRelations())
 			->where('qid', $qid);
 
 		$query = $this->applyUserScope($query);
@@ -1217,7 +1217,7 @@ class MailLogService
 
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = MailLog::with($this->mailLogRelations())
+		$query = MailLog::with($this->getMailLogRelations())
 					->select($fields)
 					->where('notification_pending', 1);
 					/*
@@ -1381,7 +1381,7 @@ class MailLogService
 		return $relations;
 	}
 
-	public function mailLogRelations(): array {
+	public function getMailLogRelations(): array {
 		$relations = [];
 
 		if ($this->migrationStatus->mailRecipientsCompleted()) {
