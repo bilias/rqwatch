@@ -133,6 +133,7 @@ class MailLogController extends ViewController
 		foreach (MailLog::REPORT_DYN_FIELDS as $field) {
 			$value = $this->request->query->get($field);
 			if ($value !== null) {
+				// we don't require create_day migration status here
 				$key = array_search($field, FormHelper::getFilters());
 				if ($key !== false) {
 					$filters[] = [
@@ -144,6 +145,16 @@ class MailLogController extends ViewController
 				}
 				// special case
 				if (strtolower($field) === 'date') {
+					// Remove dual date from search (ie date > )
+					// and date = from Reports -> Mails by Day
+					// that comes back in results with ?date= query
+
+					$filters = array_values(array_filter(
+						$filters,
+						static fn(array $filter): bool =>
+							($filter['filter'] ?? null) !== 'Date'
+					));
+
 					$filters[] = [
 						'filter' => 'Date',
 						'choice' => 'is equal to',
