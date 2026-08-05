@@ -197,8 +197,6 @@ class Router
 	public static function run(): void {
 
 		$fileLogger = App::fileLogger();
-		$syslogLogger = App::syslogLogger();
-		$migrationStatus = App::migrationStatus();
 
 		// we do not need Router in our API or CLI
 		if (!defined('WEB_MODE') || defined('API_MODE') || defined('CLI_MODE')) {
