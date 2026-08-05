@@ -108,6 +108,18 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::CREATED_DAY);
 	}
 
+	public function mailLogDataRunning(): bool {
+		return $this->isMigrationRunning(Migrations::MAIL_LOG_DATA);
+	}
+
+	public function mailRecipientsRunning(): bool {
+		return $this->isMigrationRunning(Migrations::MAIL_RECIPIENTS);
+	}
+
+	public function createdDayRunning(): bool {
+		return $this->isMigrationRunning(Migrations::CREATED_DAY);
+	}
+
 	public function getAllMigrationStates(): array {
 		$states = [];
 
