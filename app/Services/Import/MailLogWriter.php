@@ -32,8 +32,6 @@ final class MailLogWriter
 	private LoggerInterface $fileLogger;
 	private MigrationStatus $migrationStatus;
 
-	private ?bool $supportsRecipients = null;
-
 	public function __construct() {
 		$this->capsule = App::capsule();
 		$this->fileLogger = App::fileLogger();
@@ -69,7 +67,7 @@ final class MailLogWriter
 
 		// MAIL_LOG_DATA migration completed. Split write
 		// data fields in mail_log_data table only
-		if ($this->migrationStatus->isMigrationCompleted(Migrations::MAIL_LOG_DATA)) {
+		if ($this->supportsMailLogData()) {
 			// $this->fileLogger->info("split write, migration done");
 			return $this->insertMailLogSplitWrite($mailData);
 		}
@@ -132,7 +130,7 @@ final class MailLogWriter
 
 	// Insert recipients.
 	private function insertMailRecipients(int $mailLogId, array $recipients): void {
-		if (!$this->migrationStatus->isMigrationCompleted(Migrations::MAIL_RECIPIENTS)) {
+		if (!$this->supportsRecipients()) {
 			return;
 		}
 
@@ -165,15 +163,11 @@ final class MailLogWriter
 	}
 
 	private function supportsRecipients(): bool {
-		return $this->migrationStatus->isMigrationCompleted(
-			Migrations::MAIL_RECIPIENTS
-		);
+		return $this->migrationStatus->mailRecipientsCompleted();
 	}
 
 	private function supportsMailLogData(): bool {
-		return $this->migrationStatus->isMigrationCompleted(
-			Migrations::MAIL_LOG_DATA
-		);
+		return $this->migrationStatus->mailLogDataCompleted();
 	}
 
 	private function splitMailData(array $mailData): array {
