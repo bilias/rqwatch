@@ -1313,7 +1313,7 @@ class MailLogService
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 
-		$query = MailLog::with($this->isRecipientsRelationCompleted())
+		$query = MailLog::with($this->getMailLogRecipientsRelation())
 					->select($fields)
 					->where('mail_stored', 1)
 					->where('created_at', '<', $cutoffDate->format('Y-m-d H:i:s'));
@@ -1371,7 +1371,7 @@ class MailLogService
 		}
 	}
 
-	private function isRecipientsRelationCompleted(): array {
+	private function getMailLogRecipientsRelation(): array {
 		$relations = [];
 
 		if ($this->migrationStatus->mailRecipientsCompleted()) {
