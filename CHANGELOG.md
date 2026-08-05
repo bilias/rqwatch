@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-08-05
+- DB schema verifications related to migrations
 - Warm MigrationStatus cache in Kernel
 
 ## Version v1.8.2 - Released: 2026-08-04
