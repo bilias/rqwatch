@@ -636,7 +636,13 @@ class MailLogService
 
 	public function showQuarantine(): Collection {
 
-		$query = MailLog::selectRaw('DATE(created_at) as day, COUNT(*) as cnt')
+		if ($this->createdDayMigrationComplete()) {
+			$query = MailLog::selectRaw('created_day as day, COUNT(*) as cnt');
+		} else {
+			$query = MailLog::selectRaw('DATE(created_at) as day, COUNT(*) as cnt');
+		}
+
+		$query = $query
 			->where('mail_stored', 1)
 			->groupByRaw('day')
 			->orderByDesc('day')
