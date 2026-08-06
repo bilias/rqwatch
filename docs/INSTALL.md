@@ -111,7 +111,17 @@ chown -R root:root /var/www/html/rqwatch
 chgrp rqwatch_web /var/www/html/rqwatch /var/www/html/rqwatch/web
 
 cd rqwatch/
+```
 
+Checkout [latest Rqwatch release](https://github.com/bilias/rqwatch/releases/latest)
+```
+# Get latest release tagged version
+git describe --tags --abbrev=0
+
+git checkout v1.8.3
+```
+
+```
 chown -R rqwatch:rqwatch logs web/maps
 
 cp .env-example .env
@@ -131,15 +141,16 @@ chown rqwatch /var/www/html/rqwatch
 ```
 ```
 su - rqwatch -s /bin/bash
-[rqwatch]$ cd /var/www/html/rqwatch/
 
-[rqwatch]$ git config --global --add safe.directory /var/www/html/rqwatch
+cd /var/www/html/rqwatch/
 
-[rqwatch]$ composer install
+git config --global --add safe.directory /var/www/html/rqwatch
 
-[rqwatch]$ composer check-platform-reqs
+composer install
 
-[rqwatch]$ composer dump-autoload -o # optional
+composer check-platform-reqs
+
+composer dump-autoload -o # optional
 ```
 
 Remove write permissions:

@@ -10,38 +10,30 @@ origin	https://github.com/bilias/rqwatch/ (fetch)
 origin	https://github.com/bilias/rqwatch/ (push)
 ```
 
-## If you're on `master` branch:
+## Update to [latest Rqwatch release](https://github.com/bilias/rqwatch/releases/latest)
 ```
-[rqwatch]$ git branch
-* master
+su - rqwatch -s /bin/bash
 
-# Perform the upgrade:
-[rqwatch]$ git pull
+cd /var/www/html/rqwatch/
+
+git fetch --tags origin
+
+# Get latest release tagged version
+git describe --tags --abbrev=0
+
+git checkout v1.8.3
 
 # upgrade dependencies
-[rqwatch]$ composer install
+composer install
 
-# Check and perform Database update
-[rqwatch]$ ./bin/cli.php db:migrate
-
-# needed if you have run it in the past
-[rqwatch]$ composer dump-autoload
-```
-
-## If you are on a Release tag then:
-```
-[rqwatch]$ git fetch origin
-
-[rqwatch]$ git checkout v1.8.2 (or latest release tag)
-
-# upgrade dependencies
-[rqwatch]$ composer install
+# verify php modules
+composer check-platform-reqs
 
 # Check and perform Database updates
-[rqwatch]$ ./bin/cli.php db:migrate
+./bin/cli.php db:migrate
 
 # needed if you have run it in the past
-[rqwatch]$ composer dump-autoload
+composer dump-autoload
 ```
 
 Your should also read Release Instructions carefully for important changes.
