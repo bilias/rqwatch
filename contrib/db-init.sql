@@ -159,8 +159,6 @@ CREATE TABLE `mail_logs` (
   PRIMARY KEY (`id`),
   KEY `created_at_index` (`created_at`),
   KEY `created_day_index` (`created_day`),
-  KEY `created_day_action_index` (`created_day`,`action`),
-  KEY `has_virus_created_day_index` (`has_virus`,`created_day`)
   KEY `qid_index` (`qid`),
   KEY `action_index` (`action`),
   KEY `mail_from_index` (`mail_from`),
@@ -171,7 +169,10 @@ CREATE TABLE `mail_logs` (
   KEY `has_virus_index` (`has_virus`),
   KEY `notified_index` (`notified`),
   KEY `released_index` (`released`),
-  KEY `notification_pending_index` (`notification_pending`)
+  KEY `notification_pending_index` (`notification_pending`),
+  KEY `created_day_action_index` (`created_day`,`action`),
+  KEY `has_virus_created_day_index` (`has_virus`,`created_day`),
+  KEY `mail_stored_created_day_index` (`mail_stored`,`created_day`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 CREATE TABLE `mail_log_recipients` (

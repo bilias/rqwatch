@@ -1,3 +1,6 @@
 # SQL
 CREATE INDEX created_day_action_index
 ON mail_logs(created_day, action);
+
+CREATE INDEX mail_stored_created_day_index
+ON mail_logs(mail_stored, created_day);
