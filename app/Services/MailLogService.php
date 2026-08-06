@@ -500,7 +500,7 @@ class MailLogService
 	}
 
 	public function showStats(array $filters): array {
-		$fields = [];
+		$fields = ['id'];
 
 		$query = MailLog::select($fields);
 		$query = $this->getQueryByFilters($query, $filters);
