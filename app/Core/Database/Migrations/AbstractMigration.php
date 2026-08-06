@@ -8,7 +8,7 @@
  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-namespace App\Core\Database;
+namespace App\Core\Database\Migrations;
 
 use App\Configuration\AppConfig;
 

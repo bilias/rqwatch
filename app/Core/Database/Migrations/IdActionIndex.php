@@ -15,8 +15,6 @@ use Illuminate\Database\Schema\Blueprint;
 use App\Configuration\AppConfig;
 use App\Inventory\Migrations;
 
-use App\Core\Database\AbstractMigration;
-
 use Symfony\Component\Console\Output\OutputInterface;
 
 use RuntimeException;

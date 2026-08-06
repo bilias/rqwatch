@@ -10,7 +10,7 @@
 
 namespace App\Inventory;
 
-use App\Core\Database\AbstractMigration;
+use App\Core\Database\Migrations\AbstractMigration;
 use App\Core\Database\Migrations\MailRecipientsMigration;
 use App\Core\Database\Migrations\CreatedDayMigration;
 use App\Core\Database\Migrations\MailLogDataMigration;

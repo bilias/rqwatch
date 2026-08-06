@@ -13,7 +13,7 @@ namespace App\Console;
 use App\Core\App;
 
 use App\Inventory\Migrations;
-use App\Core\Database\AbstractMigration;
+use App\Core\Database\Migrations\AbstractMigration;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
