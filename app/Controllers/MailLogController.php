@@ -176,7 +176,8 @@ class MailLogController extends ViewController
 			$url = $this->url(RouteName::SEARCH_RESULTS);
 		}
 		// has applyUserScope
-		$logs = $service->showPaginatedResults($filters, $url, $page);
+		//$logs = $service->showPaginatedResults($filters, $url, $page);
+		$logs = $service->showPaginatedAll($filters, $url, $page);
 
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
