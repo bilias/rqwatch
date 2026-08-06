@@ -7,7 +7,7 @@ You should avoid busy system hours.
 - Stop cron jobs **on all API servers**:\
 `systemctl stop crond`
 
-- Update code from git **on all API servers**\
+- Update code from git **on all API servers**
 ```
 git fetch --tags origin
 
@@ -28,7 +28,7 @@ git checkout v1.8.3
 `systemctl start crond`
 
 ## Web Servers
-- Update code from git **on all WEB servers**\
+- Update code from git **on all WEB servers**
 ```
 git fetch --tags origin
 
