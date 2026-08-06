@@ -698,8 +698,9 @@ You can view mail details and optionally release it from quarantine by clicking 
 	}
 
 	public static function getCountry(string $ip): ?string {
-		if (Config::get('geoip_enable') && ($geoip_db = Config::get('geoip_country_db')) &&
-				!self::isLocalOrReservedIp($ip)) {
+		if (Config::get('geoip_enable') &&
+		    ($geoip_db = Config::get('geoip_country_db')) &&
+		    !self::isLocalOrReservedIp($ip)) {
 			try {
 				$geoip_reader = new MaxMindDbReader($geoip_db);
 				$geo = $geoip_reader->get($ip);
