@@ -5,6 +5,7 @@
 ### 2026-08-06
 - Catch Serialization failure deadlock in MetadataImporterMultipartApi
 - Optimizations in search and All pages
+- Optimizations by created_day
 - Added id action Index Migration
 
 ### 2026-08-05
