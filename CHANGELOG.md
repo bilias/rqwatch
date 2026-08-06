@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-08-06
+- Optimizations in search and All pages
 - Added id action Index Migration
 
 ### 2026-08-05

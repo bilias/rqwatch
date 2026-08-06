@@ -17,7 +17,9 @@ use App\Core\App;
 
 use App\Utils\Helper;
 use App\Utils\FormHelper;
+
 use App\Models\MailLog;
+use App\Models\MailLogRecipient;
 
 use App\Core\Database\MigrationStatus;
 use App\Inventory\Migrations;
@@ -93,11 +95,11 @@ class MailLogService
 	): Builder {
 		if ($limit) {
 			$query = MailLog::select($fields)
-				->orderBy('created_at', 'DESC')
+				->orderBy('id', 'DESC')
 				->limit($limit);
 		} else {
 			$query = MailLog::select($fields)
-				->orderBy('created_at', 'DESC');
+				->orderBy('id', 'DESC');
 		}
 
 		$query->with($this->getMailLogRelations());
@@ -359,7 +361,19 @@ class MailLogService
 			);
 			*/
 
-			$total = min($query->count(), $this->max_items);  // cap total
+			// userScope
+			if (!$this->is_admin && !empty($this->email)) {
+				$emails = $this->getUserRecipientEmails();
+
+				$total = min(
+					MailLogRecipient::whereIn('recipient_email', $emails)
+					->distinct()
+					->count('mail_log_id'),
+					$this->max_items
+				);
+			} else {
+				$total = min($query->count(), $this->max_items);
+			}
 
 			$itemsForPage = $query->forPage($page, $this->items_per_page)->get();
 
@@ -515,33 +529,60 @@ class MailLogService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$stats['count'] = $query->count();
+		// userScope
+		if (!$this->is_admin && !empty($this->email)) {
+			$emails = $this->getUserRecipientEmails();
+
+			$stats['count'] = MailLogRecipient::whereIn('recipient_email', $emails)
+				->distinct()
+				->count('mail_log_id');
+		} else {
+			$stats['count'] = $query->count();
+		}
 
 		if (($stats['count']) > 0) {
-			if ($this->createdDayMigrationComplete()) {
-				$stats['first'] = (clone $query)->select('created_at')->orderBy('created_day', 'ASC')
-					->first()->created_at->toDateTimeString();
-				$stats['last'] = (clone $query)->select('created_at')->orderBy('created_day', 'DESC')
-					->first()->created_at->toDateTimeString();
-			} else {
-				$stats['first'] = (clone $query)->select('created_at')->orderBy('created_at', 'ASC')
-					->first()->created_at->toDateTimeString();
-				$stats['last'] = (clone $query)->select('created_at')->orderBy('created_at', 'DESC')
-					->first()->created_at->toDateTimeString();
-			}
+			$stats['first'] = $this->getFirstMailDate($query)
+				->first()->created_at->toDateTimeString();
+			$stats['last'] = $this->getLastMailDate($query)
+				->first()->created_at->toDateTimeString();
 			$stats['stored'] = (clone $query)->where('mail_stored', 1)->count();
 			$stats['notified'] = (clone $query)->where('notified', 1)->count();
 			$stats['released'] = (clone $query)->where('released', 1)->count();
 			$stats['has_virus'] = (clone $query)->where('has_virus', 1)->count();
-			$stats['action'] = collect((clone $query)
-				->selectRaw('action, COUNT(*) as cnt')
-			   ->groupBy('action')
-				->orderBy('cnt', 'DESC')
-				->orderBy('action')
-				->get()
+
+			// userScope
+			if ($this->idActionIndexMigrationComplete() &&
+			 !$this->is_admin && !empty($this->email)) {
+				$emails = $this->getUserRecipientEmails();
+
+				$stats['action'] = collect(
+					MailLogRecipient::whereIn('recipient_email', $emails)
+					->join(
+						DB::raw(AppConfig::MAIL_LOGS_TABLE . ' AS ml FORCE INDEX(id_action_index)'),
+						'ml.id',
+						'=',
+						AppConfig::MAIL_LOG_RECIPIENTS_TABLE . '.mail_log_id'
+					)
+					->selectRaw('ml.action, COUNT(*) as cnt')
+					->groupBy('ml.action')
+					->orderByDesc('cnt')
+					->orderBy('ml.action')
+					->get()
 				)
 				->mapWithKeys(fn($item) => [$item['action'] => $item['cnt']])
 				->toArray();
+			} else {
+				$stats['action'] = collect((clone $query)
+					->selectRaw('action, COUNT(*) as cnt')
+				   ->groupBy('action')
+					->orderBy('cnt', 'DESC')
+					->orderBy('action')
+					->get()
+					)
+					->mapWithKeys(fn($item) => [$item['action'] => $item['cnt']])
+					->toArray();
+
+			}
 
 			$stats['action'] = array_merge([
 				'no action'       => 0,
@@ -593,7 +634,7 @@ class MailLogService
 		}
 
 		$query = $query
-			->orderBy('created_at', 'DESC');
+			->orderBy('id', 'DESC');
 
 		$query = $this->applyUserScope($query);
 
@@ -626,7 +667,7 @@ class MailLogService
 
 		$query = $query
 			->where('mail_stored', 1)
-			->orderBy('created_at', 'DESC');
+			->orderBy('id', 'DESC');
 
 		$query = $this->applyUserScope($query);
 
@@ -1059,10 +1100,7 @@ class MailLogService
 		*/
 
 		// Build list of allowed recipient emails: primary + aliases
-		$emails = array_filter(array_map(
-			fn ($e) => strtolower(trim($e)),
-			array_merge([$this->email], $this->user_aliases ?? [])
-		));
+		$emails = $this->getUserRecipientEmails();
 
 		return $query->whereExists(function ($q) use ($emails) {
 			$q->selectRaw('1')
@@ -1432,6 +1470,10 @@ class MailLogService
 		return $this->migrationStatus->createdDayCompleted();
 	}
 
+	private function idActionIndexMigrationComplete(): bool {
+		return $this->migrationStatus->idActionIndexCompleted();
+	}
+
 	public function getMailLogRelations(): array {
 		$relations = [];
 
@@ -1445,4 +1487,40 @@ class MailLogService
 
 		return $relations;
 	}
+
+	private function getFirstMailDate($query) {
+		if ($this->createdDayMigrationComplete()) {
+			return (clone $query)
+				->from(DB::raw('mail_logs FORCE INDEX(created_day_index)'))
+				->select('created_at')
+				->orderBy('created_day', 'ASC');
+		} else {
+			return (clone $query)
+				->from(DB::raw('mail_logs FORCE INDEX(created_at_index)'))
+				->select('created_at')
+				->orderBy('created_at', 'ASC');
+		}
+	}
+
+	private function getLastMailDate($query) {
+		if ($this->createdDayMigrationComplete()) {
+			return (clone $query)
+				->from(DB::raw(AppConfig::MAIL_LOGS_TABLE . ' FORCE INDEX(created_day_index)'))
+				->select('created_at')
+				->orderBy('created_day', 'DESC');
+		} else {
+			return (clone $query)
+				->from(DB::raw(AppConfig::MAIL_LOGS_TABLE . ' FORCE INDEX(created_at_index)'))
+				->select('created_at')
+				->orderBy('created_at', 'DESC');
+		}
+	}
+
+	private function getUserRecipientEmails(): array {
+			return array_filter(array_map(
+				fn ($e) => strtolower(trim($e)),
+				array_merge([$this->email], $this->user_aliases ?? [])
+			));
+	}
+
 }
