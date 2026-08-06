@@ -104,6 +104,9 @@
  <li><span class="left">Oldest Record:</span> {{ stats.first }}</li>
  <li><span class="left">Newest Record:</span> {{ stats.last }}</li>
  {% endif %}
+ {% if database_cleanup %}
+  <li><span class="left">Data Retention Period:</span> {{ database_cleanup }} days</li>
+ {% endif%}
 </ul>
 </div>
 {% endif %}
