@@ -314,7 +314,12 @@ class MailLogService
 		return $log;
 	}
 
-	public function showPaginatedAll(array $filters, string $url, int $page = 1): ?LengthAwarePaginator {
+	public function showPaginatedAll(
+		array $filters,
+		string $url,
+		int $page = 1
+	): ?LengthAwarePaginator {
+
 		$lf = "MailLogService_showPaginatedAll";
 
 		$fields = MailLog::SELECT_FIELDS;
