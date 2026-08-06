@@ -21,16 +21,19 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use App\Inventory\Migrations;
 use App\Core\Database\MigrationStatus;
 
-use App\Core\Database\Migrations\MailRecipientsMigration;
-use App\Core\Database\Migrations\MailLogDataMigration;
-
 use App\Models\MailLogData;
+
+use Illuminate\Database\QueryException;
 
 final class MailLogWriter
 {
 	private Capsule $capsule;
 	private LoggerInterface $fileLogger;
+	private LoggerInterface $syslogLogger;
 	private MigrationStatus $migrationStatus;
+
+	private const int MAX_DEADLOCK_RETRIES = 3;
+	private const int DEADLOCK_RETRY_DELAY_US = 500000;
 
 	public function __construct() {
 		$this->capsule = App::capsule();
@@ -39,7 +42,37 @@ final class MailLogWriter
 		$this->migrationStatus = App::migrationStatus();
 	}
 
+
 	public function insert(array $mailData, array $recipients): int {
+		for ($attempt = 1; $attempt <= self::MAX_DEADLOCK_RETRIES; $attempt++) {
+			try {
+				return $this->insertTransaction($mailData, $recipients);
+
+			} catch (QueryException $e) {
+
+			// MariaDB deadlock / serialization failure
+			if ($e->getCode() === '40001' && $attempt < self::MAX_DEADLOCK_RETRIES) {
+
+				$this->fileLogger->warning(
+					"Deadlock inserting " . ($mailData['qid'] ?? 'unknown') .
+					", retry {$attempt}/" .
+					self::MAX_DEADLOCK_RETRIES
+				);
+
+				usleep($attempt * self::DEADLOCK_RETRY_DELAY_US); // 500ms, 1s before retries
+				continue;
+			}
+
+			throw $e;
+			}
+		}
+
+		throw new \RuntimeException(
+			"Insert failed after " . self::MAX_DEADLOCK_RETRIES . " retries"
+		);
+	}
+
+	private function insertTransaction(array $mailData, array $recipients): int {
 		return $this->capsule
 			->connection()
 			->transaction(function () use ($mailData, $recipients) {
@@ -83,10 +116,10 @@ final class MailLogWriter
 			->table(AppConfig::MAIL_LOGS_TABLE)
 			->insertGetId($mailLog);
 
-			$this->insertMailLogData(
-				$mailLogId,
-				$mailLogData
-			);
+		$this->insertMailLogData(
+			$mailLogId,
+			$mailLogData
+		);
 
 		return $mailLogId;
 	}
