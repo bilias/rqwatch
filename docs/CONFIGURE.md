@@ -541,7 +541,7 @@ on maillogs pages.\
 
 - `$show_unfiltered_user_mail_reports` - Show user mail reports when no active filters.\
  Requires `$show_unfiltered_mail_reports = true`\
- Default is `true`
+ Default is `false`
 
 - `$show_charts` - Set to `false` to disable charts.\
  Default is `true`
