@@ -1,0 +1,3 @@
+# SQL
+CREATE INDEX id_action_index
+ON mail_logs(id, action);

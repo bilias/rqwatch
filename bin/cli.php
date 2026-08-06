@@ -25,6 +25,7 @@ use App\Console\UserAdd;
 use App\Console\MigrateMailRecipients;
 use App\Console\MigrateCreatedDay;
 use App\Console\MigrateMailLogData;
+use App\Console\MigrateIdActionIndex;
 use App\Console\MigrateDb;
 
 (new Kernel())->boot();
@@ -41,6 +42,7 @@ $application->add(new UserAdd());
 $application->add(new MigrateMailRecipients());
 $application->add(new MigrateCreatedDay());
 $application->add(new MigrateMailLogData());
+$application->add(new MigrateIdActionIndex());
 $application->add(new MigrateDb());
 
 $application->run();
