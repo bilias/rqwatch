@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v1.8.3 - Released: 2026-08-06
+
 ### 2026-08-06
 - Catch Serialization failure deadlock in MetadataImporterMultipartApi
 - Optimizations in search and All pages
