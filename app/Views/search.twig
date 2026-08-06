@@ -79,6 +79,10 @@
   ({{ ((stats.stored / stats.count * 100)|round(2))|nf(1) }}%):</span>
   {{ stats.stored|nf }}
  </li>
+ <li><span class="left">Has Virus
+  ({{ ((stats.has_virus / stats.count * 100)|round(2))|nf(1) }}%):</span>
+  {{ stats.has_virus|nf }}
+ </li>
  <li><span class="left">Notifications
   ({{ ((stats.notified / stats.count * 100)|round(2))|nf(1) }}%):</span>
   {{ stats.notified|nf }}
@@ -86,10 +90,6 @@
  <li><span class="left">Released
   ({{ ((stats.released / stats.count * 100)|round(2))|nf(1) }}%):</span>
   {{ stats.released|nf }}
- </li>
- <li><span class="left">Has Virus
-  ({{ ((stats.has_virus / stats.count * 100)|round(2))|nf(1) }}%):</span>
-  {{ stats.has_virus|nf }}
  </li>
  <hr>
  {# Loop through all actions dynamically #}
