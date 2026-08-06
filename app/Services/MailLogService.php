@@ -475,7 +475,8 @@ class MailLogService
 				break;
 			case 'date':
 				if ($this->createdDayMigrationComplete()) {
-					$query = MailLog::selectRaw("created_day AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored");
+					$query = MailLog::selectRaw("created_day AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
+						->groupBy('created_day');
 				} else {
 					$query = MailLog::selectRaw("DATE(created_at) AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
 						->groupBy(DB::raw('DATE(created_at)'));
