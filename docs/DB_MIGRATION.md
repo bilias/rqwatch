@@ -7,7 +7,13 @@ You should avoid busy system hours.
 `systemctl stop crond`
 
 - Update code from git **on all API servers**\
-`git pull`
+```
+git fetch --tags origin
+
+git describe --tags --abbrev=0
+
+git checkout v1.8.3
+```
 
 - Update dependencies\
 `composer install`
