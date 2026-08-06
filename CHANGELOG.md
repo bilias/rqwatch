@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-08-06
+- Catch Serialization failure deadlock in MetadataImporterMultipartApi
 - Optimizations in search and All pages
 - Added id action Index Migration
 
