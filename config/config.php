@@ -192,7 +192,7 @@ $show_unfiltered_mail_reports = true;
 
 # Show user mail reports when no active filters
 # Requires $show_unfiltered_mail_reports = true
-$show_unfiltered_user_mail_reports = false;
+$show_unfiltered_user_mail_reports = true;
 
 # Default password hash for local users
 # https://www.php.net/manual/en/function.password-hash.php
