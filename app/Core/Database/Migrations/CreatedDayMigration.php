@@ -32,6 +32,7 @@ class CreatedDayMigration extends AbstractMigration {
 	private const string INDEX_CREATED_DAY = 'created_day_index';
 	private const string INDEX_CREATED_DAY_ACTION = 'created_day_action_index';
 	private const string INDEX_MAIL_STORED_CREATED_DAY = 'mail_stored_created_day_index';
+	private const string INDEX_HAS_VIRUS_CREATED_DAY = 'has_virus_created_day_index';
 
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output) {
 		$this->ensureMigrationsTable();
@@ -107,6 +108,10 @@ class CreatedDayMigration extends AbstractMigration {
 			AppConfig::MAIL_LOGS_TABLE,
 			self::INDEX_MAIL_STORED_CREATED_DAY
 		);
+		$this->hasIndex(
+			AppConfig::MAIL_LOGS_TABLE,
+			self::INDEX_HAS_VIRUS_CREATED_DAY
+		);
 	}
 
 	private function createCreatedDayColumn(): void {
@@ -128,6 +133,10 @@ class CreatedDayMigration extends AbstractMigration {
 				$table->index(
 					['mail_stored', self::COLUMN_CREATED_DAY],
 					self::INDEX_MAIL_STORED_CREATED_DAY
+				);
+				$table->index(
+					['has_virus', self::COLUMN_CREATED_DAY],
+					self::INDEX_HAS_VIRUS_CREATED_DAY
 				);
 			}
 		);

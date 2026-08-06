@@ -4,3 +4,6 @@ ON mail_logs(created_day, action);
 
 CREATE INDEX mail_stored_created_day_index
 ON mail_logs(mail_stored, created_day);
+
+CREATE INDEX has_virus_created_day_index
+ON mail_logs(has_virus, created_day);
