@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-08-07
+- Add responsive hamburger menu and fixed menu widths
+
 ## Version v1.8.3 - Released: 2026-08-06
 
 ### 2026-08-06
