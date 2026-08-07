@@ -27,6 +27,40 @@ final class RedisCache implements CacheInterface
 	) { }
 
 
+	public function get(string $key): mixed {
+		return $this->getConnection()->get($key);
+	}
+
+	public function set(string $key, mixed $value, ?int $ttl = null): mixed {
+		if ($ttl !== null) {
+			return $this->getConnection()->set(
+				$key,
+				$value,
+				['ex' => $ttl]
+			);
+		}
+
+		return $this->getConnection()->set($key, $value);
+	}
+
+	public function ttl(string $key): ?int {
+		try {
+			$ttl = $this->getConnection()->ttl($key);
+
+			if ($ttl >= 0) {
+				return $ttl;
+			}
+
+			$this->logger->warning("RedisCache ttl got {$ttl} for key '{$key}'");
+
+			return null; // either -1 (no expiry) or -2 (not found)
+		} catch (Throwable $e) {
+			$this->logger->error("RedisCache ttl: " . $e->getMessage());
+
+			return null;
+		}
+	}
+
 	public function getConnection(): Redis {
 		if ($this->client === null) {
 		// Redis Sentinel connection via phpredis or predis

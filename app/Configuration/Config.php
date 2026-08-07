@@ -10,9 +10,10 @@
 
 namespace App\Configuration;
 
+use App\Core\Cache\RedisCache;
+
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
-use App\Core\RedisFactory;
 
 use Throwable;
 
@@ -82,6 +83,7 @@ class Config {
 	}
 
 	public static function loadAndInitWithRedisCache(
+		RedisCache $redis,
 		string $defaultConfigPath,
 		?string $localConfigPath = null,
 		array $extras = [],
@@ -93,7 +95,7 @@ class Config {
 		$redisConnection = null;
 
 		try {
-			$redisConnection = RedisFactory::get();
+			$redisConnection = $redis->getConnection();
 			if (!$forceReload) {
 				$cached = $redisConnection->get($redisKey);
 				if ($cached !== false) {
@@ -131,6 +133,7 @@ class Config {
 
 	public static function loadConfig(
 		LoggerInterface $fileLogger,
+		?RedisCache $cache,
 		string $defaultConfigPath,
 		?string $localConfigPath = null,
 		array $extras = [],
@@ -141,10 +144,10 @@ class Config {
 		// set logger
 		self::setLogger($fileLogger);
 
-		if (Helper::env_bool('REDIS_ENABLE')) {
+		if (Helper::env_bool('REDIS_ENABLE') && $cache !== null) {
 			try {
-				RedisFactory::setLogger($fileLogger);
 				self::loadAndInitWithRedisCache(
+					$cache,
 					$defaultConfigPath,
 					$localConfigPath,
 					$extras,
@@ -161,23 +164,10 @@ class Config {
 	}
 
 	public static function getRedisConfigTTL(
+		RedisCache $redis,
 		string $redisKey = AppConfig::REDIS_CONFIG_KEY
 	): ?int {
-
-		try {
-			$redis = RedisFactory::get();
-			$ttl = $redis->ttl($redisKey);
-			if ($ttl >= 0) {
-				return $ttl; // seconds left
-			}
-			self::$logger?->warning(
-				"getRedisConfigTTL got ttl: {$ttl} for key '{$redisKey}'"
-			);
-			return null; // either -1 (no expiry) or -2 (not found)
-		} catch (Throwable $e) {
-			self::$logger?->error("Config [getRedisConfigTTL]: " . $e->getMessage());
-			return null;
-		}
+		return $redis->ttl($redisKey);
 	}
 
 }

@@ -56,6 +56,9 @@ final class Kernel
 		// load .env
 		$this->loadDotenv();
 
+		// Redis caching
+		$this->createRedisCache();
+
 		$extra_cached_data = [
 			'startTime' => $this->startTime,
 			'startMemory' => $this->startMemory,
@@ -74,9 +77,6 @@ final class Kernel
 
 		// Future when migrations are required
 		// $this->verifyRequiredMigrations()
-
-		// Redis caching
-		$this->createRedisCache();
 
 		// find out about migrations and cache results
 		$this->warmMigrationStatusCache();
@@ -114,6 +114,7 @@ final class Kernel
 		// load (and cache) configuration
 		Config::loadConfig(
 			$this->fileLogger,
+			$this->cache,
 			AppConfig::CONFIG_DEFAULT_PATH,
 			AppConfig::CONFIG_LOCAL_PATH,
 			$extra_cached_data,

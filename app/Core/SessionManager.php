@@ -14,7 +14,6 @@ use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 
-//use App\Core\RedisFactory;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler;
 
 use App\Core\App;
@@ -56,7 +55,7 @@ class SessionManager
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			// Redis Sentinel connection via phpredis or predis
 			try {
-				$redisConnection = RedisFactory::get();
+				$redisConnection = App::cache()->getConnection();
 				// Use RedisSessionHandler
 				$handler = new RedisSessionHandler($redisConnection, [
 					'ttl' => self::$session_timeout ?? 0,

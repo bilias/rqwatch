@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-08-07
+- Make use of RedisCache in SessionManager, Config and rspamd statistics (deprecate RedisFactory)
 - Add CacheInterface and RedisCache
 - Add responsive hamburger menu and fixed menu widths
 

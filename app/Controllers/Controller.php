@@ -30,7 +30,7 @@ use App\Core\Routing\RouteName;
 use App\Core\Routing\UrlBuilder;
 
 use App\Core\SessionManager;
-use App\Core\RedisFactory;
+
 use App\Utils\Helper;
 
 use App\Services\ApiClient;
@@ -209,13 +209,13 @@ class Controller
 		}
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
-			$redis = RedisFactory::get();
+			$redisConnection = App::cache()->getConnection();
 			$redisKey = Config::get('rspamd_stat_redis_key');
 			$ttl = Config::get('rspamd_stat_redis_cache_ttl');
 
 			// Try fetching from redis cache first
 			try {
-				$cached = $redis->get($redisKey);
+				$cached = $redisConnection->get($redisKey);
 				if ($cached !== false) {
 					$stats = json_decode($cached, true);
 					if (is_array($stats) && !empty($stats)) {
@@ -258,7 +258,7 @@ class Controller
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			// Store in Redis for future use
 			try {
-				$redis->set($redisKey, json_encode($stats), ['ex' => $ttl]);
+				$redisConnection->set($redisKey, json_encode($stats), $ttl);
 				$this->fileLogger->debug("Rspamd stats cached in Redis for {$ttl} seconds");
 			} catch (Throwable $e) {
 				$this->fileLogger->error("Redis error when writing Rspamd stats: " . $e->getMessage());
@@ -270,7 +270,10 @@ class Controller
 
 	public function getRedisConfigTTL(): ?int {
 		if (Helper::env_bool('REDIS_ENABLE')) {
-			return Config::getRedisConfigTTL($_ENV['REDIS_CONFIG_KEY']);
+			return Config::getRedisConfigTTL(
+				App::cache(),
+				$_ENV['REDIS_CONFIG_KEY']
+			);
 		}
 		return null;
 	}
@@ -305,6 +308,7 @@ class Controller
 
 			// Force reload the config and cache it again
 			Config::loadAndInitWithRedisCache(
+				App::cache(),
 				AppConfig::CONFIG_DEFAULT_PATH,
 				AppConfig::CONFIG_LOCAL_PATH,
 				[],
