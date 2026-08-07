@@ -29,27 +29,27 @@ final class App
 	private static ?AppContainer $instance = null;
 
 	public static function init(AppContainer $container): void {
-			if (self::$instance !== null) {
-				throw new RuntimeException(
-					'App has already been initialized.'
-				);
-			}
+		if (self::$instance !== null) {
+			throw new RuntimeException(
+				'App has already been initialized.'
+			);
+		}
 
-			self::$instance = $container;
+		self::$instance = $container;
 	}
 
 	public static function startTime(): float {
-			return self::instance()->startTime
-				?? throw new RuntimeException(
-					'startTime is not available in this context.'
-				);
+		return self::instance()->startTime
+			?? throw new RuntimeException(
+				'startTime is not available in this context.'
+			);
 	}
 
 	public static function startMemory(): int {
-			return self::instance()->startMemory
-				?? throw new RuntimeException(
-					'startMemory is not available in this context.'
-				);
+		return self::instance()->startMemory
+			?? throw new RuntimeException(
+				'startMemory is not available in this context.'
+			);
 	}
 
 	public static function getRuntime(): string {
@@ -60,49 +60,48 @@ final class App
 	}
 
 	public static function fileLogger(): LoggerInterface {
-			return self::instance()->fileLogger
-				?? throw new RuntimeException(
-					'fileLogger is not available in this context.'
-				);
+		return self::instance()->fileLogger
+			?? throw new RuntimeException(
+				'fileLogger is not available in this context.'
+			);
 	}
 
 	public static function syslogLogger(): LoggerInterface {
-			return self::instance()->syslogLogger
-				?? throw new RuntimeException(
-					'syslogLogger is not available in this context.'
-				);
+		return self::instance()->syslogLogger
+			?? throw new RuntimeException(
+				'syslogLogger is not available in this context.'
+			);
 	}
 
 	public static function capsule(): Capsule {
-			return self::instance()->capsule
-				?? throw new RuntimeException(
-					'Database capsule is not available in this context.'
-				);
+		return self::instance()->capsule
+			?? throw new RuntimeException(
+				'Database capsule is not available in this context.'
+			);
 	}
 
 	public static function migrationStatus(): MigrationStatus {
-			return self::instance()->migrationStatus
-				?? throw new RuntimeException(
-					'MigrationStatus is not available in this context.'
-				);
+		return self::instance()->migrationStatus
+			?? throw new RuntimeException(
+				'MigrationStatus is not available in this context.'
+			);
 	}
 
 	// Mainly for PHPUnit/testing.
-	public static function swap(AppContainer $container): void
-	{
-			self::$instance = $container;
+	public static function swap(AppContainer $container): void {
+		self::$instance = $container;
 	}
 
 	// Mainly for PHPUnit/testing.
 	public static function reset(): void {
-			self::$instance = null;
+		self::$instance = null;
 	}
 
 	private static function instance(): AppContainer {
-			return self::$instance
-				?? throw new RuntimeException(
-					'App::init() has not been called.'
-				);
+		return self::$instance
+			?? throw new RuntimeException(
+				'App::init() has not been called.'
+			);
 	}
 
 }
