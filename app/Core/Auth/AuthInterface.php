@@ -11,6 +11,6 @@
 namespace App\Core\Auth;
 
 interface AuthInterface {
-    public function authenticate(): bool;
-    public function getAuthenticatedUser(): ?string;
+	public function authenticate(): bool;
+	public function getAuthenticatedUser(): ?string;
 }
