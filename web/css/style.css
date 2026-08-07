@@ -106,12 +106,6 @@ a:hover {
  }
 }
 
-@media (max-width: 1100px) {
- #menu li a {
-   padding: 0 20px; /* menu links space */
- }
-}
-
 #menu li:first-child a {
   border-left: none;
 }
@@ -1299,4 +1293,83 @@ table.attachments .filename {
  min-width: 200px;
  max-width: 800px;
  border: 1px solid #B0B0B0;
+}
+
+.menu-toggle {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+
+  .menu-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+
+    width: 44px;
+    height: 40px;
+    padding: 6px 8px;
+    margin: 10px 0;
+
+    border: 2px solid #000;
+    background: var(--color-bg-menu);
+    cursor: pointer;
+  }
+
+  .menu-toggle span {
+    display: block;
+    width: 100%;
+    height: 3px;
+    background: #000;
+
+	 transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  /* Open: turn hamburger into X */
+  .menu-toggle[aria-expanded="true"] span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+
+  .menu-toggle[aria-expanded="true"] span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .menu-toggle[aria-expanded="true"] span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  #menu.mainmenu {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+
+    width: 100%;
+    height: auto;
+
+    margin: 0 auto 10px;
+  }
+
+  #menu.mainmenu.menu-open {
+    display: flex;
+  }
+
+  #menu li {
+    width: 100%;
+  }
+
+  #menu li a {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 20px;
+    line-height: 40px;
+  }
+
+  /*
+   * Don't push Profile and Logout to the right on mobile.
+   */
+  #menu .profilelink,
+  #menu .logoutlink {
+    margin-left: 0;
+  }
 }
