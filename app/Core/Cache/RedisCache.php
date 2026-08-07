@@ -31,7 +31,7 @@ final class RedisCache implements CacheInterface
 		return $this->getConnection()->get($key);
 	}
 
-	public function set(string $key, mixed $value, ?int $ttl = null): mixed {
+	public function set(string $key, mixed $value, ?int $ttl = null): bool {
 		if ($ttl !== null) {
 			return $this->getConnection()->set(
 				$key,
@@ -41,6 +41,14 @@ final class RedisCache implements CacheInterface
 		}
 
 		return $this->getConnection()->set($key, $value);
+	}
+
+	public function has(string $key): bool {
+		return $this->getConnection()->exists($key) > 0;
+	}
+
+	public function delete(string $key): bool {
+		return $this->getConnection()->del($key) > 0;
 	}
 
 	public function ttl(string $key): ?int {

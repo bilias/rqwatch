@@ -18,10 +18,13 @@ use Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler
 
 use App\Core\App;
 
+use App\Core\Cache\RedisCache;
+
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
 use Throwable;
+use RuntimeException;
 
 class SessionManager
 {
@@ -55,7 +58,15 @@ class SessionManager
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			// Redis Sentinel connection via phpredis or predis
 			try {
-				$redisConnection = App::cache()->getConnection();
+				$redisCache = App::cache();
+
+				if (!$redisCache instanceof RedisCache) {
+					throw new RuntimeException(
+						'RedisSessionHandler requires RedisCache'
+					);
+				}
+
+				$redisConnection = $redisCache->getConnection();
 				// Use RedisSessionHandler
 				$handler = new RedisSessionHandler($redisConnection, [
 					'ttl' => self::$session_timeout ?? 0,

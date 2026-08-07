@@ -209,13 +209,12 @@ class Controller
 		}
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
-			$redisConnection = App::cache()->getConnection();
 			$redisKey = Config::get('rspamd_stat_redis_key');
 			$ttl = Config::get('rspamd_stat_redis_cache_ttl');
 
 			// Try fetching from redis cache first
 			try {
-				$cached = $redisConnection->get($redisKey);
+				$cached = App::cache()->get($redisKey);
 				if ($cached !== false) {
 					$stats = json_decode($cached, true);
 					if (is_array($stats) && !empty($stats)) {
@@ -258,7 +257,7 @@ class Controller
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			// Store in Redis for future use
 			try {
-				$redisConnection->set($redisKey, json_encode($stats), $ttl);
+				App::cache()->set($redisKey, json_encode($stats), $ttl);
 				$this->fileLogger->debug("Rspamd stats cached in Redis for {$ttl} seconds");
 			} catch (Throwable $e) {
 				$this->fileLogger->error("Redis error when writing Rspamd stats: " . $e->getMessage());
