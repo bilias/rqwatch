@@ -14,6 +14,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Psr\Log\LoggerInterface;
 
 use App\Core\Database\MigrationStatus;
+use App\Core\Cache\CacheInterface;
 
 final class AppContainer
 {
@@ -27,8 +28,9 @@ final class AppContainer
 		public readonly int $startMemory,
 		public readonly LoggerInterface $fileLogger,
 		public readonly LoggerInterface $syslogLogger,
-		public readonly ?Capsule $capsule,
-		public readonly ?MigrationStatus $migrationStatus,
+		public readonly Capsule $capsule,
+		public readonly MigrationStatus $migrationStatus,
+		public readonly ?CacheInterface $cache,
 	) { }
 }
 

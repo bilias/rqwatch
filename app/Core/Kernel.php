@@ -18,9 +18,12 @@ use Dotenv\Dotenv;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use App\Core\Database\Database;
 use App\Core\Database\MigrationStatus;
+use App\Core\Cache\RedisCache;
 
 use App\Core\Logging\LoggerService;
 use Psr\Log\LoggerInterface;
+
+use App\Utils\Helper;
 
 use RuntimeException;
 use Throwable;
@@ -33,6 +36,7 @@ final class Kernel
 	private LoggerInterface $syslogLogger;
 	private Capsule $capsule;
 	private MigrationStatus $migrationStatus;
+	private ?RedisCache $cache = null;
 
 	public function boot(): void {
 		$this->startTime = microtime(true);
@@ -70,6 +74,9 @@ final class Kernel
 
 		// Future when migrations are required
 		// $this->verifyRequiredMigrations()
+
+		// Redis caching
+		$this->createRedisCache();
 
 		// find out about migrations and cache results
 		$this->warmMigrationStatusCache();
@@ -157,15 +164,33 @@ final class Kernel
 		$this->migrationStatus->warmCache();
 	}
 
+	private function createRedisCache(): void {
+		if (!Helper::env_bool('REDIS_ENABLE')) {
+			$this->fileLogger->debug('Redis cache disabled');
+			return;
+		}
+
+		try {
+			$this->cache = new RedisCache($this->fileLogger);
+		} catch (Throwable $e) {
+			$this->fileLogger->error(
+				"Cache initialization error: " . $e->getMessage()
+			);
+
+			$this->cache = null;
+		}
+	}
+
 	private function initApp(): void {
 		App::init(
 			new AppContainer(
-				$this->startTime,
-				$this->startMemory,
-				$this->fileLogger,
-				$this->syslogLogger,
-				$this->capsule,
-				$this->migrationStatus
+				startTime: $this->startTime,
+				startMemory: $this->startMemory,
+				fileLogger: $this->fileLogger,
+				syslogLogger: $this->syslogLogger,
+				capsule: $this->capsule,
+				migrationStatus: $this->migrationStatus,
+				cache: $this->cache
 			)
 		);
 	}

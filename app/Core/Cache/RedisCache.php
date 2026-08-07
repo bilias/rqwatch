@@ -1,0 +1,50 @@
+<?php declare(strict_types=1);
+/*
+ Rqwatch
+ Copyright (C) 2026 Giannis Kapetanakis
+
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+*/
+
+namespace App\Core\Cache;
+
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
+
+use Redis;
+
+use InvalidArgumentException;
+use Throwable;
+
+final class RedisCache implements CacheInterface
+{
+	private ?Redis $client = null;
+
+	public function __construct(
+		private readonly LoggerInterface $logger,
+	) { }
+
+
+	public function getConnection(): Redis {
+		if ($this->client === null) {
+		// Redis Sentinel connection via phpredis or predis
+			try {
+				$this->client = RedisAdapter::createConnection(
+					$_ENV['REDIS_DSN']
+				);
+				$this->logger->debug('[RedisCache] Redis connection established');
+			} catch (InvalidArgumentException $e) {
+				$this->logger->error('[RedisCache]: ' . $e->getMessage());
+				throw $e;
+			} catch (Throwable $e) {
+				$this->logger->error('[RedisCache]: ' . $e->getMessage());
+				throw $e;
+			}
+		}
+
+		return $this->client;
+	}
+
+}

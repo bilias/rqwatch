@@ -14,6 +14,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Psr\Log\LoggerInterface;
 
 use App\Core\Database\MigrationStatus;
+use App\Core\Cache\CacheInterface;
 
 use App\Utils\Helper;
 
@@ -85,6 +86,10 @@ final class App
 			?? throw new RuntimeException(
 				'MigrationStatus is not available in this context.'
 			);
+	}
+
+	public static function cache(): ?CacheInterface {
+		return self::instance()->cache;
 	}
 
 	// Mainly for PHPUnit/testing.
