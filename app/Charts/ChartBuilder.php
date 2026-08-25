@@ -60,4 +60,41 @@ class ChartBuilder {
 
 		return $chart;
 	}
+
+	public static function createQuarantineChart(iterable $days): Chart {
+		$chart = new Chart(Chart::TYPE_BAR);
+
+		$days = is_array($days)
+			? array_reverse($days)
+			: $days->reverse();
+
+		$labels = [];
+		$data = [];
+
+		foreach ($days as $day) {
+			 $labels[] = $day->day;
+			 $data[] = $day->cnt;
+		}
+
+		$chart->setData([
+			 'labels' => $labels,
+			 'datasets' => [
+				[
+					'label' => 'Quarantined E-mails',
+					'data' => $data,
+					'backgroundColor' => [
+						MailCategory::STORED->color(),
+					],
+				],
+			 ],
+		]);
+
+		$chart->setOptions([
+			 'responsive' => true,
+			 'maintainAspectRatio' => false,
+		]);
+
+		return $chart;
+	}
+
 }

@@ -373,12 +373,23 @@ class MailLogController extends ViewController
 			$totalMailsInPage += $day->cnt;
 		}
 
+		$chart = null;
+
+		if ($totalMailsInPage > 0) {
+			$chart = $this->createChart(
+				[ChartBuilder::class, 'createQuarantineChart'],
+				$days
+			);
+		}
+
 		return new Response($this->twig->render('quarantine_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'days' => $days,
 			'totalRecords' => $days->total(),
 			'totalMailsInPage' => $totalMailsInPage,
 			'items_per_page' => $this->q_items_per_page,
+			'chart' => $chart,
+			'show_charts' => $chart !== null,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),
@@ -921,7 +932,7 @@ class MailLogController extends ViewController
 		return true;
 	}
 
-	private function createChart(callable $builder, array $stats): ?Chart {
+	private function createChart(callable $builder, iterable $stats): ?Chart {
 		if (!$this->chartsEnabled()) {
 			return null;
 		}

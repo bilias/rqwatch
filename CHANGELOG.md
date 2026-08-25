@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-08-25
+- Add Quarantine chart
+
 ### 2026-08-07
 - Deprecate RedisFactory
 - Make use of RedisCache in SessionManager, Config and rspamd statistics
