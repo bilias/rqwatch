@@ -102,7 +102,6 @@ class MailLog extends Model
 		'subject',
 		'size',
 		'score',
-		'symbols',
 		'server',
 		'mail_stored',
 		'mail_location',
