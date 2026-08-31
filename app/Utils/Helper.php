@@ -19,6 +19,8 @@ use App\Core\Auth\AuthManager;
 use PhpIP\IP;
 use MaxMind\Db\Reader as MaxMindDbReader;
 
+use NetDNS2\Resolver;
+
 use Psr\Log\LoggerInterface;
 
 use DateTime;
@@ -656,7 +658,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 			if (!empty($ips)) {
 				foreach (array_reverse($ips) as $ip) {
 					// Resolve hostname from IP (optional; basic reverse lookup)
-					$resolvedHost = gethostbyaddr($ip);
+					$resolvedHost = self::my_gethostbyaddr($ip);
 					$relays[] = [
 						'ip' => $ip,
 						'host' => ($resolvedHost !== $ip) ? $resolvedHost : ($host ?? null),
@@ -915,6 +917,22 @@ You can view mail details and optionally release it from quarantine by clicking 
 		}
 
 		return $input;
+	}
+
+	public static function my_gethostbyaddr(string $ip): string {
+		try {
+			$resolver = new Resolver([
+				'timeout' => Config::get('dns_timeout'),
+				'retry'   => 0,
+			]);
+			$result = $resolver->query(
+				implode('.', array_reverse(explode('.', $ip))) . '.in-addr.arpa',
+				'PTR'
+			);
+			return rtrim($result->answer[0]->ptrdname, '.');
+		} catch (\Exception $e) {
+			return $ip;
+		}
 	}
 
 }

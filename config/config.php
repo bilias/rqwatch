@@ -210,6 +210,9 @@ $geoip_enable = false;
 # GeoIP Country database (requires maxmind account)
 $geoip_country_db = "/usr/share/GeoIP/GeoLite2-Country.mmdb";
 
+# Timeout in seconds for DNS resolving of mail relays
+$dns_timeout = 0.5;
+
 # Set to false in config.local.php to disable Charts
 $show_charts = true;
 

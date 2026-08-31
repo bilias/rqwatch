@@ -109,7 +109,7 @@ class ViewController extends Controller
 		*/
 	
 		$this->twig->addFunction(new TwigFunction('gethostbyaddr', function ($ip) {
-			return gethostbyaddr($ip);
+			return Helper::my_gethostbyaddr($ip);
 		}));
 	
 		$this->twig->addFunction(new TwigFunction('truncate', function ($str, $len) {

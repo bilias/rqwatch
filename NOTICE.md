@@ -81,6 +81,9 @@ https://github.com/maxmind/MaxMind-DB-Reader-php
 - jumbojett/openid-connect-php: Apache-2.0 license\
 https://github.com/jumbojett/OpenID-Connect-PHP
 
+- mikepultz/netdns2: MIT license\
+https://github.com/mikepultz/netdns2
+
 ### Third-party software included in the distributed codebase
 
 - Chart.js: MIT license\
