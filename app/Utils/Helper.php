@@ -980,10 +980,10 @@ You can view mail details and optionally release it from quarantine by clicking 
 			return $host;
 		}
 
-		$redisKey = Config::get('dns_resolv_redis_key') . '_fwd_' . $host;
-		$ttl      = Config::get('dns_resolv_redis_cache_ttl');
-
 		if (Helper::env_bool('REDIS_ENABLE')) {
+			$redisKey = Config::get('dns_resolv_redis_key') . '_fwd_' . $host;
+			$ttl      = Config::get('dns_resolv_redis_cache_ttl');
+
 			try {
 				$cached = App::cache()->get($redisKey);
 				if ($cached !== false) {
