@@ -932,7 +932,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 			try {
 				$cached = App::cache()->get($redisKey);
 				if ($cached !== false) {
-					return $cached;
+					return $cached . " - cached";
 				}
 			} catch (Throwable $e) {
 				// fallback to live DNS if Redis fails
