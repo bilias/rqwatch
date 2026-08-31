@@ -511,6 +511,9 @@ on maillogs pages.\
   See PHP's [password_hash](https://www.php.net/manual/en/function.password-hash.php)
   documentation for details.
 
+- `$dns_timeout` - Timeout in seconds for DNS resolving of mail relays\
+ Default is `0.5`
+
 ### Reports and Statistics Settings
 - `$top_reports` - How many items to show in Top reports under Search.\
  Default is `30`
