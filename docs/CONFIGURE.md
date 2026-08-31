@@ -507,15 +507,18 @@ on maillogs pages.\
 - `$subject_privacy` - Hide the email subject on the web interface.\
  Default is `false`
 
-- `$password_hash` - Default password hash for local users\
+- `$password_hash` - Default password hash for local users.\
   See PHP's [password_hash](https://www.php.net/manual/en/function.password-hash.php)
   documentation for details.
 
-- `$dns_resolv` - Do DNS resolving\
+- `$dns_resolv` - Do DNS resolving.\
  Default is `true`
 
-- `$dns_timeout` - Timeout in seconds for DNS resolving of mail relays\
+- `$dns_resolv_timeout` - Timeout in seconds for DNS resolving of mail relays.\
  Default is `0.5`
+
+- `$dns_resolv_redis_cache_ttl` - How many seconds to cache DNS queries in Redis.\
+ Default is `3600`
 
 ### Reports and Statistics Settings
 - `$top_reports` - How many items to show in Top reports under Search.\

@@ -214,7 +214,13 @@ $geoip_country_db = "/usr/share/GeoIP/GeoLite2-Country.mmdb";
 $dns_resolv = true;
 
 # Timeout in seconds for DNS resolving of mail relays
-$dns_timeout = 0.5;
+$dns_resolv_timeout = 0.5;
+
+# Redis key for caching DNS queries
+$dns_resolv_redis_key = 'rqwatch_dns_cache';
+
+# How many seconds to cache DNS queries in Redis
+$dns_resolv_redis_cache_ttl = 3600;
 
 # Set to false in config.local.php to disable Charts
 $show_charts = true;

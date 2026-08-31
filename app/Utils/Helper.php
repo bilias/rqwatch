@@ -27,6 +27,7 @@ use DateTime;
 use DateTimeZone;
 
 use Exception;
+use Throwable;;
 use InvalidArgumentException;
 
 class Helper {
@@ -924,19 +925,46 @@ You can view mail details and optionally release it from quarantine by clicking 
 			return $ip;
 		}
 
+		if (Helper::env_bool('REDIS_ENABLE')) {
+			$redisKey = Config::get('dns_resolv_redis_key') . "_{$ip}";
+			$ttl      = Config::get('dns_resolv_redis_cache_ttl');
+
+			try {
+				$cached = App::cache()->get($redisKey);
+				if ($cached !== false) {
+					return $cached;
+				}
+			} catch (Throwable $e) {
+				// fallback to live DNS if Redis fails
+			}
+		}
+
 		try {
 			$resolver = new Resolver([
-				'timeout' => Config::get('dns_timeout'),
+				'timeout' => Config::get('dns_resolv_timeout'),
 				'retry'   => 0,
 			]);
 			$result = $resolver->query(
 				implode('.', array_reverse(explode('.', $ip))) . '.in-addr.arpa',
 				'PTR'
 			);
-			return rtrim($result->answer[0]->ptrdname, '.');
-		} catch (\Exception $e) {
-			return $ip;
+			$host = isset($result->answer[0])
+				? rtrim($result->answer[0]->ptrdname, '.')
+				: $ip;
+
+		} catch (Exception $e) {
+			$host = $ip;
 		}
+
+		if (Helper::env_bool('REDIS_ENABLE')) {
+			try {
+				App::cache()->set($redisKey, $host, $ttl);
+			} catch (Throwable $e) {
+				// ignore cache write failure
+			}
+		}
+
+		return $host;
 	}
 
 }
