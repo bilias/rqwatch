@@ -641,7 +641,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 
 			// Try to extract all IPs in brackets [1.2.3.4]
 			$ips = [];
-			if (preg_match_all('/\[(IPv6:)?([^\]]+)\]/i', $line, $ipMatches)) {
+			if (preg_match_all('/[\[\(](IPv6:)?([^\]\)]+)[\]\)]/i', $line, $ipMatches)) {
 				foreach ($ipMatches[2] as $rawIp) {
 					$cleanIp = preg_replace('/^IPv6:/i', '', $rawIp);
 					if (filter_var($cleanIp, FILTER_VALIDATE_IP)) {
@@ -667,7 +667,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 				}
 			} elseif ($host) {
 				// No IP found — try resolving IP from hostname
-				$resolvedIp = gethostbyname($host);
+				$resolvedIp = self::my_gethostbyname($host);
 				if (filter_var($resolvedIp, FILTER_VALIDATE_IP)) {
 					$relays[] = [
 						'ip' => $resolvedIp,
@@ -925,6 +925,10 @@ You can view mail details and optionally release it from quarantine by clicking 
 			return $ip;
 		}
 
+		if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+			return $ip;
+		}
+
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			$redisKey = Config::get('dns_resolv_redis_key') . "_{$ip}";
 			$ttl      = Config::get('dns_resolv_redis_cache_ttl');
@@ -932,7 +936,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 			try {
 				$cached = App::cache()->get($redisKey);
 				if ($cached !== false) {
-					return $cached . " - cached";
+					return $cached;
 				}
 			} catch (Throwable $e) {
 				// fallback to live DNS if Redis fails
@@ -944,12 +948,16 @@ You can view mail details and optionally release it from quarantine by clicking 
 				'timeout' => Config::get('dns_resolv_timeout'),
 				'retry'   => 0,
 			]);
-			$result = $resolver->query(
-				implode('.', array_reverse(explode('.', $ip))) . '.in-addr.arpa',
-				'PTR'
-			);
+			if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+				$expanded = inet_pton($ip);
+				$hex = bin2hex($expanded);
+				$ptr = implode('.', array_reverse(str_split($hex))) . '.ip6.arpa';
+			} else {
+				$ptr = implode('.', array_reverse(explode('.', $ip))) . '.in-addr.arpa';
+			}
+			$result = $resolver->query($ptr, 'PTR');
 			$host = isset($result->answer[0])
-				? rtrim($result->answer[0]->ptrdname, '.')
+				? rtrim((string)$result->answer[0]->ptrdname, '.')
 				: $ip;
 
 		} catch (Exception $e) {
@@ -965,6 +973,49 @@ You can view mail details and optionally release it from quarantine by clicking 
 		}
 
 		return $host;
+	}
+
+	public static function my_gethostbyname(string $host): string {
+		if (!Config::get('dns_resolv')) {
+			return $host;
+		}
+
+		$redisKey = Config::get('dns_resolv_redis_key') . '_fwd_' . $host;
+		$ttl      = Config::get('dns_resolv_redis_cache_ttl');
+
+		if (Helper::env_bool('REDIS_ENABLE')) {
+			try {
+				$cached = App::cache()->get($redisKey);
+				if ($cached !== false) {
+                return $cached;
+				}
+			} catch (Throwable $e) {
+				// fallback to live DNS if Redis fails
+			}
+		}
+
+		try {
+			$resolver = new Resolver([
+				'timeout' => Config::get('dns_resolv_timeout'),
+				'retry'   => 0,
+			]);
+			$result = $resolver->query($host, 'A');
+			$ip = isset($result->answer[0])
+				? (string)$result->answer[0]->address
+				: $host;
+		} catch (Exception $e) {
+			$ip = $host;
+		}
+
+		if (Helper::env_bool('REDIS_ENABLE')) {
+			try {
+				App::cache()->set($redisKey, $ip, $ttl);
+			} catch (Throwable $e) {
+				// ignore cache write failure
+			}
+		}
+
+		return $ip;
 	}
 
 	public static function flush_dns_cache(): int {
