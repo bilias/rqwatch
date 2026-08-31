@@ -46,6 +46,13 @@ class Routes
 			],
 		));
 
+		$routes->add(RouteName::DNS_FLUSH->value, new Route(
+			'/admin/dns/flush', // path
+			[ '_controller' => 'App\\Controllers\\Controller::dnsFlush',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
 		$routes->add(RouteName::LOGIN->value, new Route(
 			'/login',
 			[ '_controller' => 'App\\Controllers\\LoginController::login',

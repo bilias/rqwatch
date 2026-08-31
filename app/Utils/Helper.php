@@ -967,4 +967,16 @@ You can view mail details and optionally release it from quarantine by clicking 
 		return $host;
 	}
 
+	public static function flush_dns_cache(): int {
+		if (!Helper::env_bool('REDIS_ENABLE')) {
+			return 0;
+		}
+		try {
+			$prefix = Config::get('dns_resolv_redis_key');
+			return App::cache()->deleteByPrefix($prefix);
+		} catch (Throwable $e) {
+			throw $e;
+		}
+	}
+
 }

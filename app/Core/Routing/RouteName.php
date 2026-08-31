@@ -13,6 +13,7 @@ namespace App\Core\Routing;
 enum RouteName: string
 {
 	case CONFIG_RELOAD = 'config_reload';
+	case DNS_FLUSH = 'dns_flush';
 	case LOGIN = 'login';
 	case LOGIN_OPENIDC = 'login_openidc';
 	case OPENIDC_CALLBACK = 'login_openidc_callback';

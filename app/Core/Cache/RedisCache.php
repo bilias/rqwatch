@@ -69,6 +69,24 @@ final class RedisCache implements CacheInterface
 		}
 	}
 
+	public function deleteByPrefix(string $prefix): int {
+		$deleted = 0;
+		try {
+			$connection = $this->getConnection();
+			$cursor = null;
+			do {
+				$keys = $connection->scan($cursor, $prefix . '*', 100);
+				if ($keys !== false && !empty($keys)) {
+					$deleted += $connection->del($keys);
+				}
+			} while ($cursor != 0);
+		} catch (Throwable $e) {
+			$this->logger->error("RedisCache deleteByPrefix: " . $e->getMessage());
+			throw $e;
+		}
+		return $deleted;
+	}
+
 	public function getConnection(): Redis {
 		if ($this->client === null) {
 		// Redis Sentinel connection via phpredis or predis

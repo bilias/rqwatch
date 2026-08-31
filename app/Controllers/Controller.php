@@ -326,6 +326,27 @@ class Controller
 
 	}
 
+	public function dnsFlush(): Response {
+		$this->initUrls();
+
+		if (!Helper::env_bool('REDIS_ENABLE')) {
+			$this->flashbag->add('warning', "Redis is not enabled");
+			return new RedirectResponse($this->searchUrl);
+		}
+
+		try {
+			$deleted = Helper::flush_dns_cache();
+			$this->fileLogger->info("DNS cache flushed: {$deleted} entries removed");
+			$this->flashbag->add('info', "DNS cache flushed: {$deleted} entries removed");
+
+		} catch (Throwable $e) {
+			$this->fileLogger->error("DNS Flush failed: " . $e->getMessage());
+			$this->flashbag->add('error', "dnsFlush failed");
+		}
+
+		return new RedirectResponse($this->searchUrl);
+	}
+
 	protected function getUserContext(): array {
 		return [
 			'is_admin' => $this->session->get('is_admin'),

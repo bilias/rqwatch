@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-08-31
+- Add DNS Flush in search page
 - Cache DNS queries in Redis
 - Disable DNS if needed from config
 - Use mikepultz/netdns2 for DNS resolution
