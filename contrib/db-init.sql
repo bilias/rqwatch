@@ -191,7 +191,7 @@ CREATE TABLE `mail_log_recipients` (
 
 DROP TABLE IF EXISTS `mail_log_data`;
 
-CREATE TABLE `mail_logs_data` (
+CREATE TABLE `mail_log_data` (
   `mail_log_id` int(10) unsigned NOT NULL,
   `headers` longtext DEFAULT NULL,
   `symbols` JSON DEFAULT NULL,

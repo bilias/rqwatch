@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-08-31
+- Typo in mail_log_data table creation
+
 ### 2026-08-25
 - Add Quarantine chart
 
