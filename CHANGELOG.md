@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-08-31
+- Disable DNS if needed from config
 - Use mikepultz/netdns2 for DNS resolution
 - Typo in mail_log_data table creation
 

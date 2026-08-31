@@ -511,6 +511,9 @@ on maillogs pages.\
   See PHP's [password_hash](https://www.php.net/manual/en/function.password-hash.php)
   documentation for details.
 
+- `$dns_resolv` - Do DNS resolving\
+ Default is `true`
+
 - `$dns_timeout` - Timeout in seconds for DNS resolving of mail relays\
  Default is `0.5`
 

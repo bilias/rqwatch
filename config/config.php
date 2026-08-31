@@ -210,6 +210,9 @@ $geoip_enable = false;
 # GeoIP Country database (requires maxmind account)
 $geoip_country_db = "/usr/share/GeoIP/GeoLite2-Country.mmdb";
 
+# Do DNS resolv
+$dns_resolv = true;
+
 # Timeout in seconds for DNS resolving of mail relays
 $dns_timeout = 0.5;
 

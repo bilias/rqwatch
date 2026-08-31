@@ -920,6 +920,10 @@ You can view mail details and optionally release it from quarantine by clicking 
 	}
 
 	public static function my_gethostbyaddr(string $ip): string {
+		if (!Config::get('dns_resolv')) {
+			return $ip;
+		}
+
 		try {
 			$resolver = new Resolver([
 				'timeout' => Config::get('dns_timeout'),
