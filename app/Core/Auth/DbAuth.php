@@ -50,6 +50,8 @@ class DbAuth implements AuthInterface {
 		];
 	}
 
+	private const DUMMY_HASH = '$2y$10$U7CGK4SOy3UaqaM2M2KxmuN8ER.qtoIk2uyeL2CDoGG7cXSwgSwQ.';
+
 	#[\Override]
 	public function authenticate(): bool {
 		if (empty($this->username) or empty($this->password)) {
@@ -60,20 +62,18 @@ class DbAuth implements AuthInterface {
 		              ->where('username', $this->username)
 						  ->first();
 
-		// user not found
-		if (!$user) {
+		$hash = $user->password ?? self::DUMMY_HASH;
+		$valid = Helper::passwordVerify($this->password, $hash);
+
+		if (!$user || !$valid) {
 			return false;
 		}
 
-		if (Helper::passwordVerify($this->password, $user->password)) {
-			$this->authenticatedUser = $user->username;
-			$this->email = $user->email;
-			$this->is_admin = $user->is_admin;
-			$this->user_id = $user->id;
-			return true; // AUTH OK
-		}
-		// wrong password
-		return false;
+		$this->authenticatedUser = $user->username;
+		$this->email = $user->email;
+		$this->is_admin = $user->is_admin;
+		$this->user_id = $user->id;
+		return true; // AUTH OK
 	}
 
 	#[\Override]
