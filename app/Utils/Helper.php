@@ -65,7 +65,11 @@ class Helper {
 		$date = date("Y-m-d");
 		$dir_raw = $dir . "/" . $date . "/";
 
-		if (!empty($qid) and $qid != "unknown") {
+		if (!empty($qid) && $qid != "unknown") {
+			if (!preg_match('/^[a-zA-Z0-9]+$/', $qid)) {
+				self::logger()->warning("QID invalid format: {$qid}");
+				$qid = "invalid/" . uniqid();
+			}
 			$dir_raw .= $qid;
 		} else {
 			$dir_raw .= "unknown/" . uniqid();
