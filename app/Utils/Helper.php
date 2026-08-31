@@ -459,28 +459,22 @@ class Helper {
 		$id = false;
 		$qid = false;
 
-		if (empty($value)) {
+		$strValue = (string) $value;
+
+		if ($strValue === '') {
 			$error = "Empty value";
 		}
       elseif ($type === 'id') {
-         if (!ctype_digit($value)) {
+         if (!ctype_digit($strValue) || (int)$strValue <= 0) {
             $error = "ID wrong format";
          } else {
-            $id = (int) $value;
-				/*
-            $where = 'id';
-            $what = $id;
-				*/
+            $id = (int) $strValue;
          }
       } elseif ($type === 'qid') {
-         if (!preg_match('/^[a-zA-Z0-9]+$/', $value)) {
+         if (!preg_match('/^[a-zA-Z0-9]+$/', $strValue)) {
             $error = "QID wrong format";
          } else {
-            $qid = $value;
-				/*
-            $where = 'qid';
-            $what = $qid;
-				*/
+            $qid = $strValue;
          }
       } else {
          $error = "Unknown error";
