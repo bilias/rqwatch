@@ -192,6 +192,16 @@ class Router
 		};
 	}
 
+	private static function applySecurityHeaders(Response $response): void {
+		$response->headers->set('X-Content-Type-Options', 'nosniff');
+		$response->headers->set('X-Frame-Options', 'DENY');
+		$response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+		if ($_ENV['WEB_SCHEME'] === 'https') {
+			$response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+		}
+	}
+
 	public static function run(): void {
 
 		$fileLogger = App::fileLogger();
@@ -226,6 +236,7 @@ class Router
 		// Instantiate Router and handle the request
 		$router = new self();
 		$response = $router->dispatch($routes, $defaultMiddlewareClasses);
+		self::applySecurityHeaders($response);
 		$response->send();
 		exit();
 	}
