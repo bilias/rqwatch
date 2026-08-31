@@ -518,7 +518,7 @@ on maillogs pages.\
  Default is `0.5`
 
 - `$dns_resolv_redis_cache_ttl` - How many seconds to cache DNS queries in Redis.\
- Default is `3600`
+ Default is `86400` which is one day
 
 ### Reports and Statistics Settings
 - `$top_reports` - How many items to show in Top reports under Search.\

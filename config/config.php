@@ -220,7 +220,7 @@ $dns_resolv_timeout = 0.5;
 $dns_resolv_redis_key = 'rqwatch_dns_cache';
 
 # How many seconds to cache DNS queries in Redis
-$dns_resolv_redis_cache_ttl = 3600;
+$dns_resolv_redis_cache_ttl = 86400;
 
 # Set to false in config.local.php to disable Charts
 $show_charts = true;
