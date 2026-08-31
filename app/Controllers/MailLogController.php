@@ -66,6 +66,14 @@ class MailLogController extends ViewController
 		return $this->mailLogService;
 	}
 
+	private const INLINE_SAFE_TYPES = [
+		'text/plain',
+		'image/png',
+		'image/jpeg',
+		'image/gif',
+		'image/webp',
+	];
+
 	public function showAll(): Response {
 		$this->getAdminWarnings();
 		// enable form rendering support
@@ -630,11 +638,17 @@ class MailLogController extends ViewController
 
 		$htmlBody = Helper::normalizeToUtf8($mailobject->getHtmlBody());
 
+		$attached = $mailobject->getAttached();
+		foreach ($attached as &$attach) {
+			$attach['inline_safe'] = $this->isInlineSafeType($attach['filetype']);
+		}
+		unset($attach);
+
 		//return new Response($this->twig->render('mail.twig', [
 		$response = new Response($this->twig->render('mail.twig', [
 			'textBody' => $mailobject->getTextBody(),
 			'htmlBody' => $htmlBody,
-			'attached' => $mailobject->getAttached(),
+			'attached' => $attached,
 			'log' => $mailobject->getMailLog(),
 			'virus_found' => $mailobject->getVirusFound(),
 			'symbols' => $mailobject->getSymbols(),
@@ -731,7 +745,9 @@ class MailLogController extends ViewController
 			md5($filename) . '.', $filename
 		);
 
-		$filetype = $attachment->getFileType();
+		//$filetype = $attachment->getFileType();
+		$filetype = $this->safeInlineContentType($attachment->getFileType());
+
 		$content = $attachment->getContent();
 		$size = $attachment->getSize();
 
@@ -1009,6 +1025,15 @@ class MailLogController extends ViewController
 
 	private function saveFiltersToSession(array $filters): void {
 		$this->session->set('filters', json_encode(array_values($filters)));
+	}
+
+	private function isInlineSafeType(string $filetype): bool {
+		$normalized = strtolower(trim(explode(';', $filetype)[0] ?? ''));
+		return in_array($normalized, self::INLINE_SAFE_TYPES, true);
+	}
+
+	private function safeInlineContentType(string $filetype): string {
+		return $this->isInlineSafeType($filetype) ? $filetype : 'application/octet-stream';
 	}
 
 }

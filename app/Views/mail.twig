@@ -140,7 +140,12 @@ Please be very carefull before opening or saving any of the files bellow.
 <td class='filename'>{{ attach.filename }}</td>
 <td class='center'>{{ attach.filetype }}</td>
 <td class='center'>
-<a href='{{ route('ATTACHOPEN', { id: log.id, attach_id: loop.index0}) }}' target="_blank">Open in Browser</a></td>
+{% if attach.inline_safe %}
+<a href='{{ route('ATTACHOPEN', { id: log.id, attach_id: loop.index0}) }}' target="_blank">Open in Browser</a>
+{% else %}
+<span class="muted">-</span>
+{% endif %}
+</td>
 <td class='center'>
 <a href='{{ route('ATTACHSAVE', { id: log.id, attach_id: loop.index0}) }}'>Save</a>
 </td>
