@@ -3,6 +3,10 @@
 ## Master Dev Branch
 
 ### 2026-08-31
+- Prevent timing attacks in db password_verify
+- Add security headers
+- Restrict inline attachment preview to safe MIME types
+- Protect for file traversal via qid
 - Add DNS Flush in search page
 - Cache DNS queries in Redis
 - Disable DNS if needed from config
