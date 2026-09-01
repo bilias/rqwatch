@@ -635,11 +635,25 @@ class MapService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$contents = implode(PHP_EOL, $lines);
+		$contents = implode(PHP_EOL, $lines) . PHP_EOL;
+		$expected = strlen($contents);
+		$written  = fwrite($fp, $contents);
 
-		fwrite($fp, $contents . PHP_EOL);
-		fflush($fp);
-		fclose($fp);
+		if ($written === false || $written !== $expected || !fflush($fp)) {
+			$this->logger->error(
+				"Failed writing map {$map_name}: wrote " .
+				var_export($written, true) . " of {$expected} bytes"
+			);
+			fclose($fp);
+			@unlink($tmpfile);
+			return false;
+		}
+
+		if (!fclose($fp)) {
+			$this->logger->error("Failed closing map tmpfile for {$map_name}");
+			@unlink($tmpfile);
+			return false;
+		}
 
 		$map_file = rtrim($map_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $map_name . ".txt";
 		if (!rename($tmpfile, $map_file)) {
