@@ -20,9 +20,7 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
 class UserDeleteForm extends AbstractType
