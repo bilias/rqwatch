@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-01
+- OIDC OPENIDC_REQUIRE_VERIFIED_EMAIL, OPENIDC_DEBUG_CLAIMS, OPENIDC_PREFERRED_USERNAME_ATTR
 - Don't allow admin account takeover by external auth
 - Enable PKCE in OpenIDC by default
 - JS filtering in views

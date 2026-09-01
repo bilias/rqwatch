@@ -376,7 +376,15 @@ System supports OpenID Connect Authentication.
 
 - `OPENIDC_CLIENT_SECRET` - Client Secret
 
+- `OPENIDC_PREFERRED_USERNAME_ATTR` - IdP preferred username attribute\
+ Default is `preferred_username`
+
+- `OPENIDC_DEBUG_CLAIMS` - Set to true to log claims returned by IdP
+
 - `OPENIDC_UPDATE_NAME_ON_LOGIN` - Update user's first/last name on every login
+
+- `OPENIDC_REQUIRE_VERIFIED_EMAIL` - Deny OIDC login if the IdP does not assert email_verified=true\
+ Set to false only if your IdP omits the claim
 
 - `OPENIDC_ADMINS` - Define OpenID Connect admin usernames, comma-separated
 

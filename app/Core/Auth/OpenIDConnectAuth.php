@@ -87,11 +87,24 @@ class OpenIDConnectAuth implements AuthInterface {
 		$this->idToken = $oidc->getIdToken();
 
 		$userInfo = $oidc->requestUserInfo();
-		if (empty($userInfo) || empty($userInfo->preferred_username)) {
-			$this->logger->error("Empty userinfo or preferred_username from OIDC");
+
+		$usernameAttr = trim($_ENV['OPENIDC_PREFERRED_USERNAME_ATTR'] ?? '') ?: 'preferred_username';
+
+		if (Helper::env_bool('OPENIDC_DEBUG_CLAIMS', false)) {
+			$this->logger->info('OIDC claims', [
+				'all_claims'         => array_keys((array) $userInfo),
+				'sub'                => $userInfo->sub ?? null,
+				'preferred_username' => $userInfo->{$usernameAttr} ?? null,
+				'email'              => $userInfo->email ?? null,
+				'email_verified'     => $userInfo->email_verified ?? null,
+			]);
+		}
+
+		if (empty($userInfo) || empty($userInfo->{$usernameAttr})) {
+			$this->logger->error("Empty userinfo or {$usernameAttr} from OIDC. Check OPENIDC_PREFERRED_USERNAME_ATTR in .env");
 			return false;
 		}
-		$this->authenticatedUser = strtolower(trim($userInfo->preferred_username));
+		$this->authenticatedUser = strtolower(trim($userInfo->{$usernameAttr}));
 
 		// search if user is admin
 		if (array_key_exists('OPENIDC_ADMINS', $_ENV) && !empty($_ENV['OPENIDC_ADMINS'])) {
@@ -104,7 +117,33 @@ class OpenIDConnectAuth implements AuthInterface {
 			}
 		}
 
-		$this->email = $userInfo->email ?? null;
+		$emailVerified = filter_var(
+			$userInfo->email_verified ?? null,
+			FILTER_VALIDATE_BOOLEAN,
+			FILTER_NULL_ON_FAILURE
+		);
+
+		if (empty($userInfo->email)) {
+			$this->logger->error("OIDC user '{$this->authenticatedUser}' has no email claim; login denied");
+			return false;
+		}
+
+		if ($emailVerified !== true) {
+			if (Helper::env_bool('OPENIDC_REQUIRE_VERIFIED_EMAIL', true)) {
+				$this->logger->warning(
+					"OIDC user '{$this->authenticatedUser}' email not verified (claim: " .
+					var_export($userInfo->email_verified ?? null, true) .
+					"); login denied. Set OPENIDC_REQUIRE_VERIFIED_EMAIL=false to allow."
+				);
+				return false;
+			}
+			$this->logger->warning(
+				"OIDC user '{$this->authenticatedUser}' email not verified; allowed by OPENIDC_REQUIRE_VERIFIED_EMAIL=false"
+			);
+		}
+
+		$this->email = $userInfo->email;
+
 		$this->lastname = $userInfo->family_name ?? null;
 		$this->firstname = $userInfo->given_name ?? null;
 
