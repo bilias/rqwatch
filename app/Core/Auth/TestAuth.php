@@ -37,7 +37,7 @@ class TestAuth implements AuthInterface {
 
 		$this->username = trim($username);
 		$this->password = trim($password);
-		$this->logger = $logger
+		$this->logger = $logger;
 	}
 
 	public function __debugInfo(): array {
