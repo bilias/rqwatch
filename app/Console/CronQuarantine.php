@@ -37,6 +37,10 @@ class CronQuarantine extends RqwatchCliCommand
 {
 	private string $app_name = "cron:quarantine";
 
+	// Grouping dirs created by Helper::store_raw_mail() for mails with a
+	// missing ("unknown") or malformed ("invalid") qid.
+	private const QUARANTINE_GROUP_DIRS = ['unknown', 'invalid'];
+
 	use LockableTrait;
 
 	#[\Override]
@@ -209,7 +213,32 @@ class CronQuarantine extends RqwatchCliCommand
 				continue;
 			}
 
-			// Delete only if empty
+			// store_raw_mail() puts qid-less mails under <date>/unknown/<uniqid>
+			// and malformed-qid mails under <date>/invalid/<uniqid>, so
+			// cleanQuarantine()'s dirname() leaves these group dirs behind.
+			// Prune them first, otherwise they keep the date dir non-empty.
+			foreach (self::QUARANTINE_GROUP_DIRS as $group) {
+				$groupDir = $dateDirReal . DIRECTORY_SEPARATOR . $group;
+
+				if (!is_dir($groupDir) || is_link($groupDir)) {
+					continue;
+				}
+
+				// Delete group dirs only if empty
+				$groupItems = array_diff(@scandir($groupDir) ?: [], ['.', '..']);
+				if (count($groupItems) > 0) {
+					continue;
+				}
+
+				if (@rmdir($groupDir)) {
+					$output->writeln(
+					    "<info>Pruned empty quarantine group dir {$groupDir}</info>",
+					    OutputInterface::VERBOSITY_VERBOSE
+					);
+				}
+			}
+
+			// Delete date dir only if empty
 			$items = array_diff(@scandir($dateDirReal) ?: [], ['.', '..']);
 			if (count($items) > 0) {
 				continue;

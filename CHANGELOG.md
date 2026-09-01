@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-09-01
+- Prune invalid/ and unknown/ empty dirs inside quarantine
+
 ### 2026-08-31
 - Prevent timing attacks in db password_verify
 - Add security headers
