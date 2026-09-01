@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-01
+- CSRF protection on GET methods
 - CSRF-validated POST user delete
 - iframe protection in html quarantined mail view
 - More checks in updateMapFile()
