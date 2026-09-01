@@ -502,6 +502,15 @@ class UserController extends ViewController
 			return new RedirectResponse($this->homepageUrl);
 		}
 
+		if (!$this->csrfValid('user_loginas')) {
+			$this->fileLogger->warning(
+				"CSRF check failed on loginAs from " . $_SERVER['REMOTE_ADDR']
+			);
+			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
+			$this->initUrls();
+			return new RedirectResponse($this->homepageUrl);
+		}
+
 		if (!is_null($id) and is_int($id)) {
 			$user = User::where('id', $id)->first();
 			// user found

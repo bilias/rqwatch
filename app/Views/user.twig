@@ -9,7 +9,7 @@
 {#   <button onclick="window.location.href='{{ route('ADMIN_USEREDIT', { id: user.id }) }}'">Edit User</button> #}
   </div>
   <a href='{{ route('ADMIN_USEREDIT', { id: user.id }) }}'><button>Edit User</button></a>
-  <a href='{{ route('ADMIN_USERLOGINAS', { id: user.id }) }}'><button>Login As</button></a>
+  <a href='{{ route('ADMIN_USERLOGINAS', { id: user.id, _token: csrf_token('user_loginas') }) }}'><button>Login As</button></a>
  {% endif %}
 
 <div class='form'>
