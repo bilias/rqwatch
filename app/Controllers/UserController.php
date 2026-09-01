@@ -352,10 +352,12 @@ class UserController extends ViewController
 				 'username' => $user->username,
 				]);
 
-			if ($response = UserDeleteForm::check_form($userdelform, $this->urlGenerator)) {
-				// form submitted and valid
-				return $response;
-			}
+				if ($id = UserDeleteForm::check_form($userdelform)) {
+					// CSRF-validated POST: delete here, not via a GET redirect
+					$this->deleteUserById($id);
+					return new RedirectResponse($this->getAdminUsersUrl());
+				}
+
 			$userdelform = $userdelform->createView();
 		} else {
 			$userdelform = null;
@@ -447,6 +449,33 @@ class UserController extends ViewController
 		// get back to users page
 		$url = $this->getAdminUsersUrl();
 		return new RedirectResponse($url);
+	}
+
+	private function deleteUserById(int $id): void {
+		if (!is_int($id)) {
+			return;
+		}
+
+		$user = User::find($id);
+
+		if (!$user) {
+			$this->flashbag->add('error', 'User not found');
+			return;
+		}
+
+		if ($user->username === 'admin') {
+			$this->flashbag->add('warning', 'User "admin" cannot be deleted');
+			return;
+		}
+
+		$username = $user->username;
+
+		if ($user->delete()) {
+			$this->fileLogger->info("User '{$username}' deleted by '{$this->username}'");
+			$this->flashbag->add('success', "User '{$username}' deleted");
+		} else {
+			$this->flashbag->add('error', "Failed '{$username}' delete");
+		}
 	}
 
 	public function getMailAliases(User $user): array {

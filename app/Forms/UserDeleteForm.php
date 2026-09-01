@@ -19,8 +19,6 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -51,19 +49,13 @@ class UserDeleteForm extends AbstractType
 		return FormHelper::formCreator($formFactory, $request, self::class, $data);
 	}
 
-	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
+	public static function check_form(FormInterface $form): ?int {
 		if ($form->isSubmitted() && $form->isValid()) {
 			$data = $form->getData();
 			$id = $data['id'];
 			if (!$id) return null;
 
-			$url = $urlGenerator->generate(RouteName::ADMIN_USERDEL->value, ['id' => $id]);
-			return new RedirectResponse($url);
-         /*
-         $response = new RedirectResponse($url);
-         $response->prepare($this->request);
-         return $response->send();
-         */
+			return (int) $id;
       }
 		return null;
 	}

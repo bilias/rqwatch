@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-01
+- CSRF-validated POST user delete
 - iframe protection in html quarantined mail view
 - More checks in updateMapFile()
 - Rotate session id after login and use_strict_mode in sessions
