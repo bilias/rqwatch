@@ -1083,6 +1083,14 @@ class MapController extends ViewController
 	}
 
 	public function delMapAllEntries(string $map): Response {
+		if (!$this->csrfValid('map_delall')) {
+			$this->fileLogger->warning(
+				"CSRF check failed on delMapAllEntries from " . $_SERVER['REMOTE_ADDR']
+			);
+			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
+			$this->initMapUrls();
+			return new RedirectResponse($this->mapsUrl);
+		}
 
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
