@@ -111,7 +111,7 @@ class OpenIDConnectAuth implements AuthInterface {
 			return false;
 		}
 
-		$this->authenticatedUser = strtolower(trim($userInfo->{$usernameAttr}));
+		$this->authenticatedUser = strtolower(trim((string) $userInfo->{$usernameAttr}));
 
 		$emailVerified = filter_var(
 			$userInfo->email_verified ?? null,
