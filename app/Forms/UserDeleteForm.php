@@ -49,14 +49,4 @@ class UserDeleteForm extends AbstractType
 		return FormHelper::formCreator($formFactory, $request, self::class, $data);
 	}
 
-	public static function check_form(FormInterface $form): ?int {
-		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData();
-			$id = $data['id'];
-			if (!$id) return null;
-
-			return (int) $id;
-      }
-		return null;
-	}
 }

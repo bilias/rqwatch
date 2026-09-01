@@ -348,11 +348,13 @@ class UserController extends ViewController
 		// Do not allow delete of admin user
 		if ($user->username !== 'admin') {
 			$userdelform = UserDeleteForm::create($this->formFactory, $this->request,
-				['id' => $user->id,
-				 'username' => $user->username,
-				]);
+				[
+					'id' => $user->id,
+					'username' => $user->username,
+				]
+			);
 
-			if ($id = UserDeleteForm::check_form($userdelform)) {
+			if ($userdelform->isSubmitted() && $userdelform->isValid()) {
 				// CSRF-validated POST: delete here, not via a GET redirect
 				$service = $this->getUserService();
 				if ($service->userDel($user->id)) {
