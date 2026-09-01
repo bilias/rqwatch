@@ -94,7 +94,8 @@ class OpenIDConnectAuth implements AuthInterface {
 			$this->logger->info('OIDC claims', [
 				'all_claims'         => array_keys((array) $userInfo),
 				'sub'                => $userInfo->sub ?? null,
-				'preferred_username' => $userInfo->{$usernameAttr} ?? null,
+				'username_attr'      => $usernameAttr,
+				'username_value'     => $userInfo->{$usernameAttr} ?? null,
 				'email'              => $userInfo->email ?? null,
 				'email_verified'     => $userInfo->email_verified ?? null,
 			]);
