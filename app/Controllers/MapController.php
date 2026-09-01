@@ -985,11 +985,21 @@ class MapController extends ViewController
 	}
 
 	public function delCustomMap(int $id): Response {
+		if (!$this->csrfValid('custom_map_del')) {
+			$this->fileLogger->warning(
+				"CSRF check failed on delCustomMap from " . $_SERVER['REMOTE_ADDR']
+			);
+			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
+			$this->initMapUrls();
+			return new RedirectResponse($this->showCustomMapsConfigUrl);
+		}
 
 		if (!is_null($id) and is_int($id)) {
 			$custom_map = CustomMapConfig::find($id);
 			if (is_null($custom_map)) {
 				$this->flashbag->add('error', 'Custom map not found!');
+				$this->initMapUrls();
+				return new RedirectResponse($this->showCustomMapsConfigUrl);
 			}
 			$service = $this->getMapService();
 			if ($service->delCustomMap($id)) {
