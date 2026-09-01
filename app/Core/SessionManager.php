@@ -81,6 +81,7 @@ class SessionManager
 					//'cookie_lifetime' => self::$session_timeout ?? 0,
 					'cookie_lifetime' => 0,
 					'name' => 'RQWATCHSESSID',
+					'use_strict_mode' => '1',
 				], $handler);
 			} catch (Throwable $e) {
 				App::fileLogger()->error("[SessionManager] Redis conection problem: " . $e->getMessage());
@@ -95,6 +96,7 @@ class SessionManager
 				//'cookie_lifetime' => self::$session_timeout ?? 0,
 				'cookie_lifetime' => 0,
 				'name' => 'RQWATCHSESSID',
+				'use_strict_mode' => '1',
 			]);
 		}
 
