@@ -58,7 +58,7 @@ Custom Map: {{ mapdescr }}<br/>
           <td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.pattern }}</td>
 			 <td class='center'>{{ entry.updated_at }}</td>
 			 <td class='center'>
-				<a href="{{ route('ADMIN_MAP_TOGGLE_ENTRY', { map: map, id: entry.id }) }}">
+				<a href="{{ route('ADMIN_MAP_TOGGLE_ENTRY', { map: map, id: entry.id, _token: csrf_token('map_toggle') }) }}">
 				{{ entry.disabled ? 'Enable' : 'Disable' }}</a>
 			 </td>
           <td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: map, id: entry.id, _token: csrf_token('map_del') }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
