@@ -265,14 +265,6 @@ class Routes
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
 
-		$routes->add(RouteName::ADMIN_USERDEL->value, new Route(
-			'/admin/user/del/{id}', // path
-			[ '_controller' => 'App\\Controllers\\UserController::del',
-			  '_middleware' => $adminMiddlewareClasses,
-			],
-			[ 'id' => '\d{1,8}' ] // requirements
-		));
-
 		$routes->add(RouteName::ADMIN_USERSEARCH->value, new Route(
 			'/admin/user/search', // path
 			[ '_controller' => 'App\\Controllers\\UserController::searchUser',

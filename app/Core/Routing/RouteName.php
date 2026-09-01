@@ -41,7 +41,6 @@ enum RouteName: string
 	case ADMIN_USERS = 'admin_users';
 	case ADMIN_USERADD = 'admin_useradd';
 	case ADMIN_USEREDIT = 'admin_useredit';
-	case ADMIN_USERDEL = 'admin_userdel';
 	case ADMIN_USERSEARCH = 'admin_usersearch';
 	case ADMIN_USERLOGINAS = 'admin_userloginas';
 	case ADMIN_USER = 'admin_user';

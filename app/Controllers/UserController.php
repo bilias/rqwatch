@@ -438,29 +438,6 @@ class UserController extends ViewController
 		]));
 	}
 
-	public function del(int $id): Response {
-
-		if (!is_null($id) && is_int($id)) {
-			$user = User::find($id);
-			if ($user) {
-				if ($user->username !== 'admin') {
-					if ($user->delete()) {
-						$this->fileLogger->info("User '{$user->username}' deleted by '{$this->username}'");
-						$this->flashbag->add('success', "User '{$user->username}' deleted");
-					} else {
-						$this->flashbag->add('error', "Failed '{$user->username}' delete");
-					}
-				} else {
-					$this->flashbag->add('warning', 'User "admin" cannot be deleted');
-				}
-			}
-		}
-
-		// get back to users page
-		$url = $this->getAdminUsersUrl();
-		return new RedirectResponse($url);
-	}
-
 	public function getMailAliases(User $user): array {
 		/*
 		$mail_aliases = [];
