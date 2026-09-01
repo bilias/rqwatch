@@ -358,6 +358,19 @@ class LoginController extends ViewController
 
 		$user = User::where('username', $username)->first();
 
+		// Never let an external (LDAP/OPENIDC) login bind to the local 'admin'
+		// account. Otherwise anyone able to control a username at the IdP could
+		// take over 'admin' and rewrite its auth_provider/email, locking out the
+		// real local admin.
+		if (($auth_provider !== "DB") && $username === 'admin') {
+			$this->fileLogger->warning(
+				"($auth_provider) login refused for reserved local account 'admin' from IP:" .
+				$_SERVER['REMOTE_ADDR']
+			);
+			$this->flashbag->add('error', "Authentication problem. Contact admin");
+			return false;
+		}
+
 		// EXTERNAL AUTH (LDAP/OPENIDC)
 
 		// EXTERNAL user does not exist in DB, create him
