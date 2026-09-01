@@ -3,6 +3,9 @@
 ## Master Dev Branch
 
 ### 2026-09-01
+- Don't allow admin account takeover by external auth
+- Enable PKCE in OpenIDC by default
+- JS filtering in views
 - CSRF protection on GET methods
 - CSRF-validated POST user delete
 - iframe protection in html quarantined mail view
