@@ -104,18 +104,13 @@ class OpenIDConnectAuth implements AuthInterface {
 			$this->logger->error("Empty userinfo or {$usernameAttr} from OIDC. Check OPENIDC_PREFERRED_USERNAME_ATTR in .env");
 			return false;
 		}
-		$this->authenticatedUser = strtolower(trim($userInfo->{$usernameAttr}));
 
-		// search if user is admin
-		if (array_key_exists('OPENIDC_ADMINS', $_ENV) && !empty($_ENV['OPENIDC_ADMINS'])) {
-			$openidc_admins_ar = array_map(
-				fn($a) => strtolower(trim($a)),
-				explode(',', $_ENV['OPENIDC_ADMINS'])
-			);
-			if (in_array($this->authenticatedUser, $openidc_admins_ar, true)) {
-				$this->is_admin = true;
-			}
+		if (!is_scalar($userInfo->{$usernameAttr})) {
+			$this->logger->error("OIDC claim '{$usernameAttr}' is not a scalar value. Check OPENIDC_PREFERRED_USERNAME_ATTR in .env");
+			return false;
 		}
+
+		$this->authenticatedUser = strtolower(trim($userInfo->{$usernameAttr}));
 
 		$emailVerified = filter_var(
 			$userInfo->email_verified ?? null,
@@ -146,6 +141,17 @@ class OpenIDConnectAuth implements AuthInterface {
 
 		$this->lastname = $userInfo->family_name ?? null;
 		$this->firstname = $userInfo->given_name ?? null;
+
+		// search if user is admin
+		if (array_key_exists('OPENIDC_ADMINS', $_ENV) && !empty($_ENV['OPENIDC_ADMINS'])) {
+			$openidc_admins_ar = array_map(
+				fn($a) => strtolower(trim($a)),
+				explode(',', $_ENV['OPENIDC_ADMINS'])
+			);
+			if (in_array($this->authenticatedUser, $openidc_admins_ar, true)) {
+				$this->is_admin = true;
+			}
+		}
 
 		return true;
 	}
