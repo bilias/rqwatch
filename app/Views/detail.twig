@@ -156,7 +156,7 @@ No
 	{% set mailurl = route('SHOWMAIL', { id: log.id }) %}
  {% endif %}
 	{# open in new window #}
-	{# <a class='stored' href='{{ mailurl }}' onclick="window.open('{{ mailurl }}', 'newwindow', 'width=1024,height=768'); return false;"> #}
+	{# <a class='stored' href='{{ mailurl }}' onclick="window.open('{{ mailurl|e('js') }}', 'newwindow', 'width=1024,height=768'); return false;"> #}
 	{% if log.mail_stored %}
 		<a class='stored' href='{{ mailurl }}' target='_blank'>
 			{% if is_admin %}
