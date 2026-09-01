@@ -75,15 +75,24 @@ class Helper {
 			$dir_raw .= "unknown/" . uniqid();
 		}
 
-		if (!file_exists($dir_raw))
-			if (!mkdir($dir_raw, 0750, true)) {
-				self::logger()->error("Error creating directory $dir_raw");
+		if (!file_exists($dir_raw)) {
+			if (!@mkdir($dir_raw, 0750, true) && !is_dir($dir_raw)) {
+				$err = error_get_last()['message'] ?? 'unknown error';
+				self::logger()->error("Error creating directory $dir_raw: $err");
+				return false;
 			}
+		}
 
 		$file_raw = $dir_raw . "/mail.eml";
 
-		if (file_put_contents($file_raw, $raw_input) === false) {
-			self::logger()->error("Failed to write raw email to file: $file_raw");
+		$bytes = @file_put_contents($file_raw, $raw_input);
+
+		if ($bytes === false) {
+			$err = error_get_last()['message'] ?? 'unknown error';
+			self::logger()->error("Failed to write raw email to file: $file_raw: $err");
+			@unlink($file_raw);
+			@rmdir($dir_raw);
+			return false;
 		}
 		return $file_raw;
 	}
