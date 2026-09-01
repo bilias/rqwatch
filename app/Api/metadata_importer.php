@@ -9,7 +9,7 @@
 */
 define('API_MODE', true);
 
-use App\Core/Kernel;
+use App\Core\Kernel;
 
 require_once __DIR__ . '/../Core/Kernel.php';
 
