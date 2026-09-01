@@ -171,11 +171,12 @@ Please be very carefull before clicking any link bellow.
 </p>
 <hr/>
 <iframe
-    srcdoc="{{ htmlBody|e('html_attr') }}"
-    sandbox="allow-same-origin"
-    style="width:100%; height:600px; border:1px solid #ccc;"
-    title="Quarantined Email"
-	 sandbox>
+ srcdoc="{{ htmlBody|e('html_attr') }}"
+ sandbox
+ referrerpolicy="no-referrer"
+ csp="default-src 'none'; img-src data:; style-src 'unsafe-inline'"
+ style="width:100%; height:600px; border:1px solid #ccc;"
+ title="Quarantined Email"
 </iframe>
 {% endif %}
 </div>
