@@ -577,9 +577,26 @@ class MapService
 
 		$map_dir = Config::get('MAP_DIR');
 
+		if (!is_dir($map_dir) || !is_writable($map_dir)) {
+			$this->logger->error("MAP_DIR not writable: {$map_dir}");
+			return false;
+		}
+
 		$tmpfile = tempnam($map_dir, "{$map_name}_");
 
+		if ($tmpfile === false) {
+			$this->logger->error("Cannot create tmpfile in MAP_DIR: {$map_dir}");
+			return false;
+		}
+
+		if (!str_starts_with($tmpfile, rtrim($map_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)) {
+			$this->logger->error("tmpfile created outside MAP_DIR: {$tmpfile}");
+			@unlink($tmpfile);
+			return false;
+		}
+
 		if (!$fp = fopen($tmpfile, "w")) {
+			@unlink($tmpfile);
 			return false;
 		}
 
