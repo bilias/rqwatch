@@ -124,6 +124,11 @@ class OpenIDConnectAuth implements AuthInterface {
 			return false;
 		}
 
+		if (!is_scalar($userInfo->email)) {
+			$this->logger->error("OIDC claim 'email' for user '{$this->authenticatedUser}' is not a scalar value; login denied");
+			return false;
+		}
+
 		if ($emailVerified !== true) {
 			if (Helper::env_bool('OPENIDC_REQUIRE_VERIFIED_EMAIL', true)) {
 				$this->logger->warning(
@@ -138,7 +143,7 @@ class OpenIDConnectAuth implements AuthInterface {
 			);
 		}
 
-		$this->email = $userInfo->email;
+		$this->email = strtolower(trim((string) $userInfo->email));
 
 		$this->lastname = $userInfo->family_name ?? null;
 		$this->firstname = $userInfo->given_name ?? null;
