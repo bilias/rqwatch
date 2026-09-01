@@ -1018,6 +1018,13 @@ class MapController extends ViewController
 		if (!is_null($id) and is_int($id)) {
 
 			$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
+			if (empty($config) || empty($config['model'])) {
+				$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
+				$this->flashbag->add('error', 'Invalid map selected');
+				$this->initMapUrls();
+				return new RedirectResponse($this->mapsUrl);
+			}
+
 			$model = $config['model'];
 
 			// we need the entry details for flashbag
@@ -1296,6 +1303,13 @@ class MapController extends ViewController
 		if (!is_null($id) and is_int($id)) {
 
 			$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
+			if (empty($config) || empty($config['model'])) {
+				$this->fileLogger->warning("User {$this->username} tried to toggle entry in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
+				$this->flashbag->add('error', 'Invalid map selected');
+				$this->initMapUrls();
+				return new RedirectResponse($this->mapsUrl);
+			}
+
 			$model = $config['model'];
 
 			// we need the entry details for flashbag
