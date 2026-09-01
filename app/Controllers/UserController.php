@@ -294,6 +294,7 @@ class UserController extends ViewController
 				$data['password'] = Helper::passwordHash($newPassword);
 
 				if ($service->userAdd($data)) {
+					$this->fileLogger->info("User '{$data['username']}' created by '{$this->username}'");
 					$this->flashbag->add('success', "User '{$data['username']}' created");
 				} else {
 					$this->flashbag->add('error', "User creation failed");
@@ -444,6 +445,7 @@ class UserController extends ViewController
 			if ($user) {
 				if ($user->username !== 'admin') {
 					if ($user->delete()) {
+						$this->fileLogger->info("User '{$user->username}' deleted by '{$this->username}'");
 						$this->flashbag->add('success', "User '{$user->username}' deleted");
 					} else {
 						$this->flashbag->add('error', "Failed '{$user->username}' delete");
