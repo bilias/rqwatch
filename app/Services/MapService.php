@@ -628,6 +628,9 @@ class MapService
 				$lines[] = trim("$pattern $score");
 			}
 		} else {
+			$this->logger->error("Unknown model '{$model}' for map {$map_name}");
+			fclose($fp);
+			@unlink($tmpfile);
 			return false;
 		}
 
