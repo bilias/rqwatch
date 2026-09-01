@@ -4,11 +4,11 @@
 
 <script>
 new Chart(
-    document.getElementById({{ id|json_encode|raw }}),
+    document.getElementById({{ id|json_encode(constant('JSON_HEX_TAG'))|raw }}),
     {
-        type: {{ chart.getType()|json_encode|raw }},
+        type: {{ chart.getType()|json_encode(constant('JSON_HEX_TAG'))|raw }},
         data: {{ chart.getData()|json_encode(constant('JSON_HEX_TAG'))|raw }},
-        options: {{ chart.getOptions()|json_encode|raw }}
+        options: {{ chart.getOptions()|json_encode(constant('JSON_HEX_TAG'))|raw }}
     }
 );
 </script>
