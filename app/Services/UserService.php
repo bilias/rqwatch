@@ -258,10 +258,6 @@ class UserService
 	}
 
 	public function userDel(int $id): bool {
-      if (!is_int($id)) {
-         return false;
-      }
-
       $user = User::find($id);
 
       if (!$user) {

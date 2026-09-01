@@ -355,7 +355,7 @@ class UserController extends ViewController
 				if ($id = UserDeleteForm::check_form($userdelform)) {
 					// CSRF-validated POST: delete here, not via a GET redirect
 					$service = $this->getUserService();
-					if ($service->userDel($id)) {
+					if ($service->userDel($user->id)) {
 						$this->fileLogger->info("User '{$user->username}' deleted by '{$this->username}'");
 						$this->flashbag->add('success', "User '{$user->username}' deleted");
 					} else {
