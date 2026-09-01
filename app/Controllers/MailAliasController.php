@@ -326,6 +326,13 @@ class MailAliasController extends ViewController
 	}
 
 	public function del(int $id): Response {
+		if (!$this->csrfValid('alias_del')) {
+			$this->fileLogger->warning(
+				"CSRF check failed on alias del from " . $_SERVER['REMOTE_ADDR']
+			);
+			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
+			return new RedirectResponse($this->getAdminAliasesUrl());
+		}
 
 		if (!is_null($id) and is_int($id)) {
 			$alias = MailAlias::find($id);
