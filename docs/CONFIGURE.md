@@ -368,7 +368,7 @@ System supports OpenID Connect Authentication.
 
 - `OPENIDC_LABEL` - Label to show for login button
 
-- `OPENIDC_REQUIRE_PKCE` - Set to `true` to enable PKCE
+- `OPENIDC_REQUIRE_PKCE` - Set to `false` to disable PKCE
 
 - `OPENIDC_URL` - Provider URL
 
