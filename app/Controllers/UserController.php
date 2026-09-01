@@ -352,17 +352,17 @@ class UserController extends ViewController
 				 'username' => $user->username,
 				]);
 
-				if ($id = UserDeleteForm::check_form($userdelform)) {
-					// CSRF-validated POST: delete here, not via a GET redirect
-					$service = $this->getUserService();
-					if ($service->userDel($user->id)) {
-						$this->fileLogger->info("User '{$user->username}' deleted by '{$this->username}'");
-						$this->flashbag->add('success', "User '{$user->username}' deleted");
-					} else {
-						$this->flashbag->add('error', "Failed '{$user->username}' delete");
-					}
-					return new RedirectResponse($this->getAdminUsersUrl());
+			if ($id = UserDeleteForm::check_form($userdelform)) {
+				// CSRF-validated POST: delete here, not via a GET redirect
+				$service = $this->getUserService();
+				if ($service->userDel($user->id)) {
+					$this->fileLogger->info("User '{$user->username}' deleted by '{$this->username}'");
+					$this->flashbag->add('success', "User '{$user->username}' deleted");
+				} else {
+					$this->flashbag->add('error', "Failed '{$user->username}' delete");
 				}
+				return new RedirectResponse($this->getAdminUsersUrl());
+			}
 
 			$userdelform = $userdelform->createView();
 		} else {
