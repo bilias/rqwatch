@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Csrf\CsrfTokenManager;
 use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
 use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
+use Symfony\Component\Security\Csrf\CsrfToken;
 
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
@@ -88,6 +89,16 @@ class Controller
 			);
 		}
 		return $this->csrfManager;
+	}
+
+	protected function csrfValid(string $id): bool {
+		$token = $this->request->query->get('_token');
+
+		if (!is_string($token) || $token === '') {
+			return false;
+		}
+
+		return $this->csrfManager()->isTokenValid(new CsrfToken($id, $token));
 	}
 
 	public function setRequest(Request $request): void {
@@ -347,6 +358,14 @@ class Controller
 
 	public function dnsFlush(): Response {
 		$this->initUrls();
+
+		if (!$this->csrfValid('dns_flush')) {
+			$this->fileLogger->warning(
+				"CSRF check failed on dnsFlush from " . $_SERVER['REMOTE_ADDR']
+			);
+			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
+			return new RedirectResponse($this->searchUrl);
+		}
 
 		if (!Helper::env_bool('REDIS_ENABLE')) {
 			$this->flashbag->add('warning', "Redis is not enabled");

@@ -215,7 +215,7 @@
   {% endif %}
 
   <p class='help-text2'><a href='{{ route('CONFIG_RELOAD') }}'>Reload Config</a></p>
-  <p class='help-text2'><a href='{{ route('DNS_FLUSH') }}'>Flush DNS</a></p>
+  <p class='help-text2'><a href='{{ route('DNS_FLUSH', { _token: csrf_token('dns_flush') }) }}'>Flush DNS</a></p>
 {% endif %}
 
 </div>
