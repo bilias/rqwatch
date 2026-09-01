@@ -36,7 +36,7 @@ Manage Custom Maps | Total: {{ totalRecords }} entries
 			<td class='center'>{{ entry.field_label }}</td>
 			<td class='center'>{{ entry.updated_at }}</td>
 			<td class='center'><a href="{{ route('ADMIN_MAP_SHOW', { map: entry.map_name }) }}">{{ entry.map_entries|nf }}</a></td>
-			<td class='center'><a href="{{ route('ADMIN_MAPS_CUSTOM_DEL', { id: entry.id, _token: csrf_token('custom_map_del') }) }}" onclick="return confirm('Are you sure you want to delete custom map:\n\'{{ entry.map_description }}\'?\n\'{{ entry.map_entries }}\' map entries will also be deleted.')">Delete</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAPS_CUSTOM_DEL', { id: entry.id, _token: csrf_token('custom_map_del') }) }}" onclick="return confirm('Are you sure you want to delete custom map:\n\'{{ entry.map_description|e('js') }}\'?\n\'{{ entry.map_entries|e('js') }}\' map entries will also be deleted.')">Delete</a></td>
 			<td class='center'><a href="{{ route('ADMIN_MAPS_CUSTOM_EDIT', { id: entry.id }) }}">Edit</a></td>
       </tr>
     {% endfor %}

@@ -44,7 +44,7 @@ Total E-mail Aliases: {{ totalRecords }}
   <td class='center'>{{ alias.alias }}</td>
   <td class='center'>{{ alias.created_at }}</td>
   <td class='center'>{{ alias.updated_at }}</td>
-  <td class='center'><a href="{{ route('ADMIN_ALIASES_DEL', { id: alias.id, _token: csrf_token('alias_del') }) }}" onclick="return confirm('Are you sure you want to delete alias {{ alias.alias }} for user {{ alias.username }}?')">Delete</a></td>
+  <td class='center'><a href="{{ route('ADMIN_ALIASES_DEL', { id: alias.id, _token: csrf_token('alias_del') }) }}" onclick="return confirm('Are you sure you want to delete alias {{ alias.alias|e('js') }} for user {{ alias.username|e('js') }}?')">Delete</a></td>
   </tr>
 {% endfor %}
 

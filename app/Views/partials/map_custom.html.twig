@@ -26,7 +26,7 @@ Custom Map: {{ mapdescr }}<br/>
 <div id="inside_links">
 <ul>
 <li><a href='{{ route('ADMIN_MAP_ADD_ENTRY', { map: map} ) }}'>Add New entry</a></li>
-<li><a href='{{ route('ADMIN_MAP_DEL_ALL_ENTRIES', { map: map, _token: csrf_token('map_delall') } ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr }}\'?')">Delete All Entries</a></li>
+<li><a href='{{ route('ADMIN_MAP_DEL_ALL_ENTRIES', { map: map, _token: csrf_token('map_delall') } ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr|e('js') }}\'?')">Delete All Entries</a></li>
 </ul>
 </div>
 </div>
@@ -61,7 +61,7 @@ Custom Map: {{ mapdescr }}<br/>
 				<a href="{{ route('ADMIN_MAP_TOGGLE_ENTRY', { map: map, id: entry.id, _token: csrf_token('map_toggle') }) }}">
 				{{ entry.disabled ? 'Enable' : 'Disable' }}</a>
 			 </td>
-          <td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: map, id: entry.id, _token: csrf_token('map_del') }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
+          <td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: map, id: entry.id, _token: csrf_token('map_del') }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern|e('js') }}\'\nfrom Map:\n\'{{ mapdescr|e('js') }}\'?')">Delete</a></td>
           <td class='center'><a href="{{ route('ADMIN_MAP_EDIT_ENTRY', { map: map, id: entry.id }) }}">Edit</a></td>
       </tr>
     {% endfor %}

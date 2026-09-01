@@ -38,7 +38,7 @@ Generic Map: {{ mapdescr }}<br/>
       <tr class='clean'>
           <td class='center'>{{ entry.pattern }}</td>
 			 <td class='center'>{{ entry.created_at }}</td>
-          <td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: map, id: entry.id, _token: csrf_token('map_del') }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern }}\'\nfrom Map:\n\'{{ mapdescr }}\'?')">Delete</a></td>
+          <td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: map, id: entry.id, _token: csrf_token('map_del') }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.pattern|e('js') }}\'\nfrom Map:\n\'{{ mapdescr|e('js') }}\'?')">Delete</a></td>
       </tr>
     {% endfor %}
 </tbody>
