@@ -205,6 +205,7 @@ class MailAliasController extends ViewController
 				$mailalias->fill($data);
 				$mailalias->save();
 				if ($mailalias) {
+						$this->fileLogger->info("Alias '{$alias}' created for '{$username}' by '{$this->username}'");
 						$this->flashbag->add('success', "Alias '{$alias}' created for '{$username}'");
 				} else {
 					$this->flashbag->add('error', "Alias creation failed");
@@ -338,6 +339,7 @@ class MailAliasController extends ViewController
 			$alias = MailAlias::find($id);
 			if ($alias) {
 				if ($alias->delete()) {
+					$this->fileLogger->info("Alias '{$alias->alias}' deleted by '{$this->username}'");
 					$this->flashbag->add('success', "Alias '{$alias->alias}' deleted");
 				} else {
 					$this->flashbag->add('error', "Failed '{$alias->alias}' delete");
