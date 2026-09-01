@@ -328,6 +328,14 @@ class Controller
 	public function redisConfigReload(): Response {
 		$this->initUrls();
 
+		if (!$this->csrfValid('config_reload')) {
+			$this->fileLogger->warning(
+				"CSRF check failed on redisConfigReload from " . $_SERVER['REMOTE_ADDR']
+			);
+			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
+			return new RedirectResponse($this->searchUrl);
+		}
+
 		if (!Helper::env_bool('REDIS_ENABLE')) {
 			$this->flashbag->add('warning', "Redis is not enabled");
 			return new RedirectResponse($this->searchUrl);
