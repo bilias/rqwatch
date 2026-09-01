@@ -215,7 +215,7 @@ class OpenIDConnectAuth implements AuthInterface {
 			$_ENV['OPENIDC_CLIENT_SECRET']
 		);
 
-		if(Helper::env_bool('OPENIDC_REQUIRE_PKCE')) {
+		if (Helper::env_bool('OPENIDC_REQUIRE_PKCE', true)) {
 			$oidc->setCodeChallengeMethod('S256');
 		}
 
