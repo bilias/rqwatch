@@ -37,10 +37,6 @@ class CronQuarantine extends RqwatchCliCommand
 {
 	private string $app_name = "cron:quarantine";
 
-	// Grouping dirs created by Helper::store_raw_mail() for mails with a
-	// missing ("unknown") or malformed ("invalid") qid.
-	private const QUARANTINE_GROUP_DIRS = ['unknown', 'invalid'];
-
 	use LockableTrait;
 
 	#[\Override]
@@ -164,6 +160,10 @@ class CronQuarantine extends RqwatchCliCommand
 		$this->printRuntime($output);
 		return Command::SUCCESS;
 	}
+
+	// Grouping dirs created by Helper::store_raw_mail() for mails with a
+	// missing ("unknown") or malformed ("invalid") qid.
+	private const QUARANTINE_GROUP_DIRS = ['unknown', 'invalid'];
 
 	private function pruneEmptyQuarantineDateDirs(OutputInterface $output): void {
 		$root = $_ENV['QUARANTINE_DIR'] ?? null;
