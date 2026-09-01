@@ -421,6 +421,11 @@ class LoginController extends ViewController
 			return false;
 		}
 
+		// Rotate session id on privilege change (prevents session fixation).
+		// migrate(true) keeps session data (flashbag, CSRF token) but issues a
+		// new id and deletes the old server-side record.
+		$this->session->migrate(true);
+
 		$this->session->set('username', $username);
 		$this->session->set('email', $email);
 		$this->session->set('is_admin', $is_admin);
