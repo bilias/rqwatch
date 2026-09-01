@@ -634,7 +634,6 @@ class Routes
 			'admin_users' => $adminMiddlewareClasses,
 			'admin_useradd' => $adminMiddlewareClasses,
 			'admin_useredit' => $adminMiddlewareClasses,
-			'admin_userdel' => $adminMiddlewareClasses,
 			'admin_usersearch' => $adminMiddlewareClasses,
 			'admin_userloginas' => $adminMiddlewareClasses,
 			'admin_user' => $adminMiddlewareClasses,
