@@ -257,4 +257,30 @@ class UserService
 		return false;
 	}
 
+	public function userDel(int $id): bool {
+      if (!is_int($id)) {
+         return false;
+      }
+
+      $user = User::find($id);
+
+      if (!$user) {
+			$this->logger->error('userDel error: User not found');
+         return false;
+      }
+
+      if ($user->username === 'admin') {
+			$this->logger->error("userDel error: User 'admin' cannot be deleted");
+         return false;
+      }
+
+      $username = $user->username;
+
+      if ($user->delete()) {
+			return true;
+      }
+
+		return false;
+   }
+
 }
