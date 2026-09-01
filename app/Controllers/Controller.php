@@ -18,6 +18,11 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Csrf\CsrfTokenManager;
+use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
+use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
+
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
@@ -66,9 +71,23 @@ class Controller
 	protected LoggerInterface $fileLogger;
 	protected LoggerInterface $syslogLogger;
 
+	protected ?CsrfTokenManager $csrfManager = null;
+
 	public function __construct() {
 		$this->fileLogger = App::fileLogger();
 		$this->syslogLogger = App::syslogLogger();
+	}
+
+	protected function csrfManager(): CsrfTokenManager {
+		if ($this->csrfManager === null) {
+			// creates a RequestStack object using the current request
+			$requestStack = new RequestStack([$this->request]);
+			$this->csrfManager = new CsrfTokenManager(
+				new UriSafeTokenGenerator(),
+				new SessionTokenStorage($requestStack)
+			);
+		}
+		return $this->csrfManager;
 	}
 
 	public function setRequest(Request $request): void {

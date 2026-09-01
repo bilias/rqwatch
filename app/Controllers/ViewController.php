@@ -11,11 +11,6 @@
 namespace App\Controllers;
 
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
-
-use Symfony\Component\Security\Csrf\CsrfTokenManager;
-use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
-use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
 
 use Symfony\Bridge\Twig\Extension\TranslationExtension;
 use Symfony\Component\Translation\Loader\XliffFileLoader;
@@ -169,12 +164,7 @@ class ViewController extends Controller
             'validators'
       );
 
-      // creates a RequestStack object using the current request
-      $requestStack = new RequestStack([$request]);
-
-      $csrfGenerator = new UriSafeTokenGenerator();
-      $csrfStorage = new SessionTokenStorage($requestStack);
-      $csrfManager = new CsrfTokenManager($csrfGenerator, $csrfStorage);
+      $csrfManager = $this->csrfManager();
 
 		// the Twig file that holds all the default markup for rendering forms
 		// this file comes with TwigBridge
