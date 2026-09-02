@@ -884,7 +884,7 @@ class MailLogController extends ViewController
 		return new RedirectResponse($this->searchUrl);
 	}
 
-	public function getDetailIdResponse(int $id): RedirectResponse {
+	private function getDetailIdResponse(int $id): RedirectResponse {
 		if ($this->is_admin) {
 			return new RedirectResponse($this->url(RouteName::ADMIN_DETAIL,
 				[ 'type' => 'id', 'value' => $id ]));
@@ -894,7 +894,7 @@ class MailLogController extends ViewController
 		}
 	}
 
-	public function getReleaseUrl(int $id): string {
+	private function getReleaseUrl(int $id): string {
 		// mailrelease form calls releaseMail()
 		if ($this->is_admin) {
 			return $this->url(RouteName::ADMIN_RELEASEMAIL, ['id' => $id]);
@@ -903,7 +903,7 @@ class MailLogController extends ViewController
 		}
 	}
 
-	public function getMapConfigsWithAddUrls(MailLog $log, ?string $map = null): array {
+	private function getMapConfigsWithAddUrls(MailLog $log, ?string $map = null): array {
 		$configs = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
 		if ($map !== null && empty($configs)) {

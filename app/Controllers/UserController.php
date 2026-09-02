@@ -512,7 +512,7 @@ class UserController extends ViewController
 		]));
 	}
 
-	public function getMailAliases(User $user): array {
+	private function getMailAliases(User $user): array {
 		/*
 		$mail_aliases = [];
 

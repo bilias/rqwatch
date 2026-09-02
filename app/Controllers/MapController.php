@@ -1468,7 +1468,7 @@ class MapController extends ViewController
 		return [$form, $response];
 	}
 
-	public function getMapsUrlBase(): string {
+	private function getMapsUrlBase(): string {
 		return $this->maps_url_base;
 	}
 
