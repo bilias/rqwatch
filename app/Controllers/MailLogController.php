@@ -599,7 +599,7 @@ class MailLogController extends ViewController
 				   $release_to,
 					$maillog->id,
 					$maillog->server,
-					$this->email
+					$this->email ?? ''
 				);
 			}
 
