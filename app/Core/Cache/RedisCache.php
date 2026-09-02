@@ -69,6 +69,24 @@ final class RedisCache implements CacheInterface
 		}
 	}
 
+	public function incr(string $key): ?int {
+		try {
+			return (int) $this->getConnection()->incr($key);
+		} catch (Throwable $e) {
+			$this->logger->error("RedisCache incr: " . $e->getMessage());
+			return null;
+		}
+	}
+
+	public function expire(string $key, int $ttl): bool {
+		try {
+			return (bool) $this->getConnection()->expire($key, $ttl);
+		} catch (Throwable $e) {
+			$this->logger->error("RedisCache expire: " . $e->getMessage());
+			return false;
+		}
+	}
+
 	public function deleteByPrefix(string $prefix): int {
 		$deleted = 0;
 		try {
