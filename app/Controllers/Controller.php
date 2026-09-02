@@ -159,10 +159,6 @@ class Controller
 		return UrlBuilder::generate($this->urlGenerator, $route, $parameters);
 	}
 
-	public function setRoutes(RouteCollection $routes): void {
-		$this->routes = $routes;
-	}
-
 	public function getRole(): string {
 		if ($this->is_admin()) {
 			return 'admin';
@@ -213,6 +209,7 @@ class Controller
 		return $this->syslogLogger;
 	}
 
+	/*
 	public function setFileLogger(LoggerInterface $logger): void {
 		$this->fileLogger = $logger;
 	}
@@ -220,6 +217,11 @@ class Controller
 	public function setSyslogLogger(LoggerInterface $logger): void {
 		$this->syslogLogger = $logger;
 	}
+
+	public function setRoutes(RouteCollection $routes): void {
+		$this->routes = $routes;
+	}
+	*/
 
 	public function getRspamdStat(): array {
 		if (!$this->is_admin || Config::get('rspamd_stat_disable')) {
