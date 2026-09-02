@@ -54,9 +54,11 @@
     <li class="{{ current_route == aliases ? 'active' : '' }}">
       <a href="{{ aliases }}">Aliases</a>
     </li>
+  {% if LOGIN_THROTTLE_ENABLED %}
 	 <li class="{{ current_route == throttles ? 'active' : '' }}">
       <a href="{{ throttles }}">Throttles</a>
     </li>
+  {% endif %}
 {% endif %}
     <li class="profilelink {{ current_route == profile ? 'active' : '' }}">
       <a href="{{ profile }}">Profile</a>

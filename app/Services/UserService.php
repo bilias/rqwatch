@@ -319,7 +319,7 @@ class UserService
 	}
 
 	public function loginThrottleAvailable(): bool {
-		return App::cache() instanceof RedisCache;
+		return LoginThrottle::isEnabled() && App::cache() instanceof RedisCache;
 	}
 
 

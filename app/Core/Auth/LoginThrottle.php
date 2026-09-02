@@ -67,9 +67,7 @@ final class LoginThrottle
 		$this->window        = max(1, (int)($_ENV['LOGIN_WINDOW'] ?? 600));
 		$this->blockDuration = max(1, (int)($_ENV['LOGIN_BLOCK_DURATION'] ?? 900));
 
-		$this->enabled =
-			Helper::env_bool('REDIS_ENABLE', false) &&
-			Helper::env_bool('LOGIN_THROTTLE_ENABLE', false);
+		$this->enabled = self::isEnabled();
 
 		if ($this->enabled && $this->cache === null) {
 			$this->logger->notice(
@@ -242,6 +240,15 @@ final class LoginThrottle
 		$cache->delete(self::BLOCK_PREFIX . $ip);
 
 		return true;
+	}
+
+	/*
+	 * Whether throttling is switched on by configuration. Does not check that
+	 * the cache is actually reachable - see the constructor for that.
+	 */
+	public static function isEnabled(): bool {
+		return Helper::env_bool('REDIS_ENABLE', false)
+			&& Helper::env_bool('LOGIN_THROTTLE_ENABLE', false);
 	}
 
 	/*

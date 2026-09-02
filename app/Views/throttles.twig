@@ -10,7 +10,7 @@ Login Throttling
 
 {% if not throttle_available %}
 <p class='center flash-error'>
-Redis is not available, so login throttling is disabled.
+Redis is not available, so login throttling is disabled.<br/>
 Set REDIS_ENABLE and LOGIN_THROTTLE_ENABLE in .env to use it.
 </p>
 {% else %}
