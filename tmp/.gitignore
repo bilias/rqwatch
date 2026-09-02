@@ -2,4 +2,3 @@
 *
 # Except these
 !.gitignore
-!cache
