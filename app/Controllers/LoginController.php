@@ -35,10 +35,10 @@ class LoginController extends ViewController
 	public function logout(): Response {
 		$this->loginUrl = $this->url(RouteName::LOGIN);
 
-		if ($username = $this->session->get('username')) {
-			$this->fileLogger->info("User logout: '{$username}'", [
-				'is_admin' => $this->getIsAdmin(),
-				'email' => $this->getEmail(),
+		if ($this->username) {
+			$this->fileLogger->info("User logout: '{$this->username}'", [
+				'is_admin' => $this->is_admin,
+				'email' => $this->email,
 				'ip' => $_SERVER['REMOTE_ADDR'],
 				'session_id' => $this->session->getId(),
 			]);
