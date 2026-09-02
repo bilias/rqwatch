@@ -988,6 +988,7 @@ class MapController extends ViewController
 		if (!$this->getIsAdmin()) {
 			$this->fileLogger->warning("'{$this->username}' tried to delete a custom map without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
+			$this->initMapUrls();
 			return new RedirectResponse($this->showCustomMapsConfigUrl);
 		}
 
