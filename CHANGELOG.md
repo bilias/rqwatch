@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-02
+- Login Throttling per IP
 - Add Twig cache for compiled templates
 
 ### 2026-09-01

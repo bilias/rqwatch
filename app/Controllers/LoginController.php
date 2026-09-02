@@ -15,6 +15,10 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use App\Core\Routing\RouteName;
 use App\Core\SessionManager;
+
+use App\Core\App;
+use App\Core\Auth\LoginThrottle;
+
 use App\Utils\Helper;
 use App\Forms\LoginForm;
 use App\Models\User;
@@ -135,6 +139,19 @@ class LoginController extends ViewController
 			$username = strtolower(trim($data['username']));
 			$password = trim($loginform->get('password')->getData());
 
+			$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+			$throttle = new LoginThrottle($client_ip, App::cache(), $this->fileLogger);
+
+			if ($throttle->isBlocked()) {
+				$this->fileLogger->warning(
+					"Login attempt from throttled IP:{$client_ip} for user: '{$username}'" .
+					" (retry in " . ($throttle->retryAfter() ?? 0) . "s)"
+				);
+				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
+				$this->flashbag->add('error', "Max wrong login attempts reached. Please try again later.");
+				return new RedirectResponse($this->loginUrl);
+			}
+
 			if (empty($username) or empty($password)) {
 				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 				$this->flashbag->add('error', 'Login credentials missing');
@@ -145,13 +162,21 @@ class LoginController extends ViewController
 
 			if (!$auth->authenticate($username, $password)) {
 				$auth_provider = $auth->getAuthProvider();
-				$client_ip = $_SERVER['REMOTE_ADDR'];
 				$this->fileLogger->warning("($auth_provider) Login failed for user: '{$username}' via IP:{$client_ip}");
+
+				if ($throttle->registerFailure()) {
+					$this->fileLogger->warning(
+						"IP:{$client_ip} throttled for {$throttle->getBlockDuration()}s after " .
+						"{$throttle->getMaxAttempts()} failed login attempts"
+					);
+				}
+
 				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 				$this->flashbag->add('error', "Wrong username or password");
 				$statusCode = Response::HTTP_UNAUTHORIZED;
 			} else {
 				// user is authenticated
+				$throttle->clear();
 
 				// User does not exist is DB after auth
 				if (!$this->finalizeAuthenticatedUser($auth)) {

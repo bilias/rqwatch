@@ -278,11 +278,24 @@ If the server runs the Web service then the following settings are relevant:
 - `WEB_BASE` - Default is empty if the web server runs on `/`\
   If under `/subfolder`, also update RewriteBase in `web/.htaccess`
 
-- `FAILED_LOGIN_TIMEOUT` - How many seconds to sleep after a failed login\
-  A better brute force prevention method might be implemented in the future,
-  but for now, this is what we have.\
-  Nevertheless failed logins, including IPs, are logged in Rqwatch's log file
+- `FAILED_LOGIN_TIMEOUT` - How many seconds to sleep after a failed login.\
+  Failed logins, including IPs, are logged in Rqwatch's log file
   (`$LOG_FILE`) and Fail2Ban can be applied.
+
+- `LOGIN_THROTTLE_ENABLE` - Set to `true` to enable Login Throttling per IP.\
+ It requires `REDIS_ENABLE=true`
+
+- `LOGIN_MAX_ATTEMPTS_IP` - Failed attempts from one IP before it is blocked.
+ Default is `10`
+
+- `LOGIN_WINDOW` - Login check window duration in seconds.\
+ Default is `600` which is 10 minutes
+
+- `LOGIN_BLOCK_DURATION` - Block duration in seconds.\
+ Default is `900` which is 15 minutes
+
+- `LOGIN_IPS_WHITELIST` - Comma-separated IPs never subject to login throttling.\
+ Exact string match against REMOTE_ADDR - no CIDR ranges
 
 - `IDLE_TIMEOUT` - Login Session timeout is seconds.\
   Default is `14400` which is 4 hours. Set to `0` to disable it.
