@@ -116,7 +116,7 @@ class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),
-			'username' => $this->session->get('username'),
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -197,7 +197,7 @@ class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),
-			'username' => $this->session->get('username'),
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -259,7 +259,7 @@ class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),
-			'username' => $this->session->get('username'),
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -302,7 +302,7 @@ class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),
-			'username' => $this->session->get('username'),
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -344,7 +344,7 @@ class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),
-			'username' => $this->session->get('username'),
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -401,7 +401,7 @@ class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),
-			'username' => $this->session->get('username'),
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -478,7 +478,7 @@ class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),
-			'username' => $this->session->get('username'),
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -534,7 +534,7 @@ class MailLogController extends ViewController
 			}
 
 			// get all emails from user (primary + aliases)
-			$emails = array_unique(array_filter(array_map('strtolower', array_merge([$this->getEmail()], $this->user_aliases ?? []))));
+			$emails = array_unique(array_filter(array_map('strtolower', array_merge([$this->email], $this->user_aliases ?? []))));
 			// split DB recipients into array
 			// rcpt_to from mail_log_recipients
 			$rcptToList = array_map(fn($e) => strtolower(trim($e)), explode(',', $maillog->rcpt_to));
@@ -549,8 +549,8 @@ class MailLogController extends ViewController
 				 && !$this->getIsAdmin() // admin bypass
 			) {
 				$this->fileLogger->error("Mail release failed", [
-					'user' => $this->session->get('username'),
-					'user_mail' => $this->session->get('email'),
+					'user' => $this->username,
+					'user_mail' => $this->email,
 					'qid' => $maillog->qid,
 					'db_id' => $maillog->id,
 					'rcpt_to' => $maillog->rcpt_to,
@@ -656,7 +656,7 @@ class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),
-			'username' => $this->session->get('username'),
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -832,7 +832,7 @@ class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 			'is_admin' => $this->getIsAdmin(),
-			'username' => $this->session->get('username'),
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
