@@ -163,12 +163,8 @@ class Controller
 		$this->routes = $routes;
 	}
 
-	public function getIsAdmin(): bool {
-		return $this->is_admin;
-	}
-
 	public function getRole(): string {
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin()) {
 			return 'admin';
 		}
 		return 'user';
@@ -202,7 +198,7 @@ class Controller
 
 		$this->loginUrl = $this->url(RouteName::LOGIN);
 
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin) {
 			$this->homepageUrl = $this->url(RouteName::ADMIN_DAY_LOGS);
 			$this->searchUrl = $this->url(RouteName::ADMIN_SEARCH);
 		} else {
@@ -230,7 +226,7 @@ class Controller
 	}
 
 	public function getRspamdStat(): array {
-		if (!$this->getIsAdmin() || Config::get('rspamd_stat_disable')) {
+		if (!$this->is_admin || Config::get('rspamd_stat_disable')) {
 			return [];
 		}
 
@@ -324,7 +320,7 @@ class Controller
 	public function redisConfigReload(): Response {
 		$this->initUrls();
 
-		if (!$this->getIsAdmin()) {
+		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to reload config in redis without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			return new RedirectResponse($this->searchUrl);
@@ -369,7 +365,7 @@ class Controller
 	public function dnsFlush(): Response {
 		$this->initUrls();
 
-		if (!$this->getIsAdmin()) {
+		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to flush DNS cache without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			return new RedirectResponse($this->searchUrl);
@@ -412,7 +408,7 @@ class Controller
 	}
 
 	protected function getAdminWarnings(): void {
-		if (!$this->getIsAdmin()) {
+		if (!$this->is_admin) {
 			return;
 		}
 

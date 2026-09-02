@@ -73,7 +73,7 @@ class MapController extends ViewController
 
 	public function initMapUrls(?string $map = null): void {
 		if (!empty($map)) {
-			if ($this->getIsAdmin()) {
+			if ($this->is_admin) {
 				$this->mapShowUrl = $this->url(RouteName::ADMIN_MAP_SHOW, [ 'map' => $map ]);
 				$this->mapAddEntryUrl = $this->url(RouteName::ADMIN_MAP_ADD_ENTRY, [ 'map' => $map ]);
 			} else {
@@ -90,7 +90,7 @@ class MapController extends ViewController
 			$this->initUrls();
 		}
 
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin) {
 			$this->mapsUrl = $this->url(RouteName::ADMIN_MAPS);
 			$this->mapShowAllUrl = $this->url(RouteName::ADMIN_MAP_SHOW_ALL);
 			$this->mapShowAllCustomUrl = $this->url(RouteName::ADMIN_MAP_SHOW_ALL, ['model' => 'MapCustom']);
@@ -210,7 +210,7 @@ class MapController extends ViewController
 
 		$this->initMapUrls();
 
-		if ($this->getIsAdmin() and $model === 'MapCustom') {
+		if ($this->is_admin and $model === 'MapCustom') {
 			$map_comb_entries = null;
 			$map_comb_total = null;
 			$map_gen_entries = null;
@@ -608,13 +608,13 @@ class MapController extends ViewController
 				$map_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_entries[$key]->map_username);
 			}
 		/* deprecated
-		} elseif($this->getIsAdmin() && $config['model'] === 'MapGeneric') {
+		} elseif($this->is_admin && $config['model'] === 'MapGeneric') {
 			$model = 'MapGeneric';
 			// without pagination
 			//$map_entries = $service->showMapGeneric($map);
 			$map_entries = $service->showPaginatedMapGeneric($map, $page, $this->mapShowUrl);
 		*/
-		} elseif($this->getIsAdmin() && $config['model'] === 'MapCustom') {
+		} elseif($this->is_admin && $config['model'] === 'MapCustom') {
 			$model = 'MapCustom';
 			// without pagination
 			//$map_entries = $service->showMapCustom($map);
@@ -732,7 +732,7 @@ class MapController extends ViewController
 			$options['map'] = $map;
 		}
 
-		if (!$this->getIsAdmin()) {
+		if (!$this->is_admin) {
 			// override user form fields. rcpt_to drop down based on
 			// user email and aliases from session
 			$options = [
@@ -782,7 +782,7 @@ class MapController extends ViewController
 					return new RedirectResponse($this->mapAddEntryUrl);
 				}
 			/* deprecated
-			} elseif ($this->getIsAdmin() && $model === 'MapGeneric') {
+			} elseif ($this->is_admin && $model === 'MapGeneric') {
 				if($service->addMapGenericEntry($map, $data[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
 					return new RedirectResponse($this->mapShowUrl);
@@ -791,7 +791,7 @@ class MapController extends ViewController
 					return new RedirectResponse($this->mapAddEntryUrl);
 				}
 			*/
-			} elseif ($this->getIsAdmin() && $model === 'MapCustom') {
+			} elseif ($this->is_admin && $model === 'MapCustom') {
 				if($service->addMapCustomEntry($map, $data[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
 					return new RedirectResponse($this->mapShowUrl);
@@ -877,7 +877,7 @@ class MapController extends ViewController
 
 		if ($model === 'MapCombined') {
 			$map_entry = MapCombined::find($id);
-		} else if ($this->getIsAdmin() && ($model === 'MapCustom')) {
+		} else if ($this->is_admin && ($model === 'MapCustom')) {
 			$map_entry = MapCustom::find($id);
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to edit entry in " . $this->request->getPathInfo() . " without admin authorization");
@@ -900,7 +900,7 @@ class MapController extends ViewController
 			$options['is_edit'] = true;
 		}
 
-		if (!$this->getIsAdmin()) {
+		if (!$this->is_admin) {
 			// override user form fields. rcpt_to drop down based on
 			// user email and aliases from session
 			$options = [
@@ -934,7 +934,7 @@ class MapController extends ViewController
 
 			$service = $this->getMapService();
 
-			if ($this->getIsAdmin()) {
+			if ($this->is_admin) {
 				$map_edit_url = $this->url(RouteName::ADMIN_MAP_EDIT_ENTRY, [ 'map' => $map, 'id' => $id ]);
 			} else {
 				$map_edit_url = $this->url(RouteName::MAP_EDIT_ENTRY, [ 'map' => $map, 'id' => $id ]);
@@ -950,7 +950,7 @@ class MapController extends ViewController
 					$this->flashbag->add('error', "Entry '{$entry_str}' update in Map {$mapdescr} failed");
 					return new RedirectResponse($map_edit_url);
 				}
-			} elseif ($this->getIsAdmin() && $model === 'MapCustom') {
+			} elseif ($this->is_admin && $model === 'MapCustom') {
 				//if($service->updateMapCustomEntry($map, $data[$fields[0]])) {
 				if($service->updateMapCustomEntry($map, $data)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' updated in Map '{$mapdescr}'");
@@ -985,7 +985,7 @@ class MapController extends ViewController
 	}
 
 	public function delCustomMap(int $id): Response {
-		if (!$this->getIsAdmin()) {
+		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to delete a custom map without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			$this->initMapUrls();
@@ -1049,10 +1049,10 @@ class MapController extends ViewController
 			if ($model === 'MapCombined') {
 				$map_entry = MapCombined::find($id);
 			/* deprecated
-			} else if ($this->getIsAdmin() && ($model === 'MapGeneric')) {
+			} else if ($this->is_admin && ($model === 'MapGeneric')) {
 				$map_entry = MapGeneric::find($id);
 			*/
-			} else if ($this->getIsAdmin() && ($model === 'MapCustom')) {
+			} else if ($this->is_admin && ($model === 'MapCustom')) {
 				$map_entry = MapCustom::find($id);
 			} else {
 				$this->fileLogger->warning("User {$this->username} tried to del entry in " . $this->request->getPathInfo() . " without admin authorization");
@@ -1144,7 +1144,7 @@ class MapController extends ViewController
 			return new RedirectResponse($this->mapsUrl);
 		}
 
-		if (!$this->getIsAdmin() && ($model === 'MapCustom')) {
+		if (!$this->is_admin && ($model === 'MapCustom')) {
 			$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Permission denied');
 			$this->initMapUrls();
@@ -1242,7 +1242,7 @@ class MapController extends ViewController
 
 		$this->initMapUrls();
 
-		if ($this->getIsAdmin() and $model === 'MapCustom') {
+		if ($this->is_admin and $model === 'MapCustom') {
 			$map_comb_entries = null;
 			$map_comb_total = null;
 			$map_gen_entries = null;
@@ -1344,10 +1344,10 @@ class MapController extends ViewController
 			if ($model === 'MapCombined') {
 				$map_entry = MapCombined::find($id);
 			/* deprecated
-			} else if ($this->getIsAdmin() && ($model === 'MapGeneric')) {
+			} else if ($this->is_admin && ($model === 'MapGeneric')) {
 				$map_entry = MapGeneric::find($id);
 			*/
-			} else if ($this->getIsAdmin() && ($model === 'MapCustom')) {
+			} else if ($this->is_admin && ($model === 'MapCustom')) {
 				$map_entry = MapCustom::find($id);
 			} else {
 				$this->fileLogger->warning("User {$this->username} tried to toggle entry in " . $this->request->getPathInfo() . " without admin authorization");
@@ -1414,7 +1414,7 @@ class MapController extends ViewController
 
 	private function getUserCanDelete(string $username, ?string $map_creator = ''): bool {
 		// user is admin, allow
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin) {
 			return true;
 		}
 

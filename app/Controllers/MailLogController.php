@@ -97,7 +97,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin) {
 			$url = $this->url(RouteName::ADMIN_HOMEPAGE);
 		} else {
 			$url = $this->url(RouteName::HOMEPAGE);
@@ -115,7 +115,7 @@ class MailLogController extends ViewController
 			'refresh_rate' => $this->refresh_rate,
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->getIsAdmin(),
+			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
@@ -178,7 +178,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin) {
 			$url = $this->url(RouteName::ADMIN_SEARCH_RESULTS);
 		} else {
 			$url = $this->url(RouteName::SEARCH_RESULTS);
@@ -196,7 +196,7 @@ class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->getIsAdmin(),
+			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
@@ -258,7 +258,7 @@ class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->getIsAdmin(),
+			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
@@ -283,7 +283,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin) {
 			$url = $this->url(RouteName::ADMIN_DAY_LOGS, ['date' => $date]);
 		} else {
 			$url = $this->url(RouteName::DAY_LOGS, ['date' => $date]);
@@ -301,7 +301,7 @@ class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->getIsAdmin(),
+			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
@@ -325,7 +325,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin) {
 			$url = $this->url(RouteName::ADMIN_QUARANTINE_DAY, ['date' => $date]);
 		} else {
 			$url = $this->url(RouteName::QUARANTINE_DAY, ['date' => $date]);
@@ -343,7 +343,7 @@ class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->getIsAdmin(),
+			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
@@ -369,7 +369,7 @@ class MailLogController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin) {
 			$url = $this->url(RouteName::ADMIN_QUARANTINE);
 		} else {
 			$url = $this->url(RouteName::QUARANTINE);
@@ -400,7 +400,7 @@ class MailLogController extends ViewController
 			'show_charts' => $chart !== null,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->getIsAdmin(),
+			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
@@ -477,7 +477,7 @@ class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->getIsAdmin(),
+			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
@@ -546,7 +546,7 @@ class MailLogController extends ViewController
 				 (count(array_intersect($emails, $rcptToList)) === 0
 				  // DB rcpt_to differs from form
 				  || $rcptToList !== $formEmailList)
-				 && !$this->getIsAdmin() // admin bypass
+				 && !$this->is_admin // admin bypass
 			) {
 				$this->fileLogger->error("Mail release failed", [
 					'user' => $this->username,
@@ -555,7 +555,7 @@ class MailLogController extends ViewController
 					'db_id' => $maillog->id,
 					'rcpt_to' => $maillog->rcpt_to,
 					'release_to' => $data['email'],
-					'is_admin' => $this->getIsAdmin(),
+					'is_admin' => $this->is_admin,
 				]);
 				$this->syslogLogger->error("Mail release of {$maillog->qid} by " .
 					$this->email .
@@ -656,7 +656,7 @@ class MailLogController extends ViewController
 			'error' => $error,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->getIsAdmin(),
+			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
@@ -832,7 +832,7 @@ class MailLogController extends ViewController
 			'searchform' => $searchform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->getIsAdmin(),
+			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
@@ -885,7 +885,7 @@ class MailLogController extends ViewController
 	}
 
 	public function getDetailIdResponse(int $id): RedirectResponse {
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin) {
 			return new RedirectResponse($this->url(RouteName::ADMIN_DETAIL,
 				[ 'type' => 'id', 'value' => $id ]));
 		} else {
@@ -896,7 +896,7 @@ class MailLogController extends ViewController
 
 	public function getReleaseUrl(int $id): string {
 		// mailrelease form calls releaseMail()
-		if ($this->getIsAdmin()) {
+		if ($this->is_admin) {
 			return $this->url(RouteName::ADMIN_RELEASEMAIL, ['id' => $id]);
 		} else {
 			return $this->url(RouteName::RELEASEMAIL, ['id' => $id]);
@@ -942,7 +942,7 @@ class MailLogController extends ViewController
 			return false;
 		}
 
-		if (!$this->getIsAdmin() && !Config::get('show_user_charts')) {
+		if (!$this->is_admin && !Config::get('show_user_charts')) {
 			return false;
 		}
 
@@ -962,7 +962,7 @@ class MailLogController extends ViewController
 			return false;
 		}
 
-		if (!$this->getIsAdmin() && !Config::get('show_user_mail_reports')) {
+		if (!$this->is_admin && !Config::get('show_user_mail_reports')) {
 			return false;
 		}
 
@@ -974,7 +974,7 @@ class MailLogController extends ViewController
 			return false;
 		}
 
-		if (!$this->getIsAdmin() && !Config::get('show_unfiltered_user_mail_reports')) {
+		if (!$this->is_admin && !Config::get('show_unfiltered_user_mail_reports')) {
 			return false;
 		}
 
@@ -986,7 +986,7 @@ class MailLogController extends ViewController
 			return false;
 		}
 
-		if (!$this->getIsAdmin() && !Config::get('show_user_mail_stats')) {
+		if (!$this->is_admin && !Config::get('show_user_mail_stats')) {
 			return false;
 		}
 
@@ -998,7 +998,7 @@ class MailLogController extends ViewController
 			return false;
 		}
 
-		if (!$this->getIsAdmin() && !Config::get('show_unfiltered_user_mail_stats')) {
+		if (!$this->is_admin && !Config::get('show_unfiltered_user_mail_stats')) {
 			return false;
 		}
 

@@ -76,7 +76,7 @@ class UserController extends ViewController
 	}
 
 	public function showThrottles(): Response {
-		if (!$this->getIsAdmin()) {
+		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to access login throttles without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			$this->initUrls();
@@ -113,7 +113,7 @@ class UserController extends ViewController
 	}
 
 	public function clearThrottle(string $ip): Response {
-		if (!$this->getIsAdmin()) {
+		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to clear a login throttle without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			$this->initUrls();
@@ -546,7 +546,7 @@ class UserController extends ViewController
 	}
 
 	public function loginAs(int $id): Response {
-		if (!$this->getIsAdmin()) {
+		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to use loginAs without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			$this->initUrls();
