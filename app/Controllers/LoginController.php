@@ -67,7 +67,7 @@ class LoginController extends ViewController
 		return new RedirectResponse($this->loginUrl);
 	}
 
-	public function logout_openidc(): Response {
+	private function logout_openidc(): Response {
 		$idToken = $this->session->get('openidc_id_token');
 
 		$this->clearSession();
