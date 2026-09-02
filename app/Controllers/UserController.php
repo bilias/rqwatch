@@ -41,6 +41,7 @@ class UserController extends ViewController
 	protected int $max_items;
 
 	private ?string $adminUsersUrl = null;
+	private ?string $adminThrottlesUrl = null;
 
 	public function __construct() {
 		parent::__construct();
@@ -64,6 +65,79 @@ class UserController extends ViewController
 		}
 
 		return $this->adminUsersUrl;
+	}
+
+	private function getAdminThrottlesUrl(): string {
+		if ($this->adminThrottlesUrl === null) {
+			$this->adminThrottlesUrl = $this->url(RouteName::ADMIN_THROTTLES);
+		}
+
+		return $this->adminThrottlesUrl;
+	}
+
+	public function showThrottles(): Response {
+		if (!$this->getIsAdmin()) {
+			$this->fileLogger->warning("'{$this->username}' tried to access login throttles without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			$this->initUrls();
+			return new RedirectResponse($this->homepageUrl);
+		}
+
+		// enable form rendering support (needed for csrf_token() in the template)
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			return $response;
+		}
+
+		$service = $this->getUserService();
+		$throttles = $service->getLoginThrottles();
+
+		return new Response($this->twig->render('throttles.twig', [
+			'qidform' => $qidform->createView(),
+			'blocked' => $throttles['blocked'],
+			'counters' => $throttles['counters'],
+			'throttle_available' => $service->loginThrottleAvailable(),
+			'max_attempts' => (int)($_ENV['LOGIN_MAX_ATTEMPTS_IP'] ?? 10),
+			'runtime' => $this->getRuntime(),
+			'refresh_rate' => $this->refresh_rate,
+			'flashes' => $this->flashbag->all(),
+			'is_admin' => $this->session->get('is_admin'),
+			'username' => $this->session->get('username'),
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
+	public function clearThrottle(string $ip): Response {
+		if (!$this->getIsAdmin()) {
+			$this->fileLogger->warning("'{$this->username}' tried to clear a login throttle without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			$this->initUrls();
+			return new RedirectResponse($this->homepageUrl);
+		}
+
+		if (!$this->csrfValid('throttle_clear')) {
+			$this->fileLogger->warning(
+				"CSRF check failed on clearThrottle from " . $_SERVER['REMOTE_ADDR']
+			);
+			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
+			return new RedirectResponse($this->getAdminThrottlesUrl());
+		}
+
+		$service = $this->getUserService();
+
+		if ($service->clearLoginThrottle($ip)) {
+			$this->fileLogger->info("Login throttle cleared for IP:{$ip} by '{$this->username}'");
+			$this->flashbag->add('success', "Login throttle cleared for {$ip}");
+		} else {
+			$this->flashbag->add('error', "Failed to clear login throttle for {$ip}");
+		}
+
+		return new RedirectResponse($this->getAdminThrottlesUrl());
 	}
 
 	public function searchUser(): Response {

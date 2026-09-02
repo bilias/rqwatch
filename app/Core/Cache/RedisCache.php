@@ -105,6 +105,32 @@ final class RedisCache implements CacheInterface
 		return $deleted;
 	}
 
+	/*
+	 * Return all keys matching a prefix with their remaining TTL.
+	 * Uses SCAN, not KEYS, so it does not block the Redis instance.
+	 *
+	 * @return array<string,int> key => seconds remaining (-1 = no expiry)
+	 */
+	public function listByPrefix(string $prefix): array {
+		$found = [];
+		try {
+			$connection = $this->getConnection();
+			$cursor = null;
+			do {
+				$keys = $connection->scan($cursor, $prefix . '*', 100);
+				if ($keys !== false && !empty($keys)) {
+					foreach ($keys as $key) {
+						$found[$key] = (int) $connection->ttl($key);
+					}
+				}
+			} while ($cursor != 0);
+		} catch (Throwable $e) {
+			$this->logger->error("RedisCache listByPrefix: " . $e->getMessage());
+			throw $e;
+		}
+		return $found;
+	}
+
 	public function getConnection(): Redis {
 		if ($this->client === null) {
 		// Redis Sentinel connection via phpredis or predis

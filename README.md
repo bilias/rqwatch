@@ -137,8 +137,9 @@ Admin users have full access. Users have limited access and only to their data.
 ### Users
 - Add/Delete Local (DB) user
 - Edit user
-- Login as user
 - Search
+- Login as user
+- Login throttling per IP
 
 ### Aliases
 User mail aliases can be added in order for the user to have access to multiple recipient addresses.

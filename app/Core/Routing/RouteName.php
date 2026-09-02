@@ -44,6 +44,8 @@ enum RouteName: string
 	case ADMIN_USERSEARCH = 'admin_usersearch';
 	case ADMIN_USERLOGINAS = 'admin_userloginas';
 	case ADMIN_USER = 'admin_user';
+	case ADMIN_THROTTLES = 'admin_throttles';
+	case ADMIN_THROTTLE_CLEAR = 'admin_throttle_clear';
 	case ADMIN_ALIASES = 'admin_aliases';
 	case ADMIN_ALIASES_SEARCH = 'admin_aliases_search';
 	case ADMIN_ALIASES_ADD = 'admin_aliases_add';

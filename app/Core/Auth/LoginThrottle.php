@@ -11,8 +11,12 @@
 namespace App\Core\Auth;
 
 use App\Core\Cache\CacheInterface;
+use App\Core\Cache\RedisCache;
+
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
+
+use Throwable;
 
 /**
  * Per-IP login throttling.
@@ -159,7 +163,88 @@ final class LoginThrottle
 		return $this->blockDuration;
 	}
 
-	/**
+	/*
+	 * Currently blocked IPs with the seconds remaining on each block.
+	 * Admin view helper: keeps the Redis key layout private to this class.
+	 *
+	 * @return array<string,int> ip => seconds remaining
+	 */
+	public static function listBlocked(?RedisCache $cache): array {
+		if ($cache === null) {
+			return [];
+		}
+
+		$blocked = [];
+
+		try {
+			foreach ($cache->listByPrefix(self::BLOCK_PREFIX) as $key => $ttl) {
+				$ip = substr($key, strlen(self::BLOCK_PREFIX));
+				if ($ip !== '') {
+					$blocked[$ip] = $ttl;
+				}
+			}
+		} catch (Throwable $e) {
+			// already logged by the cache layer
+			return [];
+		}
+
+		ksort($blocked);
+
+		return $blocked;
+	}
+
+	/*
+	 * Failure counters that have not (yet) tripped a block.
+	 *
+	 * @return array<string,array{count:int,ttl:int}> ip => attempts + window seconds left
+	 */
+	public static function listCounters(?RedisCache $cache): array {
+		if ($cache === null) {
+			return [];
+		}
+
+		$counters = [];
+
+		try {
+			foreach ($cache->listByPrefix(self::COUNT_PREFIX) as $key => $ttl) {
+				$ip = substr($key, strlen(self::COUNT_PREFIX));
+
+				if ($ip === '') {
+					continue;
+				}
+
+				$counters[$ip] = [
+					// missing key returns false from Redis; (int) makes that 0
+					'count' => (int) $cache->get($key),
+					'ttl'   => $ttl,
+				];
+
+			}
+		} catch (Throwable $e) {
+			return [];
+		}
+
+		ksort($counters);
+
+		return $counters;
+	}
+
+	/*
+	 * Remove counter and block for one IP. Used by the admin page.
+	 * Does not honour the whitelist: clearing is always safe.
+	 */
+	public static function clearIp(?RedisCache $cache, string $ip): bool {
+		if ($cache === null || $ip === '') {
+			return false;
+		}
+
+		$cache->delete(self::COUNT_PREFIX . $ip);
+		$cache->delete(self::BLOCK_PREFIX . $ip);
+
+		return true;
+	}
+
+	/*
 	 * 'UNKNOWN' is the sentinel used when REMOTE_ADDR is missing; sharing a
 	 * single counter between all such requests would let them block each other.
 	 * IPs in LOGIN_IPS_WHITELIST are never throttled.

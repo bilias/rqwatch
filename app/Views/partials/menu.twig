@@ -6,6 +6,7 @@
 {% set search = route('ADMIN_SEARCH') %}
 {% set users = route('ADMIN_USERS') %}
 {% set aliases = route('ADMIN_ALIASES') %}
+{% set throttles = route('ADMIN_THROTTLES') %}
 {% else %}
 {% set homepage = route('HOMEPAGE') %}
 {% set day_logs = route('DAY_LOGS') %}
@@ -52,6 +53,9 @@
     </li>
     <li class="{{ current_route == aliases ? 'active' : '' }}">
       <a href="{{ aliases }}">Aliases</a>
+    </li>
+	 <li class="{{ current_route == throttles ? 'active' : '' }}">
+      <a href="{{ throttles }}">Throttles</a>
     </li>
 {% endif %}
     <li class="profilelink {{ current_route == profile ? 'active' : '' }}">

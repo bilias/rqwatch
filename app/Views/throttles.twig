@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+
+<section>
+
+<div class='current_mails descr'>
+Login Throttling
+</div>
+
+{% if not throttle_available %}
+<p class='center flash-error'>
+Redis is not available, so login throttling is disabled.
+Set REDIS_ENABLE and LOGIN_THROTTLE_ENABLE in .env to use it.
+</p>
+{% else %}
+
+{# ---------------- blocked IPs ---------------- #}
+
+<div class='current_mails descr'>
+Blocked IPs: {{ blocked|length }}
+</div>
+
+{% if blocked is not empty %}
+<div class='aliases'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th>IP Address</th>
+ <th>Block expires in</th>
+ <th>Clear</th>
+</tr></thead>
+
+<tbody>
+{% for ip, ttl in blocked %}
+  <tr class='clean'>
+  <td class='center'>{{ ip }}</td>
+  <td class='center'>
+  {%- if ttl < 0 -%}
+    never
+  {%- else -%}
+    {{ (ttl // 60) }}m {{ (ttl % 60) }}s
+  {%- endif -%}
+  </td>
+  <td class='center'><a href="{{ route('ADMIN_THROTTLE_CLEAR', { ip: ip, _token: csrf_token('throttle_clear') }) }}" onclick="return confirm('Are you sure you want to clear the login throttle for {{ ip|e('js') }}?')">Clear</a></td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<p class='center help-text2'>No blocked IPs</p>
+{% endif %}
+
+{# ---------------- failure counters ---------------- #}
+
+<div class='current_mails descr'>
+IPs with failed attempts: {{ counters|length }}
+</div>
+
+{% if counters is not empty %}
+<div class='aliases'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th>IP Address</th>
+ <th>Failed attempts</th>
+ <th>Window expires in</th>
+ <th>Clear</th>
+</tr></thead>
+
+<tbody>
+{% for ip, entry in counters %}
+  <tr class='clean'>
+  <td class='center'>{{ ip }}</td>
+  <td class='center'>{{ entry.count }} / {{ max_attempts }}</td>
+  <td class='center'>
+  {%- if entry.ttl < 0 -%}
+    never
+  {%- else -%}
+    {{ (entry.ttl // 60) }}m {{ (entry.ttl % 60) }}s
+  {%- endif -%}
+  </td>
+  <td class='center'><a href="{{ route('ADMIN_THROTTLE_CLEAR', { ip: ip, _token: csrf_token('throttle_clear') }) }}" onclick="return confirm('Are you sure you want to clear the failed login attempts for {{ ip|e('js') }}?')">Clear</a></td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<p class='center help-text2'>No failed login attempts recorded</p>
+{% endif %}
+
+{% endif %}
+
+</section>
+
+{% endblock %}

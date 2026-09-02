@@ -95,6 +95,21 @@ class Routes
 			],
 		));
 
+		$routes->add(RouteName::ADMIN_THROTTLES->value, new Route(
+			'/admin/throttles', // path
+			[ '_controller' => 'App\\Controllers\\UserController::showThrottles',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
+		$routes->add(RouteName::ADMIN_THROTTLE_CLEAR->value, new Route(
+			'/admin/throttles/clear/{ip}', // path
+			[ '_controller' => 'App\\Controllers\\UserController::clearThrottle',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+			[ 'ip' => '[0-9a-fA-F\.:]{3,45}' ] // requirements: IPv4/IPv6 charset only
+		));
+
 		$routes->add(RouteName::SEARCH_RESULTS->value, new Route(
 			'/results',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showResults',

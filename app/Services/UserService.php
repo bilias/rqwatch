@@ -21,6 +21,9 @@ use App\Models\MailAlias;
 
 use Psr\Log\LoggerInterface;
 
+use App\Core\Cache\RedisCache;
+use App\Core\Auth\LoginThrottle;
+
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -278,5 +281,46 @@ class UserService
 
 		return false;
    }
+
+	public function getLoginThrottles(): array {
+		$cache = App::cache();
+		$cache = $cache instanceof RedisCache ? $cache : null;
+
+		if ($cache === null) {
+			return ['blocked' => [], 'counters' => []];
+		}
+
+		return [
+			'blocked'  => LoginThrottle::listBlocked($cache),
+			'counters' => LoginThrottle::listCounters($cache),
+		];
+	}
+
+	public function clearLoginThrottle(string $ip): bool {
+		$ip = trim($ip);
+
+		if ($ip === '' || filter_var($ip, FILTER_VALIDATE_IP) === false) {
+			$this->logger->warning("[clearLoginThrottle] invalid IP: '{$ip}'");
+			return false;
+		}
+
+		$cache = App::cache();
+		$cache = $cache instanceof RedisCache ? $cache : null;
+
+		if ($cache === null) {
+			return false;
+		}
+
+		if (!LoginThrottle::clearIp($cache, $ip)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function loginThrottleAvailable(): bool {
+		return App::cache() instanceof RedisCache;
+	}
+
 
 }
