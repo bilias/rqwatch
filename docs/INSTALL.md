@@ -122,7 +122,7 @@ git checkout v1.8.3
 ```
 
 ```
-chown -R rqwatch:rqwatch logs web/maps
+chown -R rqwatch:rqwatch tmp logs web/maps
 
 cp .env-example .env
 ```
