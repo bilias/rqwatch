@@ -558,7 +558,7 @@ class MailLogController extends ViewController
 					'is_admin' => $this->getIsAdmin(),
 				]);
 				$this->syslogLogger->error("Mail release of {$maillog->qid} by " .
-					$this->session->get('email') .
+					$this->email .
 					" failed. Check rqwatch logs for details");
 
 				$this->flashbag->add('error', "Wrong personal recipient address. Contact admin");
@@ -587,10 +587,10 @@ class MailLogController extends ViewController
 				$success = $service->releaseHtmlMail($release_to, $maillog, $this->twig);
 				if ($success) {
 					$this->fileLogger->info("Message {$maillog->qid} released to '" .
-						implode(', ', $release_to) . "' by '" . $this->session->get('email') .
+						implode(', ', $release_to) . "' by '" . $this->email .
 						"' via local web/api");
 					$this->syslogLogger->info("Message {$maillog->qid} released to '" .
-						implode(', ', $release_to) . "' by '" . $this->session->get('email') .
+						implode(', ', $release_to) . "' by '" . $this->email .
 						"' via local web/api");
 				}
 			// Mail stored in remote server. Call their API
@@ -599,7 +599,8 @@ class MailLogController extends ViewController
 				   $release_to,
 					$maillog->id,
 					$maillog->server,
-					$this->session->get('email'));
+					$this->email
+				);
 			}
 
 			if ($success) {
