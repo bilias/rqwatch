@@ -985,6 +985,12 @@ class MapController extends ViewController
 	}
 
 	public function delCustomMap(int $id): Response {
+		if (!$this->getIsAdmin()) {
+			$this->fileLogger->warning("'{$this->username}' tried to delete a custom map without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->showCustomMapsConfigUrl);
+		}
+
 		if (!$this->csrfValid('custom_map_del')) {
 			$this->fileLogger->warning(
 				"CSRF check failed on delCustomMap from " . $_SERVER['REMOTE_ADDR']

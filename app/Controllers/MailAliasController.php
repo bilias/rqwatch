@@ -210,8 +210,7 @@ class MailAliasController extends ViewController
 				} else {
 					$this->flashbag->add('error', "Alias creation failed");
 				}
-				$url = $this->getAdminAliasesUrl();
-				return new RedirectResponse($url);
+				return new RedirectResponse($this->getAdminAliasesUrl());
 			} catch (Exception $e) {
 				$error = $e->getMessage();
 				$this->flashbag->add('error', $error);
@@ -327,6 +326,12 @@ class MailAliasController extends ViewController
 	}
 
 	public function del(int $id): Response {
+		if (!$this->getIsAdmin()) {
+			$this->fileLogger->warning("'{$this->username}' tried to delete alias without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getAdminAliasesUrl());
+		}
+
 		if (!$this->csrfValid('alias_del')) {
 			$this->fileLogger->warning(
 				"CSRF check failed on alias del from " . $_SERVER['REMOTE_ADDR']

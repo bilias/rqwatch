@@ -328,6 +328,12 @@ class Controller
 	public function redisConfigReload(): Response {
 		$this->initUrls();
 
+		if (!$this->getIsAdmin()) {
+			$this->fileLogger->warning("'{$this->username}' tried to reload config in redis without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->searchUrl);
+		}
+
 		if (!$this->csrfValid('config_reload')) {
 			$this->fileLogger->warning(
 				"CSRF check failed on redisConfigReload from " . $_SERVER['REMOTE_ADDR']
@@ -366,6 +372,12 @@ class Controller
 
 	public function dnsFlush(): Response {
 		$this->initUrls();
+
+		if (!$this->getIsAdmin()) {
+			$this->fileLogger->warning("'{$this->username}' tried to flush DNS cache without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->searchUrl);
+		}
 
 		if (!$this->csrfValid('dns_flush')) {
 			$this->fileLogger->warning(
