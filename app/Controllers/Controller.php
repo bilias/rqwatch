@@ -167,10 +167,6 @@ class Controller
 		return $this->is_admin;
 	}
 
-	public function getEmail(): ?string {
-		return $this->email;
-	}
-
 	public function getRole(): string {
 		if ($this->getIsAdmin()) {
 			return 'admin';
