@@ -160,7 +160,7 @@ class Controller
 	}
 
 	public function getRole(): string {
-		if ($this->is_admin()) {
+		if ($this->is_admin) {
 			return 'admin';
 		}
 		return 'user';
