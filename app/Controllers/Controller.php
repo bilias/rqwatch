@@ -174,11 +174,13 @@ class Controller
 		return App::getRuntime();
 	}
 
+	/*
 	public function unsetUrls(): void {
 		$this->urlsInitialized = false;
 	}
+	*/
 
-	public function refreshUrls(): void {
+	protected function refreshUrls(): void {
 		$this->urlsInitialized = false;
 		$this->initUrls();
 	}
