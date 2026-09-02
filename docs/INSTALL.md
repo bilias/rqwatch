@@ -282,9 +282,9 @@ mysql -p < contrib/db-init.sql
 ```
 
 ### Admin user
-After finishing [Configuration](CONFIGURE.md) you can create an admin user with
+After finishing [Configuration](/docs/CONFIGURE.md) you can create an admin user with
 `user:add` CLI command.\
-See [CLI](docs/CONFIGURE.md#cli) for details.
+See [CLI](/docs/CONFIGURE.md#cli) for details.
 
 ### Quarantine location
 Before specifying [QUARANTINE_DIR](/docs/CONFIGURE.md#quarantine-settings) in
