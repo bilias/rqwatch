@@ -55,6 +55,7 @@ a:hover {
   /* border-radius: 8px; */
   display: flex;
   justify-content: flex-start;
+  flex-wrap: nowrap;
 }
 
 #menu .profilelink {
@@ -1346,7 +1347,6 @@ table.attachments .filename {
   #menu.mainmenu {
     display: none;
     flex-direction: column;
-	 flex-wrap: nowrap;
     align-items: stretch;
 
     width: 100%;
