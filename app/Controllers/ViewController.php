@@ -53,10 +53,13 @@ class ViewController extends Controller
 	final public function twigView(): Environment {
 		if (!$this->twig ) {
 			$loader = new FilesystemLoader(AppConfig::VIEWS_PATH);
-			$this->twig = new Environment($loader, [
-				'cache' => false,
-				'debug' => true
-			]);
+			$this->twig = new Environment($loader,
+				[
+					'cache' => false,
+					'debug' => false,
+					'auto_reload' => true,
+				]
+			);
 		}
 
 		$this->twig->addFunction(new TwigFunction('get_route', fn($name, $params = []) =>
