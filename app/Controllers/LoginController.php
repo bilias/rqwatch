@@ -326,7 +326,7 @@ class LoginController extends ViewController
 		return new RedirectResponse($url);
 	}
 
-	protected static function getMailAliases(
+	private static function getMailAliases(
 		User $user,
 		array $externalAliases = []
 	): array {
@@ -471,7 +471,7 @@ class LoginController extends ViewController
 		$this->session->set('user_id', $user_id);
 
 		// Load user aliases and set them in session
-		$aliases = $this->getMailAliases($user, $auth->getUserEmailAliases());
+		$aliases = self::getMailAliases($user, $auth->getUserEmailAliases());
 		$this->session->set('user_aliases', $aliases);
 
 		$this->setSessionVars($this->session);
