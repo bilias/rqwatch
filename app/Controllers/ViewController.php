@@ -31,6 +31,8 @@ use Twig\TwigFunction;
 use Twig\TwigFilter;
 
 use App\Configuration\AppConfig;
+use App\Core\App;
+
 use App\Core\Routing\RouteName;
 use App\Configuration\Config;
 use App\Utils\Helper;
@@ -52,10 +54,20 @@ class ViewController extends Controller
 
 	final public function twigView(): Environment {
 		if (!$this->twig ) {
+			$cache = AppConfig::TWIG_CACHE_PATH;
+
+			if (!is_dir($cache) && !@mkdir($cache, 0750, true)) {
+				App::fileLogger()->warning("Twig cache dir not creatable: {$cache}; running uncached");
+				$cache = false;
+			} elseif (!is_writable($cache)) {
+				App::fileLogger()->warning("Twig cache dir not writable: {$cache}; running uncached");
+				$cache = false;
+			}
+
 			$loader = new FilesystemLoader(AppConfig::VIEWS_PATH);
 			$this->twig = new Environment($loader,
 				[
-					'cache' => false,
+					'cache' => $cache,
 					'debug' => false,
 					'auto_reload' => true,
 				]

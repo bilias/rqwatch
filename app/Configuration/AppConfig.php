@@ -44,6 +44,9 @@ public const string ENV_PATH = RQWATCH_ROOT . '/.env';
 // Views directory
 public const string VIEWS_PATH = RQWATCH_ROOT . '/app/Views';
 
+// Twig Cache directory for compiled templates
+public const string TWIG_CACHE_PATH = RQWATCH_ROOT . '/tmp/cache';
+
 // Directory for storing and serving map files
 
 public const string MAP_DIR = RQWATCH_ROOT . '/web/maps/';
