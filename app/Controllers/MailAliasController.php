@@ -94,8 +94,8 @@ class MailAliasController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'refresh_rate' => $this->refresh_rate,
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->session->get('is_admin'),
-			'username' => $this->session->get('username'),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -142,8 +142,8 @@ class MailAliasController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'refresh_rate' => $this->refresh_rate,
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->session->get('is_admin'),
-			'username' => $this->session->get('username'),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -223,8 +223,8 @@ class MailAliasController extends ViewController
 			'mailaliasform' => $mailaliasform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->session->get('is_admin'),
-			'username' => $this->session->get('username'),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
@@ -318,15 +318,15 @@ class MailAliasController extends ViewController
 			'mailaliasform' => $mailaliasform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
-			'is_admin' => $this->session->get('is_admin'),
-			'username' => $this->session->get('username'),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 	}
 
 	public function del(int $id): Response {
-		if (!$this->getIsAdmin()) {
+		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to delete alias without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			return new RedirectResponse($this->getAdminAliasesUrl());
