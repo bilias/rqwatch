@@ -134,12 +134,12 @@ class Controller
 	}
 
 	public function unsetSessionVars(): void {
-		unset($this->is_admin);
-		unset($this->username);
-		unset($this->user_id);
-		unset($this->email);
-		unset($this->user_aliases);
-		unset($this->urlsInitialized);
+		$this->is_admin = false;
+		$this->username = null;
+		$this->user_id = null;
+		$this->email = null;
+		$this->user_aliases = [];
+		$this->urlsInitialized = false;
 	}
 
 	public function clearSession(): void {
@@ -167,7 +167,7 @@ class Controller
 		return $this->is_admin;
 	}
 
-	public function getEmail(): string {
+	public function getEmail(): ?string {
 		return $this->email;
 	}
 
