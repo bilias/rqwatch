@@ -15,6 +15,8 @@ use App\Services\MailLogService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
+use InvalidArgumentException;
+
 class GetMailApi extends RqwatchApi
 {
 	protected string $logPrefix = 'GetMailApi';
@@ -51,9 +53,11 @@ class GetMailApi extends RqwatchApi
 		}
 		
 		$service = new MailLogService();
-		$log = $service->findMailLog($id);
 
-		if (empty($log)) {
+		try {
+			// findMailLog throws InvalidArgumentException when no mail found
+			$log = $service->findMailLog($id);
+		} catch (InvalidArgumentException $e) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested mail with id {$id} which does no exist";
 			$response_msg = "Message not found";
 			$this->dropLogResponse(
