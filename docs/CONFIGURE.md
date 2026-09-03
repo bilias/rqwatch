@@ -283,7 +283,24 @@ If the server runs the Web service then the following settings are relevant:
   (`$LOG_FILE`) and Fail2Ban can be applied.
 
 - `LOGIN_THROTTLE_ENABLE` - Set to `true` to enable Login Throttling per IP.\
- It requires `REDIS_ENABLE=true`
+ It requires `REDIS_ENABLE=true`\
+
+If Rqwatch web interface is behind a reverse proxy or load balancer, configure
+mod_remoteip so that REMOTE_ADDR is the real client address:
+
+```
+RemoteIPHeader X-Forwarded-For
+RemoteIPTrustedProxy <proxy-address>
+```
+
+Only list addresses you control in RemoteIPTrustedProxy.
+Any host allowed there can set its own apparent client IP.
+
+Without this, every request appears to come from the proxy and per-IP
+login throttling will block all users at once after
+LOGIN_MAX_ATTEMPTS_IP failed logins from anyone. Set
+LOGIN_THROTTLE_ENABLE=false if you cannot configure mod_remoteip and your
+web interface is behind a proxy.
 
 - `LOGIN_MAX_ATTEMPTS_IP` - Failed attempts from one IP before it is blocked.
  Default is `10`
