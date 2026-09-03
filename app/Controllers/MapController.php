@@ -47,7 +47,7 @@ class MapController extends ViewController
 	protected string $maps_url_base;
 	protected string $mapShowUrl;
 	protected string $mapShowAllUrl;
-	protected string $mapShowAllCustomUrl;
+	protected ?string $mapShowAllCustomUrl = null;
 	protected string $mapAddEntryUrl;
 	protected ?string $showCustomMapsConfigUrl = null;
 	protected ?string $mapsCustomAddUrl = null;
@@ -216,7 +216,7 @@ class MapController extends ViewController
 			$map_comb_total = null;
 			$map_gen_entries = null;
 			$map_gen_total = null;
-			$map_custom_entries = $service->showPaginatedAllMapCustom($page, $this->mapShowAllCustomUrl);
+			$map_custom_entries = $service->showPaginatedAllMapCustom($page, $this->getMapShowAllCustomUrl());
 			$map_custom_total = $map_custom_entries->total();
 
 			if (empty($map_custom_entries)) {
@@ -1511,6 +1511,16 @@ class MapController extends ViewController
 		}
 
 		return $this->mapSearchEntryUrl;
+	}
+
+	private function getMapShowAllCustomUrl(): string {
+		if ($this->mapShowAllCustomUrl === null) {
+			$this->mapShowAllCustomUrl = $this->url(
+				RouteName::ADMIN_MAP_SHOW_ALL, ['model' => 'MapCustom']
+			);
+		}
+
+		return $this->mapShowAllCustomUrl;
 	}
 
 }
