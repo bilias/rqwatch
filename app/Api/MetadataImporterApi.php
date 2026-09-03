@@ -30,6 +30,7 @@ use PhpMimeMailParser\Parser;
 
 use Exception;
 use Throwable;
+use RuntimeException;
 
 class MetadataImporterApi extends RqwatchApi
 {
@@ -61,6 +62,10 @@ class MetadataImporterApi extends RqwatchApi
 		try {
 			//$headers = $this->request->headers->all(); // array of lowercased header names
 			$rawEmail = $this->request->getContent(); // instead of php://input
+
+			if ($rawEmail === '') {
+				throw new RuntimeException('Empty message content');
+			}
 		} catch (Throwable $e) {
 			$this->fileLogger->error("[{$this->logPrefix}] Request parse error: " . $e->getMessage(), [
 				'trace' => $e->getTraceAsString(),
@@ -111,9 +116,7 @@ class MetadataImporterApi extends RqwatchApi
 		
 		// Body comes from Request::getContent() rather than php://input
 		$parser = new Parser();
-		if (!empty($rawEmail)) {
-			$parser->setText($rawEmail);
-		}
+		$parser->setText($rawEmail);
 
 		// return all headers as a string, no charset conversion
 		$stringHeaders = trim($parser->getHeadersRaw());
