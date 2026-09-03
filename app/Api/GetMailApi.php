@@ -63,7 +63,7 @@ class GetMailApi extends RqwatchApi
 
 		if (!file_exists($log->mail_location)) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested mail {$log->qid} where local file '{$log->mail_location}' not found";
-			$response_msg = "File '{$log->mail_location}' not found";
+			$response_msg = "File not found";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,
 				$err_msg, 'critical');
