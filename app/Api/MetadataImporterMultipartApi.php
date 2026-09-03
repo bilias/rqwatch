@@ -167,9 +167,19 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		if (empty($qid) || $qid === "unknown") {
 			if (isset($arrayHeaders['x-rspamd-queue-id'])) {
 				$qid = $arrayHeaders['x-rspamd-queue-id'];
-				if (!preg_match('/^[a-zA-Z0-9]+$/', $qid)) {
+
+				// duplicated headers arrive as an array; rspamd appends its
+				// own last, so prefer that one
+				if (is_array($qid)) {
+					$qid = end($qid);
+				}
+
+				if (!is_string($qid) || !preg_match('/^[a-zA-Z0-9]+$/', $qid)) {
 					$qid = "unknown";
 				}
+			} else {
+				// no metadata qid and no header
+				$qid = "unknown";
 			}
 		}
 
