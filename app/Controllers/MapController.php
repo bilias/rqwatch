@@ -49,7 +49,7 @@ class MapController extends ViewController
 	protected string $mapShowAllUrl;
 	protected string $mapShowAllCustomUrl;
 	protected string $mapAddEntryUrl;
-	protected string $showCustomMapsConfigUrl;
+	protected ?string $showCustomMapsConfigUrl = null;
 	protected string $mapsCustomAddUrl;
 	protected string $mapSearchEntryUrl;
 
@@ -317,7 +317,7 @@ class MapController extends ViewController
 
 		$this->initMapUrls();
 
-		$map_configs = $service->showPaginatedCustomMapConfigs($page, $this->showCustomMapsConfigUrl);
+		$map_configs = $service->showPaginatedCustomMapConfigs($page, $this->getShowCustomMapsConfigUrl());
 
 		foreach ($map_configs as $key => $map_config) {
 			$map_configs[$key]['map_entries'] = $map_config->MapsCustom->count();
@@ -405,7 +405,7 @@ class MapController extends ViewController
 			if ($service->addCustomMapConfig($data)) {
 				$this->fileLogger->info("Custom map '{$map_name}' created by '{$this->email}'");
 				$this->flashbag->add('success', "Custom Map '{$data['map_name']}' created");
-				return new RedirectResponse($this->showCustomMapsConfigUrl);
+				return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 			} else {
 				$this->flashbag->add('error', "Custom map '{$map_name}' creation problem. Check logs.");
 				return new RedirectResponse($this->mapsCustomAddUrl);
@@ -434,7 +434,7 @@ class MapController extends ViewController
 
 		if (empty($id) || !is_int($id)) {
 			$this->flashbag->add('error', 'Invalid map id');
-			return new RedirectResponse($this->showCustomMapsConfigUrl);
+			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 		}
 
 		// enable form rendering support
@@ -502,7 +502,7 @@ class MapController extends ViewController
 			if ($service->updateCustomMapConfig($data)) {
 				$this->fileLogger->info("Custom map '{$map_name}' updated by '{$this->email}'");
 				$this->flashbag->add('success', "Custom Map '{$data['map_name']}' updated");
-				return new RedirectResponse($this->showCustomMapsConfigUrl);
+				return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 			} else {
 				$this->flashbag->add('error', "Custom map '{$map_name}' update problem. Check logs.");
 				return new RedirectResponse($edit_url);
@@ -990,7 +990,7 @@ class MapController extends ViewController
 			$this->fileLogger->warning("'{$this->username}' tried to delete a custom map without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			$this->initMapUrls();
-			return new RedirectResponse($this->showCustomMapsConfigUrl);
+			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 		}
 
 		if (!$this->csrfValid('custom_map_del')) {
@@ -999,7 +999,7 @@ class MapController extends ViewController
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			$this->initMapUrls();
-			return new RedirectResponse($this->showCustomMapsConfigUrl);
+			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 		}
 
 		if (!is_null($id) and is_int($id)) {
@@ -1007,7 +1007,7 @@ class MapController extends ViewController
 			if (is_null($custom_map)) {
 				$this->flashbag->add('error', 'Custom map not found!');
 				$this->initMapUrls();
-				return new RedirectResponse($this->showCustomMapsConfigUrl);
+				return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 			}
 			$service = $this->getMapService();
 			if ($service->delCustomMap($id)) {
@@ -1020,7 +1020,7 @@ class MapController extends ViewController
 		}
 
 		$this->initMapUrls();
-		return new RedirectResponse($this->showCustomMapsConfigUrl);
+		return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 	}
 
 	public function delMapEntry(string $map, int $id): Response {
@@ -1481,6 +1481,14 @@ class MapController extends ViewController
 		}
 
 		return $this->mapsUrl;
+	}
+
+	private function getShowCustomMapsConfigUrl(): string {
+		if ($this->showCustomMapsConfigUrl === null) {
+			$this->showCustomMapsConfigUrl = $this->url(RouteName::ADMIN_MAPS_CUSTOM_SHOW);
+		}
+
+		return $this->showCustomMapsConfigUrl;
 	}
 
 }
