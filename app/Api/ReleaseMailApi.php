@@ -16,6 +16,8 @@ use App\Services\MailLogService;
 
 use Symfony\Component\HttpFoundation\Response;
 
+use InvalidArgumentException;
+
 class ReleaseMailApi extends RqwatchApi
 {
 	protected string $logPrefix = 'ReleaseMailApi';
@@ -63,9 +65,10 @@ class ReleaseMailApi extends RqwatchApi
 		
 		$service = new MailLogService();
 
-		$maillog  = $service->findMailLog($id);
-		
-		if (empty($maillog)) {
+		try {
+			// findMailLog throws InvalidArgumentException when no mail found
+			$maillog  = $service->findMailLog($id);
+		} catch (InvalidArgumentException $e) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested release of mail with id {$id} which does no exist";
 			$response_msg = "Message not found";
 			$this->dropLogResponse(
