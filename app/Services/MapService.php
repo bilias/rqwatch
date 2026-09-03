@@ -43,6 +43,9 @@ class MapService
 	private ?string $email = null;
 	private ?array $user_aliases = null;
 
+	private int $items_per_page;
+	private int $max_items;
+
 	public function __construct(?array $userContect = null) {
 		$this->logger = App::fileLogger();
 

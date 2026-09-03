@@ -31,6 +31,9 @@ class MailAliasService
 {
 	private LoggerInterface $logger;
 
+	private int $items_per_page;
+	private int $max_items;
+
 	public function __construct() {
 		$this->logger = App::fileLogger();
 

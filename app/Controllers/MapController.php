@@ -44,6 +44,7 @@ class MapController extends ViewController
 
 	protected bool $mapUrlsInitialized = false;
 	protected string $mapsUrl;
+	protected string $maps_url_base;
 	protected string $mapShowUrl;
 	protected string $mapShowAllUrl;
 	protected string $mapShowAllCustomUrl;

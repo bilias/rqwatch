@@ -46,6 +46,7 @@ class MailLogController extends ViewController
 	protected int $q_items_per_page;
 	protected int $max_items;
 	protected string $quarantine_dir;
+	protected bool $subject_privacy;
 
 	public function __construct() {
 		parent::__construct();
