@@ -90,7 +90,7 @@ class MailLogService
 	public function getSearchQuery(
 		array $filters,
 		array $fields,
-		int $limit = null,
+		?int $limit = null,
 		bool $withRecipients = true
 	): Builder {
 		if ($limit) {
