@@ -45,7 +45,6 @@ class MapController extends ViewController
 	protected bool $mapUrlsInitialized = false;
 	protected ?string $mapsUrl = null;
 	protected string $maps_url_base;
-	protected string $mapShowUrl;
 	protected ?string $mapShowAllUrl = null;
 	protected ?string $mapShowAllCustomUrl = null;
 	protected string $mapAddEntryUrl;
@@ -75,10 +74,8 @@ class MapController extends ViewController
 	public function initMapUrls(?string $map = null): void {
 		if (!empty($map)) {
 			if ($this->is_admin) {
-				$this->mapShowUrl = $this->url(RouteName::ADMIN_MAP_SHOW, [ 'map' => $map ]);
 				$this->mapAddEntryUrl = $this->url(RouteName::ADMIN_MAP_ADD_ENTRY, [ 'map' => $map ]);
 			} else {
-				$this->mapShowUrl = $this->url(RouteName::MAP_SHOW, [ 'map' => $map ]);
 				$this->mapAddEntryUrl = $this->url(RouteName::MAP_ADD_ENTRY, [ 'map' => $map ]);
 			}
 		}
@@ -602,7 +599,7 @@ class MapController extends ViewController
 		if($config['model'] === 'MapCombined') {
 			$model = 'MapCombined';
 			// has applyUserRcptToScope
-			$map_entries = $service->showPaginatedMapCombined($map, $fields, $page, $this->mapShowUrl);
+			$map_entries = $service->showPaginatedMapCombined($map, $fields, $page, $this->getMapShowUrl());
 
 			foreach ($map_entries as $key => $map_entry) {
 				$map_entries[$key]->map_username = $this->getMapUser($map_entry->user);
@@ -613,13 +610,13 @@ class MapController extends ViewController
 			$model = 'MapGeneric';
 			// without pagination
 			//$map_entries = $service->showMapGeneric($map);
-			$map_entries = $service->showPaginatedMapGeneric($map, $page, $this->mapShowUrl);
+			$map_entries = $service->showPaginatedMapGeneric($map, $page, $this->getMapShowUrl());
 		*/
 		} elseif($this->is_admin && $config['model'] === 'MapCustom') {
 			$model = 'MapCustom';
 			// without pagination
 			//$map_entries = $service->showMapCustom($map);
-			$map_entries = $service->showPaginatedMapCustom($map, $page, $this->mapShowUrl);
+			$map_entries = $service->showPaginatedMapCustom($map, $page, $this->getMapShowUrl());
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to show map in " . $this->request->getPathInfo() . " with wrong model {$config['model']} or non admin rights");
 			$this->flashbag->add('error', 'Error in map');
@@ -777,7 +774,7 @@ class MapController extends ViewController
 				// has applyUseScope
 				if ($service->addMapCombinedEntry($map, $fields, $data)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
-					return new RedirectResponse($this->mapShowUrl);
+					return new RedirectResponse($this->getMapShowUrl());
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
 					return new RedirectResponse($this->mapAddEntryUrl);
@@ -786,7 +783,7 @@ class MapController extends ViewController
 			} elseif ($this->is_admin && $model === 'MapGeneric') {
 				if($service->addMapGenericEntry($map, $data[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
-					return new RedirectResponse($this->mapShowUrl);
+					return new RedirectResponse($this->getMapShowUrl());
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
 					return new RedirectResponse($this->mapAddEntryUrl);
@@ -795,7 +792,7 @@ class MapController extends ViewController
 			} elseif ($this->is_admin && $model === 'MapCustom') {
 				if($service->addMapCustomEntry($map, $data[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
-					return new RedirectResponse($this->mapShowUrl);
+					return new RedirectResponse($this->getMapShowUrl());
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
 					return new RedirectResponse($this->mapAddEntryUrl);
@@ -803,7 +800,7 @@ class MapController extends ViewController
 			} else {
 				$this->fileLogger->warning("User {$this->username} tried to add map in " . $this->request->getPathInfo() . " with wrong model {$model} or non admin rights");
 				$this->flashbag->add('error', 'Error in map');
-				return new RedirectResponse($this->mapShowUrl);
+				return new RedirectResponse($this->getMapShowUrl());
 			}
 		}
 
@@ -946,7 +943,7 @@ class MapController extends ViewController
 				// has applyUseScope
 				if ($service->updateMapCombinedEntry($map, $fields, $data)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' updated in Map '{$mapdescr}'");
-					return new RedirectResponse($this->mapShowUrl);
+					return new RedirectResponse($this->getMapShowUrl());
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' update in Map {$mapdescr} failed");
 					return new RedirectResponse($map_edit_url);
@@ -955,7 +952,7 @@ class MapController extends ViewController
 				//if($service->updateMapCustomEntry($map, $data[$fields[0]])) {
 				if($service->updateMapCustomEntry($map, $data)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' updated in Map '{$mapdescr}'");
-					return new RedirectResponse($this->mapShowUrl);
+					return new RedirectResponse($this->getMapShowUrl());
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' update in Map {$mapdescr} failed");
 					return new RedirectResponse($map_edit_url);
@@ -963,7 +960,7 @@ class MapController extends ViewController
 			} else {
 				$this->fileLogger->warning("User {$this->username} tried to update map in " . $this->request->getPathInfo() . " with wrong model {$model} or non admin rights");
 				$this->flashbag->add('error', 'Error in map');
-				return new RedirectResponse($this->mapShowUrl);
+				return new RedirectResponse($this->getMapShowUrl());
 			}
 		}
 
@@ -1109,7 +1106,7 @@ class MapController extends ViewController
 
 		if (!empty($map)) {
 			$this->initMapUrls($map);
-			$url = $this->mapShowUrl;
+			$url = $this->getMapShowUrl();
 		} else {
 			$this->initMapUrls();
 			$url = $this->getMapsUrl();
@@ -1174,7 +1171,7 @@ class MapController extends ViewController
 
 		if (!empty($map)) {
 			$this->initMapUrls($map);
-			$url = $this->mapShowUrl;
+			$url = $this->getMapShowUrl();
 		} else {
 			$this->initMapUrls();
 			$url = $this->getMapsUrl();
@@ -1411,7 +1408,7 @@ class MapController extends ViewController
 
 		if (!empty($map)) {
 			$this->initMapUrls($map);
-			$url = $this->mapShowUrl;
+			$url = $this->getMapShowUrl();
 		} else {
 			$this->initMapUrls();
 			$url = $this->getMapsUrl();
@@ -1531,6 +1528,12 @@ class MapController extends ViewController
 		}
 
 		return $this->mapShowAllUrl;
+	}
+
+	private function getMapShowUrl(string $map): string {
+		return $this->is_admin
+			? $this->url(RouteName::ADMIN_MAP_SHOW, ['map' => $map])
+			: $this->url(RouteName::MAP_SHOW, ['map' => $map]);
 	}
 
 }
