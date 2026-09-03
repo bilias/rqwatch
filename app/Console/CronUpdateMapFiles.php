@@ -29,6 +29,8 @@ use App\Services\MapService;
 use DateTime;
 use DateTimeZone;
 
+use Throwable;
+
 #[AsCommand(
 	name: 'cron:updatemapfiles',
 	description: 'Update Map Files',
@@ -64,14 +66,26 @@ class CronUpdateMapFiles extends RqwatchCliCommand
 		$firstLine = fgets($handle);
 		fclose($handle);
 
+		// empty or unreadable file: regenerate it
+		if ($firstLine === false) {
+			return true;
+		}
+
 		// Expected format: "# Last-Modified: Tue, 29 Jul 2025 10:37:04 GMT"
 		if (preg_match('/^# Last-Modified: (.+)$/', trim($firstLine), $matches)) {
 			$lastModifiedStr = $matches[1];
 
 			// Convert GMT string to local time Y-m-d H:i:s
-			$dt = new DateTime($lastModifiedStr, new DateTimeZone('GMT'));
-			$dt->setTimezone(new DateTimeZone(date_default_timezone_get()));
-			$lastModifiedLocal = $dt->format('Y-m-d H:i:s');
+			try {
+				$dt = new DateTime($lastModifiedStr, new DateTimeZone('GMT'));
+				$dt->setTimezone(new DateTimeZone(date_default_timezone_get()));
+				$lastModifiedLocal = $dt->format('Y-m-d H:i:s');
+			} catch (Throwable $e) {
+				$this->fileLogger->warning(
+					"{$this->app_name} Map file '{$map_name}': cannot read Last-Modified header ({$e->getMessage()}); regenerating"
+				);
+				return true;
+			}
 
 			if ($lastModifiedLocal < $last_activity) {
 				return true;
