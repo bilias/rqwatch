@@ -293,13 +293,13 @@ If the server runs the Web service then the following settings are relevant:
   RemoteIPTrustedProxy <proxy-address>
   ```
 
-  Only list addresses you control in RemoteIPTrustedProxy.
+  Only list addresses you control in `RemoteIPTrustedProxy`.
   Any host allowed there can set its own apparent client IP.
 
   Without this, every request appears to come from the proxy and per-IP
   login throttling will block all users at once after
-  LOGIN_MAX_ATTEMPTS_IP failed logins from anyone. Set
-  LOGIN_THROTTLE_ENABLE=false if you cannot configure mod_remoteip and your
+  `LOGIN_MAX_ATTEMPTS_IP` failed logins from anyone. Set
+  `LOGIN_THROTTLE_ENABLE=false` if you cannot configure mod_remoteip and your
   web interface is behind a proxy.
 
 - `LOGIN_MAX_ATTEMPTS_IP` - Failed attempts from one IP before it is blocked.
