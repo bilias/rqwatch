@@ -47,7 +47,6 @@ class MapController extends ViewController
 	protected string $maps_url_base;
 	protected ?string $mapShowAllUrl = null;
 	protected ?string $mapShowAllCustomUrl = null;
-	protected string $mapAddEntryUrl;
 	protected ?string $showCustomMapsConfigUrl = null;
 	protected ?string $mapsCustomAddUrl = null;
 	protected ?string $mapSearchEntryUrl = null;
@@ -72,14 +71,6 @@ class MapController extends ViewController
 	}
 
 	public function initMapUrls(?string $map = null): void {
-		if (!empty($map)) {
-			if ($this->is_admin) {
-				$this->mapAddEntryUrl = $this->url(RouteName::ADMIN_MAP_ADD_ENTRY, [ 'map' => $map ]);
-			} else {
-				$this->mapAddEntryUrl = $this->url(RouteName::MAP_ADD_ENTRY, [ 'map' => $map ]);
-			}
-		}
-
 		if ($this->mapUrlsInitialized) {
 			return;
 		}
@@ -744,7 +735,7 @@ class MapController extends ViewController
 
 			if (empty($data)) {
 				$this->flashbag->add('error', "Empty map data");
-				return new RedirectResponse($this->mapAddEntryUrl);
+				return new RedirectResponse($this->getMapAddEntryUrl($map));
 			}
 
 			// generate entry string for logs/flashbag
@@ -766,7 +757,7 @@ class MapController extends ViewController
 			// has applyUserRcptToScope
 			if ($service->mapEntryExists($model, $map, $fields, $data)) {
 				$this->flashbag->add('error', "Entry '{$entry_str}' already exists in Map '{$mapdescr}'");
-				return new RedirectResponse($this->mapAddEntryUrl );
+				return new RedirectResponse($this->getMapAddEntryUrl($map) );
 			}
 
 			// add entry
@@ -777,7 +768,7 @@ class MapController extends ViewController
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
-					return new RedirectResponse($this->mapAddEntryUrl);
+					return new RedirectResponse($this->getMapAddEntryUrl($map));
 				}
 			/* deprecated
 			} elseif ($this->is_admin && $model === 'MapGeneric') {
@@ -786,7 +777,7 @@ class MapController extends ViewController
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
-					return new RedirectResponse($this->mapAddEntryUrl);
+					return new RedirectResponse($this->getMapAddEntryUrl($map));
 				}
 			*/
 			} elseif ($this->is_admin && $model === 'MapCustom') {
@@ -795,7 +786,7 @@ class MapController extends ViewController
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
-					return new RedirectResponse($this->mapAddEntryUrl);
+					return new RedirectResponse($this->getMapAddEntryUrl($map));
 				}
 			} else {
 				$this->fileLogger->warning("User {$this->username} tried to add map in " . $this->request->getPathInfo() . " with wrong model {$model} or non admin rights");
@@ -913,7 +904,7 @@ class MapController extends ViewController
 
 			if (empty($data)) {
 				$this->flashbag->add('error', "Empty map data");
-				return new RedirectResponse($this->mapAddEntryUrl);
+				return new RedirectResponse($this->getMapAddEntryUrl($map));
 			}
 
 			// generate entry string for logs/flashbag
@@ -1534,6 +1525,12 @@ class MapController extends ViewController
 		return $this->is_admin
 			? $this->url(RouteName::ADMIN_MAP_SHOW, ['map' => $map])
 			: $this->url(RouteName::MAP_SHOW, ['map' => $map]);
+	}
+
+	private function getMapAddEntryUrl(string $map): string {
+		return $this->is_admin
+			? $this->url(RouteName::ADMIN_MAP_ADD_ENTRY, ['map' => $map])
+			: $this->url(RouteName::MAP_ADD_ENTRY, ['map' => $map]);
 	}
 
 }
