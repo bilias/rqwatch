@@ -50,7 +50,7 @@ class MapController extends ViewController
 	protected string $mapShowAllCustomUrl;
 	protected string $mapAddEntryUrl;
 	protected ?string $showCustomMapsConfigUrl = null;
-	protected string $mapsCustomAddUrl;
+	protected ?string $mapsCustomAddUrl = null;
 	protected string $mapSearchEntryUrl;
 
 	public function __construct() {
@@ -376,13 +376,13 @@ class MapController extends ViewController
 			$data = $mapform->getData();
 			if (empty($data['map_name'])) {
 				$this->flashbag->add('error', "Map Name empty");
-				return new RedirectResponse($this->mapsCustomAddUrl);
+				return new RedirectResponse($this->getMapsCustomAddUrl());
 			}
 			$data['map_name'] = strtolower(trim($data['map_name']));
 
 			if (empty($data['field_name'])) {
 				$this->flashbag->add('error', "Field Name empty");
-				return new RedirectResponse($this->mapsCustomAddUrl);
+				return new RedirectResponse($this->getMapsCustomAddUrl());
 			}
 			$data['field_name'] = trim($data['field_name']);
 			$data['map_description'] = trim($data['map_description']);
@@ -394,11 +394,11 @@ class MapController extends ViewController
 			$map_name = $data['map_name'];
 			if ($map_name === 'manage_custom_maps') {
 				$this->flashbag->add('error', "Map name '{$map_name}' is not allowed!");
-				return new RedirectResponse($this->mapsCustomAddUrl);
+				return new RedirectResponse($this->getMapsCustomAddUrl());
 			}
 			if ($service->mapExists($map_name)) {
 				$this->flashbag->add('error', "Map '{$map_name}' already exists!");
-				return new RedirectResponse($this->mapsCustomAddUrl);
+				return new RedirectResponse($this->getMapsCustomAddUrl());
 			}
 
 			// add entry
@@ -408,7 +408,7 @@ class MapController extends ViewController
 				return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 			} else {
 				$this->flashbag->add('error', "Custom map '{$map_name}' creation problem. Check logs.");
-				return new RedirectResponse($this->mapsCustomAddUrl);
+				return new RedirectResponse($this->getMapsCustomAddUrl());
 			}
 		}
 
@@ -466,13 +466,13 @@ class MapController extends ViewController
 			$data = $mapform->getData();
 			if (empty($data['map_name'])) {
 				$this->flashbag->add('error', "Map Name empty");
-				return new RedirectResponse($this->mapsCustomAddUrl);
+				return new RedirectResponse($this->getMapsCustomAddUrl());
 			}
 			$data['map_name'] = strtolower(trim($data['map_name']));
 
 			if (empty($data['field_name'])) {
 				$this->flashbag->add('error', "Field Name empty");
-				return new RedirectResponse($this->mapsCustomAddUrl);
+				return new RedirectResponse($this->getMapsCustomAddUrl());
 			}
 			$data['field_name'] = trim($data['field_name']);
 			$data['map_description'] = trim($data['map_description']);
@@ -1489,6 +1489,14 @@ class MapController extends ViewController
 		}
 
 		return $this->showCustomMapsConfigUrl;
+	}
+
+	private function getMapsCustomAddUrl(): string {
+		if ($this->mapsCustomAddUrl === null) {
+			$this->mapsCustomAddUrl = $this->url(RouteName::ADMIN_MAPS_CUSTOM_ADD);
+		}
+
+		return $this->mapsCustomAddUrl;
 	}
 
 }
