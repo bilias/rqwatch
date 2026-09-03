@@ -45,7 +45,9 @@ class MetadataImporterApi extends RqwatchApi
 
 	#[\Override]
 	protected function getAllowedIps(): array {
-		return array_map('trim', explode(',', $_ENV['RSPAMD_API_ACL']));
+		return array_values(array_filter(
+			array_map('trim', explode(',', (string)($_ENV['RSPAMD_API_ACL'] ?? '')))
+		));
 	}
 
 	#[\Override]
