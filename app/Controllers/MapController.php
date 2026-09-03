@@ -43,7 +43,7 @@ class MapController extends ViewController
 	protected int $max_items;
 
 	protected bool $mapUrlsInitialized = false;
-	protected string $mapsUrl;
+	protected ?string $mapsUrl = null;
 	protected string $maps_url_base;
 	protected string $mapShowUrl;
 	protected string $mapShowAllUrl;
@@ -221,7 +221,7 @@ class MapController extends ViewController
 
 			if (empty($map_custom_entries)) {
 				$this->flashbag->add('info', 'No map entries exist');
-				return new RedirectResponse($this->mapsUrl);
+				return new RedirectResponse($this->getMapsUrl());
 			}
 			foreach ($map_custom_entries as $key => $map_entry) {
 				// add map description
@@ -245,7 +245,7 @@ class MapController extends ViewController
 
 			if (empty($map_comb_entries)) {
 				$this->flashbag->add('info', 'No map entries exist');
-				return new RedirectResponse($this->mapsUrl);
+				return new RedirectResponse($this->getMapsUrl());
 			}
 
 			foreach ($map_comb_entries as $key => $map_entry) {
@@ -560,7 +560,7 @@ class MapController extends ViewController
 
 		if (empty($map)) {
 			$this->flashbag->add('error', 'No map selected');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$this->initMapUrls($map);
@@ -570,7 +570,7 @@ class MapController extends ViewController
 
 		if (!$config || !array_key_exists('fields', $config)) {
 			$this->flashbag->add('error', 'Invalid map selected');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$fields = $config['fields'];
@@ -623,7 +623,7 @@ class MapController extends ViewController
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to show map in " . $this->request->getPathInfo() . " with wrong model {$config['model']} or non admin rights");
 			$this->flashbag->add('error', 'Error in map');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$sf_data = [
@@ -692,7 +692,7 @@ class MapController extends ViewController
 
 		if (empty($map)) {
 			$this->flashbag->add('error', 'No map selected');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		// redo with map
@@ -705,7 +705,7 @@ class MapController extends ViewController
 		if (!$config || !array_key_exists('map_form', $config)) {
 			$this->fileLogger->warning("User {$this->username} tried to add map entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$mapdescr = $config['description'];
@@ -831,12 +831,12 @@ class MapController extends ViewController
 
 		if (empty($map)) {
 			$this->flashbag->add('error', 'No map selected');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		if (empty($id) || !is_int($id)) {
 			$this->flashbag->add('error', 'Invalid map entry id');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		// enable form rendering support
@@ -869,7 +869,7 @@ class MapController extends ViewController
 		if (!$config || !array_key_exists('map_form', $config)) {
 			$this->fileLogger->warning("User {$this->username} tried to edit map entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$mapdescr = $config['description'];
@@ -883,7 +883,7 @@ class MapController extends ViewController
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to edit entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		// Dynamically call the correct form class's `create()` method
@@ -1030,7 +1030,7 @@ class MapController extends ViewController
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			$this->initMapUrls();
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		if (!is_null($id) and is_int($id)) {
@@ -1041,7 +1041,7 @@ class MapController extends ViewController
 				$this->fileLogger->warning("User {$this->username} tried to del map entry in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
 				$this->flashbag->add('error', 'Invalid map selected');
 				$this->initMapUrls();
-				return new RedirectResponse($this->mapsUrl);
+				return new RedirectResponse($this->getMapsUrl());
 			}
 
 			$model = $config['model'];
@@ -1059,7 +1059,7 @@ class MapController extends ViewController
 				$this->fileLogger->warning("User {$this->username} tried to del entry in " . $this->request->getPathInfo() . " without admin authorization");
 				$this->flashbag->add('error', 'Invalid map selected');
 				$this->initMapUrls();
-				return new RedirectResponse($this->mapsUrl);
+				return new RedirectResponse($this->getMapsUrl());
 			}
 
 			if (!empty($map_entry)) {
@@ -1098,7 +1098,7 @@ class MapController extends ViewController
 					$this->fileLogger->warning("User '{$this->username}' tried to access " . $this->request->getPathInfo() . " without admin authorization");
 					$this->flashbag->add('error', "Permission denied");
 					$this->initMapUrls();
-					return new RedirectResponse($this->mapsUrl);
+					return new RedirectResponse($this->getMapsUrl());
 				}
 			} else {
 				$this->flashbag->add('error', "Map entry not found");
@@ -1112,7 +1112,7 @@ class MapController extends ViewController
 			$url = $this->mapShowUrl;
 		} else {
 			$this->initMapUrls();
-			$url = $this->mapsUrl;
+			$url = $this->getMapsUrl();
 		}
 		return new RedirectResponse($url);
 	}
@@ -1124,7 +1124,7 @@ class MapController extends ViewController
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			$this->initMapUrls();
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
@@ -1133,7 +1133,7 @@ class MapController extends ViewController
 			$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			$this->initMapUrls();
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$model = $config['model'];
@@ -1142,14 +1142,14 @@ class MapController extends ViewController
 			$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " for an invalid map");
 			$this->flashbag->add('error', 'Invalid map selected');
 			$this->initMapUrls();
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		if (!$this->is_admin && ($model === 'MapCustom')) {
 			$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Permission denied');
 			$this->initMapUrls();
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$mapdescr = $config['description'] ?? null;
@@ -1169,7 +1169,7 @@ class MapController extends ViewController
 			$this->fileLogger->warning("User '{$this->username}' tried to access " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			$this->initMapUrls();
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		if (!empty($map)) {
@@ -1177,7 +1177,7 @@ class MapController extends ViewController
 			$url = $this->mapShowUrl;
 		} else {
 			$this->initMapUrls();
-			$url = $this->mapsUrl;
+			$url = $this->getMapsUrl();
 		}
 		return new RedirectResponse($url);
 	}
@@ -1209,18 +1209,18 @@ class MapController extends ViewController
 
 		if (empty($map_search_form['model'])) {
 			$this->flashbag->add('error', 'Search Model empty');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$model = $map_search_form['model'];
 		if ($model !== 'MapCombined' && $model !== 'MapCustom') {
 			$this->flashbag->add('error', 'Wrong search Model');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		if (empty($map_search_form['field'])) {
 			$this->flashbag->add('error', 'Search field empty');
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 		$search = $map_search_form['field'];
 
@@ -1253,7 +1253,7 @@ class MapController extends ViewController
 
 			if (empty($map_custom_entries)) {
 				$this->flashbag->add('info', 'No map entries exist');
-				return new RedirectResponse($this->mapsUrl);
+				return new RedirectResponse($this->getMapsUrl());
 			}
 			foreach ($map_custom_entries as $key => $map_entry) {
 				// add map description
@@ -1276,7 +1276,7 @@ class MapController extends ViewController
 
 			if (empty($map_comb_entries)) {
 				$this->flashbag->add('info', 'No map entries exist');
-				return new RedirectResponse($this->mapsUrl);
+				return new RedirectResponse($this->getMapsUrl());
 			}
 
 			foreach ($map_comb_entries as $key => $map_entry) {
@@ -1325,7 +1325,7 @@ class MapController extends ViewController
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			$this->initMapUrls();
-			return new RedirectResponse($this->mapsUrl);
+			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		if (!is_null($id) and is_int($id)) {
@@ -1336,7 +1336,7 @@ class MapController extends ViewController
 				$this->fileLogger->warning("User {$this->username} tried to toggle map entry in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
 				$this->flashbag->add('error', 'Invalid map selected');
 				$this->initMapUrls();
-				return new RedirectResponse($this->mapsUrl);
+				return new RedirectResponse($this->getMapsUrl());
 			}
 
 			$model = $config['model'];
@@ -1354,7 +1354,7 @@ class MapController extends ViewController
 				$this->fileLogger->warning("User {$this->username} tried to toggle entry in " . $this->request->getPathInfo() . " without admin authorization");
 				$this->flashbag->add('error', 'Invalid map selected');
 				$this->initMapUrls();
-				return new RedirectResponse($this->mapsUrl);
+				return new RedirectResponse($this->getMapsUrl());
 			}
 
 			if (!empty($map_entry)) {
@@ -1394,7 +1394,7 @@ class MapController extends ViewController
 					$this->fileLogger->warning("User '{$this->username}' tried to access " . $this->request->getPathInfo() . " without admin authorization");
 					$this->flashbag->add('error', "Permission denied");
 					$this->initMapUrls();
-					return new RedirectResponse($this->mapsUrl);
+					return new RedirectResponse($this->getMapsUrl());
 				}
 			} else {
 				$this->flashbag->add('error', "Map entry not found");
@@ -1408,7 +1408,7 @@ class MapController extends ViewController
 			$url = $this->mapShowUrl;
 		} else {
 			$this->initMapUrls();
-			$url = $this->mapsUrl;
+			$url = $this->getMapsUrl();
 		}
 		return new RedirectResponse($url);
 	}
@@ -1460,7 +1460,7 @@ class MapController extends ViewController
 			'role' => $this->getRole(),
 			'model' => $model,
 			'form_name' => $form_name,
-			'action' => $this->mapsUrl,
+			'action' => $this->getMapsUrl(),
 		];
 
 		$form = MapSelectForm::create($this->formFactory, $this->request, null, $options);
@@ -1471,6 +1471,16 @@ class MapController extends ViewController
 
 	private function getMapsUrlBase(): string {
 		return $this->maps_url_base;
+	}
+
+	private function getMapsUrl(): string {
+		if ($this->mapsUrl === null) {
+			$this->mapsUrl = $this->is_admin
+				? $this->url(RouteName::ADMIN_MAPS)
+				: $this->url(RouteName::MAPS);
+		}
+
+		return $this->mapsUrl;
 	}
 
 }
