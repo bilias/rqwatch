@@ -229,7 +229,7 @@ class UserController extends ViewController
 		]));
 	}
 
-	public function showOne(int $id = null): Response {
+	public function showOne(?int $id = null): Response {
 		$this->twigFormView($this->request);
 
 		// generate and handle qid form

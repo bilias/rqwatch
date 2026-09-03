@@ -135,7 +135,7 @@ class Helper {
 	}
 
 	// change class depending on symbol
-	public static function get_symbol_class(string $symbol = null): string {
+	public static function get_symbol_class(?string $symbol = null): string {
 		if (!empty($symbol)) {
 			$check[0]['name'] = $symbol;
 			if (self::checkForWhitelist($check)) {
@@ -838,7 +838,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 		return true;
 	}
 
-	public static function toUtcTimestamp(string $datetime, string $fromTz = null): int {
+	public static function toUtcTimestamp(string $datetime, ?string $fromTz = null): int {
 		$fromTz = $fromTz ?? date_default_timezone_get();
 		$date = new DateTime($datetime, new DateTimeZone($fromTz));
 		$date->setTimezone(new DateTimeZone('UTC'));

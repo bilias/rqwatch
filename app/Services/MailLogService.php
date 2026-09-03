@@ -420,7 +420,7 @@ class MailLogService
 		return $logs;
 	}
 
-	public function showResults(array $filters, array $fields = null): ?Collection {
+	public function showResults(array $filters, ?array $fields = null): ?Collection {
 		$lf = "MailLogService_showResults";
 
 		if (!$fields) {

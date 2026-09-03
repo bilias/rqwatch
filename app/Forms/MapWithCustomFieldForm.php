@@ -84,7 +84,7 @@ class MapWithCustomFieldForm extends AbstractType
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,
-			array $data = null,
+			?array $data = null,
 			array $options = []): FormInterface {
 
 		// Merge class with any existing class

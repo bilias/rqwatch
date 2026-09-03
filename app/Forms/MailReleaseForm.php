@@ -75,7 +75,7 @@ class MailReleaseForm extends AbstractType
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,
-			array $data = null,
+			?array $data = null,
 			array $options = []): FormInterface {
 
 		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);

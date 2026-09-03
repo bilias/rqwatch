@@ -266,7 +266,7 @@ class MailLogController extends ViewController
 		]));
 	}
 
-	public function showDay(string $date = null): Response {
+	public function showDay(?string $date = null): Response {
 	$this->getAdminWarnings();
 		// enable form rendering support
 		$this->twigFormView($this->request);
@@ -309,7 +309,7 @@ class MailLogController extends ViewController
 		]));
 	}
 
-	public function showQuarantineDay(string $date = null): Response {
+	public function showQuarantineDay(?string $date = null): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -860,7 +860,7 @@ class MailLogController extends ViewController
 		return new RedirectResponse($this->searchUrl);
 	}
 
-	public function search_filter_del(int $filter_id = null): RedirectResponse {
+	public function search_filter_del(?int $filter_id = null): RedirectResponse {
 
 		// user asked to delete a specific filter number
 		if (!is_null($filter_id) and is_int($filter_id)) {

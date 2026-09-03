@@ -160,7 +160,7 @@ class UserForm extends AbstractType
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,
-			array $data = null,
+			?array $data = null,
 			array $options = []
 	): FormInterface {
 

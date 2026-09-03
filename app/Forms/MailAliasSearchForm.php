@@ -63,7 +63,7 @@ class MailAliasSearchForm extends AbstractType
 			FormFactoryInterface $formFactory,
 			Request $request,
 			UrlGeneratorInterface $urlGenerator,
-			array $data = null
+			?array $data = null
 	): FormInterface {
 
 		$url = $urlGenerator->generate(RouteName::ADMIN_ALIASES_SEARCH->value);
