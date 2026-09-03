@@ -134,7 +134,10 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		$ip        = $meta['ip'] ?? null;
 		$mail_from = $meta['from'] ?? null;
 		$subject   = $meta['subject'] ?? null;
-		$size      = isset($meta['size']) ? (int)$meta['size'] : null;
+
+		$size      = (isset($meta['size']) && is_numeric($meta['size']))
+			? (int)$meta['size']
+			: null;
 
 		$rcptArr = [];
 		if (isset($meta['rcpt'])) {
