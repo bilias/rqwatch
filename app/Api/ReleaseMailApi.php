@@ -61,8 +61,27 @@ class ReleaseMailApi extends RqwatchApi
 				Response::HTTP_BAD_REQUEST, $response_msg,
 				$err_msg, 'critical');
 		}
+
 		$release_to = $post['email'];
-		
+
+		if (!is_array($release_to) || empty($release_to)) {
+			$err_msg = "{$remote_user} via {$this->clientIp} requested mail release of mail with id {$id} with a non-array destination email";
+			$response_msg = "Missing Required info";
+			$this->dropLogResponse(
+				Response::HTTP_BAD_REQUEST, $response_msg,
+				$err_msg, 'critical');
+		}
+
+		foreach ($release_to as $email) {
+			if (!is_string($email) || filter_var(trim($email), FILTER_VALIDATE_EMAIL) === false) {
+				$err_msg = "{$remote_user} via {$this->clientIp} requested mail release of mail with id {$id} with an invalid destination email";
+				$response_msg = "Invalid destination email";
+				$this->dropLogResponse(
+					Response::HTTP_BAD_REQUEST, $response_msg,
+					$err_msg, 'critical');
+			}
+		}
+
 		$service = new MailLogService();
 
 		try {
