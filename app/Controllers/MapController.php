@@ -51,7 +51,7 @@ class MapController extends ViewController
 	protected string $mapAddEntryUrl;
 	protected ?string $showCustomMapsConfigUrl = null;
 	protected ?string $mapsCustomAddUrl = null;
-	protected string $mapSearchEntryUrl;
+	protected ?string $mapSearchEntryUrl = null;
 
 	public function __construct() {
 		parent::__construct();
@@ -1183,6 +1183,12 @@ class MapController extends ViewController
 	}
 
 	public function searchMapEntry(): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to search map entries without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getMapsUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -1243,12 +1249,12 @@ class MapController extends ViewController
 
 		$this->initMapUrls();
 
-		if ($this->is_admin and $model === 'MapCustom') {
+		if ($model === 'MapCustom') {
 			$map_comb_entries = null;
 			$map_comb_total = null;
 			$map_gen_entries = null;
 			$map_gen_total = null;
-			$map_custom_entries = $service->searchPaginatedMapCustom($page, $this->mapSearchEntryUrl, $search, $map_name);
+			$map_custom_entries = $service->searchPaginatedMapCustom($page, $this->getMapSearchEntryUrl(), $search, $map_name);
 			$map_custom_total = $map_custom_entries->total();
 
 			if (empty($map_custom_entries)) {
@@ -1272,7 +1278,7 @@ class MapController extends ViewController
 			$filter_maps = MapInventory::getMapsByModel($model, $configs);
 
 			// has applyUserRcptToScope and filter maps on model
-			$map_comb_entries = $service->searchPaginatedMapCombined($page, $this->mapSearchEntryUrl, $filter_maps, $search, $map_name);
+			$map_comb_entries = $service->searchPaginatedMapCombined($page, $this->getMapSearchEntryUrl(), $filter_maps, $search, $map_name);
 
 			if (empty($map_comb_entries)) {
 				$this->flashbag->add('info', 'No map entries exist');
@@ -1497,6 +1503,14 @@ class MapController extends ViewController
 		}
 
 		return $this->mapsCustomAddUrl;
+	}
+
+	private function getMapSearchEntryUrl(): string {
+		if ($this->mapSearchEntryUrl === null) {
+			$this->mapSearchEntryUrl = $this->url(RouteName::ADMIN_MAP_SEARCH_ENTRY);
+		}
+
+		return $this->mapSearchEntryUrl;
 	}
 
 }
