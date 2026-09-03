@@ -73,11 +73,6 @@ class MetadataImporterApi extends RqwatchApi
 			);
 		}
 
-		$parser = new Parser();
-		if (!empty($rawEmail)) {
-			$parser->setText($rawEmail);
-		}
-		
 		mb_internal_encoding('UTF-8');
 		
 		$web_headers = getallheaders();
@@ -114,6 +109,12 @@ class MetadataImporterApi extends RqwatchApi
 		// $parser = new Parser();
 		// $parser->setStream(fopen("php://input", "r"));
 		
+		// Body comes from Request::getContent() rather than php://input
+		$parser = new Parser();
+		if (!empty($rawEmail)) {
+			$parser->setText($rawEmail);
+		}
+
 		// return all headers as a string, no charset conversion
 		$stringHeaders = trim($parser->getHeadersRaw());
 		

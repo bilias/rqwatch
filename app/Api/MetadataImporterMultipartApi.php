@@ -101,16 +101,29 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			);
 		}
 
-		$parser = new Parser();
-		if (!empty($rawEmail)) {
-			$parser->setText($rawEmail);
+		// $meta comes from an external JSON body. A non-scalar where we expect
+		// a scalar would corrupt the row or throw on a typed parameter
+		// (store_raw_mail). Treat it as absent rather than dropping the mail.
+		foreach (['qid', 'score', 'action', 'ip', 'from', 'subject', 'size'] as $k) {
+			if (isset($meta[$k]) && !is_scalar($meta[$k])) {
+				$this->fileLogger->warning(
+					"[{$this->logPrefix}] non-scalar value for metadata field '{$k}'; ignoring it"
+				);
+				$meta[$k] = null;
+			}
 		}
-		
+
 		mb_internal_encoding('UTF-8');
 		
 		$qid       = $meta['qid'] ?? null;
 		$score     = $meta['score'] ?? null;
 		$action    = $meta['action'] ?? null;
+		$ip        = $meta['ip'] ?? null;
+		$mail_from = $meta['from'] ?? null;
+		$subject   = $meta['subject'] ?? null;
+		$size      = (isset($meta['size']) && is_numeric($meta['size']))
+			? (int)$meta['size']
+			: null;
 
 		$scoreMissing = !isset($score) || !is_numeric($score);
 
@@ -130,14 +143,6 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		} elseif ($fuzzy === 'unknown' || $fuzzy === null || $fuzzy === '') {
 			$fuzzy = '[]';
 		}
-
-		$ip        = $meta['ip'] ?? null;
-		$mail_from = $meta['from'] ?? null;
-		$subject   = $meta['subject'] ?? null;
-
-		$size      = (isset($meta['size']) && is_numeric($meta['size']))
-			? (int)$meta['size']
-			: null;
 
 		$rcptArr = [];
 		if (isset($meta['rcpt'])) {
@@ -160,6 +165,13 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		// moved to HttpFoundation
 		// $parser = new Parser();
 		// $parser->setStream(fopen("php://input", "r"));
+
+		// Parse the raw message only after metadata validation has passed, so
+		// a rejected request does not pay for the MIME parse. Body comes from
+		// the uploaded 'message' part - php://input is not readable for
+		// multipart/form-data requests.
+		$parser = new Parser();
+		$parser->setText($rawEmail);
 		
 		// return all headers as a string, no charset conversion
 		$stringHeaders = trim($parser->getHeadersRaw());
