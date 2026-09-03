@@ -46,7 +46,7 @@ class MapController extends ViewController
 	protected ?string $mapsUrl = null;
 	protected string $maps_url_base;
 	protected string $mapShowUrl;
-	protected string $mapShowAllUrl;
+	protected ?string $mapShowAllUrl = null;
 	protected ?string $mapShowAllCustomUrl = null;
 	protected string $mapAddEntryUrl;
 	protected ?string $showCustomMapsConfigUrl = null;
@@ -241,7 +241,7 @@ class MapController extends ViewController
 			$filter_maps = MapInventory::getMapsByModel($model, $configs);
 
 			// has applyUserRcptToScope and filter maps on model
-			$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->mapShowAllUrl, $filter_maps);
+			$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->getMapShowAllUrl(), $filter_maps);
 
 			if (empty($map_comb_entries)) {
 				$this->flashbag->add('info', 'No map entries exist');
@@ -1521,6 +1521,16 @@ class MapController extends ViewController
 		}
 
 		return $this->mapShowAllCustomUrl;
+	}
+
+	private function getMapShowAllUrl(): string {
+		if ($this->mapShowAllUrl === null) {
+			$this->mapShowAllUrl = $this->is_admin
+				? $this->url(RouteName::ADMIN_MAP_SHOW_ALL)
+				: $this->url(RouteName::MAP_SHOW_ALL);
+		}
+
+		return $this->mapShowAllUrl;
 	}
 
 }
