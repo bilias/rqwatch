@@ -193,7 +193,7 @@ class GetMapApi extends RqwatchApi
 
 	protected function respondNotModified(string $etag, int $lastModified): void {
 		$response = new Response('', Response::HTTP_NOT_MODIFIED, [
-			'ETag' => $etag,
+			'ETag' => '"' . $etag . '"',
 			'Last-Modified' => gmdate('D, d M Y H:i:s', $lastModified) . ' GMT',
 		]);
 
