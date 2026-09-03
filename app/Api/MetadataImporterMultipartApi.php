@@ -112,7 +112,9 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		$score     = $meta['score'] ?? null;
 		$action    = $meta['action'] ?? null;
 
-		if (empty($qid) && empty($score) && empty($action)) {
+		$scoreMissing = !isset($score) || !is_numeric($score);
+
+		if (empty($qid) && $scoreMissing && empty($action)) {
 			$this->fileLogger->error("qid, score and action missing");
 			$msg = "qid, score and action missing";
 			$this->dropLogResponse(
