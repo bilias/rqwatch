@@ -41,14 +41,14 @@ class Routes
 
 		$routes->add(RouteName::CONFIG_RELOAD->value, new Route(
 			'/admin/config/reload', // path
-			[ '_controller' => 'App\\Controllers\\Controller::redisConfigReload',
+			[ '_controller' => 'App\\Controllers\\SystemController::redisConfigReload',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
 
 		$routes->add(RouteName::DNS_FLUSH->value, new Route(
 			'/admin/dns/flush', // path
-			[ '_controller' => 'App\\Controllers\\Controller::dnsFlush',
+			[ '_controller' => 'App\\Controllers\\SystemController::dnsFlush',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 		));
