@@ -51,8 +51,8 @@ class CustomMapConfigForm extends AbstractType
 							max: 128,
 						),
 						new Assert\Regex(
-							pattern: '/^[a-z0-9._\-]+$/',
-							message: 'Only lowercase letters, numbers and ._- are allowed',
+							pattern: '/^[a-z0-9_\-]+$/',
+							message: 'Only lowercase letters, numbers and _- are allowed',
 						),
 					 ],
             ])

@@ -510,7 +510,7 @@ class Routes
 			[ '_controller' => 'App\\Controllers\\MapController::showMap',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
-			[ 'map' => '[a-zA-Z_0-9]{1,64}' ] // requirements
+			[ 'map' => '[a-z_0-9_\-]{1,64}' ] // requirements
 		));
 
 		$routes->add(RouteName::MAP_SHOW->value, new Route(
@@ -518,7 +518,7 @@ class Routes
 			[ '_controller' => 'App\\Controllers\\MapController::showMap',
 			  '_middleware' => $userMiddlewareClasses,
 			],
-			[ 'map' => '[a-zA-Z_]{1,64}' ] // requirements
+			[ 'map' => '[a-z_0-9_\-]{1,64}' ] // requirements
 		));
 
 		$routes->add(RouteName::ADMIN_MAP_ADD_ENTRY->value, new Route(
@@ -526,7 +526,7 @@ class Routes
 			[ '_controller' => 'App\\Controllers\\MapController::addMapEntry',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
-			[ 'map' => '[a-zA-Z_0-9]{1,64}' ] // requirements
+			[ 'map' => '[a-z_0-9_\-]{1,64}' ] // requirements
 		));
 
 		$routes->add(RouteName::MAP_ADD_ENTRY->value, new Route(
@@ -534,7 +534,7 @@ class Routes
 			[ '_controller' => 'App\\Controllers\\MapController::addMapEntry',
 			  '_middleware' => $userMiddlewareClasses,
 			],
-			[ 'map' => '[a-zA-Z_]{1,64}' ] // requirements
+			[ 'map' => '[a-z_0-9_\-]{1,64}' ] // requirements
 		));
 
 		$routes->add(RouteName::ADMIN_MAP_EDIT_ENTRY->value, new Route(
@@ -543,7 +543,7 @@ class Routes
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 			// requirements
-			[ 'map' => '[a-zA-Z_0-9]{1,64}',
+			[ 'map' => '[a-z_0-9_\-]{1,64}',
 			  'id' => '\d{1,8}',
 			]
 		));
@@ -554,7 +554,7 @@ class Routes
 			  '_middleware' => $userMiddlewareClasses,
 			],
 			// requirements
-			[ 'map' => '[a-zA-Z_]{1,64}',
+			[ 'map' => '[a-z_0-9_\-]{1,64}',
 			  'id' => '\d{1,8}'
 			]
 		));
@@ -564,7 +564,7 @@ class Routes
 			[ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
-			[ 'map' => '[a-zA-Z_0-9]{1,64}' ] // requirements
+			[ 'map' => '[a-z_0-9_\-]{1,64}' ] // requirements
 		));
 
 		$routes->add(RouteName::MAP_DEL_ALL_ENTRIES->value, new Route(
@@ -572,7 +572,7 @@ class Routes
 			[ '_controller' => 'App\\Controllers\\MapController::delMapAllEntries',
 			  '_middleware' => $userMiddlewareClasses,
 			],
-			[ 'map' => '[a-zA-Z_]{1,64}' ] // requirements
+			[ 'map' => '[a-z_0-9_\-]{1,64}' ] // requirements
 		));
 
 		$routes->add(RouteName::ADMIN_MAP_DEL_ENTRY->value, new Route(
@@ -581,7 +581,7 @@ class Routes
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 			// requirements
-			[ 'map' => '[a-zA-Z_0-9]{1,64}',
+			[ 'map' => '[a-z_0-9_\-]{1,64}',
 			  'id' => '\d{1,8}',
 			]
 		));
@@ -592,7 +592,7 @@ class Routes
 			  '_middleware' => $userMiddlewareClasses,
 			],
 			// requirements
-			[ 'map' => '[a-zA-Z_]{1,64}',
+			[ 'map' => '[a-z_0-9_\-]{1,64}',
 			  'id' => '\d{1,8}',
 			]
 		));
@@ -603,7 +603,7 @@ class Routes
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 			// requirements
-			[ 'map' => '[a-zA-Z_0-9]{1,64}',
+			[ 'map' => '[a-z_0-9_\-]{1,64}',
 			  'id' => '\d{1,8}',
 			]
 		));
@@ -614,7 +614,7 @@ class Routes
 			  '_middleware' => $userMiddlewareClasses,
 			],
 			// requirements
-			[ 'map' => '[a-zA-Z_]{1,64}',
+			[ 'map' => '[a-z_0-9_\-]{1,64}',
 			  'id' => '\d{1,8}',
 			]
 		));
