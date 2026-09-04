@@ -292,8 +292,6 @@ class Controller
 	}
 
 	public function redisConfigReload(): Response {
-		$this->initUrls();
-
 		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to reload config in redis without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
@@ -337,8 +335,6 @@ class Controller
 	}
 
 	public function dnsFlush(): Response {
-		$this->initUrls();
-
 		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to flush DNS cache without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
