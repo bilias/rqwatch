@@ -43,6 +43,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 use Illuminate\Database\Capsule\Manager as DB;
 
+use App\Core\Routing\RouteName;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
 use Symfony\Component\Console\Output\OutputInterface;
 
 use PhpMimeMailParser\Parser;
@@ -1239,7 +1242,11 @@ class MailLogService
 		return false;
 	}
 
-	public function notifyHtmlMail(MailLog $maillog, string $detailurl, ?Environment $twig = null): bool {
+	public function notifyHtmlMail(
+		MailLog $maillog,
+		UrlGeneratorInterface $urlGenerator,
+		?Environment $twig = null
+	): bool {
 
 		$mailer = new MailerService($this->logger, $twig);
 		$from = $_ENV['MAILER_FROM'];
@@ -1272,7 +1279,35 @@ class MailLogService
 		$sent = 0;
 		$failed = [];
 
+		$detailurl = $urlGenerator->generate(
+			RouteName::DETAIL->value,
+			[ 'type' => 'id', 'value' => $maillog->id ],
+			UrlGeneratorInterface::ABSOLUTE_URL
+		);
+
+		// Password-less links need the recipients relation, because the token
+		// foreign key references mail_log_recipients. Decided once per mail.
+		$tokenService = null;
+
+		if (MailTokenService::isEnabled() && $maillog->relationLoaded('recipients')) {
+			$tokenService = new MailTokenService();
+		}
+
 		foreach ($recipients as $recipient) {
+			$url = $detailurl;
+
+			if ($tokenService !== null) {
+				$token = $tokenService->issueToken($maillog->id, $recipient);
+
+				if ($token !== null) {
+					$url = $urlGenerator->generate(
+						RouteName::TOKEN_CONFIRM->value,
+						[ 'token' => $token ],
+						UrlGeneratorInterface::ABSOLUTE_URL
+					);
+				}
+			}
+
 			$vars = array(
 				'created_at' => $maillog->created_at,
 				'subject'    => $maillog->subject,
@@ -1285,7 +1320,7 @@ class MailLogService
 				// this recipient only, not the whole rcpt_to list
 				'rcpt_to'    => $recipient,
 				'action'     => $maillog->action,
-				'detailurl'  => $detailurl,
+				'detailurl'  => $url,
 				'signature'  => $signature,
 			);
 

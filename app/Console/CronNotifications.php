@@ -260,18 +260,13 @@ class CronNotifications extends RqwatchCliCommand
 		$failed = 0;
 
 		foreach ($logs as $log) {
-			$detailurl = $urlGenerator->generate(RouteName::DETAIL->value, [
-				'type' => 'id',
-				'value' => $log->id,
-			], UrlGeneratorInterface::ABSOLUTE_URL);
-
 			if (empty($_ENV['MAILER_FROM'])) {
 				$output->writeln("<error>MAILER_FROM is empty. Please define it in .env{$local}</error>");
 				$this->syslogLogger->error("MAILER_FROM is empty. Please define it in .env{$local}");
 				return Command::FAILURE;
 			}
 
-			if (!$service->notifyHtmlMail($log, $detailurl)) {
+			if (!$service->notifyHtmlMail($log, $urlGenerator)) {
 				$failed++;
 				// keep going: one bad recipient must not block every later mail
 				$output->writeln("<error>Sending notification mail with QID: {$log->qid} to {$log->rcpt_to} failed{$local}</error>");
