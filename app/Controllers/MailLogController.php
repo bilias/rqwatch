@@ -41,9 +41,9 @@ class MailLogController extends ViewController
 {
 	private ?MailLogService $mailLogService = null;
 
-	protected int $q_items_per_page;
-	protected string $quarantine_dir;
-	protected bool $subject_privacy;
+	private int $q_items_per_page;
+	private string $quarantine_dir;
+	private bool $subject_privacy;
 
 	private ?string $searchResultsUrl = null;
 	private ?string $dayLogsUrl = null;
