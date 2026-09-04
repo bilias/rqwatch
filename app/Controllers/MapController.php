@@ -891,12 +891,6 @@ class MapController extends ViewController
 
 			$service = $this->getMapService();
 
-			if ($this->is_admin) {
-				$map_edit_url = $this->url(RouteName::ADMIN_MAP_EDIT_ENTRY, [ 'map' => $map, 'id' => $id ]);
-			} else {
-				$map_edit_url = $this->url(RouteName::MAP_EDIT_ENTRY, [ 'map' => $map, 'id' => $id ]);
-			}
-
 			// add entry
 			if ($model === 'MapCombined') {
 				// has applyUseScope
@@ -905,7 +899,7 @@ class MapController extends ViewController
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' update in Map {$mapdescr} failed");
-					return new RedirectResponse($map_edit_url);
+					return new RedirectResponse($getMapEditEntryUrl($map, $id));
 				}
 			} elseif ($this->is_admin && $model === 'MapCustom') {
 				//if($service->updateMapCustomEntry($map, $data[$fields[0]])) {
@@ -914,7 +908,7 @@ class MapController extends ViewController
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' update in Map {$mapdescr} failed");
-					return new RedirectResponse($map_edit_url);
+					return new RedirectResponse($getMapEditEntryUrl($map, $id));
 				}
 			} else {
 				$this->fileLogger->warning("User {$this->username} tried to update map in " . $this->request->getPathInfo() . " with wrong model {$model} or non admin rights");
@@ -1470,6 +1464,12 @@ class MapController extends ViewController
 		return $this->is_admin
 			? $this->url(RouteName::ADMIN_MAP_ADD_ENTRY, ['map' => $map])
 			: $this->url(RouteName::MAP_ADD_ENTRY, ['map' => $map]);
+	}
+
+	private function getMapEditEntryUrl(string $map, int $id): string {
+		return $this->is_admin
+			? $this->url(RouteName::ADMIN_MAP_EDIT_ENTRY, ['map' => $map, 'id' => $id])
+			: $this->url(RouteName::MAP_EDIT_ENTRY, ['map' => $map, 'id' => $id]);
 	}
 
 }
