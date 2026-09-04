@@ -89,7 +89,7 @@ class QuarantineController extends ViewController
 			'textBody' => $mailobject->getTextBody(),
 			'htmlBody' => Helper::normalizeToUtf8($mailobject->getHtmlBody()),
 			'virus_found' => $mailobject->getVirusFound(),
-			'released' => (bool) $mailobject->getMailLog()->released,
+			//'released' => (bool) $mailobject->getMailLog()->released,
 			//'symbols' => $mailobject->getSymbols(),
 		]));
 	}
@@ -120,11 +120,13 @@ class QuarantineController extends ViewController
 			return $this->tokenError();
 		}
 
+		/*
 		if ($maillog->released) {
 			return $this->tokenMessage(
 				'This message has already been released to your mailbox.'
 			);
 		}
+		*/
 
 		// destination is the token's recipient only
 		if (!$service->releaseHtmlMail([$tokenRow->recipient_email], $maillog, $this->twig)) {

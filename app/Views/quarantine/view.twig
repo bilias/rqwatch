@@ -103,14 +103,10 @@ No
 </div>
 
 <div class='maildetail'>
-{% if released %}
-<p class='center'>This message has already been released to your mailbox.</p>
-{% else %}
 <form method='post' action='{{ route('TOKEN_RELEASE', { token: token, _token: csrf_token('token_release') }) }}'
       onsubmit="return confirm('Release this message to your mailbox?')">
   <button type='submit'>Release to my mailbox</button>
 </form>
-{% endif %}
 </div>
 
 {% if textBody %}
