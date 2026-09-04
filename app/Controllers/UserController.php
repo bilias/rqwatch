@@ -139,6 +139,12 @@ class UserController extends ViewController
 	}
 
 	public function searchUser(): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to search user without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -193,6 +199,12 @@ class UserController extends ViewController
 	}
 
 	public function showAll(): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to show all users without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -230,6 +242,12 @@ class UserController extends ViewController
 	}
 
 	public function showOne(?int $id = null): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to show one user without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		$this->twigFormView($this->request);
 
 		// generate and handle qid form
@@ -334,6 +352,12 @@ class UserController extends ViewController
 	}
 
 	public function add(): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to add user without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -388,6 +412,12 @@ class UserController extends ViewController
 	}
 
 	public function edit(int $id): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to edit user without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
