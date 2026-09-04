@@ -892,11 +892,11 @@ class MailLogController extends ViewController
 			'mime_from' => 'mime_from_normalized',
 		];
 
-		foreach ($configs as $mapName => &$cfg) {
-			$route = $this->is_admin
-				? RouteName::ADMIN_MAP_ADD_ENTRY
-				: RouteName::MAP_ADD_ENTRY;
+		$route = $this->is_admin
+			? RouteName::ADMIN_MAP_ADD_ENTRY
+			: RouteName::MAP_ADD_ENTRY;
 
+		foreach ($configs as $mapName => &$cfg) {
 			$queryParams = ['map' => $mapName];
 
 			foreach ($cfg['fields'] ?? [] as $field) {
