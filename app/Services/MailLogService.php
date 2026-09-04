@@ -1274,7 +1274,8 @@ class MailLogService
 				'mime_from'  => $maillog->mime_from,
 				//'rcpt_to'    => $maillog->rcpt_to,
 				// this recipient only, not the whole rcpt_to list
-				'action'     => $recipient,
+				'rcpt_to'    => $recipient,
+				'action'     => $maillog->action,
 				'detailurl'  => $detailurl,
 				'signature'  => $signature,
 			);
