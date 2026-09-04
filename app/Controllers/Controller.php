@@ -64,7 +64,6 @@ class Controller
 	protected UrlGeneratorInterface $urlGenerator;
 
 	protected bool $urlsInitialized = false;
-	protected string $loginUrl;
 	protected ?string $homepageUrl = null;
 	protected ?string $searchUrl = null;
 
@@ -190,7 +189,6 @@ class Controller
 			return;
 		}
 
-		$this->loginUrl = $this->url(RouteName::LOGIN);
 		$this->urlsInitialized = true;
 	}
 

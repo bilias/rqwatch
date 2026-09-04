@@ -32,9 +32,17 @@ use Jumbojett\OpenIDConnectClientException;
 class LoginController extends ViewController
 {
 
-	public function logout(): Response {
-		$this->loginUrl = $this->url(RouteName::LOGIN);
+	protected ?string $loginUrl = null;
 
+	private function getLoginUrl(): string {
+      if ($this->loginUrl === null) {
+         $this->loginUrl = $this->url(RouteName::LOGIN);
+      }
+
+      return $this->loginUrl;
+   }
+
+	public function logout(): Response {
 		if ($this->username) {
 			$this->fileLogger->info("User logout: '{$this->username}'", [
 				'is_admin' => $this->is_admin,
@@ -55,16 +63,16 @@ class LoginController extends ViewController
 				return $this->logout_openidc();
 			}
 			// OPENIDC_RP_INITIATED_LOGOUT=false
-			$loginUrl = $this->request->getSchemeAndHttpHost()
-				. $this->loginUrl
+			$fullLoginUrl = $this->request->getSchemeAndHttpHost()
+				. $this->getLoginUrl()
 				. '?openidc_session_active=1';
 
 			$this->clearSession();
-			return new RedirectResponse($loginUrl);
+			return new RedirectResponse($fullLoginUrl);
 		}
 
 		$this->clearSession();
-		return new RedirectResponse($this->loginUrl);
+		return new RedirectResponse($this->getLoginUrl());
 	}
 
 	private function logout_openidc(): Response {
@@ -74,7 +82,7 @@ class LoginController extends ViewController
 
 		if (empty($idToken)) {
 			$this->fileLogger->warning('OPENIDC ID Token empty');
-			return new RedirectResponse($this->loginUrl);
+			return new RedirectResponse($this->getLoginUrl());
 		}
 
 		$postLogoutRedirectUrl = $this->request->getSchemeAndHttpHost() . $this->url(RouteName::LOGIN);
@@ -83,15 +91,15 @@ class LoginController extends ViewController
 		try {
 			if (!$auth->logoutOpenIdConnect($idToken)) {
 				$this->fileLogger->warning('OPENIDC logout could not be started');
-				return new RedirectResponse($this->loginUrl);
+				return new RedirectResponse($this->getLoginUrl());
 			}
 		} catch (\Throwable $e) {
 			$this->fileLogger->warning( 'OPENIDC logout failed: ' . $e->getMessage());
-			return new RedirectResponse($this->loginUrl);
+			return new RedirectResponse($this->getLoginUrl());
 		}
 
 		// unreachable
-		return new RedirectResponse($this->loginUrl);
+		return new RedirectResponse($this->getLoginUrl());
 	}
 
 	public function login(): Response {
@@ -107,7 +115,7 @@ class LoginController extends ViewController
 				$auth->getOpenIdConnectLogoutUrl()
 			);
 
-			return new RedirectResponse($this->loginUrl);
+			return new RedirectResponse($this->getLoginUrl());
 		}
 
 		if (!empty($this->session->get('username'))) {
@@ -149,13 +157,13 @@ class LoginController extends ViewController
 				);
 				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 				$this->flashbag->add('error', "Max wrong login attempts reached. Please try again later.");
-				return new RedirectResponse($this->loginUrl);
+				return new RedirectResponse($this->getLoginUrl());
 			}
 
 			if (empty($username) or empty($password)) {
 				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 				$this->flashbag->add('error', 'Login credentials missing');
-				return new RedirectResponse($this->loginUrl);
+				return new RedirectResponse($this->getLoginUrl());
 			}
 
 			$auth = new AuthManager($this->fileLogger);
@@ -183,7 +191,7 @@ class LoginController extends ViewController
 					$username = $auth->getAuthenticatedUser();
 					$this->fileLogger->error("Authenticated user '$username' not found in DB after auth");
 					$this->flashbag->add('error', "Authentication problem. Contact admin");
-					return new RedirectResponse($this->loginUrl);
+					return new RedirectResponse($this->getLoginUrl());
 				}
 
 				$this->refreshUrls();
@@ -205,10 +213,10 @@ class LoginController extends ViewController
 			if ($openidcLogoutUrl && $clientId) {
 				$separator = str_contains($openidcLogoutUrl, '?') ? '&' : '?';
 
-				$loginUrl = $this->request->getSchemeAndHttpHost() . $this->loginUrl;
+				$fullLoginUrl = $this->request->getSchemeAndHttpHost() . $this->getLoginUrl();
 				$openidcLogoutUrl .= $separator . http_build_query([
 					'client_id' => $clientId,
-					'post_logout_redirect_uri' => $loginUrl,
+					'post_logout_redirect_uri' => $fullLoginUrl,
 				]);
 			}
 		}
@@ -258,11 +266,11 @@ class LoginController extends ViewController
 		} catch (OpenIDConnectClientException $e) {
 			$this->fileLogger->warning("OPENIDC startOpenIdConnectAuthentication() failed with error: " . $e->getMessage());
 			$this->flashbag->add('error', "The '{$_ENV['OPENIDC_LABEL']}' service is currently unavailable");
-			return new RedirectResponse($this->loginUrl);
+			return new RedirectResponse($this->getLoginUrl());
 		} catch (\Throwable $e) {
 			$this->fileLogger->warning("OPENIDC startOpenIdConnectAuthentication() failed with error: " . $e->getMessage());
 			$this->flashbag->add('error', "Authentication failed");
-			return new RedirectResponse($this->loginUrl);
+			return new RedirectResponse($this->getLoginUrl());
 		}
 
 	}
@@ -294,16 +302,16 @@ class LoginController extends ViewController
 			$auth = new AuthManager($this->fileLogger, $this->urlGenerator);
 			if (!$auth->finishOpenIdConnectAuthentication()) {
 				$this->flashbag->add('error', "Authentication failed");
-				return new RedirectResponse($this->loginUrl);
+				return new RedirectResponse($this->getLoginUrl());
 			}
 		} catch (OpenIDConnectClientException $e) {
 			$this->fileLogger->warning('OPENIDC callback failed: ' . $e->getMessage());
 			$this->flashbag->add('error', "OpenID Connect authentication failed");
-			return new RedirectResponse($this->loginUrl);
+			return new RedirectResponse($this->getLoginUrl());
 		} catch (\Throwable $e) {
 			$this->fileLogger->error($e->getMessage());
 			$this->flashbag->add('error', "An unexpected authentication error occurred");
-			return new RedirectResponse($this->loginUrl);
+			return new RedirectResponse($this->getLoginUrl());
 		}
 
 		// user is authenticated
@@ -313,7 +321,7 @@ class LoginController extends ViewController
 			$username = $auth->getAuthenticatedUser();
 			$this->fileLogger->error("Authenticated user '$username' not found in DB after auth");
 			$this->flashbag->add('error', "Authentication problem. Contact admin");
-			return new RedirectResponse($this->loginUrl);
+			return new RedirectResponse($this->getLoginUrl());
 		}
 
 		if (!empty($login_redirect = $this->session->get('login_redirect'))) {
