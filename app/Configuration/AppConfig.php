@@ -10,6 +10,8 @@
 
 namespace App\Configuration;
 
+use App\Core\Routing\RouteName;
+
 // Root path of the project (without trailing slash)
 define('RQWATCH_ROOT', realpath(__DIR__ . '/../..'));
 
@@ -73,4 +75,11 @@ public const string MAIL_LOG_DATA_TABLE = 'mail_log_data';
 public const string MAIL_LOG_RECIPIENTS_TABLE = 'mail_log_recipients';
 public const string MIGRATIONS_TABLE = 'migrations';
 
+// Routes that may be reached without authentication. Any other route
+// declaring NO_MIDDLEWARE is a routing mistake and will be denied.
+public const array PUBLIC_ROUTES = [
+	RouteName::LOGIN->value,
+	RouteName::LOGIN_OPENIDC->value,
+	RouteName::OPENIDC_CALLBACK->value,
+];
 }

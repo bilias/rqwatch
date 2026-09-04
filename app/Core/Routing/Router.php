@@ -142,9 +142,20 @@ class Router
 				// Run the full middleware + controller chain
 				$response = $middlewareChain($request);
 			} else  {
-				// NO_MIDDLEWARE: response without Middleware, and invoke controller
-				$response = call_user_func_array($controller, $arguments);
-				//$response = $controller(...$arguments);
+				// NO_MIDDLEWARE is only permitted for explicitly public routes.
+				// Anything else is a routing misconfiguration, not an auth problem:
+				// Fail with a server error rather than pretending the user must log in.
+				if (!in_array($request_route, AppConfig::PUBLIC_ROUTES, true)) {
+					$fileLogger->critical(
+						"Route '{$request_route}' declares NO_MIDDLEWARE but is not in "
+						. "AppConfig::PUBLIC_ROUTES; refusing to dispatch"
+					);
+					$response = new Response('Internal Server Error', 500);
+				} else {
+					// NO_MIDDLEWARE: response without Middleware, and invoke controller
+					$response = call_user_func_array($controller, $arguments);
+					//$response = $controller(...$arguments);
+				}
 			}
 
 			if (!$response instanceof Response) {
