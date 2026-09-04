@@ -55,16 +55,16 @@ class Controller
 	protected LoggerInterface $fileLogger;
 	protected LoggerInterface $syslogLogger;
 
-	protected ?CsrfTokenManager $csrfManager = null;
+	private ?CsrfTokenManager $csrfManager = null;
+	private RouteCollection $routes;     // $this->route to access it
 
-	protected RouteCollection $routes;     // $this->route to access it
 	protected Request $request;
 	protected ?Session $session = null;
 	protected FlashBag $flashbag;
 	protected UrlGeneratorInterface $urlGenerator;
 
-	protected ?string $homepageUrl = null;
-	protected ?string $searchUrl = null;
+	private ?string $homepageUrl = null;
+	private ?string $searchUrl = null;
 
 	protected bool $is_admin = false;
 	protected ?string $username = null;
@@ -194,7 +194,7 @@ class Controller
 		$this->syslogLogger = $logger;
 	}
 
-	public function setRoutes(RouteCollection $routes): void {
+	private function setRoutes(RouteCollection $routes): void {
 		$this->routes = $routes;
 	}
 	*/
@@ -263,7 +263,7 @@ class Controller
 		return $stats;
 	}
 
-	public function getRedisConfigTTL(): ?int {
+	private function getRedisConfigTTL(): ?int {
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			return Config::getRedisConfigTTL(
 				App::cache(),
@@ -273,7 +273,7 @@ class Controller
 		return null;
 	}
 
-	public function getRedisConfigTTLData(): array {
+	protected function getRedisConfigTTLData(): array {
 		$ttl = $this->getRedisConfigTTL();
 		if ($ttl === null || $ttl < 0) {
 			return [
