@@ -50,7 +50,7 @@ class MailLogTokensMigration extends AbstractMigration {
 			// create table if does not exist, then check and throw if not exist
 			$this->recordMigrationStatus(Migrations::STATUS_RUNNING);
 
-			$this->runMigration();
+			$this->runMigration($output);
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 		} catch (\Throwable $e) {
 			$this->fileLogger->error(
@@ -69,8 +69,8 @@ class MailLogTokensMigration extends AbstractMigration {
 		return true;
 	}
 
-	private function runMigration(): void {
-		$this->createTokensTable();
+	private function runMigration(OutputInterface $output): void {
+		$this->createTokensTable($output);
 
 		if (!$this->hasTable(AppConfig::MAIL_LOG_TOKENS_TABLE)) {
 			throw new RuntimeException(
@@ -85,7 +85,7 @@ class MailLogTokensMigration extends AbstractMigration {
 
 	private function createTokensTable(OutputInterface $output): void {
 		$this->fileLogger->info("Creating table " . AppConfig::MAIL_LOG_TOKENS_TABLE);
-		$output->writeln("<comment>Creating table " . AppConfig::MAIL_LOG_TOKENS_TABLE . "</comment>");
+      $output->writeln("<comment>Creating table " . AppConfig::MAIL_LOG_TOKENS_TABLE . "</comment>");
 
 		$this->createTable(
 			AppConfig::MAIL_LOG_TOKENS_TABLE,
