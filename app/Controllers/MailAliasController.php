@@ -66,6 +66,12 @@ class MailAliasController extends ViewController
    }
 
 	public function showAll(): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to access mail aliases without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -103,6 +109,12 @@ class MailAliasController extends ViewController
 	}
 
 	public function searchAlias(): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to search mail aliases without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -151,6 +163,11 @@ class MailAliasController extends ViewController
 	}
 
 	public function add(): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to add mail aliases without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -234,6 +251,12 @@ class MailAliasController extends ViewController
 	public function edit(int $id): Response {
 		// XXX NOT COMPLETE, NOT USED
 		exit;
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to edit mail aliases without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
