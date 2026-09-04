@@ -191,8 +191,6 @@ class Controller
 		}
 
 		$this->loginUrl = $this->url(RouteName::LOGIN);
-		$this->searchUrl = $this->getSearchUrl();
-
 		$this->urlsInitialized = true;
 	}
 
