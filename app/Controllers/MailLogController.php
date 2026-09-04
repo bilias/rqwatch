@@ -893,7 +893,10 @@ class MailLogController extends ViewController
 		];
 
 		foreach ($configs as $mapName => &$cfg) {
-			$route = $this->getRole() === 'admin' ? RouteName::ADMIN_MAP_ADD_ENTRY : RouteName::MAP_ADD_ENTRY;
+			$route = $this->is_admin
+				? RouteName::ADMIN_MAP_ADD_ENTRY
+				: RouteName::MAP_ADD_ENTRY;
+
 			$queryParams = ['map' => $mapName];
 
 			foreach ($cfg['fields'] ?? [] as $field) {
