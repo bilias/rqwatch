@@ -1529,11 +1529,21 @@ class MailLogService
 		//$ids = $maillogs->pluck('id')->toArray();
 		if ($ids) {
 			MailLog::whereIn('id', $ids)->update(['mail_stored' => 0]);
+			// quarantine files are gone, so any notification link for these
+			// mails is dead: drop the token rows rather than leaving them
+			// until the mail_logs row is deleted months later.
+			$deleted = (new MailTokenService())->deleteTokensForMails($ids);
+
 			if ($cli_output) {
 				$cnt = count($ids);
 				$cli_output->writeln("<info>Setting mail_stored to 0 on {$cnt} entries</info>",
 					OutputInterface::VERBOSITY_VERBOSE);
+
+				if ($deleted > 0) {
+					$cli_output->writeln("<info>Deleted {$deleted} notification token(s)</info>",
+						OutputInterface::VERBOSITY_VERBOSE);
 				}
+			}
 		}
 	}
 
