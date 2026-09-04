@@ -899,7 +899,7 @@ class MapController extends ViewController
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' update in Map {$mapdescr} failed");
-					return new RedirectResponse($getMapEditEntryUrl($map, $id));
+					return new RedirectResponse($this->getMapEditEntryUrl($map, $id));
 				}
 			} elseif ($this->is_admin && $model === 'MapCustom') {
 				//if($service->updateMapCustomEntry($map, $data[$fields[0]])) {
@@ -908,7 +908,7 @@ class MapController extends ViewController
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' update in Map {$mapdescr} failed");
-					return new RedirectResponse($getMapEditEntryUrl($map, $id));
+					return new RedirectResponse($this->getMapEditEntryUrl($map, $id));
 				}
 			} else {
 				$this->fileLogger->warning("User {$this->username} tried to update map in " . $this->request->getPathInfo() . " with wrong model {$model} or non admin rights");
