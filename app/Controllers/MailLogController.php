@@ -228,7 +228,7 @@ class MailLogController extends ViewController
 		if (!$this->mailReportsEnabled($filters)) {
 			$this->flashbag->add('warning', "Mail Reports are disabled");
 			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		$service = $this->getMailLogService();
@@ -429,7 +429,7 @@ class MailLogController extends ViewController
 		} catch (InvalidArgumentException $e) {
 			$this->flashbag->add('error', $e->getMessage());
 			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		$stripped_mail_location = null;
@@ -491,7 +491,7 @@ class MailLogController extends ViewController
 			$this->fileLogger->error('MAILER_FROM is empty. Please define it in .env');
 			$this->flashbag->add('error', "MAILER_FROM is empty. Contact admin");
 			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		$service = $this->getMailLogService();
@@ -503,7 +503,7 @@ class MailLogController extends ViewController
 			$this->syslogLogger->warning("{$this->email} tried to release mail with id: {$id}. Either mail does not exist or user does not have access to it.", ['email' => $this->email, 'is_admin' => $this->is_admin]);
 			$this->flashbag->add('error', $e->getMessage());
 			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		$this->twigFormView($this->request);
@@ -635,7 +635,7 @@ class MailLogController extends ViewController
 			$this->fileLogger->warning("showMail() problem: " . $e->getMessage());
 			$this->flashbag->add('error', $e->getMessage());
 			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		$htmlBody = Helper::normalizeToUtf8($mailobject->getHtmlBody());
@@ -678,14 +678,14 @@ class MailLogController extends ViewController
 		} catch (Exception $e) {
 			$this->fileLogger->warning("saveAttachment() problem: " . $e->getMessage());
 			$this->flashbag->add('error', $e->getMessage());
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		try {
 			$attachment = $service->getAttachment($mailobject->getAttachments(), $attach_id);
 		} catch (Exception $e) {
 			$this->flashbag->add('warning', $e->getMessage());
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		$filename = $attachment->getFilename();
@@ -728,14 +728,14 @@ class MailLogController extends ViewController
 		} catch (Exception $e) {
 			$this->fileLogger->warning("openAttachment() problem: " . $e->getMessage());
 			$this->flashbag->add('error', $e->getMessage());
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		try {
 			$attachment = $service->getAttachment($mailobject->getAttachments(), $attach_id);
 		} catch (Exception $e) {
 			$this->flashbag->add('warning', $e->getMessage());
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 

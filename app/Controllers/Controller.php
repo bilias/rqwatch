@@ -65,7 +65,7 @@ class Controller
 
 	protected bool $urlsInitialized = false;
 	protected string $loginUrl;
-	protected string $homepageUrl;
+	protected ?string $homepageUrl = null;
 	protected ?string $searchUrl = null;
 
 	protected bool $is_admin = false;
@@ -192,12 +192,6 @@ class Controller
 
 		$this->loginUrl = $this->url(RouteName::LOGIN);
 		$this->searchUrl = $this->getSearchUrl();
-
-		if ($this->is_admin) {
-			$this->homepageUrl = $this->url(RouteName::ADMIN_DAY_LOGS);
-		} else {
-			$this->homepageUrl = $this->url(RouteName::DAY_LOGS);
-		}
 
 		$this->urlsInitialized = true;
 	}
@@ -440,6 +434,16 @@ class Controller
 				$this->fileLogger->warning($message);
 			}
 		}
+	}
+
+	protected function getHomepageUrl(): string {
+		if ($this->homepageUrl === null) {
+			$this->homepageUrl = $this->is_admin
+				? $this->url(RouteName::ADMIN_DAY_LOGS)
+				: $this->url(RouteName::DAY_LOGS);
+		}
+
+		return $this->homepageUrl;
 	}
 
 	protected function getSearchUrl(): string {

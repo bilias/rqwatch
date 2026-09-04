@@ -80,7 +80,7 @@ class UserController extends ViewController
 			$this->fileLogger->warning("'{$this->username}' tried to access login throttles without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		// enable form rendering support (needed for csrf_token() in the template)
@@ -117,7 +117,7 @@ class UserController extends ViewController
 			$this->fileLogger->warning("'{$this->username}' tried to clear a login throttle without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		if (!$this->csrfValid('throttle_clear')) {
@@ -281,7 +281,7 @@ class UserController extends ViewController
 		if (!$user) {
 			$this->flashbag->add('error', "User not found");
 			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		$profileform = ProfileForm::create($this->formFactory, $this->request, $user->toArray());
@@ -311,7 +311,7 @@ class UserController extends ViewController
 					$this->flashbag->add('error', "Profile update failed");
 				}
 				$this->initUrls();
-				return new RedirectResponse($this->homepageUrl);
+				return new RedirectResponse($this->getHomepageUrl());
 			} catch (Exception $e) {
 				$error = $e->getMessage();
 				$this->flashbag->add('error', $error);
@@ -550,7 +550,7 @@ class UserController extends ViewController
 			$this->fileLogger->warning("'{$this->username}' tried to use loginAs without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		if (!$this->csrfValid('user_loginas')) {
@@ -559,7 +559,7 @@ class UserController extends ViewController
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			$this->initUrls();
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		if (!is_null($id) and is_int($id)) {
@@ -594,7 +594,7 @@ class UserController extends ViewController
 				$this->flashbag->add('success', "You are now logged in as {$user->username}");
 
 				$this->refreshUrls();
-				return new RedirectResponse($this->homepageUrl);
+				return new RedirectResponse($this->getHomepageUrl());
 			}
 		}
 

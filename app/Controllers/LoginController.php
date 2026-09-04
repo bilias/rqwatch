@@ -113,7 +113,7 @@ class LoginController extends ViewController
 		if (!empty($this->session->get('username'))) {
 			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
 			$this->flashbag->add('info', "Already logged in");
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		// enable form rendering support
@@ -191,7 +191,7 @@ class LoginController extends ViewController
 				if (!empty($login_redirect = $this->session->get('login_redirect'))) {
 					$url = $this->getRedirectUrl($login_redirect);
 				} else {
-					$url = $this->homepageUrl;
+					$url = $this->getHomepageUrl();
 				}
 
 				return new RedirectResponse($url);
@@ -229,13 +229,13 @@ class LoginController extends ViewController
 
 		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
 			$this->flashbag->add('info', "OpenID Connect disabled");
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		if (!empty($this->session->get('username'))) {
 			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
 			$this->flashbag->add('info', "Already logged in");
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		// session expired and user clicked logout.
@@ -272,13 +272,13 @@ class LoginController extends ViewController
 
 		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
 			$this->flashbag->add('warning', "OpenID Connect disabled");
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		if (!empty($this->session->get('username'))) {
 			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
 			$this->flashbag->add('info', "Already logged in");
-			return new RedirectResponse($this->homepageUrl);
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		// session expired and user clicked logout.
@@ -319,7 +319,7 @@ class LoginController extends ViewController
 		if (!empty($login_redirect = $this->session->get('login_redirect'))) {
 			$url = $this->getRedirectUrl($login_redirect);
 		} else {
-			$url = $this->homepageUrl;
+			$url = $this->getHomepageUrl();
 		}
 
 		$this->session->set('openidc_id_token', $auth->getIdToken());
@@ -479,12 +479,12 @@ class LoginController extends ViewController
 	}
 
 	private function getRedirectUrl(string $login_redirect): string {
-		$url = $this->homepageUrl;
+		$url = $this->getHomepageUrl();
 		if ($login_redirect !== $this->url(RouteName::LOGIN) and
 		    $login_redirect !== $this->url(RouteName::LOGOUT) and
 		    $login_redirect !== $this->url(RouteName::ADMIN_HOMEPAGE) and
 		    $login_redirect !== $this->url(RouteName::HOMEPAGE) and
-			 $login_redirect !== $this->homepageUrl) {
+			 $login_redirect !== $this->getHomepageUrl()) {
 				if (str_starts_with($login_redirect, '/') && !str_starts_with($login_redirect, '//')) {
 					$url = $login_redirect;
 				}
