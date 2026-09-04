@@ -15,6 +15,7 @@ use App\Core\Database\Migrations\MailRecipientsMigration;
 use App\Core\Database\Migrations\CreatedDayMigration;
 use App\Core\Database\Migrations\MailLogDataMigration;
 use App\Core\Database\Migrations\IdActionIndex;
+use App\Core\Database\Migrations\MailLogTokensMigration;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
