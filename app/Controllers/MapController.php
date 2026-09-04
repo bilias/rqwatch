@@ -41,10 +41,10 @@ class MapController extends ViewController
 	protected int $refresh_rate;
 	protected int $items_per_page;
 	protected int $max_items;
+	protected string $maps_url_base;
 
 	protected bool $mapUrlsInitialized = false;
 	protected ?string $mapsUrl = null;
-	protected string $maps_url_base;
 	protected ?string $mapShowAllUrl = null;
 	protected ?string $mapShowAllCustomUrl = null;
 	protected ?string $showCustomMapsConfigUrl = null;
@@ -80,15 +80,15 @@ class MapController extends ViewController
 		}
 
 		if ($this->is_admin) {
-			$this->mapsUrl = $this->url(RouteName::ADMIN_MAPS);
-			$this->mapShowAllUrl = $this->url(RouteName::ADMIN_MAP_SHOW_ALL);
-			$this->mapShowAllCustomUrl = $this->url(RouteName::ADMIN_MAP_SHOW_ALL, ['model' => 'MapCustom']);
-			$this->showCustomMapsConfigUrl = $this->url(RouteName::ADMIN_MAPS_CUSTOM_SHOW);
-			$this->mapsCustomAddUrl = $this->url(RouteName::ADMIN_MAPS_CUSTOM_ADD);
-			$this->mapSearchEntryUrl = $this->url(RouteName::ADMIN_MAP_SEARCH_ENTRY);
+			$this->mapsUrl = $this->getMapsUrl();
+			$this->mapShowAllUrl = $this->getMapShowAllUrl();
+			$this->mapShowAllCustomUrl = $this->getMapShowAllCustomUrl();
+			$this->showCustomMapsConfigUrl = $this->getShowCustomMapsConfigUrl();
+			$this->mapsCustomAddUrl = $this->getMapsCustomAddUrl();
+			$this->mapSearchEntryUrl = $this->getMapSearchEntryUrl();
 		} else {
-			$this->mapsUrl = $this->url(RouteName::MAPS);
-			$this->mapShowAllUrl = $this->url(RouteName::MAP_SHOW_ALL);
+			$this->mapsUrl = $this->getMapsUrl();
+			$this->mapShowAllUrl = $this->getMapShowAllUrl();
 		}
 
 		$this->mapUrlsInitialized = true;
