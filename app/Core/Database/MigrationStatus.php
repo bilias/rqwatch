@@ -126,6 +126,10 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::ID_ACTION_INDEX);
 	}
 
+	public function mailLogTokensCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::MAIL_LOG_TOKENS);
+	}
+
 	public function mailLogDataRunning(): bool {
 		return $this->isMigrationRunning(Migrations::MAIL_LOG_DATA);
 	}

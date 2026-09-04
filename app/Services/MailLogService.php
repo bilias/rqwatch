@@ -1289,7 +1289,10 @@ class MailLogService
 		// foreign key references mail_log_recipients. Decided once per mail.
 		$tokenService = null;
 
-		if (MailTokenService::isEnabled() && $maillog->relationLoaded('recipients')) {
+		if (MailTokenService::isEnabled()
+			&& $this->migrationStatus->mailLogTokensCompleted()
+			&& $maillog->relationLoaded('recipients')
+		) {
 			$tokenService = new MailTokenService();
 		}
 
