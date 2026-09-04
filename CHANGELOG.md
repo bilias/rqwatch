@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2026-09-04
+- Guard for public routes misconfigurations
+- Implement getters for URLs instead of initUrls() and initMapUrls()
+
 ### 2026-09-02
 - Login Throttling admin page
 - Login Throttling per IP
