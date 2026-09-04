@@ -1,10 +1,4 @@
-{% include 'partials/head.html.twig' %}
-
-<div class='header'>
- <div class="header-left">
-  <img src="{{ APP_LOGO_PATH }}" alt="{{ APP_LOGO_ALT }}" width="150">
- </div>
-</div>
+{% extends 'quarantine/base.html.twig' %}
 
 {% block content %}
 
@@ -18,7 +12,7 @@
    <div class='info'>Subject:</div>
    <div class='detail'>{{ log.subject }}</div>
  </div>
-  <div class="row">
+ <div class="row">
    <div class='info'>Received from:</div>
    <div class='detail'>
 {% if log.ip == 'unknown' %}
@@ -48,7 +42,7 @@
  </div>
  <div class="row">
    <div class='info'>Mail To:</div>
-   <div class='detail'>{{ log.rcpt_to }}</div>
+   <div class='detail'>{{ recipient }}</div>
  </div>
  <div class="row">
    <div class='info'>Has Virus:</div>
@@ -83,22 +77,19 @@ No
  </div>
  {% endif %}
  <div class="row">
-   <div class='info'>Mail Queue ID:</div>
-	{% if is_admin %}
-	 {% set detail_url = route('ADMIN_DETAIL', { type: 'qid', value: log.qid }) %}
-	{% else %}
-	 {% set detail_url = route('DETAIL', { type: 'qid', value: log.qid }) %}
-	{% endif %}
-   <div class='detail'><a href='{{ detail_url }}'>{{ log.qid }}</a></div>
- </div>
- <div class="row">
    <div class='info'>Message ID:</div>
    <div class='detail'>{{ log.message_id }}</div>
  </div>
  <div class="row">
+   <div class='info'>Full Mail Details:</div>
+   <div class='detail'>
+     <a href='{{ route('DETAIL', { type: 'id', value: log.id }) }}'>Sign in</a>
+   </div>
+ </div>
+{% if symbols %}
+ <div class="row">
    <div class='info'>Rspamd Symbols:</div>
    <div class='detail'>
-
 	 <button onclick="toggleDisplay('symbols', this)">Show</button>
     <div id='symbols' style='display:none;'>
 {% for symbol in symbols %}
@@ -107,69 +98,23 @@ No
     </div>
    </div>
  </div>
-
-</div>
-
-<div class='mailattachments'>
-{% if attached %}
-
-<h3>Attachments: {{ attached|length }}</h3>
-<hr/>
-<h4 class='flash-error'>
-Files bellow may contain virus or other malicious code that could harm your device or compromise your data.
-</h4>
-<p class="flash-error">
-This mail or attachments have been marked as Spam and/or Virus by our Anti-Spam System.
-</p>
-<p class="flash-error">
-Please be very carefull before opening or saving any of the files bellow.
-</p>
-
-<div id='showbtn'>
-<button onclick="toggleDisplay('attachmentsList', this)">Show</button>
-</div>
-
-<div id="attachmentsList" style="display:none;">
-<table border="0" align="left" cellpadding="5" cellspacing="1" class="mail attachments">
-<thead>
-<tr>
-<th>#</th>
-<th>Filename</th>
-<th>Type</th>
-<th colspan="2">Links</th>
-</tr>
-</thead>
-<tbody>
-{% for attach in attached %}
-<tr>
-<td class='center'>{{ loop.index }}</td>
-<td class='filename'>{{ attach.filename }}</td>
-<td class='center'>{{ attach.filetype }}</td>
-<td class='center'>
-{% if attach.inline_safe %}
-<a href='{{ route('ATTACHOPEN', { id: log.id, attach_id: loop.index0}) }}' target="_blank">Open in Browser</a>
-{% else %}
-<span class="muted">-</span>
-{% endif %}
-</td>
-<td class='center'>
-<a href='{{ route('ATTACHSAVE', { id: log.id, attach_id: loop.index0}) }}'>Save</a>
-</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-</div>
 {% endif %}
 
 </div>
 
-<div class='mailbody'>
+<div class='maildetail'>
+<form method='post' action='{{ route('TOKEN_RELEASE', { token: token, _token: csrf_token('token_release') }) }}'
+      onsubmit="return confirm('Release this message to your mailbox?')">
+  <button type='submit'>Release to my mailbox</button>
+</form>
+</div>
+
 {% if textBody %}
-<h3>Mail Body in Text:</h3>
+<h3>Mail Body in plain text:</h3>
 <hr/>
 {{ textBody|raw }}
 {% endif %}
+
 {% if htmlBody %}
 <h3>Mail Body in HTML:</h3>
 <p class="flash-error">
@@ -185,8 +130,8 @@ Please be very carefull before clicking any link bellow.
  title="Quarantined Email">
 </iframe>
 {% endif %}
-</div>
 
+{% if symbols %}
 <script>
   function toggleDisplay(id, btn = null) {
     const el = document.getElementById(id);
@@ -194,11 +139,11 @@ Please be very carefull before clicking any link bellow.
 
     if (el.style.display === 'none' || el.style.display === '') {
       el.style.display = 'block';
-      if (btn) btn.textContent = 'Hide';
     } else {
       el.style.display = 'none';
-      if (btn) btn.textContent = 'Show';
     }
   }
 </script>
+{% endif %}
+
 {% endblock %}

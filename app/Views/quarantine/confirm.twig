@@ -1,0 +1,9 @@
+{% extends 'quarantine/base.html.twig' %}
+
+{% block content %}
+<p>A message addressed to you is being held in quarantine.</p>
+
+<form method='post' action='{{ route('TOKEN_VIEW', { token: token, _token: csrf_token('token_view') }) }}'>
+  <button type='submit'>View message details</button>
+</form>
+{% endblock %}

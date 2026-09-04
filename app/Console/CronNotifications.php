@@ -257,23 +257,20 @@ class CronNotifications extends RqwatchCliCommand
 		$context->setBaseUrl($_ENV['WEB_BASE']);
 		$urlGenerator = new UrlGenerator($routes, $context);
 
-		foreach ($logs as $log) {
-			$detailurl = $urlGenerator->generate(RouteName::DETAIL->value, [
-				'type' => 'id',
-				'value' => $log->id,
-			], UrlGeneratorInterface::ABSOLUTE_URL);
+		$failed = 0;
 
+		foreach ($logs as $log) {
 			if (empty($_ENV['MAILER_FROM'])) {
 				$output->writeln("<error>MAILER_FROM is empty. Please define it in .env{$local}</error>");
 				$this->syslogLogger->error("MAILER_FROM is empty. Please define it in .env{$local}");
 				return Command::FAILURE;
 			}
 
-			if (!$service->notifyHtmlMail($log, $detailurl)) {
+			if (!$service->notifyHtmlMail($log, $urlGenerator)) {
+				$failed++;
+				// keep going: one bad recipient must not block every later mail
 				$output->writeln("<error>Sending notification mail with QID: {$log->qid} to {$log->rcpt_to} failed{$local}</error>");
 				$this->syslogLogger->error("Sending notification mail with QID: {$log->qid} to {$log->rcpt_to} failed{$local}");
-
-				return Command::FAILURE;
 			} else {
 				$output->writeln("<info>Sent notification mail for QID: {$log->qid} to {$log->rcpt_to}{$local}</info>",
 					OutputInterface::VERBOSITY_VERBOSE);
@@ -281,7 +278,16 @@ class CronNotifications extends RqwatchCliCommand
 			}
 		}
 
+		if ($failed > 0) {
+			$output->writeln("<error>{$failed} notification mail(s) failed{$local}</error>");
+			$this->syslogLogger->error("{$this->app_name} {$failed} notification mail(s) failed{$local}");
+		}
+
 		$this->printRuntime($output);
+
+		if ($failed > 0) {
+			return Command::FAILURE;
+		}
 		return Command::SUCCESS;
 	}
 }

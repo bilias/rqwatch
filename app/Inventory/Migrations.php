@@ -15,6 +15,7 @@ use App\Core\Database\Migrations\MailRecipientsMigration;
 use App\Core\Database\Migrations\CreatedDayMigration;
 use App\Core\Database\Migrations\MailLogDataMigration;
 use App\Core\Database\Migrations\IdActionIndex;
+use App\Core\Database\Migrations\MailLogTokensMigration;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
@@ -28,12 +29,14 @@ class Migrations
 	public const string CREATED_DAY = '20260729_created_day';
 	public const string MAIL_LOG_DATA = '20260731_mail_log_data';
 	public const string ID_ACTION_INDEX = '20260806_id_action_index';
+	public const string MAIL_LOG_TOKENS = '20260904_mail_log_tokens';
 
 	public const array MIGRATIONS = [
 		self::MAIL_RECIPIENTS,
 		self::CREATED_DAY,
 		self::MAIL_LOG_DATA,
 		self::ID_ACTION_INDEX,
+		self::MAIL_LOG_TOKENS,
 	];
 
 	public const array REQUIRED = [
@@ -41,6 +44,7 @@ class Migrations
 		self::CREATED_DAY,
 		self::MAIL_LOG_DATA,
 		self::ID_ACTION_INDEX,
+		self::MAIL_LOG_TOKENS,
 	];
 
 	public const array MIGRATION_CLASSES = [
@@ -48,6 +52,7 @@ class Migrations
 		self::CREATED_DAY => CreatedDayMigration::class,
 		self::MAIL_LOG_DATA => MailLogDataMigration::class,
 		self::ID_ACTION_INDEX => IdActionIndex::class,
+		self::MAIL_LOG_TOKENS => MailLogTokensMigration::class,
 	];
 
 	public const array MIGRATION_DESCR = [
@@ -55,6 +60,7 @@ class Migrations
 		self::CREATED_DAY => "Mail Log Created Day",
 		self::MAIL_LOG_DATA => "Mail Log Data",
 		self::ID_ACTION_INDEX => "id action Index",
+		self::MAIL_LOG_TOKENS => "Mail Log Tokens",
 	];
 
 	public const array MIGRATION_BATCH = [
@@ -62,6 +68,7 @@ class Migrations
 		self::CREATED_DAY => 0,
 		self::MAIL_LOG_DATA => 1000,
 		self::ID_ACTION_INDEX => 0,
+		self::MAIL_LOG_TOKENS => 0,
 	];
 
 	public const array MIGRATION_SLEEP = [
@@ -69,6 +76,7 @@ class Migrations
 		self::CREATED_DAY => 0,
 		self::MAIL_LOG_DATA => 200000,
 		self::ID_ACTION_INDEX => 200000,
+		self::MAIL_LOG_TOKENS => 200000,
 	];
 
 	public const array MIGRATION_HELP = [
@@ -76,6 +84,7 @@ class Migrations
 		self::CREATED_DAY => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::MAIL_LOG_DATA => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::ID_ACTION_INDEX => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
+		self::MAIL_LOG_TOKENS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 	];
 
 	public const string STATUS_PENDING   = 'pending';

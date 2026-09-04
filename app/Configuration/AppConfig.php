@@ -73,6 +73,7 @@ public const int REDIS_CONFIG_CACHE_TTL = 300;
 public const string MAIL_LOGS_TABLE = 'mail_logs';
 public const string MAIL_LOG_DATA_TABLE = 'mail_log_data';
 public const string MAIL_LOG_RECIPIENTS_TABLE = 'mail_log_recipients';
+public const string MAIL_LOG_TOKENS_TABLE = 'mail_log_tokens';
 public const string MIGRATIONS_TABLE = 'migrations';
 
 // Routes that may be reached without authentication. Any other route
@@ -81,5 +82,8 @@ public const array PUBLIC_ROUTES = [
 	RouteName::LOGIN->value,
 	RouteName::LOGIN_OPENIDC->value,
 	RouteName::OPENIDC_CALLBACK->value,
+	RouteName::TOKEN_CONFIRM->value,
+	RouteName::TOKEN_VIEW->value,
+	RouteName::TOKEN_RELEASE->value,
 ];
 }

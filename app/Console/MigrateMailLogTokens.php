@@ -23,15 +23,15 @@ use Symfony\Component\Console\Command\LockableTrait;
 use App\Inventory\Migrations;
 
 #[AsCommand(
-	name: 'db:migrate_id_action_index',
-	description: 'Add id_action_index index to mail_logs table',
-	help: 'This command adds id_action_index index to mail_logs table
+	name: 'db:migrate_mail_log_tokens',
+	description: 'Add creates mail_log_tokens table',
+	help: 'This command creates mail_log_tokens table
 ',
 )]
 class MigrateIdActionIndex extends MigrateCliCommand
 {
-	private string $app_name = "db:id_action_index";
-	private const string MIGRATION = Migrations::ID_ACTION_INDEX;
+	private string $app_name = "db:mail_log_tokens";
+	private const string MIGRATION = Migrations::MAIL_LOG_TOKENS;
 	private const int BATCH = Migrations::MIGRATION_BATCH[self::MIGRATION];
 	private const int SLEEP = Migrations::MIGRATION_SLEEP[self::MIGRATION];
 

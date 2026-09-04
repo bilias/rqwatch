@@ -43,6 +43,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 use Illuminate\Database\Capsule\Manager as DB;
 
+use App\Core\Routing\RouteName;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
 use Symfony\Component\Console\Output\OutputInterface;
 
 use PhpMimeMailParser\Parser;
@@ -1239,42 +1242,119 @@ class MailLogService
 		return false;
 	}
 
-	public function notifyHtmlMail(MailLog $maillog, string $detailurl, ?Environment $twig = null): bool {
+	public function notifyHtmlMail(
+		MailLog $maillog,
+		UrlGeneratorInterface $urlGenerator,
+		?Environment $twig = null
+	): bool {
 
 		$mailer = new MailerService($this->logger, $twig);
 		$from = $_ENV['MAILER_FROM'];
 		$signature = Config::get('mail_signature');
 		$subject = Config::get('notify_mail_subject');
 
-		$vars = array(
-			'created_at' => $maillog->created_at,
-			'subject'    => $maillog->subject,
-			'qid'        => $maillog->qid,
-			'score'      => $maillog->score,
-			'has_virus'  => $maillog->has_virus,
-			'virus_name' => $maillog->virus_name,
-			'mime_from'  => $maillog->mime_from,
-			'rcpt_to'    => $maillog->rcpt_to,
-			'action'     => $maillog->action,
-			'detailurl'  => $detailurl,
-			'signature'  => $signature,
+		// One mail per recipient: each gets only their own address in the
+		// body and (later) their own release link.
+
+		// Prefer the normalized recipients table: token FKs require rows that
+		// exist there. Fall back to rcpt_to when the migration has not run,
+		// in which case no tokens are issued.
+		if ($maillog->relationLoaded('recipients')) {
+			$recipients = $maillog->recipients->pluck('recipient_email')->all();
+		} else {
+			$recipients = explode(',', (string) $maillog->rcpt_to);
+		}
+
+		$recipients = array_values(array_unique(array_filter(array_map(
+			'trim',
+			$recipients))));
+
+		if (empty($recipients)) {
+			$this->logger->warning(
+				"[notifyHtmlMail] no recipients for mail id {$maillog->id}"
+			);
+			return false;
+		}
+
+		$sent = 0;
+		$failed = [];
+
+		$detailurl = $urlGenerator->generate(
+			RouteName::DETAIL->value,
+			[ 'type' => 'id', 'value' => $maillog->id ],
+			UrlGeneratorInterface::ABSOLUTE_URL
 		);
 
-		$text_part = Helper::getNotifyText($vars);
+		// Password-less links need the recipients relation, because the token
+		// foreign key references mail_log_recipients. Decided once per mail.
+		$tokenService = null;
 
-		// make array of recipients
-		$recipients = array_map('trim', explode(',', $maillog->rcpt_to));
+		if (MailTokenService::isEnabled() && $maillog->relationLoaded('recipients')) {
+			$tokenService = new MailTokenService();
+		}
 
-		$send_mail = $mailer->sendTemplatedEmail(
-			$from,
-			$recipients,
-			$subject,
-			'mail/notify.html.twig',  // twig template
-			$text_part,                // Text part of mail
-			$vars,                     // twig vars
-		);
+		foreach ($recipients as $recipient) {
+			$url = $detailurl;
 
-		if ($send_mail) {
+			if ($tokenService !== null) {
+				$token = $tokenService->issueToken($maillog->id, $recipient);
+
+				if ($token !== null) {
+					$url = $urlGenerator->generate(
+						RouteName::TOKEN_CONFIRM->value,
+						[ 'token' => $token ],
+						UrlGeneratorInterface::ABSOLUTE_URL
+					);
+				}
+			}
+
+			$vars = array(
+				'created_at' => $maillog->created_at,
+				'subject'    => $maillog->subject,
+				'qid'        => $maillog->qid,
+				'score'      => $maillog->score,
+				'has_virus'  => $maillog->has_virus,
+				'virus_name' => $maillog->virus_name,
+				'mime_from'  => $maillog->mime_from,
+				//'rcpt_to'    => $maillog->rcpt_to,
+				// this recipient only, not the whole rcpt_to list
+				'rcpt_to'    => $recipient,
+				'action'     => $maillog->action,
+				'detailurl'  => $url,
+				'signature'  => $signature,
+			);
+
+			$text_part = Helper::getNotifyText($vars);
+
+			// make array of recipients
+			//$recipients = array_map('trim', explode(',', $maillog->rcpt_to));
+
+			$send_mail = $mailer->sendTemplatedEmail(
+				$from,
+				//$recipients,
+				[$recipient],
+				$subject,
+				'mail/notify.html.twig',  // twig template
+				$text_part,                // Text part of mail
+				$vars,                     // twig vars
+			);
+
+			if ($send_mail) {
+				$sent++;
+			} else {
+				$failed[] = $recipient;
+			}
+
+		}
+
+		if (!empty($failed)) {
+			$this->logger->error(
+				"[notifyHtmlMail] mail id {$maillog->id} notification failed for: "
+				. implode(', ', $failed)
+			);
+		}
+
+		if ($sent > 0) {
 			// these were modified just for producing the mail
 			// don't push changed back to DB. Needed for both save() and update()
 			unset($maillog->virus_name);
@@ -1449,11 +1529,21 @@ class MailLogService
 		//$ids = $maillogs->pluck('id')->toArray();
 		if ($ids) {
 			MailLog::whereIn('id', $ids)->update(['mail_stored' => 0]);
+			// quarantine files are gone, so any notification link for these
+			// mails is dead: drop the token rows rather than leaving them
+			// until the mail_logs row is deleted months later.
+			$deleted = (new MailTokenService())->deleteTokensForMails($ids);
+
 			if ($cli_output) {
 				$cnt = count($ids);
 				$cli_output->writeln("<info>Setting mail_stored to 0 on {$cnt} entries</info>",
 					OutputInterface::VERBOSITY_VERBOSE);
+
+				if ($deleted > 0) {
+					$cli_output->writeln("<info>Deleted {$deleted} notification token(s)</info>",
+						OutputInterface::VERBOSITY_VERBOSE);
 				}
+			}
 		}
 	}
 

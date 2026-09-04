@@ -1,0 +1,13 @@
+{% include 'partials/head.html.twig' %}
+
+<div class='header'>
+ <div class="header-left">
+  <img src="{{ APP_LOGO_PATH }}" alt="{{ APP_LOGO_ALT }}" width="150">
+ </div>
+</div>
+
+<div class='container'>
+{% block content %}{% endblock %}
+</div>
+
+{% include 'partials/footer.html.twig' %}
