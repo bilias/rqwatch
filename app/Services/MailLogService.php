@@ -1246,35 +1246,70 @@ class MailLogService
 		$signature = Config::get('mail_signature');
 		$subject = Config::get('notify_mail_subject');
 
-		$vars = array(
-			'created_at' => $maillog->created_at,
-			'subject'    => $maillog->subject,
-			'qid'        => $maillog->qid,
-			'score'      => $maillog->score,
-			'has_virus'  => $maillog->has_virus,
-			'virus_name' => $maillog->virus_name,
-			'mime_from'  => $maillog->mime_from,
-			'rcpt_to'    => $maillog->rcpt_to,
-			'action'     => $maillog->action,
-			'detailurl'  => $detailurl,
-			'signature'  => $signature,
-		);
+		// One mail per recipient: each gets only their own address in the
+		// body and (later) their own release link.
+		$recipients = array_values(array_unique(array_filter(array_map(
+			'trim',
+			explode(',', (string) $maillog->rcpt_to)
+		))));
 
-		$text_part = Helper::getNotifyText($vars);
+		if (empty($recipients)) {
+			$this->logger->warning(
+				"[notifyHtmlMail] no recipients for mail id {$maillog->id}"
+			);
+			return false;
+		}
 
-		// make array of recipients
-		$recipients = array_map('trim', explode(',', $maillog->rcpt_to));
+		$sent = 0;
+		$failed = [];
 
-		$send_mail = $mailer->sendTemplatedEmail(
-			$from,
-			$recipients,
-			$subject,
-			'mail/notify.html.twig',  // twig template
-			$text_part,                // Text part of mail
-			$vars,                     // twig vars
-		);
+		foreach ($recipients as $recipient) {
+			$vars = array(
+				'created_at' => $maillog->created_at,
+				'subject'    => $maillog->subject,
+				'qid'        => $maillog->qid,
+				'score'      => $maillog->score,
+				'has_virus'  => $maillog->has_virus,
+				'virus_name' => $maillog->virus_name,
+				'mime_from'  => $maillog->mime_from,
+				//'rcpt_to'    => $maillog->rcpt_to,
+				// this recipient only, not the whole rcpt_to list
+				'action'     => $recipient,
+				'detailurl'  => $detailurl,
+				'signature'  => $signature,
+			);
 
-		if ($send_mail) {
+			$text_part = Helper::getNotifyText($vars);
+
+			// make array of recipients
+			//$recipients = array_map('trim', explode(',', $maillog->rcpt_to));
+
+			$send_mail = $mailer->sendTemplatedEmail(
+				$from,
+				//$recipients,
+				[$recipient],
+				$subject,
+				'mail/notify.html.twig',  // twig template
+				$text_part,                // Text part of mail
+				$vars,                     // twig vars
+			);
+
+			if ($send_mail) {
+				$sent++;
+			} else {
+				$failed[] = $recipient;
+			}
+
+		}
+
+		if (!empty($failed)) {
+			$this->logger->error(
+				"[notifyHtmlMail] mail id {$maillog->id} notification failed for: "
+				. implode(', ', $failed)
+			);
+		}
+
+		if ($sent > 0) {
 			// these were modified just for producing the mail
 			// don't push changed back to DB. Needed for both save() and update()
 			unset($maillog->virus_name);

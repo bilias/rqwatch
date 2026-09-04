@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-04
+- One notification mail per recipient
 - Guard for public routes misconfigurations
 - Implement getters for URLs instead of initUrls() and initMapUrls()
 
