@@ -41,10 +41,7 @@ class MailLogController extends ViewController
 {
 	private ?MailLogService $mailLogService = null;
 
-	protected int $refresh_rate;
-	protected int $items_per_page;
 	protected int $q_items_per_page;
-	protected int $max_items;
 	protected string $quarantine_dir;
 	protected bool $subject_privacy;
 
@@ -56,10 +53,7 @@ class MailLogController extends ViewController
 	public function __construct() {
 		parent::__construct();
 
-		$this->refresh_rate = Config::get('refresh_rate');
-		$this->items_per_page = Config::get('items_per_page');
 		$this->q_items_per_page = Config::get('q_items_per_page');
-		$this->max_items = Config::get('max_items');
 		$this->subject_privacy = Config::get('subject_privacy');
 		$this->quarantine_dir = $_ENV['QUARANTINE_DIR'];
 	}

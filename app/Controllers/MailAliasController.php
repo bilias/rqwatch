@@ -35,19 +35,7 @@ class MailAliasController extends ViewController
 {
 	private ?MailAliasService $mailAliasService = null;
 
-	protected int $refresh_rate;
-	protected int $items_per_page;
-	protected int $max_items;
-
 	private ?string $adminAliasesUrl = null;
-
-	public function __construct() {
-		parent::__construct();
-
-		$this->refresh_rate = Config::get('refresh_rate');
-		$this->items_per_page = Config::get('items_per_page');
-		$this->max_items = Config::get('max_items');
-	}
 
 	private function getMailAliasService(): MailAliasService {
 		if ($this->mailAliasService === null) {

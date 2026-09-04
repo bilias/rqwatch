@@ -38,9 +38,6 @@ class MapController extends ViewController
 {
 	private ?MapService $mapService = null;
 
-	protected int $refresh_rate;
-	protected int $items_per_page;
-	protected int $max_items;
 	private string $maps_url_base;
 
 	private ?string $mapsUrl = null;
@@ -52,10 +49,6 @@ class MapController extends ViewController
 
 	public function __construct() {
 		parent::__construct();
-
-		$this->refresh_rate = Config::get('refresh_rate');
-		$this->items_per_page = Config::get('items_per_page');
-		$this->max_items = Config::get('max_items');
 
 		$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, $_ENV['WEB_HOST']);

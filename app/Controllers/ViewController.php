@@ -30,11 +30,11 @@ use App\Core\Form\FormFactoryProvider;
 use Twig\TwigFunction;
 use Twig\TwigFilter;
 
-use App\Configuration\AppConfig;
 use App\Core\App;
+use App\Configuration\AppConfig;
+use App\Configuration\Config;
 
 use App\Core\Routing\RouteName;
-use App\Configuration\Config;
 use App\Utils\Helper;
 
 use ReflectionClass;
@@ -46,11 +46,17 @@ class ViewController extends Controller
 	protected ?Environment $twig = null;
 	protected ?FormFactoryInterface $formFactory = null;
 
-	/*
+	protected int $refresh_rate;
+	protected int $items_per_page;
+	protected int $max_items;
+
 	public function __construct() {
 		parent::__construct();
+
+		$this->refresh_rate   = Config::get('refresh_rate');
+		$this->items_per_page = Config::get('items_per_page');
+		$this->max_items      = Config::get('max_items');
 	}
-	*/
 
 	final public function twigView(): Environment {
 		if (!$this->twig ) {

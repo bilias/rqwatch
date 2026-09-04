@@ -36,20 +36,8 @@ class UserController extends ViewController
 {
 	private ?UserService $userService = null;
 
-	protected int $refresh_rate;
-	protected int $items_per_page;
-	protected int $max_items;
-
 	private ?string $adminUsersUrl = null;
 	private ?string $adminThrottlesUrl = null;
-
-	public function __construct() {
-		parent::__construct();
-
-		$this->refresh_rate = Config::get('refresh_rate');
-		$this->items_per_page = Config::get('items_per_page');
-		$this->max_items = Config::get('max_items');
-	}
 
 	private function getUserService(): UserService {
 		if ($this->userService === null) {
