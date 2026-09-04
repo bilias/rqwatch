@@ -13,7 +13,6 @@ namespace App\Controllers;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -24,7 +23,6 @@ use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
 use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
 use Symfony\Component\Security\Csrf\CsrfToken;
 
-use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
 use App\Core\App;
