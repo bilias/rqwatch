@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-04
+- Password-less quarantine access from notification mails
 - One notification mail per recipient
 - Guard for public routes misconfigurations
 - Implement getters for URLs instead of initUrls() and initMapUrls()
