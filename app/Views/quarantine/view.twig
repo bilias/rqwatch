@@ -131,6 +131,7 @@ Please be very carefull before clicking any link bellow.
 </iframe>
 {% endif %}
 
+{% if symbols %}
 <script>
   function toggleDisplay(id, btn = null) {
     const el = document.getElementById(id);
@@ -143,5 +144,6 @@ Please be very carefull before clicking any link bellow.
     }
   }
 </script>
+{% endif %}
 
 {% endblock %}
