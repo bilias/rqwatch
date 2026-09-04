@@ -41,14 +41,14 @@ class MapController extends ViewController
 	protected int $refresh_rate;
 	protected int $items_per_page;
 	protected int $max_items;
-	protected string $maps_url_base;
+	private string $maps_url_base;
 
-	protected ?string $mapsUrl = null;
-	protected ?string $mapShowAllUrl = null;
-	protected ?string $mapShowAllCustomUrl = null;
-	protected ?string $showCustomMapsConfigUrl = null;
-	protected ?string $mapsCustomAddUrl = null;
-	protected ?string $mapSearchEntryUrl = null;
+	private ?string $mapsUrl = null;
+	private ?string $mapShowAllUrl = null;
+	private ?string $mapShowAllCustomUrl = null;
+	private ?string $showCustomMapsConfigUrl = null;
+	private ?string $mapsCustomAddUrl = null;
+	private ?string $mapSearchEntryUrl = null;
 
 	public function __construct() {
 		parent::__construct();

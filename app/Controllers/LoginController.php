@@ -32,7 +32,7 @@ use Jumbojett\OpenIDConnectClientException;
 class LoginController extends ViewController
 {
 
-	protected ?string $loginUrl = null;
+	private ?string $loginUrl = null;
 
 	private function getLoginUrl(): string {
       if ($this->loginUrl === null) {
