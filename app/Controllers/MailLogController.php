@@ -209,7 +209,6 @@ class MailLogController extends ViewController
 	public function showReports(string $field, string $mode = 'count'): Response {
 		if (empty($field) || !in_array($field, MailLog::REPORT_FIELDS)) {
 			$this->flashbag->add('error', "Field '{$field}' does not exist");
-			$this->initUrls();
 			return new RedirectResponse($this->getSearchUrl());
 		}
 
@@ -227,7 +226,6 @@ class MailLogController extends ViewController
 
 		if (!$this->mailReportsEnabled($filters)) {
 			$this->flashbag->add('warning', "Mail Reports are disabled");
-			$this->initUrls();
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -428,7 +426,6 @@ class MailLogController extends ViewController
 			$ar = $service->detail($type, $value);
 		} catch (InvalidArgumentException $e) {
 			$this->flashbag->add('error', $e->getMessage());
-			$this->initUrls();
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -490,7 +487,6 @@ class MailLogController extends ViewController
 		if (empty($_ENV['MAILER_FROM'])) {
 			$this->fileLogger->error('MAILER_FROM is empty. Please define it in .env');
 			$this->flashbag->add('error', "MAILER_FROM is empty. Contact admin");
-			$this->initUrls();
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -502,7 +498,6 @@ class MailLogController extends ViewController
 		} catch (InvalidArgumentException $e) {
 			$this->syslogLogger->warning("{$this->email} tried to release mail with id: {$id}. Either mail does not exist or user does not have access to it.", ['email' => $this->email, 'is_admin' => $this->is_admin]);
 			$this->flashbag->add('error', $e->getMessage());
-			$this->initUrls();
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -634,7 +629,6 @@ class MailLogController extends ViewController
 		} catch (Exception $e) {
 			$this->fileLogger->warning("showMail() problem: " . $e->getMessage());
 			$this->flashbag->add('error', $e->getMessage());
-			$this->initUrls();
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -671,7 +665,6 @@ class MailLogController extends ViewController
 	public function saveAttachment(int $id, int $attach_id): Response {
 		$service = $this->getMailLogService();
 
-		$this->initUrls();
 		try {
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
@@ -721,7 +714,6 @@ class MailLogController extends ViewController
 	public function openAttachment(int $id, int $attach_id): Response {
 		$service = $this->getMailLogService();
 
-		$this->initUrls();
 		try {
 			// has applyUserScope
 			$mailobject = $service->getMailObject($id);
@@ -857,7 +849,6 @@ class MailLogController extends ViewController
 		$this->saveFiltersToSession($filters);
 
 		// get back to search page
-		$this->initUrls();
 		return new RedirectResponse($this->getSearchUrl());
 	}
 
@@ -881,7 +872,6 @@ class MailLogController extends ViewController
 		}
 
 		// get back to search page
-		$this->initUrls();
 		return new RedirectResponse($this->getSearchUrl());
 	}
 

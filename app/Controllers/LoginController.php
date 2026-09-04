@@ -103,8 +103,6 @@ class LoginController extends ViewController
 	}
 
 	public function login(): Response {
-		$this->initUrls();
-
 		if (Helper::env_bool('OPENIDC_AUTH_ENABLED') &&
 			 $this->request->query->get('openidc_session_active') === '1') {
 
@@ -233,8 +231,6 @@ class LoginController extends ViewController
 	}
 
 	public function login_openidc(): Response {
-		$this->initUrls();
-
 		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
 			$this->flashbag->add('info', "OpenID Connect disabled");
 			return new RedirectResponse($this->getHomepageUrl());
@@ -276,8 +272,6 @@ class LoginController extends ViewController
 	}
 
 	public function login_openidc_callback(): Response {
-		$this->initUrls();
-
 		if (!Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
 			$this->flashbag->add('warning', "OpenID Connect disabled");
 			return new RedirectResponse($this->getHomepageUrl());

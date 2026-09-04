@@ -79,7 +79,6 @@ class UserController extends ViewController
 		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to access login throttles without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
-			$this->initUrls();
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -116,7 +115,6 @@ class UserController extends ViewController
 		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to clear a login throttle without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
-			$this->initUrls();
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -168,8 +166,11 @@ class UserController extends ViewController
 			$search = $user_search_form['user'];
 
 			$service = $this->getUserService();
-			$url = $this->getAdminUsersUrl();
-			$users = $service->searchPaginatedAll($page, $url, $search);
+			$users = $service->searchPaginatedAll(
+				$page,
+				$this->getAdminUsersUrl(),
+				$search
+			);
 			$totalRecords = $users->total();
 		}
 
@@ -206,8 +207,7 @@ class UserController extends ViewController
 		$page = $this->request->query->getInt('page', 1);
 
 		$service = $this->getUserService();
-		$url = $this->getAdminUsersUrl();
-		$users = $service->showPaginatedAll($url, $page);
+		$users = $service->showPaginatedAll($this->getAdminUsersUrl(), $page);
 
 		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 
@@ -244,7 +244,6 @@ class UserController extends ViewController
 		
 		if (!$user) {
 			$this->flashbag->add('error', "User not found");
-			$this->initUrls();
 			return new RedirectResponse($this->getAdminUsersUrl());
 		}
 
@@ -280,7 +279,6 @@ class UserController extends ViewController
 
 		if (!$user) {
 			$this->flashbag->add('error', "User not found");
-			$this->initUrls();
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -310,7 +308,6 @@ class UserController extends ViewController
 				} else {
 					$this->flashbag->add('error', "Profile update failed");
 				}
-				$this->initUrls();
 				return new RedirectResponse($this->getHomepageUrl());
 			} catch (Exception $e) {
 				$error = $e->getMessage();
@@ -362,8 +359,7 @@ class UserController extends ViewController
 				$newPassword = trim($userform->get('password')->getData());
 				if (empty($newPassword)) {
 						$this->flashbag->add('error', 'Empty password not allowed.');
-						$url = $this->getAdminUsersUrl();
-						return new RedirectResponse($url);
+						return new RedirectResponse($this->getAdminUsersUrl());
 				}
 				$data['password'] = Helper::passwordHash($newPassword);
 
@@ -373,8 +369,7 @@ class UserController extends ViewController
 				} else {
 					$this->flashbag->add('error', "User creation failed");
 				}
-				$url = $this->getAdminUsersUrl();
-				return new RedirectResponse($url);
+				return new RedirectResponse($this->getAdminUsersUrl());
 			}
 		}
 
@@ -405,16 +400,14 @@ class UserController extends ViewController
 
 		if (is_null($id) || !is_int($id)) {
 			$this->flashbag->add('error', 'User ID problem');
-			$url = $this->getAdminUsersUrl();
-			return new RedirectResponse($url);
+			return new RedirectResponse($this->getAdminUsersUrl());
 		}
 
 		try {
 			$user = User::findOrFail($id);
 		} catch (ModelNotFoundException $e) {
 			$this->flashbag->add('error', 'User not found.');
-			$url = $this->getAdminUsersUrl();
-			return new RedirectResponse($url);
+			return new RedirectResponse($this->getAdminUsersUrl());
 		}
 
 		// or $user->toArray() if empty attribute and not getter in Model
@@ -486,8 +479,7 @@ class UserController extends ViewController
 					} else {
 						$this->flashbag->add('error', "User update failed");
 					}
-					$url = $this->getAdminUsersUrl();
-					return new RedirectResponse($url);
+					return new RedirectResponse($this->getAdminUsersUrl());
 				} catch (Exception $e) {
 					$error = $e->getMessage();
 					$this->flashbag->add('error', $error);
@@ -549,7 +541,6 @@ class UserController extends ViewController
 		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to use loginAs without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
-			$this->initUrls();
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -558,7 +549,6 @@ class UserController extends ViewController
 				"CSRF check failed on loginAs from " . $_SERVER['REMOTE_ADDR']
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
-			$this->initUrls();
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -599,9 +589,7 @@ class UserController extends ViewController
 		}
 
 		$this->flashbag->add('error', "User not found");
-		$this->initUrls();
-		$url = $this->getAdminUsersUrl();
-		return new RedirectResponse($url);
+		return new RedirectResponse($this->getAdminUsersUrl());
 	}
 
 }

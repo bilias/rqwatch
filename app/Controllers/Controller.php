@@ -63,7 +63,6 @@ class Controller
 	protected FlashBag $flashbag;
 	protected UrlGeneratorInterface $urlGenerator;
 
-	protected bool $urlsInitialized = false;
 	protected ?string $homepageUrl = null;
 	protected ?string $searchUrl = null;
 
@@ -138,7 +137,7 @@ class Controller
 		$this->user_id = null;
 		$this->email = null;
 		$this->user_aliases = [];
-		$this->urlsInitialized = false;
+		$this->refreshUrls();
 	}
 
 	public function clearSession(): void {
@@ -173,23 +172,9 @@ class Controller
 		return App::getRuntime();
 	}
 
-	/*
-	public function unsetUrls(): void {
-		$this->urlsInitialized = false;
-	}
-	*/
-
 	protected function refreshUrls(): void {
-		$this->urlsInitialized = false;
-		$this->initUrls();
-	}
-
-	public function initUrls(): void {
-		if ($this->urlsInitialized) {
-			return;
-		}
-
-		$this->urlsInitialized = true;
+		$this->homepageUrl = null;
+		$this->searchUrl = null;
 	}
 
 	public function getFileLogger(): LoggerInterface {
