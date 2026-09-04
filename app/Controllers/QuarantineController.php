@@ -207,7 +207,7 @@ class QuarantineController extends ViewController
 	}
 
 	private function tokenMessage(string $message): Response {
-		$this->twigFormView($this->request);
+		$this->twigView();
 		return new Response($this->twig->render('quarantine/message.twig', [
 			'message' => $message,
 		]));
