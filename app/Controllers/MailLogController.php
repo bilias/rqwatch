@@ -49,6 +49,9 @@ class MailLogController extends ViewController
 	protected bool $subject_privacy;
 
 	private ?string $searchResultsUrl = null;
+	private ?string $dayLogsUrl = null;
+	private ?string $quarantineUrl = null;
+	private ?string $quarantineDayUrl = null;
 
 	public function __construct() {
 		parent::__construct();
@@ -274,12 +277,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		if ($this->is_admin) {
-			$url = $this->url(RouteName::ADMIN_DAY_LOGS, ['date' => $date]);
-		} else {
-			$url = $this->url(RouteName::DAY_LOGS, ['date' => $date]);
-		}
-		$logs = $service->showPaginatedDay($date, $url, $page);
+		$logs = $service->showPaginatedDay($date, $this->getDayLogsUrl(), $page);
 		
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -316,12 +314,11 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		if ($this->is_admin) {
-			$url = $this->url(RouteName::ADMIN_QUARANTINE_DAY, ['date' => $date]);
-		} else {
-			$url = $this->url(RouteName::QUARANTINE_DAY, ['date' => $date]);
-		}
-		$logs = $service->showPaginatedQuarantineDay($date, $url, $page);
+		$logs = $service->showPaginatedQuarantineDay(
+			$date,
+			$this->getQuarantineDayUrl($date),
+			$page
+		);
 		
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -360,13 +357,7 @@ class MailLogController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		if ($this->is_admin) {
-			$url = $this->url(RouteName::ADMIN_QUARANTINE);
-		} else {
-			$url = $this->url(RouteName::QUARANTINE);
-		}
-
-		$days = $service->showPaginatedQuarantine($url, $page);
+		$days = $service->showPaginatedQuarantine($this->getQuarantineUrl(), $page);
 		$totalMailsInPage = 0;
 		foreach ($days as $day) {
 			$totalMailsInPage += $day->cnt;
@@ -1028,6 +1019,36 @@ class MailLogController extends ViewController
 		}
 
 		return $this->searchResultsUrl;
+	}
+
+	private function getDayLogsUrl(): string {
+		if ($this->dayLogsUrl === null) {
+			$this->dayLogsUrl = $this->is_admin
+				? $this->url(RouteName::ADMIN_DAY_LOGS)
+				: $this->url(RouteName::DAY_LOGS);
+		}
+
+		return $this->dayLogsUrl;
+	}
+
+	private function getQuarantineUrl(): string {
+		if ($this->quarantineUrl === null) {
+			$this->quarantineUrl = $this->is_admin
+				? $this->url(RouteName::ADMIN_QUARANTINE)
+				: $this->url(RouteName::QUARANTINE);
+		}
+
+		return $this->quarantineUrl;
+	}
+
+	private function getQuarantineDayUrl(string $date): string {
+		if ($this->quarantineDayUrl === null) {
+			$this->quarantineDayUrl = $this->is_admin
+				? $this->url(RouteName::ADMIN_QUARANTINE_DAY, ['date' => $date])
+				: $this->url(RouteName::QUARANTINE_DAY, ['date' => $date]);
+		}
+
+		return $this->quarantineDayUrl;
 	}
 
 }
