@@ -335,6 +335,11 @@ If an email is quarantined and a notification must be sent (according to setting
 
 - `MAILER_FROM` - From address used for notifications and mail release mails, sent by Rqwatch
 
+- `NOTIFICATION_RELEASE_LINKS` - Password-less quarantine access from notification mails.\
+  Recipients get a tokenised link to view and release their own message without an account.\
+  Requires the mail_log_recipients migration.\
+  Default is `false`
+
 ### Redis Settings
 Rqwatch supports Redis for saving login sessions, caching configuration (`config.php` and `config.local.php`) and caching of Rspamd statistics.\
 Sentinel is also supported.
