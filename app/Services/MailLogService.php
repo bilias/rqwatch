@@ -1248,10 +1248,19 @@ class MailLogService
 
 		// One mail per recipient: each gets only their own address in the
 		// body and (later) their own release link.
+
+		// Prefer the normalized recipients table: token FKs require rows that
+		// exist there. Fall back to rcpt_to when the migration has not run,
+		// in which case no tokens are issued.
+		if ($maillog->relationLoaded('recipients')) {
+			$recipients = $maillog->recipients->pluck('recipient_email')->all();
+		} else {
+			$recipients = explode(',', (string) $maillog->rcpt_to);
+		}
+
 		$recipients = array_values(array_unique(array_filter(array_map(
 			'trim',
-			explode(',', (string) $maillog->rcpt_to)
-		))));
+			$recipients))));
 
 		if (empty($recipients)) {
 			$this->logger->warning(
