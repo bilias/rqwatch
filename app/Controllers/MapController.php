@@ -247,6 +247,12 @@ class MapController extends ViewController
 	}
 
 	public function showCustomMapsConfig(): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to access custom map config without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -302,6 +308,12 @@ class MapController extends ViewController
 	}
 
 	public function addCustomMap(): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to add custom map without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -387,6 +399,12 @@ class MapController extends ViewController
 	}
 
 	public function editCustomMap(int $id): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to edit custom map without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
 		if (empty($id) || !is_int($id)) {
 			$this->flashbag->add('error', 'Invalid map id');
 			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
@@ -927,7 +945,7 @@ class MapController extends ViewController
 		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to delete a custom map without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
-			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		if (!$this->csrfValid('custom_map_del')) {
