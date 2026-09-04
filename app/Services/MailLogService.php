@@ -201,8 +201,10 @@ class MailLogService
 	): Collection {
 		$fields = MailLog::SELECT_FIELDS;
 
+		/*
 		$query = MailLog::select($fields)
 					->orderBy('id', 'DESC');
+		*/
 
 		$days = (int) ($_ENV['DATABASE_DAYS'] ?? 366);
 		$cutoffDate = new DateTime();
