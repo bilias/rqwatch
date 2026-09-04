@@ -124,6 +124,8 @@ CREATE TABLE custom_map_config (
 # (4, 'from_whitelist', 'Mail/MIME From Whitelist', 'from', 'From', NOW(), NOW()),
 # (5, 'from_blacklist', 'Mail/MIME From Blacklist', 'from', 'From', NOW(), NOW());
 
+DROP TABLE IF EXISTS `mail_log_tokens`;
+
 DROP TABLE IF EXISTS `mail_log_recipients`;
 
 DROP TABLE IF EXISTS `mail_logs`;
@@ -184,6 +186,18 @@ CREATE TABLE `mail_log_recipients` (
   KEY `recipient_email_idx` (`recipient_email`),
   KEY `recipient_email_mail_log_id_idx` (`recipient_email`,`mail_log_id`),
   CONSTRAINT `fk_mail`
+    FOREIGN KEY (`mail_log_id`)
+    REFERENCES `mail_logs` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE `mail_log_tokens` (
+  `token_hash` char(64) NOT NULL,
+  `mail_log_id` int(10) unsigned NOT NULL,
+  `recipient_email` varchar(255) NOT NULL,
+  PRIMARY KEY (`token_hash`),
+  UNIQUE KEY `mail_log_id_recipient_email_idx` (`mail_log_id`,`recipient_email`),
+  CONSTRAINT `fk_mail_log_tokens_mail_logs`
     FOREIGN KEY (`mail_log_id`)
     REFERENCES `mail_logs` (`id`)
     ON DELETE CASCADE

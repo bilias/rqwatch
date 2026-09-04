@@ -1,0 +1,12 @@
+# SQL
+CREATE TABLE `mail_log_tokens` (
+  `token_hash` char(64) NOT NULL,
+  `mail_log_id` int(10) unsigned NOT NULL,
+  `recipient_email` varchar(255) NOT NULL,
+  PRIMARY KEY (`token_hash`),
+  UNIQUE KEY `mail_log_id_recipient_email_idx` (`mail_log_id`,`recipient_email`),
+  CONSTRAINT `fk_mail_log_tokens_mail_logs`
+    FOREIGN KEY (`mail_log_id`)
+    REFERENCES `mail_logs` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
