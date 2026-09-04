@@ -74,6 +74,42 @@ class Routes
 			],
 		));
 
+		// Password-less quarantine access from notification mails.
+		// All three are public: the token is the only credential.
+		// The confirm page is a safe GET (mail scanners prefetch links);
+		// view and release are POST + CSRF so a prefetch cannot trigger them.
+		$routes->add(RouteName::TOKEN_CONFIRM->value, new Route(
+			'/notify/{token}', // path
+			[ '_controller' => 'App\\Controllers\\QuarantineController::confirm',
+			  '_middleware' => $noMiddlewareClasses,
+			],
+			[ 'token' => '[a-f0-9]{64}' ] // requirements
+		));
+
+		$routes->add(RouteName::TOKEN_VIEW->value, new Route(
+			'/notify/view/{token}', // path
+			[ '_controller' => 'App\\Controllers\\QuarantineController::view',
+			  '_middleware' => $noMiddlewareClasses,
+			],
+			[ 'token' => '[a-f0-9]{64}' ], // requirements
+			[], // options
+			'', // host
+			[], // schemes
+			['POST'] // methods
+		));
+
+		$routes->add(RouteName::TOKEN_RELEASE->value, new Route(
+			'/notify/release/{token}', // path
+			[ '_controller' => 'App\\Controllers\\QuarantineController::release',
+			  '_middleware' => $noMiddlewareClasses,
+			],
+			[ 'token' => '[a-f0-9]{64}' ], // requirements
+			[], // options
+			'', // host
+			[], // schemes
+			['POST'] // methods
+		));
+
 		$routes->add(RouteName::LOGOUT->value, new Route(
 			'/logout',
 			[ '_controller' => 'App\\Controllers\\LoginController::logout',
