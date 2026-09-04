@@ -210,7 +210,7 @@ class MailLogController extends ViewController
 		if (empty($field) || !in_array($field, MailLog::REPORT_FIELDS)) {
 			$this->flashbag->add('error', "Field '{$field}' does not exist");
 			$this->initUrls();
-			return new RedirectResponse($this->searchUrl);
+			return new RedirectResponse($this->getSearchUrl());
 		}
 
 		// enable form rendering support
@@ -858,7 +858,7 @@ class MailLogController extends ViewController
 
 		// get back to search page
 		$this->initUrls();
-		return new RedirectResponse($this->searchUrl);
+		return new RedirectResponse($this->getSearchUrl());
 	}
 
 	public function search_filter_del(?int $filter_id = null): RedirectResponse {
@@ -882,7 +882,7 @@ class MailLogController extends ViewController
 
 		// get back to search page
 		$this->initUrls();
-		return new RedirectResponse($this->searchUrl);
+		return new RedirectResponse($this->getSearchUrl());
 	}
 
 	private function getDetailIdResponse(int $id): RedirectResponse {

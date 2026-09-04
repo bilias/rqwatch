@@ -52,6 +52,11 @@ use RuntimeException;
 
 class Controller
 {
+	protected LoggerInterface $fileLogger;
+	protected LoggerInterface $syslogLogger;
+
+	protected ?CsrfTokenManager $csrfManager = null;
+
 	protected RouteCollection $routes;     // $this->route to access it
 	protected Request $request;
 	protected ?Session $session = null;
@@ -61,18 +66,13 @@ class Controller
 	protected bool $urlsInitialized = false;
 	protected string $loginUrl;
 	protected string $homepageUrl;
-	protected string $searchUrl;
+	protected ?string $searchUrl = null;
 
 	protected bool $is_admin = false;
 	protected ?string $username = null;
 	protected ?int $user_id = null;
 	protected ?string $email = null;
 	protected array $user_aliases = [];
-
-	protected LoggerInterface $fileLogger;
-	protected LoggerInterface $syslogLogger;
-
-	protected ?CsrfTokenManager $csrfManager = null;
 
 	public function __construct() {
 		$this->fileLogger = App::fileLogger();
@@ -191,13 +191,12 @@ class Controller
 		}
 
 		$this->loginUrl = $this->url(RouteName::LOGIN);
+		$this->searchUrl = $this->getSearchUrl();
 
 		if ($this->is_admin) {
 			$this->homepageUrl = $this->url(RouteName::ADMIN_DAY_LOGS);
-			$this->searchUrl = $this->url(RouteName::ADMIN_SEARCH);
 		} else {
 			$this->homepageUrl = $this->url(RouteName::DAY_LOGS);
-			$this->searchUrl = $this->url(RouteName::SEARCH);
 		}
 
 		$this->urlsInitialized = true;
@@ -323,7 +322,7 @@ class Controller
 		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to reload config in redis without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
-			return new RedirectResponse($this->searchUrl);
+			return new RedirectResponse($this->getSearchUrl());
 		}
 
 		if (!$this->csrfValid('config_reload')) {
@@ -331,12 +330,12 @@ class Controller
 				"CSRF check failed on redisConfigReload from " . $_SERVER['REMOTE_ADDR']
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
-			return new RedirectResponse($this->searchUrl);
+			return new RedirectResponse($this->getSearchUrl());
 		}
 
 		if (!Helper::env_bool('REDIS_ENABLE')) {
 			$this->flashbag->add('warning', "Redis is not enabled");
-			return new RedirectResponse($this->searchUrl);
+			return new RedirectResponse($this->getSearchUrl());
 		}
 
 		try {
@@ -353,11 +352,11 @@ class Controller
 			);
 			$this->fileLogger->info("Config reloaded and cached in Redis");
 			$this->flashbag->add('info', "Config reloaded and cached in Redis");
-			return new RedirectResponse($this->searchUrl);
+			return new RedirectResponse($this->getSearchUrl());
 		} catch (Throwable $e) {
 			$this->fileLogger->error("Failed redisConfigReload: " . $e->getMessage());
 			$this->flashbag->add('error', "Failed redisConfigReload: " . $e->getMessage());
-			return new RedirectResponse($this->searchUrl);
+			return new RedirectResponse($this->getSearchUrl());
 		}
 
 	}
@@ -368,7 +367,7 @@ class Controller
 		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to flush DNS cache without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
-			return new RedirectResponse($this->searchUrl);
+			return new RedirectResponse($this->getSearchUrl());
 		}
 
 		if (!$this->csrfValid('dns_flush')) {
@@ -376,12 +375,12 @@ class Controller
 				"CSRF check failed on dnsFlush from " . $_SERVER['REMOTE_ADDR']
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
-			return new RedirectResponse($this->searchUrl);
+			return new RedirectResponse($this->getSearchUrl());
 		}
 
 		if (!Helper::env_bool('REDIS_ENABLE')) {
 			$this->flashbag->add('warning', "Redis is not enabled");
-			return new RedirectResponse($this->searchUrl);
+			return new RedirectResponse($this->getSearchUrl());
 		}
 
 		try {
@@ -394,7 +393,7 @@ class Controller
 			$this->flashbag->add('error', "dnsFlush failed");
 		}
 
-		return new RedirectResponse($this->searchUrl);
+		return new RedirectResponse($this->getSearchUrl());
 	}
 
 	protected function getUserContext(): array {
@@ -441,6 +440,16 @@ class Controller
 				$this->fileLogger->warning($message);
 			}
 		}
+	}
+
+	protected function getSearchUrl(): string {
+		if ($this->searchUrl === null) {
+			$this->searchUrl = $this->is_admin
+				? $this->url(RouteName::ADMIN_SEARCH)
+				: $this->url(RouteName::SEARCH);
+		}
+
+		return $this->searchUrl;
 	}
 
 }
