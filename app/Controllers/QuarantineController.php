@@ -55,7 +55,6 @@ class QuarantineController extends ViewController
 
 		return new Response($this->twig->render('quarantine/confirm.twig', [
 			'token' => $token,
-			'runtime' => $this->getRuntime(),
 		]));
 	}
 
@@ -91,7 +90,7 @@ class QuarantineController extends ViewController
 			'htmlBody' => Helper::normalizeToUtf8($mailobject->getHtmlBody()),
 			'virus_found' => $mailobject->getVirusFound(),
 			'released' => (bool) $mailobject->getMailLog()->released,
-			'runtime' => $this->getRuntime(),
+			//'symbols' => $mailobject->getSymbols(),
 		]));
 	}
 
@@ -209,7 +208,6 @@ class QuarantineController extends ViewController
 		$this->twigFormView($this->request);
 		return new Response($this->twig->render('quarantine/message.twig', [
 			'message' => $message,
-			'runtime' => $this->getRuntime(),
 		]));
 	}
 
