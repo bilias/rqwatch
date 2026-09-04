@@ -48,6 +48,8 @@ class MailLogController extends ViewController
 	protected string $quarantine_dir;
 	protected bool $subject_privacy;
 
+	private ?string $searchResultsUrl = null;
+
 	public function __construct() {
 		parent::__construct();
 
@@ -98,12 +100,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		if ($this->is_admin) {
-			$url = $this->url(RouteName::ADMIN_HOMEPAGE);
-		} else {
-			$url = $this->url(RouteName::HOMEPAGE);
-		}
-		$logs = $service->showPaginatedAll(array(), $url, $page);
+		$logs = $service->showPaginatedAll(array(), $this->getHomepageUrl(), $page);
 
 		//return new Response($this->twig->render('home.twig', [
 		return new Response($this->twig->render('home_paginated.twig', [
@@ -179,14 +176,9 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		if ($this->is_admin) {
-			$url = $this->url(RouteName::ADMIN_SEARCH_RESULTS);
-		} else {
-			$url = $this->url(RouteName::SEARCH_RESULTS);
-		}
 		// has applyUserScope
-		//$logs = $service->showPaginatedResults($filters, $url, $page);
-		$logs = $service->showPaginatedAll($filters, $url, $page);
+		//$logs = $service->showPaginatedResults($filters, $this->getSearchResultsUrl(), $page);
+		$logs = $service->showPaginatedAll($filters, $this->getSearchResultsUrl(), $page);
 
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -1026,6 +1018,16 @@ class MailLogController extends ViewController
 
 	private function safeInlineContentType(string $filetype): string {
 		return $this->isInlineSafeType($filetype) ? $filetype : 'application/octet-stream';
+	}
+
+	private function getSearchResultsUrl(): string {
+		if ($this->searchResultsUrl === null) {
+			$this->searchResultsUrl = $this->is_admin
+				? $this->url(RouteName::ADMIN_SEARCH_RESULTS)
+				: $this->url(RouteName::SEARCH_RESULTS);
+		}
+
+		return $this->searchResultsUrl;
 	}
 
 }
