@@ -257,6 +257,8 @@ class CronNotifications extends RqwatchCliCommand
 		$context->setBaseUrl($_ENV['WEB_BASE']);
 		$urlGenerator = new UrlGenerator($routes, $context);
 
+		$failed = 0;
+
 		foreach ($logs as $log) {
 			$detailurl = $urlGenerator->generate(RouteName::DETAIL->value, [
 				'type' => 'id',
@@ -270,10 +272,10 @@ class CronNotifications extends RqwatchCliCommand
 			}
 
 			if (!$service->notifyHtmlMail($log, $detailurl)) {
+				$failed++;
+				// keep going: one bad recipient must not block every later mail
 				$output->writeln("<error>Sending notification mail with QID: {$log->qid} to {$log->rcpt_to} failed{$local}</error>");
 				$this->syslogLogger->error("Sending notification mail with QID: {$log->qid} to {$log->rcpt_to} failed{$local}");
-
-				return Command::FAILURE;
 			} else {
 				$output->writeln("<info>Sent notification mail for QID: {$log->qid} to {$log->rcpt_to}{$local}</info>",
 					OutputInterface::VERBOSITY_VERBOSE);
@@ -281,7 +283,16 @@ class CronNotifications extends RqwatchCliCommand
 			}
 		}
 
+		if ($failed > 0) {
+			$output->writeln("<error>{$failed} notification mail(s) failed{$local}</error>");
+			$this->syslogLogger->error("{$this->app_name} {$failed} notification mail(s) failed{$local}");
+		}
+
 		$this->printRuntime($output);
+
+		if ($failed > 0) {
+			return Command::FAILURE;
+		}
 		return Command::SUCCESS;
 	}
 }
