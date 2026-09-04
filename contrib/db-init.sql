@@ -198,8 +198,8 @@ CREATE TABLE `mail_log_tokens` (
   PRIMARY KEY (`token_hash`),
   UNIQUE KEY `mail_log_id_recipient_email_idx` (`mail_log_id`,`recipient_email`),
   CONSTRAINT `fk_mail_log_tokens_mail_logs`
-    FOREIGN KEY (`mail_log_id`)
-    REFERENCES `mail_logs` (`id`)
+    FOREIGN KEY (`mail_log_id`, `recipient_email`)
+    REFERENCES `mail_log_recipients` (`mail_log_id`,`recipient_email`)
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
