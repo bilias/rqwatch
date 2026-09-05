@@ -36,7 +36,7 @@ class MailRecipientsMigration extends AbstractMigration {
 			return true;
 		}
 
-		if (!$force && $this->isMigrationCompleted()) {
+		if (!$force && $this->verifySchema()) {
 			$output->writeln("<comment>Migration $details exists, recording status\n</comment>");
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 			return true;
