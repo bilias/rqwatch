@@ -173,7 +173,6 @@ CREATE TABLE `mail_logs` (
   KEY `released_index` (`released`),
   KEY `notification_pending_index` (`notification_pending`),
   KEY `created_day_action_index` (`created_day`,`action`),
-  KEY `has_virus_created_day_index` (`has_virus`,`created_day`),
   KEY `mail_stored_created_day_index` (`mail_stored`,`created_day`),
   KEY `has_virus_created_day_index` (`has_virus`,`created_day`),
   KEY `id_action_index` (`id`,`action`)
