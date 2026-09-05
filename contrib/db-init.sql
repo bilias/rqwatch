@@ -228,4 +228,6 @@ CREATE TABLE `migrations` (
 INSERT INTO `migrations` VALUES
 ('20260111_mail_recipients','completed',NOW()),
 ('20260729_created_day','completed',NOW()),
-('20260731_mail_log_data','completed',NOW());
+('20260731_mail_log_data','completed',NOW()),
+('20260806_id_action_index','completed',NOW()),
+('20260904_mail_log_tokens','completed',NOW());
