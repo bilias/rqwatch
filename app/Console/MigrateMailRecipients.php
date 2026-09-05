@@ -55,8 +55,8 @@ class MigrateMailRecipients extends MigrateCliCommand
 			return Command::FAILURE;
 		}
 
-		$batch = $input->getOption('batch');
-		$sleep = $input->getOption('sleep');
+		$batch = (int) $input->getOption('batch');
+		$sleep = (int) $input->getOption('sleep');
 		$force = $input->getOption('force');
 
 		// run the migration
