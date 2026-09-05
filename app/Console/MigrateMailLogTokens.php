@@ -26,7 +26,7 @@ use App\Inventory\Migrations;
 	help: 'This command creates mail_log_tokens table
 ',
 )]
-class MigrateIdActionIndex extends MigrateCliCommand
+class MigrateMailLogTokens extends MigrateCliCommand
 {
 	private string $app_name = "db:mail_log_tokens";
 	private const string MIGRATION = Migrations::MAIL_LOG_TOKENS;
