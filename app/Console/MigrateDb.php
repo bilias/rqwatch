@@ -14,7 +14,7 @@ namespace App\Console;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
+//use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,7 +33,7 @@ class MigrateDb extends MigrateCliCommand
 	private string $app_name = "db:migrate";
 
 	// default seconds to sleep between migrations
-	private $default_sleep = 2;
+	private const int DEFAULT_SLEEP = 2;
 
 	use LockableTrait;
 
@@ -42,7 +42,7 @@ class MigrateDb extends MigrateCliCommand
 		$this
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
 			// ->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', $this->default_batch_size)
-			// ->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', $this->default_sleep)
+			// ->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', self::DEFAULT_SLEEP)
 			->addOption('force', 'f', InputOption::VALUE_NONE, 'Force restart/continue migration');
 		;
 	}
@@ -84,7 +84,7 @@ class MigrateDb extends MigrateCliCommand
 				return Command::FAILURE;
 			}
 
-			sleep($this->default_sleep);
+			sleep(self::DEFAULT_SLEEP);
 		}
 
 		return Command::SUCCESS;
