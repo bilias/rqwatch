@@ -10,8 +10,6 @@
 
 namespace App\Console;
 
-use App\Core\App;
-
 use App\Inventory\Migrations;
 use App\Core\Database\Migrations\AbstractMigration;
 
