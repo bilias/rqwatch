@@ -28,7 +28,7 @@ use App\Inventory\Migrations;
 )]
 class MigrateMailLogTokens extends MigrateCliCommand
 {
-	private string $app_name = "db:mail_log_tokens";
+	private string $app_name = "db:migrate_mail_log_tokens";
 	private const string MIGRATION = Migrations::MAIL_LOG_TOKENS;
 	private const int BATCH = Migrations::MIGRATION_BATCH[self::MIGRATION];
 	private const int SLEEP = Migrations::MIGRATION_SLEEP[self::MIGRATION];
