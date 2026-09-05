@@ -17,10 +17,6 @@ use App\Core\Database\Migrations\MailLogDataMigration;
 use App\Core\Database\Migrations\IdActionIndex;
 use App\Core\Database\Migrations\MailLogTokensMigration;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
-
-use Psr\Log\LoggerInterface;
-
 use InvalidArgumentException;
 
 class Migrations
@@ -99,18 +95,14 @@ class Migrations
 		self::STATUS_FAILED,
 	];
 
-	public static function create(
-		string $migration,
-		Capsule $capsule,
-		LoggerInterface $logger
-	): AbstractMigration {
+	public static function create(string $migration): AbstractMigration {
 
 		if (!isset(self::MIGRATION_CLASSES[$migration])) {
 			throw new InvalidArgumentException("Unknown migration: {$migration}");
 		}
 
 		$class = self::MIGRATION_CLASSES[$migration];
-		return new $class($capsule, $logger);
+		return new $class();
 	}
 
 }

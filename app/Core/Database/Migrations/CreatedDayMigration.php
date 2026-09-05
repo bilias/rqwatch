@@ -10,10 +10,7 @@
 
 namespace App\Core\Database\Migrations;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Schema\Blueprint;
-
-use Psr\Log\LoggerInterface;
 
 use App\Configuration\AppConfig;
 use App\Inventory\Migrations;
