@@ -71,7 +71,7 @@ class MailRecipientsMigration extends AbstractMigration {
 	}
 
 	private function runMigration(int $batch, int $sleep, ?OutputInterface $output = null): void {
-		$output->write("<info>Total recipients: </info>");
+		$output->write("<info>Pending mails: </info>");
 
 		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
 			->select('ml.id', 'ml.rcpt_to', 'r.mail_log_id')
@@ -79,9 +79,23 @@ class MailRecipientsMigration extends AbstractMigration {
 			//->whereNull('r.mail_log_id');
 			//->where('ml.rcpt_to', '!=', 'unknown');
 
+		/*
 		$total = (clone $baseQuery)->count('ml.id');
 
 		$unknown = (clone $baseQuery)
+							->where('ml.rcpt_to', '=', 'unknown')
+							->count('ml.id');
+		*/
+
+		// count only what still needs migrating; the loop below re-scans the
+		// whole join, but on a completed migration this makes $total 0 and
+		// returns before the loop runs at all.
+		$total = (clone $baseQuery)
+							->whereNull('r.mail_log_id')
+							->count('ml.id');
+
+		$unknown = (clone $baseQuery)
+							->whereNull('r.mail_log_id')
 							->where('ml.rcpt_to', '=', 'unknown')
 							->count('ml.id');
 
