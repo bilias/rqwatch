@@ -28,7 +28,7 @@ use App\Inventory\Migrations;
 )]
 class MigrateIdActionIndex extends MigrateCliCommand
 {
-	private string $app_name = "db:id_action_index";
+	private string $app_name = "db:migrate_id_action_index";
 	private const string MIGRATION = Migrations::ID_ACTION_INDEX;
 	private const int BATCH = Migrations::MIGRATION_BATCH[self::MIGRATION];
 	private const int SLEEP = Migrations::MIGRATION_SLEEP[self::MIGRATION];
