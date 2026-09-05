@@ -71,7 +71,7 @@ class MailRecipientsMigration extends AbstractMigration {
 	}
 
 	private function runMigration(int $batch, int $sleep, ?OutputInterface $output = null): void {
-		$output->write("<info>Pending mails: </info>");
+		$output->write("<info>Pending mails for migration: </info>");
 
 		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
 			->select('ml.id', 'ml.rcpt_to', 'r.mail_log_id')
