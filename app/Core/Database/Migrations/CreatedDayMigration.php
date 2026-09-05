@@ -76,11 +76,11 @@ class CreatedDayMigration extends AbstractMigration {
 	}
 
 	private function runMigration(): void {
-		$this->createCreatedDayColumn();
+		$this->createCreatedDayColumnAndIndexes();
 
 		if (!$this->hasColumn(AppConfig::MAIL_LOGS_TABLE, self::COLUMN_CREATED_DAY)) {
 			throw new RuntimeException(
-				"Failed to create " . self::COLUMN_CREATED_DAY . " column"
+				"Failed to create " . self::COLUMN_CREATED_DAY . " column and related indexes"
 			);
 		}
 	}
@@ -94,22 +94,25 @@ class CreatedDayMigration extends AbstractMigration {
 		$this->hasIndex(
 			AppConfig::MAIL_LOGS_TABLE,
 			self::INDEX_CREATED_DAY
-		);
+		)
+		&&
 		$this->hasIndex(
 			AppConfig::MAIL_LOGS_TABLE,
 			self::INDEX_CREATED_DAY_ACTION
-		);
+		)
+		&&
 		$this->hasIndex(
 			AppConfig::MAIL_LOGS_TABLE,
 			self::INDEX_MAIL_STORED_CREATED_DAY
-		);
+		)
+		&&
 		$this->hasIndex(
 			AppConfig::MAIL_LOGS_TABLE,
 			self::INDEX_HAS_VIRUS_CREATED_DAY
 		);
 	}
 
-	private function createCreatedDayColumn(): void {
+	private function createCreatedDayColumnAndIndexes(): void {
 		$this->alterTable(
 			AppConfig::MAIL_LOGS_TABLE,
 			function (Blueprint $table) {
