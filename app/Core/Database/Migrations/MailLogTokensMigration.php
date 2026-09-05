@@ -12,6 +12,8 @@ namespace App\Core\Database\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 
+use App\Core\App;
+
 use App\Configuration\AppConfig;
 use App\Inventory\Migrations;
 
@@ -34,6 +36,24 @@ class MailLogTokensMigration extends AbstractMigration {
 		if ($this->isApplied()) {
 			$output->writeln("<comment>Migration $details is already recorded\n</comment>");
 			return true;
+		}
+
+		// mail_log_tokens has a composite foreign key onto mail_log_recipients,
+		// so the recipients backfill must be complete first. Without it the FK
+		// rejects every token insert, issueToken() returns null, and every
+		// notification silently falls back to a login link.
+		if (!App::migrationStatus()->mailRecipientsCompleted()) {
+			$required = Migrations::MIGRATION_DESCR[Migrations::MAIL_RECIPIENTS];
+
+			$this->fileLogger->error(
+				"Migration $name requires '{$required}' (" . Migrations::MAIL_RECIPIENTS . ") to be completed first"
+			);
+
+			$output->writeln(
+				"<error>Migration $details requires '{$required}' to be completed first</error>"
+			);
+
+			return false;
 		}
 
 		if ($this->verifySchema()) {
