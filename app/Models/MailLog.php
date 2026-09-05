@@ -57,6 +57,7 @@ class MailLog extends Model
 		'message_id' => 'string',
 		'created_at' => 'datetime',
 		'updated_at' => 'datetime',
+		'created_day' => 'date',
 	];
 
 	protected $fillable = [
@@ -106,6 +107,15 @@ class MailLog extends Model
 		'mail_stored',
 		'mail_location',
 		'message_id',
+		'ip',
+		'notified',
+		'notify_date',
+		'released',
+		'release_date',
+		'notification_pending',
+		'created_at',
+		'updated_at',
+		'created_day',
 	];
 
 	public const array REPORT_FIELDS = [
