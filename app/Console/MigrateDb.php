@@ -28,7 +28,7 @@ use App\Inventory\Migrations;
 	help: 'This command performs pending database migrations
 ',
 )]
-class MigrateDB extends MigrateCliCommand
+class MigrateDb extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate";
 
