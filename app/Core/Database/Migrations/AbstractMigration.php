@@ -39,10 +39,6 @@ abstract class AbstractMigration {
 
 	abstract protected function verifySchema(): bool;
 
-	public function verify(): bool {
-		return $this->verifySchema();
-	}
-
 	public function getName(): string {
 		return static::MIGRATION_NAME;
 	}
