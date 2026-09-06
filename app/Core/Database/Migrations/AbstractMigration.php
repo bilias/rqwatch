@@ -91,6 +91,26 @@ abstract class AbstractMigration {
 	}
 	*/
 
+	protected function createMigrationsTable(): void {
+		$this->createTable(
+			AppConfig::MIGRATIONS_TABLE,
+			function (Blueprint $table) {
+				$table->string('migration', 255)->primary();
+				$table->string('status', 32)->default(Migrations::STATUS_PENDING);
+				$table->timestamp('status_at')->useCurrent();
+			}
+		);
+	}
+
+	/*
+	 Status accessors for the migration runner: each one queries the
+	 migrations table directly and ensureMigrationsTable() creates it if
+	 missing. This class writes status, so it must NOT read the cached
+	 state from MigrationStatus class.
+	 On a fresh install that cache is empty until the next boot.
+	 Consumers outside the runner use MigrationStatus.
+	*/
+
 	protected function hasMigration(): bool {
 		return $this->getMigrationStatus() !== null;
 	}
@@ -178,17 +198,6 @@ abstract class AbstractMigration {
 				"Failed to create " . AppConfig::MIGRATIONS_TABLE . " table"
 			);
 		}
-	}
-
-	protected function createMigrationsTable(): void {
-		$this->createTable(
-			AppConfig::MIGRATIONS_TABLE,
-			function (Blueprint $table) {
-				$table->string('migration', 255)->primary();
-				$table->string('status', 32)->default(Migrations::STATUS_PENDING);
-				$table->timestamp('status_at')->useCurrent();
-			}
-		);
 	}
 
 }

@@ -84,6 +84,13 @@ final class MigrationStatus
 		$this->stateCache[$migration] = $status;
 	}
 
+	/*
+	 Read-only status accessors for consumers (services, controllers,
+	 importers). These read stateCache, warmed once at boot and synced by
+	 AbstractMigration::recordMigrationStatus(), so they cost no query.
+	 The migration runner does not use these -- see AbstractMigration.
+	*/
+
 	public function getMigrationState(string $migration): ?string {
 		if (!in_array($migration, Migrations::MIGRATIONS, true)) {
 			throw new RuntimeException("Unknown migration : {$migration}");
