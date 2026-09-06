@@ -331,56 +331,51 @@ class MailLogService
 
 		$fields = MailLog::SELECT_FIELDS;
 
-		$query = self::getSearchQuery($filters, $fields);
-
-		$query = $this->applyUserScope($query);
-
-		$query = $query->limit($this->max_items);
+		// Resolve the matching ids first, capped at max_items.
+		//
+		// With a small LIMIT and `order by id desc` MariaDB walks the PRIMARY
+		// key backwards and stops once it has enough rows, skipping the sort.
+		// When fewer rows match than the LIMIT asks for, that walk never
+		// terminates early and scans the whole table. At max_items the
+		// estimated walk cost always loses to a range scan on the filtered
+		// columns, so the plan stays stable regardless of match count.
+		$idQuery = $this->applyUserScope(
+			$this->getQueryByFilters(MailLog::select('id'), $filters)
+		)
+			->orderBy('id', 'DESC')
+			->limit($this->max_items);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
+			$this->logger->info(self::getSqlFromQuery($idQuery));
 		}
 
 		try {
-			/*
-			$logs = $query
-				->paginate($this->items_per_page, $fields, 'page', $page)
-				->withPath($url);
-			*/
+			// pluck() goes through toBase(), so no eager loads fire here
+			$ids = $idQuery->pluck('id')->all();
 
-			/* Working but needs memory
-			// Get limited dataset first
-			$allItems = $query->get();
+			// already capped by the limit on $idQuery
+			$total = count($ids);
 
-			// Manual pagination
-			$offset = ($page - 1) * $this->items_per_page;
-			$itemsForPage = $allItems->slice($offset, $this->items_per_page)->values();
-
-			// we need to enforce the upper limit,
-			// that's why the manual LengthAwarePaginator paginator
-			$paginator = new LengthAwarePaginator(
-				$itemsForPage,
-				$allItems->count(),
-				$this->items_per_page,
-				$page
+			$pageIds = array_slice(
+				$ids,
+				($page - 1) * $this->items_per_page,
+				$this->items_per_page
 			);
-			*/
 
-			// userScope
-			if (!$this->is_admin && !empty($this->email)) {
-				$emails = $this->getUserRecipientEmails();
-
-				$total = min(
-					MailLogRecipient::whereIn('recipient_email', $emails)
-					->distinct()
-					->count('mail_log_id'),
-					$this->max_items
-				);
+			if (empty($pageIds)) {
+				$itemsForPage = new Collection();
 			} else {
-				$total = min($query->count(), $this->max_items);
-			}
+				$query = MailLog::select($fields)
+					->with($this->getMailLogRelations())
+					->whereIn('id', $pageIds)
+					->orderBy('id', 'DESC');
 
-			$itemsForPage = $query->forPage($page, $this->items_per_page)->get();
+				if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+					$this->logger->info(self::getSqlFromQuery($query));
+				}
+
+				$itemsForPage = $query->get();
+			}
 
 			// we need to enforce the upper limit,
 			// that's why the manual LengthAwarePaginator paginator
