@@ -79,18 +79,6 @@ abstract class AbstractMigration {
 		$this->capsule->schema()->table($tableName, $callback);
 	}
 
-	/*
-	protected function hasMigration(): bool {
-		$this->ensureMigrationsTable();
-
-		return $this->capsule
-			->table(AppConfig::MIGRATIONS_TABLE)
-			->where('migration', $this->getName())
-			->where('status', Migrations::STATUS_COMPLETED)
-			->exists();
-	}
-	*/
-
 	protected function createMigrationsTable(): void {
 		$this->createTable(
 			AppConfig::MIGRATIONS_TABLE,
@@ -110,10 +98,6 @@ abstract class AbstractMigration {
 	 On a fresh install that cache is empty until the next boot.
 	 Consumers outside the runner use MigrationStatus.
 	*/
-
-	protected function hasMigration(): bool {
-		return $this->getMigrationStatus() !== null;
-	}
 
 	protected function getMigrationStatus(): ?string {
 		$this->ensureMigrationsTable();
