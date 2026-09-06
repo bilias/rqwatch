@@ -104,8 +104,8 @@ abstract class AbstractMigration {
 			->value('status');
 	}
 
-	protected function isMigrationFailed(): bool {
-		return $this->getMigrationStatus() === Migrations::STATUS_FAILED;
+	protected function isMigrationCompleted(): bool {
+		return $this->getMigrationStatus() === Migrations::STATUS_COMPLETED;
 	}
 
 	public function verifyMigration(): bool {
