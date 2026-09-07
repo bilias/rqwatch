@@ -3,7 +3,13 @@
 ## Master Dev Branch
 
 ### 2026-09-07
+- CronCleanupDb in batches to limit memory usage
+- Correct stats in search page when filters in place
 - ip created_day migration
+
+### 2026-09-06
+- Faster search results
+- Migrations cleanups
 
 ### 2026-09-04
 - Password-less quarantine access from notification mails
