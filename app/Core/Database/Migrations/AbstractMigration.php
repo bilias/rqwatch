@@ -21,6 +21,8 @@ use Illuminate\Database\Schema\Blueprint;
 
 use Psr\Log\LoggerInterface;
 
+use Symfony\Component\Console\Output\OutputInterface;
+
 use Closure;
 use RuntimeException;
 use InvalidArgumentException;
@@ -38,6 +40,8 @@ abstract class AbstractMigration {
 	}
 
 	abstract protected function verifySchema(): bool;
+
+	abstract public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool;
 
 	public function getName(): string {
 		return static::MIGRATION_NAME;
