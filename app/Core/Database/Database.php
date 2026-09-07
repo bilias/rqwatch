@@ -72,10 +72,18 @@ class Database {
 		// Base schema
 		self::requireTable(AppConfig::MAIL_LOGS_TABLE);
 
-		// Migrations schema
+		/*
+		 Migrations schema. Deliberately still status-driven rather than
+		 switching to verifyRequiredMigrationSchema(): this runs before the
+		 Kernel's verifyRequiredMigrations() guard and has no CLI exemption,
+		 so requiring the migrated schema here would abort db:migrate before
+		 it could run. The guard makes the distinction moot anyway -- every
+		 REQUIRED migration is recorded completed by the time a non-migration
+		 entry point reaches this far, so the status-driven path verifies the
+		 same schema.
+		*/
 		self::verifyOptionalMigrationSchema($migrationStatus);
-		// Future: Migrations will become mandatory
-		// replace verifyOptionalMigrationSchema with verifyRequiredMigrationSchema
+
 		// self::verifyRequiredMigrationSchema($migrationStatus);
 	}
 
@@ -127,6 +135,30 @@ class Database {
 		if ($migrationStatus->createdDayCompleted()) {
 			self::verifyCreatedDay();
 		}
+
+		if ($migrationStatus->mailLogTokensCompleted()) {
+			self::verifyMailLogTokens();
+		}
+
+	}
+
+	private static function verifyMailLogTokens(): void {
+		self::requireTable(AppConfig::MAIL_LOG_TOKENS_TABLE);
+
+		self::requireColumn(
+			AppConfig::MAIL_LOG_TOKENS_TABLE,
+			'token_hash'
+		);
+
+		self::requireColumn(
+			AppConfig::MAIL_LOG_TOKENS_TABLE,
+			'mail_log_id'
+		);
+
+		self::requireColumn(
+			AppConfig::MAIL_LOG_TOKENS_TABLE,
+			'recipient_email'
+		);
 	}
 
 	private static function verifyCreatedDay(): void {
