@@ -70,8 +70,17 @@ final class MigrationStatus
 			$this->cacheLoaded = true;
 		} catch (QueryException $e) {
 			if ($e->getCode() === '42S02') {
-				// Table does not exist (or disappeared)
+				// Table disappeared between schema verification and here.
+				// Degrade to the "no migrations table" path rather than
+				// re-querying on every getMigrationState() call.
+				$this->fileLogger->error(
+					AppConfig::MIGRATIONS_TABLE .
+					" vanished while warming the migration state cache"
+				);
+
 				$this->stateCache = [];
+				$this->migrationTableExists = false;
+
 				return;
 			}
 

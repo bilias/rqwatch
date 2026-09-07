@@ -122,9 +122,11 @@ class Database {
 		MigrationStatus $migrationStatus
 	): void {
 
-		// First migration completion query will lazy-load the migrationStatus state cache.
-		// Kernel also explicitly warms the cache later after schema verification.
-
+		// First migration completion query lazy-loads the state cache, so
+		// setMigrationTableExists() above is what unblocks warmCache() and
+		// the single migrations query normally runs here. Kernel warms it
+		// explicitly anyway -- that call is a no-op today, but it keeps the
+		// warming from depending on this function reading the cache.
 		if ($migrationStatus->mailRecipientsCompleted()) {
 			self::verifyMailRecipients();
 		}
