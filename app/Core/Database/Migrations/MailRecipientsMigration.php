@@ -128,12 +128,18 @@ class MailRecipientsMigration extends AbstractMigration {
 
 			$batchRows = [];
 			$inserted = 0;
+			$candidates = 0;
 			foreach ($logs as $log) {
 
 				// already migrated mail_log id
 				if ($log->mail_log_id !== null) {
 					continue;
 				}
+				// count the same population $total counted, so Remaining
+				// drains at the right rate. $logs->count() would include
+				// already-migrated rows and, since $baseQuery left-joins
+				// mail_log_recipients, one row per recipient of each.
+				$candidates++;
 
 				/*
 				$rcptTo = trim(strtolower((string)$log->rcpt_to));
@@ -201,7 +207,7 @@ class MailRecipientsMigration extends AbstractMigration {
 			}
 
 			$lastId = $logs->last()->id;
-			$scanned += $logs->count();
+			$scanned += $candidates;
 			$migrated += $inserted;
 			$remaining = max(0, $total - $scanned);
 			$output->writeln("<info>Found: {$scanned}, Remaining: {$remaining}, Migrated: {$migrated} (recipients)</info>"
