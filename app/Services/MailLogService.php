@@ -19,7 +19,6 @@ use App\Utils\Helper;
 use App\Utils\FormHelper;
 
 use App\Models\MailLog;
-use App\Models\MailLogRecipient;
 
 use App\Core\Database\MigrationStatus;
 use App\Inventory\Migrations;
@@ -1528,10 +1527,6 @@ class MailLogService
 
 	private function createdDayMigrationComplete(): bool {
 		return $this->migrationStatus->createdDayCompleted();
-	}
-
-	private function idActionIndexMigrationComplete(): bool {
-		return $this->migrationStatus->idActionIndexCompleted();
 	}
 
 	public function getMailLogRelations(): array {
