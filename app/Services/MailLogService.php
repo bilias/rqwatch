@@ -236,6 +236,7 @@ class MailLogService
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::select($fields)
+					->with($this->getMailLogSymbolsRelations())
 					->orderBy('id', 'DESC')
 					->limit($this->max_items);
 
@@ -679,7 +680,8 @@ class MailLogService
 	public function detailByType(string $type, string|int $value): MailLog {
 		$lf = "MailLogService_detailByType";
 
-		$query = MailLog::where($type, $value);
+		$query = MailLog::with($this->getMailLogRelations())
+			->where($type, $value);
 
 		$query = $this->applyUserScope($query);
 
