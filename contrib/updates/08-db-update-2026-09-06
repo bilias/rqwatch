@@ -1,0 +1,3 @@
+# SQL
+ALTER TABLE `mail_logs`
+  ADD KEY `ip_created_day_index` (`ip`,`created_day`);

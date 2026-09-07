@@ -16,6 +16,7 @@ use App\Core\Database\Migrations\CreatedDayMigration;
 use App\Core\Database\Migrations\MailLogDataMigration;
 use App\Core\Database\Migrations\IdActionIndex;
 use App\Core\Database\Migrations\MailLogTokensMigration;
+use App\Core\Database\Migrations\IpCreatedDayIndex;
 
 use InvalidArgumentException;
 
@@ -26,6 +27,7 @@ class Migrations
 	public const string MAIL_LOG_DATA = '20260731_mail_log_data';
 	public const string ID_ACTION_INDEX = '20260806_id_action_index';
 	public const string MAIL_LOG_TOKENS = '20260904_mail_log_tokens';
+	public const string IP_CREATED_DAY_INDEX = '20260906_ip_created_day_index';
 
 	public const array MIGRATIONS = [
 		self::MAIL_RECIPIENTS,
@@ -33,6 +35,7 @@ class Migrations
 		self::MAIL_LOG_DATA,
 		self::ID_ACTION_INDEX,
 		self::MAIL_LOG_TOKENS,
+		self::IP_CREATED_DAY_INDEX,
 	];
 
 	public const array REQUIRED = [
@@ -41,6 +44,7 @@ class Migrations
 		self::MAIL_LOG_DATA,
 		self::ID_ACTION_INDEX,
 		self::MAIL_LOG_TOKENS,
+		self::IP_CREATED_DAY_INDEX,
 	];
 
 	public const array MIGRATION_CLASSES = [
@@ -49,6 +53,7 @@ class Migrations
 		self::MAIL_LOG_DATA => MailLogDataMigration::class,
 		self::ID_ACTION_INDEX => IdActionIndex::class,
 		self::MAIL_LOG_TOKENS => MailLogTokensMigration::class,
+		self::IP_CREATED_DAY_INDEX => IpCreatedDayIndex::class,
 	];
 
 	public const array MIGRATION_DESCR = [
@@ -57,6 +62,7 @@ class Migrations
 		self::MAIL_LOG_DATA => "Mail Log Data",
 		self::ID_ACTION_INDEX => "id action Index",
 		self::MAIL_LOG_TOKENS => "Mail Log Tokens",
+		self::IP_CREATED_DAY_INDEX => "ip created_day Index",
 	];
 
 	public const array MIGRATION_BATCH = [
@@ -65,6 +71,7 @@ class Migrations
 		self::MAIL_LOG_DATA => 1000,
 		self::ID_ACTION_INDEX => 0,
 		self::MAIL_LOG_TOKENS => 0,
+		self::IP_CREATED_DAY_INDEX => 0,
 	];
 
 	public const array MIGRATION_SLEEP = [
@@ -73,6 +80,7 @@ class Migrations
 		self::MAIL_LOG_DATA => 200000,
 		self::ID_ACTION_INDEX => 200000,
 		self::MAIL_LOG_TOKENS => 200000,
+		self::IP_CREATED_DAY_INDEX => 200000,
 	];
 
 	public const array MIGRATION_HELP = [
@@ -81,6 +89,7 @@ class Migrations
 		self::MAIL_LOG_DATA => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::ID_ACTION_INDEX => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::MAIL_LOG_TOKENS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
+		self::IP_CREATED_DAY_INDEX => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 	];
 
 	public const string STATUS_PENDING   = 'pending';

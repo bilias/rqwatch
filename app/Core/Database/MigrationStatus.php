@@ -133,6 +133,10 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::ID_ACTION_INDEX);
 	}
 
+	public function ipCreatedDayIndexCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::IP_CREATED_DAY_INDEX);
+	}
+
 	public function mailLogTokensCompleted(): bool {
 		return $this->isMigrationCompleted(Migrations::MAIL_LOG_TOKENS);
 	}
@@ -151,6 +155,10 @@ final class MigrationStatus
 
 	public function idActionIndexRunning(): bool {
 		return $this->isMigrationRunning(Migrations::ID_ACTION_INDEX);
+	}
+
+	public function ipCreatedDayIndexRunning(): bool {
+		return $this->isMigrationRunning(Migrations::IP_CREATED_DAY_INDEX);
 	}
 
 	public function getAllMigrationStates(): array {
