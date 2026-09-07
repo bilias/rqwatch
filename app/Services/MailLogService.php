@@ -542,39 +542,15 @@ class MailLogService
 			$stats['released'] = (clone $query)->where('released', 1)->count();
 			$stats['has_virus'] = (clone $query)->where('has_virus', 1)->count();
 
-			// userScope
-			if ($this->idActionIndexMigrationComplete() &&
-			 !$this->is_admin && !empty($this->email)) {
-				$emails = $this->getUserRecipientEmails();
-
-				$stats['action'] = collect(
-					MailLogRecipient::whereIn('recipient_email', $emails)
-					->join(
-						DB::raw(AppConfig::MAIL_LOGS_TABLE . ' AS ml FORCE INDEX(id_action_index)'),
-						'ml.id',
-						'=',
-						AppConfig::MAIL_LOG_RECIPIENTS_TABLE . '.mail_log_id'
-					)
-					->selectRaw('ml.action, COUNT(*) as cnt')
-					->groupBy('ml.action')
-					->orderByDesc('cnt')
-					->orderBy('ml.action')
-					->get()
+			$stats['action'] = collect((clone $query)
+				->selectRaw('action, COUNT(*) as cnt')
+			   ->groupBy('action')
+				->orderBy('cnt', 'DESC')
+				->orderBy('action')
+				->get()
 				)
 				->mapWithKeys(fn($item) => [$item['action'] => $item['cnt']])
 				->toArray();
-			} else {
-				$stats['action'] = collect((clone $query)
-					->selectRaw('action, COUNT(*) as cnt')
-				   ->groupBy('action')
-					->orderBy('cnt', 'DESC')
-					->orderBy('action')
-					->get()
-					)
-					->mapWithKeys(fn($item) => [$item['action'] => $item['cnt']])
-					->toArray();
-
-			}
 
 			$stats['action'] = array_merge([
 				'no action'       => 0,
