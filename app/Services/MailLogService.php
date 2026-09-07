@@ -557,7 +557,8 @@ class MailLogService
 			$date = Helper::get_today();
 		}
 
-		$query = MailLog::select($fields);
+		$query = MailLog::select($fields)
+			->with($this->getMailLogSymbolsRelations());
 
 		if ($this->createdDayMigrationComplete()) {
 			$query->where('created_day', $date);
@@ -1451,32 +1452,32 @@ class MailLogService
 		}
 	}
 
+	/*
+	 Migrations are mandatory -- Kernel::verifyRequiredMigrations() refuses
+	 to boot without them -- so both relations always exist and there is no
+	 status conditional here.
+
+	 Two tiers, because mail_log_data.headers is a longtext and only the
+	 detail page renders it. Every other path constrains the eager load to
+	 symbols, so a 50-row list page does not drag 50 header blobs. The
+	 mail_log_id in the column list is the foreign key: omit it and Eloquent
+	 cannot match the row back to its parent, and silently resolves the
+	 relation to null on every row.
+	*/
 	private function getMailLogRecipientsRelation(): array {
-		$relations = [];
+		return ['recipients'];
+	}
 
-		if ($this->migrationStatus->mailRecipientsCompleted()) {
-			$relations[] = 'recipients';
-		}
+	public function getMailLogSymbolsRelations(): array {
+		return ['recipients', 'mailLogData:mail_log_id,symbols'];
+	}
 
-		return $relations;
+	public function getMailLogRelations(): array {
+		return ['recipients', 'mailLogData'];
 	}
 
 	private function createdDayMigrationComplete(): bool {
 		return $this->migrationStatus->createdDayCompleted();
-	}
-
-	public function getMailLogRelations(): array {
-		$relations = [];
-
-		if ($this->migrationStatus->mailRecipientsCompleted()) {
-			$relations[] = 'recipients';
-		}
-
-		if ($this->migrationStatus->mailLogDataCompleted()) {
-			$relations[] = 'mailLogData';
-		}
-
-		return $relations;
 	}
 
 	private function getFirstMailDate($query) {
