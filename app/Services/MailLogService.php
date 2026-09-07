@@ -60,6 +60,8 @@ class MailLogService
 	private LoggerInterface $logger;
 	private MigrationStatus $migrationStatus;
 
+	public const int CLEANDB_CHUNK = 1000;
+
 	private ?bool $is_admin = null;
 	private ?string $username = null;
 	private ?string $email = null;
@@ -185,6 +187,10 @@ class MailLogService
 	public function cleanDb(Collection $logs, int $batch): int {
 		if ($logs->isEmpty()) {
 			return 0;
+		}
+
+		if ($batch < 1) {
+			$batch = self::CLEANDB_CHUNK;
 		}
 
 		$ids = $logs->modelKeys();
