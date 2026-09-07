@@ -184,21 +184,32 @@ class MailLogService
 		return $query;
 	}
 
-	public function cleanDb(Collection $logs, int $batch): int {
-		if ($logs->isEmpty()) {
-			return 0;
-		}
-
+	public function cleanDb(Builder $query, int $batch): int {
 		if ($batch < 1) {
 			$batch = self::CLEANDB_CHUNK;
 		}
 
-		$ids = $logs->modelKeys();
-		$primaryKey = $logs->first()->getKeyName();
-
 		$deleted = 0;
-		foreach (array_chunk($ids, $batch) as $chunk) {
-			$deleted += MailLog::whereIn($primaryKey, $chunk)->delete();
+
+		// Each pass deletes the rows it just selected, so the same query
+		// yields the next set — no offset, no lastId. MailLog has no soft
+		// deletes, so a deleted row cannot match again. Peak memory is
+		// $batch ids however far behind the cleanup is.
+		while (true) {
+			$ids = (clone $query)->orderBy('id')->limit($batch)->pluck('id')->all();
+
+			if (empty($ids)) {
+				break;
+			}
+
+			$removed = MailLog::whereIn('id', $ids)->delete();
+
+			if ($removed < 1) {
+				// nothing went away; stop rather than spin
+				break;
+			}
+
+			$deleted += $removed;
 		}
 
 		return $deleted;
@@ -207,7 +218,7 @@ class MailLogService
 	public function getCleanUpDb(
 		?OutputInterface $cli_output = null,
 		?string $server = null
-	): Collection {
+	): Builder {
 		$fields = ['id', 'qid'];
 
 		/*
@@ -238,7 +249,7 @@ class MailLogService
 			}
 		}
 
-		return $query->get();
+		return $query;
 	}
 
 	public function showAll(): Collection {

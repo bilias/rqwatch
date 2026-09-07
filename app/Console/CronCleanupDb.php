@@ -71,9 +71,13 @@ class CronCleanupDb extends RqwatchCliCommand
 
 		//$param = $input->getArgument('param');
 		$delete_db = $input->getOption('delete');
-		$batch = (int) $input->getOption('batch');
 		$show_db = $input->getOption('show');
 		$local_only = $input->getOption('local');
+
+		$batch = (int) $input->getOption('batch');
+		if ($batch < 1) {
+			$batch = self::BATCH;
+		}
 
 		$service = new MailLogService();
 
@@ -81,17 +85,17 @@ class CronCleanupDb extends RqwatchCliCommand
 		$local = '';
 		if ($local_only) {
 			$server = $_ENV['MY_API_SERVER_ALIAS'];
-			$logs = $service->getCleanUpDb($output, $server);
+			$query = $service->getCleanUpDb($output, $server);
 			$local = " on server: {$server}";
 		} else {
-			$logs = $service->getCleanUpDb($output);
+			$query = $service->getCleanUpDb($output);
 		}
 
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 		$del_time = $cutoffDate->format('Y-m-d H:i:s');
 
-		if (($count = count($logs)) < 1) {
+		if (($count = (clone $query)->count()) < 1) {
 			$output->writeln("<info>No entries found in database before {$del_time}{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
 			$this->fileLogger->debug("{$this->app_name} No entries found in database before {$del_time} {$local}");
@@ -106,10 +110,12 @@ class CronCleanupDb extends RqwatchCliCommand
 		if ($show_db) {
 			$output->writeln("<comment>Database pending delete{$local}:</comment>",
 				OutputInterface::VERBOSITY_NORMAL);
-			foreach ($logs as $log) {
-				$output->writeln("QID: {$log->qid}",
-					OutputInterface::VERBOSITY_NORMAL);
-			}
+			(clone $query)->chunkById($batch, function ($chunk) use ($output) {
+				foreach ($chunk as $log) {
+					$output->writeln("QID: {$log->qid}",
+						OutputInterface::VERBOSITY_NORMAL);
+				}
+			});
 		}
 
 		if (!$delete_db) {
@@ -120,7 +126,7 @@ class CronCleanupDb extends RqwatchCliCommand
 		}
 
 		// DATABASE DELETE ENTRIES
-		$deleted = $service->cleanDb($logs, $batch);
+		$deleted = $service->cleanDb($query, $batch);
 
 		$output->writeln("<info>{$deleted} entries deleted from database{$local}</info>",
 			OutputInterface::VERBOSITY_VERBOSE);
