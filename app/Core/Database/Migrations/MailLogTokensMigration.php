@@ -25,7 +25,7 @@ class MailLogTokensMigration extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_LOG_TOKENS;
 
-	public function run(int $batch, int $sleep, bool $force, OutputInterface $output) {
+	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
 		$name = $this->getName();

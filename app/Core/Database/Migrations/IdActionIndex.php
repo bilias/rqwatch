@@ -25,7 +25,7 @@ class IdActionIndex extends AbstractMigration {
 
 	private const string INDEX_ID_ACTION = 'id_action_index';
 
-	public function run(int $batch, int $sleep, bool $force, OutputInterface $output) {
+	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
 		$name = $this->getName();

@@ -29,7 +29,7 @@ class CreatedDayMigration extends AbstractMigration {
 	private const string INDEX_MAIL_STORED_CREATED_DAY = 'mail_stored_created_day_index';
 	private const string INDEX_HAS_VIRUS_CREATED_DAY = 'has_virus_created_day_index';
 
-	public function run(int $batch, int $sleep, bool $force, OutputInterface $output) {
+	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
 		$name = $this->getName();
