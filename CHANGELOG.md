@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-09-07
+- ID_ACTION_INDEX Migration no longer REQUIRED
+
 ## Version v1.8.4 - Released: 2026-09-07
 
 ### 2026-09-07

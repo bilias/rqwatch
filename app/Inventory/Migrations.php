@@ -42,7 +42,7 @@ class Migrations
 		self::MAIL_RECIPIENTS,
 		self::CREATED_DAY,
 		self::MAIL_LOG_DATA,
-		self::ID_ACTION_INDEX,
+		// self::ID_ACTION_INDEX, ---> reverted/deleted - not needed any more
 		self::MAIL_LOG_TOKENS,
 		self::IP_CREATED_DAY_INDEX,
 	];
