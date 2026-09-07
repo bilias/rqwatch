@@ -38,6 +38,15 @@ class UserService
 	private int $items_per_page;
 	private int $max_items;
 
+	/*
+	 * Memo for notificationsDisabledFor(), keyed by normalised email.
+	 * filterDisabledRecipients() asks per recipient per log, so the same
+	 * address recurs ~13x across a notification run (6,508 lookups over
+	 * 494 distinct addresses). Instance-scoped, so it dies with the
+	 * service and cannot go stale between runs.
+	 */
+	private array $notificationsDisabledCache = [];
+
 	public function __construct() {
 		$this->logger = App::fileLogger();
 
@@ -213,22 +222,28 @@ class UserService
 	public function notificationsDisabledFor(string $email): bool {
 		$email = strtolower(trim($email));
 
+		if (isset($this->notificationsDisabledCache[$email])) {
+			return $this->notificationsDisabledCache[$email];
+		}
+
 		$user = User::where('email', $email)->first();
 
 		// check if email matches a user's email
 		if ($user) {
-			return (bool) $user->disable_notifications;
+			return $this->notificationsDisabledCache[$email]
+				= (bool) $user->disable_notifications;
 		}
 
 		// check if email matches an alias
 		$alias = MailAlias::with('user')->where('alias', $email)->first();
 
 		if ($alias && $alias->user) {
-			return (bool) $alias->user->disable_notifications;
+			return $this->notificationsDisabledCache[$email]
+				= (bool) $alias->user->disable_notifications;
 		}
 
 		// not found, notifications enabled by default
-		return false;
+		return $this->notificationsDisabledCache[$email] = false;
 	}
 
 	public function userExists(string $user): bool {
