@@ -16,9 +16,6 @@ use App\Configuration\AppConfig;
 
 use App\Inventory\Migrations;
 
-use App\Core\Database\Migrations\MailRecipientsMigration;
-use App\Core\Database\Migrations\MailLogDataMigration;
-
 use Illuminate\Database\QueryException;
 
 use Psr\Log\LoggerInterface;
