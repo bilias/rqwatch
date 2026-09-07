@@ -10,6 +10,12 @@ DB Migrations are required:
 
 - MAIL_LOG_DATA Migration
 
+- ID_ACTION_INDEX Migration
+
+- MAIL_LOG_TOKENS Migration
+
+- IP_CREATED_DAY_INDEX Migration
+
 ## Update instructions
 
 ### Local mode (single-host)

@@ -21,7 +21,7 @@ git fetch --tags origin
 # Get latest release tagged version
 git describe --tags --abbrev=0
 
-git checkout v1.8.3
+git checkout v1.8.4
 
 # upgrade dependencies
 composer install
