@@ -530,16 +530,7 @@ class MailLogService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		// userScope
-		if (!$this->is_admin && !empty($this->email)) {
-			$emails = $this->getUserRecipientEmails();
-
-			$stats['count'] = MailLogRecipient::whereIn('recipient_email', $emails)
-				->distinct()
-				->count('mail_log_id');
-		} else {
-			$stats['count'] = $query->count();
-		}
+		$stats['count'] = $query->count();
 
 		if (($stats['count']) > 0) {
 			$stats['first'] = $this->getFirstMailDate($query)
