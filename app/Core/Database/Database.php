@@ -115,6 +115,7 @@ class Database {
 		self::verifyMailRecipients();
 		self::verifyMailLogData();
 		self::verifyCreatedDay();
+		self::verifyMailLogTokens();
 	}
 
 	private static function verifyMigrationSchema(
@@ -139,7 +140,6 @@ class Database {
 		if ($migrationStatus->mailLogTokensCompleted()) {
 			self::verifyMailLogTokens();
 		}
-
 	}
 
 	private static function verifyMailLogTokens(): void {
