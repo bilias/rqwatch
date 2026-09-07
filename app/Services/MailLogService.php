@@ -753,7 +753,7 @@ class MailLogService
 
 		if (empty($id)) {
 			$this->logger->error("{$lf} empty mail id");
-			$Helper::debug_exception_err("{$lf} empty mail id");
+			Helper::debug_exception_err("{$lf} empty mail id");
 			throw new Exception("Error. Contact admin");
 		}
 
