@@ -45,7 +45,8 @@ final class MigrationStatus
 		foreach (Migrations::REQUIRED as $migration) {
 			if (!$this->isMigrationCompleted($migration)) {
 				throw new RuntimeException(
-					"Required migration '{$migration}' is not completed."
+					"Required migration '{$migration}' is not completed. See: "
+					. Migrations::MIGRATION_HELP[$migration]
 				);
 			}
 		}

@@ -20,6 +20,8 @@ use App\Core\Database\Database;
 use App\Core\Database\MigrationStatus;
 use App\Core\Cache\RedisCache;
 
+use Symfony\Component\HttpFoundation\Response;
+
 use App\Core\Logging\LoggerService;
 use Psr\Log\LoggerInterface;
 
@@ -75,11 +77,13 @@ final class Kernel
 		// check db schema validity
 		$this->verifyDatabaseSchema();
 
-		// Future when migrations are required
-		// $this->verifyRequiredMigrations()
-
 		// find out about migrations and cache results
 		$this->warmMigrationStatusCache();
+
+		// migrations are mandatory, except for the CLI commands that run them
+		if (!$this->migrationCommandRequested()) {
+			$this->verifyRequiredMigrations();
+		}
 
 		// last: create App registry
 		$this->initApp();
@@ -151,7 +155,52 @@ final class Kernel
 	}
 
 	private function verifyRequiredMigrations(): void {
-		$this->migrationStatus->verifyRequiredMigrations();
+		try {
+			$this->migrationStatus->verifyRequiredMigrations();
+		} catch (Throwable $e) {
+			$this->fileLogger->critical(
+				"Required database migration missing: " . $e->getMessage()
+			);
+
+			$this->bootFailure("Database migration pending. See logs.");
+		}
+	}
+		/*
+	 The migration commands boot the same Kernel, so an unconditional
+	 verifyRequiredMigrations() would make db:migrate impossible to run on an
+	 unmigrated install. Every migration command is named 'db:migrate*'.
+	 The exempt list keeps the command list and help reachable: '' is the
+	 no-argument case, where Symfony prints the list.
+	*/
+	private function migrationCommandRequested(): bool {
+		if (!defined('CLI_MODE') || !CLI_MODE) {
+			return false;
+		}
+
+		$migrationPrefix = 'db:migrate';
+		$exemptCommands = ['', 'help', 'list', 'db'];
+
+		$command = $this->cliCommandName();
+
+		if (in_array($command, $exemptCommands, true)) {
+			return true;
+		}
+
+		return str_starts_with($command, $migrationPrefix);
+	}
+
+	// first non-option argv token, which is what Symfony resolves as the
+	// command name
+	private function cliCommandName(): string {
+		foreach (array_slice($_SERVER['argv'] ?? [], 1) as $arg) {
+			if ($arg === '' || $arg[0] === '-') {
+				continue;
+			}
+
+			return (string) $arg;
+		}
+
+		return '';
 	}
 
 	private function createMigrationStatus(): void {
@@ -180,6 +229,29 @@ final class Kernel
 
 			$this->cache = null;
 		}
+	}
+
+	/*
+	 Abort the boot with a real status code. Every caller runs after the
+	 vendor autoload, so HttpFoundation is available. The client message
+	 stays generic on purpose: the API is reached by rspamd and by anything
+	 that can hit the endpoint, not by an operator, so the remedy belongs in
+	 the log and nowhere else.
+	*/
+	private function bootFailure(
+		string $message,
+		int $status = Response::HTTP_SERVICE_UNAVAILABLE
+	): never {
+		if (defined('CLI_MODE') && CLI_MODE) {
+			fwrite(STDERR, $message . PHP_EOL);
+			exit(1);
+		}
+
+		$response = new Response($message, $status);
+		$response->headers->set('Content-Type', 'text/plain; charset=utf-8');
+		$response->send();
+
+		exit(1);
 	}
 
 	private function initApp(): void {
