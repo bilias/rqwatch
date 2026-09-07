@@ -253,7 +253,7 @@ class MailLogService
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::select($fields)
-			->with($this->getMailLogRelations())
+			->with($this->getMailLogSymbolsRelations())
 			->where('id', $id);
 
 		$query = $this->applyUserScope($query);
@@ -277,7 +277,7 @@ class MailLogService
 	public function findMailLog(int $id): MailLog {
 		$lf = "[MailLogService_findMailLog]";
 
-		$query = MailLog::with($this->getMailLogRelations());
+		$query = MailLog::with($this->getMailLogSymbolsRelations());
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -300,7 +300,7 @@ class MailLogService
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::select($fields)
-			->with($this->getMailLogRelations())
+			->with($this->getMailLogSymbolsRelations())
 			->where('id', $id)
 			->where('mail_stored', 1);
 
@@ -366,7 +366,7 @@ class MailLogService
 				$itemsForPage = new Collection();
 			} else {
 				$query = MailLog::select($fields)
-					->with($this->getMailLogRelations())
+					->with($this->getMailLogSymbolsRelations())
 					->whereIn('id', $pageIds)
 					->orderBy('id', 'DESC');
 
@@ -524,7 +524,7 @@ class MailLogService
 		}
 
 		$query = MailLog::select($fields)
-			->with($this->getMailLogRelations())
+			->with($this->getMailLogSymbolsRelations())
 			->select($fields);
 
 		if ($this->createdDayMigrationComplete()) {
@@ -1287,7 +1287,7 @@ class MailLogService
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::select($fields)
-					->with($this->getMailLogRelations())
+					->with($this->getMailLogSymbolsRelations())
 					->where('notification_pending', 1);
 					/*
 					->orderBy('id', 'ASC')
