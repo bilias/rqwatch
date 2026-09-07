@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v1.8.4 - Released: 2026-09-07
+
 ### 2026-09-07
 - CronCleanupDb in batches to limit memory usage
 - Correct stats in search page when filters in place
