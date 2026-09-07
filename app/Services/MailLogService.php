@@ -182,14 +182,18 @@ class MailLogService
 		return $query;
 	}
 
-	public function cleanDb(Collection $logs): int {
+	public function cleanDb(Collection $logs, int $batch): int {
 		if ($logs->isEmpty()) {
 			return 0;
 		}
 
 		$ids = $logs->modelKeys();
 		$primaryKey = $logs->first()->getKeyName();
-		$deleted = MailLog::whereIn($primaryKey, $ids)->delete();
+
+		$deleted = 0;
+		foreach (array_chunk($ids, $batch) as $chunk) {
+			$deleted += MailLog::whereIn($primaryKey, $chunk)->delete();
+		}
 
 		return $deleted;
 	}
@@ -198,7 +202,7 @@ class MailLogService
 		?OutputInterface $cli_output = null,
 		?string $server = null
 	): Collection {
-		$fields = MailLog::SELECT_FIELDS;
+		$fields = ['id', 'qid'];
 
 		/*
 		$query = MailLog::select($fields)

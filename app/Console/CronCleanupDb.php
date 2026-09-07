@@ -37,6 +37,8 @@ class CronCleanupDb extends RqwatchCliCommand
 {
 	private string $app_name = "cron:cleanupdb";
 
+	private const int BATCH = 1000;
+
 	use LockableTrait;
 
 	#[\Override]
@@ -44,6 +46,7 @@ class CronCleanupDb extends RqwatchCliCommand
 		$this
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
 			->addOption('delete', 'd', InputOption::VALUE_NONE, 'Delete entries from database')
+			->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', self::BATCH)
 			->addOption('local', 'l', InputOption::VALUE_NONE, 'Delete entries for local server only')
 			->addOption('show', 's', InputOption::VALUE_NONE, 'Show entries to be deleted from database')
 		;
@@ -68,6 +71,7 @@ class CronCleanupDb extends RqwatchCliCommand
 
 		//$param = $input->getArgument('param');
 		$delete_db = $input->getOption('delete');
+		$batch = (int) $input->getOption('batch');
 		$show_db = $input->getOption('show');
 		$local_only = $input->getOption('local');
 
@@ -116,7 +120,7 @@ class CronCleanupDb extends RqwatchCliCommand
 		}
 
 		// DATABASE DELETE ENTRIES
-		$deleted = $service->cleanDb($logs);
+		$deleted = $service->cleanDb($logs, $batch);
 
 		$output->writeln("<info>{$deleted} entries deleted from database{$local}</info>",
 			OutputInterface::VERBOSITY_VERBOSE);
