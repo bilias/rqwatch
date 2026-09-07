@@ -39,6 +39,8 @@ final class MigrationStatus
 		private LoggerInterface $fileLogger
 	) {}
 
+	// Kernel calls this. If a REQUIRED migration is not complete we throw.
+	// Even new mails are not accepted until the migration is completed.
 	public function verifyRequiredMigrations(): void {
 		foreach (Migrations::REQUIRED as $migration) {
 			if (!$this->isMigrationCompleted($migration)) {
