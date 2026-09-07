@@ -78,11 +78,7 @@ final class MailLogWriter
 			->transaction(function () use ($mailData, $recipients) {
 
 				$mailLogId = $this->insertMailLog($mailData);
-
-				$this->insertMailRecipients(
-					$mailLogId,
-					$recipients
-				);
+				$this->insertMailRecipients($mailLogId, $recipients);
 
 				return $mailLogId;
 			});
