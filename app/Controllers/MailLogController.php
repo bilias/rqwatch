@@ -173,8 +173,6 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		// has applyUserScope
-		//$logs = $service->showPaginatedResults($filters, $this->getSearchResultsUrl(), $page);
 		$logs = $service->showPaginatedAll($filters, $this->getSearchResultsUrl(), $page);
 
 		return new Response($this->twig->render('home_paginated.twig', [
