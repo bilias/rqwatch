@@ -319,6 +319,8 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		$db_id = null;
 		try {
 			$mailLogWriter = new MailLogWriter();
+			// does both insertMailLog and insertMailRecipients
+			// to both tables if migration is completed
 			$db_id = $mailLogWriter->insert($data, $rcptArr);
 		} catch (QueryException $e) {
 				// $bindings = $e->getBindings(); // array
