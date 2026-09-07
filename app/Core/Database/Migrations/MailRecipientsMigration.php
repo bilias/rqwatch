@@ -135,11 +135,6 @@ class MailRecipientsMigration extends AbstractMigration {
 				if ($log->mail_log_id !== null) {
 					continue;
 				}
-				// count the same population $total counted, so Remaining
-				// drains at the right rate. $logs->count() would include
-				// already-migrated rows and, since $baseQuery left-joins
-				// mail_log_recipients, one row per recipient of each.
-				$candidates++;
 
 				/*
 				$rcptTo = trim(strtolower((string)$log->rcpt_to));
@@ -174,6 +169,15 @@ class MailRecipientsMigration extends AbstractMigration {
 				if (empty($recipients)) {
 					continue;
 				}
+
+				// Count the same population $total counted, so Remaining
+				// drains at the right rate. Counted here, past the parsing,
+				// so rows with no usable recipient are excluded — $total
+				// subtracts rcpt_to = 'unknown' too. $logs->count() would
+				// instead include already-migrated rows and, since
+				// $baseQuery left-joins mail_log_recipients, one row per
+				// recipient of each.
+				$candidates++;
 
 				//$rows = [];
 				foreach ($recipients as $email) {
