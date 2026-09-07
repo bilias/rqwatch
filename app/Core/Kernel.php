@@ -165,7 +165,8 @@ final class Kernel
 			$this->bootFailure("Database migration pending. See logs.");
 		}
 	}
-		/*
+
+	/*
 	 The migration commands boot the same Kernel, so an unconditional
 	 verifyRequiredMigrations() would make db:migrate impossible to run on an
 	 unmigrated install. Every migration command is named 'db:migrate*'.
