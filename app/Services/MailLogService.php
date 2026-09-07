@@ -91,26 +91,6 @@ class MailLogService
 		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 	}
 
-	public function getSearchQuery(
-		array $filters,
-		array $fields,
-		?int $limit = null,
-		bool $withRecipients = true
-	): Builder {
-		if ($limit) {
-			$query = MailLog::select($fields)
-				->orderBy('id', 'DESC')
-				->limit($limit);
-		} else {
-			$query = MailLog::select($fields)
-				->orderBy('id', 'DESC');
-		}
-
-		$query->with($this->getMailLogRelations());
-
-		return $this->getQueryByFilters($query, $filters);
-	}
-
 	public function getQueryByFilters(Builder $query, array $filters): Builder {
 		if (!empty($filters)) {
 			$filters = FormHelper::getFilterByName(
