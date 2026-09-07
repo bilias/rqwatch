@@ -12,6 +12,8 @@ namespace App\Core\Database\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
 
+use App\Core\App;
+
 use App\Configuration\AppConfig;
 use App\Inventory\Migrations;
 
