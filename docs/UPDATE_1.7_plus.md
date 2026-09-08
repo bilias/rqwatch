@@ -23,4 +23,4 @@ See [metadata_exporter.conf](https://github.com/bilias/rqwatch/blob/master/contr
 - Comment out `meta_headers`
 - Use `formatter = "multipart";` instead of `formatter = "default";`
 - Update `url` to enable the new API on Rqwatch which is
-`/api/metadata_importer_multipart.php` instead of `/api/metadata_importer.php` which is still available for backwards compatibility.
+`/api/metadata_importer_multipart.php` instead of `/api/metadata_importer.php` which is still available for backwards compatibility (up to 1.8.x - version 2.x removes the compatibility)
