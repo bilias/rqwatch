@@ -125,7 +125,6 @@ class DropMailLogColumns extends AbstractMigration {
 			$this->dropColumnsInplace($columns, $output);
 		}
 
-
 		if (!$this->verifySchema()) {
 			throw new RuntimeException(
 				"Failed to drop " . implode(', ', $columns)
@@ -191,17 +190,6 @@ class DropMailLogColumns extends AbstractMigration {
 			"ALTER TABLE `" . AppConfig::MAIL_LOGS_TABLE . "` "
 			. implode(', ', $drops)
 			. ", ALGORITHM=INPLACE, LOCK=NONE"
-		);
-	}
-
-	private function dropColumns(array $columns): void {
-		$this->alterTable(
-			AppConfig::MAIL_LOGS_TABLE,
-			function (Blueprint $table) use ($columns) {
-				// One dropColumn() compiles to one comma-joined ALTER, so
-				// the table is rebuilt once rather than once per column.
-				$table->dropColumn($columns);
-			}
 		);
 	}
 

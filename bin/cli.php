@@ -29,6 +29,7 @@ use App\Console\MigrateIdActionIndex;
 use App\Console\MigrateMailLogTokens;
 use App\Console\MigrateIpCreatedDayIndex;
 use App\Console\MigrateDropMailLogColumns;
+use App\Console\OptimizeTable;
 use App\Console\MigrateDb;
 
 (new Kernel())->boot();
@@ -42,6 +43,7 @@ $application->add(new CronQuarantine());
 $application->add(new CronCleanupDb());
 $application->add(new CronUpdateMapFiles());
 $application->add(new UserAdd());
+$application->add(new OptimizeTable());
 $application->add(new MigrateMailRecipients());
 $application->add(new MigrateCreatedDay());
 $application->add(new MigrateMailLogData());

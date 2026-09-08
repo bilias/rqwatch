@@ -20,16 +20,18 @@ use App\Inventory\Migrations;
 
 #[AsCommand(
 	name: 'db:migrate_drop_mail_log_columns',
-	description: 'Drop the migrated symbols, fuzzy_hashes and headers columns from mail_logs',
-	help: 'This command drops the symbols, fuzzy_hashes and headers columns
+	description: 'Drop the migrated headers, symbols and fuzzy_hashes columns from mail_logs',
+	help: 'This command drops the headers, symbols and fuzzy_hashes columns
 from the mail_logs table. Their data lives in mail_log_data and the
 application reads it from there only.
 
 Run it manually, in a maintenance window. It is not part of db:migrate and
 it is not a required migration, so the application runs with or without it.
 
-DROP COLUMN rebuilds mail_logs: writes are blocked for the duration and the
-server needs free space for a second copy of the table. The drop is not
+DROP COLUMN rebuilds mail_logstrying an instant metadata-only drop.
+If the server refuses it, mail_logs is rebuilt instead and writes are
+blocked until that finishes.
+Server needs free space for a second copy of the table. The drop is not
 reversible -- verify mail_log_data coverage first, see docs/DB_DROP_COLUMNS.md
 ',
 )]
