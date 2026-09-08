@@ -157,9 +157,9 @@ class MapController extends ViewController
 
 		$service = $this->getMapService();
 
-		$configs = MapInventory::getAvailableMapConfigs($this->getRole()) ?? null;
+		$configs = MapInventory::getAvailableMapConfigs($this->getRole());
 
-		$field_definitions = MapInventory::getFieldDefinitions() ?? null;
+		$field_definitions = MapInventory::getFieldDefinitions();
 		$field_descriptions = [];
 		foreach ($field_definitions as $field => $definition) {
 			$field_descriptions[$field] = $definition['description'];
@@ -528,7 +528,7 @@ class MapController extends ViewController
 		}
 
 		// Fetch config for the selected map
-		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map) ?? null;
+		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
 		if (!$config || !array_key_exists('fields', $config)) {
 			$this->flashbag->add('error', 'Invalid map selected');
@@ -654,7 +654,7 @@ class MapController extends ViewController
 
 		// Fetch config for the selected map
 		//$config = MapInventory::getMapConfigs($map) ?? null;
-		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map) ?? null;
+		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
 		if (!$config || !array_key_exists('map_form', $config)) {
 			$this->fileLogger->warning("User {$this->username} tried to add map entry in " . $this->request->getPathInfo() . " without admin authorization");
@@ -813,7 +813,7 @@ class MapController extends ViewController
 
 		// Fetch config for the selected map
 		//$config = MapInventory::getMapConfigs($map) ?? null;
-		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map) ?? null;
+		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
 		if (!$config || !array_key_exists('map_form', $config)) {
 			$this->fileLogger->warning("User {$this->username} tried to edit map entry in " . $this->request->getPathInfo() . " without admin authorization");
@@ -1154,9 +1154,9 @@ class MapController extends ViewController
 
 		$service = $this->getMapService();
 
-		$configs = MapInventory::getAvailableMapConfigs($this->getRole()) ?? null;
+		$configs = MapInventory::getAvailableMapConfigs($this->getRole());
 
-		$field_definitions = MapInventory::getFieldDefinitions() ?? null;
+		$field_definitions = MapInventory::getFieldDefinitions();
 		$field_descriptions = [];
 		foreach ($field_definitions as $field => $definition) {
 			$field_descriptions[$field] = $definition['description'];
