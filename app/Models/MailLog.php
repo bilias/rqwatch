@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+use App\Core\App;
 //use App\Configuration\AppConfig;
 
 use App\Utils\Helper;
@@ -226,28 +227,48 @@ class MailLog extends Model
 		);
 	}
 
-	public function getHeadersAttribute($value): ?string {
-		if ($this->relationLoaded('mailLogData') && $this->mailLogData !== null) {
-			return $this->mailLogData->headers;
+	/*
+	 headers/symbols/fuzzy_hashes live in mail_log_data. The mail_logs
+	 columns are dropped, so the relation is the only source and there is no
+	 fallback to $value -- a fallback would silently return null once the
+	 columns are gone, hiding the missing eager load instead of reporting it.
+
+	 Callers are expected to eager-load the relation: getMailLogRelations()
+	 for the detail paths that need headers, getMailLogSymbolsRelations()
+	 everywhere else. A caller that forgot still gets the right value, but
+	 via a lazy load -- one query per row, which on a 50-row list page is a
+	 regression worth seeing rather than absorbing.
+	*/
+	private function mailLogDataValue(string $column): mixed {
+		if (!$this->relationLoaded('mailLogData')) {
+			$this->logMissingRelation('mailLogData', $column);
 		}
 
-		return $value;
+		return $this->mailLogData?->{$column};
+	}
+
+	private function logMissingRelation(string $relation, string $column): void {
+		try {
+			App::fileLogger()->error(
+				"MailLog {$this->getKey()}: '{$relation}' was not "
+				. "eager-loaded, lazy-loading it to read '{$column}'"
+			);
+		} catch (Throwable) {
+			// App container not up in this context. A diagnostic must never
+			// break the read it is diagnosing.
+		}
+	}
+
+	public function getHeadersAttribute($value): ?string {
+		return $this->mailLogDataValue('headers');
 	}
 
 	public function getSymbolsAttribute($value): ?array {
-		if ($this->relationLoaded('mailLogData') && $this->mailLogData !== null) {
-			return $this->mailLogData->symbols;
-		}
-
-		return is_string($value) ? json_decode($value, true) : $value;
+		return $this->mailLogDataValue('symbols');
 	}
 
 	public function getFuzzyHashesAttribute($value): ?array {
-		if ($this->relationLoaded('mailLogData') && $this->mailLogData !== null) {
-			return $this->mailLogData->fuzzy_hashes;
-		}
-
-		return is_string($value) ? json_decode($value, true) : $value;
+		return $this->mailLogDataValue('fuzzy_hashes');
 	}
 
 }

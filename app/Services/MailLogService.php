@@ -1263,8 +1263,12 @@ class MailLogService
 		}
 
 		if ($sent > 0) {
-			// these were modified just for producing the mail
-			// don't push changed back to DB. Needed for both save() and update()
+			/*
+			 These were set just for producing the mail and are not columns.
+			 update() is fill()->save(), and save() writes the whole dirty
+			 set -- unset() removes them from $attributes so they cannot be
+			 dirty. Needed for both save() and update().
+			*/
 			unset($maillog->virus_name);
 			unset($maillog->disabled_rcpt_to);
 			/*
