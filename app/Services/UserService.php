@@ -143,7 +143,7 @@ class UserService
 		return $query->first();
 	}
 
-	public function showPaginatedAll(string $url, int $page = 1): ?LengthAwarePaginator {
+	public function showPaginatedAll(string $url, int $page = 1): LengthAwarePaginator {
 		$fields = User::SELECT_FIELDS;
 
 		$query = self::getSearchQuery($fields);
@@ -164,7 +164,7 @@ class UserService
 		return $logs;
 	}
 
-	public function searchPaginatedAll(int $page, string $url, string $search): ?LengthAwarePaginator {
+	public function searchPaginatedAll(int $page, string $url, string $search): LengthAwarePaginator {
 		$fields = User::SELECT_FIELDS;
 
 		$query = self::getSearchQuery($fields);
@@ -189,7 +189,7 @@ class UserService
 		return $logs;
 	}
 
-	public function showPaginatedAliases(int $page, string $url): ?LengthAwarePaginator {
+	public function showPaginatedAliases(int $page, string $url): LengthAwarePaginator {
 		$fields = User::SELECT_FIELDS;
 
 		if ($this->max_items) {

@@ -105,7 +105,7 @@ class MailAliasService
 		return $query->exists();
 	}
 
-	public function showPaginatedAll(string $url, int $page = 1): ?LengthAwarePaginator {
+	public function showPaginatedAll(string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailAlias::SELECT_FIELDS;
 
 		$query = self::getSearchQuery();
@@ -126,7 +126,7 @@ class MailAliasService
 		return $aliases;
 	}
 
-	public function searchPaginatedAll(string $url, string $search, int $page = 1): ?LengthAwarePaginator {
+	public function searchPaginatedAll(string $url, string $search, int $page = 1): LengthAwarePaginator {
 		$fields = MailAlias::SELECT_FIELDS;
 
 		$query = self::getSearchQuery();
@@ -150,7 +150,7 @@ class MailAliasService
 		return $aliases;
 	}
 
-	public function showPaginatedAliases(string $url, int $page = 1): ?LengthAwarePaginator {
+	public function showPaginatedAliases(string $url, int $page = 1): LengthAwarePaginator {
 		$fields = User::SELECT_FIELDS;
 
 		if ($this->max_items) {

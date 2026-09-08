@@ -186,7 +186,7 @@ class MapService
 		array $filter_maps,
 		$search,
 		$map_name
-	): ?LengthAwarePaginator {
+	): LengthAwarePaginator {
 
 		$query = MapCombined::select('*')
 								  ->with(['user' => function ($query) {
@@ -230,7 +230,7 @@ class MapService
 		return $map_entries;
 	}
 
-	public function showPaginatedAllMapCombined(int $page, string $url, array $filter_maps): ?LengthAwarePaginator {
+	public function showPaginatedAllMapCombined(int $page, string $url, array $filter_maps): LengthAwarePaginator {
 		$query = MapCombined::select('*')
 								  ->with(['user' => function ($query) {
 										$query->select('id', 'username', 'email');
@@ -261,7 +261,7 @@ class MapService
 	}
 
 	// deprecated
-	public function showPaginatedAllMapGeneric(int $page, string $url): ?LengthAwarePaginator {
+	public function showPaginatedAllMapGeneric(int $page, string $url): LengthAwarePaginator {
 		$query = MapGeneric::select('*')
 								  ->orderBy('updated_at', 'DESC');
 
@@ -286,7 +286,7 @@ class MapService
 		string $url,
 		string $search,
 		?string $map_name
-	): ?LengthAwarePaginator {
+	): LengthAwarePaginator {
 
 		if (!empty($map_name)) {
 			$query = $this->getMapCustomQuery($map_name);
@@ -316,7 +316,7 @@ class MapService
 		return $map_entries;
 	}
 
-	public function showPaginatedAllMapCustom(int $page, string $url): ?LengthAwarePaginator {
+	public function showPaginatedAllMapCustom(int $page, string $url): LengthAwarePaginator {
 		$query = MapCustom::select('*')
 								  ->orderBy('updated_at', 'DESC');
 
@@ -336,7 +336,7 @@ class MapService
 		return $map_entries;
 	}
 
-	public function showPaginatedCustomMapConfigs(int $page, string $url): ?LengthAwarePaginator {
+	public function showPaginatedCustomMapConfigs(int $page, string $url): LengthAwarePaginator {
 		$query = CustomMapConfig::select('*')
 								  //->orderBy('map_name', 'ASC')
 								  ->orderBy('updated_at', 'DESC');
@@ -375,7 +375,7 @@ class MapService
 		return $map;
 	}
 
-	public function showPaginatedMapCustom(string $map_name, int $page, string $url): ?LengthAwarePaginator {
+	public function showPaginatedMapCustom(string $map_name, int $page, string $url): LengthAwarePaginator {
 		$query = $this->getMapCustomQuery($map_name);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
@@ -410,7 +410,7 @@ class MapService
 	}
 
 	// deprecated
-	public function showPaginatedMapGeneric(string $map_name, int $page, string $url): ?LengthAwarePaginator {
+	public function showPaginatedMapGeneric(string $map_name, int $page, string $url): LengthAwarePaginator {
 		$query = $this->getMapGenericQuery($map_name);
 
 		try {
@@ -439,7 +439,7 @@ class MapService
 		return $map;
 	}
 
-	public function showPaginatedMapCombined(string $map_name, array $map_fields, int $page, string $url): ?LengthAwarePaginator {
+	public function showPaginatedMapCombined(string $map_name, array $map_fields, int $page, string $url): LengthAwarePaginator {
 		$query = $this->getMapCombinedQuery($map_name, $map_fields);
 
 		try {

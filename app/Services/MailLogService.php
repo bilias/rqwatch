@@ -326,7 +326,7 @@ class MailLogService
 		array $filters,
 		string $url,
 		int $page = 1
-	): ?LengthAwarePaginator {
+	): LengthAwarePaginator {
 
 		$lf = "MailLogService_showPaginatedAll";
 
