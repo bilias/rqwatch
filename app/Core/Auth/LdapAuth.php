@@ -181,11 +181,6 @@ class LdapAuth implements AuthInterface {
 		}
 
 		sort($mail_ar, SORT_STRING);
-		
-		if (!array_key_exists(0, $mail_ar)) {
-			$this->logger->error("Something went wrong with mail attributes: " . print_r($mail_ar, true));
-			return false;
-		}
 
 		// we store primary e-mail for later, so we don't search again after user bind.
 		$ldap_mail = strtolower(trim($mail_ar[0]));
