@@ -42,7 +42,6 @@ final class MailLogWriter
 		$this->migrationStatus = App::migrationStatus();
 	}
 
-
 	public function insert(array $mailData, array $recipients): int {
 		for ($attempt = 1; $attempt <= self::MAX_DEADLOCK_RETRIES; $attempt++) {
 			try {
@@ -83,6 +82,7 @@ final class MailLogWriter
 				return $mailLogId;
 			});
 	}
+
 	/*
 	 MariaDB deadlock / serialization failure
 	 SQLSTATE 40001. The code is a string on a QueryException, whose
