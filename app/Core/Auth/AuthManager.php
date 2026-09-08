@@ -50,7 +50,7 @@ class AuthManager
 	): bool {
 		$provider = $this->selectAuthProvider($username, $password, $this->logger);
 
-		if (method_exists($provider, 'authenticate') && $provider->authenticate()) {
+		if ($provider->authenticate()) {
 			$this->provider = $provider;
 			return true;
 		}
@@ -61,19 +61,19 @@ class AuthManager
 	public function startOpenIdConnectAuthentication(): bool {
 		$provider = new OpenIDConnectAuth($this->logger);
 
-		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
+		if ($this->urlGenerator) {
 			$provider->setUrlGenerator($this->urlGenerator);
 		} else {
 			throw new RuntimeException("Logging interface problem");
 		}
 
-		if (method_exists($provider, 'setCallbackUrl') && $this->redirectUrl) {
+		if ($this->redirectUrl) {
 			$provider->setCallbackUrl($this->redirectUrl);
 		} else {
 			throw new RuntimeException("OPENIDC redirect URL problem");
 		}
 
-		if (method_exists($provider, 'authenticate') && $provider->authenticate()) {
+		if ($provider->authenticate()) {
 			$this->provider = $provider;
 			return true;
 		}
@@ -87,7 +87,7 @@ class AuthManager
 
 		$provider = new OpenIDConnectAuth($this->logger);
 
-		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
+		if ($this->urlGenerator) {
 			$provider->setUrlGenerator($this->urlGenerator);
 		} else {
 			throw new RuntimeException("Logging interface problem");
@@ -105,13 +105,13 @@ class AuthManager
 
 		$provider = new OpenIDConnectAuth($this->logger);
 
-		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
+		if ($this->urlGenerator) {
 			$provider->setUrlGenerator($this->urlGenerator);
 		} else {
 			throw new RuntimeException("Logging interface problem");
 		}
 
-		if (method_exists($provider, 'setPostLogoutRedirectUrl') && $this->redirectUrl) {
+		if ($this->redirectUrl) {
 			$provider->setPostLogoutRedirectUrl($this->redirectUrl);
 		} else {
 			throw new RuntimeException("OPENIDC post logout redirect URL problem");
@@ -183,7 +183,7 @@ class AuthManager
 	}
 
 	public function getAuthenticatedUser(): ?string {
-		if ($this->provider && method_exists($this->provider, 'getAuthenticatedUser')) {
+		if ($this->provider) {
 			return $this->provider->getAuthenticatedUser();
 		}
 		return null;
