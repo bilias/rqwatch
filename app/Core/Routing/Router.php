@@ -38,7 +38,7 @@ use App\Controllers\Controller;
 
 use Psr\Log\LoggerInterface;
 
-// use RuntimeException
+use Throwable;
 
 // https://symfony.com/doc/current/create_framework/http_kernel_controller_resolver.html
 
