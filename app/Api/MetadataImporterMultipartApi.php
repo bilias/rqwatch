@@ -20,6 +20,7 @@ use Psr\Log\LoggerInterface;
 use App\Models\MailLog;
 
 use App\Services\Import\MailLogWriter;
+use App\Services\Import\MailLogSpool;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -324,34 +325,49 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		*/
 
 		$db_id = null;
+		$spooled = false;
+		$db_failed = false;
+		$ok_msg = 'Message saved';
+		$fail_msg = 'Error storing message in DB';
+
 		try {
 			$mailLogWriter = new MailLogWriter();
 			// does both insertMailLog and insertMailRecipients
 			// to both tables if migration is completed
 			$db_id = $mailLogWriter->insert($data, $rcptArr);
 		} catch (QueryException | PDOException $e) {
-				// $bindings = $e->getBindings(); // array
-				// $sql = $e->getSql(); // array
-				// $e->getMessage() // very verbose
+			// $bindings = $e->getBindings(); // array
+			// $sql = $e->getSql(); // array
+			// $e->getMessage() // very verbose
 
-				// XXX We could cache failed inserts in Redis and retry later via cron
+			/*
+			 Logged here rather than left to dropLogResponse below,
+			 because on the spool path we never get there and the
+			 SQLSTATE is the only record of why the mail was spooled.
+			*/
+			$pdoMessage = $e->getPrevious()?->getMessage() ?? $e->getMessage();
+			$this->fileLogger->critical("[{$this->logPrefix}] {$qid} DB error: {$pdoMessage}");
+			$this->syslogLogger->critical("{$qid} DB error: {$pdoMessage}");
 
-				Helper::discard_raw_mail($mail_location);
-
-				$pdoMessage = $e->getPrevious()?->getMessage() ?? $e->getMessage();
-				$err_msg = "{$qid} DB error: {$pdoMessage}";
-				$response_msg = "Database error. Please try again later";
-				$this->dropLogResponse(
-					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
-					$err_msg, 'critical');
+			$fail_msg = 'Database error. Please try again later';
+			$db_failed = true;
 		} catch (Throwable $e) {
-				Helper::discard_raw_mail($mail_location);
+			$this->fileLogger->critical("[{$this->logPrefix}] {$qid} DB insert error: " . $e->getMessage());
+			$this->syslogLogger->critical("{$qid} DB insert error: " . $e->getMessage());
+			$fail_msg = 'Unexpected error';
+		}
 
-				$err_msg = "{$qid} DB insert error: " . $e->getMessage();
-				$response_msg = "Unexpected error";
-				$this->dropLogResponse(
-					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
-					$err_msg, 'critical');
+		/*
+		 Only a database failure is spooled. Anything else reaching the
+		 Throwable branch is a bug or a schema mismatch, and drain() stops
+		 the whole pass on its first failure -- so an entry that throws
+		 every time would block the spool for every mail behind it.
+		 Database unavailability always arrives as QueryException or
+		 PDOException: Connection::run() wraps statement and connect
+		 errors, and a commit aborted by Galera throws PDOException raw.
+		*/
+		if ($db_failed) {
+			$spooled = (new MailLogSpool())->push($data, $rcptArr);
 		}
 		
 		if (Config::get('log_to_files') && ($dir = Config::get('log_to_files_dir'))) {
@@ -363,18 +379,25 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		if ($db_id) {
 			$score = number_format((float)$score, 2);
 			$this->syslogLogger->info("$qid score: {$score} '$action' saved in DB [id: $db_id] by {$this->logPrefix} | $runtime");
+		} elseif ($spooled) {
+			/*
+			 MailLogSpool has already logged the qid and the key to both
+			 logs. Answer 200: rspamd must stop retrying a message we have
+			 taken responsibility for, and the raw file must survive for
+			 cron:import_spool, so no discard_raw_mail() here.
+			*/
+			$ok_msg = 'Message spooled';
 		} else {
 			Helper::discard_raw_mail($mail_location);
 
 			$err_msg = "Error storing $qid in DB by {$this->logPrefix}. Check PHP/rspamd logs | $runtime";
-			$response_msg = "Error storing message in DB";
 			$this->dropLogResponse(
-				Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
+				Response::HTTP_INTERNAL_SERVER_ERROR, $fail_msg,
 				$err_msg, 'critical');
 		}
 		
 		$response = new Response();
-		$response->setContent('Message saved');
+		$response->setContent($ok_msg);
 		$response->setCharset('UTF-8');
 		$response->headers->set('Content-Type', 'text/plain');
 		$response->setStatusCode(Response::HTTP_OK);
