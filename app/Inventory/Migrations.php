@@ -17,6 +17,7 @@ use App\Core\Database\Migrations\MailLogDataMigration;
 use App\Core\Database\Migrations\IdActionIndex;
 use App\Core\Database\Migrations\MailLogTokensMigration;
 use App\Core\Database\Migrations\IpCreatedDayIndex;
+use App\Core\Database\Migrations\DropMailLogColumns;
 
 use InvalidArgumentException;
 
@@ -28,6 +29,7 @@ class Migrations
 	public const string ID_ACTION_INDEX = '20260806_id_action_index';
 	public const string MAIL_LOG_TOKENS = '20260904_mail_log_tokens';
 	public const string IP_CREATED_DAY_INDEX = '20260906_ip_created_day_index';
+	public const string DROP_MAIL_LOG_COLUMNS = '20260908_drop_mail_log_columns';
 
 	public const array MIGRATIONS = [
 		self::MAIL_RECIPIENTS,
@@ -36,6 +38,7 @@ class Migrations
 		self::ID_ACTION_INDEX,
 		self::MAIL_LOG_TOKENS,
 		self::IP_CREATED_DAY_INDEX,
+		self::DROP_MAIL_LOG_COLUMNS,
 	];
 
 	public const array REQUIRED = [
@@ -47,6 +50,21 @@ class Migrations
 		self::IP_CREATED_DAY_INDEX,
 	];
 
+	/*
+	 Migrations db:migrate must not run. Membership in MIGRATIONS is not
+	 optional -- MigrationStatus::getMigrationState() and
+	 setMigrationState() both validate against it and throw, so a migration
+	 left out of it could never record its own status. Exclusion therefore
+	 lives here, and MigrateDb skips these.
+
+	 DROP_MAIL_LOG_COLUMNS is destructive and irreversible, and rebuilds a
+	 huge table with writes blocked. Nobody running db:migrate for an
+	 unrelated migration should trigger that.
+	*/
+	public const array MANUAL_ONLY = [
+		self::DROP_MAIL_LOG_COLUMNS,
+	];
+
 	public const array MIGRATION_CLASSES = [
 		self::MAIL_RECIPIENTS => MailRecipientsMigration::class,
 		self::CREATED_DAY => CreatedDayMigration::class,
@@ -54,6 +72,7 @@ class Migrations
 		self::ID_ACTION_INDEX => IdActionIndex::class,
 		self::MAIL_LOG_TOKENS => MailLogTokensMigration::class,
 		self::IP_CREATED_DAY_INDEX => IpCreatedDayIndex::class,
+		self::DROP_MAIL_LOG_COLUMNS => DropMailLogColumns::class,
 	];
 
 	public const array MIGRATION_DESCR = [
@@ -63,6 +82,7 @@ class Migrations
 		self::ID_ACTION_INDEX => "id action Index",
 		self::MAIL_LOG_TOKENS => "Mail Log Tokens",
 		self::IP_CREATED_DAY_INDEX => "ip created_day Index",
+		self::DROP_MAIL_LOG_COLUMNS => "Drop migrated mail_logs columns",
 	];
 
 	public const array MIGRATION_BATCH = [
@@ -72,6 +92,7 @@ class Migrations
 		self::ID_ACTION_INDEX => 0,
 		self::MAIL_LOG_TOKENS => 0,
 		self::IP_CREATED_DAY_INDEX => 0,
+		self::DROP_MAIL_LOG_COLUMNS => 0,
 	];
 
 	public const array MIGRATION_SLEEP = [
@@ -81,6 +102,7 @@ class Migrations
 		self::ID_ACTION_INDEX => 200000,
 		self::MAIL_LOG_TOKENS => 200000,
 		self::IP_CREATED_DAY_INDEX => 200000,
+		self::DROP_MAIL_LOG_COLUMNS => 200000,
 	];
 
 	public const array MIGRATION_HELP = [
@@ -90,6 +112,7 @@ class Migrations
 		self::ID_ACTION_INDEX => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::MAIL_LOG_TOKENS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::IP_CREATED_DAY_INDEX => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
+		self::DROP_MAIL_LOG_COLUMNS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MAILLOG_DROP_COLUMNS.md",
 	];
 
 	public const string STATUS_PENDING   = 'pending';

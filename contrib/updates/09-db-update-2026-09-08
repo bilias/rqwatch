@@ -1,0 +1,5 @@
+# SQL
+ALTER TABLE `mail_logs`
+  DROP COLUMN `symbols`,
+  DROP COLUMN `fuzzy_hashes`,
+  DROP COLUMN `headers`;

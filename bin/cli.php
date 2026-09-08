@@ -28,6 +28,7 @@ use App\Console\MigrateMailLogData;
 use App\Console\MigrateIdActionIndex;
 use App\Console\MigrateMailLogTokens;
 use App\Console\MigrateIpCreatedDayIndex;
+use App\Console\MigrateDropMailLogColumns;
 use App\Console\MigrateDb;
 
 (new Kernel())->boot();
@@ -47,6 +48,7 @@ $application->add(new MigrateMailLogData());
 $application->add(new MigrateIdActionIndex());
 $application->add(new MigrateMailLogTokens());
 $application->add(new MigrateIpCreatedDayIndex());
+$application->add(new MigrateDropMailLogColumns());
 $application->add(new MigrateDb());
 
 $application->run();

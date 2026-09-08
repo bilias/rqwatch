@@ -150,6 +150,10 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::MAIL_LOG_TOKENS);
 	}
 
+	public function dropMailLogColumnsCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::DROP_MAIL_LOG_COLUMNS);
+	}
+
 	public function mailLogDataRunning(): bool {
 		return $this->isMigrationRunning(Migrations::MAIL_LOG_DATA);
 	}
@@ -168,6 +172,10 @@ final class MigrationStatus
 
 	public function ipCreatedDayIndexRunning(): bool {
 		return $this->isMigrationRunning(Migrations::IP_CREATED_DAY_INDEX);
+	}
+
+	public function dropMailLogColumnsRunning(): bool {
+		return $this->isMigrationRunning(Migrations::DROP_MAIL_LOG_COLUMNS);
 	}
 
 	public function getAllMigrationStates(): array {

@@ -58,6 +58,12 @@ class MigrateDb extends MigrateCliCommand
 		$force = $input->getOption('force');
 
 		foreach (Migrations::MIGRATIONS as $migration_str) {
+			// destructive or otherwise operator-only, run by its own command
+			if (in_array($migration_str, Migrations::MANUAL_ONLY, true)) {
+				$output->writeln("<comment>Migration {$migration_str} must run manually, skipped.</comment>");
+				continue;
+			}
+
 			// run each migration
 			$migration = $this->createMigration($migration_str);
 

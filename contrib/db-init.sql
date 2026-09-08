@@ -137,9 +137,7 @@ CREATE TABLE `mail_logs` (
  `subject` VARCHAR(1024) DEFAULT NULL,
  `score` FLOAT(8,2) DEFAULT NULL,
  `action` CHAR(20) DEFAULT NULL,
- `symbols` JSON DEFAULT NULL,
  `has_virus` TINYINT(1) DEFAULT '0',
- `fuzzy_hashes` JSON DEFAULT NULL,
  `ip` VARCHAR(50) DEFAULT NULL,
  `mail_from` VARCHAR(255) DEFAULT NULL,
  `mime_from` VARCHAR(255) DEFAULT NULL,
@@ -153,7 +151,6 @@ CREATE TABLE `mail_logs` (
  `released` TINYINT(1) DEFAULT '0',
  `release_date` DATETIME(0) DEFAULT NULL,
  `notification_pending` TINYINT(1) GENERATED ALWAYS AS (`mail_stored` = 1 and `notified` = 0 and `action` in ('discard','reject')) STORED,
- `headers` longtext DEFAULT NULL,
  `message_id` VARCHAR(1024) DEFAULT NULL,
  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -232,4 +229,5 @@ INSERT INTO `migrations` VALUES
 ('20260731_mail_log_data','completed',NOW()),
 ('20260806_id_action_index','completed',NOW()),
 ('20260904_mail_log_tokens','completed',NOW()),
-('20260906_ip_created_day_index','completed',NOW());
+('20260906_ip_created_day_index','completed',NOW()),
+('20260908_drop_mail_log_columns','completed',NOW());

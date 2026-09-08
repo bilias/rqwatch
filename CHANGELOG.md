@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-09-08
+- Drop headers, symbols, fuzzy_hashes from mail_logs table
+
 ### 2026-09-07
 - ID_ACTION_INDEX Migration no longer REQUIRED
 
