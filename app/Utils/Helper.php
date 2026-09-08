@@ -1042,12 +1042,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 			throw new RuntimeException("Redis cache is unavailable, cannot flush DNS cache");
 		}
 
-		try {
-			$prefix = Config::get('dns_resolv_redis_key');
-			return $cache->deleteByPrefix($prefix);
-		} catch (Throwable $e) {
-			throw $e;
-		}
+		return $cache->deleteByPrefix(Config::get('dns_resolv_redis_key'));
 	}
 
 }
