@@ -147,7 +147,6 @@ class MailLogDataMigration extends AbstractMigration {
 				"<info>Mails done: {$scanned}, Remaining: {$remaining},"
 				. " Rows inserted: {$migrated}</info>"
 			);
-);
 			usleep($sleep);
 		}
 	}
