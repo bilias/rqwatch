@@ -124,6 +124,31 @@ final class MailLogSpool
 	}
 
 	/*
+	 How many entries are waiting. Counts keys with a SCAN rather than
+	 reading the counter, so it reports the truth even if the counter has
+	 drifted -- affordable here because only the CLI calls it. push()
+	 must keep using the counter: a SCAN per request during a mass
+	 failure is exactly the wrong cost.
+	*/
+	public function pending(bool $localOnly): int {
+		if ($this->cache === null) {
+			return 0;
+		}
+
+		$prefix = $localOnly
+			? $this->mailPrefix($this->serverAlias())
+			: $this->allMailPrefix();
+
+		try {
+			return count($this->cache->listByPrefix($prefix));
+		} catch (Throwable $e) {
+			$this->logger->error('[MailLogSpool] pending: ' . $e->getMessage());
+
+			return 0;
+		}
+	}
+
+	/*
 	 Store one failed insert. Returns false when the caller must fall
 	 back to its own failure response, so a false here means "still
 	 lost" and the caller should keep answering 500.
