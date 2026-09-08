@@ -745,7 +745,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 			|| $ipObj->isLinkLocal();
 	}
 
-	public static function getAuthProvider(int $id): ?string {
+	public static function getAuthProvider(int $id): string {
 		return AuthManager::getAuthProviderById($id);
 	}
 
