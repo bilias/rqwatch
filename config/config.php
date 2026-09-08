@@ -222,6 +222,25 @@ $dns_resolv_redis_key = 'rqwatch_dns_cache';
 # How many seconds to cache DNS queries in Redis
 $dns_resolv_redis_cache_ttl = 86400;
 
+# Redis key prefix for the failed-import spool. Entries are
+# <key>:mail:<MY_API_SERVER_ALIAS>:<uniqid>, the per-server counter is
+# <key>:count:<MY_API_SERVER_ALIAS>. The two namespaces must stay
+# distinct or the all-servers SCAN in cron:import_spool picks up the
+# counter and treats it as a payload.
+$import_spool_redis_key = "rqwatch_import_spool";
+
+# How long a spooled import survives if no replay runs (seconds).
+# Deliberately long: the mail is otherwise lost. Note this is not
+# eviction protection -- under maxmemory-policy allkeys-lru Redis can
+# drop these keys well before the TTL, so the spool wants noeviction
+# (or its own Redis DB) plus AOF.
+$import_spool_ttl = 2592000;
+
+# Refuse to spool past this many pending imports per server, so a long
+# database outage cannot fill Redis. Past the cap the API answers 500
+# again and rspamd queues the message itself.
+$import_spool_max = 20000;
+
 # Set to false in config.local.php to disable Charts
 $show_charts = true;
 
