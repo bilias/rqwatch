@@ -152,7 +152,7 @@ class MapService
 			$maps = $query
 				->get();
 		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			App::fileLogger()->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
 
@@ -167,7 +167,7 @@ class MapService
 			$field = $query
 				->first()->toArray();
 		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
+			App::fileLogger()->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
 
