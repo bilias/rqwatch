@@ -84,25 +84,24 @@ final class MailLogWriter
 			});
 	}
 
-	// Insert into mail_logs.
+	/*
+	 Insert into mail_logs and mail_log_data. Split write is the only mode:
+	 MAIL_LOG_DATA is a required migration, enforced by
+	 Kernel::verifyRequiredMigrations()
+	*/
 	private function insertMailLog(array $mailData): int {
+		[$mailLog, $mailLogData] = $this->splitMailData($mailData);
 
-		/* Handle MAIL_LOG_DATA migration state:
-		 * running -> dual write
-		 * completed -> split write
-		 * anything else -> legacy write
-		 */
-		$state = $this->migrationStatus->mailLogDataState();
+		$mailLogId = $this->capsule
+			->table(AppConfig::MAIL_LOGS_TABLE)
+			->insertGetId($mailLog);
 
-		return match ($state) {
-			// MAIL_LOG_DATA migration in progress. Dual write
-			// data fields in both mail_logs and mail_log_data table
-			Migrations::STATUS_RUNNING => $this->insertMailLogDualWrite($mailData),
-			// MAIL_LOG_DATA migration completed. Split write
-			// data fields in mail_log_data table only
-			Migrations::STATUS_COMPLETED => $this->insertMailLogSplitWrite($mailData),
-			default => $this->insertMailLogLegacyWrite($mailData),
-		};
+		$this->insertMailLogData(
+			$mailLogId,
+			$mailLogData
+		);
+
+		return $mailLogId;
 	}
 
 	private function insertMailLogSplitWrite(array $mailData): int {
@@ -118,46 +117,6 @@ final class MailLogWriter
 		);
 
 		return $mailLogId;
-	}
-
-	private function insertMailLogDualWrite(array $mailData): int {
-		$this->fileLogger->info(
-			"Mail {$mailData['qid']} received while MAIL_LOG_DATA DB migration in progress, writing in dual mode"
-		);
-		$this->syslogLogger->info(
-			$mailData['qid'] . " MAIL_LOG_DATA DB migration in progress, writing in dual mode"
-		);
-
-		$mailLogId = $this->capsule
-			->table(AppConfig::MAIL_LOGS_TABLE)
-			->insertGetId($mailData);
-
-		$mailLogData = [
-			'mail_log_id' => $mailLogId,
-			'headers' => $mailData['headers'] ?? null,
-			'symbols' => $mailData['symbols'] ?? null,
-			'fuzzy_hashes' => $mailData['fuzzy_hashes'] ?? null,
-		];
-
-		$this->insertMailLogData(
-			$mailLogId,
-			$mailLogData
-		);
-
-		return $mailLogId;
-	}
-
-	private function insertMailLogLegacyWrite(array $mailData): int {
-		$this->fileLogger->warning(
-			"Mail {$mailData['qid']} received and was written in legacy mode. MAIL_LOG_DATA DB migration pending"
-		);
-		$this->syslogLogger->warning(
-			$mailData['qid'] . " was written in legacy mode. MAIL_LOG_DATA DB migration pending"
-		);
-
-		return $this->capsule
-			->table(AppConfig::MAIL_LOGS_TABLE)
-			->insertGetId($mailData);
 	}
 
 	// Insert into mail_logs_data.
@@ -205,10 +164,6 @@ final class MailLogWriter
 
 	private function supportsRecipients(): bool {
 		return $this->migrationStatus->mailRecipientsCompleted();
-	}
-
-	private function supportsMailLogData(): bool {
-		return $this->migrationStatus->mailLogDataCompleted();
 	}
 
 	private function splitMailData(array $mailData): array {
