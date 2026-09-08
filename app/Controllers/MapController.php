@@ -173,7 +173,7 @@ class MapController extends ViewController
 			$map_custom_entries = $service->showPaginatedAllMapCustom($page, $this->getMapShowAllCustomUrl());
 			$map_custom_total = $map_custom_entries->total();
 
-			if (empty($map_custom_entries)) {
+			if ($map_custom_total === 0) {
 				$this->flashbag->add('info', 'No map entries exist');
 				return new RedirectResponse($this->getMapsUrl());
 			}
@@ -197,7 +197,7 @@ class MapController extends ViewController
 			// has applyUserRcptToScope and filter maps on model
 			$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->getMapShowAllUrl(), $filter_maps);
 
-			if (empty($map_comb_entries)) {
+			if ($map_comb_entries->total() === 0) {
 				$this->flashbag->add('info', 'No map entries exist');
 				return new RedirectResponse($this->getMapsUrl());
 			}
@@ -1179,7 +1179,7 @@ class MapController extends ViewController
 			$map_custom_entries = $service->searchPaginatedMapCustom($page, $this->getMapSearchEntryUrl(), $search, $map_name);
 			$map_custom_total = $map_custom_entries->total();
 
-			if (empty($map_custom_entries)) {
+			if ($map_custom_total === 0) {
 				$this->flashbag->add('info', 'No map entries exist');
 				return new RedirectResponse($this->getMapsUrl());
 			}
@@ -1202,7 +1202,7 @@ class MapController extends ViewController
 			// has applyUserRcptToScope and filter maps on model
 			$map_comb_entries = $service->searchPaginatedMapCombined($page, $this->getMapSearchEntryUrl(), $filter_maps, $search, $map_name);
 
-			if (empty($map_comb_entries)) {
+			if ($map_comb_entries->total() === 0) {
 				$this->flashbag->add('info', 'No map entries exist');
 				return new RedirectResponse($this->getMapsUrl());
 			}
