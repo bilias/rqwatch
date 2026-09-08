@@ -725,7 +725,7 @@ class MapService
 				return false;
 			}
 			$allowedRcptTo = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
-			if (!in_array($data['rcpt_to'], $allowedRcptTo)) {
+			if (!in_array($data['rcpt_to'], $allowedRcptTo, true)) {
 				$this->logger->warning("rcpt_to value '{$data['rcpt_to']}' is not allowed for user {$this->username}");
 				return false;
 			}
@@ -791,7 +791,7 @@ class MapService
 				return false;
 			}
 			$allowedRcptTo = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
-			if (!in_array($data['rcpt_to'], $allowedRcptTo)) {
+			if (!in_array($data['rcpt_to'], $allowedRcptTo, true)) {
 				$this->logger->warning("rcpt_to value '{$data['rcpt_to']}' is not allowed for user {$this->username}");
 				return false;
 			}

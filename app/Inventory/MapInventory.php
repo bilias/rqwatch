@@ -331,12 +331,12 @@ class MapInventory
 
 			// check role 'access' in map config
 			$config = $configs[$map];
-			if (in_array($role, $config['access'] ?? ['admin'])) {
+			if (in_array($role, $config['access'] ?? ['admin'], true)) {
 
 				// check for override form class for user forms
 				if (
 					($role === 'user') &&
-					in_array('user', $config['access'] ?? []) &&
+					in_array('user', $config['access'] ?? [], true) &&
 					is_a($config['map_form'], MapWithTwoFieldsForm::class, true) &&
 					isset($config['fields'][1]) &&
 					$config['fields'][1] === 'rcpt_to'
@@ -353,7 +353,7 @@ class MapInventory
 
 		// No specific map requested — filter all
 		return array_filter($configs, function ($config) use ($role) {
-			return in_array($role, $config['access'] ?? ['admin']);
+			return in_array($role, $config['access'] ?? ['admin'], true);
 		});
 	}
 
