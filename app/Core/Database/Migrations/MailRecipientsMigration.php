@@ -76,20 +76,12 @@ class MailRecipientsMigration extends AbstractMigration {
 		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
 			->select('ml.id', 'ml.rcpt_to', 'r.mail_log_id')
 			->leftJoin(AppConfig::MAIL_LOG_RECIPIENTS_TABLE . ' as r', 'r.mail_log_id', '=', 'ml.id');
-			//->whereNull('r.mail_log_id');
-			//->where('ml.rcpt_to', '!=', 'unknown');
 
 		/*
-		$total = (clone $baseQuery)->count('ml.id');
-
-		$unknown = (clone $baseQuery)
-							->where('ml.rcpt_to', '=', 'unknown')
-							->count('ml.id');
+		 Count only what still needs migrating. The loop below applies the
+		 same whereNull predicate, so $total and the walk cover the same
+		 population and Remaining drains at the right rate.
 		*/
-
-		// count only what still needs migrating; the loop below re-scans the
-		// whole join, but on a completed migration this makes $total 0 and
-		// returns before the loop runs at all.
 		$total = (clone $baseQuery)
 							->whereNull('r.mail_log_id')
 							->count('ml.id');
