@@ -123,13 +123,9 @@ abstract class RqwatchApi
 
 		$fullLogMsg = $this->logPrefix ? "[{$this->logPrefix}] $logMsg" : $logMsg;
 
-		if ($this->fileLogger && method_exists($this->fileLogger, $logLevel)) {
-			$this->fileLogger->$logLevel($fullLogMsg);
-		}
+		$this->fileLogger->$logLevel($fullLogMsg);
 
-		if ($this->syslogLogger && method_exists($this->syslogLogger, $logLevel)) {
-			$this->syslogLogger->$logLevel($fullLogMsg);
-		}
+		$this->syslogLogger->$logLevel($fullLogMsg);
 
 		$response = new Response($responseMsg, $httpCode);
 		$response->send();
