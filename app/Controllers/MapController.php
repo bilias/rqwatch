@@ -398,7 +398,7 @@ class MapController extends ViewController
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
-		if (empty($id) || !is_int($id)) {
+		if (empty($id)) {
 			$this->flashbag->add('error', 'Invalid map id');
 			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 		}
@@ -786,7 +786,7 @@ class MapController extends ViewController
 			return new RedirectResponse($this->getMapsUrl());
 		}
 
-		if (empty($id) || !is_int($id)) {
+		if (empty($id)) {
 			$this->flashbag->add('error', 'Invalid map entry id');
 			return new RedirectResponse($this->getMapsUrl());
 		}
