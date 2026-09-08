@@ -396,7 +396,17 @@ class MailLogService
 		return $logs;
 	}
 
-	public function showReports(array $filters, string $field, string $mode = 'count'): ?Collection {
+	public function showReports(
+		array $filters,
+		string $field,
+		string $mode = 'count'
+	): Collection {
+
+		if (!in_array($field, MailLog::REPORT_FIELDS, true)) {
+			$this->logger->error("{$lf} rejected field: {$field}");
+			return new Collection();
+		}
+
 		$lf = "MailLogService_showReports";
 
 		switch($field) {
