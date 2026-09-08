@@ -204,6 +204,9 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			}
 		}
 
+		// scalar guard
+		$qid = (string) $qid;
+
 		// check for antivirus symbol
 		$symbolsArr = json_decode($symbols, true) ?: [];
 		if (Helper::check_virus_from_all($symbolsArr)) {
@@ -217,7 +220,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		$store_settings = Config::get('store_settings');
 		
 		if ((!empty($action) && !empty($store_settings[$action])) || $has_virus) {
-			if ($mail_location = Helper::store_raw_mail($_ENV['QUARANTINE_DIR'], $qid, $rawEmail)) {
+						if ($mail_location = Helper::store_raw_mail((string) ($_ENV['QUARANTINE_DIR'] ?? ''), $qid, $rawEmail)) {
 				$this->syslogLogger->info("$qid stored in quarantine: $mail_location");
 				$mail_stored = 1;
 			} else {
@@ -331,6 +334,8 @@ class MetadataImporterMultipartApi extends RqwatchApi
 
 				// XXX We could cache failed inserts in Redis and retry later via cron
 
+				Helper::discard_raw_mail($mail_location);
+
 				$pdoMessage = $e->getPrevious()?->getMessage() ?? $e->getMessage();
 				$err_msg = "{$qid} DB error: {$pdoMessage}";
 				$response_msg = "Database error. Please try again later";
@@ -338,6 +343,8 @@ class MetadataImporterMultipartApi extends RqwatchApi
 					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
 					$err_msg, 'critical');
 		} catch (Throwable $e) {
+				Helper::discard_raw_mail($mail_location);
+
 				$err_msg = "{$qid} DB insert error: " . $e->getMessage();
 				$response_msg = "Unexpected error";
 				$this->dropLogResponse(
@@ -355,6 +362,8 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			$score = number_format((float)$score, 2);
 			$this->syslogLogger->info("$qid score: {$score} '$action' saved in DB [id: $db_id] by {$this->logPrefix} | $runtime");
 		} else {
+			Helper::discard_raw_mail($mail_location);
+
 			$err_msg = "Error storing $qid in DB by {$this->logPrefix}. Check PHP/rspamd logs | $runtime";
 			$response_msg = "Error storing message in DB";
 			$this->dropLogResponse(

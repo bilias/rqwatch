@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-08
+- Purge the quarantine file when the mail_logs insert fails
 - Deprecate and remove MetadataImporterApi
 - MailLogWriter refactoring
 - db:optimize_table for mail_logs table optimization after columns drop

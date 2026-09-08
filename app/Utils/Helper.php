@@ -38,29 +38,27 @@ class Helper {
 	}
 
 	// Stores raw mail into filesystem. Can be used for release to user
-	public static function store_raw_mail(string $dir, string $qid, ?string $rawEmail = null) {
+	public static function store_raw_mail(
+		string $dir,
+		string $qid,
+		string $rawEmail
+	): ?string {
 		if (!is_dir($dir)) {
 			self::logger()->error("$dir does not exist");
-			return false;
+			return null;
 		}
 
 		if (!is_writable($dir)) {
 			self::logger()->error("$dir is not writable");
-			return false;
+			return null;
 		}
 
-		if ($rawEmail !== null && $rawEmail !== '') {
-			$raw_input = $rawEmail;
-		} else {
-			// Legacy fallback only for 'default' formatter
-			$raw_input = file_get_contents('php://input');
+		if ($rawEmail === '') {
+			self::logger()->error("No input received for $qid");
+			return null;
 		}
 
-		if (empty($raw_input)) {
-			self::logger()->error("No input received.");
-			http_response_code(400);
-			return false;
-		}
+		$raw_input = $rawEmail;
 
 		// Write raw input to a file
 		$date = date("Y-m-d");
@@ -80,7 +78,7 @@ class Helper {
 			if (!@mkdir($dir_raw, 0750, true) && !is_dir($dir_raw)) {
 				$err = error_get_last()['message'] ?? 'unknown error';
 				self::logger()->error("Error creating directory $dir_raw: $err");
-				return false;
+				return null;
 			}
 		}
 
@@ -93,9 +91,38 @@ class Helper {
 			self::logger()->error("Failed to write raw email to file: $file_raw: $err");
 			@unlink($file_raw);
 			@rmdir($dir_raw);
-			return false;
+			return null;
 		}
 		return $file_raw;
+	}
+
+	/*
+	 Undo store_raw_mail() when the mail_logs row could not be written.
+	 The file is written before the row exists, so a failed insert leaves
+	 a quarantine file that nothing reaps: every deletion path keys off
+	 mail_logs.mail_location, and
+	 CronQuarantine::pruneEmptyQuarantineDateDirs() reaches only <date>
+	 and the unknown/invalid group dirs, never <date>/<qid>, so an empty
+	 qid dir left behind would also keep its date dir from ever being
+	 pruned.
+
+	 deleteDirectory() is deliberately the mechanism: it is the same call
+	 cleanQuarantine() uses, and it carries the containment checks --
+	 realpath on both sides, a prefix match with a trailing separator so
+	 /var/q-backup cannot pass for /var/q, refusal on filesystem root or
+	 a non-directory, symlinks unlinked rather than followed, and fail
+	 closed on anything that is not a regular file or directory. Do not
+	 replace it with a bare unlink()/rmdir().
+
+	 Do not call this once failed inserts are spooled for replay -- a
+	 spooled mail_location has to keep pointing at a file that exists.
+	*/
+	public static function discard_raw_mail(?string $file): bool {
+		if (empty($file)) {
+			return false;
+		}
+
+		return self::deleteDirectory(dirname($file));
 	}
 
 	public static function get_today() {
