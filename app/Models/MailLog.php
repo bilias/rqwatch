@@ -244,7 +244,26 @@ class MailLog extends Model
 			$this->logMissingRelation('mailLogData', $column);
 		}
 
-		return $this->mailLogData?->{$column};
+		$data = $this->mailLogData;
+
+		if ($data === null) {
+			return null;
+		}
+
+		/*
+		 The relation is loaded but this column was excluded from it -- a
+		 constrained eager load such as 'mailLogData:mail_log_id,symbols'
+		 asked for the wrong tier. Eloquent returns null for a cast column
+		 that was never selected, so without this the caller gets a silent
+		 wrong answer and relationLoaded() reports success.
+		*/
+		if (!array_key_exists($column, $data->getAttributes())) {
+			$this->logMissingRelation('mailLogData', $column);
+
+			return null;
+		}
+
+		return $data->{$column};
 	}
 
 	private function logMissingRelation(string $relation, string $column): void {
