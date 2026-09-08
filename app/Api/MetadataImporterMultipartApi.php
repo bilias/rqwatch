@@ -88,7 +88,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			}
 
 			$rawEmail = (string) file_get_contents($msgFile->getPathname());
-			if ($rawEmail === false || $rawEmail === '') {
+			if ($rawEmail === '') {
 				throw new \RuntimeException('Empty or unreadable message content');
 			}
 		} catch (Throwable $e) {
