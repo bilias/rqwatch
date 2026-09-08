@@ -204,7 +204,9 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			}
 		}
 
-		// scalar guard
+		// the is_scalar() guard above nulls only non-scalars
+		// an int, float or bool qid would hit store_raw_mail()'s `string $qid`
+		// as an uncaught TypeError, outside the insert try/catch
 		$qid = (string) $qid;
 
 		// check for antivirus symbol
