@@ -24,6 +24,8 @@ interface CacheInterface
 
 	public function delete(string $key): bool;
 
+	public function deleteByPrefix(string $prefix): int;
+
 	public function ttl(string $key): ?int;
 
 	public function incr(string $key): ?int;

@@ -28,6 +28,7 @@ use DateTimeZone;
 
 use Exception;
 use Throwable;
+use RuntimeException;
 use InvalidArgumentException;
 
 class Helper {
@@ -1035,9 +1036,15 @@ You can view mail details and optionally release it from quarantine by clicking 
 		if (!Helper::env_bool('REDIS_ENABLE')) {
 			return 0;
 		}
+
+		$cache = App::cache();
+		if ($cache === null) {
+			throw new RuntimeException("Redis cache is unavailable, cannot flush DNS cache");
+		}
+
 		try {
 			$prefix = Config::get('dns_resolv_redis_key');
-			return App::cache()->deleteByPrefix($prefix);
+			return $cache->deleteByPrefix($prefix);
 		} catch (Throwable $e) {
 			throw $e;
 		}
