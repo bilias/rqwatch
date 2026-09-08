@@ -107,7 +107,7 @@ class MailerService
 	 * @param array    $recipients  Array of recipient email addresses
 	 * @param string   $subject     Subject line
 	 * @param string   $template    HTML Twig Template
-	 * @param string   $text        Text Part
+	 * @param string|null   $text        Text Part
 	 * @param array    $context     pass variables (name => value) to the template
 	 * @param string|null $attachmentPath Optional file path to attach
 	 * @param string|null $attachmentName Optional name for attachement
@@ -119,7 +119,7 @@ class MailerService
 		array   $recipients,
 		string  $subject,
 		string  $template,
-		?string  $text = null,
+		?string $text,
 		array   $context,
 		?string $attachmentPath = null,
 		?string $attachmentName = null
