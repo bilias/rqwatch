@@ -169,6 +169,8 @@ stress on the database.
 - Redis Session support (+ sentinel)
 - Redis Config caching
 - Redis Rspamd stats caching
+- Redis DNS caching
+- Redis spooling of mail metadata when DB is down or unavailable
 
 ## API for Rspamd - RSPAMD API (metadata_importer)
 - Mail metadata and raw email (depending on configuration) is inserted to database and local storage, using the metadata_exporter plugin of Rspamd
