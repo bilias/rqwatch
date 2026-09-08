@@ -6,6 +6,10 @@
 # update local map files if needed every 5 min
 */5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:updatemapfiles
 
+# import mail metadata spooled by the API when the database was unavailable
+# (local only, so the raw file can be verified) every 5 min
+3-58/5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:import_spool -i -l
+
 # clean quarantine (local only) daily
 01 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:quarantine -d -l -p
 
