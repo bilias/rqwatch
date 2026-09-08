@@ -79,9 +79,9 @@ class DropMailLogColumns extends AbstractMigration {
 		$this->fileLogger->info("Starting migration $name");
 		$output->writeln("<comment>Starting migration $details</comment>");
 		$output->writeln(
-			"<question>DROP COLUMN rebuilds mail_logs: writes are blocked "
-			. "until it finishes and the server needs free space for a "
-			. "second copy of the table. This will take some time.</question>"
+			"<question>Trying an instant metadata-only drop. If the server "
+			. "refuses it, mail_logs is rebuilt instead and writes are "
+			. "blocked until that finishes.</question>"
 		);
 
 		try {

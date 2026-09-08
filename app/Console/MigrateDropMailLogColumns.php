@@ -28,11 +28,13 @@ application reads it from there only.
 Run it manually, in a maintenance window. It is not part of db:migrate and
 it is not a required migration, so the application runs with or without it.
 
-DROP COLUMN rebuilds mail_logstrying an instant metadata-only drop.
-If the server refuses it, mail_logs is rebuilt instead and writes are
-blocked until that finishes.
-Server needs free space for a second copy of the table. The drop is not
-reversible -- verify mail_log_data coverage first, see docs/DB_DROP_COLUMNS.md
+This tries an instant metadata-only drop first. If the server refuses it,
+mail_logs is rebuilt instead: writes are blocked until that finishes and
+the server needs free space for a second copy of the table.
+
+An instant drop does not reclaim disk space -- run db:optimize_table
+afterwards for that. The drop is not reversible, so verify mail_log_data
+coverage first, see docs/DB_MAILLOG_DROP_COLUMNS.md
 ',
 )]
 class MigrateDropMailLogColumns extends MigrateCliCommand
