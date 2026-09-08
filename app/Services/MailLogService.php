@@ -725,11 +725,14 @@ class MailLogService
 			throw new InvalidArgumentException($err);
 		}
 
-		if ($log->symbols === null) {
-			$log->symbols = [];
-		}
+		/*
+		 Local, not $log->symbols = [] -- the accessor reads mail_log_data,
+		 so a write to the model attribute is ignored on the next read
+		*/
+		$symbols = $log->symbols ?? [];
+
 		// order symbols by score and show printable information only
-		$ar = Helper::format_symbols($log->symbols, $log->score, $log->has_virus);
+		$ar = Helper::format_symbols($symbols, $log->score, $log->has_virus);
 
 		/*
 		$parser = new Parser();
@@ -1023,10 +1026,10 @@ class MailLogService
 		$signature = Config::get('mail_signature');
 		$subject = Config::get('release_mail_subject');
 
-		if ($maillog->symbols === null) {
-			$maillog->symbols = [];
-		}
-		$ar = Helper::format_symbols($maillog->symbols, $maillog->score, $maillog->has_virus);
+		$symbols = $maillog->symbols ?? [];
+
+		$ar = Helper::format_symbols($symbols, $maillog->score, $maillog->has_virus);
+
 		$vars = array(
 			'created_at' => $maillog->created_at,
 			'subject'    => $maillog->subject,
@@ -1263,8 +1266,6 @@ class MailLogService
 			// these were modified just for producing the mail
 			// don't push changed back to DB. Needed for both save() and update()
 			unset($maillog->virus_name);
-			unset($maillog->virus_found);
-			unset($maillog->symbols);
 			unset($maillog->disabled_rcpt_to);
 			/*
 			$maillog->notified = 1;

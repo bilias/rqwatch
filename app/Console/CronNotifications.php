@@ -236,9 +236,11 @@ class CronNotifications extends RqwatchCliCommand
 		// SEND NOTIFICATION MAILS
 		$ar = [];
 		foreach ($logs as $key => $log) {
-			$ar[$key] = Helper::format_symbols($log->symbols, $log->score, $log->has_virus);
-			$log->symbols = $ar[$key]['symbols'];
-			$log->virus_found = $ar[$key]['virus_found'];
+			$ar[$key] = Helper::format_symbols(
+				$log->symbols ?? [],
+				$log->score,
+				$log->has_virus
+			);
 
 			if (!empty($ar[$key]['virus_found'])) {
 				$log->virus_name = $ar[$key]['virus_found'];
