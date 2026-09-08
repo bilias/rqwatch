@@ -746,10 +746,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 	}
 
 	public static function getAuthProvider(int $id): ?string {
-		if ($id !== null) {
-			return AuthManager::getAuthProviderById($id);
-		}
-		return null;
+		return AuthManager::getAuthProviderById($id);
 	}
 
 	public static function deleteDirectory(string $dir): bool {
