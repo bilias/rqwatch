@@ -58,30 +58,33 @@ class MigrateDb extends MigrateCliCommand
 		$force = $input->getOption('force');
 
 		foreach (Migrations::MIGRATIONS as $migration_str) {
-			// destructive or otherwise operator-only, run by its own command
-			if (in_array($migration_str, Migrations::MANUAL_ONLY, true)) {
-				$output->writeln(
-					"<comment>Migration {$migration_str} must run manually, skipped."
-					. "\n   See " . Migrations::MIGRATION_HELP[$migration_str]
-					. "</comment>");
-				continue;
-			}
-
 			// run each migration
 			$migration = $this->createMigration($migration_str);
 
 			$migration->ensureMigrationsTable();
 
+			$name = $migration->getName();
+			$descr = $migration->getDescr();
+			$details = "'{$descr}' ($name)";
+
 			// completed and verified
 			if (!$force && $migration->isApplied()) {
-
-				$name = $migration->getName();
-				$descr = $migration->getDescr();
-				$details = "'{$descr}' ($name)";
-
 				$output->writeln(
 					"<info>Migration $details is already applied</info>"
 				);
+				continue;
+			}
+
+			/*
+			 Manual-only and still pending. Checked after isApplied() so a
+			 migration that has already run reports like any other instead
+			 of nagging about a manual step that is done.
+			*/
+			if (in_array($migration_str, Migrations::MANUAL_ONLY, true)) {
+				$output->writeln(
+					"<comment>Migration $details must run manually, skipped."
+					. "\n   See " . Migrations::MIGRATION_HELP[$migration_str]
+					. "</comment>");
 				continue;
 			}
 
