@@ -167,10 +167,10 @@ is still in there. To see the real effect, compare the size of the
 
 ---
 
-## During a rebuild, mail metadata is lost
+## During a rebuild, mail is delivered but not recorded in Rqwatch
 
 While writes to `mail_logs` are blocked, the API cannot record incoming
-mail. Rspamd's request fails; the message is still quarantined on disk,
+mail. Rspamd's request to Rqwatch fails but the mail is still delivered,
 but no row appears in Rqwatch for it.
 
 Rather than letting those requests fail, stop feeding them for the
@@ -184,7 +184,7 @@ duration:
 
 Measure the rebuild on a restored copy first so you know what window you
 actually need. Dropping columns that account for most of an 8 GB table
-means reading 8 GB and writing perhaps 1--2 GB, which is usually minutes
+means reading 8 GB and writing perhaps 1-2 GB, which is usually minutes
 rather than hours.
 
 ---
