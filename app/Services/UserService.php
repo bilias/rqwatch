@@ -264,11 +264,12 @@ class UserService
 			$data['username'] = strtolower(trim($data['username']));
 			$user->fill($data);
 			$user->password = $data['password'];
-			$user->save();
+			$saved = $user->save();
 
-			if ($user) {
+			if ($saved === true) {
 				return true;
 			}
+
 			return false;
 		} catch (Exception $e) {
 			$this->logger->error("userAdd error: " . $e->getMessage() . PHP_EOL);
