@@ -18,7 +18,6 @@ use Psr\Log\LoggerInterface;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-use App\Inventory\Migrations;
 use App\Core\Database\MigrationStatus;
 
 use App\Models\MailLogData;
@@ -90,21 +89,6 @@ final class MailLogWriter
 	 Kernel::verifyRequiredMigrations()
 	*/
 	private function insertMailLog(array $mailData): int {
-		[$mailLog, $mailLogData] = $this->splitMailData($mailData);
-
-		$mailLogId = $this->capsule
-			->table(AppConfig::MAIL_LOGS_TABLE)
-			->insertGetId($mailLog);
-
-		$this->insertMailLogData(
-			$mailLogId,
-			$mailLogData
-		);
-
-		return $mailLogId;
-	}
-
-	private function insertMailLogSplitWrite(array $mailData): int {
 		[$mailLog, $mailLogData] = $this->splitMailData($mailData);
 
 		$mailLogId = $this->capsule
