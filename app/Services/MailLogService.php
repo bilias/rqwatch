@@ -402,12 +402,12 @@ class MailLogService
 		string $mode = 'count'
 	): Collection {
 
+		$lf = "MailLogService_showReports";
+
 		if (!in_array($field, MailLog::REPORT_FIELDS, true)) {
 			$this->logger->error("{$lf} rejected field: {$field}");
 			return new Collection();
 		}
-
-		$lf = "MailLogService_showReports";
 
 		switch($field) {
 			case 'mail_from_domain':
