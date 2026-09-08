@@ -404,6 +404,14 @@ class MailLogService
 
 		$lf = "MailLogService_showReports";
 
+		/*
+		 $field is interpolated into selectRaw() below, including the
+		 default branch's "{$field} AS {$field}". The whitelist belongs here
+		 and not only at the caller: this method is public, and a second
+		 caller added without MailLogController's in_array() gate would be
+		 an injection. Fail closed with no rows; the caller keeps its own
+		 check because it owns the flash message and the redirect.
+		*/
 		if (!in_array($field, MailLog::REPORT_FIELDS, true)) {
 			$this->logger->error("{$lf} rejected field: {$field}");
 			return new Collection();
