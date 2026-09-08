@@ -486,7 +486,7 @@ class MailLogController extends ViewController
 		$mailreleaseform = MailReleaseForm::create($this->formFactory, $this->request, $form_data);
 
 		// release form submitted
-		if (!empty($mailreleaseform) && $mailreleaseform->isSubmitted() && $mailreleaseform->isValid()) {
+		if ($mailreleaseform->isSubmitted() && $mailreleaseform->isValid()) {
 			$data = $mailreleaseform->getData();
 
 			if (empty($data['email'])) {
