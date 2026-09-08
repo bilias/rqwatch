@@ -186,7 +186,7 @@ CREATE TABLE `mail_log_recipients` (
     FOREIGN KEY (`mail_log_id`)
     REFERENCES `mail_logs` (`id`)
     ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `mail_log_tokens` (
   `token_hash` char(64) NOT NULL,
@@ -198,7 +198,7 @@ CREATE TABLE `mail_log_tokens` (
     FOREIGN KEY (`mail_log_id`, `recipient_email`)
     REFERENCES `mail_log_recipients` (`mail_log_id`,`recipient_email`)
     ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 DROP TABLE IF EXISTS `mail_log_data`;
 
@@ -212,7 +212,7 @@ CREATE TABLE `mail_log_data` (
     FOREIGN KEY (`mail_log_id`)
 	 REFERENCES `mail_logs` (`id`)
 	 ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 DROP TABLE IF EXISTS `migrations`;
 
@@ -221,7 +221,7 @@ CREATE TABLE `migrations` (
   `status` varchar(32) NOT NULL DEFAULT 'pending',
   `status_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`migration`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `migrations` VALUES
 ('20260111_mail_recipients','completed',NOW()),
