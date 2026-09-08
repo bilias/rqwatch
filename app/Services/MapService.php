@@ -510,7 +510,7 @@ class MapService
 		if (!$log) {
 			return true;
 		}
-		if ($log->delete($map_name)) {
+		if ($log->delete()) {
 			return true;
 		}
 		return false;
