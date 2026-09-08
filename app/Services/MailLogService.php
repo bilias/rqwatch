@@ -1264,20 +1264,17 @@ class MailLogService
 
 		if ($sent > 0) {
 			/*
-			 These were set just for producing the mail and are not columns.
-			 update() is fill()->save(), and save() writes the whole dirty
-			 set -- unset() removes them from $attributes so they cannot be
-			 dirty. Needed for both save() and update().
+			 Deliberately the query builder, not $maillog->update().
+			 update() is fill()->save() and save() writes the whole dirty
+			 set. CronNotifications sets virus_name (not a column) and
+			 filterDisabledRecipients() overwrites rcpt_to (a column) with
+			 the enabled-only list -- so a model write persists a
+			 truncated recipient list as a side effect of marking the mail
+			 notified. Nothing downstream reads $maillog->notified, so
+			 there is no reason to round-trip through the model.
 			*/
-			unset($maillog->virus_name);
-			unset($maillog->disabled_rcpt_to);
-			/*
-			$maillog->notified = 1;
-			$maillog->notify_date = date("Y-m-d H:i:s");
-			$maillog->save();
-			*/
-			$maillog->update([
-				'notified' => 1,
+			MailLog::whereKey($maillog->id)->update([
+				'notified'    => 1,
 				'notify_date' => date("Y-m-d H:i:s"),
 			]);
 			return true;
