@@ -12,7 +12,7 @@ namespace App\Console;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
@@ -44,12 +44,9 @@ class OptimizeTable extends RqwatchCliCommand
 
 	#[\Override]
 	protected function configure(): void {
-		$this->addArgument(
-			'table', // name
-			InputArgument::OPTIONAL, // mode
-			'Table to rebuild', // description
-			AppConfig::MAIL_LOGS_TABLE // default
-		);
+		$this
+			->addOption('table', 't', InputOption::VALUE_REQUIRED, 'Table to rebuild', AppConfig::MAIL_LOGS_TABLE)
+		;
 	}
 
 	#[\Override]
@@ -60,7 +57,7 @@ class OptimizeTable extends RqwatchCliCommand
 			return Command::FAILURE;
 		}
 
-		$table = (string) $input->getArgument('table');
+		$table = (string) $input->getOption('table');
 
 		if (!in_array($table, self::tables(), true)) {
 			$output->writeln("<error>Unknown table '{$table}'</error>");
