@@ -208,10 +208,10 @@ class MailAliasController extends ViewController
 			try {
 				$mailalias = new MailAlias;
 				$mailalias->fill($data);
-				$mailalias->save();
-				if ($mailalias) {
-						$this->fileLogger->info("Alias '{$alias}' created for '{$username}' by '{$this->username}'");
-						$this->flashbag->add('success', "Alias '{$alias}' created for '{$username}'");
+				$saved = $mailalias->save();
+				if ($saved === true) {
+					$this->fileLogger->info("Alias '{$alias}' created for '{$username}' by '{$this->username}'");
+					$this->flashbag->add('success', "Alias '{$alias}' created for '{$username}'");
 				} else {
 					$this->flashbag->add('error', "Alias creation failed");
 				}

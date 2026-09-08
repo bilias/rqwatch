@@ -308,8 +308,8 @@ class UserController extends ViewController
 				if ($pass_changed) {
 					$user->password = $data['password'];
 				}
-				$user->save();
-				if ($user) {
+				$saved = $user->save();
+				if ($saved === true) {
 					$this->flashbag->add('success', "Profile updated");
 				} else {
 					$this->flashbag->add('error', "Profile update failed");
