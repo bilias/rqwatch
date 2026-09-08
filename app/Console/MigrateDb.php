@@ -60,7 +60,10 @@ class MigrateDb extends MigrateCliCommand
 		foreach (Migrations::MIGRATIONS as $migration_str) {
 			// destructive or otherwise operator-only, run by its own command
 			if (in_array($migration_str, Migrations::MANUAL_ONLY, true)) {
-				$output->writeln("<comment>Migration {$migration_str} must run manually, skipped.</comment>");
+				$output->writeln(
+					"<comment>Migration {$migration_str} must run manually, skipped."
+					. "\n   See " . Migrations::MIGRATION_HELP[$migration_str]
+					. "</comment>");
 				continue;
 			}
 
