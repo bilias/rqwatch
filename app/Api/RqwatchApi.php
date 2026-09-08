@@ -115,11 +115,11 @@ abstract class RqwatchApi
 	}
 
 	protected function dropLogResponse(
-		int $httpCode = 500,
+		int $httpCode,
 		string $responseMsg,
 		string $logMsg,
 		string $logLevel = 'error',
-	): void {
+	): never {
 
 		$fullLogMsg = $this->logPrefix ? "[{$this->logPrefix}] $logMsg" : $logMsg;
 
