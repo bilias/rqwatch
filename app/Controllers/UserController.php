@@ -483,9 +483,9 @@ class UserController extends ViewController
 					if ($pass_changed) {
 						$user->password = $data['password'];
 					}
-					$user->save();
+					$saved = $user->save();
 					//dump(DB::connection()->getQueryLog());
-					if ($user) {
+					if ($saved === true) {
 						$this->flashbag->add('success', "User '{$user->username}' updated");
 						/*
 						if ($pass_changed) {
