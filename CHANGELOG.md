@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 ### 2026-09-08
+- db:optimize_table for mail_logs table optimization after columns drop
+- db:migrate_drop_mail_log_columns migration
 - Drop headers, symbols, fuzzy_hashes from mail_logs table
 
 ### 2026-09-07
