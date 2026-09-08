@@ -27,7 +27,7 @@ use DateTime;
 use DateTimeZone;
 
 use Exception;
-use Throwable;;
+use Throwable;
 use InvalidArgumentException;
 
 class Helper {
