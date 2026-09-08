@@ -35,7 +35,8 @@ use Throwable;
 */
 final class MailLogSpool
 {
-	private LoggerInterface $logger;
+	private LoggerInterface $fileLogger;
+	private LoggerInterface $syslogLogger;
 
 	/*
 	 Entries and the counter need separate namespaces. A counter key
@@ -54,7 +55,8 @@ final class MailLogSpool
 	private ?RedisCache $cache = null;
 
 	public function __construct() {
-		$this->logger = App::fileLogger();
+		$this->fileLogger = App::fileLogger();
+		$this->syslogLogger = App::syslogLogger();
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			$cache = App::cache();
@@ -73,7 +75,7 @@ final class MailLogSpool
 		if ($alias === '') {
 			// spool anyway: losing a mail over a missing env var would
 			// defeat the point. An all-servers drain still finds it.
-			$this->logger->error('[MailLogSpool] MY_API_SERVER_ALIAS is empty');
+			$this->fileLogger->error('[MailLogSpool] MY_API_SERVER_ALIAS is empty');
 
 			return 'unknown';
 		}
@@ -142,7 +144,7 @@ final class MailLogSpool
 		try {
 			return count($this->cache->listByPrefix($prefix));
 		} catch (Throwable $e) {
-			$this->logger->error('[MailLogSpool] pending: ' . $e->getMessage());
+			$this->fileLogger->error('[MailLogSpool] pending: ' . $e->getMessage());
 
 			return 0;
 		}
@@ -164,7 +166,7 @@ final class MailLogSpool
 		$ttl = (int) Config::get('import_spool_ttl');
 
 		if ($max < 1 || $ttl < 1) {
-			$this->logger->error('[MailLogSpool] import_spool_max/ttl not usable');
+			$this->fileLogger->error('[MailLogSpool] import_spool_max/ttl not usable');
 
 			return false;
 		}
@@ -177,7 +179,7 @@ final class MailLogSpool
 			$pending = (int) ($cache->get($countKey) ?: 0);
 
 			if ($pending >= $max) {
-				$this->logger->critical(
+				$this->fileLogger->critical(
 					"[MailLogSpool] spool full ({$pending}/{$max}) on {$alias}, "
 					. "not spooling {$qid}"
 				);
@@ -201,7 +203,7 @@ final class MailLogSpool
 			);
 
 			if ($payload === false) {
-				$this->logger->error(
+				$this->fileLogger->error(
 					"[MailLogSpool] cannot encode {$qid}: " . json_last_error_msg()
 				);
 
@@ -211,7 +213,7 @@ final class MailLogSpool
 			$key = $this->mailPrefix($alias) . uniqid('', true);
 
 			if (!$cache->set($key, $payload, $ttl)) {
-				$this->logger->error("[MailLogSpool] cannot store {$key} for {$qid}");
+				$this->fileLogger->error("[MailLogSpool] cannot store {$key} for {$qid}");
 
 				return false;
 			}
@@ -219,13 +221,13 @@ final class MailLogSpool
 			$cache->incr($countKey);
 			$cache->expire($countKey, $ttl);
 
-			$this->logger->warning(
-				"[MailLogSpool] spooled {$qid} as {$key} for later import"
-			);
+			$spooled = "{$qid} spooled as {$key} for later import";
+			$this->fileLogger->warning("[MailLogSpool] {$spooled}");
+			$this->syslogLogger->warning($spooled);
 
 			return true;
 		} catch (Throwable $e) {
-			$this->logger->error('[MailLogSpool] push: ' . $e->getMessage());
+			$this->fileLogger->error('[MailLogSpool] push: ' . $e->getMessage());
 
 			return false;
 		}
@@ -272,7 +274,7 @@ final class MailLogSpool
 		try {
 			$keys = array_keys($cache->listByPrefix($prefix));
 		} catch (Throwable $e) {
-			$this->logger->error('[MailLogSpool] drain list: ' . $e->getMessage());
+			$this->fileLogger->error('[MailLogSpool] drain list: ' . $e->getMessage());
 			$output?->writeln('<error>Cannot list spooled entries: ' . $e->getMessage() . '</error>');
 
 			return $result;
@@ -290,7 +292,7 @@ final class MailLogSpool
 			try {
 				$raw = $cache->get($key);
 			} catch (Throwable $e) {
-				$this->logger->error("[MailLogSpool] cannot read {$key}: " . $e->getMessage());
+				$this->fileLogger->error("[MailLogSpool] cannot read {$key}: " . $e->getMessage());
 				$result['skipped']++;
 				continue;
 			}
@@ -302,7 +304,7 @@ final class MailLogSpool
 				|| !is_array($entry['data'])
 				|| !is_array($entry['recipients'] ?? null)
 			) {
-				$this->logger->error("[MailLogSpool] unusable payload in {$key}");
+				$this->fileLogger->error("[MailLogSpool] unusable payload in {$key}");
 				$output?->writeln("<error>Unusable payload in {$key}</error>");
 				$result['skipped']++;
 				continue;
@@ -328,9 +330,10 @@ final class MailLogSpool
 				&& !empty($data['mail_location'])
 				&& !file_exists((string) $data['mail_location'])
 			) {
-				$this->logger->warning(
-					"[MailLogSpool] {$qid} raw file is gone: {$data['mail_location']}"
-				);
+				$gone = "{$qid} raw file is gone: {$data['mail_location']},"
+					. " importing with mail_stored = 0";
+				$this->fileLogger->warning("[MailLogSpool] {$gone}");
+				$this->syslogLogger->warning($gone);
 				$data['mail_stored'] = 0;
 				$data['mail_location'] = null;
 			}
@@ -338,9 +341,9 @@ final class MailLogSpool
 			try {
 				$id = $writer->insert($data, $entry['recipients']);
 			} catch (Throwable $e) {
-				$this->logger->critical(
-					"[MailLogSpool] import of {$qid} failed, stopping: " . $e->getMessage()
-				);
+				$failed = "import of {$qid} failed, stopping: " . $e->getMessage();
+				$this->fileLogger->critical("[MailLogSpool] {$failed}");
+				$this->syslogLogger->critical($failed);
 				$output?->writeln(
 					"<error>Import of {$qid} failed, stopping: " . $e->getMessage() . '</error>'
 				);
@@ -353,13 +356,18 @@ final class MailLogSpool
 			} catch (Throwable $e) {
 				// the row is committed; a surviving key means one duplicate
 				// on the next pass, which is the direction we chose
-				$this->logger->error(
-					"[MailLogSpool] {$qid} imported as {$id} but {$key} remains: "
-					. $e->getMessage()
-				);
+				$stuck = "{$qid} imported as {$id} but {$key} remains, may import"
+					. " twice: " . $e->getMessage();
+				$this->fileLogger->error("[MailLogSpool] {$stuck}");
+				$this->syslogLogger->error($stuck);
 			}
 
 			$result['inserted']++;
+
+			$saved = "{$qid} saved in DB [id: {$id}] by cron:import_spool";
+			$this->fileLogger->info("[MailLogSpool] {$saved}");
+			$this->syslogLogger->info($saved);
+
 			$output?->writeln(
 				"<info>Imported {$qid} as id {$id}</info>",
 				OutputInterface::VERBOSITY_VERBOSE
@@ -389,7 +397,7 @@ final class MailLogSpool
 				$remaining = count($cache->listByPrefix($this->mailPrefix($alias)));
 				$cache->set($this->countKey($alias), (string) $remaining, $ttl);
 			} catch (Throwable $e) {
-				$this->logger->error(
+				$this->fileLogger->error(
 					"[MailLogSpool] cannot resync counter for {$alias}: " . $e->getMessage()
 				);
 			}
