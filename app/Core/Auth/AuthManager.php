@@ -61,10 +61,6 @@ class AuthManager
 	public function startOpenIdConnectAuthentication(): bool {
 		$provider = new OpenIDConnectAuth($this->logger);
 
-		if (!$provider) {
-			throw new RuntimeException("Authentication provider problem");
-		}
-
 		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
 			$provider->setUrlGenerator($this->urlGenerator);
 		} else {
@@ -91,10 +87,6 @@ class AuthManager
 
 		$provider = new OpenIDConnectAuth($this->logger);
 
-		if (!$provider) {
-			throw new RuntimeException("Authentication provider problem");
-		}
-
 		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
 			$provider->setUrlGenerator($this->urlGenerator);
 		} else {
@@ -112,10 +104,6 @@ class AuthManager
 		}
 
 		$provider = new OpenIDConnectAuth($this->logger);
-
-		if (!$provider) {
-			throw new RuntimeException("Authentication provider problem");
-		}
 
 		if (method_exists($provider, 'setUrlGenerator') && $this->urlGenerator) {
 			$provider->setUrlGenerator($this->urlGenerator);
