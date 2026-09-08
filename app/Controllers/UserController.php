@@ -416,11 +416,6 @@ class UserController extends ViewController
 			return $response;
 		}
 
-		if (is_null($id) || !is_int($id)) {
-			$this->flashbag->add('error', 'User ID problem');
-			return new RedirectResponse($this->getAdminUsersUrl());
-		}
-
 		try {
 			$user = User::findOrFail($id);
 		} catch (ModelNotFoundException $e) {

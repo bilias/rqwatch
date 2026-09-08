@@ -1114,10 +1114,6 @@ class MapService
 	}
 
 	public function delCustomMap(int $id): bool {
-		if (is_null($id) or !is_int($id)) {
-			return false;
-		}
-
 		$custom_map = CustomMapConfig::find($id);
 		if (is_null($custom_map)) {
 			return false;
@@ -1150,10 +1146,6 @@ class MapService
 	}
 
 	public function delMapEntry(string $model, string $map_name, array $map_fields, int $id): bool {
-		if (is_null($id) or !is_int($id)) {
-			return false;
-		}
-
 		if ($model === 'MapCombined') {
 			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 			$query = $this->applyUserRcptToScope($query);
@@ -1261,10 +1253,6 @@ class MapService
 	}
 
 	public function toggleMapEntry(string $model, string $map_name, array $map_fields, int $id): bool {
-		if (is_null($id) or !is_int($id)) {
-			return false;
-		}
-
 		if ($model === 'MapCombined') {
 			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 			$query = $this->applyUserRcptToScope($query);
