@@ -1158,12 +1158,14 @@ class MailLogService
 		$signature = Config::get('mail_signature');
 		$subject = Config::get('notify_mail_subject');
 
-		// One mail per recipient: each gets only their own address in the
-		// body and (later) their own release link.
+		/*
+		 One mail per recipient: each gets only their own address in the
+		 body and (later) their own release link.
 
-		// Prefer the normalized recipients table: token FKs require rows that
-		// exist there. Fall back to rcpt_to when the migration has not run,
-		// in which case no tokens are issued.
+		 Prefer the normalized recipients table: token FKs require rows that
+		 exist there. Fall back to rcpt_to when the migration has not run,
+		 in which case no tokens are issued.
+		*/
 		if ($maillog->relationLoaded('recipients')) {
 			$recipients = $maillog->recipients->pluck('recipient_email')->all();
 		} else {
