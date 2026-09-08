@@ -21,11 +21,13 @@ use App\Models\MailLog;
 
 use App\Services\Import\MailLogWriter;
 
-use Illuminate\Database\QueryException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 use PhpMimeMailParser\Parser;
+
+use Illuminate\Database\QueryException;
+use PDOException;
 
 use Exception;
 use Throwable;
@@ -322,7 +324,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			// does both insertMailLog and insertMailRecipients
 			// to both tables if migration is completed
 			$db_id = $mailLogWriter->insert($data, $rcptArr);
-		} catch (QueryException | \PDOException $e) {
+		} catch (QueryException | PDOException $e) {
 				// $bindings = $e->getBindings(); // array
 				// $sql = $e->getSql(); // array
 				// $e->getMessage() // very verbose
