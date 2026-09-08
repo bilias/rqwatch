@@ -63,21 +63,6 @@ final class MailLogSpool
 	}
 
 	/*
-	 listByPrefix() is on RedisCache and not on CacheInterface, the same
-	 reason LoginThrottle::listBlocked() types against the concrete class.
-	 App::cache() is nullable, so the instanceof doubles as the null check.
-	*/
-	private function cache(): ?RedisCache {
-		if (!Helper::env_bool('REDIS_ENABLE')) {
-			return null;
-		}
-
-		$cache = App::cache();
-
-		return $cache instanceof RedisCache ? $cache : null;
-	}
-
-	/*
 	 MY_API_SERVER_ALIAS names the node holding the raw file, which is
 	 not $data['server'] -- that comes from rspamd's ?server= and names
 	 the mail server, and one node can serve several of them.
@@ -248,6 +233,7 @@ final class MailLogSpool
 	): array {
 
 		$result = ['found' => 0, 'inserted' => 0, 'skipped' => 0, 'stopped' => false];
+
 		if ($this->cache === null) {
 			$output?->writeln('<comment>Redis is not enabled; nothing to do</comment>');
 
