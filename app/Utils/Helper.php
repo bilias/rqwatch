@@ -912,7 +912,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 
 	public static function debug_exception_err(?string $input): string {
 		if ($input === null) {
-			$input == '';
+			$input = '';
 		}
 
 		$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
