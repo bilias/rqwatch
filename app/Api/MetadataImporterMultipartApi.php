@@ -331,7 +331,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 
 				// XXX We could cache failed inserts in Redis and retry later via cron
 
-				$pdoMessage = $e->getPrevious()?->getMessage() ?? 'Unknown database error';
+				$pdoMessage = $e->getPrevious()?->getMessage() ?? $e->getMessage();
 				$err_msg = "{$qid} DB error: {$pdoMessage}";
 				$response_msg = "Database error. Please try again later";
 				$this->dropLogResponse(

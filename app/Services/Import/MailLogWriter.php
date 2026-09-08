@@ -22,9 +22,6 @@ use App\Core\Database\MigrationStatus;
 
 use App\Models\MailLogData;
 
-use Illuminate\Database\QueryException;
-use PDOException;
-
 final class MailLogWriter
 {
 	private Capsule $capsule;
@@ -32,8 +29,7 @@ final class MailLogWriter
 	private LoggerInterface $syslogLogger;
 	private MigrationStatus $migrationStatus;
 
-	private const int MAX_DEADLOCK_RETRIES = 3;
-	private const int DEADLOCK_RETRY_DELAY_US = 500000;
+	private const int MAX_DEADLOCK_ATTEMPTS = 3;
 
 	public function __construct() {
 		$this->capsule = App::capsule();
@@ -42,63 +38,42 @@ final class MailLogWriter
 		$this->migrationStatus = App::migrationStatus();
 	}
 
+	/*
+	 Retries are Connection::transaction()'s, deliberately.
+
+	 The framework rolls back correctly on both failure paths, but only
+	 when $attempts > 1. A statement deadlock goes through
+	 handleTransactionException(), which calls rollBack() unconditionally.
+	 A deadlock at COMMIT goes through handleCommitTransactionException(),
+	 which decrements Connection::$transactions but guards its
+	 $pdo->rollBack() with $currentAttempt < $maxAttempts -- so at the
+	 default $attempts = 1 the rollback is skipped, PDO keeps in_txn set
+	 (it is cleared only when commit() succeeds) and the next
+	 beginTransaction() throws "There is already an active transaction".
+	 That is why the hand-rolled retry loop this replaces could never
+	 retry the case it was written for.
+
+	 Do not reintroduce a loop around transaction(): it would have to
+	 clean up PDO by hand, and rolling back on inTransaction() alone is
+	 wrong as soon as anything wraps insert() in a transaction of its own
+	 -- a nested statement deadlock throws DeadlockException without
+	 rolling back, and the guard would kill the caller's transaction.
+
+	 See ManagesTransactions.php in illuminate/database.
+	*/
 	public function insert(array $mailData, array $recipients): int {
-		for ($attempt = 1; $attempt <= self::MAX_DEADLOCK_RETRIES; $attempt++) {
-			try {
-				return $this->insertTransaction($mailData, $recipients);
-
-			} catch (QueryException | PDOException $e) {
-
-				if (
-					!$this->isConcurrencyError($e)
-					|| $attempt >= self::MAX_DEADLOCK_RETRIES
-				) {
-					throw $e;
-				}
-
-				$this->fileLogger->warning(
-					"Deadlock inserting " . ($mailData['qid'] ?? 'unknown') .
-					", retry {$attempt}/" .
-					self::MAX_DEADLOCK_RETRIES
-				);
-
-				usleep($attempt * self::DEADLOCK_RETRY_DELAY_US); // 500ms, 1s before retries
-			}
-		}
-
-		throw new \RuntimeException(
-			"Insert failed after " . self::MAX_DEADLOCK_RETRIES . " retries"
-		);
-	}
-
-	private function insertTransaction(array $mailData, array $recipients): int {
 		return $this->capsule
 			->connection()
-			->transaction(function () use ($mailData, $recipients) {
+			->transaction(
+				function () use ($mailData, $recipients) {
 
-				$mailLogId = $this->insertMailLog($mailData);
-				$this->insertMailRecipients($mailLogId, $recipients);
+					$mailLogId = $this->insertMailLog($mailData);
+					$this->insertMailRecipients($mailLogId, $recipients);
 
-				return $mailLogId;
-			});
-	}
-
-	/*
-	 MariaDB deadlock / serialization failure
-	 SQLSTATE 40001. The code is a string on a QueryException, whose
-	 constructor copies it from the previous exception, but PDO can report
-	 it as an int, so both are tested -- the same pair Illuminate's own
-	 ConcurrencyErrorDetector checks, with its message fallback.
-	*/
-	private function isConcurrencyError(PDOException $e): bool {
-		if ($e->getCode() === '40001' || $e->getCode() === 40001) {
-			return true;
-		}
-
-		return str_contains(
-			$e->getMessage(),
-			'Deadlock found when trying to get lock'
-		);
+					return $mailLogId;
+				},
+				attempts: self::MAX_DEADLOCK_ATTEMPTS
+			);
 	}
 
 	/*
