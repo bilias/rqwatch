@@ -72,7 +72,7 @@ class MailLogDataMigration extends AbstractMigration {
 	}
 
 	private function runMigration(int $batch, int $sleep, ?OutputInterface $output = null): void {
-		$output->write("<info>Total entries: </info>");
+		$output->write("<info>Pending mails for migration: </info>");
 
 		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
 			->select(
@@ -143,7 +143,10 @@ class MailLogDataMigration extends AbstractMigration {
 			$scanned += $logs->count();
 			$migrated += $inserted;
 			$remaining = max(0, $total - $scanned);
-			$output->writeln("<info>Found: {$scanned}, Remaining: {$remaining}, Migrated: {$migrated} (mails)</info>"
+			$output->writeln(
+				"<info>Mails done: {$scanned}, Remaining: {$remaining},"
+				. " Rows inserted: {$migrated}</info>"
+			);
 );
 			usleep($sleep);
 		}
