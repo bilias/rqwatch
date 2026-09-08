@@ -152,9 +152,9 @@ Only needed if step 1 reported an instant drop.
 ./bin/cli.php db:optimize_table -t mail_logs
 ```
 
-The table argument defaults to `mail_logs`. `mail_log_data`,
+The `-t` option defaults to `mail_logs`. `mail_log_data`,
 `mail_log_recipients` and `mail_log_tokens` are also accepted --- useful
-after a large `cron:cleanup_db` run.
+after a large `cron:cleanupdb` run.
 
 On InnoDB, `OPTIMIZE TABLE` is mapped to `ALTER TABLE ... FORCE`: it
 rebuilds the table and needs free space for a second copy. The command
