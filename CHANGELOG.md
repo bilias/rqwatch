@@ -2,8 +2,10 @@
 
 ## Master Dev Branch
 
-### 2026-09-08
+### 2026-09-09
 - Spool failed imports to Redis, replayed by cron:import_spool
+
+### 2026-09-08
 - Purge the quarantine file when the mail_logs insert fails
 - Deprecate and remove MetadataImporterApi
 - MailLogWriter refactoring
