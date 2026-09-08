@@ -565,40 +565,38 @@ class UserController extends ViewController
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
-		if (!is_null($id) and is_int($id)) {
-			$user = User::where('id', $id)->first();
-			// user found
-			if ($user) {
-				$old_username = $this->session->get('username');
-				$old_auth_provider = $this->session->get('auth_provider');
+		$user = User::where('id', $id)->first();
+		// user found
+		if ($user) {
+			$old_username = $this->session->get('username');
+			$old_auth_provider = $this->session->get('auth_provider');
 
-				// only clears $this->vars from base Controller
-				$this->unsetSessionVars();
+			// only clears $this->vars from base Controller
+			$this->unsetSessionVars();
 
-				$this->session->set('username', $user->username);
-				$this->session->set('user_id', $user->id);
-				$this->session->set('email', $user->email);
-				$this->session->set('is_admin', $user->is_admin);
+			$this->session->set('username', $user->username);
+			$this->session->set('user_id', $user->id);
+			$this->session->set('email', $user->email);
+			$this->session->set('is_admin', $user->is_admin);
 
-				// need this to get the auth_provider description
-				$this->session->set('auth_provider', AuthManager::getAuthProviderById($user->auth_provider));
-				$aliases = array_unique(array_map('strtolower', array_filter(
-					$user->mailAliases()->pluck('alias')->toArray(),
-					fn($alias) => !empty(trim($alias))
-				)));
-				$this->session->set('user_aliases', $aliases);
-				$this->session->set('old_username', $old_username);
-				$this->session->set('old_auth_provider', $old_auth_provider);
+			// need this to get the auth_provider description
+			$this->session->set('auth_provider', AuthManager::getAuthProviderById($user->auth_provider));
+			$aliases = array_unique(array_map('strtolower', array_filter(
+				$user->mailAliases()->pluck('alias')->toArray(),
+				fn($alias) => !empty(trim($alias))
+			)));
+			$this->session->set('user_aliases', $aliases);
+			$this->session->set('old_username', $old_username);
+			$this->session->set('old_auth_provider', $old_auth_provider);
 
-				// push session vars to $this->vars
-				$this->setSessionVars($this->session);
+			// push session vars to $this->vars
+			$this->setSessionVars($this->session);
 
-				$this->fileLogger->info("'{$old_username}' logged in as '{$user->username}'");
-				$this->flashbag->add('success', "You are now logged in as {$user->username}");
+			$this->fileLogger->info("'{$old_username}' logged in as '{$user->username}'");
+			$this->flashbag->add('success', "You are now logged in as {$user->username}");
 
-				$this->refreshUrls();
-				return new RedirectResponse($this->getHomepageUrl());
-			}
+			$this->refreshUrls();
+			return new RedirectResponse($this->getHomepageUrl());
 		}
 
 		$this->flashbag->add('error', "User not found");

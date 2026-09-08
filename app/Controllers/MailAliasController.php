@@ -351,20 +351,16 @@ class MailAliasController extends ViewController
 			return new RedirectResponse($this->getAdminAliasesUrl());
 		}
 
-		if (!is_null($id) and is_int($id)) {
-			$alias = MailAlias::find($id);
-			if ($alias) {
-				if ($alias->delete()) {
-					$this->fileLogger->info("Alias '{$alias->alias}' deleted by '{$this->username}'");
-					$this->flashbag->add('success', "Alias '{$alias->alias}' deleted");
-				} else {
-					$this->flashbag->add('error', "Failed '{$alias->alias}' delete");
-				}
+		$alias = MailAlias::find($id);
+		if ($alias) {
+			if ($alias->delete()) {
+				$this->fileLogger->info("Alias '{$alias->alias}' deleted by '{$this->username}'");
+				$this->flashbag->add('success', "Alias '{$alias->alias}' deleted");
 			} else {
-				$this->flashbag->add('error', "Alias not found");
+				$this->flashbag->add('error', "Failed '{$alias->alias}' delete");
 			}
 		} else {
-			$this->flashbag->add('error', "Bad alias id");
+			$this->flashbag->add('error', "Alias not found");
 		}
 
 		// get back to aliases page

@@ -943,20 +943,16 @@ class MapController extends ViewController
 			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 		}
 
-		if (!is_null($id) and is_int($id)) {
-			$custom_map = CustomMapConfig::find($id);
-			if (is_null($custom_map)) {
-				$this->flashbag->add('error', 'Custom map not found!');
-				return new RedirectResponse($this->getShowCustomMapsConfigUrl());
-			}
-			$service = $this->getMapService();
-			if ($service->delCustomMap($id)) {
-				$this->flashbag->add('success', "Custom Map '{$custom_map->map_name}' deleted.");
-			} else {
-				$this->flashbag->add('error', "Failed to delete custom map '{$custom_map->map_name}'.");
-			}
+		$custom_map = CustomMapConfig::find($id);
+		if (is_null($custom_map)) {
+			$this->flashbag->add('error', 'Custom map not found!');
+			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
+		}
+		$service = $this->getMapService();
+		if ($service->delCustomMap($id)) {
+			$this->flashbag->add('success', "Custom Map '{$custom_map->map_name}' deleted.");
 		} else {
-			$this->flashbag->add('error', 'Bad custom map id');
+			$this->flashbag->add('error', "Failed to delete custom map '{$custom_map->map_name}'.");
 		}
 
 		return new RedirectResponse($this->getShowCustomMapsConfigUrl());
