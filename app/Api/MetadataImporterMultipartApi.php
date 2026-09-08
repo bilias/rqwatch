@@ -322,7 +322,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			// does both insertMailLog and insertMailRecipients
 			// to both tables if migration is completed
 			$db_id = $mailLogWriter->insert($data, $rcptArr);
-		} catch (QueryException $e) {
+		} catch (QueryException | \PDOException $e) {
 				// $bindings = $e->getBindings(); // array
 				// $sql = $e->getSql(); // array
 				// $e->getMessage() // very verbose
@@ -336,7 +336,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
 					$err_msg, 'critical');
 		} catch (Throwable $e) {
-				$err_msg = "DB insert error: " . $e->getMessage();
+				$err_msg = "{$qid} DB insert error: " . $e->getMessage();
 				$response_msg = "Unexpected error";
 				$this->dropLogResponse(
 					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
