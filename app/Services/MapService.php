@@ -164,12 +164,18 @@ class MapService
 								  ->where('map_name', $map_name);
 
 		try {
-			$field = $query
-				->first()->toArray();
+			$row = $query->first();
 		} catch (Exception $e) {
 			App::fileLogger()->error("Query error: " . $e->getMessage() . PHP_EOL);
 			exit("Query error");
 		}
+
+		if (is_null($row)) {
+			App::fileLogger()->error("getCustomField: no custom_map_config row for map '{$map_name}'");
+			return ['field_name' => '', 'field_label' => ''];
+		}
+
+		$field = $row->toArray();
 
 		return $field;
 	}
