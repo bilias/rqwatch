@@ -310,7 +310,7 @@ class MetadataImporterApi extends RqwatchApi
 					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
 					$err_msg, 'critical');
 		} catch (Exception $e) {
-				$err_msg = "DB insert error: " . $e->getMessage();
+				$err_msg = "{$qid} DB insert error: " . $e->getMessage();
 				$response_msg = "Unexpected error";
 				$this->dropLogResponse(
 					Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
