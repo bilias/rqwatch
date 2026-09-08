@@ -14,8 +14,6 @@ use App\Configuration\AppConfig;
 
 use App\Core\App;
 
-use Psr\Log\LoggerInterface;
-
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 use App\Core\Database\MigrationStatus;
@@ -25,16 +23,12 @@ use App\Models\MailLogData;
 final class MailLogWriter
 {
 	private Capsule $capsule;
-	private LoggerInterface $fileLogger;
-	private LoggerInterface $syslogLogger;
 	private MigrationStatus $migrationStatus;
 
 	private const int MAX_DEADLOCK_ATTEMPTS = 3;
 
 	public function __construct() {
 		$this->capsule = App::capsule();
-		$this->fileLogger = App::fileLogger();
-		$this->syslogLogger = App::syslogLogger();
 		$this->migrationStatus = App::migrationStatus();
 	}
 
