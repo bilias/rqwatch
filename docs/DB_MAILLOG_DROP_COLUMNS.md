@@ -81,9 +81,9 @@ populated. This is the slowest of the two, because it reads both copies:
 SELECT COUNT(*) AS mismatched
   FROM mail_logs ml
   JOIN mail_log_data md ON md.mail_log_id = ml.id
- WHERE (ml.headers      IS NOT NULL AND NOT ml.headers      <=> md.headers)
-    OR (ml.symbols      IS NOT NULL AND NOT ml.symbols      <=> md.symbols)
-    OR (ml.fuzzy_hashes IS NOT NULL AND NOT ml.fuzzy_hashes <=> md.fuzzy_hashes);
+ WHERE (ml.headers      IS NOT NULL AND NOT CAST(ml.headers      AS BINARY) <=> CAST(md.headers      AS BINARY))
+    OR (ml.symbols      IS NOT NULL AND NOT CAST(ml.symbols      AS BINARY) <=> CAST(md.symbols      AS BINARY))
+    OR (ml.fuzzy_hashes IS NOT NULL AND NOT CAST(ml.fuzzy_hashes AS BINARY) <=> CAST(md.fuzzy_hashes AS BINARY));
 ```
 
 This must also return **0**. Rows written after the migration completed
