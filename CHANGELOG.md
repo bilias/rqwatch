@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-08
+- Deprecate and remove MetadataImporterApi
 - MailLogWriter refactoring
 - db:optimize_table for mail_logs table optimization after columns drop
 - db:migrate_drop_mail_log_columns migration
