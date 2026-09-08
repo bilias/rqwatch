@@ -240,7 +240,8 @@ class Router
 		}
 
 		if (!isset($routes) || !isset($defaultMiddlewareClasses)) {
-			$fileLogger->error("Routes loading failed: " . $e->getMessage());
+			$fileLogger->error("Routes loading failed: routes or middleware missing from Routes::load()");
+
 			exit("Routes misconfigured.");
 		}
 
