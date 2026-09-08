@@ -111,6 +111,7 @@ class MailRecipientsMigration extends AbstractMigration {
 
 		while (true) {
 			$query = (clone $baseQuery)
+				->whereNull('r.mail_log_id')
 				->where('ml.id', '>', $lastId)
 				->orderBy('ml.id')
 				->limit($batch);
