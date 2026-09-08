@@ -23,6 +23,7 @@ use App\Core\Database\MigrationStatus;
 use App\Models\MailLogData;
 
 use Illuminate\Database\QueryException;
+use PDOException;
 
 final class MailLogWriter
 {
@@ -47,10 +48,14 @@ final class MailLogWriter
 			try {
 				return $this->insertTransaction($mailData, $recipients);
 
-			} catch (QueryException $e) {
+			} catch (QueryException | PDOException $e) {
 
-			// MariaDB deadlock / serialization failure
-			if ($e->getCode() === '40001' && $attempt < self::MAX_DEADLOCK_RETRIES) {
+				if (
+					!$this->isConcurrencyError($e)
+					|| $attempt >= self::MAX_DEADLOCK_RETRIES
+				) {
+					throw $e;
+				}
 
 				$this->fileLogger->warning(
 					"Deadlock inserting " . ($mailData['qid'] ?? 'unknown') .
@@ -59,10 +64,6 @@ final class MailLogWriter
 				);
 
 				usleep($attempt * self::DEADLOCK_RETRY_DELAY_US); // 500ms, 1s before retries
-				continue;
-			}
-
-			throw $e;
 			}
 		}
 
@@ -81,6 +82,23 @@ final class MailLogWriter
 
 				return $mailLogId;
 			});
+	}
+	/*
+	 MariaDB deadlock / serialization failure
+	 SQLSTATE 40001. The code is a string on a QueryException, whose
+	 constructor copies it from the previous exception, but PDO can report
+	 it as an int, so both are tested -- the same pair Illuminate's own
+	 ConcurrencyErrorDetector checks, with its message fallback.
+	*/
+	private function isConcurrencyError(PDOException $e): bool {
+		if ($e->getCode() === '40001' || $e->getCode() === 40001) {
+			return true;
+		}
+
+		return str_contains(
+			$e->getMessage(),
+			'Deadlock found when trying to get lock'
+		);
 	}
 
 	/*
