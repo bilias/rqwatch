@@ -207,8 +207,10 @@ class MailRecipientsMigration extends AbstractMigration {
 			$scanned += $candidates;
 			$migrated += $inserted;
 			$remaining = max(0, $total - $scanned);
-			$output->writeln("<info>Found: {$scanned}, Remaining: {$remaining}, Migrated: {$migrated} (recipients)</info>"
-);
+			$output->writeln(
+				"<info>Mails done: {$scanned}, Remaining: {$remaining},"
+				. " Recipients inserted: {$migrated}</info>"
+			);
 			usleep($sleep);
 		}
 	}
