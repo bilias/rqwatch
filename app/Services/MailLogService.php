@@ -99,7 +99,7 @@ class MailLogService
 			);
 		}
 
-		if (is_array($filters) and !empty($filters)) {
+		if (!empty($filters)) {
 			foreach ($filters as $filter) {
 				if (array_key_exists('filter', $filter) &&
 				    array_key_exists('choice', $filter) &&
