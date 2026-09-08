@@ -998,7 +998,7 @@ class MailLogController extends ViewController
 	}
 
 	private function isInlineSafeType(string $filetype): bool {
-		$normalized = strtolower(trim(explode(';', $filetype)[0] ?? ''));
+		$normalized = strtolower(trim(explode(';', $filetype)[0]));
 		return in_array($normalized, self::INLINE_SAFE_TYPES, true);
 	}
 
