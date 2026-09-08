@@ -50,10 +50,6 @@ class AuthManager
 	): bool {
 		$provider = $this->selectAuthProvider($username, $password, $this->logger);
 
-		if (!$provider) {
-			throw new RuntimeException("Authentication provider problem");
-		}
-
 		if (method_exists($provider, 'authenticate') && $provider->authenticate()) {
 			$this->provider = $provider;
 			return true;
