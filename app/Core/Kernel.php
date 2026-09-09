@@ -191,6 +191,10 @@ final class Kernel
 
 	private function verifyDatabaseSchema(): void {
 		try {
+			// Unreachable: this is only called inside the dbAvailable
+			// branch, which implies both are set.
+			// Only present because verifySchema() does not take nulls
+			// and fails static analysis
 			if ($this->capsule === null || $this->migrationStatus === null) {
 				return;
 			}
