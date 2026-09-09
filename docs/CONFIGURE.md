@@ -736,10 +736,14 @@ Available commands for the "cron" namespace:
   written to Quarantine as usual but its metadata is kept in Redis and the API
   answers `200` to Rspamd. This command replays it into the database.
 
-  A database that cannot be reached at all is a different case: the API answers
-  `503`, nothing is spooled, and the metadata for that mail is lost. Rspamd's
-  `metadata_exporter` posts once while scanning and does not resend, so the
-  only record is in Rspamd's own log.
+  A database that cannot be reached at all is also spooled: the API boots
+  without it, keeps the metadata in Redis and still answers `200`.
+
+  Redis is what makes that possible, so if Redis is unavailable too - or
+  `REDIS_ENABLE` is `false` - the API answers `503` or `500` and the metadata
+  for that mail is lost. Rspamd's `metadata_exporter` posts once while
+  scanning and does not resend, so the only record is then in Rspamd's own
+  log.
 
   Run it with `-l` on each API server: only the server that received a mail can
   check that its raw file is still on disk. A mail whose file has gone is

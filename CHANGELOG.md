@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-09
+- Spool failed mails even if DB is unavailable
 - Spool failed imports to Redis, replayed by cron:import_spool
 
 ### 2026-09-08

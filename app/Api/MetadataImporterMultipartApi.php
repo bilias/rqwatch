@@ -405,7 +405,16 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			*/
 			$ok_msg = 'Message spooled';
 		} else {
-			Helper::discard_raw_mail($mail_location);
+			/*
+			 Close the trail: syslog already says "stored in quarantine"
+			 for a file that is about to go, so without this the last
+			 word on the mail is misleading. False means there was
+			 nothing stored, so nothing to report.
+			*/
+			if (Helper::discard_raw_mail($mail_location)) {
+				$this->fileLogger->info("[{$this->logPrefix}] {$qid} removed from quarantine: {$mail_location}");
+				$this->syslogLogger->info("{$qid} removed from quarantine: {$mail_location}");
+			}
 
 			$err_msg = "Error storing $qid in DB by {$this->logPrefix}. Check PHP/rspamd logs | $runtime";
 			$this->dropLogResponse(
