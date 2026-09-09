@@ -61,9 +61,9 @@ Do this once, after all the migrations, in a maintenance window.
 The table is rebuilt, so it **needs free space** for a second copy.
 
 **Writes are blocked for the whole rebuild**, cluster-wide on Galera.\
-Mail is still delivered by your MTA, but Rqwatch cannot record it in DB.
-Those inserts are refused rather than left waiting.
-If you have [Redis enabled](CONFIGURE.md#redis-settings))
+Mail is still delivered by your MTA, but Rqwatch cannot record it in DB.\
+Those inserts are refused and lost rather than left waiting.\
+If you have [Redis enabled](CONFIGURE.md#redis-settings)
 those mails can be spooled in Redis and imported afterwards by
 [`cron:import_spool`](CONFIGURE.md#cron) in order to not loose anything while in maintenance.
 
