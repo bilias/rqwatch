@@ -344,7 +344,7 @@ class Helper {
 	}
 
 	// expects json decoded array with one symbol
-	public static function check_virus($symbol) {
+	public static function check_virus($symbol): string|false {
 
 		if (!is_array($symbol) or count($symbol) == 0) {
 			return false;
@@ -362,7 +362,7 @@ class Helper {
 	}
 
 	// expects json decoded array with all symbols
-	public static function check_virus_from_all($symbols) {
+	public static function check_virus_from_all($symbols): string|false {
 		if (!is_array($symbols) or count($symbols) == 0) {
 			return false;
 		}

@@ -158,12 +158,14 @@ class MailLog extends Model
 	}
 	*/
 
-	public function getVirusFromSymbolAttribute() {
+	public function getVirusFromSymbolAttribute(): ?string {
 		if (empty($this->getAttribute('has_virus'))) {
 			return null;
 		}
 
-		return Helper::check_virus_from_all($this->getAttribute('symbols'));
+		$virus = Helper::check_virus_from_all($this->getAttribute('symbols'));
+
+		return $virus === false ? null : $virus;
 	}
 
 	public function getMimeFromDecodedAttribute(): string {
