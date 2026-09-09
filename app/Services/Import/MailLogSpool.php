@@ -352,6 +352,8 @@ final class MailLogSpool
 				$this->fileLogger->critical("[MailLogSpool] {$failed}");
 				$this->syslogLogger->critical($failed);
 				$output?->writeln("<error>{$failed}</error>");
+				$result['stopped'] = true;
+				break;
 			}
 
 			try {
