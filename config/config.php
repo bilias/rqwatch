@@ -243,6 +243,12 @@ $import_spool_ttl = 2592000;
 # The cap is a Redis safety limit, not a fallback.
 $import_spool_max = 20000;
 
+# Redis key holding the last known migration status, written on every
+# successful read of the migrations table. Per server, because in a
+# distributed setup each API server may have its own database. Kept
+# without a TTL: it exists to be readable when the database is not.
+$migration_status_redis_key = "rqwatch_migration_status";
+
 # Set to false in config.local.php to disable Charts
 $show_charts = true;
 

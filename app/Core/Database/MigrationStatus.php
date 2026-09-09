@@ -13,6 +13,9 @@ namespace App\Core\Database;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 use App\Configuration\AppConfig;
+use App\Configuration\Config;
+
+use App\Core\Cache\CacheInterface;
 
 use App\Inventory\Migrations;
 
@@ -21,6 +24,7 @@ use Illuminate\Database\QueryException;
 use Psr\Log\LoggerInterface;
 
 use RuntimeException;
+use Throwable;
 
 final class MigrationStatus
 {
@@ -31,9 +35,15 @@ final class MigrationStatus
 
 	private bool $migrationTableExists = false;
 
+	/*
+	 The cache is injected rather than fetched from App::cache(): this is
+	 constructed in Kernel::boot() before initApp(), so App::instance()
+	 would still throw. Nullable because Redis is optional.
+	*/
 	public function __construct(
 		private Capsule $capsule,
-		private LoggerInterface $fileLogger
+		private LoggerInterface $fileLogger,
+		private ?CacheInterface $cache = null
 	) {}
 
 	// Kernel calls this. If a REQUIRED migration is not complete we throw.
@@ -65,6 +75,8 @@ final class MigrationStatus
 				->all();
 
 			$this->cacheLoaded = true;
+
+			$this->persistState();
 		} catch (QueryException $e) {
 			if ($e->getCode() === '42S02') {
 				// Table disappeared between schema verification and here.
@@ -110,6 +122,48 @@ final class MigrationStatus
 		}
 
 		return $this->stateCache[$migration] ?? null;
+	}
+
+	/*
+	 Mirror the migration state to Redis after a successful read, so it
+	 stays readable when the database is not.
+
+	 Written only on the success path: the no-migrations-table early
+	 return and the 42S02 branch must not overwrite a good copy with an
+	 empty one. An empty-but-readable table IS written, though - that is
+	 "nothing is recorded", not "we do not know", and a stale copy
+	 claiming completion is the one thing a future reader must never see.
+
+	 Write-only for now. Any future reader must consult this ONLY after a
+	 database read has failed - treating it as a substitute for a live
+	 read would defeat Kernel::verifyRequiredMigrations(), and it is a
+	 status cache, never a schema cache: it cannot tell you whether the
+	 tables still exist.
+	*/
+	private function persistState(): void {
+		if ($this->cache === null) {
+			return;
+		}
+
+		$alias = rawurlencode(trim((string) ($_ENV['MY_API_SERVER_ALIAS'] ?? 'unknown')));
+		$key = (string) Config::get('migration_status_redis_key') . ':' . $alias;
+
+		try {
+			// JSON_FORCE_OBJECT so an empty state is "{}" and not "[]"
+			// the shape stays the same whatever the table contains
+			$payload = json_encode($this->stateCache, JSON_FORCE_OBJECT);
+
+			if ($payload === false) {
+				return;
+			}
+
+			$this->cache->set($key, $payload);
+		} catch (Throwable $e) {
+			// diagnostics must never break the boot they are diagnosing
+			$this->fileLogger->warning(
+				"Cannot persist migration status to Redis: " . $e->getMessage()
+			);
+		}
 	}
 
 	public function mailLogDataState(): ?string {

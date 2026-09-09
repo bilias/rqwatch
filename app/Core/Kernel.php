@@ -205,7 +205,8 @@ final class Kernel
 	private function createMigrationStatus(): void {
 		$this->migrationStatus = new MigrationStatus(
 			$this->capsule,
-			$this->fileLogger
+			$this->fileLogger,
+			$this->cache
 		);
 	}
 
