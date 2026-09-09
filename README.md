@@ -166,11 +166,12 @@ Rspamd downloads map files locally from the web server and this does not put add
 stress on the database.
 
 ### Redis Caching
-- Redis Session support (+ sentinel)
-- Redis Config caching
-- Redis Rspamd stats caching
-- Redis DNS caching
-- Redis spooling of mail metadata when DB refused a write
+- Session support (+ sentinel)
+- Config caching
+- Rspamd statistics caching
+- DNS lookups caching
+- Login throttling
+- Spooling of mail metadata when DB refused a write
 
 ## API for Rspamd - RSPAMD API (metadata_importer)
 - Mail metadata and raw email (depending on configuration) is inserted to database and local storage, using the metadata_exporter plugin of Rspamd
