@@ -61,10 +61,11 @@ Do this once, after all the migrations, in a maintenance window.
 The table is rebuilt, so it **needs free space** for a second copy.
 
 **Writes are blocked for the whole rebuild**, cluster-wide on Galera.\
-Mail is still delivered by your MTA, but Rqwatch cannot record it in DB. Those inserts are
-refused rather than left waiting, so they are spooled to Redis
-(if [enabled](CONFIGURE.md#redis-settings))
-and imported afterwards by [`cron:import_spool`](CONFIGURE.md#cron).
+Mail is still delivered by your MTA, but Rqwatch cannot record it in DB.
+Those inserts are refused rather than left waiting.
+If you have [Redis enabled](CONFIGURE.md#redis-settings))
+those mails can be spooled in Redis and imported afterwards by
+[`cron:import_spool`](CONFIGURE.md#cron) in order to not loose anything while in maintenance.
 
 Stop cron on all API servers for the window anyway — `cron:notifications`
 must not be interrupted between sending a notification and recording it as
@@ -72,7 +73,7 @@ sent:
 
 - `systemctl stop crond` on all API servers
 - Disable the rspamd action that posts metadata to Rqwatch, or stop accepting
-  mail
+  mail (not needed if you enabled Redis)
 - Run the rebuild
 - Re-enable rspamd, then start cron again
 
