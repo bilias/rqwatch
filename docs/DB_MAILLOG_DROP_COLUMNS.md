@@ -61,13 +61,13 @@ Do this once, after all the migrations, in a maintenance window.
 The table is rebuilt, so it **needs free space** for a second copy.
 
 **Writes are blocked for the whole rebuild**, cluster-wide on Galera.\
-Mail is still delivered by your MTA, but Rqwatch cannot record it in DB.\
+Mails are still delivered by your MTA, but Rqwatch cannot record them in DB.\
 Those inserts are refused and lost rather than left waiting.\
-If you have [Redis enabled](CONFIGURE.md#redis-settings)
+If you have [Redis enabled](CONFIGURE.md#redis-settings),
 those mails can be spooled in Redis and imported afterwards by
-[`cron:import_spool`](CONFIGURE.md#cron) in order to not loose anything while in maintenance.
+[`cron:import_spool`](CONFIGURE.md#cron) in order to not loose them while in maintenance.
 
-Stop cron on all API servers for the window anyway — `cron:notifications`
+Stop cron on all API servers for the window anyway - `cron:notifications`
 must not be interrupted between sending a notification and recording it as
 sent:
 
@@ -101,4 +101,7 @@ next run of `db:migrate_drop_mail_log_columns` detects the columns are
 already gone and records the migration as completed without touching the
 table, so run it afterwards to keep the status accurate.
 
-`OPTIMIZE TABLE `mail_logs` is also needed afterwards to reclaim the space.
+```
+OPTIMIZE TABLE `mail_logs`
+```
+is also needed afterwards to reclaim the space.
