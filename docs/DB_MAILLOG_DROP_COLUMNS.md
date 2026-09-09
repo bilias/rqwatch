@@ -63,7 +63,7 @@ The table is rebuilt, so it **needs free space** for a second copy.
 **Writes are blocked for the whole rebuild**, cluster-wide on Galera.\
 Mail is still delivered by your MTA, but Rqwatch cannot record it in DB. Those inserts are
 refused rather than left waiting, so they are spooled to Redis
-(if [enabled](CONFIUGURE.md#redis-settings))
+(if [enabled](CONFIGURE.md#redis-settings))
 and imported afterwards by [`cron:import_spool`](CONFIGURE.md#cron).
 
 Stop cron on all API servers for the window anyway — `cron:notifications`
