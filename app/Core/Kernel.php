@@ -99,10 +99,10 @@ final class Kernel
 	private function loadDotenv(): void {
 		// load config from .env
 		if (!file_exists(AppConfig::ENV_PATH)) {
-			echo "<h1 style='color:red'>Application configuration error</h1>";
-			echo "<p>Missing required <code>.env</code> file</p>";
-			throw new RuntimeException("Missing required environment file: " .
-			   AppConfig::ENV_PATH);
+			$this->fileLogger->critical("Missing required environment file: " .
+				AppConfig::ENV_PATH);
+
+			$this->bootFailure("Application configuration error");
 		}
 
 		try {
