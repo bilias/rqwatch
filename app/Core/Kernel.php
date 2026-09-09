@@ -135,8 +135,7 @@ final class Kernel
 			$this->capsule->getConnection()->getPdo();
 		} catch (Throwable $e) {
 			$this->fileLogger->error("DB error: " . $e->getMessage());
-			echo "Database connection problem!";
-			exit;
+			$this->bootFailure("Database connection problem!");
 		}
 	}
 
@@ -149,8 +148,7 @@ final class Kernel
 				$e->getMessage()
 			);
 
-			echo "Database schema problem!";
-			exit;
+			$this->bootFailure("Database schema problem!");
 		}
 	}
 
