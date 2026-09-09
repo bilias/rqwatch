@@ -361,7 +361,8 @@ class Helper {
 		return false;
 	}
 
-	// expects json decoded array with all symbols
+	// expects json decoded array with all symbols. Untyped on purpose:
+	// MailLog's accessor passes null when mailLogData was not eager loaded
 	public static function check_virus_from_all($symbols): string|false {
 		if (!is_array($symbols) or count($symbols) == 0) {
 			return false;
