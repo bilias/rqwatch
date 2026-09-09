@@ -342,7 +342,13 @@ If an email is quarantined and a notification must be sent (according to setting
   Default is `false`
 
 ### Redis Settings
-Rqwatch supports Redis for saving login sessions, caching configuration (`config.php` and `config.local.php`) and caching of Rspamd statistics.\
+Rqwatch supports Redis for
+- saving login sessions
+- caching configuration (`config.php` and `config.local.php`)
+- caching of Rspamd statistics
+- caching DNS lookups
+- login throttling and
+- spooling failed imports.
 Sentinel is also supported.
 - `REDIS_ENABLE` - Set to `true` to enable Redis support
 
@@ -359,7 +365,7 @@ Sentinel is also supported.
 
 Unlike everything else Rqwatch keeps in Redis, the
 [Failed Import Spool](#failed-import-spool) is not a cache but the only copy of
-metadata that have failed to be recorded in the database.\
+metadata that failed to be recorded in the database.\
 If you set a `maxmemory` limit, it is recommended to keep `maxmemory-policy` at
 `noeviction` (the default) or Redis may discard spooled mails.
 
