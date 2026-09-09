@@ -23,8 +23,13 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /*
- Holds metadata for mails whose mail_logs insert failed, so a cron can
- replay them once the database is available again.
+ Holds metadata for mails whose mail_logs insert was refused, so a cron
+ can replay them later.
+
+ The connection is up in this case and the write is rejected -- a
+ deadlock, a certification failure, a read-only node. A database that
+ cannot be reached at all never gets here: Kernel::bootDatabase() fails
+ first and answers 503, and Rspamd retries.
 
  Only the metadata is spooled. Helper::store_raw_mail() has already
  written the message to local disk by the time MailLogWriter::insert()
