@@ -284,7 +284,7 @@ If the server runs the Web service then the following settings are relevant:
   (`$LOG_FILE`) and Fail2Ban can be applied.
 
 - `LOGIN_THROTTLE_ENABLE` - Set to `true` to enable Login Throttling per IP.\
- It requires [`REDIS_ENABLE`](#redis-settings).
+ It requires [`REDIS_ENABLE`](#redis-settings)
 
   If Rqwatch web interface is behind a reverse proxy or load balancer, configure
   mod_remoteip so that REMOTE_ADDR is the real client address:
@@ -532,7 +532,7 @@ based on action taken by Rspamd\
 ### Failed Import Spool
 When the database refuses a write, the API keeps the mail's metadata in Redis
 and [`cron:import_spool`](#cron) imports it later.\
-Requires [`REDIS_ENABLE`](#redis-settings).
+Requires [`REDIS_ENABLE`](#redis-settings)
 
 - `$import_spool_redis_key` - Redis key prefix for spooled metadata.\
   Entries are `<key>:mail:<MY_API_SERVER_ALIAS>:<id>`, the per-server counter
@@ -751,7 +751,7 @@ Available commands for the "cron" namespace:
   If an import fails the whole run stops and the remaining entries stay
   spooled for the next run, so nothing is lost and nothing is imported twice.
 
-  Requires [`REDIS_ENABLE`](#redis-settings).
+  Requires [`REDIS_ENABLE`](#redis-settings)
 
     ```
     ./bin/cli.php cron:import_spool -h
