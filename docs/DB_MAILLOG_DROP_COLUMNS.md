@@ -102,6 +102,6 @@ already gone and records the migration as completed without touching the
 table, so run it afterwards to keep the status accurate.
 
 ```
-OPTIMIZE TABLE `mail_logs`
+OPTIMIZE TABLE `mail_logs`;
 ```
 is also needed afterwards to reclaim the space.
