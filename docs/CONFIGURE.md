@@ -31,6 +31,7 @@ All passwords provided are dummy entries and **should not be used**, as this is 
       * [Map Settings](#map-settings)
       * [Logging Settings](#logging-settings)
       * [Quarantine and Notification Settings](#quarantine-and-notification-settings)
+      * [Failed Import Spool](#failed-import-spool)
       * [Application Settings](#application-settings)
       * [Reports and Statistics Settings](#reports-and-statistics-settings)
       * [GeoIP](#geoip)
@@ -519,6 +520,24 @@ based on action taken by Rspamd\
  Default is `30`
 
 - `$mail_signature` - Default mail signature
+
+### Failed Import Spool
+When the database refuses a write, the API keeps the mail's metadata in Redis
+and [`cron:import_spool`](#cron) imports it later. Requires
+[`REDIS_ENABLE`](#redis-settings).
+
+- `$import_spool_redis_key` - Redis key prefix for spooled metadata.\
+  Entries are `<key>:mail:<MY_API_SERVER_ALIAS>:<id>`, the per-server counter
+  is `<key>:count:<MY_API_SERVER_ALIAS>`
+
+- `$import_spool_ttl` - How many seconds a spooled entry survives if it is
+  never imported.\
+  Default is `2592000` (30 days)
+
+- `$import_spool_max` - Maximum spooled entries per server. Past this the API
+  stops spooling and answers `500`, so the metadata for those mails is not
+  recorded.\
+  Default is `20000`
 
 ### Application Settings
 - `$APP_NAME` - Name to use on HTML pages
