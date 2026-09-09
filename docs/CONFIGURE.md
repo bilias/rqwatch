@@ -284,7 +284,7 @@ If the server runs the Web service then the following settings are relevant:
   (`$LOG_FILE`) and Fail2Ban can be applied.
 
 - `LOGIN_THROTTLE_ENABLE` - Set to `true` to enable Login Throttling per IP.\
- It requires `REDIS_ENABLE=true`
+ It requires [`REDIS_ENABLE`](#redis-settings).
 
   If Rqwatch web interface is behind a reverse proxy or load balancer, configure
   mod_remoteip so that REMOTE_ADDR is the real client address:
@@ -751,8 +751,7 @@ Available commands for the "cron" namespace:
   If an import fails the whole run stops and the remaining entries stay
   spooled for the next run, so nothing is lost and nothing is imported twice.
 
-  Requires `REDIS_ENABLE=true`. See [Redis Settings](#redis-settings) for the
-  Redis configuration this depends on.
+  Requires [`REDIS_ENABLE`](#redis-settings).
 
     ```
     ./bin/cli.php cron:import_spool -h
