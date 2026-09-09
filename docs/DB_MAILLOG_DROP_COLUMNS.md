@@ -1,7 +1,7 @@
 # Cleaning up the mail_logs schema
 
 `mail_logs` is the table every search reads. These migrations remove data and
-indexes Rqwatch no longer uses, and you must apply them for a performance win.
+indexes Rqwatch no longer uses. Apply them - the performance win is the point.
 
 The schema change itself is instant, but it does not shrink anything - the old
 data stays in the table's existing pages until the table is rebuilt, which is
@@ -15,7 +15,7 @@ like; do the rebuild once, in a maintenance window, after all migrations are com
 Take a database backup. These migrations destroy data.
 
 Every `mail_logs` row must already have a `mail_log_data` row.\
-The SQL bellow must return **0**:
+The SQL below must return **0**:
 
 ```sql
 SELECT COUNT(*) AS missing
@@ -62,10 +62,10 @@ The table is rebuilt, so it **needs free space** for a second copy.
 
 **Writes are blocked for the whole rebuild**, cluster-wide on Galera.\
 Mails are still delivered by your MTA, but Rqwatch cannot record them in DB.\
-Those inserts are refused and lost rather than left waiting.\
-If you have [Redis enabled](CONFIGURE.md#redis-settings),
-those mails can be spooled in Redis and imported afterwards by
-[`cron:import_spool`](CONFIGURE.md#cron) in order to not loose them while in maintenance.
+Those inserts are refused rather than left waiting.\
+With [Redis enabled](CONFIGURE.md#redis-settings) the metadata is spooled and
+imported afterwards by [`cron:import_spool`](CONFIGURE.md#cron), so nothing is
+lost. Without Redis those mails are not recorded in Rqwatch at all.
 
 Stop cron on all API servers for the window anyway - `cron:notifications`
 must not be interrupted between sending a notification and recording it as
@@ -94,14 +94,10 @@ ALTER TABLE `mail_logs`
   DROP COLUMN `headers`;
 ```
 
-Add `, ALGORITHM=INSTANT` to make it metadata-only.
+Add `, ALGORITHM=INSTANT` to make it metadata-only and also run
+`OPTIMIZE TABLE mail_logs;` afterwards to reclaim the space.
 
-Doing it this way leaves the `migrations` table without a record of it. The
+Doing it manually leaves the `migrations` table without a record of it. The
 next run of `db:migrate_drop_mail_log_columns` detects the columns are
 already gone and records the migration as completed without touching the
 table, so run it afterwards to keep the status accurate.
-
-```
-OPTIMIZE TABLE `mail_logs`;
-```
-is also needed afterwards to reclaim the space.
