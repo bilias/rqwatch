@@ -34,7 +34,7 @@ inside your maintenance window.
 ## Step 1 - apply the cleanup migrations
 
 Run on **one** API server only. Schema changes replicate on Galera.\
-If you run multiple API servers and each one with a seperate DB, then you must
+If you run multiple API servers and each one with a separate DB, then you must
 run it on **all API servers**.
 
 ```
