@@ -196,7 +196,9 @@ final class Kernel
 			// Only present because verifySchema() does not take nulls
 			// and fails static analysis
 			if ($this->capsule === null || $this->migrationStatus === null) {
-				return;
+				throw new RuntimeException(
+					"Schema verification reached without a database connection"
+				);
 			}
 
 			Database::verifySchema($this->capsule, $this->migrationStatus);
