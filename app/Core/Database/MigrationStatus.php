@@ -129,23 +129,9 @@ final class MigrationStatus
 		return $this->stateCache[$migration] ?? null;
 	}
 
-	/*
-	 Mirror the migration state to Redis after a successful read, so it
-	 stays readable when the database is not.
-
-	 Written only on the success path: the no-migrations-table early
-	 return and the 42S02 branch must not overwrite a good copy with an
-	 empty one. An empty-but-readable table IS written, though - that is
-	 "nothing is recorded", not "we do not know", and a stale copy
-	 claiming completion is the one thing a future reader must never see.
-
-	 Write-only for now. Any future reader must consult this ONLY after a
-	 database read has failed - treating it as a substitute for a live
-	 read would defeat Kernel::verifyRequiredMigrations(), and it is a
-	 status cache, never a schema cache: it cannot tell you whether the
-	 tables still exist.
-	*/
-		private function stateKey(): string {
+	// keyed per server: in a distributed setup each API server may have
+	// its own database, so its own migration state
+	private function stateKey(): string {
 		$alias = rawurlencode(trim((string) ($_ENV['MY_API_SERVER_ALIAS'] ?? 'unknown')));
 
 		return (string) Config::get('migration_status_redis_key') . ':' . $alias;
@@ -201,6 +187,23 @@ final class MigrationStatus
 
 		return true;
 	}
+
+	/*
+	 Mirror the migration state to Redis after a successful read, so it
+	 stays readable when the database is not. Read back by
+	 loadPersistedState() during a degraded boot.
+
+	 Written only on the success path: the no-migrations-table early
+	 return and the 42S02 branch must not overwrite a good copy with an
+	 empty one. An empty-but-readable table IS written, though - that is
+	 "nothing is recorded", not "we do not know", and a stale copy
+	 claiming completion is the one thing loadPersistedState() must never
+	 see.
+
+	 This is a status cache, never a schema cache: it cannot tell you
+	 whether the tables still exist, which is why a degraded boot skips
+	 Database::verifySchema() rather than pretending to have run it.
+	*/
 
 	private function persistState(): void {
 		if ($this->cache === null) {

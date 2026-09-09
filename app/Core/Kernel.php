@@ -175,7 +175,6 @@ final class Kernel
 			}
 
 			$this->bootFailure("Database connection problem!");
-
 		}
 	}
 
