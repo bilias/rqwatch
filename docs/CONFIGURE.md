@@ -342,13 +342,9 @@ If an email is quarantined and a notification must be sent (according to setting
   Default is `false`
 
 ### Redis Settings
-Rqwatch supports Redis for
-- saving login sessions
-- caching configuration (`config.php` and `config.local.php`)
-- caching of Rspamd statistics
-- caching DNS lookups
-- login throttling and
-- spooling failed imports.
+Rqwatch supports Redis for saving login sessions, caching configuration
+(`config.php` and `config.local.php`), caching of Rspamd statistics,
+caching DNS lookups, login throttling and spooling failed imports.\
 Sentinel is also supported.
 - `REDIS_ENABLE` - Set to `true` to enable Redis support
 
