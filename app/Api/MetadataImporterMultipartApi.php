@@ -382,9 +382,11 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		} elseif ($spooled) {
 			/*
 			 MailLogSpool has already logged the qid and the key to both
-			 logs. Answer 200: rspamd must stop retrying a message we have
-			 taken responsibility for, and the raw file must survive for
-			 cron:import_spool, so no discard_raw_mail() here.
+			 logs. Answer 200 because we have taken responsibility for the
+			 mail: rspamd's metadata_exporter fires once per scan and does
+			 not resend, so a 5xx here would simply lose the metadata. The
+			 raw file must survive for cron:import_spool, so no
+			 discard_raw_mail() here.
 			*/
 			$ok_msg = 'Message spooled';
 		} else {

@@ -237,8 +237,10 @@ $import_spool_redis_key = "rqwatch_import_spool";
 $import_spool_ttl = 2592000;
 
 # Refuse to spool past this many pending imports per server, so a long
-# database outage cannot fill Redis. Past the cap the API answers 500
-# again and rspamd queues the message itself.
+# run of refused writes cannot fill Redis. Past the cap the API answers
+# 500 and the metadata for that mail is lost.
+# rspamd's metadata_exporter fires once per scan and does not resend.
+# The cap is a Redis safety limit, not a fallback.
 $import_spool_max = 20000;
 
 # Set to false in config.local.php to disable Charts
