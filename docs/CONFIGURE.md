@@ -816,7 +816,7 @@ The default cron template suggests:
 # send mail notifications for blocked/stored mails (local only) every 5 min
 */5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:notifications -m -l
 
- import mail metadata spooled by the API when database refused a write
+# import mail metadata spooled by the API when database refused a write
 # (local only, so the raw file can be verified) every 5 min
 3-58/5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:import_spool -i -l
 
