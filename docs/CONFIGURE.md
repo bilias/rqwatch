@@ -699,6 +699,37 @@ Available commands for the "cron" namespace:
       -b, --blacklisted     Send notifications for blacklisted mails
     ```
 
+- **cron:import_spool**\
+  This command imports mail metadata that the API spooled to Redis because the
+  database insert failed, and removes it from the spool once imported.
+
+  When Rspamd posts a mail to the API and the database write fails, the message
+  is written to Quarantine as usual but its metadata is kept in Redis and the
+  API answers `503` so Rspamd does not retry. This command replays it.
+
+  Run it with `-l` on each API server: only the server that received a mail can
+  check that its raw file is still on disk. A mail whose file has gone is
+  imported with `mail_stored = 0` rather than a database row pointing at a
+  missing file. Without `-l` a server drains every server's spooled entries,
+  which works because the import is only a database write, but the file check
+  is then skipped.
+
+  If an import fails the whole run stops and the remaining entries stay
+  spooled for the next run, so nothing is lost and nothing is imported twice.
+
+  Requires `REDIS_ENABLE=true`. See [Redis Settings](#redis-settings) for the
+  Redis configuration this depends on.
+
+    ```
+    ./bin/cli.php cron:import_spool -h
+
+    Options:
+      -i, --import          Import spooled entries into the database
+      -b, --batch[=BATCH]   Batch size [default: 500]
+      -l, --local           Only entries spooled by the local server
+      -s, --show            Show spooled entries
+    ```
+
 - **cron:quarantine**\
   This command scans the Rqwatch database and cleans the Quarantine.
 
@@ -759,6 +790,10 @@ The default cron template suggests:
 # send mail notifications for blocked/stored mails (local only) every 5 min
 */5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:notifications -m -l
 
+ import mail metadata spooled by the API when database refused a write
+# (local only, so the raw file can be verified) every 5 min
+3-58/5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:import_spool -i -l
+
 # update local map files if needed every 5 min
 */5 * * * * root /var/www/html/rqwatch/bin/cli.php cron:updatemapfiles
 
@@ -769,6 +804,7 @@ The default cron template suggests:
 04 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:cleanupdb -d -l
 ```
 - Sends notification every 5 minutes for mails stored locally (API servers)
+- Imports spooled mail metadata every 5 minutes (API servers)
 - Update Map files every 5 minutes (API servers)
 - Cleans Quarantine once every day for mails stored locally (API servers) 
 - Cleans Database once every day for mails stored locally (API servers)
