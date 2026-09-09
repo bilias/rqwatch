@@ -29,7 +29,7 @@ use Throwable;
  The connection is up in this case and the write is rejected -- a
  deadlock, a certification failure, a read-only node. A database that
  cannot be reached at all never gets here: Kernel::bootDatabase() fails
- first and answers 503, and Rspamd retries.
+ first and answers 503, and that mail's metadata is lost.
 
  Only the metadata is spooled. Helper::store_raw_mail() has already
  written the message to local disk by the time MailLogWriter::insert()

@@ -660,9 +660,10 @@ For instance, in order to create an admin user after Installation and Configurat
 ./bin/cli.php list cron
 
 Available commands for the "cron" namespace:
+  cron:cleanupdb       Cleanup Database
+  cron:import_spool    Import spooled mail metadata
   cron:notifications   Notifications for stored mails
   cron:quarantine      Clean Quarantine
-  cron:cleanupdb       Clean Database
   cron:updatemapfiles  Update Map Files
 ```
 
