@@ -63,9 +63,13 @@ class Database {
 	}
 
 	public static function verifySchema(
-		Capsule $capsule,
-		MigrationStatus $migrationStatus
+		?Capsule $capsule,
+		?MigrationStatus $migrationStatus
 	): void {
+
+		if ($this->capsule === null || $this->migrationStatus === null) {
+			return;
+		}
 
 		self::refreshDbSchema($capsule);
 
