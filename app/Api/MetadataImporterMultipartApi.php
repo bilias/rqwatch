@@ -338,6 +338,10 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		 and let the tail answer 200.
 		*/
 		if (!App::dbAvailable()) {
+			$this->fileLogger->critical("[{$this->logPrefix}] {$qid} no database connection, spooling");
+			$this->syslogLogger->critical("{$qid} no database connection, spooling");
+
+			$fail_msg = 'Database unavailable and spool failed';
 			$db_failed = true;
 		} else {
 			try {
