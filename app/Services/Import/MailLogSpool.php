@@ -346,12 +346,12 @@ final class MailLogSpool
 			try {
 				$id = $writer->insert($data, $entry['recipients']);
 			} catch (Throwable $e) {
-				$failed = "import of {$qid} failed, stopping: " . $e->getMessage();
+				$reason = $e->getPrevious()?->getMessage() ?? $e->getMessage();
+				$failed = "import of {$qid} failed, stopping: {$reason}";
+
 				$this->fileLogger->critical("[MailLogSpool] {$failed}");
 				$this->syslogLogger->critical($failed);
-				$output?->writeln(
-					"<error>Import of {$qid} failed, stopping: " . $e->getMessage() . '</error>'
-				);
+				$output?->writeln("<error>Import of {$qid} failed, stopping: {$reason}</error>");
 				$result['stopped'] = true;
 				break;
 			}
