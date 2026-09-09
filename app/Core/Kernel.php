@@ -191,6 +191,10 @@ final class Kernel
 
 	private function verifyDatabaseSchema(): void {
 		try {
+			if ($this->capsule === null || $this->migrationStatus === null) {
+				return;
+			}
+
 			Database::verifySchema($this->capsule, $this->migrationStatus);
 		} catch (Throwable $e) {
 			$this->fileLogger->critical(
