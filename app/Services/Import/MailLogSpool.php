@@ -351,7 +351,7 @@ final class MailLogSpool
 
 				$this->fileLogger->critical("[MailLogSpool] {$failed}");
 				$this->syslogLogger->critical($failed);
-				$output?->writeln("<error>Import of {$qid} failed, stopping: {$reason}</error>");
+				$failed = "import of {$qid} failed, stopping ({$key}): {$reason}";
 				$result['stopped'] = true;
 				break;
 			}
