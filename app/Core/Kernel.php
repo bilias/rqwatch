@@ -134,7 +134,7 @@ final class Kernel
 			// test DB connection
 			$this->capsule->getConnection()->getPdo();
 		} catch (Throwable $e) {
-			$this->fileLogger->error("DB error: " . $e->getMessage());
+			$this->fileLogger->critical("Database connection problem: " . $e->getMessage());
 			$this->bootFailure("Database connection problem!");
 		}
 	}
