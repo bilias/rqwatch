@@ -330,31 +330,42 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		$ok_msg = 'Message saved';
 		$fail_msg = 'Error storing message in DB';
 
-		try {
-			$mailLogWriter = new MailLogWriter();
-			// does both insertMailLog and insertMailRecipients
-			// to both tables if migration is completed
-			$db_id = $mailLogWriter->insert($data, $rcptArr);
-		} catch (QueryException | PDOException $e) {
-			// $bindings = $e->getBindings(); // array
-			// $sql = $e->getSql(); // array
-			// $e->getMessage() // very verbose
-
-			/*
-			 Logged here rather than left to dropLogResponse below,
-			 because on the spool path we never get there and the
-			 SQLSTATE is the only record of why the mail was spooled.
-			*/
-			$pdoMessage = $e->getPrevious()?->getMessage() ?? $e->getMessage();
-			$this->fileLogger->critical("[{$this->logPrefix}] {$qid} DB error: {$pdoMessage}");
-			$this->syslogLogger->critical("{$qid} DB error: {$pdoMessage}");
-
-			$fail_msg = 'Database error. Please try again later';
+		/*
+		 A degraded boot has no database at all, so there is nothing to
+		 try: MailLogWriter's constructor calls App::capsule(), which
+		 throws, and that would land in the Throwable branch below - the
+		 one that deliberately does not spool. Skip straight to the spool
+		 and let the tail answer 200.
+		*/
+		if (!App::dbAvailable()) {
 			$db_failed = true;
-		} catch (Throwable $e) {
-			$this->fileLogger->critical("[{$this->logPrefix}] {$qid} DB insert error: " . $e->getMessage());
-			$this->syslogLogger->critical("{$qid} DB insert error: " . $e->getMessage());
-			$fail_msg = 'Unexpected error';
+		} else {
+			try {
+				$mailLogWriter = new MailLogWriter();
+				// does both insertMailLog and insertMailRecipients
+				// to both tables if migration is completed
+				$db_id = $mailLogWriter->insert($data, $rcptArr);
+			} catch (QueryException | PDOException $e) {
+				// $bindings = $e->getBindings(); // array
+				// $sql = $e->getSql(); // array
+				// $e->getMessage() // very verbose
+
+				/*
+				 Logged here rather than left to dropLogResponse below,
+				 because on the spool path we never get there and the
+				 SQLSTATE is the only record of why the mail was spooled.
+				*/
+				$pdoMessage = $e->getPrevious()?->getMessage() ?? $e->getMessage();
+				$this->fileLogger->critical("[{$this->logPrefix}] {$qid} DB error: {$pdoMessage}");
+				$this->syslogLogger->critical("{$qid} DB error: {$pdoMessage}");
+
+				$fail_msg = 'Database error. Please try again later';
+				$db_failed = true;
+			} catch (Throwable $e) {
+				$this->fileLogger->critical("[{$this->logPrefix}] {$qid} DB insert error: " . $e->getMessage());
+				$this->syslogLogger->critical("{$qid} DB insert error: " . $e->getMessage());
+				$fail_msg = 'Unexpected error';
+			}
 		}
 
 		/*
