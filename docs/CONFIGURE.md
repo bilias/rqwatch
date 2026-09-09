@@ -357,6 +357,11 @@ Sentinel is also supported.
   before refresh\
   Default is to refresh config every 5 minutes (300sec)
 
+Unlike everything else Rqwatch keeps in Redis, the
+[Failed Import Spool](#failed-import-spool) is not a cache but the only copy of
+that metadata. If you set a `maxmemory` limit, keep `maxmemory-policy` at
+`noeviction` (the default) or Redis may discard spooled mails.
+
 ### LDAP Settings
 System supports LDAP Authentication.
 - `LDAP_AUTH_ENABLED` - Set to `true` to enable LDAP Authentication
