@@ -36,8 +36,9 @@ final class Kernel
 	private int $startMemory;
 	private LoggerInterface $fileLogger;
 	private LoggerInterface $syslogLogger;
-	private Capsule $capsule;
-	private MigrationStatus $migrationStatus;
+	private ?Capsule $capsule = null;
+	private ?MigrationStatus $migrationStatus = null;
+	private bool $dbAvailable = false;
 	private ?RedisCache $cache = null;
 
 	public function boot(): void {
@@ -133,6 +134,8 @@ final class Kernel
 			$this->capsule = Database::boot();
 			// test DB connection
 			$this->capsule->getConnection()->getPdo();
+
+			$this->dbAvailable = true;
 		} catch (Throwable $e) {
 			$this->fileLogger->critical("Database connection problem: " . $e->getMessage());
 			$this->bootFailure("Database connection problem!");
@@ -263,7 +266,8 @@ final class Kernel
 				syslogLogger: $this->syslogLogger,
 				capsule: $this->capsule,
 				migrationStatus: $this->migrationStatus,
-				cache: $this->cache
+				cache: $this->cache,
+				dbAvailable: $this->dbAvailable
 			)
 		);
 	}

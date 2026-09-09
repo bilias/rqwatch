@@ -92,6 +92,10 @@ final class App
 		return self::instance()->cache;
 	}
 
+	public static function dbAvailable(): bool {
+		return self::instance()->dbAvailable;
+	}
+
 	// Mainly for PHPUnit/testing.
 	public static function swap(AppContainer $container): void {
 		self::$instance = $container;

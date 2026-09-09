@@ -28,9 +28,16 @@ final class AppContainer
 		public readonly int $startMemory,
 		public readonly LoggerInterface $fileLogger,
 		public readonly LoggerInterface $syslogLogger,
-		public readonly Capsule $capsule,
-		public readonly MigrationStatus $migrationStatus,
+		public readonly ?Capsule $capsule,
+		public readonly ?MigrationStatus $migrationStatus,
 		public readonly ?CacheInterface $cache,
+		/*
+		 True only once the database connection has been proven.
+		 Check this rather than testing $capsule for null:
+		 "no capsule" and "we deliberately booted without one"
+		 are different propositions.
+		*/
+		public readonly bool $dbAvailable,
 	) { }
 }
 
