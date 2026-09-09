@@ -969,7 +969,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 		}
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
-			$redisKey = Config::get('dns_resolv_redis_key') . "_{$ip}";
+			$redisKey = Config::get('dns_resolv_redis_key') . ":ptr:{$ip}";
 			$ttl      = Config::get('dns_resolv_redis_cache_ttl');
 
 			try {
@@ -1020,7 +1020,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 		}
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
-			$redisKey = Config::get('dns_resolv_redis_key') . '_fwd_' . $host;
+			$redisKey = Config::get('dns_resolv_redis_key') . ':fwd:' . $host;
 			$ttl      = Config::get('dns_resolv_redis_cache_ttl');
 
 			try {
