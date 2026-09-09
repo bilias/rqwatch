@@ -72,14 +72,41 @@ final class Kernel
 		// connect to db
 		$this->bootDatabase();
 
-		// get migration status
+		// create migrationStatus object
 		$this->createMigrationStatus();
 
-		// check db schema validity
-		$this->verifyDatabaseSchema();
+		if ($this->dbAvailable) {
+			// check db schema validity
+			$this->verifyDatabaseSchema();
 
-		// find out about migrations and cache results
-		$this->warmMigrationStatusCache();
+			// find out about migrations and cache results
+			$this->warmMigrationStatusCache();
+		} elseif (!$this->degradedDbAllowed()) {
+			/*
+			 Unreachable today: bootDatabase() only leaves dbAvailable
+			 false through the branch that already checked this. Kept so
+			 that a future path which skips the database cannot inherit
+			 degraded mode without opting in.
+			*/
+			$this->fileLogger->critical(
+				"Degraded boot reached without ALLOW_DEGRADED_DB"
+			);
+
+			$this->bootFailure("Database connection problem!");
+		} elseif (!$this->migrationStatus->loadPersistedState()) {
+			/*
+			 Degraded boot with no usable migration status in Redis. Refuse
+			 rather than guess: a fresh install has no copy, and letting it
+			 spool payloads it can never import would be worse than the
+			 503. verifyRequiredMigrations() below still runs, so an
+			 incomplete copy is refused too.
+			*/
+			$this->fileLogger->critical(
+				"No usable migration status in Redis; refusing degraded boot"
+			);
+
+			$this->bootFailure("Database connection problem!");
+		}
 
 		// migrations are mandatory, except for the CLI commands that run them
 		if (!$this->migrationCommandRequested()) {
@@ -138,8 +165,29 @@ final class Kernel
 			$this->dbAvailable = true;
 		} catch (Throwable $e) {
 			$this->fileLogger->critical("Database connection problem: " . $e->getMessage());
+
+			// the metadata importer opts in to running without a database
+			// so it can still spool to Redis; everything else must fail
+			if ($this->degradedDbAllowed()) {
+				$this->capsule = null;
+
+				return;
+			}
+
 			$this->bootFailure("Database connection problem!");
+
 		}
+	}
+
+	/*
+	 Only the entry point that declares ALLOW_DEGRADED_DB may boot without
+	 a database, and only with Redis available - spooling to Redis is the
+	 entire purpose of the mode, so no cache means no degraded boot.
+	*/
+	private function degradedDbAllowed(): bool {
+		return defined('ALLOW_DEGRADED_DB')
+			&& ALLOW_DEGRADED_DB
+			&& $this->cache !== null;
 	}
 
 	private function verifyDatabaseSchema(): void {

@@ -9,6 +9,14 @@
 */
 define('API_MODE', true);
 
+/*
+ Boot without a database if it is unreachable, so the metadata can still
+ be spooled to Redis and imported later by cron:import_spool. Only this
+ entry point: every other API and the web UI must answer 503 instead.
+ The Kernel still refuses unless Redis holds a completed migration status.
+*/
+define('ALLOW_DEGRADED_DB', true);
+
 use App\Core\Kernel;
 
 require_once __DIR__ . '/../Core/Kernel.php';

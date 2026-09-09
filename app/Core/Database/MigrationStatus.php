@@ -41,7 +41,7 @@ final class MigrationStatus
 	 would still throw. Nullable because Redis is optional.
 	*/
 	public function __construct(
-		private Capsule $capsule,
+		private ?Capsule $capsule,
 		private LoggerInterface $fileLogger,
 		private ?CacheInterface $cache = null
 	) {}
@@ -65,6 +65,11 @@ final class MigrationStatus
 		}
 
 		if (!$this->migrationTableExists) {
+			return;
+		}
+
+		// null in a degraded boot; loadPersistedState() is the substitute
+		if ($this->capsule === null) {
 			return;
 		}
 
@@ -140,13 +145,69 @@ final class MigrationStatus
 	 status cache, never a schema cache: it cannot tell you whether the
 	 tables still exist.
 	*/
+		private function stateKey(): string {
+		$alias = rawurlencode(trim((string) ($_ENV['MY_API_SERVER_ALIAS'] ?? 'unknown')));
+
+		return (string) Config::get('migration_status_redis_key') . ':' . $alias;
+	}
+
+	/*
+	 Populate the state from the Redis mirror, for a degraded boot where
+	 the database is unreachable. Returns false when there is nothing
+	 usable, and the caller must then refuse to boot: a missing or
+	 unreadable copy has to mean "no degraded mode", never "assume it is
+	 fine".
+
+	 Deliberately does not call persistState() - writing back what was
+	 just read would let a stale copy refresh its own timestamp forever.
+	 Only warmCache() writes, and only from a live database read.
+	*/
+	public function loadPersistedState(): bool {
+		if ($this->cache === null) {
+			return false;
+		}
+
+		try {
+			$raw = $this->cache->get($this->stateKey());
+		} catch (Throwable $e) {
+			$this->fileLogger->critical(
+				"Cannot read migration status from Redis: " . $e->getMessage()
+			);
+
+			return false;
+		}
+
+		$state = is_string($raw) ? json_decode($raw, true) : null;
+
+		if (!is_array($state) || $state === []) {
+			return false;
+		}
+
+		// keep only migrations this version knows about, so an older
+		// copy cannot inject a name that setMigrationState() rejects
+		$this->stateCache = array_intersect_key(
+			$state,
+			array_flip(Migrations::MIGRATIONS)
+		);
+
+		$this->cacheLoaded = true;
+		/*
+		 Without it, any later lazy warmCache() would take the "no migrations table"
+		 path and silently blank the state we just loaded.
+		 It's a lie about the database, but a necessary one.
+		 Harmless because the capsule is null so no query can follow.
+		 */
+		$this->migrationTableExists = true;
+
+		return true;
+	}
+
 	private function persistState(): void {
 		if ($this->cache === null) {
 			return;
 		}
 
-		$alias = rawurlencode(trim((string) ($_ENV['MY_API_SERVER_ALIAS'] ?? 'unknown')));
-		$key = (string) Config::get('migration_status_redis_key') . ':' . $alias;
+		$key = $this->stateKey();
 
 		try {
 			// JSON_FORCE_OBJECT so an empty state is "{}" and not "[]"
