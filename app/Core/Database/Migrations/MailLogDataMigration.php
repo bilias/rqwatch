@@ -33,7 +33,7 @@ class MailLogDataMigration extends AbstractMigration {
 
 		// completed and verified
 		if (!$force && $this->isApplied()) {
-			$output->writeln("<comment>Migration $details is already recorded\n</comment>");
+			$output->writeln("<comment>Migration $details is already applied\n</comment>");
 			return true;
 		}
 
