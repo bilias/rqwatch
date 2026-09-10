@@ -86,6 +86,8 @@ class MailLog extends Model
 		'virus_from_symbol',
 	];
 
+	private ?string $mimeFromDecoded = null;
+
 	public const array SELECT_FIELDS = [
 		'id',
 		'qid',
@@ -168,29 +170,84 @@ class MailLog extends Model
 		return $virus === false ? null : $virus;
 	}
 
-	public function getMimeFromDecodedAttribute(): string {
+		public function getMimeFromDecodedAttribute(): string {
+		/*
+		 Twig probes with isset() before reading (CoreExtension:1794), and
+		 Eloquent's __isset runs getAttribute(), so an unmemoised accessor is
+		 evaluated twice per template read. Only the Attribute::make() API
+		 caches; getXAttribute() mutators never do.
+		*/
+		if ($this->mimeFromDecoded !== null) {
+			return $this->mimeFromDecoded;
+		}
+
 		// If mime_from is missing or empty, just return mail_from
 		if (empty($this->mime_from)) {
-			return $this->getMailFrom();
+			return $this->mimeFromDecoded = $this->getMailFrom();
 		}
+
+		/*
+		 mailparse warns from its tokenizer and then goto state_ground -- it
+		 keeps parsing, so the warning is implied by neither an empty result
+		 nor a Throwable. Trap it for the duration of the call; returning
+		 true keeps PHP's own handler from writing it to the error log
+		 unattributed.
+		*/
+		$warning = null;
+
+		set_error_handler(
+			function (int $errno, string $errstr) use (&$warning): bool {
+				$warning = $errstr;
+
+				return true;
+			},
+			E_WARNING | E_NOTICE
+		);
 
 		try {
 			$parsed = mailparse_rfc822_parse_addresses((string) $this->mime_from);
-
-			if (!empty($parsed[0]['address'])) {
-				return $parsed[0]['address'];
-			}
 		} catch (Throwable $e) {
-			// In case parsing fails, fallback gracefully
-			return $this->getMailFrom();
+			$parsed = null;
+			$warning ??= $e->getMessage();
+		} finally {
+			restore_error_handler();
+		}
+
+		if ($warning !== null) {
+			$this->logUnparsableMimeFrom($warning);
+		}
+
+		if (is_array($parsed) && !empty($parsed[0]['address'])) {
+			return $this->mimeFromDecoded = (string) $parsed[0]['address'];
 		}
 
 		// Fallback if no address found
-		return $this->getMailFrom();
+		return $this->mimeFromDecoded = $this->getMailFrom();
 	}
 
 	private function getMailFrom() {
 		return empty($this->mail_from) ? '' : (string) $this->mail_from;
+	}
+
+	private function logUnparsableMimeFrom(string $reason): void {
+		try {
+			// mime_from is unvalidated header content on its way into a
+			// line-based log, so drop control characters and bound it.
+			$raw = (string) preg_replace(
+				'/[\x00-\x1F\x7F]+/',
+				' ',
+				(string) $this->mime_from
+			);
+
+			App::fileLogger()->warning(
+				"MailLog {$this->getKey()} (qid {$this->qid}): mime_from is not "
+				. "RFC822 compliant ({$reason}), value: '"
+				. mb_substr($raw, 0, 120) . "'"
+			);
+		} catch (Throwable) {
+			// App container not up in this context. A diagnostic must never
+			// break the read it is diagnosing.
+		}
 	}
 
 	public function recipients() {
