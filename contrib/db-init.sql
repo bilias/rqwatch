@@ -156,7 +156,6 @@ CREATE TABLE `mail_logs` (
  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
  `created_day` date GENERATED ALWAYS AS (cast(`created_at` as date)) STORED,
   PRIMARY KEY (`id`),
-  KEY `created_at_index` (`created_at`),
   KEY `created_day_index` (`created_day`),
   KEY `qid_index` (`qid`),
   KEY `action_index` (`action`),
@@ -172,7 +171,6 @@ CREATE TABLE `mail_logs` (
   KEY `created_day_action_index` (`created_day`,`action`),
   KEY `mail_stored_created_day_index` (`mail_stored`,`created_day`),
   KEY `has_virus_created_day_index` (`has_virus`,`created_day`),
-  KEY `id_action_index` (`id`,`action`),
   KEY `ip_created_day_index` (`ip`,`created_day`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
@@ -230,4 +228,5 @@ INSERT INTO `migrations` VALUES
 ('20260806_id_action_index','completed',NOW()),
 ('20260904_mail_log_tokens','completed',NOW()),
 ('20260906_ip_created_day_index','completed',NOW()),
-('20260908_drop_mail_log_columns','completed',NOW());
+('20260908_drop_mail_log_columns','completed',NOW()),
+('20260911_drop_mail_log_indexes','completed',NOW());

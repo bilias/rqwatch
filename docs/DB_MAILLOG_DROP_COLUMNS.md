@@ -31,7 +31,7 @@ inside your maintenance window.
 
 ---
 
-## Step 1 - apply the cleanup migrations
+## Step 1 - apply the data migration
 
 Run on **one** API server only. Schema changes replicate on Galera.\
 If you run multiple API servers and each one with a separate DB, then you must
@@ -50,7 +50,14 @@ table instead, doing step 2's work at the same time. It logs which path it
 took. A rebuild needs free disk space for a second copy of the table; if it is
 interrupted, MariaDB rolls it back and you can run the command again.
 
-## Step 2 - reclaim the space
+## Step 2 - drop deprecated index
+```
+./bin/cli.php db:migrate_drop_mail_log_indexes
+```
+
+This drops indexes from `mail_logs` table that are no longer needed.
+
+## Step 3 - reclaim the space
 
 Do this once, after all the migrations, in a maintenance window.
 

@@ -38,6 +38,29 @@ class IdActionIndex extends AbstractMigration {
 			return true;
 		}
 
+		/*
+		 Superseded: id_action_index was measured dead and is dropped by
+		 DropMailLogIndexes. Recording COMPLETED here rather than running
+		 keeps db:migrate from creating an index the next migration removes.
+		 Deliberately ignores $force -- a forced run would otherwise rebuild
+		 it under TOI every time.
+		*/
+		if (isset(Migrations::SUPERSEDED[self::MIGRATION_NAME])) {
+			$superseded_by = Migrations::SUPERSEDED[self::MIGRATION_NAME];
+
+			if (!$this->isApplied()) {
+				$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
+			}
+
+			$output->writeln(
+				"<comment>Migration $details is superseded by "
+				. Migrations::MIGRATION_DESCR[$superseded_by]
+				. " ($superseded_by), skipped\n</comment>"
+			);
+
+			return true;
+		}
+
 		if ($this->verifySchema()) {
 			$output->writeln("<comment>Migration $details exists, recording status\n</comment>");
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
@@ -82,6 +105,10 @@ class IdActionIndex extends AbstractMigration {
 	}
 
 	protected function verifySchema(): bool {
+		if (isset(Migrations::SUPERSEDED[self::MIGRATION_NAME])) {
+			return true;
+		}
+
 		return $this->hasIndex(
 			AppConfig::MAIL_LOGS_TABLE,
 			self::INDEX_ID_ACTION

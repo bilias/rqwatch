@@ -2,7 +2,11 @@
 
 ## Master Dev Branch
 
+### 2026-09-11
+- Drop deprecated indexes from mail_logs table
+
 ### 2026-09-10
+- Upgrade components
 - Validate REGEXP filters
 - Fix search page for headers and symbols
 - Add default collation and charset in AppConfig

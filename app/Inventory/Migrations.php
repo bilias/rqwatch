@@ -18,6 +18,7 @@ use App\Core\Database\Migrations\IdActionIndex;
 use App\Core\Database\Migrations\MailLogTokensMigration;
 use App\Core\Database\Migrations\IpCreatedDayIndex;
 use App\Core\Database\Migrations\DropMailLogColumns;
+use App\Core\Database\Migrations\DropMailLogIndexes;
 
 use InvalidArgumentException;
 
@@ -30,6 +31,8 @@ class Migrations
 	public const string MAIL_LOG_TOKENS = '20260904_mail_log_tokens';
 	public const string IP_CREATED_DAY_INDEX = '20260906_ip_created_day_index';
 	public const string DROP_MAIL_LOG_COLUMNS = '20260908_drop_mail_log_columns';
+	public const string DROP_MAIL_LOG_INDEXES = '20260911_drop_mail_log_indexes';
+
 
 	public const array MIGRATIONS = [
 		self::MAIL_RECIPIENTS,
@@ -39,6 +42,7 @@ class Migrations
 		self::MAIL_LOG_TOKENS,
 		self::IP_CREATED_DAY_INDEX,
 		self::DROP_MAIL_LOG_COLUMNS,
+		self::DROP_MAIL_LOG_INDEXES,
 	];
 
 	public const array REQUIRED = [
@@ -65,6 +69,14 @@ class Migrations
 		self::DROP_MAIL_LOG_COLUMNS,
 	];
 
+	/*
+	 Superseded by a later migration. These never run again: the runner and
+	 the migration itself record COMPLETED instead, including under --force.
+	*/
+	public const array SUPERSEDED = [
+		self::ID_ACTION_INDEX => self::DROP_MAIL_LOG_INDEXES,
+	];
+
 	public const array MIGRATION_CLASSES = [
 		self::MAIL_RECIPIENTS => MailRecipientsMigration::class,
 		self::CREATED_DAY => CreatedDayMigration::class,
@@ -73,6 +85,7 @@ class Migrations
 		self::MAIL_LOG_TOKENS => MailLogTokensMigration::class,
 		self::IP_CREATED_DAY_INDEX => IpCreatedDayIndex::class,
 		self::DROP_MAIL_LOG_COLUMNS => DropMailLogColumns::class,
+		self::DROP_MAIL_LOG_INDEXES => DropMailLogIndexes::class,
 	];
 
 	public const array MIGRATION_DESCR = [
@@ -83,6 +96,7 @@ class Migrations
 		self::MAIL_LOG_TOKENS => "Mail Log Tokens",
 		self::IP_CREATED_DAY_INDEX => "ip created_day Index",
 		self::DROP_MAIL_LOG_COLUMNS => "Drop migrated mail_logs columns",
+		self::DROP_MAIL_LOG_INDEXES => "Drop dead mail_logs indexes",
 	];
 
 	public const array MIGRATION_BATCH = [
@@ -93,6 +107,7 @@ class Migrations
 		self::MAIL_LOG_TOKENS => 0,
 		self::IP_CREATED_DAY_INDEX => 0,
 		self::DROP_MAIL_LOG_COLUMNS => 0,
+		self::DROP_MAIL_LOG_INDEXES => 0,
 	];
 
 	public const array MIGRATION_SLEEP = [
@@ -103,6 +118,7 @@ class Migrations
 		self::MAIL_LOG_TOKENS => 200000,
 		self::IP_CREATED_DAY_INDEX => 200000,
 		self::DROP_MAIL_LOG_COLUMNS => 200000,
+		self::DROP_MAIL_LOG_INDEXES => 200000,
 	];
 
 	public const array MIGRATION_HELP = [
@@ -113,6 +129,7 @@ class Migrations
 		self::MAIL_LOG_TOKENS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::IP_CREATED_DAY_INDEX => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::DROP_MAIL_LOG_COLUMNS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MAILLOG_DROP_COLUMNS.md",
+		self::DROP_MAIL_LOG_INDEXES => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MAILLOG_DROP_COLUMNS.md",
 	];
 
 	public const string STATUS_PENDING   = 'pending';
