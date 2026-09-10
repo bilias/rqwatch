@@ -1083,6 +1083,27 @@ span.stored {
   border-color: #17a2b8;
 }
 
+.search_errors ul,
+.form-errors ul {
+  list-style: none;
+  margin: 0 0 12px 0;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 1rem;
+  font-family: system-ui, sans-serif;
+  border-left: 4px solid;
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #dc3545;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* .form-errors is a <span> holding a <ul>; block-in-inline renders
+   inconsistently across browsers. */
+.form-errors {
+  display: block;
+}
+
 #inside_links ul {
  padding-bottom: 0px;
  margin-bottom: 0px;

@@ -22,6 +22,9 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
+
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -89,5 +92,56 @@ class SearchForm extends AbstractType
          */
       }
 		return null;
+	}
+
+	#[\Override]
+	public function configureOptions(OptionsResolver $resolver): void {
+		$resolver->setDefaults([
+			'constraints' => [
+				new Assert\Callback([self::class, 'validateRegexpValue']),
+			],
+		]);
+	}
+
+	/*
+	 A REGEXP search sends the pattern straight to MariaDB, and an invalid
+	 one is a query error (1139 / 42000), not an empty result. That error
+	 surfaces as an uncaught exception in showStats(), and because
+	 MailLogController::search() persists the filter to the session
+	 before running the stats query, a single typo left the search
+	 page failing on every later visit - with the only filter-delete
+	 buttons sitting in search.twig, the page that no longer rendered.
+
+	 Rejecting the pattern here keeps it out of the session entirely and
+	 puts the error next to the field. MariaDB and PHP both use PCRE2, so
+	 preg_match is a close proxy.
+	 It is only a filter, not a guarantee: a different PCRE2 build
+	 or MariaDB's default_regex_flags could disagree, which is why the catch
+	 in showStats() is still needed as the backstop.
+
+	 The \x01 delimiter is deliberate. A printable delimiter such as / would
+	 make preg treat the first unescaped / in the pattern as the end of it,
+	 so a legitimate search for example\.com/path would be wrongly refused.
+	*/
+	public static function validateRegexpValue(mixed $data, ExecutionContextInterface $context): void {
+		if (!is_array($data)) {
+			return;
+		}
+
+		// getChoices() maps the submitted label to the SQL operator, so the
+		// labels are not duplicated here.
+		$operator = FormHelper::getChoices()[$data['choice'] ?? ''] ?? null;
+
+		if ($operator !== 'REGEXP' && $operator !== 'NOT REGEXP') {
+			return;
+		}
+
+		$pattern = (string) ($data['value'] ?? '');
+
+		if (@preg_match("\x01" . $pattern . "\x01", '') === false) {
+			$context->buildViolation('Invalid regular expression.')
+				->atPath('value')
+				->addViolation();
+		}
 	}
 }

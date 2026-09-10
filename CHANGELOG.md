@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-10
+- Validate REGEXP filters
 - Fix search page for headers and symbols
 - Add default collation and charset in AppConfig
 - Fix charts position
