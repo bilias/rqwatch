@@ -753,7 +753,7 @@ span.stored {
 	margin-left: 2px;
 	padding-bottom: 0px;
 	display: grid;
-	grid-template-columns: 1fr auto 1fr;
+	grid-template-columns: minmax(150px, 1fr) minmax(200px, 1000px) minmax(150px, 1fr);
 	align-items: flex-start;
 }
 
@@ -1297,12 +1297,30 @@ table.attachments .filename {
  margin: 0 20px;
  min-height: 200px;
  max-height: 300px;
- width: clamp(200px, 55vw, 800px);
+ width: clamp(200px, calc(100vw - 420px), 1000px);
  border: 1px solid #B0B0B0;
 }
 
 .menu-toggle {
   display: none;
+}
+
+@media (max-width: 700px) {
+
+  .header {
+    grid-template-columns: 1fr;
+  }
+
+  .header-left,
+  .header-chart,
+  .header-right {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .header-chart {
+    margin: 10px 0;
+  }
 }
 
 @media (max-width: 1100px) {
