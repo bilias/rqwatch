@@ -152,23 +152,27 @@ class MailLogService
 	 guaranteed populated at boot.
 	*/
 	private function filterByRecipient(Builder $query, string $c, mixed $v): void {
-		$email = strtolower(trim((string) $v));
+		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
 
-		if ($c === '=' ) {
-			$query->whereHas('recipients', function ($q) use ($email) {
-			    $q->where('recipient_email', '=', $email);
+		$op = match ($c) {
+			'<>', '!='   => '=',
+			'NOT LIKE'   => 'LIKE',
+			'NOT REGEXP' => 'REGEXP',
+			default      => $c,
+		};
+
+		$email = strtolower(trim((string) $v));
+		if ($op === 'LIKE') {
+			$email = "%{$email}%";
+		}
+
+		if ($negate) {
+			$query->whereDoesntHave('recipients', function ($q) use ($op, $email) {
+				$q->where('recipient_email', $op, $email);
 			});
-		} elseif ($c === 'LIKE') {
-			$query->whereHas('recipients', function ($q) use ($email) {
-			    $q->where('recipient_email', 'LIKE', "%{$email}%");
-			});
-		} elseif ($c === 'NOT LIKE') {
-			$query->whereDoesntHave('recipients', function ($q) use ($email) {
-			    $q->where('recipient_email', 'LIKE', "%{$email}%");
-			});
-		} elseif ($c === '!=' || $c === '<>') {
-			$query->whereDoesntHave('recipients', function ($q) use ($email) {
-			    $q->where('recipient_email', '=', $email);
+		} else {
+			$query->whereHas('recipients', function ($q) use ($op, $email) {
+				$q->where('recipient_email', $op, $email);
 			});
 		}
 	}
