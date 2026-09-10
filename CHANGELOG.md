@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-10
+- Create day migration enforced. Remove legacy path
 - Add import_spool config option to disable spooling
 
 ### 2026-09-09

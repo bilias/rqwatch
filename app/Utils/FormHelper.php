@@ -40,9 +40,9 @@ class FormHelper
 		return $form;
 	}
 
-	public static function getFilters(bool $createdDayMigrationComplete = false): array {
+	public static function getFilters(): array {
 		return array(
-			'Date' => $createdDayMigrationComplete ? 'created_day' : 'created_at',
+			'Date' => 'created_day',
 			'Subject' => 'subject',
 			'Action' => 'action',
 			'Score' => 'score',
@@ -81,12 +81,9 @@ class FormHelper
 		);
 	}
 
-	public static function getFilterByName(
-		array $active_filters,
-		bool $createdDayMigrationComplete
-	): array {
+	public static function getFilterByName(array $active_filters): array {
 
-		$filters = self::getFilters($createdDayMigrationComplete);
+		$filters = self::getFilters();
 		$choices = self::getChoices();
 		$ar = array();
 

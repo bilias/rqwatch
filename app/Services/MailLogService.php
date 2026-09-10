@@ -93,10 +93,7 @@ class MailLogService
 
 	public function getQueryByFilters(Builder $query, array $filters): Builder {
 		if (!empty($filters)) {
-			$filters = FormHelper::getFilterByName(
-				$filters,
-				$this->createdDayMigrationComplete()
-			);
+			$filters = FormHelper::getFilterByName($filters);
 		}
 
 		if (!empty($filters)) {
@@ -428,13 +425,8 @@ class MailLogService
 				                ->groupBy($field);
 				break;
 			case 'date':
-				if ($this->createdDayMigrationComplete()) {
-					$query = MailLog::selectRaw("created_day AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
-						->groupBy('created_day');
-				} else {
-					$query = MailLog::selectRaw("DATE(created_at) AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
-						->groupBy(DB::raw('DATE(created_at)'));
-				}
+				$query = MailLog::selectRaw("created_day AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
+					->groupBy('created_day');
 				break;
 			default:
 				//$fields = [ $field, DB::raw('count(*) as total') ];
@@ -546,14 +538,7 @@ class MailLogService
 			->with($this->getMailLogSymbolsRelations())
 			->select($fields);
 
-		if ($this->createdDayMigrationComplete()) {
-			$query->where('created_day', $date);
-		} else {
-			$query->whereBetween('created_at', [
-				"{$date} 00:00:00",
-				"{$date} 23:59:59"
-			]);
-		}
+		$query->where('created_day', $date);
 
 		$query = $query
 			->orderBy('id', 'DESC');
@@ -579,14 +564,7 @@ class MailLogService
 		$query = MailLog::select($fields)
 			->with($this->getMailLogSymbolsRelations());
 
-		if ($this->createdDayMigrationComplete()) {
-			$query->where('created_day', $date);
-		} else {
-			$query->whereBetween('created_at', [
-				"{$date} 00:00:00",
-				"{$date} 23:59:59"
-			]);
-		}
+		$query->where('created_day', $date);
 
 		$query = $query
 			->where('mail_stored', 1)
@@ -605,11 +583,7 @@ class MailLogService
 
 	public function showQuarantine(): Collection {
 
-		if ($this->createdDayMigrationComplete()) {
-			$query = MailLog::selectRaw('created_day as day, COUNT(*) as cnt');
-		} else {
-			$query = MailLog::selectRaw('DATE(created_at) as day, COUNT(*) as cnt');
-		}
+		$query = MailLog::selectRaw('created_day as day, COUNT(*) as cnt');
 
 		$query = $query
 			->where('mail_stored', 1)
@@ -628,11 +602,7 @@ class MailLogService
 	}
 
 	public function showPaginatedQuarantine(string $url, int $page = 1): LengthAwarePaginator {
-		if ($this->createdDayMigrationComplete()) {
-			$query = MailLog::selectRaw('created_day as day, COUNT(*) as cnt');
-		} else {
-			$query = MailLog::selectRaw('DATE(created_at) as day, COUNT(*) as cnt');
-		}
+		$query = MailLog::selectRaw('created_day as day, COUNT(*) as cnt');
 
 		$query = $query
 			->where('mail_stored', 1)
@@ -1500,36 +1470,18 @@ class MailLogService
 		return ['recipients', 'mailLogData'];
 	}
 
-	private function createdDayMigrationComplete(): bool {
-		return $this->migrationStatus->createdDayCompleted();
-	}
-
 	private function getFirstMailDate($query) {
-		if ($this->createdDayMigrationComplete()) {
-			return (clone $query)
-				->from(DB::raw('mail_logs FORCE INDEX(created_day_index)'))
-				->select('created_at')
-				->orderBy('created_day', 'ASC');
-		} else {
-			return (clone $query)
-				->from(DB::raw('mail_logs FORCE INDEX(created_at_index)'))
-				->select('created_at')
-				->orderBy('created_at', 'ASC');
-		}
+		return (clone $query)
+			->from(DB::raw(AppConfig::MAIL_LOGS_TABLE . ' FORCE INDEX(created_day_index)'))
+			->select('created_at')
+			->orderBy('created_day', 'ASC');
 	}
 
 	private function getLastMailDate($query) {
-		if ($this->createdDayMigrationComplete()) {
-			return (clone $query)
-				->from(DB::raw(AppConfig::MAIL_LOGS_TABLE . ' FORCE INDEX(created_day_index)'))
-				->select('created_at')
-				->orderBy('created_day', 'DESC');
-		} else {
-			return (clone $query)
-				->from(DB::raw(AppConfig::MAIL_LOGS_TABLE . ' FORCE INDEX(created_at_index)'))
-				->select('created_at')
-				->orderBy('created_at', 'DESC');
-		}
+		return (clone $query)
+			->from(DB::raw(AppConfig::MAIL_LOGS_TABLE . ' FORCE INDEX(created_day_index)'))
+			->select('created_at')
+			->orderBy('created_day', 'DESC');
 	}
 
 	private function getUserRecipientEmails(): array {
