@@ -120,7 +120,7 @@ class MailAliasService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $aliases;
@@ -144,7 +144,7 @@ class MailAliasService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $aliases;
@@ -174,7 +174,7 @@ class MailAliasService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $logs;

@@ -153,7 +153,7 @@ class MapService
 				->get();
 		} catch (Exception $e) {
 			App::fileLogger()->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $maps;
@@ -167,7 +167,7 @@ class MapService
 			$row = $query->first();
 		} catch (Exception $e) {
 			App::fileLogger()->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		if (is_null($row)) {
@@ -224,7 +224,7 @@ class MapService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map_entries;
@@ -254,7 +254,7 @@ class MapService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map_entries;
@@ -275,7 +275,7 @@ class MapService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map_entries;
@@ -310,7 +310,7 @@ class MapService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map_entries;
@@ -330,7 +330,7 @@ class MapService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map_entries;
@@ -351,7 +351,7 @@ class MapService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map_configs;
@@ -369,7 +369,7 @@ class MapService
 				->get();
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map;
@@ -388,7 +388,7 @@ class MapService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map;
@@ -403,7 +403,7 @@ class MapService
 				->get();
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map;
@@ -419,7 +419,7 @@ class MapService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map;
@@ -433,7 +433,7 @@ class MapService
 				->get();
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map;
@@ -448,7 +448,7 @@ class MapService
 				->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $map;
