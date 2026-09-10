@@ -7,6 +7,10 @@
 -
 
 ## Features bellow might be implemented
+- Configs in DB and menu entry
+- Throttling mail reports to admin
+- Release audit trail
+- Threshold alerting (ie many reject/discards)
 
 ### Translations
 - Multi lang support
