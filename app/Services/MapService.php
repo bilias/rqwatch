@@ -617,7 +617,16 @@ class MapService
 		if ($model === 'MapCombined') {
 			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 			$query = $query->where('disabled', 0);
-			$map_entries = $query->get()->toArray();
+			try {
+				$map_entries = $query->get()->toArray();
+			} catch (Exception $e) {
+				$this->logger->error(
+					"Query error building map {$map_name}: " . $e->getMessage()
+				);
+				fclose($fp);
+				@unlink($tmpfile);
+				return false;
+			}
 			foreach ($map_entries as $row) {
 				$values = array_map(fn($field) => $row[$field] ?? '', $map_fields);
 				// Skip the line if any value is empty
@@ -629,7 +638,16 @@ class MapService
 		/* deprecated
 		} elseif ($model === 'MapGeneric') {
 			$query = $this->getMapGenericQuery($map_name);
-			$map_entries = $query->get()->toArray();
+			try {
+				$map_entries = $query->get()->toArray();
+			} catch (Exception $e) {
+				$this->logger->error(
+					"Query error building map {$map_name}: " . $e->getMessage()
+				);
+				fclose($fp);
+				@unlink($tmpfile);
+				return false;
+			}
 			foreach ($map_entries as $row) {
 				// Skip if 'pattern' is missing or empty
 				if (empty($row['pattern'])) {
@@ -643,7 +661,16 @@ class MapService
 		} elseif ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('disabled', 0);
-			$map_entries = $query->get()->toArray();
+			try {
+				$map_entries = $query->get()->toArray();
+			} catch (Exception $e) {
+				$this->logger->error(
+					"Query error building map {$map_name}: " . $e->getMessage()
+				);
+				fclose($fp);
+				@unlink($tmpfile);
+				return false;
+			}
 			foreach ($map_entries as $row) {
 				// Skip if 'pattern' is missing or empty
 				if (empty($row['pattern'])) {
