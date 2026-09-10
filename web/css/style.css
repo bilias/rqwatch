@@ -1297,7 +1297,6 @@ table.attachments .filename {
  margin: 0 20px;
  min-height: 200px;
  max-height: 300px;
- width: clamp(200px, calc(100vw - 420px), 1000px);
  border: 1px solid #B0B0B0;
 }
 
