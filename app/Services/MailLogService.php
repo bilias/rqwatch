@@ -567,9 +567,9 @@ class MailLogService
 
 		if (($stats['count']) > 0) {
 			$stats['first'] = $this->getFirstMailDate($query)
-				->first()->created_at->toDateTimeString();
+				->first()?->created_at->toDateTimeString();
 			$stats['last'] = $this->getLastMailDate($query)
-				->first()->created_at->toDateTimeString();
+				->first()?->created_at->toDateTimeString();
 			$stats['stored'] = (clone $query)->where('mail_stored', 1)->count();
 			$stats['notified'] = (clone $query)->where('notified', 1)->count();
 			$stats['released'] = (clone $query)->where('released', 1)->count();
