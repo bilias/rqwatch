@@ -72,7 +72,21 @@ abstract class AbstractMigration {
 	}
 
 	protected function createTable(string $tableName, Closure $callback): void {
-		$this->capsule->schema()->create($tableName, $callback);
+		$this->capsule->schema()->create(
+			$tableName,
+			function (Blueprint $table) use ($callback) {
+				// Set before the caller's callback so a migration needing a
+				// different collation can override it on its own Blueprint.
+				// MySqlGrammar::compileCreateEncoding() checks the Blueprint
+				// first and only falls back to the connection config, so
+				// declaring it here puts the encoding in the DDL of every
+				// migration-created table, including the migrations table.
+				$table->charset(AppConfig::DB_CHARSET);
+				$table->collation(AppConfig::DB_COLLATION);
+
+				$callback($table);
+			}
+		);
 	}
 
 	protected function alterTable(string $tableName, Closure $callback): void {

@@ -76,6 +76,14 @@ public const string MAIL_LOG_RECIPIENTS_TABLE = 'mail_log_recipients';
 public const string MAIL_LOG_TOKENS_TABLE = 'mail_log_tokens';
 public const string MIGRATIONS_TABLE = 'migrations';
 
+// Table encoding, declared on the Blueprint by
+// AbstractMigration::createTable() rather than left to the connection config.
+// contrib/db-init.sql declares the same pair on all four
+// migration-created tables, so a migrated install and a fresh install
+// produce identical tables whatever the server or database default is.
+public const string DB_CHARSET = 'utf8mb4';
+public const string DB_COLLATION = 'utf8mb4_general_ci';
+
 // Routes that may be reached without authentication. Any other route
 // declaring NO_MIDDLEWARE is a routing mistake and will be denied.
 public const array PUBLIC_ROUTES = [
