@@ -529,7 +529,30 @@ class MailLogService
 		return $logs;
 	}
 
+	/*
+	 SearchForm now rejects an invalid REGEXP before it can be stored, which
+	 removes the one trigger reachable from the form. This is the backstop
+	 for the rest: a lock wait or deadlock during the stats query, a lost
+	 connection, or a pattern this PCRE2 build accepts and the server's
+	 rejects.
+
+	 The body is a separate method so the catch covers every statement it
+	 issues without re-indenting them. Returning zeroed stats instead would
+	 render a page reporting no matches, which is indistinguishable from a
+	 search that legitimately found none.
+	*/
 	public function showStats(array $filters): array {
+		$lf = "MailLogService_showStats";
+
+		try {
+			return $this->collectStats($filters);
+		} catch (Exception $e) {
+			$this->logger->error("{$lf} Query error: " . $e->getMessage());
+			exit("Query error");
+		}
+	}
+
+	private function collectStats(array $filters): array {
 		$fields = ['id'];
 
 		$query = MailLog::select($fields);
