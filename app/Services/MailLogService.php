@@ -451,7 +451,7 @@ class MailLogService
 			$logs = $paginator->withPath($url);
 		} catch (Exception $e) {
 			$this->logger->error("{$lf} Query error: " . $e->getMessage());
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $logs;
@@ -523,7 +523,7 @@ class MailLogService
 			$logs = $query->get();
 		} catch (Exception $e) {
 			$this->logger->error("{$lf} Query error: " . $e->getMessage());
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 
 		return $logs;
@@ -548,7 +548,7 @@ class MailLogService
 			return $this->collectStats($filters);
 		} catch (Exception $e) {
 			$this->logger->error("{$lf} Query error: " . $e->getMessage());
-			exit("Query error");
+			Helper::failRequest("Query error");
 		}
 	}
 

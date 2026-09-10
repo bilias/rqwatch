@@ -21,6 +21,8 @@ use MaxMind\Db\Reader as MaxMindDbReader;
 
 use NetDNS2\Resolver;
 
+use Symfony\Component\HttpFoundation\Response;
+
 use Psr\Log\LoggerInterface;
 
 use DateTime;
@@ -1068,6 +1070,30 @@ You can view mail details and optionally release it from quarantine by clicking 
 		}
 
 		return $cache->deleteByPrefix(Config::get('dns_resolv_redis_key'));
+	}
+
+	/*
+	 Abort a web request with a real status code. Services are called from
+	 controllers, and Router::run() only send()s the controller's Response
+	 after dispatch() returns, so nothing has been written yet and headers
+	 are still settable. Mirrors Kernel::bootFailure(): the client message
+	 stays generic because the remedy is in the log.
+	*/
+	public static function failRequest(
+		string $message,
+		int $status = Response::HTTP_INTERNAL_SERVER_ERROR
+	): never {
+		if (defined('CLI_MODE') && CLI_MODE) {
+			fwrite(STDERR, $message . PHP_EOL);
+			exit(1);
+		}
+
+		$response = new Response($message, $status);
+		$response->headers->set('Content-Type', 'text/plain; charset=utf-8');
+		$response->headers->set('X-Content-Type-Options', 'nosniff');
+		$response->send();
+
+		exit(1);
 	}
 
 }
