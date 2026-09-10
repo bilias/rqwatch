@@ -186,7 +186,8 @@ final class Kernel
 	private function degradedDbAllowed(): bool {
 		return defined('ALLOW_DEGRADED_DB')
 			&& ALLOW_DEGRADED_DB
-			&& $this->cache !== null;
+			&& $this->cache !== null
+			&& Config::get('import_spool');
 	}
 
 	private function verifyDatabaseSchema(): void {

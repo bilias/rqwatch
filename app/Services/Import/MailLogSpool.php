@@ -161,6 +161,15 @@ final class MailLogSpool
 	 lost" and the caller should keep answering 500.
 	*/
 	public function push(array $mailData, array $recipients): bool {
+		/*
+		 Deliberately here and not in the constructor: pending() and
+		 drain() must keep working with the switch off, so cli cron:import_spool
+		 can still import mail from Redis
+		*/
+		if (!Config::get('import_spool')) {
+			return false;
+		}
+
 		if ($this->cache === null) {
 			return false;
 		}

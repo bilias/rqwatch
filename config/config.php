@@ -222,6 +222,13 @@ $dns_resolv_redis_key = 'rqwatch_dns_cache';
 # How many seconds to cache DNS queries in Redis
 $dns_resolv_redis_cache_ttl = 86400;
 
+# Keep mail metadata in Redis when the database refuses a write, so
+# cron:import_spool can import it later. Set false to answer 500 and
+# discard the mail metadata and the quarantined file instead.
+# Also disables degraded-mode boot, which exists only to spool.
+# cron:import_spool still imports anything already spooled.
+$import_spool = false;
+
 # Redis key prefix for the failed-import spool. Entries are
 # <key>:mail:<MY_API_SERVER_ALIAS>:<uniqid>, the per-server counter is
 # <key>:count:<MY_API_SERVER_ALIAS>. The two namespaces must stay

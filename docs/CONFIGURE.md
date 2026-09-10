@@ -531,8 +531,11 @@ based on action taken by Rspamd\
 
 ### Failed Import Spool
 When the database refuses a write, the API keeps the mail's metadata in Redis
-and [`cron:import_spool`](#cron) imports it later.\
-Requires [`REDIS_ENABLE`](#redis-settings)
+and [`cron:import_spool`](#cron) imports it later into database.
+
+- `$import_spool` - Set to `false` to disable spooling in Redis.\
+  Requires [`REDIS_ENABLE`](#redis-settings)\
+  Default is `true`
 
 - `$import_spool_redis_key` - Redis key prefix for spooled metadata.\
   Entries are `<key>:mail:<MY_API_SERVER_ALIAS>:<id>`, the per-server counter
