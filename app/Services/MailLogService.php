@@ -272,7 +272,7 @@ class MailLogService
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 
 		$query = MailLog::select($fields)
-					->where('created_at', '<', $cutoffDate->format('Y-m-d H:i:s'));
+					->where('created_day', '<', $cutoffDate->format('Y-m-d'));
 
 		if ($server) {
 			$query = $query->where('server', $server);
@@ -1391,9 +1391,9 @@ class MailLogService
 		if (is_numeric($notification_days) && (int)$notification_days > 0) {
 			$cutoffDate = (new \DateTimeImmutable())
 				->sub(new \DateInterval("P{$notification_days}D"))
-				->format('Y-m-d H:i:s');
+				->format('Y-m-d');
 
-			$query->where('created_at', '>=', $cutoffDate);
+			$query->where('created_day', '>=', $cutoffDate);
 		}
 
 		if ($server) {
@@ -1474,7 +1474,7 @@ class MailLogService
 		$query = MailLog::with($this->getMailLogRecipientsRelation())
 					->select($fields)
 					->where('mail_stored', 1)
-					->where('created_at', '<', $cutoffDate->format('Y-m-d H:i:s'));
+					->where('created_day', '<', $cutoffDate->format('Y-m-d'));
 
 		if ($server) {
 			$query = $query->where('server', $server);
