@@ -783,7 +783,7 @@ class MailLogController extends ViewController
 		$stats = $this->getMailStats($service, $filters);
 
 		$chart = null;
-		if ($stats['count'] > 0) {
+		if (($stats['count'] ?? 0) > 0) {
 			$chart = $this->createChart(
 				[ChartBuilder::class, 'createSearchChart'],
 				$stats
@@ -974,10 +974,21 @@ class MailLogController extends ViewController
 		return true;
 	}
 
-	private function getMailStats(MailLogService $service, array $filters): array {
+		private function getMailStats(MailLogService $service, array $filters): array {
 		if ($this->mailStatsEnabled($filters)) {
 			// has applyUserScope
-			return $service->showStats($filters);
+			$stats = $service->showStats($filters);
+
+			if ($stats === null) {
+				// distinguish a failed stats query from stats being
+				// disabled: both render no block, only one is an error
+				$this->flashbag->add('error',
+					"Statistics unavailable - query error. Check the logs, and remove the filter if it persists.");
+
+				return [];
+			}
+
+			return $stats;
 		}
 
 		return [];

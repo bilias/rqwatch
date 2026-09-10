@@ -537,18 +537,26 @@ class MailLogService
 	 rejects.
 
 	 The body is a separate method so the catch covers every statement it
-	 issues without re-indenting them. Returning zeroed stats instead would
-	 render a page reporting no matches, which is indistinguishable from a
-	 search that legitimately found none.
+	 issues without re-indenting them. Returning zeroed stats would render
+	 a page reporting no matches, indistinguishable from a search that
+	 legitimately found none, so failure is null and the caller drops the
+	 whole statistics block.
+
+	 Null rather than failRequest() because search() persists the filter to
+	 the session before this runs, and the only Remove links live in
+	 search.twig — killing the response leaves the page failing on every
+	 later visit. The stats are the sole query on that route, so degrading
+	 them renders the filter list and its Remove links instead.
 	*/
-	public function showStats(array $filters): array {
+	public function showStats(array $filters): ?array {
 		$lf = "MailLogService_showStats";
 
 		try {
 			return $this->collectStats($filters);
 		} catch (Exception $e) {
 			$this->logger->error("{$lf} Query error: " . $e->getMessage());
-			Helper::failRequest("Query error");
+
+			return null;
 		}
 	}
 
