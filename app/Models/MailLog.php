@@ -170,13 +170,8 @@ class MailLog extends Model
 		return $virus === false ? null : $virus;
 	}
 
-		public function getMimeFromDecodedAttribute(): string {
-		/*
-		 Twig probes with isset() before reading (CoreExtension:1794), and
-		 Eloquent's __isset runs getAttribute(), so an unmemoised accessor is
-		 evaluated twice per template read. Only the Attribute::make() API
-		 caches; getXAttribute() mutators never do.
-		*/
+	public function getMimeFromDecodedAttribute(): string {
+		// Twig probes with isset() and accessor gets the attr.  cache it
 		if ($this->mimeFromDecoded !== null) {
 			return $this->mimeFromDecoded;
 		}
@@ -187,7 +182,7 @@ class MailLog extends Model
 		}
 
 		/*
-		 mailparse warns from its tokenizer and then goto state_ground -- it
+		 mailparse warns from its tokenizer and then goto state_ground - it
 		 keeps parsing, so the warning is implied by neither an empty result
 		 nor a Throwable. Trap it for the duration of the call; returning
 		 true keeps PHP's own handler from writing it to the error log
@@ -201,7 +196,7 @@ class MailLog extends Model
 
 				return true;
 			},
-			E_WARNING | E_NOTICE
+			E_WARNING
 		);
 
 		try {
