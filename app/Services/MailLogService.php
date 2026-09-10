@@ -137,14 +137,7 @@ class MailLogService
 						if ($c === 'NOT LIKE') {
 							$v = "%{$v}%";
 						}
-						if ($c === '=' && $f === 'created_at') {
-							$query->whereBetween('created_at', [
-								"{$v} 00:00:00",
-								"{$v} 23:59:59"
-							]);
-						} else {
-							$query->where($f, $c, $v);
-						}
+						$query->where($f, $c, $v);
 					}
 					/* support NULL/NOT NULL
 					else {
