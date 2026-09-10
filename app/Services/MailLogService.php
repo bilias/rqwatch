@@ -146,7 +146,7 @@ class MailLogService
 	 rcpt_to is denormalised into mail_log_recipients, so the filter has to
 	 run against the relation. The caller must still skip its own
 	 $query->where('rcpt_to', ...) for every choice, including the ones with
-	 no branch here - the mail_logs column is the legacy compatibility layer
+	 no branch here - the mail_logs rcpt_to column is the legacy compatibility layer.
 
 	 MailRecipientsMigration is in Migrations::REQUIRED, so the relation is
 	 guaranteed populated at boot.
@@ -194,9 +194,9 @@ class MailLogService
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
 
 		$op = match ($c) {
-			'<>', '!='   => '=',
-			'NOT LIKE'   => 'LIKE',
-			'NOT REGEXP' => 'REGEXP',
+			'=', '<>', '!=' => 'LIKE',
+			'NOT LIKE'      => 'LIKE',
+			'NOT REGEXP'    => 'REGEXP',
 			default      => $c,
 		};
 
