@@ -752,16 +752,18 @@ span.stored {
 .header {
 	margin-left: 2px;
 	padding-bottom: 0px;
-	display: flex;
-	justify-content: space-between;
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
 	align-items: flex-start;
 }
 
 .header-left {
-  /* Optional: Let it grow naturally */
+ grid-column: 1;
 }
 
 .header-right {
+ grid-column: 3;
+ justify-self: end;
  align-self: flex-start;
  text-align: right;
  border: 1px solid black;
@@ -1291,12 +1293,11 @@ table.attachments .filename {
 }
 
 .header-chart {
- flex: 1;
+ grid-column: 2;
  margin: 0 20px;
  min-height: 200px;
  max-height: 300px;
- min-width: 200px;
- max-width: 800px;
+ width: clamp(200px, 55vw, 800px);
  border: 1px solid #B0B0B0;
 }
 
