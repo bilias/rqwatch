@@ -108,27 +108,15 @@ class MailLogService
 						$v = $filter['value'];
 
 						if ($f === 'rcpt_to') {
-							$email = strtolower(trim((string)$v));
-
-							if ($c === '=' ) {
-								$query->whereHas('recipients', function ($q) use ($email) {
-								    $q->where('recipient_email', '=', $email);
-								});
-							} elseif ($c === 'LIKE') {
-								$query->whereHas('recipients', function ($q) use ($email) {
-								    $q->where('recipient_email', 'LIKE', "%{$email}%");
-								});
-							} elseif ($c === 'NOT LIKE') {
-								$query->whereDoesntHave('recipients', function ($q) use ($email) {
-								    $q->where('recipient_email', 'LIKE', "%{$email}%");
-								});
-							} elseif ($c === '!=' || $c === '<>') {
-								$query->whereDoesntHave('recipients', function ($q) use ($email) {
-								    $q->where('recipient_email', '=', $email);
-								});
-							}
+							$this->filterByRecipient($query, $c, $v);
 
 							continue; // don't run $query->where('rcpt_to', ...) on mail_logs
+						}
+
+						if ($f === 'headers' || $f === 'symbols') {
+							$this->filterByMailLogData($query, $f, $c, $v);
+
+							continue; // don't run $query->where('headers', ...) on mail_logs
 						}
 
 						if ($c === 'LIKE') {
@@ -152,6 +140,85 @@ class MailLogService
 			}
 		}
 		return $query;
+	}
+
+	/*
+	 rcpt_to is denormalised into mail_log_recipients, so the filter has to
+	 run against the relation. The caller must still skip its own
+	 $query->where('rcpt_to', ...) for every choice, including the ones with
+	 no branch here - the mail_logs column is the legacy compatibility layer
+
+	 MailRecipientsMigration is in Migrations::REQUIRED, so the relation is
+	 guaranteed populated at boot.
+	*/
+	private function filterByRecipient(Builder $query, string $c, mixed $v): void {
+		$email = strtolower(trim((string) $v));
+
+		if ($c === '=' ) {
+			$query->whereHas('recipients', function ($q) use ($email) {
+			    $q->where('recipient_email', '=', $email);
+			});
+		} elseif ($c === 'LIKE') {
+			$query->whereHas('recipients', function ($q) use ($email) {
+			    $q->where('recipient_email', 'LIKE', "%{$email}%");
+			});
+		} elseif ($c === 'NOT LIKE') {
+			$query->whereDoesntHave('recipients', function ($q) use ($email) {
+			    $q->where('recipient_email', 'LIKE', "%{$email}%");
+			});
+		} elseif ($c === '!=' || $c === '<>') {
+			$query->whereDoesntHave('recipients', function ($q) use ($email) {
+			    $q->where('recipient_email', '=', $email);
+			});
+		}
+	}
+
+	/*
+	 headers and symbols live only on mail_log_data.
+	 MAIL_LOG_DATA is in Migrations::REQUIRED, so the relation is
+	 guaranteed populated at boot and needs no status check.
+
+	 Negation goes through whereDoesntHave with the positive operator rather
+	 than passing NOT LIKE into whereHas: the two differ for a mail with no
+	 mail_log_data row, and "does not contain" should include it.
+
+	 symbols is declared JSON, which MariaDB stores as
+	 longtext COLLATE utf8mb4_bin, so an uncollated compare is case-sensitive
+	 and 'bayes_spam' would never match BAYES_SPAM. Comparing in the table's
+	 own collation fixes that without touching the needle - symbol options
+	 carry mixed-case URLs and hostnames, so upper-casing the value would
+	 break searching on those. On headers, which already takes the table
+	 default, the override is a no-op.
+	*/
+	private function filterByMailLogData(Builder $query, string $f, string $c, mixed $v): void {
+		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
+
+		$op = match ($c) {
+			'<>', '!='   => '=',
+			'NOT LIKE'   => 'LIKE',
+			'NOT REGEXP' => 'REGEXP',
+			default      => $c,
+		};
+
+		$val = (string) $v;
+		if ($op === 'LIKE') {
+			$val = "%{$val}%";
+		}
+
+		$col = DB::raw(
+			'`' . AppConfig::MAIL_LOG_DATA_TABLE . '`.`' . $f . '`'
+			. ' COLLATE ' . AppConfig::DB_COLLATION
+		);
+
+		if ($negate) {
+			$query->whereDoesntHave('mailLogData', function ($q) use ($col, $op, $val) {
+				$q->where($col, $op, $val);
+			});
+		} else {
+			$query->whereHas('mailLogData', function ($q) use ($col, $op, $val) {
+				$q->where($col, $op, $val);
+			});
+		}
 	}
 
 	public function cleanDb(Builder $query, int $batch): int {
