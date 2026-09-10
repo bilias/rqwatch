@@ -3,7 +3,11 @@
 ## Master Dev Branch
 
 ### 2026-09-10
+- Fix search page for headers and symbols
+- Add default collation and charset in AppConfig
+- Fix charts position
 - Create day migration enforced. Remove legacy path
+- Show QID in RFC822 parse errors for mime address decoding
 - Add import_spool config option to disable spooling
 
 ### 2026-09-09

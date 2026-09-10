@@ -201,7 +201,7 @@ class MailLogService
 			'=', '<>', '!=' => 'LIKE',
 			'NOT LIKE'      => 'LIKE',
 			'NOT REGEXP'    => 'REGEXP',
-			default      => $c,
+			default         => $c,
 		};
 
 		$val = (string) $v;
