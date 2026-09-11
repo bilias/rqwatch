@@ -32,7 +32,6 @@ use App\Services\UserService;
 
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Generator\UrlGenerator;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 #[AsCommand(
 	name: 'cron:notifications',

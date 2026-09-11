@@ -29,7 +29,6 @@ use PhpMimeMailParser\Parser;
 use Illuminate\Database\QueryException;
 use PDOException;
 
-use Exception;
 use Throwable;
 
 class MetadataImporterMultipartApi extends RqwatchApi

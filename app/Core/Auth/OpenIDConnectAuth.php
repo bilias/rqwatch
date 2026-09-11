@@ -10,8 +10,6 @@
 
 namespace App\Core\Auth;
 
-use SensitiveParameter; // For method params
-
 use Psr\Log\LoggerInterface;
 
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
