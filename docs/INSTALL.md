@@ -268,7 +268,7 @@ If you are running everything on a single host, you probably need to define `bin
 
 ### Database creation
 ```
-mysql -p -u root`
+mysql -p -u root
 ```
 
 ```sql
