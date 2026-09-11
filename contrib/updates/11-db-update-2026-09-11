@@ -1,0 +1,2 @@
+# SQL
+OPTIMIZE TABLE `mail_logs`;

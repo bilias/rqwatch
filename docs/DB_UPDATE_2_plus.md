@@ -97,8 +97,9 @@ After that run the migrations cli to verify that all migrations are applied:
 
 If you prefer to apply the changes by hand rather than through the CLI, the
 statements are in:\
-`contrib/updates/09-db-update-2026-09-08` and\
-`contrib/updates/10-db-update-2026-09-11`
+`contrib/updates/09-db-update-2026-09-08`\
+`contrib/updates/10-db-update-2026-09-11`\
+`contrib/updates/11-db-update-2026-09-11`
 
 ```sql
 ALTER TABLE `mail_logs`
