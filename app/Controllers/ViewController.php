@@ -114,11 +114,11 @@ class ViewController extends Controller
 			return Helper::formatSizeUnits($bytes);
 		}));
 	
+		/* unused
 		$this->twig->addFunction(new TwigFunction('check_virus_from_all', function ($symbols) {
 			return Helper::check_virus_from_all($symbols);
 		}));
 	
-		/* unused
 		$this->twig->addFunction(new TwigFunction('get_runtime', function ($startTime, $startMemory) {
 			return $this->getRuntime();
 		}));
