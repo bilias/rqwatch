@@ -322,24 +322,6 @@ class MapService
 		return $map_configs;
 	}
 
-	public function showMapCustom(string $map_name): Collection {
-		$query = $this->getMapCustomQuery($map_name);
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		try {
-			$map = $query
-				->get();
-		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			Helper::failRequest("Query error");
-		}
-
-		return $map;
-	}
-
 	public function showPaginatedMapCustom(string $map_name, int $page, string $url): LengthAwarePaginator {
 		$query = $this->getMapCustomQuery($map_name);
 
@@ -351,20 +333,6 @@ class MapService
 			$map = $query
 				->paginate($this->items_per_page, ['*'], 'page', $page)
 				->withPath($url);
-		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			Helper::failRequest("Query error");
-		}
-
-		return $map;
-	}
-
-	public function showMapCombined(string $map_name, array $map_fields): Collection {
-		$query = $this->getMapCombinedQuery($map_name, $map_fields);
-
-		try {
-			$map = $query
-				->get();
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			Helper::failRequest("Query error");
@@ -492,21 +460,7 @@ class MapService
 		return false;
 	}
 
-	 public static function delMapFile(string $map_name): bool {
-		$map_dir = Config::get('MAP_DIR');
-		$map_file = rtrim($map_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $map_name . ".txt";
-
-		if (!file_exists($map_file)) {
-			return true;
-		}
-
-		if (unlink($map_file)) {
-			return true;
-		}
-		return false;
-	 }
-
-	 public function updateMapFile(
+	public function updateMapFile(
 		string $model,
 		string $map_name,
 		string $last_update,
@@ -1027,12 +981,6 @@ class MapService
 		if (!self::delMapActivityLog($custom_map->map_name)) {
 			return false;
 		}
-
-		// XXX test for left overs
-		// delete map file if it exists
-		//if (!self::delMapFile($custom_map->map_name)) {
-		//	return false;
-		//}
 
 		if (!$custom_map->delete()) {
 			return false;

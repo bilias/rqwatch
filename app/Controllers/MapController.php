@@ -493,10 +493,6 @@ class MapController extends ViewController
 		$mapdescr = $config['description'];
 		$service = $this->getMapService();
 
-		// without pagination
-		// has applyUserRcptToScope
-		//$map_entries = $service->showMapCombined($map, $fields);
-
 		$page = $this->request->query->getInt('page', 1);
 
 		if($config['model'] === 'MapCombined') {
@@ -510,8 +506,6 @@ class MapController extends ViewController
 			}
 		} elseif($this->is_admin && $config['model'] === 'MapCustom') {
 			$model = 'MapCustom';
-			// without pagination
-			//$map_entries = $service->showMapCustom($map);
 			$map_entries = $service->showPaginatedMapCustom($map, $page, $this->getMapShowUrl($map));
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to show map in " . $this->request->getPathInfo() . " with wrong model {$config['model']} or non admin rights");
