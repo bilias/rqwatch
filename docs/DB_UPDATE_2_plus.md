@@ -106,7 +106,8 @@ ALTER TABLE `mail_logs`
 ```sql
 ALTER TABLE `mail_logs`
   DROP INDEX `id_action_index`,
-  DROP INDEX `created_at_index`;
+  DROP INDEX `created_at_index`,
+  DROP INDEX `rcpt_to_index`;
 ```
 ```sql
 OPTIMIZE TABLE `mail_logs`;
