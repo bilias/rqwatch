@@ -110,7 +110,7 @@ class MailLogService
 						if ($f === 'mail_recipients') {
 							$this->filterByRecipient($query, $c, $v);
 
-							continue; // don't run $query->where('rcpt_to', ...) on mail_logs
+							continue; // not a mail_logs column
 						}
 
 						if ($f === 'headers' || $f === 'symbols') {
