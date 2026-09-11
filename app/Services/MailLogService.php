@@ -471,6 +471,17 @@ class MailLogService
 				                ->where($baseField, 'LIKE', '%@%')
 				                ->groupBy($field);
 				break;
+			case 'mail_recipients':
+				$query = MailLog::selectRaw("mlr.recipient_email AS mail_recipients, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
+				                ->join(AppConfig::MAIL_LOG_RECIPIENTS_TABLE . ' as mlr', 'mlr.mail_log_id', '=', 'mail_logs.id')
+				                ->groupBy('mlr.recipient_email');
+				break;
+			case 'mail_recipients_domain':
+				$query = MailLog::selectRaw("LOWER(TRIM(TRAILING '>' FROM SUBSTRING_INDEX(mlr.recipient_email, '@', -1))) AS mail_recipients_domain, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
+				                ->join(AppConfig::MAIL_LOG_RECIPIENTS_TABLE . ' as mlr', 'mlr.mail_log_id', '=', 'mail_logs.id')
+				                ->where('mlr.recipient_email', 'LIKE', '%@%')
+				                ->groupBy('mail_recipients_domain');
+				break;
 			case 'date':
 				$query = MailLog::selectRaw("created_day AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
 					->groupBy('created_day');
