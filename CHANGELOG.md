@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-11
+- Remove deprecated GetMapApi
 - Remove deprecated MapGeneric
 - Drop deprecated indexes from mail_logs table
 

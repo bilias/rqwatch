@@ -161,7 +161,6 @@ The Web interface provides map management and URL endpoints for Rspamd
 - Search entries
 - Edit entries
 
-A GetMapApi was also initially implemented, however it's been disabled by default.\
 Rspamd downloads map files locally from the web server and this does not put additional
 stress on the database.
 
