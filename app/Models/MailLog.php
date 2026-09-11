@@ -133,7 +133,7 @@ class MailLog extends Model
 	public const array REPORT_DYN_FIELDS = [
 		'ip',
 		'mail_from',
-		'rcpt_to',
+		'mail_recipients',
 		'date',
 		'server',
 	];

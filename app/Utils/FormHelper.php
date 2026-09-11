@@ -49,9 +49,9 @@ class FormHelper
 			'Stored (0/1)' => 'mail_stored',
 			'Received from IP' => 'ip',
 			'MAIL From' => 'mail_from',
-			// Queries mail_log_recipients via filterByRecipient(), not the
-			// mail_logs column; the key is pinned to REPORT_DYN_FIELDS.
-			'RCPT To' => 'rcpt_to',
+			// Queries mail_log_recipients via filterByRecipient(); the key
+			// is pinned to REPORT_DYN_FIELDS for the reports drill-down
+			'RCPT To' => 'mail_recipients',
 			'MIME From' => 'mime_from',
 			'MIME To' => 'mime_to',
 			'Has Virus (0/1)' => 'has_virus',

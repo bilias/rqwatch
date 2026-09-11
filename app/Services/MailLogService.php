@@ -107,7 +107,7 @@ class MailLogService
 						$c = $filter['choice'];
 						$v = $filter['value'];
 
-						if ($f === 'rcpt_to') {
+						if ($f === 'mail_recipients') {
 							$this->filterByRecipient($query, $c, $v);
 
 							continue; // don't run $query->where('rcpt_to', ...) on mail_logs
