@@ -497,6 +497,10 @@ class MailLogService
 		$query = $this->getQueryByFilters($query, $filters);
 		$query = $this->applyUserScope($query);
 
+		if (in_array($field, ['mail_recipients', 'mail_recipients_domain'], true)) {
+			$query = $this->applyRecipientScope($query);
+		}
+
 		if ($mode === 'volume') {
 			$query->orderBy('total_size', 'DESC');
 		} elseif ($mode === 'stored') {
@@ -1008,6 +1012,25 @@ class MailLogService
 				->whereColumn('r.mail_log_id', 'mail_logs.id')   // IMPORTANT: table name here
 				->whereIn('r.recipient_email', $emails);
 			});
+	}
+
+	/*
+	 Per-recipient reports only: a non-admin sees rows for their own
+	 addresses only, not for co-recipients of mails addressed to them.
+	 Requires the mlr join, so the caller gates it on $field.
+	*/
+	protected function applyRecipientScope(Builder $query): Builder {
+		if (defined('CLI_MODE') && CLI_MODE) {
+			return $query;
+		}
+		if (empty($this->email)) {
+			return $query->where('id', null);
+		}
+		if ($this->is_admin) {
+			return $query;
+		}
+
+		return $query->whereIn('mlr.recipient_email', $this->getUserRecipientEmails());
 	}
 
 	// twig can be null, it will be created
