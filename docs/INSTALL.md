@@ -267,7 +267,9 @@ mariadb-secure-installation
 If you are running everything on a single host, you probably need to define `bind-address=127.0.0.1` in `[mysqld]` for MySQL/MariaDB.
 
 ### Database creation
-`mysql -p -u root`
+```
+mysql -p -u root`
+```
 
 ```sql
 CREATE DATABASE /*!32312 IF NOT EXISTS*/ `rqwatch` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
