@@ -90,8 +90,8 @@ class MapSelectForm extends AbstractType
 
 			if ($is_admin) {
 				if ($map === 'all') {
-					// handle MapGeneric and MapCustom
-					if (($model === 'MapGeneric') || ($model === 'MapCustom')) {
+					// handle MapCustom
+					if ($model === 'MapCustom') {
 						$url = $urlGenerator->generate(RouteName::ADMIN_MAP_SHOW_ALL->value, ['model' => $model]);
 					// default to MapCombined
 					} else {

@@ -17,7 +17,6 @@ use App\Core\App;
 use App\Utils\Helper;
 
 use App\Models\MapCombined;
-use App\Models\MapGeneric;
 use App\Models\MapCustom;
 use App\Models\CustomMapConfig;
 use App\Models\MapActivityLog;
@@ -120,19 +119,6 @@ class MapService
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
-		return $query;
-	}
-
-	// deprecated
-	public function getMapGenericQuery(string $map_name): Builder {
-		$query = MapGeneric::select(MapGeneric::SELECT_FIELDS)
-								  ->where('map_name', $map_name)
-								  ->orderBy('updated_at', 'DESC');
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
 		return $query;
 	}
 
@@ -243,27 +229,6 @@ class MapService
 		}
 
 		$query = $this->applyUserRcptToScope($query);
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		try {
-			$map_entries = $query
-				->paginate($this->items_per_page, ['*'], 'page', $page)
-				->withPath($url);
-		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			Helper::failRequest("Query error");
-		}
-
-		return $map_entries;
-	}
-
-	// deprecated
-	public function showPaginatedAllMapGeneric(int $page, string $url): LengthAwarePaginator {
-		$query = MapGeneric::select('*')
-								  ->orderBy('updated_at', 'DESC');
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -394,37 +359,6 @@ class MapService
 		return $map;
 	}
 
-	// deprecated
-	public function showMapGeneric(string $map_name): Collection {
-		$query = $this->getMapGenericQuery($map_name);
-
-		try {
-			$map = $query
-				->get();
-		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			Helper::failRequest("Query error");
-		}
-
-		return $map;
-	}
-
-	// deprecated
-	public function showPaginatedMapGeneric(string $map_name, int $page, string $url): LengthAwarePaginator {
-		$query = $this->getMapGenericQuery($map_name);
-
-		try {
-			$map = $query
-				->paginate($this->items_per_page, ['*'], 'page', $page)
-				->withPath($url);
-		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			Helper::failRequest("Query error");
-		}
-
-		return $map;
-	}
-
 	public function showMapCombined(string $map_name, array $map_fields): Collection {
 		$query = $this->getMapCombinedQuery($map_name, $map_fields);
 
@@ -460,11 +394,6 @@ class MapService
 			foreach ($map_fields as $field) {
 				$query = $query->where($field, $data[$field]);
 			}
-		/* deprecated
-		} else if ($model === 'MapGeneric') {
-			$query = $this->getMapGenericQuery($map_name);
-			$query = $query->where('pattern', $data[$map_fields[0]]);
-		*/
 		} else if ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			//$query = $query->where('pattern', $data[$map_fields[0]]);
@@ -635,29 +564,6 @@ class MapService
 				}
 				$lines[] = implode('|', $values);
 			}
-		/* deprecated
-		} elseif ($model === 'MapGeneric') {
-			$query = $this->getMapGenericQuery($map_name);
-			try {
-				$map_entries = $query->get()->toArray();
-			} catch (Exception $e) {
-				$this->logger->error(
-					"Query error building map {$map_name}: " . $e->getMessage()
-				);
-				fclose($fp);
-				@unlink($tmpfile);
-				return false;
-			}
-			foreach ($map_entries as $row) {
-				// Skip if 'pattern' is missing or empty
-				if (empty($row['pattern'])) {
-					continue;
-				}
-				$pattern = $row['pattern'];
-				$score = $row['score'] ?? '';
-				$lines[] = trim("$pattern $score");
-			}
-		*/
 		} elseif ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('disabled', 0);
@@ -856,43 +762,6 @@ class MapService
 
 		// update map file
 		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
-			return false;
-		}
-
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
-			return false;
-		}
-
-		return true;
-	}
-
-	// deprecated
-	public function addMapGenericEntry(string $map_name, string $pattern): bool {
-		if (empty($pattern)) {
-			$this->logger->error("Empty map pattern");
-			return false;
-		}
-
-		// XXX strtolower might break some maps???
-		$pattern = strtolower(trim($pattern));
-
-		// update map table in DB
-		$mapgeneric = new MapGeneric();
-		$data = array(
-			'map_name' => $map_name,
-			'pattern' => $pattern
-		);
-
-		$mapgeneric->fill($data);
-		if (!$mapgeneric->save()) {
-			return false;
-		}
-
-		$last_update = date("Y-m-d H:i:s");
-
-		// update map file
-		if (!self::updateMapFile('MapGeneric', $map_name, $last_update)) {
 			return false;
 		}
 
@@ -1188,11 +1057,6 @@ class MapService
 				$query = $query->where('user_id', $this->user_id);
 			}
 
-		/* deprecated
-		} else if ($model === 'MapGeneric') {
-			$query = $this->getMapGenericQuery($map_name);
-			$query = $query->where('id', $id);
-		*/
 		} else if ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('id', $id);
@@ -1295,11 +1159,6 @@ class MapService
 				$query = $query->where('user_id', $this->user_id);
 			}
 
-		/* deprecated
-		} else if ($model === 'MapGeneric') {
-			$query = $this->getMapGenericQuery($map_name);
-			$query = $query->where('id', $id);
-		*/
 		} else if ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('id', $id);

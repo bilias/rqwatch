@@ -25,7 +25,6 @@ use App\Inventory\MapInventory;
 use App\Services\MapService;
 
 use App\Models\MapCombined;
-//use App\Models\MapGeneric;
 use App\Models\MapCustom;
 use App\Models\CustomMapConfig;
 use App\Models\MapActivityLog;
@@ -73,38 +72,10 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		/* old code
-		$options = [
-			'role' => $this->getRole(),
-			'model' => 'MapCombined',
-			'form_name' => 'map_combined_form',
-		];
-
-		$mapCombinedSelectForm = MapSelectForm::create($this->formFactory, $this->request, null, $options);
-		if ($response = MapSelectForm::check_form_show($mapCombinedSelectForm, $this->urlGenerator, $this->is_admin)) {
-			// form submitted and valid
-			return $response;
-		}
-
-		$options['model'] = 'MapGeneric';
-		$options['form_name'] = 'map_generic_form';
-		$mapGenericSelectForm = MapSelectForm::create($this->formFactory, $this->request, null, $options);
-		if ($response = MapSelectForm::check_form_show($mapGenericSelectForm, $this->urlGenerator, $this->is_admin)) {
-			// form submitted and valid
-			return $response;
-		}
-		*/
-
 		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
 		if ($response !== null) {
 			return $response;
 		}
-		/* deprecated
-		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
-		if ($response !== null) {
-			return $response;
-		}
-		*/
 		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
 		if ($response !== null) {
 			return $response;
@@ -113,7 +84,6 @@ class MapController extends ViewController
 		return new Response($this->twig->render('map_select.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
-			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
@@ -141,12 +111,6 @@ class MapController extends ViewController
 		if ($response !== null) {
 			return $response;
 		}
-		/* deprecated
-		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
-		if ($response !== null) {
-			return $response;
-		}
-		*/
 		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
 		if ($response !== null) {
 			return $response;
@@ -217,7 +181,6 @@ class MapController extends ViewController
 			'qidform' => $qidform->createView(),
 			'mapsearchform' => $mapSearchForm->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
-			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'map_comb_entries' => $map_comb_entries,
 			'map_comb_total' => $map_comb_total,
@@ -259,12 +222,6 @@ class MapController extends ViewController
 		if ($response !== null) {
 			return $response;
 		}
-		/* deprecated
-		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
-		if ($response !== null) {
-			return $response;
-		}
-		*/
 		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
 		if ($response !== null) {
 			return $response;
@@ -283,7 +240,6 @@ class MapController extends ViewController
 		return new Response($this->twig->render('maps_custom_config.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
-			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'map_configs' => $map_configs,
 			'totalRecords' => $map_configs->total(),
@@ -320,12 +276,6 @@ class MapController extends ViewController
 		if ($response !== null) {
 			return $response;
 		}
-		/* deprecated
-		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
-		if ($response !== null) {
-			return $response;
-		}
-		*/
 		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
 		if ($response !== null) {
 			return $response;
@@ -376,7 +326,6 @@ class MapController extends ViewController
 		return new Response($this->twig->render('maps_custom_config_add.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
-			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'items_per_page' => $this->items_per_page,
 			'mapform' => $mapform->createView(),
@@ -475,7 +424,6 @@ class MapController extends ViewController
 		return new Response($this->twig->render('maps_custom_config_add.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
-			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'items_per_page' => $this->items_per_page,
 			'mapform' => $mapform->createView(),
@@ -510,12 +458,6 @@ class MapController extends ViewController
 		if ($response !== null) {
 			return $response;
 		}
-		/* deprecated
-		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
-		if ($response !== null) {
-			return $response;
-		}
-		*/
 		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
 		if ($response !== null) {
 			return $response;
@@ -567,13 +509,6 @@ class MapController extends ViewController
 				$map_entries[$key]->map_username = $this->getMapUser($map_entry->user);
 				$map_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_entries[$key]->map_username);
 			}
-		/* deprecated
-		} elseif($this->is_admin && $config['model'] === 'MapGeneric') {
-			$model = 'MapGeneric';
-			// without pagination
-			//$map_entries = $service->showMapGeneric($map);
-			$map_entries = $service->showPaginatedMapGeneric($map, $page, $this->getMapShowUrl($map));
-		*/
 		} elseif($this->is_admin && $config['model'] === 'MapCustom') {
 			$model = 'MapCustom';
 			// without pagination
@@ -597,7 +532,6 @@ class MapController extends ViewController
 			'qidform' => $qidform->createView(),
 			'mapsearchform' => $mapSearchForm->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
-			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'map' => $map,
 			'model' => $model,
@@ -635,12 +569,6 @@ class MapController extends ViewController
 		if ($response !== null) {
 			return $response;
 		}
-		/* deprecated
-		[$mapGenericSelectForm, $response] = $this->handleMapSelectForm('MapGeneric');
-		if ($response !== null) {
-			return $response;
-		}
-		*/
 		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
 		if ($response !== null) {
 			return $response;
@@ -735,16 +663,6 @@ class MapController extends ViewController
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
 					return new RedirectResponse($this->getMapAddEntryUrl($map));
 				}
-			/* deprecated
-			} elseif ($this->is_admin && $model === 'MapGeneric') {
-				if($service->addMapGenericEntry($map, $data[$fields[0]])) {
-					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
-					return new RedirectResponse($this->getMapShowUrl($map));
-				} else {
-					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
-					return new RedirectResponse($this->getMapAddEntryUrl($map));
-				}
-			*/
 			} elseif ($this->is_admin && $model === 'MapCustom') {
 				if($service->addMapCustomEntry($map, $data[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
@@ -763,7 +681,6 @@ class MapController extends ViewController
 		return new Response($this->twig->render('map_add.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
-			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'mapdescr' => $mapdescr,
 			'mapform' => $mapform->createView(),
@@ -911,7 +828,6 @@ class MapController extends ViewController
 		return new Response($this->twig->render('map_edit.twig', [
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
-			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'mapdescr' => $mapdescr,
 			'mapform' => $mapform->createView(),
@@ -977,10 +893,6 @@ class MapController extends ViewController
 		// we need the entry details for flashbag
 		if ($model === 'MapCombined') {
 			$map_entry = MapCombined::find($id);
-		/* deprecated
-		} else if ($this->is_admin && ($model === 'MapGeneric')) {
-			$map_entry = MapGeneric::find($id);
-		*/
 		} else if ($this->is_admin && ($model === 'MapCustom')) {
 			$map_entry = MapCustom::find($id);
 		} else {
@@ -996,11 +908,6 @@ class MapController extends ViewController
 			$entry_str = '';
 			if ($fields) {
 				foreach ($fields as $field) {
-					/* deprecated
-					if ($model === 'MapGeneric') {
-						$pairs[] = MapInventory::getFieldDefinitions($field)['description'] . ": " . $map_entry->pattern;
-					} elseif ($model === 'MapCustom') {
-					*/
 					if ($model === 'MapCustom') {
 						$field_db = MapService::getCustomField($map_entry->map_name);
 						$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
@@ -1211,7 +1118,6 @@ class MapController extends ViewController
 			'qidform' => $qidform->createView(),
 			'mapsearchform' => $mapSearchForm->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
-			//'mapselectgenericform' => $mapGenericSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'map_comb_entries' => $map_comb_entries,
 			'map_comb_total' => $map_comb_total,
@@ -1257,10 +1163,6 @@ class MapController extends ViewController
 		// we need the entry details for flashbag
 		if ($model === 'MapCombined') {
 			$map_entry = MapCombined::find($id);
-		/* deprecated
-		} else if ($this->is_admin && ($model === 'MapGeneric')) {
-			$map_entry = MapGeneric::find($id);
-		*/
 		} else if ($this->is_admin && ($model === 'MapCustom')) {
 			$map_entry = MapCustom::find($id);
 		} else {
@@ -1276,11 +1178,6 @@ class MapController extends ViewController
 			$entry_str = '';
 			if ($fields) {
 				foreach ($fields as $field) {
-					/* deprecated
-					if ($model === 'MapGeneric') {
-						$pairs[] = MapInventory::getFieldDefinitions($field)['description'] . ": " . $map_entry->pattern;
-					} elseif ($model === 'MapCustom') {
-					*/
 					if ($model === 'MapCustom') {
 						$field_db = MapService::getCustomField($map_entry->map_name);
 						$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
@@ -1350,10 +1247,6 @@ class MapController extends ViewController
 	private function handleMapSelectForm(string $model): array {
 		if ($model === 'MapCombined') {
 			$form_name = 'map_combined_form';
-		/* deprecated
-		} elseif ($model === 'MapGeneric') {
-			$form_name = 'map_generic_form';
-		*/
 		} elseif ($model === 'MapCustom') {
 			$form_name = 'map_custom_form';
 		} else {

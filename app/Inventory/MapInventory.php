@@ -138,29 +138,6 @@ class MapInventory
 				'map_form' => MapIpForm::class,
 				'access' => ['admin'],
 			],
-			/* deprecated, moved to custom maps
-			'body_url_host_blacklist' => [
-				'model' => 'MapGeneric',
-				'description' => 'Body URL (host) blacklist',
-				'fields' => ['url'],
-				'map_form' => MapUrlForm::class,
-				'access' => ['admin'],
-			],
-			'body_url_full_blacklist' => [
-				'model' => 'MapGeneric',
-				'description' => 'Body URL (full) blacklist',
-				'fields' => ['url'],
-				'map_form' => MapUrlForm::class,
-				'access' => ['admin'],
-			],
-			'body_email_blacklist' => [
-				'model' => 'MapGeneric',
-				'description' => 'Body Email blacklist',
-				'fields' => ['email'],
-				'map_form' => MapEmailForm::class,
-				'access' => ['admin'],
-			],
-			*/
 			// Add more local maps here...
 		];
 
