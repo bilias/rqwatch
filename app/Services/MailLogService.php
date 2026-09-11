@@ -1166,9 +1166,9 @@ class MailLogService
 
 		// Password-less links need the recipients relation, because the token
 		// foreign key references mail_log_recipients. Decided once per mail.
-		$tokenService = null;
-
-		$tokenService = new MailTokenService();
+		$tokenService = MailTokenService::isEnabled()
+			? new MailTokenService()
+			: null;
 
 		foreach ($recipients as $recipient) {
 			$url = $detailurl;
