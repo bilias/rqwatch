@@ -293,8 +293,8 @@ class MailLogService
 		return $query;
 	}
 
-	public function showOne(int $id): MailLog {
-		$lf = "[MailLogService_showOne]";
+	private function getMailLog(int $id): MailLog {
+		$lf = "[MailLogService_getMailLog]";
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::select($fields)
@@ -964,7 +964,7 @@ class MailLogService
 		try {
 			// has applyUserScope
 			// throws if mail not found
-			$maillog = $this->showOne($id);
+			$maillog = $this->getMailLog($id);
 		} catch (InvalidArgumentException $e) {
 			$this->logger->warning("{$lf} " . $e->getMessage() . ". Mail does not exist or user does not have access to it" , ['email' => $this->email, 'is_admin' => $this->is_admin]);
 			$err = $e->getMessage();
