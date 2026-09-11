@@ -106,7 +106,7 @@ class SearchForm extends AbstractType
 	/*
 	 A REGEXP search sends the pattern straight to MariaDB, and an invalid
 	 one is a query error (1139 / 42000), not an empty result. That error
-	 surfaces as an uncaught exception in showStats(), and because
+	 surfaces as an uncaught exception in getStats(), and because
 	 MailLogController::search() persists the filter to the session
 	 before running the stats query, a single typo left the search
 	 page failing on every later visit - with the only filter-delete
@@ -117,7 +117,7 @@ class SearchForm extends AbstractType
 	 preg_match is a close proxy.
 	 It is only a filter, not a guarantee: a different PCRE2 build
 	 or MariaDB's default_regex_flags could disagree, which is why the catch
-	 in showStats() is still needed as the backstop.
+	 in getStats() is still needed as the backstop.
 
 	 The \x01 delimiter is deliberate. A printable delimiter such as / would
 	 make preg treat the first unescaped / in the pattern as the end of it,
