@@ -154,6 +154,9 @@
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'mime_to_domain'}) }}'>Top MIME To Domains by Quantity</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_to_domain', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'mime_to_domain', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_REPORTS', { field: 'action'}) }}'>Top Actions by Quantity</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'action', mode: 'stored'}) }}'>Stored</a>
+ / <a href='{{ route('ADMIN_REPORTS', { field: 'action', mode: 'volume'}) }}'>Volume</a></li>
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'server'}) }}'>Top Servers by Quantity</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'server', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
@@ -193,9 +196,9 @@
  <li><a href='{{ route('REPORTS', { field: 'mime_to_domain'}) }}'>Top MIME To Domains by Quantity</a>
  / <a href='{{ route('REPORTS', { field: 'mime_to_domain', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'mime_to_domain', mode: 'volume'}) }}'>Volume</a></li>
- <li><a href='{{ route('REPORTS', { field: 'server'}) }}'>Top Servers by Quantity</a>
- / <a href='{{ route('REPORTS', { field: 'server', mode: 'stored'}) }}'>Stored</a>
- / <a href='{{ route('REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('REPORTS', { field: 'action'}) }}'>Top Actions by Quantity</a>
+ / <a href='{{ route('REPORTS', { field: 'action', mode: 'stored'}) }}'>Stored</a>
+ / <a href='{{ route('REPORTS', { field: 'action', mode: 'volume'}) }}'>Volume</a></li>
   {% endif %}
  {% endif %}
 </ul>
