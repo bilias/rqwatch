@@ -87,6 +87,11 @@ sent:
 The duration depends far more on your storage than on your row count. Measure
 on a restored copy if you need to know it in advance.
 
+After that run the migrations cli to verify that all migrations are applied:
+```
+./bin/cli.php db:migrate
+```
+
 ---
 
 ## Applying the SQL by hand
@@ -120,3 +125,8 @@ Doing it manually leaves the `migrations` table without a record of it.
 The next run of `db:migrate_drop_mail_log_columns` detects the columns are
 already gone and records the migration as completed without touching the
 table, so run it afterwards to keep the status accurate.
+
+After that run the migrations cli to verify that all migrations are applied:
+```
+./bin/cli.php db:migrate
+```
