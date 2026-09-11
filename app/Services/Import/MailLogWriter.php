@@ -16,20 +16,16 @@ use App\Core\App;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-use App\Core\Database\MigrationStatus;
-
 use App\Models\MailLogData;
 
 final class MailLogWriter
 {
 	private Capsule $capsule;
-	private MigrationStatus $migrationStatus;
 
 	private const int MAX_DEADLOCK_ATTEMPTS = 3;
 
 	public function __construct() {
 		$this->capsule = App::capsule();
-		$this->migrationStatus = App::migrationStatus();
 	}
 
 	/*
@@ -101,10 +97,6 @@ final class MailLogWriter
 
 	// Insert recipients.
 	private function insertMailRecipients(int $mailLogId, array $recipients): void {
-		if (!$this->supportsRecipients()) {
-			return;
-		}
-
 		if (empty($recipients)) {
 			return;
 		}
@@ -131,10 +123,6 @@ final class MailLogWriter
 		$this->capsule
 			->table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)
 			->insert($rows);
-	}
-
-	private function supportsRecipients(): bool {
-		return $this->migrationStatus->mailRecipientsCompleted();
 	}
 
 	private function splitMailData(array $mailData): array {
