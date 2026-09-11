@@ -1321,8 +1321,6 @@ class MailLogService
 		// Store disabled list for logging/debugging
 		$log->disabled_rcpt_to = implode(', ', $disabled);
 
-		// Overwrite rcpt_to in-memory with enabled recipients only
-		$log->rcpt_to = implode(', ', $enabled);
 		// ALSO update the recipients relation so accessor matches
 		$log->setRelation(
 			'recipients',
