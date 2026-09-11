@@ -77,8 +77,13 @@ class SearchForm extends AbstractType
 		bool $is_admin,
 		?array $data = null): FormInterface {
 
-			return FormHelper::formCreator($formFactory, $request, self::class, $data,
-				['is_admin' => $is_admin]);
+		return FormHelper::formCreator(
+			$formFactory,
+			$request,
+			self::class,
+			$data,
+			['is_admin' => $is_admin]
+		);
 	}
 
 	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {

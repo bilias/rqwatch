@@ -64,7 +64,7 @@ class FormHelper
 			'Notified (0/1)' => 'notified',
 			'Notification pending (0/1)' => 'notification_pending',
 			'Server' => 'server',
-	);
+			);
 
 		if ($is_admin) {
 			return $filters;
