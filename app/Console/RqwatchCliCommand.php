@@ -15,11 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use Illuminate\Database\Query\Builder;
 
-use App\Configuration\Config;
-
 use App\Core\App;
-
-use App\Utils\Helper;
 
 use Psr\Log\LoggerInterface;
 

@@ -21,7 +21,6 @@ use App\Core\App;
 use App\Core\Cache\RedisCache;
 
 use App\Utils\Helper;
-use Psr\Log\LoggerInterface;
 
 use Throwable;
 use RuntimeException;

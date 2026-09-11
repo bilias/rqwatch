@@ -28,7 +28,6 @@ use App\Configuration\Config;
 use App\Core\App;
 
 use App\Inventory\Migrations;
-use App\Core\Database\MigrationStatus;
 
 use App\Core\Routing\RouteName;
 use App\Core\Routing\UrlBuilder;

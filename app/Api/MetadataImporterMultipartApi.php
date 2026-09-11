@@ -15,7 +15,6 @@ use App\Configuration\Config;
 use App\Core\App;
 
 use App\Utils\Helper;
-use Psr\Log\LoggerInterface;
 
 use App\Models\MailLog;
 

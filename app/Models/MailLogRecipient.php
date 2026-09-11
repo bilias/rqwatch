@@ -11,13 +11,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 //use App\Configuration\AppConfig;
-
-use App\Utils\Helper;
-
-use Throwable;
 
 class MailLogRecipient extends Model
 {

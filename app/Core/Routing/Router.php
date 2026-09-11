@@ -36,8 +36,6 @@ use App\Core\Middleware\Authorization;
 
 use App\Controllers\Controller;
 
-use Psr\Log\LoggerInterface;
-
 use Throwable;
 
 // https://symfony.com/doc/current/create_framework/http_kernel_controller_resolver.html
