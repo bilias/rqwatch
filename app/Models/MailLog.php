@@ -250,18 +250,37 @@ class MailLog extends Model
 		);
 	}
 
-	public function getRcptToAttribute($value): string {
-		if ($this->relationLoaded('recipients')) {
-			$emails = $this->recipients
-				->pluck('recipient_email')
-				->map(fn ($e) => strtolower(trim($e)))
-				->unique()
-				->values()
-				->all();
+	/*
+	 rcpt_to comes from mail_log_recipients. The mail_logs column is kept
+	 for the backfill and for older backups, but is not read back here -
+	 a silent fallback to $value would hide a forgotten eager load.
+	 Callers load the relation via getMailLogSymbolsRelations() or
+	 getMailLogRelations().
 
-			return implode(', ', $emails);
+	 Aggregate rows are the exemption. getReports() groups by the
+	 mail_logs column with selectRaw() and selects no id, so there is no
+	 parent key - HasMany::getResults() returns an empty collection
+	 without querying, which would blank rcpt_to on every report row.
+	 No key means no single mail to have recipients for, so the grouped
+	 column value is returned as-is.
+	*/
+	public function getRcptToAttribute($value): string {
+		if ($this->getKey() === null) {
+			return (string) $value;
 		}
-		return (string) $value;
+
+		if (!$this->relationLoaded('recipients')) {
+			$this->logMissingRelation('recipients', 'recipient_email');
+		}
+
+		$emails = $this->recipients
+			->pluck('recipient_email')
+			->map(fn ($e) => strtolower(trim($e)))
+			->unique()
+			->values()
+			->all();
+
+		return implode(', ', $emails);
 	}
 
 	public function mailLogData() {
