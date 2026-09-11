@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 ### 2026-09-11
+- Recipient reports count per recipient; non-admins see only their own addresses
+- Reports and search filter for recipients now use mail_log_recipients
 - Remove recipients compatibility layer
 - Remove deprecated twigs
 - Remove deprecated GetMapApi

@@ -90,7 +90,7 @@ sender@example1.com|recipient@example2.com
 ```
 Users have access to those maps depending on their email address as well as aliases
 created for them.\
-If one of those addreses matches `rcpt_to` address then access to that user is granted.
+If one of those addreses matches recipient address address then access to that user is granted.
 (Same process is happening for showing mails to the user)
 
 Admin users can also add entries in those personal user maps.
