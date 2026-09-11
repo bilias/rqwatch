@@ -118,7 +118,6 @@ class MailLog extends Model
 	public const array REPORT_FIELDS = [
 		'ip',
 		'action',
-		'has_virus',
 		'mail_from',
 		'rcpt_to',
 		'mime_from',
