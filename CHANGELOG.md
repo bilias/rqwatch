@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-11
+- Remove recipients compatibility layer
 - Remove deprecated twigs
 - Remove deprecated GetMapApi
 - Remove deprecated MapGeneric

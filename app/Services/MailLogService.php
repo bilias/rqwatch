@@ -988,50 +988,6 @@ class MailLogService
 			return $query;
 		}
 
-		/* Old code, works for single rcpt_to entries only.
-		   We might have comma separeted values
-		// user has no aliases
-		if (empty($this->user_aliases)) {
-			return $query->where('rcpt_to', $this->email);
-		}
-		// Combine primary email with mail aliases
-		$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
-		return $query->whereIn('rcpt_to', $emails);
-		*/
-
-		/* old code. slow
-		$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
-		return $query->where(function ($q) use ($emails) {
-			foreach ($emails as $email) {
-				$q->orWhere(function ($subQ) use ($email) {
-					// Remove spaces in rcpt_to to normalize
-					$subQ->whereRaw('REPLACE(rcpt_to, " ", "") = ?', [$email])
-						  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', [$email . ',%'])
-						  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', ['%,' . $email])
-						  ->orWhereRaw('REPLACE(rcpt_to, " ", "") LIKE ?', ['%,' . $email . ',%']);
-				});
-			}
-		});
-		*/
-
-		/* OLD code 2. Also slow for more than 200K mail_logs
-		$query->where(function ($q) {
-			$q->whereRaw("FIND_IN_SET('{$this->email}', rcpt_to)");
-
-			// XXX if aliases change and user is logged in,
-			//   old values remain in user's session.
-			//	User has to logout/login to update values
-
-			if (!empty($this->user_aliases)) {
-				foreach ($this->user_aliases as $user_alias) {
-					$q->orWhereRaw("FIND_IN_SET('{$user_alias}', rcpt_to)");
-				}
-			}
-		});
-
-		return $query;
-		*/
-
 		// Build list of allowed recipient emails: primary + aliases
 		$emails = $this->getUserRecipientEmails();
 
@@ -1185,16 +1141,8 @@ class MailLogService
 		/*
 		 One mail per recipient: each gets only their own address in the
 		 body and (later) their own release link.
-
-		 Prefer the normalized recipients table: token FKs require rows that
-		 exist there. Fall back to rcpt_to when the migration has not run,
-		 in which case no tokens are issued.
 		*/
-		if ($maillog->relationLoaded('recipients')) {
-			$recipients = $maillog->recipients->pluck('recipient_email')->all();
-		} else {
-			$recipients = explode(',', (string) $maillog->rcpt_to);
-		}
+		$recipients = $maillog->recipients->pluck('recipient_email')->all();
 
 		$recipients = array_values(array_unique(array_filter(array_map(
 			'trim',
@@ -1220,12 +1168,7 @@ class MailLogService
 		// foreign key references mail_log_recipients. Decided once per mail.
 		$tokenService = null;
 
-		if (MailTokenService::isEnabled()
-			&& $this->migrationStatus->mailLogTokensCompleted()
-			&& $maillog->relationLoaded('recipients')
-		) {
-			$tokenService = new MailTokenService();
-		}
+		$tokenService = new MailTokenService();
 
 		foreach ($recipients as $recipient) {
 			$url = $detailurl;
@@ -1260,9 +1203,6 @@ class MailLogService
 
 			$text_part = Helper::getNotifyText($vars);
 
-			// make array of recipients
-			//$recipients = array_map('trim', explode(',', $maillog->rcpt_to));
-
 			$send_mail = $mailer->sendTemplatedEmail(
 				$from,
 				//$recipients,
@@ -1294,7 +1234,7 @@ class MailLogService
 			 update() is fill()->save() and save() writes the whole dirty
 			 set. CronNotifications sets virus_name (not a column) and
 			 filterDisabledRecipients() overwrites rcpt_to (a column) with
-			 the enabled-only list -- so a model write persists a
+			 the enabled-only list - so a model write persists a
 			 truncated recipient list as a side effect of marking the mail
 			 notified. Nothing downstream reads $maillog->notified, so
 			 there is no reason to round-trip through the model.
@@ -1360,12 +1300,7 @@ class MailLogService
 	public function filterDisabledRecipients(Collection $logs, UserService $userService): void {
 	 $logs->each(function ($log) use ($userService) {
 
-		// Prefer normalized recipients
-		if ($log->relationLoaded('recipients')) {
-			$emails = $log->recipients->pluck('recipient_email')->all();
-		} else {
-			$emails = explode(',', strtolower((string) $log->rcpt_to));
-		}
+		$emails = $log->recipients->pluck('recipient_email')->all();
 
 		$emails = array_values(array_unique(array_filter(array_map(
 			fn ($e) => strtolower(trim((string) $e)),
@@ -1389,14 +1324,12 @@ class MailLogService
 		// Overwrite rcpt_to in-memory with enabled recipients only
 		$log->rcpt_to = implode(', ', $enabled);
 		// ALSO update the recipients relation so accessor matches
-		if ($log->relationLoaded('recipients')) {
-			$log->setRelation(
-				'recipients',
-				$log->recipients->filter(function ($r) use ($enabled) {
-					return in_array(strtolower(trim($r->recipient_email)), $enabled, true);
-				})->values()
-			);
-		}
+		$log->setRelation(
+			'recipients',
+			$log->recipients->filter(function ($r) use ($enabled) {
+				return in_array(strtolower(trim($r->recipient_email)), $enabled, true);
+			})->values()
+		);
 	 });
 	}
 
