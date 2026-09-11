@@ -463,7 +463,6 @@ class MailLogService
 
 		switch($field) {
 			case 'mail_from_domain':
-			case 'rcpt_to_domain':
 			case 'mime_from_domain':
 			case 'mime_to_domain':
 				$baseField = str_replace('_domain', '', $field);
@@ -1350,7 +1349,8 @@ class MailLogService
 		// Store disabled list for logging/debugging
 		$log->disabled_rcpt_to = implode(', ', $disabled);
 
-		// Narrow the relation to enabled recipients only; the rcpt_to accessor reads it.
+		// Narrow the relation to enabled recipients only
+		// mail_recipients accessor reads it.
 		$log->setRelation(
 			'recipients',
 			$log->recipients->filter(function ($r) use ($enabled) {
