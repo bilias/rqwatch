@@ -333,7 +333,7 @@ class MailLog extends Model
 	private function logMissingRelation(string $relation, string $column): void {
 		try {
 			App::fileLogger()->error(
-				"MailLog {$this->getKey()}: '{$relation}' was not "
+				"MailLog {$this->getKey()} (qid {$this->qid}): '{$relation}' was not "
 				. "eager-loaded, lazy-loading it to read '{$column}'"
 			);
 		} catch (Throwable) {
