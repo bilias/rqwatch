@@ -254,8 +254,18 @@ class MailLog extends Model
 	 The recipient list, from mail_log_recipients. This is the name to
 	 use everywhere. mail_logs.rcpt_to is the legacy column and is read
 	 back only by getReports() and by MailRecipientsMigration.
+
+	 Aggregate rows are the exemption. getReports() selects an alias and
+	 no id, so there is no parent key - HasMany::getResults() returns an
+	 empty collection without querying, and a mutator is consulted before
+	 the attribute array, so the aliased value would be discarded. No key
+	 means no single mail to have recipients for, so return the alias.
 	*/
-	public function getMailRecipientsAttribute(): string {
+	public function getMailRecipientsAttribute($value): string {
+		if ($this->getKey() === null) {
+			return (string) $value;
+		}
+
 		if (!$this->relationLoaded('recipients')) {
 			$this->logMissingRelation('recipients', 'recipient_email');
 		}
