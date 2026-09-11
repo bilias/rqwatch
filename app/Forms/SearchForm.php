@@ -38,44 +38,44 @@ class SearchForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
-        $formFactory
-            ->add('filter', ChoiceType::class, [
-					'required' => true,
-					'label' => 'Filter: ',
-					'choices' => FormHelper::getSearchFilters($options['is_admin']),
-					'constraints' => [
-						new NotBlank(),
-					],
-				])
-            ->add('choice', ChoiceType::class, [
-					'required' => true,
-					'label' => 'Choice: ',
-					'choices' => FormHelper::getSearchChoices(),
-					'constraints' => [
-						new NotBlank(),
-					],
-				])
-				->add('value', TextType::class, [
-					'required' => false,
-					// comment out to support NULLs
-					'constraints' => [
-						new NotBlank(),
-						new Assert\Length(
-                     min: 1,
-                     max: 64,
-                  ),
-					],
-				])
-            ->add('search', SubmitType::class, [
-                'label' => 'Add',
-            ]);
+		$formFactory
+			->add('filter', ChoiceType::class, [
+				'required' => true,
+				'label' => 'Filter: ',
+				'choices' => FormHelper::getSearchFilters($options['is_admin']),
+				'constraints' => [
+					new NotBlank(),
+				],
+			])
+			->add('choice', ChoiceType::class, [
+				'required' => true,
+				'label' => 'Choice: ',
+				'choices' => FormHelper::getSearchChoices(),
+				'constraints' => [
+					new NotBlank(),
+				],
+			])
+			->add('value', TextType::class, [
+				'required' => false,
+				// comment out to support NULLs
+				'constraints' => [
+					new NotBlank(),
+					new Assert\Length(
+						min: 1,
+						max: 64,
+					),
+				],
+			])
+			->add('search', SubmitType::class, [
+				'label' => 'Add',
+			]);
 	}
 
 	public static function create(
-			FormFactoryInterface $formFactory,
-			Request $request,
-			bool $is_admin,
-			?array $data = null): FormInterface {
+		FormFactoryInterface $formFactory,
+		Request $request,
+		bool $is_admin,
+		?array $data = null): FormInterface {
 
 			return FormHelper::formCreator($formFactory, $request, self::class, $data,
 				['is_admin' => $is_admin]);
@@ -87,12 +87,13 @@ class SearchForm extends AbstractType
 			$url = $urlGenerator->generate(RouteName::SEARCH->value);
 
 			return new RedirectResponse($url);
-         /*
-         $response = new RedirectResponse($url);
-         $response->prepare($this->request);
-         return $response->send();
-         */
-      }
+			/*
+			$response = new RedirectResponse($url);
+			$response->prepare($this->request);
+			return $response->send();
+			*/
+		}
+
 		return null;
 	}
 
