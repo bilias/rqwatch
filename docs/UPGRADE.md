@@ -18,7 +18,7 @@ cd /var/www/html/rqwatch/
 
 git fetch --tags origin
 
-# Get latest release tagged version
+# Find the latest release tagged version
 git describe --tags --abbrev=0
 
 git checkout v1.8.4
