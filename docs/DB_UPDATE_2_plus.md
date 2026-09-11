@@ -58,7 +58,7 @@ This drops indexes from `mail_logs` table that are no longer needed.
 
 ## Step 3 - reclaim the space
 
-Do this once, after all the migrations, in a maintenance window.
+Do this once, after all the migrations, in a maintenance window.\
 The table is rebuilt, so it **needs free space** for a second copy.
 
 **Writes are blocked for the whole rebuild**, cluster-wide on Galera.\
