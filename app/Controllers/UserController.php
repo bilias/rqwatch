@@ -167,7 +167,6 @@ class UserController extends ViewController
 			$totalRecords = $users->total();
 		}
 
-		//return new Response($this->twig->render('home.twig', [
 		return new Response($this->twig->render('users_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'usersearchform' => $userSearchForm->createView(),
@@ -209,7 +208,6 @@ class UserController extends ViewController
 
 		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 
-		//return new Response($this->twig->render('home.twig', [
 		return new Response($this->twig->render('users_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'usersearchform' => $userSearchForm->createView(),

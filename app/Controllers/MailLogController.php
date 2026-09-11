@@ -93,7 +93,6 @@ class MailLogController extends ViewController
 
 		$logs = $service->showPaginatedAll(array(), $this->getHomepageUrl(), $page);
 
-		//return new Response($this->twig->render('home.twig', [
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'logs' => $logs,
