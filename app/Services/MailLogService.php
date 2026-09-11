@@ -510,6 +510,8 @@ class MailLogService
 		$query = $this->getQueryByFilters($query, $filters);
 		$query = $this->applyUserScope($query);
 
+		// Both scopes: applyUserScope's whereExists is implied by the whereIn
+		// below, but it materialises into the semi-join that keeps mlr cheap.
 		if (in_array($field, ['mail_recipients', 'mail_recipients_domain'], true)) {
 			$query = $this->applyRecipientScope($query);
 		}
