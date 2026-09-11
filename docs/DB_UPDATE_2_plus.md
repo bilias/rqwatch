@@ -106,15 +106,12 @@ ALTER TABLE `mail_logs`
   DROP COLUMN `symbols`,
   DROP COLUMN `fuzzy_hashes`,
   DROP COLUMN `headers`;
-```
 
-```sql
 ALTER TABLE `mail_logs`
   DROP INDEX `id_action_index`,
   DROP INDEX `created_at_index`,
   DROP INDEX `rcpt_to_index`;
-```
-```sql
+
 OPTIMIZE TABLE `mail_logs`;
 ```
 
