@@ -143,10 +143,10 @@ class MailLogService
 	}
 
 	/*
-	 rcpt_to is denormalised into mail_log_recipients, so the filter has to
-	 run against the relation. The caller must still skip its own
-	 $query->where('rcpt_to', ...) for every choice, including the ones with
-	 no branch here - the mail_logs rcpt_to column is the legacy compatibility layer.
+	 Recipients live in mail_log_recipients, so the filter runs against the
+	 relation. mail_recipients is not a mail_logs column, so the caller's
+	 continue is mandatory for every choice, including the ones with no
+	 branch here - falling through to $query->where() would give 'Unknown column'.
 
 	 MailRecipientsMigration is in Migrations::REQUIRED, so the relation is
 	 guaranteed populated at boot.
