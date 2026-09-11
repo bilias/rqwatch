@@ -10,6 +10,8 @@
 
 namespace App\Utils;
 
+use App\Models\MailLog;
+
 use Symfony\Component\HttpFoundation\Request;
 
 use Symfony\Component\Form\FormInterface;
@@ -40,8 +42,8 @@ class FormHelper
 		return $form;
 	}
 
-	public static function getFilters(): array {
-		return array(
+	public static function getFilters(bool $is_admin): array {
+		$filters = array(
 			'Date' => 'created_day',
 			'Subject' => 'subject',
 			'Action' => 'action',
@@ -62,8 +64,19 @@ class FormHelper
 			'Notified (0/1)' => 'notified',
 			'Notification pending (0/1)' => 'notification_pending',
 			'Server' => 'server',
+	);
+
+		if ($is_admin) {
+			return $filters;
+		}
+
+		return array_filter(
+			$filters,
+			static fn(string $field): bool =>
+				!in_array($field, MailLog::ADMIN_ONLY_FIELDS, true)
 		);
 	}
+
 	public static function getChoices(): array {
 		return array(
 			'is equal to' => '=',
@@ -83,9 +96,9 @@ class FormHelper
 		);
 	}
 
-	public static function getFilterByName(array $active_filters): array {
+	public static function getFilterByName(array $active_filters, bool $is_admin): array {
 
-		$filters = self::getFilters();
+		$filters = self::getFilters($is_admin);
 		$choices = self::getChoices();
 		$ar = array();
 
@@ -106,8 +119,8 @@ class FormHelper
 		return array_combine(array_keys($ar), array_keys($ar));
 	}
 
-	public static function getSearchFilters(): array {
-		return self::getKeysToArr(self::getFilters());
+	public static function getSearchFilters(bool $is_admin): array {
+		return self::getKeysToArr(self::getFilters($is_admin));
 	}
 
 	public static function getSearchChoices(): array {

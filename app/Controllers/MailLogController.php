@@ -130,7 +130,7 @@ class MailLogController extends ViewController
 			$value = $this->request->query->get($field);
 			if ($value !== null) {
 				// we don't require create_day migration status here
-				$key = array_search($field, FormHelper::getFilters());
+				$key = array_search($field, FormHelper::getFilters($this->is_admin));
 				if ($key !== false) {
 					$filters[] = [
 						'filter' => $key,
@@ -187,7 +187,10 @@ class MailLogController extends ViewController
 	}
 
 	public function showReports(string $field, string $mode = 'count'): Response {
-		if (empty($field) || !in_array($field, MailLog::REPORT_FIELDS)) {
+		if (empty($field)
+		    || !in_array($field, MailLog::REPORT_FIELDS)
+		    || (!$this->is_admin && in_array($field, MailLog::ADMIN_ONLY_FIELDS, true))
+		) {
 			$this->flashbag->add('error', "Field '{$field}' does not exist");
 			return new RedirectResponse($this->getSearchUrl());
 		}
@@ -747,7 +750,12 @@ class MailLogController extends ViewController
 			$prefillData = [];
 		}
 
-		$searchform = SearchForm::create($this->formFactory, $this->request, $prefillData);
+		$searchform = SearchForm::create(
+			$this->formFactory,
+			$this->request,
+			$this->is_admin,
+			$prefillData
+		);
 
 		if ($searchform->isSubmitted() && $searchform->isValid()) {
 			$data = $searchform->getData();

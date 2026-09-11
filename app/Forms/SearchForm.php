@@ -42,7 +42,7 @@ class SearchForm extends AbstractType
             ->add('filter', ChoiceType::class, [
 					'required' => true,
 					'label' => 'Filter: ',
-					'choices' => FormHelper::getSearchFilters(),
+					'choices' => FormHelper::getSearchFilters($options['is_admin']),
 					'constraints' => [
 						new NotBlank(),
 					],
@@ -74,9 +74,11 @@ class SearchForm extends AbstractType
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,
+			bool $is_admin,
 			?array $data = null): FormInterface {
 
-		return FormHelper::formCreator($formFactory, $request, self::class, $data);
+			return FormHelper::formCreator($formFactory, $request, self::class, $data,
+				['is_admin' => $is_admin]);
 	}
 
 	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
@@ -101,6 +103,8 @@ class SearchForm extends AbstractType
 				new Assert\Callback([self::class, 'validateRegexpValue']),
 			],
 		]);
+		$resolver->setRequired('is_admin');
+		$resolver->setAllowedTypes('is_admin', 'bool');
 	}
 
 	/*

@@ -91,9 +91,21 @@ class MailLogService
 		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 	}
 
+	/*
+	 Mirrors applyUserScope()'s CLI exemption: $is_admin is null for a
+	 service built with no user context, which is every cron.
+	*/
+	private function adminFieldsAllowed(): bool {
+		if (defined('CLI_MODE') && CLI_MODE) {
+			return true;
+		}
+
+		return (bool) $this->is_admin;
+	}
+
 	public function getQueryByFilters(Builder $query, array $filters): Builder {
 		if (!empty($filters)) {
-			$filters = FormHelper::getFilterByName($filters);
+			$filters = FormHelper::getFilterByName($filters, $this->adminFieldsAllowed());
 		}
 
 		if (!empty($filters)) {
@@ -456,7 +468,9 @@ class MailLogService
 		 an injection. Fail closed with no rows; the caller keeps its own
 		 check because it owns the flash message and the redirect.
 		*/
-		if (!in_array($field, MailLog::REPORT_FIELDS, true)) {
+		if (!in_array($field, MailLog::REPORT_FIELDS, true)
+		    || (!$this->adminFieldsAllowed() && in_array($field, MailLog::ADMIN_ONLY_FIELDS, true))
+		) {
 			$this->logger->error("{$lf} rejected field: {$field}");
 			return new Collection();
 		}
