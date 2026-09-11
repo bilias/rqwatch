@@ -24,6 +24,7 @@ class DropMailLogIndexes extends AbstractMigration {
 	private const array INDEXES = [
 		'id_action_index',
 		'created_at_index',
+		'rcpt_to_index',
 	];
 
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {

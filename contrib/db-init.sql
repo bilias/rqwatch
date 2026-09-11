@@ -161,7 +161,6 @@ CREATE TABLE `mail_logs` (
   KEY `action_index` (`action`),
   KEY `mail_from_index` (`mail_from`),
   KEY `mime_from_index` (`mime_from`),
-  KEY `rcpt_to_index` (`rcpt_to`),
   KEY `mime_to_index` (`mime_to`),
   KEY `mail_stored_index` (`mail_stored`),
   KEY `has_virus_index` (`has_virus`),
