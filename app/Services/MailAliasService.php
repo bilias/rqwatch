@@ -17,7 +17,6 @@ use App\Core\App;
 use App\Utils\Helper;
 
 use App\Models\MailAlias;
-use App\Models\User;
 
 use Exception;
 

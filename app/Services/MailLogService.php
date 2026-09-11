@@ -834,7 +834,6 @@ class MailLogService
 
 		$mailobject->setParser(new Parser());
 		$mailobject->setPath($location);
-		//$mailobject->setReceived();
 		$mailobject->setMessageBody();
 		$mailobject->setAttached();
 

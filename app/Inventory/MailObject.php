@@ -23,7 +23,6 @@ class MailObject
 	private string $htmlBody;
 	private string $textBody;
 	private array $attached = [];
-	private array $received = [];
 	private MailLog $maillog;
 	private Parser $parser;
 
@@ -58,11 +57,6 @@ class MailObject
 	public function setMessageBody(): void {
 		$this->htmlBody = $this->parser->getMessageBody('html');
 		$this->textBody = nl2br(htmlspecialchars($this->parser->getMessageBody('text')));
-	}
-
-	public function setReceived(): void {
-		$hdr_ar = $this->parser->getHeaders();
-		$this->received = $hdr_ar['received'];
 	}
 
 	public function setAttached(): void {
