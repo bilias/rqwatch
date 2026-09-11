@@ -272,7 +272,7 @@ If you are running everything on a single host, you probably need to define `bin
 ```sql
 CREATE DATABASE /*!32312 IF NOT EXISTS*/ `rqwatch` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 
-GRANT ALL on rqwatch.* to rqwatch@localhost identified by '1vkUSBLfQlQcJFCmPw5TpkDOpmNpm5LqdziZSMQB8sNJPXKgEcIgvLZ15IZSb7fB';
+GRANT ALL on rqwatch.* to rqwatch@localhost identified by 'CHANGE_ME_LqdziZSMQB8sNJPXKgEcIgvLZ15IZSb7fB';
 ```
 Don't use this dummy password, and don't forget to **update DB_ details in .env**
 
