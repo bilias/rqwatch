@@ -106,16 +106,6 @@ class UserService
 		return $query->first();
 	}
 
-	public function showOneByEmail(string $email): ?User {
-		$query = User::where('email', $email);
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		return $query->first();
-	}
-
 	public function profile(string $username): ?User {
 		$fields = [
 			'id',
@@ -172,36 +162,6 @@ class UserService
 		               ->orWhere('email', 'LIKE', "%{$search}%")
 		               ->orWhere('firstname', 'LIKE', "%{$search}%")
 		               ->orWhere('lastname', 'LIKE', "%{$search}%");
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		try {
-			$logs = $query
-				->paginate($this->items_per_page, $fields, 'page', $page)
-				->withPath($url);
-		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			Helper::failRequest("Query error");
-		}
-
-		return $logs;
-	}
-
-	public function showPaginatedAliases(int $page, string $url): LengthAwarePaginator {
-		$fields = User::SELECT_FIELDS;
-
-		if ($this->max_items) {
-			$query = User::with('mailAliases')
-				->select($fields)
-				->orderBy('username', 'ASC')
-				->limit($this->max_items);
-		} else {
-			$query = User::with('mailAliases')
-				->select($fields)
-				->orderBy('username', 'ASC');
-		}
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));

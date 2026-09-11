@@ -69,49 +69,4 @@ class User extends Model
 		return $this->hasMany(MailAlias::class)->orderBy('alias', 'ASC');
 	}
 
-	/*
-	public function mapCombinedEntries(): HasMany {
-		return $this->hasMany(MapCombined::class);
-	}
-	*/
-
-	/* not needed now with toArray()
-	public function getTable() {
-		return $_ENV['USERS_TABLE'] ?? 'users';
-	}
-	
-	public function getUserName() {
-		return $this->attributes['username'];
-	}
-	
-	public function setUsername(string $value): void {
-		$this->attributes['username'] = $value;
-	}
-	
-	public function getEmail() {
-		return $this->attributes['email'];
-	}
-	
-	public function setEmail(string $value): void {
-		$this->attributes['email'] = $value;
-	}
-	
-	// required for form data read with empty firstname
-	public function getFirstName() {
-		return $this->attributes['firstname'];
-	}
-
-	public function setFirstname(string $value): void {
-		$this->attributes['firstname'] = $value;
-	}
-	
-	// required for form data read with empty lastname
-	public function getLastName() {
-		return $this->attributes['lastname'];
-	}
-
-	public function setLastname(string $value): void {
-		$this->attributes['lastname'] = $value;
-	}
-	*/
 }

@@ -110,8 +110,4 @@ class MailObject
 		return $this->symbols;
 	}
 
-	public function getReceived(): ?array {
-		return $this->received;
-	}
-
 }

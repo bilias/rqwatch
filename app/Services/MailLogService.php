@@ -743,27 +743,6 @@ class MailLogService
 		return $log;
 	}
 
-	public function detailByType(string $type, string|int $value): MailLog {
-		$lf = "MailLogService_detailByType";
-
-		$query = MailLog::with($this->getMailLogRelations())
-			->where($type, $value);
-
-		$query = $this->applyUserScope($query);
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		$log = $query->first();
-		if (!$log) {
-			$err = "{$type} '{$value}' not found";
-			Helper::debug_exception_err("{$lf} {$err}");
-			throw new InvalidArgumentException($err);
-		}
-		return $log;
-	}
-
 	public function detail(string $type, string|int $value): array {
 		$lf = "MailLogService_detail";
 

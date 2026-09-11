@@ -150,34 +150,4 @@ class MailAliasService
 		return $aliases;
 	}
 
-	public function showPaginatedAliases(string $url, int $page = 1): LengthAwarePaginator {
-		$fields = User::SELECT_FIELDS;
-
-		if ($this->max_items) {
-			$query = User::with('mailAliases')
-				->select($fields)
-				->orderBy('username', 'ASC')
-				->limit($this->max_items);
-		} else {
-			$query = User::with('mailAliases')
-				->select($fields)
-				->orderBy('username', 'ASC');
-		}
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		try {
-			$logs = $query
-				->paginate($this->items_per_page, $fields, 'page', $page)
-				->withPath($url);
-		} catch (Exception $e) {
-			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
-			Helper::failRequest("Query error");
-		}
-
-		return $logs;
-	}
-
 }

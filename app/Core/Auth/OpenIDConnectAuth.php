@@ -247,10 +247,6 @@ class OpenIDConnectAuth implements AuthInterface {
 		$this->postLogoutRedirectUrl = $url;
 	}
 
-	public function getPostLogoutRedirectUrl(string $url): string {
-		return $this->postLogoutRedirectUrl ?? throw new \LogicException('OPENIDC post logout redirect URL not set');
-	}
-
 	public function getIdToken(): ?string {
 		return $this->idToken;
 	}
