@@ -71,22 +71,7 @@ class UserService
 		return $query;
 	}
 
-
-	public function showAll(): Collection {
-		$fields = User::SELECT_FIELDS;
-
-		$query = User::select($fields)
-					->orderBy('id', 'DESC')
-					->limit($this->max_items);
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		return $query->get();
-	}
-
-	public function showOne(int $id): ?User {
+	public function getUser(int $id): ?User {
 		$query = User::where('id', $id);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
@@ -96,7 +81,7 @@ class UserService
 		return $query->first();
 	}
 
-	public function showOneByUsername(string $username): ?User {
+	public function getUserByUsername(string $username): ?User {
 		$query = User::where('username', $username);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
@@ -133,7 +118,7 @@ class UserService
 		return $query->first();
 	}
 
-	public function showPaginatedAll(string $url, int $page = 1): LengthAwarePaginator {
+	public function getPaginatedAll(string $url, int $page = 1): LengthAwarePaginator {
 		$fields = User::SELECT_FIELDS;
 
 		$query = self::getSearchQuery($fields);

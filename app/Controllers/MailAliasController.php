@@ -72,9 +72,9 @@ class MailAliasController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$service = $this->getMailAliasService();
 		$url = $this->getAdminAliasesUrl();
-		$aliases = $service->showPaginatedAll($url, $page);
+		$service = $this->getMailAliasService();
+		$aliases = $service->getPaginatedAll($url, $page);
 
 		$mailAliasSearchForm = MailAliasSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 
@@ -126,8 +126,8 @@ class MailAliasController extends ViewController
 		if (!empty($mail_alias_search_form['alias'])) {
 			$search = $mail_alias_search_form['alias'];
 
-			$service = $this->getMailAliasService();
 			$url = $this->getAdminAliasesUrl();
+			$service = $this->getMailAliasService();
 			$aliases = $service->searchPaginatedAll($url, $search, $page);
 		}
 
@@ -182,7 +182,7 @@ class MailAliasController extends ViewController
 			$alias = strtolower(trim($data['alias']));
 
 			$service = new UserService();
-			$user = $service->showOneByUsername($username);
+			$user = $service->getUserByUsername($username);
 
 			if (empty($user)) {
 				$this->flashbag->add('error', "Username '{$username}' does not exist");

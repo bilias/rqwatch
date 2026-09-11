@@ -203,7 +203,7 @@ class UserController extends ViewController
 		$page = $this->request->query->getInt('page', 1);
 
 		$service = $this->getUserService();
-		$users = $service->showPaginatedAll($this->getAdminUsersUrl(), $page);
+		$users = $service->getPaginatedAll($this->getAdminUsersUrl(), $page);
 
 		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 
@@ -240,7 +240,7 @@ class UserController extends ViewController
 		}
 
 		$service = $this->getUserService();
-		$user = $service->showOne($id);
+		$user = $service->getUser($id);
 		
 		if (!$user) {
 			$this->flashbag->add('error', "User not found");

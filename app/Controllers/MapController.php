@@ -132,7 +132,7 @@ class MapController extends ViewController
 			$map_comb_total = null;
 			$map_gen_entries = null;
 			$map_gen_total = null;
-			$map_custom_entries = $service->showPaginatedAllMapCustom($page, $this->getMapShowAllCustomUrl());
+			$map_custom_entries = $service->getPaginatedAllMapCustom($page, $this->getMapShowAllCustomUrl());
 			$map_custom_total = $map_custom_entries->total();
 
 			if ($map_custom_total === 0) {
@@ -157,7 +157,7 @@ class MapController extends ViewController
 			$filter_maps = MapInventory::getMapsByModel($model, $configs);
 
 			// has applyUserRcptToScope and filter maps on model
-			$map_comb_entries = $service->showPaginatedAllMapCombined($page, $this->getMapShowAllUrl(), $filter_maps);
+			$map_comb_entries = $service->getPaginatedAllMapCombined($page, $this->getMapShowAllUrl(), $filter_maps);
 
 			if ($map_comb_entries->total() === 0) {
 				$this->flashbag->add('info', 'No map entries exist');
@@ -230,7 +230,7 @@ class MapController extends ViewController
 
 		$page = $this->request->query->getInt('page', 1);
 
-		$map_configs = $service->showPaginatedCustomMapConfigs($page, $this->getShowCustomMapsConfigUrl());
+		$map_configs = $service->getPaginatedCustomMapConfigs($page, $this->getShowCustomMapsConfigUrl());
 
 		foreach ($map_configs as $key => $map_config) {
 			$map_configs[$key]['map_entries'] = $map_config->MapsCustom->count();
@@ -498,7 +498,7 @@ class MapController extends ViewController
 		if($config['model'] === 'MapCombined') {
 			$model = 'MapCombined';
 			// has applyUserRcptToScope
-			$map_entries = $service->showPaginatedMapCombined($map, $fields, $page, $this->getMapShowUrl($map));
+			$map_entries = $service->getPaginatedMapCombined($map, $fields, $page, $this->getMapShowUrl($map));
 
 			foreach ($map_entries as $key => $map_entry) {
 				$map_entries[$key]->map_username = $this->getMapUser($map_entry->user);
@@ -506,7 +506,7 @@ class MapController extends ViewController
 			}
 		} elseif($this->is_admin && $config['model'] === 'MapCustom') {
 			$model = 'MapCustom';
-			$map_entries = $service->showPaginatedMapCustom($map, $page, $this->getMapShowUrl($map));
+			$map_entries = $service->getPaginatedMapCustom($map, $page, $this->getMapShowUrl($map));
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to show map in " . $this->request->getPathInfo() . " with wrong model {$config['model']} or non admin rights");
 			$this->flashbag->add('error', 'Error in map');

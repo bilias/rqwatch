@@ -70,28 +70,6 @@ class MailAliasService
 		return $query;
 	}
 
-
-	public function showAll(): Collection {
-		$query = self::getSearchQuery();
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		return $query->get();
-	}
-
-	public function showOne(int $id): ?MailAlias {
-		$query = self::getSearchQuery();
-		$query = $query->where('mail_aliases.id', $id);
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		return $query->first();
-	}
-
 	public function aliasExists(int $user_id, string $alias): bool {
 		$query = self::getSearchQuery();
 		$query = $query->where('user_id', $user_id)
@@ -104,7 +82,7 @@ class MailAliasService
 		return $query->exists();
 	}
 
-	public function showPaginatedAll(string $url, int $page = 1): LengthAwarePaginator {
+	public function getPaginatedAll(string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailAlias::SELECT_FIELDS;
 
 		$query = self::getSearchQuery();
