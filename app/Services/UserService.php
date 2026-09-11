@@ -25,7 +25,6 @@ use App\Core\Cache\RedisCache;
 use App\Core\Auth\LoginThrottle;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 use Exception;

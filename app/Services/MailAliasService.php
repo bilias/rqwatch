@@ -23,7 +23,6 @@ use Exception;
 use Psr\Log\LoggerInterface;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class MailAliasService

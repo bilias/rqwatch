@@ -340,8 +340,8 @@ class MailLogService
 		return $log;
 	}
 
-	public function showQuarantinedMail(int $id): MailLog {
-		$lf = "[MailLogService_showQuarantinedMail]";
+	public function getQuarantinedMailLog(int $id): MailLog {
+		$lf = "[MailLogService_getQuarantinedMailLog]";
 		$fields = MailLog::SELECT_FIELDS;
 
 		$query = MailLog::select($fields)
@@ -366,13 +366,13 @@ class MailLogService
 		return $log;
 	}
 
-	public function showPaginatedAll(
+	public function getPaginatedAll(
 		array $filters,
 		string $url,
 		int $page = 1
 	): LengthAwarePaginator {
 
-		$lf = "MailLogService_showPaginatedAll";
+		$lf = "MailLogService_getPaginatedAll";
 
 		$fields = MailLog::SELECT_FIELDS;
 
@@ -440,13 +440,13 @@ class MailLogService
 		return $logs;
 	}
 
-	public function showReports(
+	public function getReports(
 		array $filters,
 		string $field,
 		string $mode = 'count'
 	): Collection {
 
-		$lf = "MailLogService_showReports";
+		$lf = "MailLogService_getReports";
 
 		/*
 		 $field is interpolated into selectRaw() below, including the
@@ -531,8 +531,8 @@ class MailLogService
 	 later visit. The stats are the sole query on that route, so degrading
 	 them renders the filter list and its Remove links instead.
 	*/
-	public function showStats(array $filters): ?array {
-		$lf = "MailLogService_showStats";
+	public function getStats(array $filters): ?array {
+		$lf = "MailLogService_getStats";
 
 		try {
 			return $this->collectStats($filters);
@@ -605,7 +605,7 @@ class MailLogService
 		);
 	}
 
-	public function showPaginatedDay(?string $date, string $url, int $page = 1): LengthAwarePaginator {
+	public function getPaginatedDay(?string $date, string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
 
 		if (!$date) {
@@ -632,7 +632,7 @@ class MailLogService
 			->withPath($url);
 	}
 
-	public function showPaginatedQuarantineDay(?string $date, string $url, int $page = 1): LengthAwarePaginator {
+	public function getPaginatedQuarantineDay(?string $date, string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
 
 		if (!$date) {
@@ -659,27 +659,7 @@ class MailLogService
 			->withPath($url);
 	}
 
-	public function showQuarantine(): Collection {
-
-		$query = MailLog::selectRaw('created_day as day, COUNT(*) as cnt');
-
-		$query = $query
-			->where('mail_stored', 1)
-			->groupByRaw('day')
-			->orderByDesc('day')
-			->limit((int)$_ENV['QUARANTINE_DAYS']);
-
-		$query = $this->applyUserScope($query);
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		// days
-		return $query->get();
-	}
-
-	public function showPaginatedQuarantine(string $url, int $page = 1): LengthAwarePaginator {
+	public function getPaginatedQuarantine(string $url, int $page = 1): LengthAwarePaginator {
 		$query = MailLog::selectRaw('created_day as day, COUNT(*) as cnt');
 
 		$query = $query

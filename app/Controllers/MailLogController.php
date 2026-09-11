@@ -91,7 +91,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		$logs = $service->showPaginatedAll(array(), $this->getHomepageUrl(), $page);
+		$logs = $service->getPaginatedAll(array(), $this->getHomepageUrl(), $page);
 
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -166,7 +166,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		$logs = $service->showPaginatedAll($filters, $this->getSearchResultsUrl(), $page);
+		$logs = $service->getPaginatedAll($filters, $this->getSearchResultsUrl(), $page);
 
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -212,7 +212,7 @@ class MailLogController extends ViewController
 		$service = $this->getMailLogService();
 
 		// has applyUserScope
-		$logs = $service->showReports($filters, $field, $mode)->toArray();
+		$logs = $service->getReports($filters, $field, $mode)->toArray();
 
 		$sum['count'] = 0;
 		$sum['size'] = 0;
@@ -262,7 +262,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		$logs = $service->showPaginatedDay($date, $this->getDayLogsUrl(), $page);
+		$logs = $service->getPaginatedDay($date, $this->getDayLogsUrl(), $page);
 		
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -299,7 +299,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		$logs = $service->showPaginatedQuarantineDay(
+		$logs = $service->getPaginatedQuarantineDay(
 			$date,
 			$this->getQuarantineDayUrl($date),
 			$page
@@ -337,12 +337,10 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		//$days = $service->showQuarantine();
-
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$days = $service->showPaginatedQuarantine($this->getQuarantineUrl(), $page);
+		$days = $service->getPaginatedQuarantine($this->getQuarantineUrl(), $page);
 		$totalMailsInPage = 0;
 		foreach ($days as $day) {
 			$totalMailsInPage += $day->cnt;
@@ -462,7 +460,7 @@ class MailLogController extends ViewController
 
 		try {
 			// has applyUserScope()
-			$maillog = $service->showQuarantinedMail($id);
+			$maillog = $service->getQuarantinedMailLog($id);
 		} catch (InvalidArgumentException $e) {
 			$this->syslogLogger->warning("{$this->email} tried to release mail with id: {$id}. Either mail does not exist or user does not have access to it.", ['email' => $this->email, 'is_admin' => $this->is_admin]);
 			$this->flashbag->add('error', $e->getMessage());
@@ -970,7 +968,7 @@ class MailLogController extends ViewController
 	private function getMailStats(MailLogService $service, array $filters): array {
 		if ($this->mailStatsEnabled($filters)) {
 			// has applyUserScope
-			$stats = $service->showStats($filters);
+			$stats = $service->getStats($filters);
 
 			if ($stats === null) {
 				// distinguish a failed stats query from stats being
