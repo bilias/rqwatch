@@ -34,7 +34,7 @@ the server needs free space for a second copy of the table.
 
 An instant drop does not reclaim disk space -- run db:optimize_table
 afterwards for that. The drop is not reversible, so verify mail_log_data
-coverage first, see docs/DB_MAILLOG_DROP_COLUMNS.md
+coverage first, see docs/DB_UPDATE_2_plus.md
 ',
 )]
 class MigrateDropMailLogColumns extends MigrateCliCommand

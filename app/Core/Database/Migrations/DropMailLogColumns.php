@@ -47,7 +47,7 @@ class DropMailLogColumns extends AbstractMigration {
 		 to be complete first. This checks the recorded status, not the data:
 		 verifying coverage needs an anti-join against mail_log_data, whose
 		 primary key IS its clustered index, so it reads every headers blob
-		 and takes a very long time. docs/DB_MAILLOG_DROP_COLUMNS.md has those
+		 and takes a very long time. docs/DB_UPDATE_2_plus.md has those
 		 queries as a manual pre-flight for the maintenance window.
 		*/
 		if (!App::migrationStatus()->mailLogDataCompleted()) {

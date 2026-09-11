@@ -42,15 +42,14 @@ run it on **all API servers**.
 ```
 
 Drops `headers`, `symbols` and `fuzzy_hashes`, already copied to
-`mail_log_data` by `db:migrate_mail_log_data`. Refuses to run unless that
-migration is recorded as `completed`.
+`mail_log_data` by `db:migrate_mail_log_data`.\
+Refuses to run unless that migration is recorded as completed.
 
 On older MariaDB (before 10.4) the instant path is refused and the migration rebuilds the
-table instead, doing step 2's work at the same time. It logs which path it
-took. A rebuild needs free disk space for a second copy of the table; if it is
-interrupted, MariaDB rolls it back and you can run the command again.
+table instead, doing step 3's work at the same time. It logs which path it
+took. A rebuild **needs free disk space** for a second copy of the table.
 
-## Step 2 - drop deprecated index
+## Step 2 - drop deprecated indexes
 ```
 ./bin/cli.php db:migrate_drop_mail_log_indexes
 ```
@@ -69,10 +68,11 @@ The table is rebuilt, so it **needs free space** for a second copy.
 
 **Writes are blocked for the whole rebuild**, cluster-wide on Galera.\
 Mails are still delivered by your MTA, but Rqwatch cannot record them in DB.\
+
 Those inserts are refused rather than left waiting.\
 With [Redis enabled](CONFIGURE.md#redis-settings) the metadata is spooled and
-imported afterwards by [`cron:import_spool`](CONFIGURE.md#cron), so nothing is
-lost. Without Redis those mails are not recorded in Rqwatch at all.
+imported afterwards by [`cron:import_spool`](CONFIGURE.md#cron), so nothing is lost.\
+Without Redis those mails are not recorded in Rqwatch at all.
 
 Stop cron on all API servers for the window anyway - `cron:notifications`
 must not be interrupted between sending a notification and recording it as
@@ -91,8 +91,10 @@ on a restored copy if you need to know it in advance.
 
 ## Applying the SQL by hand
 
-If you prefer to apply the change by hand rather than through the CLI, the
-statement is in `contrib/updates/09-db-update-2026-09-08`:
+If you prefer to apply the changes by hand rather than through the CLI, the
+statements are in:\
+`contrib/updates/09-db-update-2026-09-08` and\
+`contrib/updates/10-db-update-2026-09-11`
 
 ```sql
 ALTER TABLE `mail_logs`
@@ -101,10 +103,19 @@ ALTER TABLE `mail_logs`
   DROP COLUMN `headers`;
 ```
 
-Add `, ALGORITHM=INSTANT` to make it metadata-only and also run
-`OPTIMIZE TABLE mail_logs;` afterwards to reclaim the space.
+```sql
+ALTER TABLE `mail_logs`
+  DROP INDEX `id_action_index`,
+  DROP INDEX `created_at_index`;
+```
+```sql
+OPTIMIZE TABLE `mail_logs`;
+```
 
-Doing it manually leaves the `migrations` table without a record of it. The
-next run of `db:migrate_drop_mail_log_columns` detects the columns are
+Add `, ALGORITHM=INSTANT` to make it metadata-only.
+
+Doing it manually leaves the `migrations` table without a record of it.
+
+The next run of `db:migrate_drop_mail_log_columns` detects the columns are
 already gone and records the migration as completed without touching the
 table, so run it afterwards to keep the status accurate.

@@ -128,8 +128,8 @@ class Migrations
 		self::ID_ACTION_INDEX => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::MAIL_LOG_TOKENS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::IP_CREATED_DAY_INDEX => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
-		self::DROP_MAIL_LOG_COLUMNS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MAILLOG_DROP_COLUMNS.md",
-		self::DROP_MAIL_LOG_INDEXES => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MAILLOG_DROP_COLUMNS.md",
+		self::DROP_MAIL_LOG_COLUMNS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_UPDATE_2_plus.md",
+		self::DROP_MAIL_LOG_INDEXES => "https://github.com/bilias/rqwatch/blob/master/docs/DB_UPDATE_2_plus.md",
 	];
 
 	public const string STATUS_PENDING   = 'pending';
