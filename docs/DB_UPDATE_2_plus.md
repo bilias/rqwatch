@@ -59,11 +59,6 @@ This drops indexes from `mail_logs` table that are no longer needed.
 ## Step 3 - reclaim the space
 
 Do this once, after all the migrations, in a maintenance window.
-
-```
-./bin/cli.php db:optimize_table -t mail_logs
-```
-
 The table is rebuilt, so it **needs free space** for a second copy.
 
 **Writes are blocked for the whole rebuild**, cluster-wide on Galera.\
@@ -81,7 +76,10 @@ sent:
 - `systemctl stop crond` on all API servers
 - Disable the rspamd action that posts metadata to Rqwatch, or stop accepting
   mail (not needed if you enabled Redis)
-- Run the rebuild
+- Run the rebuild:
+  ```
+  ./bin/cli.php db:optimize_table -t mail_logs
+  ```
 - Re-enable rspamd, then start cron again
 
 The duration depends far more on your storage than on your row count. Measure
