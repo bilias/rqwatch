@@ -18,7 +18,7 @@ define('RQWATCH_ROOT', realpath(__DIR__ . '/../..'));
 class AppConfig {
 
 // Application version
-public const string VERSION = '2.0.7-dev';
+public const string VERSION = '2.0.8-dev';
 
 public const string APP_NAME = 'Rqwatch';
 
