@@ -251,24 +251,11 @@ class MailLog extends Model
 	}
 
 	/*
-	 rcpt_to comes from mail_log_recipients. The mail_logs column is kept
-	 for the backfill and for older backups, but is not read back here -
-	 a silent fallback to $value would hide a forgotten eager load.
-	 Callers load the relation via getMailLogSymbolsRelations() or
-	 getMailLogRelations().
-
-	 Aggregate rows are the exemption. getReports() groups by the
-	 mail_logs column with selectRaw() and selects no id, so there is no
-	 parent key - HasMany::getResults() returns an empty collection
-	 without querying, which would blank rcpt_to on every report row.
-	 No key means no single mail to have recipients for, so the grouped
-	 column value is returned as-is.
+	 The recipient list, from mail_log_recipients. This is the name to
+	 use everywhere. mail_logs.rcpt_to is the legacy column and is read
+	 back only by getReports() and by MailRecipientsMigration.
 	*/
-	public function getRcptToAttribute($value): string {
-		if ($this->getKey() === null) {
-			return (string) $value;
-		}
-
+	public function getMailRecipientsAttribute(): string {
 		if (!$this->relationLoaded('recipients')) {
 			$this->logMissingRelation('recipients', 'recipient_email');
 		}
@@ -281,6 +268,35 @@ class MailLog extends Model
 			->all();
 
 		return implode(', ', $emails);
+	}
+
+	/*
+	 Legacy name, delegating until every caller uses mail_recipients.
+	 Aggregate rows are the exemption: getReports() groups by the
+	 mail_logs column with selectRaw() and selects no id, so there is no
+	 parent key - HasMany::getResults() returns an empty collection
+	 without querying, which would blank rcpt_to on every report row.
+	*/
+	public function getRcptToAttribute($value): string {
+		if ($this->getKey() === null) {
+			return (string) $value;
+		}
+
+		$this->logLegacyRcptTo();
+
+		return $this->mail_recipients;
+	}
+
+	private function logLegacyRcptTo(): void {
+		try {
+			App::fileLogger()->error(
+				"MailLog {$this->getKey()} (qid {$this->qid}): read rcpt_to "
+				. "on a keyed model; use mail_recipients"
+			);
+		} catch (Throwable) {
+			// App container not up in this context. A diagnostic must never
+			// break the read it is diagnosing.
+		}
 	}
 
 	public function mailLogData() {

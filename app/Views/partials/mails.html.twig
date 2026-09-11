@@ -48,7 +48,7 @@ Total {{ totalRecords|nf }} mails
   <td class='date center'>{{ log.created_at|date("Y-m-d") }} {{ log.created_at|date("H:i:s") }}</td>
 {#  <td>{{ truncate(decodeEmail(log.mail_from),32) }}</td> #}
   <td>{{ truncate(decodeEmail(log.mime_from_decoded),32) }}</td>
-  <td>{{ truncate(log.rcpt_to, 25) }}</td>
+  <td>{{ truncate(log.mail_recipients, 25) }}</td>
 {#
 {% if log.mime_to %}
   <td>{{ truncate(log.mime_to, 20) }}</td>

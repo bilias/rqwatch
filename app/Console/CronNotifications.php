@@ -94,11 +94,10 @@ class CronNotifications extends RqwatchCliCommand
 			$this->fileLogger->debug("{$this->app_name} {$count} entries found for notification{$local}");
 		}
 
-		// identify empty rcpt_to logs. Just to track their id for debugging
+		// identify empty mail_recipients. Just to track their id for debugging
 		$removedLogs = $logs->filter(function ($log) {
-			//return $log->rcpt_to === 'unknown';
 			// if recipients are loaded, this catches true empties too
-			$rcpt = trim((string) $log->rcpt_to);
+			$rcpt = trim((string) $log->mail_recipients);
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
@@ -106,19 +105,18 @@ class CronNotifications extends RqwatchCliCommand
 			// get the ids based on filter above
 			$removedIds = $removedLogs->pluck('id')->all();
 			foreach ($removedIds as $id) {
-				$output->writeln("<comment>Empty `rcpt_to` for id: {$id}</comment>, disabling notification{$local}",
+				$output->writeln("<comment>Empty `mail_recipients` for id: {$id}</comment>, disabling notification{$local}",
 					OutputInterface::VERBOSITY_VERBOSE);
-				$this->fileLogger->warning("{$this->app_name} Empty `rcpt_to` for id: {$id}, disabling notification{$local}");
+				$this->fileLogger->warning("{$this->app_name} Empty `mail_recipients` for id: {$id}, disabling notification{$local}");
 			}
 		}
 		// don't need these anymore
 		unset($removedIds);
 		unset($removedLogs);
 
-		// filter out empty rcpt_to logs
+		// filter out empty mail_recipients
 		$logs = $logs->reject(function ($log) {
-			// return $log->rcpt_to === 'unknown';
-			$rcpt = trim((string) $log->rcpt_to);
+			$rcpt = trim((string) $log->mail_recipients);
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
@@ -153,7 +151,7 @@ class CronNotifications extends RqwatchCliCommand
 
 		// Logs where everyone is disabled (or no recipients)
 		$removedLogs = $logs->filter(function ($log) {
-			$rcpt = trim((string) $log->rcpt_to);
+			$rcpt = trim((string) $log->mail_recipients);
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
@@ -168,7 +166,7 @@ class CronNotifications extends RqwatchCliCommand
 		}
 
 		$logs = $logs->reject(function ($log) {
-			$rcpt = trim((string) $log->rcpt_to);
+			$rcpt = trim((string) $log->mail_recipients);
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
@@ -218,7 +216,7 @@ class CronNotifications extends RqwatchCliCommand
 			$output->writeln("<comment>Notifications pending{$local}:</comment>",
 				OutputInterface::VERBOSITY_NORMAL);
 			foreach ($logs as $log) {
-				$output->writeln("QID: {$log->qid}, to: {$log->rcpt_to}",
+				$output->writeln("QID: {$log->qid}, to: {$log->mail_recipients}",
 					OutputInterface::VERBOSITY_NORMAL);
 			}
 		}
@@ -268,12 +266,12 @@ class CronNotifications extends RqwatchCliCommand
 			if (!$service->notifyHtmlMail($log, $urlGenerator)) {
 				$failed++;
 				// keep going: one bad recipient must not block every later mail
-				$output->writeln("<error>Sending notification mail with QID: {$log->qid} to {$log->rcpt_to} failed{$local}</error>");
-				$this->syslogLogger->error("Sending notification mail with QID: {$log->qid} to {$log->rcpt_to} failed{$local}");
+				$output->writeln("<error>Sending notification mail with QID: {$log->qid} to {$log->mail_recipients} failed{$local}</error>");
+				$this->syslogLogger->error("Sending notification mail with QID: {$log->qid} to {$log->mail_recipients} failed{$local}");
 			} else {
-				$output->writeln("<info>Sent notification mail for QID: {$log->qid} to {$log->rcpt_to}{$local}</info>",
+				$output->writeln("<info>Sent notification mail for QID: {$log->qid} to {$log->mail_recipients}{$local}</info>",
 					OutputInterface::VERBOSITY_VERBOSE);
-				$this->syslogLogger->info("Sent notification mail for QID: {$log->qid} to '{$log->rcpt_to}'{$local}");
+				$this->syslogLogger->info("Sent notification mail for QID: {$log->qid} to '{$log->mail_recipients}'{$local}");
 			}
 		}
 

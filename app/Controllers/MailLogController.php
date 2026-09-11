@@ -406,7 +406,7 @@ class MailLogController extends ViewController
 		if ($ar['log']->mail_stored && !empty($ar['log']->mail_location)) {
 			$form_data = array(
 				'id' => $ar['log']->id,
-				'email' => $ar['log']->rcpt_to, // from mail_log_recipients
+				'email' => $ar['log']->mail_recipients,
 			);
 
 			// mailreleaseform submit goes to seperate method releaseMail()
@@ -471,7 +471,7 @@ class MailLogController extends ViewController
 
 		$form_data = array(
 			'id' => $maillog->id,
-			'email' => $maillog->rcpt_to, // from mail_log_recipients
+			'email' => $maillog->mail_recipients,
 		);
 
 		$mailreleaseform = MailReleaseForm::create($this->formFactory, $this->request, $form_data);
@@ -498,8 +498,7 @@ class MailLogController extends ViewController
 			// get all emails from user (primary + aliases)
 			$emails = array_unique(array_filter(array_map('strtolower', array_merge([$this->email], $this->user_aliases ?? []))));
 			// split DB recipients into array
-			// rcpt_to from mail_log_recipients
-			$rcptToList = array_map(fn($e) => strtolower(trim($e)), explode(',', $maillog->rcpt_to));
+			$rcptToList = array_map(fn($e) => strtolower(trim($e)), explode(',', $maillog->mail_recipients));
 			// split form's original recipients
 			$formEmailList = array_map(fn($e) => strtolower(trim($e)), explode(',', $data['email']));
 
@@ -515,7 +514,7 @@ class MailLogController extends ViewController
 					'user_mail' => $this->email,
 					'qid' => $maillog->qid,
 					'db_id' => $maillog->id,
-					'rcpt_to' => $maillog->rcpt_to,
+					'rcpt_to' => $maillog->mail_recipients,
 					'release_to' => $data['email'],
 					'is_admin' => $this->is_admin,
 				]);

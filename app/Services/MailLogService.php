@@ -1019,7 +1019,7 @@ class MailLogService
 			'has_virus'  => $maillog->has_virus,
 			'virus_name' => $ar['virus_found'],
 			'mime_from'  => $maillog->mime_from,
-			'rcpt_to'    => $maillog->rcpt_to,
+			'rcpt_to'    => $maillog->mail_recipients,
 			'action'     => $maillog->action,
 			'signature'  => $signature,
 		);
