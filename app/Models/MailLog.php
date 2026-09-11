@@ -92,7 +92,6 @@ class MailLog extends Model
 		'action',
 		'has_virus',
 		'mail_from',
-		'rcpt_to',
 		'mime_from',
 		'mime_to',
 		'subject',
