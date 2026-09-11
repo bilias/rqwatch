@@ -237,6 +237,7 @@ final class Kernel
 			return false;
 		}
 
+		// whitelisted cli command that can run under ALLOW_DEGRADED_DB mode
 		$migrationPrefix = 'db:migrate';
 		$exemptCommands = ['', 'help', 'list', 'db'];
 
