@@ -1193,8 +1193,7 @@ class MailLogService
 				'has_virus'  => $maillog->has_virus,
 				'virus_name' => $maillog->virus_name,
 				'mime_from'  => $maillog->mime_from,
-				//'rcpt_to'    => $maillog->rcpt_to,
-				// this recipient only, not the whole rcpt_to list
+				// this recipient only, not the whole mail_recipients list
 				'rcpt_to'    => $recipient,
 				'action'     => $maillog->action,
 				'detailurl'  => $url,
@@ -1232,12 +1231,8 @@ class MailLogService
 			/*
 			 Deliberately the query builder, not $maillog->update().
 			 update() is fill()->save() and save() writes the whole dirty
-			 set. CronNotifications sets virus_name (not a column) and
-			 filterDisabledRecipients() overwrites rcpt_to (a column) with
-			 the enabled-only list - so a model write persists a
-			 truncated recipient list as a side effect of marking the mail
-			 notified. Nothing downstream reads $maillog->notified, so
-			 there is no reason to round-trip through the model.
+			 set, and these models carry virus_name and disabled_rcpt_to,
+			 which are not columns.
 			*/
 			MailLog::whereKey($maillog->id)->update([
 				'notified'    => 1,
