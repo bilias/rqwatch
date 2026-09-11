@@ -870,8 +870,10 @@ class MailLogController extends ViewController
 			$log->mime_from_normalized = Helper::extractEmail($log->mime_from);
 		}
 
+		// Map config field names to the model attribute holding the value.
 		$fieldMap = [
 			'mime_from' => 'mime_from_normalized',
+			'rcpt_to'   => 'mail_recipients',
 		];
 
 		$route = $this->is_admin
