@@ -60,8 +60,7 @@ This drops indexes from `mail_logs` table that are no longer needed.
 
 Do this once, after all the migrations, in a maintenance window.\
 The table is rebuilt, so it **needs free space** for a second copy,
-although much less than before since the large columns have been
-migrated to the new table.
+although much less than before since the large columns were dropped (step 1).
 
 **Writes are blocked for the whole rebuild**, cluster-wide on Galera.\
 Mails are still delivered by your MTA, but Rqwatch cannot record them in DB.
