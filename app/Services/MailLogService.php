@@ -293,23 +293,6 @@ class MailLogService
 		return $query;
 	}
 
-	public function showAll(): Collection {
-		$fields = MailLog::SELECT_FIELDS;
-
-		$query = MailLog::select($fields)
-					->with($this->getMailLogSymbolsRelations())
-					->orderBy('id', 'DESC')
-					->limit($this->max_items);
-
-		$query = $this->applyUserScope($query);
-
-		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
-		}
-
-		return $query->get();
-	}
-
 	public function showOne(int $id): MailLog {
 		$lf = "[MailLogService_showOne]";
 		$fields = MailLog::SELECT_FIELDS;

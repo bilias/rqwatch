@@ -86,12 +86,6 @@ class MailLogController extends ViewController
 			return $response;
 		}
 
-		/* without Pagination
-		$service = $this->getMailLogService();
-
-		$logs = $service->showAll();
-		*/
-
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
