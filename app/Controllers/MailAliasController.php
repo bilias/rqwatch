@@ -350,7 +350,8 @@ class MailAliasController extends ViewController
 
 		$alias = MailAlias::find($id);
 		if ($alias) {
-			if ($alias->delete()) {
+			$service = $this->getMailAliasService();
+			if ($service->aliasDel($alias, (string) $this->username)) {
 				$this->fileLogger->info("Alias '{$alias->alias}' deleted by '{$this->username}'");
 				$this->flashbag->add('success', "Alias '{$alias->alias}' deleted");
 			} else {

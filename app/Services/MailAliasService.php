@@ -17,6 +17,9 @@ use App\Core\App;
 use App\Utils\Helper;
 
 use App\Models\MailAlias;
+use App\Models\MapCombined;
+
+use App\Inventory\MapInventory;
 
 use Exception;
 
@@ -79,6 +82,48 @@ class MailAliasService
 		}
 
 		return $query->exists();
+	}
+
+
+	/*
+	 Map entries the user created for this alias go with it: the address is
+	 not theirs any more. Scoped by user_id as well as rcpt_to, so a shared
+	 alias only loses the entries of the user giving it up, and restricted
+	 to maps a user may manage so admin-only entries are never touched.
+	*/
+	public function aliasDel(MailAlias $alias, string $actingUsername): bool {
+		$address = strtolower(trim((string) $alias->alias));
+		$user_id = $alias->user_id;
+		$userMaps = MapInventory::getRoleMapsByModel('MapCombined', 'user');
+
+		try {
+			return App::capsule()->connection()->transaction(
+				function () use ($alias, $address, $user_id, $userMaps, $actingUsername) {
+					if ($address !== '' && !empty($userMaps)) {
+						$deleted = MapCombined::where('user_id', $user_id)
+							->whereIn('map_name', $userMaps)
+							->where('rcpt_to', $address)
+							->delete();
+
+						if ($deleted > 0) {
+							$this->logger->info(
+								"aliasDel: deleted {$deleted} map entries for alias"
+								. " '{$address}' by '{$actingUsername}'"
+							);
+						}
+					}
+
+					return (bool) $alias->delete();
+				}
+			);
+		} catch (Exception $e) {
+			$this->logger->error(
+				"aliasDel error: delete of '{$address}' by '{$actingUsername}'"
+				. " failed: " . $e->getMessage()
+			);
+
+			return false;
+		}
 	}
 
 	public function getPaginatedAll(string $url, int $page = 1): LengthAwarePaginator {
