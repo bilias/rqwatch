@@ -598,7 +598,7 @@ class MapService
 		}
 
 		if (empty($this->user_id)) {
-			$this->logger->warning("[updateMapCombinedEntry] empty user_id");
+			$this->logger->warning("[addMapCombinedEntry] empty user_id");
 			return false;
 		}
 
