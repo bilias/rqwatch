@@ -242,7 +242,7 @@ class UserService
 			array_merge([$user->email], $user->aliases->pluck('alias')->all())
 		))));
 
-			if (!empty($addresses) && !empty($userMaps)) {
+		if (!empty($addresses) && !empty($userMaps)) {
 			$deleted = MapCombined::where('user_id', $user->id)
 				->whereIn('map_name', $userMaps)
 				->whereIn('rcpt_to', $addresses)
