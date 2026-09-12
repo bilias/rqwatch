@@ -75,6 +75,9 @@ public const string MAIL_LOG_DATA_TABLE = 'mail_log_data';
 public const string MAIL_LOG_RECIPIENTS_TABLE = 'mail_log_recipients';
 public const string MAIL_LOG_TOKENS_TABLE = 'mail_log_tokens';
 public const string MIGRATIONS_TABLE = 'migrations';
+public const string USERS_TABLE = 'users';
+public const string MAIL_ALIASES_TABLE = 'mail_aliases';
+public const string MAPS_COMBINED_TABLE = 'maps_combined';
 
 // Table encoding, declared on the Blueprint by
 // AbstractMigration::createTable() rather than left to the connection config.

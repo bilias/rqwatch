@@ -19,6 +19,7 @@ use App\Core\Database\Migrations\MailLogTokensMigration;
 use App\Core\Database\Migrations\IpCreatedDayIndex;
 use App\Core\Database\Migrations\DropMailLogColumns;
 use App\Core\Database\Migrations\DropMailLogIndexes;
+use App\Core\Database\Migrations\MapUserConstraints;
 
 use InvalidArgumentException;
 
@@ -32,7 +33,7 @@ class Migrations
 	public const string IP_CREATED_DAY_INDEX = '20260906_ip_created_day_index';
 	public const string DROP_MAIL_LOG_COLUMNS = '20260908_drop_mail_log_columns';
 	public const string DROP_MAIL_LOG_INDEXES = '20260911_drop_mail_log_indexes';
-
+	public const string MAP_USER_CONSTRAINTS = '20260912_map_user_constraints';
 
 	public const array MIGRATIONS = [
 		self::MAIL_RECIPIENTS,
@@ -43,6 +44,7 @@ class Migrations
 		self::IP_CREATED_DAY_INDEX,
 		self::DROP_MAIL_LOG_COLUMNS,
 		self::DROP_MAIL_LOG_INDEXES,
+		self::MAP_USER_CONSTRAINTS,
 	];
 
 	public const array REQUIRED = [
@@ -86,6 +88,7 @@ class Migrations
 		self::IP_CREATED_DAY_INDEX => IpCreatedDayIndex::class,
 		self::DROP_MAIL_LOG_COLUMNS => DropMailLogColumns::class,
 		self::DROP_MAIL_LOG_INDEXES => DropMailLogIndexes::class,
+		self::MAP_USER_CONSTRAINTS => MapUserConstraints::class,
 	];
 
 	public const array MIGRATION_DESCR = [
@@ -97,6 +100,7 @@ class Migrations
 		self::IP_CREATED_DAY_INDEX => "ip created_day Index",
 		self::DROP_MAIL_LOG_COLUMNS => "Drop migrated mail_logs columns",
 		self::DROP_MAIL_LOG_INDEXES => "Drop dead mail_logs indexes",
+		self::MAP_USER_CONSTRAINTS => "Map and alias user constraints",
 	];
 
 	public const array MIGRATION_BATCH = [
@@ -108,6 +112,7 @@ class Migrations
 		self::IP_CREATED_DAY_INDEX => 0,
 		self::DROP_MAIL_LOG_COLUMNS => 0,
 		self::DROP_MAIL_LOG_INDEXES => 0,
+		self::MAP_USER_CONSTRAINTS => 0,
 	];
 
 	public const array MIGRATION_SLEEP = [
@@ -119,6 +124,7 @@ class Migrations
 		self::IP_CREATED_DAY_INDEX => 200000,
 		self::DROP_MAIL_LOG_COLUMNS => 200000,
 		self::DROP_MAIL_LOG_INDEXES => 200000,
+		self::MAP_USER_CONSTRAINTS => 200000,
 	];
 
 	public const array MIGRATION_HELP = [
@@ -130,6 +136,7 @@ class Migrations
 		self::IP_CREATED_DAY_INDEX => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::DROP_MAIL_LOG_COLUMNS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_UPDATE_2_plus.md",
 		self::DROP_MAIL_LOG_INDEXES => "https://github.com/bilias/rqwatch/blob/master/docs/DB_UPDATE_2_plus.md",
+		self::MAP_USER_CONSTRAINTS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_UPDATE_2_plus.md",
 	];
 
 	public const string STATUS_PENDING   = 'pending';

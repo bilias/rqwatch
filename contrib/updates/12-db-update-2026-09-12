@@ -1,0 +1,17 @@
+# SQL
+DELETE a FROM `mail_aliases` a
+  JOIN `mail_aliases` b
+    ON b.user_id = a.user_id AND b.alias = a.alias AND b.id < a.id;
+
+ALTER TABLE `mail_aliases`
+  ADD UNIQUE KEY `user_id_alias_idx` (`user_id`, `alias`);
+
+DELETE m FROM `maps_combined` m
+  LEFT JOIN `users` u ON u.id = m.user_id
+  WHERE u.id IS NULL;
+
+ALTER TABLE `maps_combined`
+  MODIFY `user_id` INT UNSIGNED NOT NULL,
+  ADD KEY `user_id_index` (`user_id`),
+  ADD CONSTRAINT `fk_maps_combined_user_id`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;

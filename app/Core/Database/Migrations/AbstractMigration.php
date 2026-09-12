@@ -71,6 +71,30 @@ abstract class AbstractMigration {
 		);
 	}
 
+	protected function hasForeignKey(string $table, string $constraint): bool {
+		return !empty(
+			$this->capsule->getConnection()->select(
+				"SELECT 1 FROM information_schema.TABLE_CONSTRAINTS
+				 WHERE CONSTRAINT_SCHEMA = DATABASE()
+				   AND TABLE_NAME = ? AND CONSTRAINT_NAME = ?
+				   AND CONSTRAINT_TYPE = 'FOREIGN KEY'",
+				[$table, $constraint]
+			)
+		);
+	}
+
+	protected function columnIsUnsigned(string $table, string $column): bool {
+		$row = $this->capsule->getConnection()->select(
+			"SELECT COLUMN_TYPE FROM information_schema.COLUMNS
+			 WHERE TABLE_SCHEMA = DATABASE()
+			   AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+			[$table, $column]
+		);
+
+		return !empty($row)
+			&& str_contains(strtolower($row[0]->COLUMN_TYPE), 'unsigned');
+	}
+
 	protected function createTable(string $tableName, Closure $callback): void {
 		$this->capsule->schema()->create(
 			$tableName,

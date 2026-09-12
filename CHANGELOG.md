@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-12
+- Add MAP_USER_CONSTRAINTS Migration
 - Reassign map entries on user delete
 - Prevent admin self user delete
 

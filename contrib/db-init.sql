@@ -30,6 +30,7 @@ CREATE TABLE mail_aliases (
  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY `user_id_index` (`user_id`),
+  UNIQUE KEY `user_id_alias_idx` (`user_id`, `alias`),
   CONSTRAINT `fk_aliases_user_id`
     FOREIGN KEY (`user_id`) REFERENCES users(`id`)
     ON DELETE CASCADE
@@ -40,7 +41,7 @@ DROP TABLE IF EXISTS `maps_combined`;
 CREATE TABLE maps_combined (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   map_name VARCHAR(64) NOT NULL,
-  user_id INT(10) NOT NULL,
+  user_id INT UNSIGNED NOT NULL,
   ip VARCHAR(45) DEFAULT NULL,
   mail_from VARCHAR(255) DEFAULT NULL,
   rcpt_to VARCHAR(255) DEFAULT NULL,
@@ -55,7 +56,11 @@ CREATE TABLE maps_combined (
   KEY rcpt_to_index (rcpt_to),
   KEY map_name_ip_index (map_name, ip),
   KEY map_name_mail_from_rcpt_to_index (map_name, mail_from, rcpt_to),
-  KEY `map_name_updated_at_index` (`map_name`,`updated_at`)
+  KEY `map_name_updated_at_index` (`map_name`,`updated_at`),
+  KEY `user_id_index` (`user_id`),
+  CONSTRAINT `fk_maps_combined_user_id`
+    FOREIGN KEY (`user_id`) REFERENCES users(`id`)
+    ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `map_activity_logs`;
@@ -228,4 +233,5 @@ INSERT INTO `migrations` VALUES
 ('20260904_mail_log_tokens','completed',NOW()),
 ('20260906_ip_created_day_index','completed',NOW()),
 ('20260908_drop_mail_log_columns','completed',NOW()),
-('20260911_drop_mail_log_indexes','completed',NOW());
+('20260911_drop_mail_log_indexes','completed',NOW()),
+('20260912_map_user_constraints','completed',NOW());
