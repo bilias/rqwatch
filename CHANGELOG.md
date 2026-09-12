@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-12
+- Reassign map entries on user delete
 - Prevent admin self user delete
 
 ### 2026-09-11

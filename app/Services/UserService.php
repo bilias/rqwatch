@@ -18,6 +18,7 @@ use App\Utils\Helper;
 
 use App\Models\User;
 use App\Models\MailAlias;
+use App\Models\MapCombined;
 
 use Psr\Log\LoggerInterface;
 
@@ -223,6 +224,42 @@ class UserService
 		return false;
 	}
 
+
+	/*
+	 Personal map entries for the user's own addresses go with them. Anything else
+	 they created -- only an admin can -- moves to the admin doing the
+	 delete, so shared map content survives. Addresses must be read before
+	 the user row goes: mail_aliases cascades away with it.
+	*/
+	private function reassignMapEntries(User $user, int $actingUserId): void {
+		$addresses = array_values(array_unique(array_filter(array_map(
+			fn ($a) => strtolower(trim((string) $a)),
+			array_merge([$user->email], $user->aliases->pluck('alias')->all())
+		))));
+
+		if (!empty($addresses)) {
+			$deleted = MapCombined::where('user_id', $user->id)
+				->whereIn('rcpt_to', $addresses)
+				->delete();
+
+			if ($deleted > 0) {
+				$this->logger->info(
+					"userDel: deleted {$deleted} map entries of '{$user->username}'"
+				);
+			}
+		}
+
+		$moved = MapCombined::where('user_id', $user->id)
+			->update(['user_id' => $actingUserId]);
+
+		if ($moved > 0) {
+			$this->logger->info(
+				"userDel: moved {$moved} map entries of '{$user->username}'"
+				. " to user id {$actingUserId}"
+			);
+		}
+	}
+
 	public function userDel(int $id, int $actingUserId): bool {
       $user = User::find($id);
 
@@ -241,13 +278,22 @@ class UserService
          return false;
       }
 
-      $username = $user->username;
+		try {
+			return App::capsule()->connection()->transaction(
+				function () use ($user, $actingUserId) {
+					$this->reassignMapEntries($user, $actingUserId);
 
-      if ($user->delete()) {
-			return true;
-      }
+					return (bool) $user->delete();
+				}
+			);
+		} catch (Exception $e) {
+			$this->logger->error(
+				"userDel error: delete of '{$user->username}' failed: "
+				. $e->getMessage()
+			);
 
-		return false;
+			return false;
+		}
    }
 
 	public function getLoginThrottles(): array {
