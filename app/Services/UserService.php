@@ -234,7 +234,11 @@ class UserService
 	 may manage are eligible: an admin-only map is never personal, whatever
 	 its rcpt_to holds.
 	*/
-	private function reassignMapEntries(User $user, int $actingUserId): void {
+	private function reassignMapEntries(
+		User $user,
+		int $actingUserId,
+		string $actingUsername
+	): void {
 		$userMaps = MapInventory::getRoleMapsByModel('MapCombined', 'user');
 
 		$addresses = array_values(array_unique(array_filter(array_map(
@@ -250,7 +254,8 @@ class UserService
 
 			if ($deleted > 0) {
 				$this->logger->info(
-					"userDel: deleted {$deleted} map entries of '{$user->username}'"
+					"userDel: deleted {$deleted} map entries of"
+					. " '{$user->username}' by '{$actingUsername}'"
 				);
 			}
 		}
@@ -261,12 +266,12 @@ class UserService
 		if ($moved > 0) {
 			$this->logger->info(
 				"userDel: moved {$moved} map entries of '{$user->username}'"
-				. " to user id {$actingUserId}"
+				. " to '{$actingUsername}' (id {$actingUserId})"
 			);
 		}
 	}
 
-	public function userDel(int $id, int $actingUserId): bool {
+	public function userDel(int $id, int $actingUserId, string $actingUsername): bool {
       $user = User::find($id);
 
       if (!$user) {
@@ -286,18 +291,17 @@ class UserService
 
 		try {
 			return App::capsule()->connection()->transaction(
-				function () use ($user, $actingUserId) {
-					$this->reassignMapEntries($user, $actingUserId);
+				function () use ($user, $actingUserId, $actingUsername) {
+					$this->reassignMapEntries($user, $actingUserId, $actingUsername);
 
 					return (bool) $user->delete();
 				}
 			);
 		} catch (Exception $e) {
 			$this->logger->error(
-				"userDel error: delete of '{$user->username}' failed: "
-				. $e->getMessage()
+				"userDel error: delete of '{$user->username}' by"
+				. " '{$actingUsername}' failed: " . $e->getMessage()
 			);
-
 			return false;
 		}
    }
