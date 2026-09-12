@@ -95,6 +95,18 @@ abstract class AbstractMigration {
 			&& str_contains(strtolower($row[0]->COLUMN_TYPE), 'unsigned');
 	}
 
+	protected function columnIsNullable(string $table, string $column): bool {
+		$row = $this->capsule->getConnection()->select(
+			"SELECT IS_NULLABLE FROM information_schema.COLUMNS
+			 WHERE TABLE_SCHEMA = DATABASE()
+			   AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+			[$table, $column]
+		);
+
+		return !empty($row)
+			&& strtoupper($row[0]->IS_NULLABLE) === 'YES';
+	}
+
 	protected function createTable(string $tableName, Closure $callback): void {
 		$this->capsule->schema()->create(
 			$tableName,

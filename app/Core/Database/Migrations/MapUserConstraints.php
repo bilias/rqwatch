@@ -174,19 +174,19 @@ class MapUserConstraints extends AbstractMigration {
 	}
 
 	/*
-	 One ALTER: the signedness change forces ALGORITHM=COPY, so splitting it
-	 from the foreign key would rebuild the table twice and take two TOI
-	 windows. Each part is conditional so a partially applied table still
-	 completes.
+	 One ALTER: a column change forces ALGORITHM=COPY, so splitting it from
+	 the foreign key would rebuild the table twice and take two TOI windows.
+	 Every part is conditional and tested independently, so a table that
+	 already has some of them -- an install whose column drifted to unsigned
+	 but stayed nullable, say -- still converges. A nullable user_id is not
+	 constrained by the foreign key at all, so NOT NULL is what makes the
+	 cascade total.
 	*/
 	private function addMapUserForeignKey(OutputInterface $output): void {
-		if ($this->hasForeignKey(AppConfig::MAPS_COMBINED_TABLE, self::MAP_USER_FK)) {
-			return;
-		}
-
 		$parts = [];
 
-		if (!$this->columnIsUnsigned(AppConfig::MAPS_COMBINED_TABLE, 'user_id')) {
+		if (!$this->columnIsUnsigned(AppConfig::MAPS_COMBINED_TABLE, 'user_id')
+			|| $this->columnIsNullable(AppConfig::MAPS_COMBINED_TABLE, 'user_id')) {
 			$parts[] = "MODIFY `user_id` INT UNSIGNED NOT NULL";
 		}
 
@@ -194,9 +194,15 @@ class MapUserConstraints extends AbstractMigration {
 			$parts[] = "ADD KEY `user_id_index` (`user_id`)";
 		}
 
-		$parts[] = "ADD CONSTRAINT `" . self::MAP_USER_FK . "` "
+		if ($this->hasForeignKey(AppConfig::MAPS_COMBINED_TABLE, self::MAP_USER_FK)) {
+			if (empty($parts)) {
+				return;
+			}
+		} else {
+			$parts[] = "ADD CONSTRAINT `" . self::MAP_USER_FK . "` "
 			. "FOREIGN KEY (`user_id`) REFERENCES `"
 			. AppConfig::USERS_TABLE . "` (`id`) ON DELETE CASCADE";
+		}
 
 		$this->capsule->getConnection()->statement(
 			"ALTER TABLE `" . AppConfig::MAPS_COMBINED_TABLE . "` "
@@ -204,14 +210,15 @@ class MapUserConstraints extends AbstractMigration {
 		);
 
 		$output->writeln(
-			"<info>Added " . self::MAP_USER_FK . " to "
-			. AppConfig::MAPS_COMBINED_TABLE . "</info>"
+			"<info>Updated " . AppConfig::MAPS_COMBINED_TABLE
+			. " user_id constraints</info>"
 		);
 	}
 
 	protected function verifySchema(): bool {
 		return $this->hasIndex(AppConfig::MAIL_ALIASES_TABLE, self::ALIAS_UNIQUE)
 			&& $this->columnIsUnsigned(AppConfig::MAPS_COMBINED_TABLE, 'user_id')
+			&& !$this->columnIsNullable(AppConfig::MAPS_COMBINED_TABLE, 'user_id')
 			&& $this->hasForeignKey(AppConfig::MAPS_COMBINED_TABLE, self::MAP_USER_FK);
 	}
 
