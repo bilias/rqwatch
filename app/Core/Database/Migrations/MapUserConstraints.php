@@ -200,8 +200,8 @@ class MapUserConstraints extends AbstractMigration {
 			}
 		} else {
 			$parts[] = "ADD CONSTRAINT `" . self::MAP_USER_FK . "` "
-			. "FOREIGN KEY (`user_id`) REFERENCES `"
-			. AppConfig::USERS_TABLE . "` (`id`) ON DELETE CASCADE";
+				. "FOREIGN KEY (`user_id`) REFERENCES `"
+				. AppConfig::USERS_TABLE . "` (`id`) ON DELETE CASCADE";
 		}
 
 		$this->capsule->getConnection()->statement(
