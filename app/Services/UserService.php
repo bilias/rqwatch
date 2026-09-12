@@ -20,6 +20,8 @@ use App\Models\User;
 use App\Models\MailAlias;
 use App\Models\MapCombined;
 
+use App\Inventory\MapInventory;
+
 use Psr\Log\LoggerInterface;
 
 use App\Core\Cache\RedisCache;
@@ -224,21 +226,25 @@ class UserService
 		return false;
 	}
 
-
 	/*
 	 Personal map entries for the user's own addresses go with them. Anything else
 	 they created -- only an admin can -- moves to the admin doing the
 	 delete, so shared map content survives. Addresses must be read before
-	 the user row goes: mail_aliases cascades away with it.
+	 the user row goes: mail_aliases cascades away with it. Only maps a user
+	 may manage are eligible: an admin-only map is never personal, whatever
+	 its rcpt_to holds.
 	*/
 	private function reassignMapEntries(User $user, int $actingUserId): void {
+		$userMaps = MapInventory::getRoleMapsByModel('MapCombined', 'user');
+
 		$addresses = array_values(array_unique(array_filter(array_map(
 			fn ($a) => strtolower(trim((string) $a)),
 			array_merge([$user->email], $user->aliases->pluck('alias')->all())
 		))));
 
-		if (!empty($addresses)) {
+			if (!empty($addresses) && !empty($userMaps)) {
 			$deleted = MapCombined::where('user_id', $user->id)
+				->whereIn('map_name', $userMaps)
 				->whereIn('rcpt_to', $addresses)
 				->delete();
 

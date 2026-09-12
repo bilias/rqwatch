@@ -348,4 +348,9 @@ class MapInventory
 		return $maps;
 	}
 
+	// map names of one model that the given role may manage
+	public static function getRoleMapsByModel(string $model, string $role): array {
+		return self::getMapsByModel($model, self::getAvailableMapConfigs($role));
+	}
+
 }
