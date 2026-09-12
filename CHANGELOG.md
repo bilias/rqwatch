@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-09-12
+- Prevent admin self user delete
+
 ### 2026-09-11
 - Gate server search field for non-admin users
 - Recipient reports count per recipient; non-admins see only their own addresses

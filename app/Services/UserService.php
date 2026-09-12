@@ -223,7 +223,7 @@ class UserService
 		return false;
 	}
 
-	public function userDel(int $id): bool {
+	public function userDel(int $id, int $actingUserId): bool {
       $user = User::find($id);
 
       if (!$user) {
@@ -233,6 +233,11 @@ class UserService
 
       if ($user->username === 'admin') {
 			$this->logger->error("userDel error: User 'admin' cannot be deleted");
+         return false;
+      }
+
+		if ($user->id === $actingUserId) {
+			$this->logger->error("userDel error: User '{$user->username}' cannot delete themselves");
          return false;
       }
 

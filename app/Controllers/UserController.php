@@ -420,8 +420,10 @@ class UserController extends ViewController
 		// or $user->toArray() if empty attribute and not getter in Model
 		$userform = UserForm::create($this->formFactory, $this->request, $user->toArray(), ['is_edit' => true]);
 
-		// Do not allow delete of admin user
-		if ($user->username !== 'admin') {
+		// Do not allow delete of the admin user or of yourself
+		if ($user->username !== 'admin'
+			 && $this->user_id !== null
+			 && $user->id !== $this->user_id) {
 			$userdelform = UserDeleteForm::create($this->formFactory, $this->request,
 				[
 					'id' => $user->id,
@@ -432,7 +434,7 @@ class UserController extends ViewController
 			if ($userdelform->isSubmitted() && $userdelform->isValid()) {
 				// CSRF-validated POST: delete here, not via a GET redirect
 				$service = $this->getUserService();
-				if ($service->userDel($user->id)) {
+				if ($service->userDel($user->id, $this->user_id)) {
 					$this->fileLogger->info("User '{$user->username}' deleted by '{$this->username}'");
 					$this->flashbag->add('success', "User '{$user->username}' deleted");
 				} else {
