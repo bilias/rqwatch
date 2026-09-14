@@ -617,7 +617,7 @@ Subject: {$ar['subject']}
 Mail Queue ID: {$ar['qid']}
 Spam Score: {$ar['score']}
 Virus Detected:";
-		if (empty($ar['has_virus'])) {
+		if (!empty($ar['has_virus'])) {
 			$ret .= " Yes {$ar['virus_name']}";
 		} else {
 			$ret .= " No";
@@ -641,7 +641,7 @@ Subject: {$ar['subject']}
 Mail Queue ID: {$ar['qid']}
 Spam Score: {$ar['score']}
 Virus Detected:";
-		if (empty($ar['has_virus'])) {
+		if (!empty($ar['has_virus'])) {
 			$ret .= " Yes";
 		} else {
 			$ret .= " No";

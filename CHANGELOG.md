@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-14
+- Fix TEXT notification/release mail, invert virus info. HTML version was correct
 - Smaller TTL for DNS negative cache
 
 ## Version v2.1.0 - Released: 2026-09-14
