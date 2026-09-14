@@ -10,7 +10,7 @@ origin	https://github.com/bilias/rqwatch/ (fetch)
 origin	https://github.com/bilias/rqwatch/ (push)
 ```
 
-## Update to [latest Rqwatch release](https://github.com/bilias/rqwatch/releases/latest)
+## Update to [latest 2.x Rqwatch release](https://github.com/bilias/rqwatch/releases/latest)
 ```
 su - rqwatch -s /bin/bash
 
@@ -18,7 +18,7 @@ cd /var/www/html/rqwatch/
 
 git fetch --tags origin
 
-# Find the latest release tagged version
+# Find the latest 2.x release tagged version
 git describe --tags --abbrev=0
 
 git checkout v2.1.0
