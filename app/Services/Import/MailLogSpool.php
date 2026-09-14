@@ -176,8 +176,8 @@ final class MailLogSpool
 
 		$cache = $this->cache;
 
-		$max = (int) Config::get('import_spool_max') ?: 20000;
-		$ttl = (int) Config::get('import_spool_ttl') ?: 2592000;
+		$max = (int) Config::get('import_spool_max');
+		$ttl = (int) Config::get('import_spool_ttl');
 
 		if ($max < 1 || $ttl < 1) {
 			$this->fileLogger->error('[MailLogSpool] import_spool_max/ttl not usable');
