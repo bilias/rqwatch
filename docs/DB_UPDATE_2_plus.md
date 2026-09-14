@@ -25,7 +25,8 @@ SELECT COUNT(*) AS missing
 ```
 
 If it does not, run `./bin/cli.php db:migrate_mail_log_data -f` and check again.\
-`-f` fills gaps and never re-copies or truncates anything.\
+`-f` fills gaps and never re-copies or truncates anything.
+
 On a large installation the query is slow, so run it while the system is idle rather than
 inside your maintenance window.
 
