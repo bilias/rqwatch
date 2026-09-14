@@ -53,7 +53,7 @@ class MailLogController extends ViewController
 	public function __construct() {
 		parent::__construct();
 
-		$this->q_items_per_page = Config::get('q_items_per_page');
+		$this->q_items_per_page = (int) Config::get('q_items_per_page') ?: 31;
 		$this->subject_privacy = Config::get('subject_privacy');
 		$this->quarantine_dir = $_ENV['QUARANTINE_DIR'];
 	}
@@ -236,7 +236,7 @@ class MailLogController extends ViewController
 			'logs' => $logs,
 			'sum' => $sum,
 			'items_per_page' => $this->items_per_page,
-			'max_items' => Config::get('top_reports'),
+			'max_items' => (int) Config::get('top_reports') ?: 30,
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->flashbag->all(),

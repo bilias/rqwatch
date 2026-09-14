@@ -203,7 +203,7 @@ class Controller
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			$redisKey = Config::get('rspamd_stat_redis_key');
-			$ttl = (int) (Config::get('rspamd_stat_redis_cache_ttl') ?? 300);
+			$ttl = (int) Config::get('rspamd_stat_redis_cache_ttl') ?: 300;
 
 			// Try fetching from redis cache first
 			try {

@@ -52,8 +52,8 @@ class UserService
 	public function __construct() {
 		$this->logger = App::fileLogger();
 
-		$this->items_per_page = Config::get('items_per_page');
-		$this->max_items = Config::get('max_items');
+		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
+		$this->max_items = (int) Config::get('max_items') ?: 10000;
 	}
 
 	public static function getSqlFromQuery(Builder $query): string {

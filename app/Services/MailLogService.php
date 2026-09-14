@@ -82,9 +82,9 @@ class MailLogService
 			$this->user_aliases = $userContext['user_aliases'] ?? null;
 		}
 
-		$this->items_per_page = Config::get('items_per_page');
-		$this->q_items_per_page = Config::get('q_items_per_page');
-		$this->max_items = Config::get('max_items');
+		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
+		$this->q_items_per_page = (int) Config::get('q_items_per_page') ?: 31;
+		$this->max_items = (int) Config::get('max_items') ?: 10000;
 	}
 
 	public static function getSqlFromQuery(Builder $query): string {
@@ -526,7 +526,7 @@ class MailLogService
 			$query->orderBy('total', 'DESC');
 		}
 
-		$query->limit(Config::get('top_reports'));
+		$query->limit((int)Config::get('top_reports') ?: 30);
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -1310,7 +1310,7 @@ class MailLogService
 					->whereIn('action', ['discard', 'reject']); // undelivered
 					*/
 
-		$notification_days = Config::get('notification_days');
+		$notification_days = (int) Config::get('notification_days') ?: 30;
 
 		// Apply date filter only if > 0
 		if (is_numeric($notification_days) && (int)$notification_days > 0) {

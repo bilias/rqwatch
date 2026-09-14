@@ -56,8 +56,8 @@ class MapService
 			$this->user_aliases = $userContect['user_aliases'] ?? null;
 		}
 
-		$this->items_per_page = Config::get('items_per_page');
-		$this->max_items = Config::get('max_items');
+		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
+		$this->max_items = (int) Config::get('max_items') ?: 10000;
 	}
 
 	protected function applyUserRcptToScope($query): Builder {
