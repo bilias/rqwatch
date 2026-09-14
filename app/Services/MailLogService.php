@@ -1310,7 +1310,7 @@ class MailLogService
 					->whereIn('action', ['discard', 'reject']); // undelivered
 					*/
 
-		$notification_days = (int) Config::get('notification_days') ?: 30;
+		$notification_days = (int) Config::get('notification_days');
 
 		// Apply date filter only if > 0
 		if (is_numeric($notification_days) && (int)$notification_days > 0) {

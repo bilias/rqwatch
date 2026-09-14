@@ -53,7 +53,7 @@ class ViewController extends Controller
 	public function __construct() {
 		parent::__construct();
 
-		$this->refresh_rate   = (int) Config::get('refresh_rate') ?: 60;
+		$this->refresh_rate   = (int) Config::get('refresh_rate');
 		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
 		$this->max_items      = (int) Config::get('max_items') ?: 10000;
 	}
