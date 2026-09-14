@@ -19,8 +19,7 @@ The 2.x migrations remove data.
 
 2.x cannot be installed directly from 1.7.x or earlier.
 
-Go to [rqwatch-1.8.4](/releases/tag/v1.8.4) and follow the
-[Rqwatch 1.8+ Update instructions](/docs/UPDATE_1.8_plus.md).
+Follow the [Rqwatch 1.8+ Update instructions](/docs/UPDATE_1.8_plus.md).
 
 Then, while **still on v1.8.4*, run:
 
