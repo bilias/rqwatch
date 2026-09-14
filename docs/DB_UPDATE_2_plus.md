@@ -144,8 +144,10 @@ ALTER TABLE `maps_combined`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 OPTIMIZE TABLE `mail_logs`;
-
 ```
+On MariaDB 10.4+ add `, ALGORITHM=INSTANT` to the `DROP COLUMN` statement to
+make it metadata-only. Without it the server may choose `COPY` and rebuild the
+whole table.
 
 Doing it manually leaves the `migrations` table without a record of it.
 
