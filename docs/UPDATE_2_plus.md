@@ -21,7 +21,7 @@ The 2.x migrations remove data.
 
 Follow the [Rqwatch 1.8+ Update instructions](/docs/UPDATE_1.8_plus.md).
 
-Then, while **still on v1.8.4*, run:
+Then, **while still on v1.8.4**, run:
 
 ```
 ./bin/cli.php db:migrate
@@ -30,10 +30,10 @@ Then, while **still on v1.8.4*, run:
 This must complete. Two of these are data backfills that copy existing rows and
 can take a long time on a large installation:
 
-- **Mail Log Recipients** (`20260111_mail_recipients`) - populates
-  `mail_log_recipients`, which 2.x uses as the only source of recipients.
-- **Mail Log Data** (`20260731_mail_log_data`) - copies `headers`, `symbols`
-  and `fuzzy_hashes` out of `mail_logs` into `mail_log_data`.
+- **Mail Log Recipients** (`20260111_mail_recipients`)\
+  populates `mail_log_recipients`, which 2.x uses as the only source of recipients.
+- **Mail Log Data** (`20260731_mail_log_data`)\
+  copies `headers`, `symbols` and `fuzzy_hashes` out of `mail_logs` into `mail_log_data`.
 
 **Mail Log Data matters most**. 2.x drops those three columns from `mail_logs`,
 and it only drops what 1.8.x already copied out. Any row the migration did not
@@ -55,7 +55,7 @@ never re-copies or truncates anything:
 
 `api/metadata_importer.php` is **removed** in 2.x. If rspamd still posts to it
 after the upgrade it receives a 404, and `metadata_exporter` posts once per
-scan with no retransmit -- so every mail's metadata is silently lost, with
+scan with no retransmit, so every mail's metadata is silently lost, with
 nothing in rspamd's log but a failed HTTP callback.
 
 In Rspamd's `local.d/metadata_exporter.conf`, on **every** API scanning node:
@@ -77,7 +77,8 @@ Follow the general [UPGRADE GUIDE](/docs/UPGRADE.md).
 ## 4. Add the new cron job and check Redis
 
 A new cron entry replays mail metadata that the database refused at the time
-of delivery. Without it nothing is ever replayed. See `contrib/cron`:
+of delivery (required REDIS). Without it nothing is ever replayed.\
+See `contrib/cron`:
 
 ```
 # import mail metadata spooled by the API when database refused a write
@@ -95,8 +96,8 @@ to keep.
 Follow [DB_UPDATE_2_plus.md](/docs/DB_UPDATE_2_plus.md).
 
 It covers the pending migrations, the manual-only column drop, and the table
-rebuild that reclaims the space. The rebuild is the only part that needs a
-maintenance window.
+rebuild that reclaims the space.\
+The rebuild is the only part that needs a maintenance window.
 
 ## 6. Verify
 
