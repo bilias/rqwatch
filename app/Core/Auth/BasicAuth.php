@@ -47,7 +47,7 @@ class BasicAuth implements AuthInterface {
 	#[\Override]
 	public function authenticate(): bool {
 		if (empty($_SERVER['PHP_AUTH_USER']) || empty($_SERVER['PHP_AUTH_PW'])) {
-			$this->doBasicAuth(); // end exit
+			$this->doBasicAuth(); // and exit
 		}
 
 		$providedUser = (string) $_SERVER['PHP_AUTH_USER'];
@@ -62,7 +62,7 @@ class BasicAuth implements AuthInterface {
 			}
 			$this->logger->warning("Failed" . $mode . "Basic Auth user: '{$providedUser}' from '{$_SERVER['REMOTE_ADDR']}'");
 			//sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
-			$this->doBasicAuth();
+			$this->doBasicAuth(); // and exit
 		} else {
 			$this->authenticatedUser = $providedUser;
 			return true; // auth OK
