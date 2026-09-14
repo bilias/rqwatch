@@ -21,7 +21,7 @@ You should avoid busy system hours.
 
 - Start the migration. Run on **one** API server only. Schema changes replicate on Galera.\
   If you run multiple API servers and each one with a separate DB, then you must
-  run it on **all API servers**.
+  run it on **all API servers**.\
   `./bin/cli.php db:migrate`
 
 - Start cron jobs **on all API servers**:\
