@@ -18,7 +18,7 @@ like; do the rebuild once, in a maintenance window, after all migrations are com
 Take a database backup. These migrations destroy data.
 
 Every `mail_logs` row must already have a `mail_log_data` row.\
-The SQL below must return **0**:
+The SQLs below must both return **0**:
 
 ```sql
 SELECT COUNT(*) AS missing
@@ -30,7 +30,20 @@ SELECT COUNT(*) AS missing
 If it does not, run `./bin/cli.php db:migrate_mail_log_data -f` and check again.\
 `-f` fills gaps and never re-copies or truncates anything.
 
-On a large installation the query is slow, so run it while the system is idle rather than
+```sql
+SELECT COUNT(*) AS missing
+  FROM mail_logs ml
+  LEFT JOIN mail_log_recipients r ON r.mail_log_id = ml.id
+ WHERE r.mail_log_id IS NULL
+   AND ml.rcpt_to IS NOT NULL
+   AND ml.rcpt_to <> ''
+   AND ml.rcpt_to <> 'unknown';
+```
+
+If it does not, run `./bin/cli.php db:migrate_mail_recipients -f` and check again.\
+`-f` fills gaps and never re-copies or truncates anything.
+
+On a large installation the queries are slow, so run it while the system is idle rather than
 inside your maintenance window.
 
 ---

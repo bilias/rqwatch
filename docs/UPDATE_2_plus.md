@@ -31,7 +31,7 @@ Follow the [Rqwatch 1.8+ Update instructions](/docs/UPDATE_1.8_plus.md).
 ```
 
 This must complete. Two of these are data backfills that copy existing rows and
-can take a long time on a large installation:
+can take a long time on a large installation.
 
 - **Mail Log Recipients** (`20260111_mail_recipients`)\
   populates `mail_log_recipients`, which 2.x uses as the only source of recipients.
@@ -51,6 +51,10 @@ SELECT migration, status FROM migrations
 
 Both must read `completed`. If a run was interrupted, `-f` fills the gaps and
 never re-copies or truncates anything:
+```
+./bin/cli.php db:migrate_mail_recipients -f
+./bin/cli.php db:migrate_mail_log_data -f
+```
 
 ## 2. Point rspamd at the multipart endpoint
 
