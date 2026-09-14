@@ -1,7 +1,10 @@
 # Database updates for upgrading 1.8.x -> 2.x
 
-`mail_logs` is the table every search reads. These migrations remove data and
-indexes Rqwatch no longer uses. Apply them - the performance win is the point.
+Most of this is about `mail_logs`, the table every search reads: the migrations
+remove data and indexes Rqwatch no longer uses, and the performance win is the
+point. The rest adds constraints to `mail_aliases` and `maps_combined` that
+2.x relies on. An upgrade to the latest version of 1.8.x is required before
+upgrading to 2.x.
 
 The schema change itself is instant, but it does not shrink anything - the old
 data stays in the table's existing pages until the table is rebuilt, which is
@@ -123,8 +126,6 @@ ALTER TABLE `mail_logs`
   DROP INDEX `created_at_index`,
   DROP INDEX `rcpt_to_index`;
 
-OPTIMIZE TABLE `mail_logs`;
-
 DELETE a FROM `mail_aliases` a
   JOIN `mail_aliases` b
     ON b.user_id = a.user_id AND b.alias = a.alias AND b.id < a.id;
@@ -141,15 +142,15 @@ ALTER TABLE `maps_combined`
   ADD KEY `user_id_index` (`user_id`),
   ADD CONSTRAINT `fk_maps_combined_user_id`
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+OPTIMIZE TABLE `mail_logs`;
+
 ```
 
 Doing it manually leaves the `migrations` table without a record of it.
 
-The next run of `db:migrate_drop_mail_log_columns` detects the columns are
-already gone and records the migration as completed without touching the
-table, so run it afterwards to keep the status accurate.
-
-After that run the migrations cli to verify that all migrations are applied:
+In order to verify that all migrations are applied and update their status run:
 ```
 ./bin/cli.php db:migrate
+./bin/cli.php db:migrate_drop_mail_log_columns
 ```
