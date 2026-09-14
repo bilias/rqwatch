@@ -15,7 +15,11 @@ Here is the procedure to apply this update:
 - Update dependencies\
 `composer install`
 
-- Migrate mail recipient entries. This will take rcpt_to entries from mail_logs and insert them in `mail_log_recipients` table:
+- Migrate mail recipient entries. This will take rcpt_to entries from mail_logs and
+  insert them in `mail_log_recipients` table. Run on **one** API server only.
+  Schema changes replicate on Galera.\
+  If you run multiple API servers and each one with a separate DB, then you must
+  run it on **all API servers**.
   ```
   ./bin/cli.php db:migrate_mail_recipients
   ```

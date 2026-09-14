@@ -21,7 +21,7 @@ git checkout v2.1.0
 
 - `composer dump-autoload` will be needed if you have run it in the past
 
-- Start the migration **on ONE API server ONLY**. Schema changes replicate on Galera.\
+- Run on **one** API server only. Schema changes replicate on Galera.\
   If you run multiple API servers and each one with a separate DB, then you must
   run it on **all API servers**.
 `./bin/cli.php db:migrate`
