@@ -213,6 +213,20 @@ abstract class AbstractMigration {
 		);
 	}
 
+	// Records FAILED from a catch block. The failure is often the database
+	// itself, so a status write that throws is logged and swallowed rather
+	// than replacing the original error.
+	protected function recordMigrationFailed(): void {
+		try {
+			$this->recordMigrationStatus(Migrations::STATUS_FAILED);
+		} catch (Throwable $e) {
+			$this->fileLogger->error(
+				"Could not record FAILED for migration: {$this->getName()}: "
+				. $e->getMessage()
+			);
+		}
+	}
+
 	public function ensureMigrationsTable(): void {
 		if (!$this->hasTable(AppConfig::MIGRATIONS_TABLE)) {
 			$this->fileLogger->warning("DB Schema does not have 'MIGRATIONS_TABLE', creating it.");

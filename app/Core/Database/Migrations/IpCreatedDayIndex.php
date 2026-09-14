@@ -80,6 +80,8 @@ class IpCreatedDayIndex extends AbstractMigration {
 				"<error>Migration $details failed: {$e->getMessage()}</error>"
 			);
 
+			$this->recordMigrationFailed();
+
 			return false;
 		}
 

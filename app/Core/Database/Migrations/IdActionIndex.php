@@ -86,6 +86,8 @@ class IdActionIndex extends AbstractMigration {
 				"<error>Migration $details failed: {$e->getMessage()}</error>"
 			);
 
+			$this->recordMigrationFailed();
+
 			return false;
 		}
 
