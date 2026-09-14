@@ -80,19 +80,4 @@ class MailAliasSearchForm extends AbstractType
 		);
 	}
 
-	public static function check_form(
-		FormInterface $form,
-		UrlGeneratorInterface $urlGenerator
-	): ?RedirectResponse {
-
-		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData();
-			dd($data);
-
-			$url = $urlGenerator->generate(RouteName::ADMIN_ALIASES_SEARCH->value);
-			return new RedirectResponse($url);
-      }
-
-		return null;
-	}
 }
