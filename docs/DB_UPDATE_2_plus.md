@@ -13,7 +13,7 @@ like; do the rebuild once, in a maintenance window, after all migrations are com
 
 ---
 
-## Before you start
+## Step 0 - Before you start
 
 Take a database backup. These migrations destroy data.
 
@@ -37,7 +37,7 @@ SELECT COUNT(*) AS missing
  WHERE r.mail_log_id IS NULL
    AND ml.rcpt_to IS NOT NULL
    AND ml.rcpt_to <> ''
-   AND ml.rcpt_to <> 'unknown';
+   AND REPLACE(REPLACE(ml.rcpt_to, 'unknown', ''), ',', '') <> '';
 ```
 
 If it does not, run `./bin/cli.php db:migrate_mail_recipients -f` and check again.\
@@ -45,6 +45,9 @@ If it does not, run `./bin/cli.php db:migrate_mail_recipients -f` and check agai
 
 On a large installation the queries are slow, so run it while the system is idle rather than
 inside your maintenance window.
+
+The `db:migrate_mail_log_data` migration is the most important one since we drop later in
+Step 2 the original columns.
 
 ---
 
@@ -74,7 +77,7 @@ run it on **all API servers**.
 ./bin/cli.php db:migrate_drop_mail_log_columns
 ```
 
-Drops `headers`, `symbols` and `fuzzy_hashes`, already copied to
+**Drops** `headers`, `symbols` and `fuzzy_hashes`, already copied to
 `mail_log_data` by `db:migrate_mail_log_data`.\
 Refuses to run unless that migration is recorded as completed.
 
