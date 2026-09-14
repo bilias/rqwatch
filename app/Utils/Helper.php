@@ -973,7 +973,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			$redisKey = Config::get('dns_resolv_redis_key') . ":ptr:{$ip}";
 			$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
-			$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 600;
+			$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
 			try {
 				$cached = App::cache()->get($redisKey);
 				if ($cached !== false) {
@@ -1024,7 +1024,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			$redisKey = Config::get('dns_resolv_redis_key') . ':fwd:' . $host;
 			$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
-			$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 600;
+			$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
 			try {
 				$cached = App::cache()->get($redisKey);
 				if ($cached !== false) {
