@@ -230,15 +230,6 @@ final class MigrationStatus
 		}
 	}
 
-	public function mailLogDataState(): ?string {
-		return $this->getMigrationState(Migrations::MAIL_LOG_DATA);
-	}
-
-	public function isMigrationRunning(string $migration): bool {
-		return $this->getMigrationState($migration)
-			=== Migrations::STATUS_RUNNING;
-	}
-
 	public function isMigrationCompleted(string $migration): bool {
 		return $this->getMigrationState($migration)
 			=== Migrations::STATUS_COMPLETED;
@@ -256,44 +247,8 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::CREATED_DAY);
 	}
 
-	public function idActionIndexCompleted(): bool {
-		return $this->isMigrationCompleted(Migrations::ID_ACTION_INDEX);
-	}
-
-	public function ipCreatedDayIndexCompleted(): bool {
-		return $this->isMigrationCompleted(Migrations::IP_CREATED_DAY_INDEX);
-	}
-
 	public function mailLogTokensCompleted(): bool {
 		return $this->isMigrationCompleted(Migrations::MAIL_LOG_TOKENS);
-	}
-
-	public function dropMailLogColumnsCompleted(): bool {
-		return $this->isMigrationCompleted(Migrations::DROP_MAIL_LOG_COLUMNS);
-	}
-
-	public function mailLogDataRunning(): bool {
-		return $this->isMigrationRunning(Migrations::MAIL_LOG_DATA);
-	}
-
-	public function mailRecipientsRunning(): bool {
-		return $this->isMigrationRunning(Migrations::MAIL_RECIPIENTS);
-	}
-
-	public function createdDayRunning(): bool {
-		return $this->isMigrationRunning(Migrations::CREATED_DAY);
-	}
-
-	public function idActionIndexRunning(): bool {
-		return $this->isMigrationRunning(Migrations::ID_ACTION_INDEX);
-	}
-
-	public function ipCreatedDayIndexRunning(): bool {
-		return $this->isMigrationRunning(Migrations::IP_CREATED_DAY_INDEX);
-	}
-
-	public function dropMailLogColumnsRunning(): bool {
-		return $this->isMigrationRunning(Migrations::DROP_MAIL_LOG_COLUMNS);
 	}
 
 	public function getAllMigrationStates(): array {
