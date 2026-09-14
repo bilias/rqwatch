@@ -240,7 +240,7 @@ class UserService
 
 		$addresses = array_values(array_unique(array_filter(array_map(
 			fn ($a) => strtolower(trim((string) $a)),
-			array_merge([$user->email], $user->aliases->pluck('alias')->all())
+			array_merge([$user->email], $user->mailAliases->pluck('alias')->all())
 		))));
 
 		if (!empty($addresses) && !empty($userMaps)) {
