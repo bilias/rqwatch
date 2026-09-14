@@ -471,7 +471,7 @@ class MapService
 		foreach (array_unique($map_names) as $map_name) {
 			if (!$this->updateMapActivityLog((string) $map_name, $last_update)) {
 				$this->logger->warning(
-					"touchMapActivity: cannot update MapActivityLog for '{$map_name}'"
+					"updateMapActivityLogs: cannot update MapActivityLog for '{$map_name}'"
 				);
 			}
 		}
@@ -661,13 +661,13 @@ class MapService
 
 		$last_update = date("Y-m-d H:i:s");
 
-		// update map file
-		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
 			return false;
 		}
 
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
+		// update map file
+		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
 			return false;
 		}
 
@@ -731,13 +731,13 @@ class MapService
 
 		$last_update = date("Y-m-d H:i:s");
 
-		// update map file
-		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
 			return false;
 		}
 
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
+		// update map file
+		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
 			return false;
 		}
 
@@ -812,13 +812,13 @@ class MapService
 
 		$last_update = date("Y-m-d H:i:s");
 
-		// update map file
-		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
 			return false;
 		}
 
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
+		// update map file
+		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
 			return false;
 		}
 
@@ -864,13 +864,13 @@ class MapService
 
 		$last_update = date("Y-m-d H:i:s");
 
-		// update map file
-		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
 			return false;
 		}
 
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
+		// update map file
+		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
 			return false;
 		}
 
@@ -898,15 +898,15 @@ class MapService
 
 		$last_update = date("Y-m-d H:i:s");
 
-		// update map file
-		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
-			$this->logger->error("Error updating map file for '{$map_name}' in addCustomMapConfig");
-			return false;
-		}
-
 		// update Activity log table in DB
 		if (!self::updateMapActivityLog($map_name, $last_update)) {
 			$this->logger->error("Error updating map activity log for '{$map_name}' in addCustomMapConfig");
+			return false;
+		}
+
+		// update map file
+		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
+			$this->logger->error("Error updating map file for '{$map_name}' in addCustomMapConfig");
 			return false;
 		}
 
@@ -965,15 +965,15 @@ class MapService
 
 		$last_update = date("Y-m-d H:i:s");
 
-		// 3. update map file
-		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
-			$this->logger->error("Error updating map file for '{$map_name}' in updateCustomMapConfig");
+		// 3. update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			$this->logger->error("Error updating map activity log for '{$map_name}' in addCustomMapConfig");
 			return false;
 		}
 
-		// 4. update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
-			$this->logger->error("Error updating map activity log for '{$map_name}' in addCustomMapConfig");
+		// 4. update map file
+		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
+			$this->logger->error("Error updating map file for '{$map_name}' in updateCustomMapConfig");
 			return false;
 		}
 
@@ -1047,13 +1047,13 @@ class MapService
 
 		$last_update = date("Y-m-d H:i:s");
 
-		// update map file
-		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
 			return false;
 		}
 
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
+		// update map file
+		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
 			return false;
 		}
 
@@ -1095,13 +1095,13 @@ class MapService
 
 		$last_update = date("Y-m-d H:i:s");
 
-		// update map file
-		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
 			return false;
 		}
 
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
+		// update map file
+		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
 			return false;
 		}
 
@@ -1150,13 +1150,13 @@ class MapService
 
 		$last_update = date("Y-m-d H:i:s");
 
-		// update map file
-		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
+		// update Activity log table in DB
+		if (!self::updateMapActivityLog($map_name, $last_update)) {
 			return false;
 		}
 
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
+		// update map file
+		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
 			return false;
 		}
 
