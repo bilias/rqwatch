@@ -24,6 +24,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Illuminate\Database\QueryException;
 
 use RuntimeException;
+use Throwable;
 
 class DropMailLogColumns extends AbstractMigration {
 
@@ -89,7 +90,7 @@ class DropMailLogColumns extends AbstractMigration {
 
 			$this->runMigration($output);
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->fileLogger->error(
 				"Migration $name failed: " . $e->getMessage()
 			);

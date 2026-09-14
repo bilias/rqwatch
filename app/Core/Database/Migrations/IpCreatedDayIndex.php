@@ -20,6 +20,7 @@ use App\Inventory\Migrations;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use RuntimeException;
+use Throwable;
 
 class IpCreatedDayIndex extends AbstractMigration {
 
@@ -71,7 +72,7 @@ class IpCreatedDayIndex extends AbstractMigration {
 
 			$this->runMigration();
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->fileLogger->error(
 				"Migration $name failed: " . $e->getMessage()
 			);

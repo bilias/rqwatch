@@ -16,6 +16,7 @@ use App\Inventory\Migrations;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use RuntimeException;
+use Throwable;
 
 class DropMailLogIndexes extends AbstractMigration {
 
@@ -56,7 +57,7 @@ class DropMailLogIndexes extends AbstractMigration {
 
 			$this->runMigration($output);
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->fileLogger->error(
 				"Migration $name failed: " . $e->getMessage()
 			);

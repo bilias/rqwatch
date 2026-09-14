@@ -26,6 +26,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Closure;
 use RuntimeException;
 use InvalidArgumentException;
+use Throwable;
 
 abstract class AbstractMigration {
 

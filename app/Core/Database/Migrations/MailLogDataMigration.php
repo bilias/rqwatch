@@ -19,6 +19,7 @@ use App\Models\MailLogData;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use RuntimeException;
+use Throwable;
 
 class MailLogDataMigration extends AbstractMigration {
 
@@ -54,7 +55,7 @@ class MailLogDataMigration extends AbstractMigration {
 
 			$this->runMigration($batch, $sleep, $output);
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->fileLogger->error(
 				"Migration $name failed: " . $e->getMessage()
 			);
@@ -160,7 +161,7 @@ class MailLogDataMigration extends AbstractMigration {
 
 		try {
 			$this->createMailLogDataTable($output);
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->fileLogger->error(
 				"createMailLogDataTable failed: " . $e->getMessage()
 			);
