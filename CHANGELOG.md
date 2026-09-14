@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v2.1.0 - Released: 2026-09-14
+
 ### 2026-09-14
 - First update map_activity_logs in db then map file
 - Update map activity logs timestamp when entry is deleted from user/alias delete
