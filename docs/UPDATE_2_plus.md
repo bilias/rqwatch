@@ -1,4 +1,4 @@
-# Rqwatch 2.+ Update instructions
+# Rqwatch 2.x+ Update instructions
 
 # WARNING
 
