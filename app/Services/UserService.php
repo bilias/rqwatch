@@ -173,24 +173,21 @@ class UserService
 			return $this->notificationsDisabledCache[$email];
 		}
 
-		$user = User::where('email', $email)->first();
+		// every user holding this address, by primary email or by alias
+		$holders = User::where('email', $email)
+			->orWhereIn('id', MailAlias::where('alias', $email)->select('user_id'))
+			->get(['id', 'disable_notifications']);
 
-		// check if email matches a user's email
-		if ($user) {
-			return $this->notificationsDisabledCache[$email]
-				= (bool) $user->disable_notifications;
-		}
+		/*
+		 An alias can serve several users, so no single opt-out decides for
+		 the address: the mail arrives in one mailbox either way. Silence it
+		 only when every holder has opted out; an address with no account
+		 notifies by default.
+		*/
+		$disabled = $holders->isNotEmpty()
+			&& $holders->every(fn ($u) => (bool) $u->disable_notifications);
 
-		// check if email matches an alias
-		$alias = MailAlias::with('user')->where('alias', $email)->first();
-
-		if ($alias && $alias->user) {
-			return $this->notificationsDisabledCache[$email]
-				= (bool) $alias->user->disable_notifications;
-		}
-
-		// not found, notifications enabled by default
-		return $this->notificationsDisabledCache[$email] = false;
+		return $this->notificationsDisabledCache[$email] = $disabled;
 	}
 
 	public function userExists(string $user): bool {
