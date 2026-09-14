@@ -1,4 +1,4 @@
-# Cleaning up the mail_logs schema
+# Database updates for upgrading 1.8.x -> 2.x
 
 `mail_logs` is the table every search reads. These migrations remove data and
 indexes Rqwatch no longer uses. Apply them - the performance win is the point.
@@ -31,7 +31,23 @@ inside your maintenance window.
 
 ---
 
-## Step 1 - apply the data migration
+## Step 1 - apply the pending migrations
+
+Run on **one** API server only. Schema changes replicate on Galera.\
+If you run multiple API servers and each one with a separate DB, then you must
+run it on **all API servers**.
+
+```
+./bin/cli.php db:migrate
+```
+
+Applies everything pending for 2.x, including dropping the `mail_logs` indexes
+Rqwatch no longer uses. Metadata-only, seconds, no maintenance window.
+
+`db:migrate` deliberately skips `db:migrate_drop_mail_log_columns` - it is
+marked manual-only because it destroys data and can rebuild a large table.
+
+## Step 2 - apply the data migration
 
 Run on **one** API server only. Schema changes replicate on Galera.\
 If you run multiple API servers and each one with a separate DB, then you must
@@ -48,13 +64,6 @@ Refuses to run unless that migration is recorded as completed.
 On older MariaDB (before 10.4) the instant path is refused and the migration rebuilds the
 table instead, doing step 3's work at the same time. It logs which path it
 took. A rebuild **needs free disk space** for a second copy of the table.
-
-## Step 2 - drop deprecated indexes
-```
-./bin/cli.php db:migrate_drop_mail_log_indexes
-```
-
-This drops indexes from `mail_logs` table that are no longer needed.
 
 ## Step 3 - reclaim the space
 
@@ -99,7 +108,8 @@ If you prefer to apply the changes by hand rather than through the CLI, the
 statements are in:\
 `contrib/updates/09-db-update-2026-09-08`\
 `contrib/updates/10-db-update-2026-09-11`\
-`contrib/updates/11-db-update-2026-09-11`
+`contrib/updates/11-db-update-2026-09-11`\
+`contrib/updates/12-db-update-2026-09-12`
 
 ```sql
 ALTER TABLE `mail_logs`
@@ -113,9 +123,24 @@ ALTER TABLE `mail_logs`
   DROP INDEX `rcpt_to_index`;
 
 OPTIMIZE TABLE `mail_logs`;
-```
 
-Add `, ALGORITHM=INSTANT` to make it metadata-only.
+DELETE a FROM `mail_aliases` a
+  JOIN `mail_aliases` b
+    ON b.user_id = a.user_id AND b.alias = a.alias AND b.id < a.id;
+
+ALTER TABLE `mail_aliases`
+  ADD UNIQUE KEY `user_id_alias_idx` (`user_id`, `alias`);
+
+DELETE m FROM `maps_combined` m
+  LEFT JOIN `users` u ON u.id = m.user_id
+  WHERE u.id IS NULL;
+
+ALTER TABLE `maps_combined`
+  MODIFY `user_id` INT UNSIGNED NOT NULL,
+  ADD KEY `user_id_index` (`user_id`),
+  ADD CONSTRAINT `fk_maps_combined_user_id`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+```
 
 Doing it manually leaves the `migrations` table without a record of it.
 
