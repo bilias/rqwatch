@@ -107,7 +107,7 @@ class CronNotifications extends RqwatchCliCommand
 			foreach ($removedIds as $id) {
 				$output->writeln("<comment>Empty `mail_recipients` for id: {$id}</comment>, disabling notification{$local}",
 					OutputInterface::VERBOSITY_VERBOSE);
-				$this->fileLogger->warning("{$this->app_name} Empty `mail_recipients` for id: {$id}, disabling notification{$local}");
+				$this->fileLogger->debug("{$this->app_name} Empty `mail_recipients` for id: {$id}, disabling notification{$local}");
 			}
 		}
 		// don't need these anymore
