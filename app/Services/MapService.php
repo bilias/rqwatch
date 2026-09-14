@@ -967,7 +967,7 @@ class MapService
 
 		// 3. update Activity log table in DB
 		if (!self::updateMapActivityLog($map_name, $last_update)) {
-			$this->logger->error("Error updating map activity log for '{$map_name}' in addCustomMapConfig");
+			$this->logger->error("Error updating map activity log for '{$map_name}' in updateCustomMapConfig");
 			return false;
 		}
 
