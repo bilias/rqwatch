@@ -30,8 +30,6 @@ git checkout v1.8.4
 ```
 git fetch --tags origin
 
-git describe --tags --abbrev=0
-
 git checkout v1.8.4
 ```
 
