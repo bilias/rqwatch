@@ -370,6 +370,7 @@ class Routes
 			],
 		));
 
+		/*
 		$routes->add(RouteName::ADMIN_ALIASES_EDIT->value, new Route(
 			'/admin/aliases/edit/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MailAliasController::edit',
@@ -377,6 +378,7 @@ class Routes
 			],
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
+		*/
 
 		$routes->add(RouteName::ADMIN_ALIASES_DEL->value, new Route(
 			'/admin/aliases/del/{id}', // path
