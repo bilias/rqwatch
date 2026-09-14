@@ -218,13 +218,13 @@ class Router
 		// we do not need Router in our API or CLI
 		if (!defined('WEB_MODE') || defined('API_MODE') || defined('CLI_MODE')) {
 			$fileLogger->error("Router requested with wrong mode");
-			exit();
+			Helper::failRequest("Router requested with wrong mode");
 		}
 
 		if (!Helper::env_bool('WEB_ENABLE')) {
 			$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 			$fileLogger->warning("Client '{$ip}' requested '" . $_SERVER['REQUEST_URI'] . "' but Web is disabled.");
-			exit("Web is disabled");
+			Helper::failRequest("Web is disabled", Response::HTTP_SERVICE_UNAVAILABLE);
 		}
 
 		// Load routes and default middleware classes
@@ -234,13 +234,13 @@ class Router
 			$defaultMiddlewareClasses = $routeConfig['defaultMiddlewareClasses'];
 		} catch (Throwable $e) {
 			$fileLogger->error("Routes loading failed: " . $e->getMessage());
-			exit("Routes misconfigured.");
+			Helper::failRequest("Routes misconfigured.");
 		}
 
 		if (!isset($routes) || !isset($defaultMiddlewareClasses)) {
 			$fileLogger->error("Routes loading failed: routes or middleware missing from Routes::load()");
 
-			exit("Routes misconfigured.");
+			Helper::failRequest("Routes misconfigured.");
 		}
 
 		// Instantiate Router and handle the request
