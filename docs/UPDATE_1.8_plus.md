@@ -23,9 +23,9 @@ DB Migrations are required:
 If you run on one server only, the update can be done live without service disruption.
 The system detects the migration status and stores data appropriately.
 
-- Follow the [UPGRADE GUIDE](UPGRADE.md) to get the latest code
+- Follow the [Rqwatch 1.8.4 Upgrade Guide](UPGRADE_1.8_plus.md) to get the latest code
 
-- Follow the [DB MIGRATION GUIDE](DB_MIGRATION.md) to perform the database migrations
+- Follow the [1.8.x DB MIGRATION GUIDE](DB_MIGRATION_1.8.md) to perform the database migrations
 
 Please make sure you have available space in MySQL data path, at least the size of Rqwatch database.
 
@@ -33,10 +33,10 @@ Please make sure you have available space in MySQL data path, at least the size 
 
 If you run with multiple API servers, then:
 
-- Follow the [UPGRADE GUIDE](UPGRADE.md) to get the latest code **on all API servers/WEB servers**
+- Follow the [Rqwatch 1.8.4 Upgrade Guide](UPGRADE_1.8_plus.md) to get the latest code **on all API servers/WEB servers**
 
 After code has been updated on all servers:
 
-- Follow the [DB MIGRATION GUIDE](DB_MIGRATION.md) to perform the database migrations **on one API server only**
+- Follow the 1.8.x [1.8.x DB MIGRATION GUIDE](DB_MIGRATION_1.8.md) to perform the database migrations **on one API server only**
 
 The Migration subsystem detects the migration status (pending/finished/completed) and performs writes to the DB appropriately. 
