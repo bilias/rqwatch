@@ -6,8 +6,11 @@ Rqwatch 2.x **drops deprecated columns** and indexes from `mail_logs`, adds
 constraints to `mail_aliases` and `maps_combined`, and **removes the
 non-multipart metadata importer endpoint**.
 
-Read the upgrade path below before pulling the code.\
-**Upgrading from 1.8.x without completing the database migrations first is not supported**.
+Read the upgrade path below before pulling the code.
+
+**Upgrading from 1.8.x without completing the 1.8.x database migrations first is not supported**.
+
+**Upgrading from 1.7.x or earlier is also not supported**.
 
 # Upgrade
 
@@ -21,7 +24,7 @@ The 2.x migrations remove data.
 
 Follow the [Rqwatch 1.8+ Update instructions](/docs/UPDATE_1.8_plus.md).
 
-Then, **while still on v1.8.4**, run:
+**Then, while still on v1.8.4, run**:
 
 ```
 ./bin/cli.php db:migrate
@@ -69,6 +72,8 @@ Notice the `metadata_importer_multipart.php` here instead of the legacy
 Reload rspamd and confirm new mail still appears in Rqwatch. The multipart
 endpoint already exists in 1.8.4, so this can be done and verified ahead of
 the code change.
+
+---
 
 ## 3. Get the 2.x code
 
