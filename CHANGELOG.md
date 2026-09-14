@@ -2,10 +2,15 @@
 
 ## Master Dev Branch
 
+### 2026-09-14
+- Notifications for an alias held by several users are only suppressed when all of them have opted out
+
 ### 2026-09-12
-- Add MAP_USER_CONSTRAINTS Migration
+- Fix map entry cleanup when a user alias is deleted
+- Map and alias user constraints migration (20260912_map_user_constraints)
+- Log the acting admin on user and alias deletion
 - Reassign map entries on user delete
-- Prevent admin self user delete
+- An admin can no longer delete their own account
 
 ### 2026-09-11
 - Gate server search field for non-admin users
