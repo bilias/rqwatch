@@ -370,16 +370,6 @@ class Routes
 			],
 		));
 
-		/*
-		$routes->add(RouteName::ADMIN_ALIASES_EDIT->value, new Route(
-			'/admin/aliases/edit/{id}', // path
-			[ '_controller' => 'App\\Controllers\\MailAliasController::edit',
-			  '_middleware' => $adminMiddlewareClasses,
-			],
-			[ 'id' => '\d{1,8}' ] // requirements
-		));
-		*/
-
 		$routes->add(RouteName::ADMIN_ALIASES_DEL->value, new Route(
 			'/admin/aliases/del/{id}', // path
 			[ '_controller' => 'App\\Controllers\\MailAliasController::del',
@@ -693,7 +683,6 @@ class Routes
 			'admin_aliases' => $adminMiddlewareClasses,
 			'admin_aliases_search' => $adminMiddlewareClasses,
 			'admin_aliases_add' => $adminMiddlewareClasses,
-			'admin_aliases_edit' => $adminMiddlewareClasses,
 			'admin_aliases_del' => $adminMiddlewareClasses,
 			'showmail' => $userMiddlewareClasses,
 			'admin_showmail' => $adminMiddlewareClasses,

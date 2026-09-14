@@ -52,7 +52,6 @@ enum RouteName: string
 	case ADMIN_ALIASES = 'admin_aliases';
 	case ADMIN_ALIASES_SEARCH = 'admin_aliases_search';
 	case ADMIN_ALIASES_ADD = 'admin_aliases_add';
-	case ADMIN_ALIASES_EDIT = 'admin_aliases_edit';
 	case ADMIN_ALIASES_DEL = 'admin_aliases_del';
 	case PROFILE = 'profile';
 	case SHOWMAIL = 'showmail';
