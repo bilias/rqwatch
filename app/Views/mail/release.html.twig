@@ -1,20 +1,26 @@
 {% include 'mail/header.twig' %}
 
-<h3>The following mail has been released from quarantine storage<br/>
+{# inline styles, because an attached message/rfc822 is rendered in the
+   same document by some clients and its <style> would otherwise apply here #}
+{% set base = 'background-color:#ffffff !important; color:#000000 !important;' %}
+
+<div style="{{ base }}">
+<h3 style="{{ base }}">The following mail has been released from quarantine storage<br/>
 and attached to this mail.</h3>
-<h4>Please be very carefull before opening any attachment the original mail might have!</h4>
-<table>
-<tr><td><strong>Date</strong>:</td><td>{{ created_at }}</td></tr>
-<tr><td><strong>From</strong>:</td><td>{{ mime_from }}</td></tr>
-<tr><td><strong>To</strong>:</td><td>{{ rcpt_to }}</td></tr>
-<tr><td><strong>Subject</strong>:</td><td>'{{ subject }}'</td></tr>
-<tr><td><strong>Mail Queue ID</strong>:</td><td>{{ qid }}</td></tr>
-<tr><td><strong>Message ID</strong>:</td><td>{{ message_id }}</td></tr>
-<tr><td><strong>Spam Score</strong>:</td><td>{{ score }}</td></tr>
-<tr><td><strong>Virus Detected</strong>:</td><td>{% if has_virus %}Yes {{ virus_name }}{% else %}No{% endif %}</td></tr>
-<tr><td><strong>Action</strong>:</td><td>{{ action }}</td></tr>
+<h4 style="{{ base }}">Please be very carefull before opening any attachment the original mail might have!</h4>
+<table style="{{ base }}">
+<tr><td style="{{ base }}"><strong>Date</strong>:</td><td style="{{ base }}">{{ created_at }}</td></tr>
+<tr><td style="{{ base }}"><strong>From</strong>:</td><td style="{{ base }}">{{ mime_from }}</td></tr>
+<tr><td style="{{ base }}"><strong>To</strong>:</td><td style="{{ base }}">{{ rcpt_to }}</td></tr>
+<tr><td style="{{ base }}"><strong>Subject</strong>:</td><td style="{{ base }}">'{{ subject }}'</td></tr>
+<tr><td style="{{ base }}"><strong>Mail Queue ID</strong>:</td><td style="{{ base }}">{{ qid }}</td></tr>
+<tr><td style="{{ base }}"><strong>Message ID</strong>:</td><td style="{{ base }}">{{ message_id }}</td></tr>
+<tr><td style="{{ base }}"><strong>Spam Score</strong>:</td><td style="{{ base }}">{{ score }}</td></tr>
+<tr><td style="{{ base }}"><strong>Virus Detected</strong>:</td><td style="{{ base }}">{% if has_virus %}Yes {{ virus_name }}{% else %}No{% endif %}</td></tr>
+<tr><td style="{{ base }}"><strong>Action</strong>:</td><td style="{{ base }}">{{ action }}</td></tr>
 </table>
 
-<h4>{{ signature | nl2br }}</h4>
+<h4 style="{{ base }}">{{ signature | nl2br }}</h4>
+</div>
 
 {% include 'mail/footer.twig' %}
