@@ -1343,7 +1343,7 @@ table.attachments .filename {
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1140px) {
 
   .menu-toggle {
     display: flex;
