@@ -37,6 +37,6 @@ If you run with multiple API servers, then:
 
 After code has been updated on all servers:
 
-- Follow the 1.8.x [1.8.x DB MIGRATION GUIDE](DB_MIGRATION_1.8.md) to perform the database migrations **on one API server only**
+- Follow the [1.8.x DB MIGRATION GUIDE](DB_MIGRATION_1.8.md) to perform the database migrations **on one API server only**
 
 The Migration subsystem detects the migration status (pending/finished/completed) and performs writes to the DB appropriately. 
