@@ -1,3 +1,5 @@
+# Rqwatch 2.+ Update instructions
+
 # WARNING
 
 Rqwatch 2.x **drops deprecated columns** and indexes from `mail_logs`, adds
