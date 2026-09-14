@@ -26,7 +26,9 @@ composer install
 # verify php modules
 composer check-platform-reqs
 
-# Check and perform Database updates
+# Check and perform Database updates on one API server only. Schema changes
+# replicate on Galera. If you run multiple API servers and each one with a separate DB,
+# then you must run it on all API servers.
 ./bin/cli.php db:migrate
 
 # needed if you have run it in the past

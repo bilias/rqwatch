@@ -2,7 +2,7 @@
 
 Versions 1.7+ of Rqwatch containes important update to DB schema for better performance.
 
-If you are on version 1.8+ you can follow the [DB_MIGRATION_GUIDE](DB_MIGRATION.md).
+If you are on version 1.8+ you can follow the [1.8.x DB_MIGRATION_GUIDE](DB_MIGRATION_1.8.md).
 
 Here is the procedure to apply this update:
 
