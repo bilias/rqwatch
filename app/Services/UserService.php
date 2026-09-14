@@ -244,16 +244,22 @@ class UserService
 		))));
 
 		if (!empty($addresses) && !empty($userMaps)) {
-			$deleted = MapCombined::where('user_id', $user->id)
+			$query = MapCombined::where('user_id', $user->id)
 				->whereIn('map_name', $userMaps)
-				->whereIn('rcpt_to', $addresses)
-				->delete();
+				->whereIn('rcpt_to', $addresses);
+
+			// map names while the rows still exist
+			$affected = (clone $query)->distinct()->pluck('map_name')->all();
+
+			$deleted = $query->delete();
 
 			if ($deleted > 0) {
 				$this->logger->info(
 					"userDel: deleted {$deleted} map entries of"
 					. " '{$user->username}' by '{$actingUsername}'"
 				);
+
+				(new MapService())->updateMapActivityLogs($affected);
 			}
 		}
 

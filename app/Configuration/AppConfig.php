@@ -78,6 +78,7 @@ public const string MIGRATIONS_TABLE = 'migrations';
 public const string USERS_TABLE = 'users';
 public const string MAIL_ALIASES_TABLE = 'mail_aliases';
 public const string MAPS_COMBINED_TABLE = 'maps_combined';
+public const string MAP_ACTIVITY_LOGS_TABLE = 'map_activity_logs';
 
 // Table encoding, declared on the Blueprint by
 // AbstractMigration::createTable() rather than left to the connection config.

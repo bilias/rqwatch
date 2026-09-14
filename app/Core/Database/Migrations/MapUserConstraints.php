@@ -159,9 +159,18 @@ class MapUserConstraints extends AbstractMigration {
 	// scope keys on user_id, so a row with no user is invisible to admin and
 	// user alike while still being written into the generated map files.
 	private function deleteOrphanMapEntries(OutputInterface $output): void {
+		$maps = AppConfig::MAPS_COMBINED_TABLE;
+		$users = AppConfig::USERS_TABLE;
+
+		// map names while the rows still exist
+		$affected = $this->capsule->getConnection()->select(
+			"SELECT DISTINCT m.map_name FROM `{$maps}` m "
+			. "LEFT JOIN `{$users}` u ON u.id = m.user_id WHERE u.id IS NULL"
+		);
+
 		$deleted = $this->capsule->getConnection()->delete(
-			"DELETE m FROM `" . AppConfig::MAPS_COMBINED_TABLE . "` m "
-			. "LEFT JOIN `" . AppConfig::USERS_TABLE . "` u ON u.id = m.user_id "
+			"DELETE m FROM `{$maps}` m "
+			. "LEFT JOIN `{$users}` u ON u.id = m.user_id "
 			. "WHERE u.id IS NULL"
 		);
 
@@ -170,7 +179,31 @@ class MapUserConstraints extends AbstractMigration {
 				"Migration {$this->getName()}: deleted {$deleted} map entries with no user"
 			);
 			$output->writeln("<info>Deleted {$deleted} orphaned map entries</info>");
+
+			$this->bumpMapActivity(array_column($affected, 'map_name'));
 		}
+	}
+
+	/*
+	 cron:updatemapfiles only rewrites a file whose Last-Modified header is
+	 older than last_changed_at, so a delete that skips this leaves the entry
+	 live in the generated file. Raw SQL rather than MapService: no migration
+	 in this tree touches a model or a service.
+	*/
+	private function bumpMapActivity(array $map_names): void {
+		$map_names = array_values(array_unique(array_filter($map_names)));
+
+		if (empty($map_names)) {
+			return;
+		}
+
+		$placeholders = implode(',', array_fill(0, count($map_names), '?'));
+
+		$this->capsule->getConnection()->update(
+			"UPDATE `" . AppConfig::MAP_ACTIVITY_LOGS_TABLE . "` "
+			. "SET last_changed_at = NOW() WHERE map_name IN ({$placeholders})",
+			$map_names
+		);
 	}
 
 	/*

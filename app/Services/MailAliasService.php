@@ -100,16 +100,22 @@ class MailAliasService
 			return App::capsule()->connection()->transaction(
 				function () use ($alias, $address, $user_id, $userMaps, $actingUsername) {
 					if ($address !== '' && !empty($userMaps)) {
-						$deleted = MapCombined::where('user_id', $user_id)
+						$query = MapCombined::where('user_id', $user_id)
 							->whereIn('map_name', $userMaps)
-							->where('rcpt_to', $address)
-							->delete();
+							->where('rcpt_to', $address);
+
+						// map names while the rows still exist
+						$affected = (clone $query)->distinct()->pluck('map_name')->all();
+
+						$deleted = $query->delete();
 
 						if ($deleted > 0) {
 							$this->logger->info(
 								"aliasDel: deleted {$deleted} map entries for alias"
 								. " '{$address}' by '{$actingUsername}'"
 							);
+
+							(new MapService())->updateMapActivityLogs($affected);
 						}
 					}
 

@@ -460,6 +460,23 @@ class MapService
 		return false;
 	}
 
+	/*
+	 Bump the activity log for several maps at once. Any caller that deletes
+	 maps_combined rows directly must do this: cron:updatemapfiles only
+	 rewrites a file whose Last-Modified header is older than last_changed_at.
+	*/
+	public function updateMapActivityLogs(array $map_names): void {
+		$last_update = date('Y-m-d H:i:s');
+
+		foreach (array_unique($map_names) as $map_name) {
+			if (!$this->updateMapActivityLog((string) $map_name, $last_update)) {
+				$this->logger->warning(
+					"touchMapActivity: cannot update MapActivityLog for '{$map_name}'"
+				);
+			}
+		}
+	}
+
 	public function updateMapFile(
 		string $model,
 		string $map_name,

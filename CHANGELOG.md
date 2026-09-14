@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-09-14
+- Update map activity logs timestamp when entry is deleted from user/alias delete
 - Notifications for an alias held by several users are only suppressed when all of them have opted out
 
 ### 2026-09-12
