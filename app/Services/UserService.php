@@ -255,7 +255,7 @@ class UserService
 
 			if ($deleted > 0) {
 				$this->logger->info(
-					"userDel: deleted {$deleted} map entries of"
+					"userDel: deleted {$deleted} personal map entries of user"
 					. " '{$user->username}' by '{$actingUsername}'"
 				);
 
