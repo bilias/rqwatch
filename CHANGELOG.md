@@ -6,9 +6,8 @@
 - Record failed (if we can) for a failed migration
 - Dead code removal
 - Don't exit and instead fail requests on Router
-- Increase negative DNS cache TTL from 600 -> 3600
+- Negative DNS cache TTL 3600
 - Fix TEXT notification/release mail, invert virus info. HTML version was correct
-- Smaller TTL for DNS negative cache
 
 ## Version v2.1.0 - Released: 2026-09-14
 
