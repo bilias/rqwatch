@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-09-14
+- Smaller TTL for DNS negative cache
+
 ## Version v2.1.0 - Released: 2026-09-14
 
 ### 2026-09-14

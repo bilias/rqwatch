@@ -973,7 +973,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			$redisKey = Config::get('dns_resolv_redis_key') . ":ptr:{$ip}";
 			$ttl      = Config::get('dns_resolv_redis_cache_ttl');
-
+			$negTtl   = Config::get('dns_resolv_redis_neg_cache_ttl');
 			try {
 				$cached = App::cache()->get($redisKey);
 				if ($cached !== false) {
@@ -1007,7 +1007,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			try {
-				App::cache()->set($redisKey, $host, $ttl);
+				App::cache()->set($redisKey, $host, $host === $ip ? $negTtl : $ttl);
 			} catch (Throwable $e) {
 				// ignore cache write failure
 			}
@@ -1024,7 +1024,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			$redisKey = Config::get('dns_resolv_redis_key') . ':fwd:' . $host;
 			$ttl      = Config::get('dns_resolv_redis_cache_ttl');
-
+			$negTtl   = Config::get('dns_resolv_redis_neg_cache_ttl');
 			try {
 				$cached = App::cache()->get($redisKey);
 				if ($cached !== false) {
@@ -1050,7 +1050,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			try {
-				App::cache()->set($redisKey, $ip, $ttl);
+				App::cache()->set($redisKey, $ip, $ip === $host ? $negTtl : $ttl);
 			} catch (Throwable $e) {
 				// ignore cache write failure
 			}
