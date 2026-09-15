@@ -159,10 +159,6 @@ abstract class AbstractMigration {
 			->value('status');
 	}
 
-	protected function isMigrationCompleted(): bool {
-		return $this->getMigrationStatus() === Migrations::STATUS_COMPLETED;
-	}
-
 	public function verifyMigration(): bool {
 		if ($this->isApplied()) {
 			return true;
@@ -179,7 +175,8 @@ abstract class AbstractMigration {
 	}
 
 	public function isApplied(): bool {
-		return $this->isMigrationCompleted() && $this->verifySchema();
+		return $this->getMigrationStatus() === Migrations::STATUS_COMPLETED
+			&& $this->verifySchema();
 	}
 
 	protected function recordMigrationStatus(string $status): void {
