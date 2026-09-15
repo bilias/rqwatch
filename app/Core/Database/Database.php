@@ -72,22 +72,13 @@ class Database {
 		// Base schema
 		self::requireTable(AppConfig::MAIL_LOGS_TABLE);
 
-		/*
-		 Migrations schema. Deliberately still status-driven rather than
-		 switching to verifyRequiredMigrationSchema(): this runs before the
-		 Kernel's verifyRequiredMigrations() guard and has no CLI exemption,
-		 so requiring the migrated schema here would abort db:migrate before
-		 it could run. The guard makes the distinction moot anyway -- every
-		 REQUIRED migration is recorded completed by the time a non-migration
-		 entry point reaches this far, so the status-driven path verifies the
-		 same schema.
-		*/
-		self::verifyOptionalMigrationSchema($migrationStatus);
-
-		// self::verifyRequiredMigrationSchema($migrationStatus);
+		// Each check runs only if its migration is recorded completed:
+		// this runs before the Kernel's migration guard and has no CLI
+		// exemption, so an unconditional check would abort db:migrate.
+		self::verifyMigrationSchema($migrationStatus);
 	}
 
-	private static function verifyOptionalMigrationSchema(
+	private static function verifyMigrationSchema(
 		MigrationStatus $migrationStatus
 	): void {
 
@@ -102,30 +93,10 @@ class Database {
 			return;
 		}
 
-		self::verifyMigrationSchema($migrationStatus);
-	}
-
-	private static function verifyRequiredMigrationSchema(
-		MigrationStatus $migrationStatus
-	): void {
-		self::requireTable(AppConfig::MIGRATIONS_TABLE);
-
-		$migrationStatus->setMigrationTableExists(true);
-
-		self::verifyMailRecipients();
-		self::verifyMailLogData();
-		self::verifyCreatedDay();
-		self::verifyMailLogTokens();
-	}
-
-	private static function verifyMigrationSchema(
-		MigrationStatus $migrationStatus
-	): void {
-
 		// First migration completion query lazy-loads the state cache, so
 		// setMigrationTableExists() above is what unblocks warmCache() and
 		// the single migrations query normally runs here. Kernel warms it
-		// explicitly anyway -- that call is a no-op today, but it keeps the
+		// explicitly anyway - that call is a no-op today, but it keeps the
 		// warming from depending on this function reading the cache.
 		if ($migrationStatus->mailRecipientsCompleted()) {
 			self::verifyMailRecipients();
