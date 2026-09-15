@@ -34,10 +34,12 @@ class MailLogRecipient extends Model
 		'recipient_email' => 'string',
 	];
 
-	protected $fillable = [
+	public const array COLUMNS = [
 		'mail_log_id',
 		'recipient_email',
 	];
+
+	protected $fillable = self::COLUMNS;
 
 	public function mailLog() {
 		return $this->belongsTo(

@@ -16,6 +16,10 @@ use App\Configuration\AppConfig;
 
 use App\Inventory\Migrations;
 
+use App\Models\MailLogData;
+use App\Models\MailLogRecipient;
+use App\Models\MailLogToken;
+
 use RuntimeException;
 
 class Database {
@@ -141,20 +145,12 @@ class Database {
 	private static function verifyMailLogTokens(): void {
 		self::requireTable(AppConfig::MAIL_LOG_TOKENS_TABLE);
 
-		self::requireColumn(
-			AppConfig::MAIL_LOG_TOKENS_TABLE,
-			'token_hash'
-		);
-
-		self::requireColumn(
-			AppConfig::MAIL_LOG_TOKENS_TABLE,
-			'mail_log_id'
-		);
-
-		self::requireColumn(
-			AppConfig::MAIL_LOG_TOKENS_TABLE,
-			'recipient_email'
-		);
+		foreach (MailLogToken::COLUMNS as $column) {
+			self::requireColumn(
+				AppConfig::MAIL_LOG_TOKENS_TABLE,
+				$column
+			);
+		}
 	}
 
 	private static function verifyCreatedDay(): void {
@@ -167,39 +163,23 @@ class Database {
 	private static function verifyMailRecipients(): void {
 		self::requireTable(AppConfig::MAIL_LOG_RECIPIENTS_TABLE);
 
-		self::requireColumn(
-			AppConfig::MAIL_LOG_RECIPIENTS_TABLE,
-			'mail_log_id'
-		);
-
-		self::requireColumn(
-			AppConfig::MAIL_LOG_RECIPIENTS_TABLE,
-			'recipient_email'
-		);
+		foreach (MailLogRecipient::COLUMNS as $column) {
+			self::requireColumn(
+				AppConfig::MAIL_LOG_RECIPIENTS_TABLE,
+				$column
+			);
+		}
 	}
 
 	private static function verifyMailLogData(): void {
 		self::requireTable(AppConfig::MAIL_LOG_DATA_TABLE);
 
-		self::requireColumn(
-			AppConfig::MAIL_LOG_DATA_TABLE,
-			'mail_log_id'
-		);
-
-		self::requireColumn(
-			AppConfig::MAIL_LOG_DATA_TABLE,
-			'headers'
-		);
-
-		self::requireColumn(
-			AppConfig::MAIL_LOG_DATA_TABLE,
-			'symbols'
-		);
-
-		self::requireColumn(
-			AppConfig::MAIL_LOG_DATA_TABLE,
-			'fuzzy_hashes'
-		);
+		foreach (MailLogData::COLUMNS as $column) {
+			self::requireColumn(
+				AppConfig::MAIL_LOG_DATA_TABLE,
+				$column
+			);
+		}
 	}
 
 	private static function refreshDbSchema(Capsule $capsule): void {

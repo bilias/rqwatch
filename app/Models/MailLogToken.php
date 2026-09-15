@@ -24,21 +24,25 @@ class MailLogToken extends Model
 	// token_hash is the primary key, not an auto-increment integer
 	public $incrementing = false;
 
-	protected $primaryKey = 'token_hash';
+	public const string KEY_COLUMN = 'token_hash';
+
+	protected $primaryKey = self::KEY_COLUMN;
 
 	protected $keyType = 'string';
 
+	public const array COLUMNS = [
+		self::KEY_COLUMN,
+		'mail_log_id',
+		'recipient_email',
+	];
+
 	protected $casts = [
-		'token_hash' => 'string',
+		self::KEY_COLUMN => 'string',
 		'mail_log_id' => 'integer',
 		'recipient_email' => 'string',
 	];
 
-	protected $fillable = [
-		'token_hash',
-		'mail_log_id',
-		'recipient_email',
-	];
+	protected $fillable = self::COLUMNS;
 
 	public function mailLog(): BelongsTo {
 		return $this->belongsTo(

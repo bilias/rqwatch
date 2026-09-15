@@ -26,21 +26,9 @@ class MailLogData extends Model
 	// No auto-increment ID
 	public $incrementing = false;
 
-	protected $primaryKey = 'mail_log_id';
+	public const string KEY_COLUMN = 'mail_log_id';
 
-	protected $casts = [
-		'mail_log_id' => 'integer',
-		'headers' => 'string',
-		'symbols' => 'array',
-		'fuzzy_hashes' => 'array',
-	];
-
-	protected $fillable = [
-		'mail_log_id',
-		'headers',
-		'symbols',
-		'fuzzy_hashes',
-	];
+	protected $primaryKey = self::KEY_COLUMN;
 
 	public const DATA_COLUMNS = [
 		'headers',
@@ -48,10 +36,25 @@ class MailLogData extends Model
 		'fuzzy_hashes',
 	];
 
+	// the key plus the data columns, for schema verification
+	public const array COLUMNS = [
+		self::KEY_COLUMN,
+		...self::DATA_COLUMNS,
+	];
+
+	protected $casts = [
+		self::KEY_COLUMN => 'integer',
+		'headers' => 'string',
+		'symbols' => 'array',
+		'fuzzy_hashes' => 'array',
+	];
+
+	protected $fillable = self::COLUMNS;
+
 	public function mailLog() {
 		return $this->belongsTo(
 			MailLog::class,
-			'mail_log_id',
+			self::KEY_COLUMN,
 			'id'
 		);
 	}
