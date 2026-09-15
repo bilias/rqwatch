@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2026-09-15
+- Use Model consts for Database schema verification
+- Make Database verifyMigrationSchema check REQUIRED Migrations
+
 ### 2026-09-14
 - Record failed (if we can) for a failed migration
 - Dead code removal
