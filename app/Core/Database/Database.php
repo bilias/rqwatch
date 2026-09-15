@@ -14,12 +14,26 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 
 use App\Configuration\AppConfig;
 
+use App\Inventory\Migrations;
+
 use RuntimeException;
 
 class Database {
 
 	private static array $schema = [];
 	private static bool $schemaLoaded = false;
+
+	// Every REQUIRED migration needs a schema check below, or an explicit
+	// entry here saying there is nothing to verify. A new one with neither
+	// is a missed step, not a runtime condition.
+	private const array SCHEMA_CHECKED = [
+		Migrations::MAIL_RECIPIENTS,
+		Migrations::CREATED_DAY,
+		Migrations::MAIL_LOG_DATA,
+		Migrations::MAIL_LOG_TOKENS,
+		// index only: getDbSchema() reads information_schema.COLUMNS
+		Migrations::IP_CREATED_DAY_INDEX,
+	];
 
 	public static function boot(): Capsule {
 		$db_config = Array (
@@ -81,6 +95,15 @@ class Database {
 	private static function verifyMigrationSchema(
 		MigrationStatus $migrationStatus
 	): void {
+
+		$unchecked = array_diff(Migrations::REQUIRED, self::SCHEMA_CHECKED);
+
+		if ($unchecked !== []) {
+			throw new RuntimeException(
+				"verifyMigrationSchema: REQUIRED migration has no schema check: " .
+				implode(', ', $unchecked)
+			);
+		}
 
 		$migrationsTableExists = array_key_exists(
 			AppConfig::MIGRATIONS_TABLE,
