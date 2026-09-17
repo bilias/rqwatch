@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-09-17
+- Count DNS cache entries
+
 ### 2026-09-15
 - Use Model consts for Database schema verification
 - Make Database verifyMigrationSchema check REQUIRED Migrations

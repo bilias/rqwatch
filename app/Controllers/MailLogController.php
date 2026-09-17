@@ -805,6 +805,7 @@ class MailLogController extends ViewController
 			'rspamd_stats' => $this->getRspamdStat(),
 			'redis_config_ttl' => $configTTLData['ttl_human'],
 			'redis_config_expires_at' => $configTTLData['expires_at'],
+			'dns_cache_count' => $this->is_admin ? Helper::count_dns_cache() : null,
 			'database_cleanup' => $_ENV['DATABASE_DAYS'] ?? null,
 		]));
 	}

@@ -218,7 +218,7 @@
   {% endif %}
 
   <p class='help-text2'><a href='{{ route('CONFIG_RELOAD', { _token: csrf_token('config_reload') }) }}'>Reload Config</a></p>
-  <p class='help-text2'><a href='{{ route('DNS_FLUSH', { _token: csrf_token('dns_flush') }) }}'>Flush DNS</a></p>
+  <p class='help-text2'><a href='{{ route('DNS_FLUSH', { _token: csrf_token('dns_flush') }) }}'>Flush DNS</a>{% if dns_cache_count is not null %} ({{ dns_cache_count }} cached){% endif %}</p>
 {% endif %}
 
 </div>

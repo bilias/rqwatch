@@ -87,6 +87,24 @@ final class RedisCache implements CacheInterface
 		}
 	}
 
+	public function countByPrefix(string $prefix): int {
+		$count = 0;
+		try {
+			$connection = $this->getConnection();
+			$cursor = null;
+			do {
+				$keys = $connection->scan($cursor, $prefix . '*', 100);
+				if ($keys !== false) {
+					$count += count($keys);
+				}
+			} while ($cursor != 0);
+		} catch (Throwable $e) {
+			$this->logger->error("RedisCache countByPrefix: " . $e->getMessage());
+			throw $e;
+		}
+		return $count;
+	}
+
 	public function deleteByPrefix(string $prefix): int {
 		$deleted = 0;
 		try {

@@ -1059,6 +1059,23 @@ You can view mail details and optionally release it from quarantine by clicking 
 		return $ip;
 	}
 
+	public static function count_dns_cache(): ?int {
+		if (!Helper::env_bool('REDIS_ENABLE')) {
+			return null;
+		}
+
+		$cache = App::cache();
+		if ($cache === null) {
+			return null;
+		}
+
+		try {
+			return $cache->countByPrefix(Config::get('dns_resolv_redis_key'));
+		} catch (Throwable $e) {
+			return null;
+		}
+	}
+
 	public static function flush_dns_cache(): int {
 		if (!Helper::env_bool('REDIS_ENABLE')) {
 			return 0;
