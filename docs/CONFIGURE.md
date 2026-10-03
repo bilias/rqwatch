@@ -555,11 +555,11 @@ and [`cron:import_spool`](#cron) imports it later into database.
 
 - `$APP_LOGO_PATH` - Image to use as logo
 
-- `$login_username_label` - Label to use for username on Login page
-
 - `$APP_LOGO_ALT` - Text to show on mouse hover over logo
 
 - `$FOOTER` - Footer on HTML pages
+
+- `$login_username_label` - Label to use for username on Login page
 
 - `$refresh_rate` - Auto-refresh rate for maillogs web pages.\
  Default is `60` seconds
