@@ -91,7 +91,7 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		$logs = $service->getPaginatedAll(array(), $this->getHomepageUrl(), $page);
+		$logs = $service->getPaginatedAll(array(), $this->getAllUrl(), $page);
 
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -856,6 +856,14 @@ class MailLogController extends ViewController
 		} else {
 			return new RedirectResponse($this->url(RouteName::DETAIL,
 				[ 'type' => 'id', 'value' => $id ]));
+		}
+	}
+
+	private function getAllUrl(): string {
+		if ($this->is_admin) {
+			return $this->url(RouteName::ADMIN_HOMEPAGE);
+		} else {
+			return $this->url(RouteName::HOMEPAGE);
 		}
 	}
 

@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-10-03
+- Fix All page paginator links
+
 ### 2026-09-17
 - Count DNS cache entries
 
