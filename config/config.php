@@ -36,6 +36,9 @@ $APP_LOGO_PATH = AppConfig::APP_LOGO_PATH;
 # Text to show on mouse hover over logo
 $APP_LOGO_ALT = AppConfig::APP_LOGO_ALT;
 
+# Alter the username label
+$login_username_label = "E-mail";
+
 # App version
 $APP_VERSION = AppConfig::VERSION;
 

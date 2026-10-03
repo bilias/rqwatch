@@ -28,6 +28,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Configuration\Config;
+
 use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
@@ -38,7 +40,7 @@ class LoginForm extends AbstractType
         $formFactory
             ->add('username', TextType::class, [
                 'required' => true,
-                'label' => 'E-mail: ',
+                'label' => Config::get('login_username_label') ?? 'E-mail',
 					 'attr' => [
 						'autofocus' => true,
 						'class' => 'username',
