@@ -49,6 +49,7 @@ class MailLogController extends ViewController
 	private ?string $dayLogsUrl = null;
 	private ?string $quarantineUrl = null;
 	private ?string $quarantineDayUrl = null;
+	private ?string $allUrl = null;
 
 	public function __construct() {
 		parent::__construct();
@@ -859,14 +860,6 @@ class MailLogController extends ViewController
 		}
 	}
 
-	private function getAllUrl(): string {
-		if ($this->is_admin) {
-			return $this->url(RouteName::ADMIN_HOMEPAGE);
-		} else {
-			return $this->url(RouteName::HOMEPAGE);
-		}
-	}
-
 	private function getReleaseUrl(int $id): string {
 		// mailrelease form calls releaseMail()
 		if ($this->is_admin) {
@@ -1034,6 +1027,16 @@ class MailLogController extends ViewController
 		}
 
 		return $this->searchResultsUrl;
+	}
+
+	private function getAllUrl(): string {
+		if ($this->allUrl === null) {
+			$this->allUrl = $this->is_admin
+				? $this->url(RouteName::ADMIN_HOMEPAGE)
+				: $this->url(RouteName::HOMEPAGE);
+		}
+
+		return $this->allUrl;
 	}
 
 	private function getDayLogsUrl(): string {
