@@ -40,7 +40,7 @@ class LoginForm extends AbstractType
         $formFactory
             ->add('username', TextType::class, [
                 'required' => true,
-                'label' => Config::get('login_username_label') ?? 'E-mail',
+                'label' => (Config::get('login_username_label') ?? 'E-mail') . ':',
 					 'attr' => [
 						'autofocus' => true,
 						'class' => 'username',
