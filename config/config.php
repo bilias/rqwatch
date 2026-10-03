@@ -37,7 +37,7 @@ $APP_LOGO_PATH = AppConfig::APP_LOGO_PATH;
 $APP_LOGO_ALT = AppConfig::APP_LOGO_ALT;
 
 # Alter the username label
-$login_username_label = "E-mail";
+$login_username_label = "Username";
 
 # App version
 $APP_VERSION = AppConfig::VERSION;
