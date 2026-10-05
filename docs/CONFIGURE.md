@@ -524,6 +524,13 @@ based on action taken by Rspamd\
   Needs db:migrate_user_notifications_default, otherwise always on.\
   Default is `true`
 
+- `$admin_notification_rcpt` - Admin notifications: comma-separated addresses
+  that get notification for every quarantined mail at or below `notification_score`,
+  regardless of user settings.\
+  Only mails arriving while this is set are included.\
+  Empty disables admin notifications.\
+  Default is empty `""`
+
 - `$notify_mail_subject` - Default subject in notification mail
 
 - `$admin_notify_mail_subject` - Default subject in admin notification mail

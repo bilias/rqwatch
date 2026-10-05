@@ -140,6 +140,11 @@ $release_mail_subject = "Message released from quarantine";
 # Needs db:migrate_user_notifications_default, otherwise always on.
 $user_notifications_default = true;
 
+# Admin notifications: comma-separated addresses that get notification for every quarantined
+# mail at or below notification_score, regardless of user settings.
+# Only mails arriving while this is set are included. Empty disables admin notifications.
+$admin_notification_rcpt = "";
+
 # Default subject in notification mail
 $notify_mail_subject = "New message stored in quarantine";
 
@@ -152,12 +157,6 @@ $notification_score = 50.1;
 # Retry and catch-up window: pending notifications older than this many days
 # are no longer sent. Use 0 for no limit.
 $notification_days = 7;
-
-
-# Admin notifications: comma-separated addresses that get every quarantined
-# mail at or below notification_score, regardless of user settings.
-# Only mails arriving while this is set are included. Empty disables.
-$admin_notification_rcpt = "";
 
 # Default mail signature
 $mail_signature = $APP_NAME;
