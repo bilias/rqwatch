@@ -13,6 +13,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Core\App;
+
 class User extends Model
 {
 	/*
@@ -64,6 +66,22 @@ class User extends Model
 		'last_login',
 		'auth_provider',
 	];
+
+	// NULL follows user_notifications_default. Until its migration is
+	// completed the column is NOT NULL, and 0 means the same thing.
+	public function setDisableNotificationsAttribute($value): void {
+		if ($value === null
+			&& !App::migrationStatus()->userNotificationsDefaultCompleted()) {
+			$value = false;
+		}
+
+		if ($value === null) {
+			$this->attributes['disable_notifications'] = null;
+			return;
+		}
+
+		$this->attributes['disable_notifications'] = $value ? 1 : 0;
+	}
 
 	public function mailAliases(): HasMany {
 		return $this->hasMany(MailAlias::class)->orderBy('alias', 'ASC');
