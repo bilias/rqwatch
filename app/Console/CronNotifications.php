@@ -135,7 +135,7 @@ class CronNotifications extends RqwatchCliCommand
 		// Just to track their id for debugging
 		if (!$send_blacklisted) {
 			$removedLogs = $logs->filter(function ($log) {
-				return Helper::checkForBlacklist($log->symbols);
+				return Helper::checkForBlacklist($log->symbols ?? []);
 			});
 
 			$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
@@ -154,7 +154,7 @@ class CronNotifications extends RqwatchCliCommand
 
 			// filter out blacklisted mails
 			$logs = $logs->reject(function ($log) {
-				return Helper::checkForBlacklist($log->symbols);
+				return Helper::checkForBlacklist($log->symbols ?? []);
 			});
 		}
 
