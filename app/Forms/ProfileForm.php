@@ -34,79 +34,80 @@ class ProfileForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
-        $formFactory
-            ->add('firstname', TextType::class, [
-                'required' => false,
-                'label' => 'First Name: ',
-					 'attr' => [
-						'class' => 'firstname',
-						'title' => 'Enter user firstname',
-					 ],
-					 'constraints' => [
-						new Assert\Length(
-							max: 64,
+		$formFactory
+			->add('firstname', TextType::class, [
+				'required' => false,
+				'label' => 'First Name: ',
+				'attr' => [
+					'class' => 'firstname',
+					'title' => 'Enter user firstname',
+				],
+				'constraints' => [
+					new Assert\Length(
+						max: 64,
+					),
+				 ],
+			])
+			->add('lastname', TextType::class, [
+				'required' => false,
+				'label' => 'Last Name: ',
+				'attr' => [
+					'class' => 'lastname',
+					'title' => 'Enter user lastname',
+				 ],
+				'constraints' => [
+					new Assert\Length(
+						max: 64,
+					),
+				],
+			])
+			->add('password', RepeatedType::class, [
+				'type' => PasswordType::class,
+				'invalid_message' => 'The password fields must match.',
+				'mapped' => false,
+				'required' => false,
+				'options' => [
+					'attr' => [
+						'class' => 'password',
+						'title' => 'Enter user password',
+						'autocomplete' => 'new-password',
+					],
+					'constraints' => [
+						new Assert\When(fn($value) => !empty($value),
+							[ new Assert\Length(min: 8, max: 128), ],
 						),
-					 ],
-            ])
-            ->add('lastname', TextType::class, [
-                'required' => false,
-                'label' => 'Last Name: ',
-					 'attr' => [
-						'class' => 'lastname',
-						'title' => 'Enter user lastname',
-					 ],
-					 'constraints' => [
-						new Assert\Length(
-							max: 64,
-						),
-					 ],
-            ])
-            ->add('password', RepeatedType::class, [
-					 'type' => PasswordType::class,
-					 'invalid_message' => 'The password fields must match.',
-					 'mapped' => false,
-					 'required' => false,
-					 'options' => [
-						 'attr' => [
-							'class' => 'password',
-							'title' => 'Enter user password',
-							'autocomplete' => 'new-password',
-						 ],
-						 'constraints' => [
-							new Assert\When(fn($value) => !empty($value), [
-								new Assert\Length(min: 8, max: 128),
-							],
-							),
-						 ],
-					 ],
-					 'first_options'  => [
-						'label' => 'Password:',
-					 ],
-					 'second_options'  => [
-						'label' => 'Repeat Password:',
-					 ],
-            ])
-            ->add('add', SubmitType::class, [
-                'label' => 'Update',
-            ]);
-				FormHelper::addNotificationsField($formFactory, $options['notifications_default']);
+					],
+				],
+				'first_options'  => [
+					'label' => 'Password:',
+				],
+				'second_options'  => [
+					'label' => 'Repeat Password:',
+				],
+			])
+			->add('add', SubmitType::class, [
+				'label' => 'Update',
+			]);
+
+			FormHelper::addNotificationsField($formFactory, $options['notifications_default']);
 	}
 
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,
-  			?array $data = null,
-  			array $options = []): FormInterface {
+			?array $data = null,
+			array $options = []): FormInterface {
 
-  		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
-  	}
+		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
+	}
 
-  	#[\Override]
-  	public function configureOptions(OptionsResolver $resolver): void {
-  		$resolver->setDefaults([
-  			'notifications_default' => true,
-  		]);
+	#[\Override]
+	public function configureOptions(OptionsResolver $resolver): void {
+		$resolver->setDefaults([
+			'notifications_default' => true,
+		]);
 
-  		$resolver->setAllowedTypes('notifications_default', 'bool');
-  	}
+		$resolver->setAllowedTypes('notifications_default', 'bool');
+	}
+
 }
