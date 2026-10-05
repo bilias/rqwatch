@@ -170,6 +170,7 @@ class UserController extends ViewController
 			'qidform' => $qidform->createView(),
 			'usersearchform' => $userSearchForm->createView(),
 			'users' => $users,
+			'notifications_default' => $this->getUserService()->userNotificationsDefault(),
 			'totalRecords' => $totalRecords,
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
@@ -211,6 +212,7 @@ class UserController extends ViewController
 			'qidform' => $qidform->createView(),
 			'usersearchform' => $userSearchForm->createView(),
 			'users' => $users,
+			'notifications_default' => $this->getUserService()->userNotificationsDefault(),
 			'totalRecords' => $users->total(),
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
@@ -253,6 +255,7 @@ class UserController extends ViewController
 		return new Response($this->twig->render('user.twig', [
 			'qidform' => $qidform->createView(),
 			'user' => $user,
+			'notifications_default' => $this->getUserService()->userNotificationsDefault(),
 			'mail_aliases' => $aliases_str,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
