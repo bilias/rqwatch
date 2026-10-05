@@ -529,8 +529,9 @@ based on action taken by Rspamd\
 - `$notification_score` - Mails with score higher than this don't get notifications.\
  Default is `50.1`
 
-- `$notification_days` - How many days back to look for notifications.\
- Default is `30`
+- `$notification_days` - Retry and catch-up window: pending notifications
+ older than this many days are no longer sent. Use `0` for no limit.\
+ Default is `7`
 
 - `$mail_signature` - Default mail signature
 
@@ -721,9 +722,9 @@ Available commands for the "cron" namespace:
   Users are also able to disable notifications by visiting their Profile page and
   opting out of notifications. This also applies for their aliases.
 
-  Option `$notification_days` limits the days the tool searches the database
-  for pending notifications. Use `0` for full table scan.\
-  Default is to search only the last `30` days.
+  Option `$notification_days` is the retry and catch-up window: pending notifications
+  older than this many days are no longer sent. Use `0` for no limit.\
+  Default is `7` days.
 
   Finally, config option `$notification_score` also disables notifications
   for emails having a score higher that this.\
