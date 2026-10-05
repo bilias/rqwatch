@@ -13,7 +13,7 @@ CREATE TABLE users (
  `email` VARCHAR(255),
  `firstname` VARCHAR(100) DEFAULT NULL,
  `lastname` VARCHAR(100) DEFAULT NULL,
- `disable_notifications` TINYINT(1) NOT NULL DEFAULT '0',
+ `disable_notifications` TINYINT(1) DEFAULT NULL,
  `is_admin` TINYINT(1) NOT NULL DEFAULT '0',
  `last_login` datetime DEFAULT NULL,
  `auth_provider` tinyint(3) unsigned NOT NULL DEFAULT 0,
@@ -234,4 +234,5 @@ INSERT INTO `migrations` VALUES
 ('20260906_ip_created_day_index','completed',NOW()),
 ('20260908_drop_mail_log_columns','completed',NOW()),
 ('20260911_drop_mail_log_indexes','completed',NOW()),
-('20260912_map_user_constraints','completed',NOW());
+('20260912_map_user_constraints','completed',NOW()),
+('20261005_user_notifications_default','completed',NOW());

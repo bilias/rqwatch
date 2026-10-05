@@ -251,6 +251,10 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::MAIL_LOG_TOKENS);
 	}
 
+	public function userNotificationsDefaultCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::USER_NOTIFICATIONS_DEFAULT);
+	}
+
 	public function getAllMigrationStates(): array {
 		$states = [];
 

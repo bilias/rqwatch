@@ -34,6 +34,7 @@ use App\Console\MigrateIpCreatedDayIndex;
 use App\Console\MigrateDropMailLogColumns;
 use App\Console\MigrateDropMailLogIndexes;
 use App\Console\MigrateMapUserConstraints;
+use App\Console\MigrateUserNotificationsDefault;
 
 use App\Console\MigrateDb;
 use App\Console\OptimizeTable;
@@ -60,6 +61,7 @@ $application->add(new MigrateIpCreatedDayIndex());
 $application->add(new MigrateDropMailLogColumns());
 $application->add(new MigrateDropMailLogIndexes());
 $application->add(new MigrateMapUserConstraints());
+$application->add(new MigrateUserNotificationsDefault());
 $application->add(new MigrateDb());
 
 $application->run();

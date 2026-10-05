@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-10-05
+- Add user_notifications_default migration
+
 ### 2026-10-03
 - Add configurable username label on login page
 - Fix All page paginator links

@@ -1,0 +1,7 @@
+# SQL
+ALTER TABLE `users`
+  MODIFY `disable_notifications` TINYINT(1) DEFAULT NULL;
+
+UPDATE `users`
+  SET `disable_notifications` = NULL, `updated_at` = `updated_at`
+  WHERE `disable_notifications` = 0;
