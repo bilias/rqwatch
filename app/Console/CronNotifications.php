@@ -94,12 +94,17 @@ class CronNotifications extends RqwatchCliCommand
 			$this->fileLogger->debug("{$this->app_name} {$count} entries found for notification{$local}");
 		}
 
+		// ids of mails that will never be notified
+		$skippedIds = [];
+
 		// identify empty mail_recipients. Just to track their id for debugging
 		$removedLogs = $logs->filter(function ($log) {
 			// if recipients are loaded, this catches true empties too
 			$rcpt = trim((string) $log->mail_recipients);
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
+
+		$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
 
 		if (count($removedLogs) > 0) {
 			// get the ids based on filter above
@@ -155,6 +160,8 @@ class CronNotifications extends RqwatchCliCommand
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
+		$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
+
 		if ($removedLogs->isNotEmpty()) {
 			foreach ($removedLogs as $log) {
 				$disabledList = $log->disabled_rcpt_to ?? 'n/a';
@@ -179,6 +186,8 @@ class CronNotifications extends RqwatchCliCommand
 			return $log->score > $notification_score;
 		});
 
+		$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
+
 		if (count($removedLogs) > 0) {
 			// get the ids based on filter above
 			$removedIds = $removedLogs->pluck('id')->all();
@@ -196,6 +205,15 @@ class CronNotifications extends RqwatchCliCommand
 		$logs = $logs->reject(function ($log) use ($notification_score) {
 			return $log->score > $notification_score;
 		});
+
+		// skips are final, but only a sending run records them
+		if ($send_mails && !empty($skippedIds)) {
+			$skipped = $service->markNotificationsSkipped($skippedIds);
+			$output->writeln("<info>{$skipped} entries marked as not to be notified{$local}</info>",
+				OutputInterface::VERBOSITY_VERBOSE);
+			$this->fileLogger->info("{$this->app_name} {$skipped} entries marked as not to be notified{$local}");
+		}
+		unset($skippedIds);
 
 		if (($count = count($logs)) < 1) {
 			$output->writeln("<info>No entries remain for notification{$local}</info>",

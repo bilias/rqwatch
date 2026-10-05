@@ -1292,6 +1292,28 @@ class MailLogService
 		return false;
 	}
 
+	/*
+	 Mails the cron decided never to notify. notified NULL takes them out of
+	 notification_pending. Chunked to keep Galera write-sets small. A failure
+	 leaves them pending, so the next run retries.
+	*/
+	public function markNotificationsSkipped(array $ids): int {
+		$ids = array_values(array_unique(array_map('intval', $ids)));
+		$updated = 0;
+
+		try {
+			foreach (array_chunk($ids, 1000) as $chunk) {
+				$updated += MailLog::whereIn('id', $chunk)
+					->where('notified', 0)
+					->update(['notified' => null]);
+			}
+		} catch (Exception $e) {
+			$this->logger->error("Failed to mark skipped notifications: " . $e->getMessage());
+		}
+
+		return $updated;
+	}
+
 	// returns mail_logs with notification pending
 	public function getUnnotified(
 		?OutputInterface $cli_output = null,
