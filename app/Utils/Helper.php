@@ -153,6 +153,14 @@ class Helper {
 		return false;
 	}
 
+	// $admin_notification_rcpt as a list; invalid addresses are dropped
+	public static function adminNotificationRcpt(): array {
+		$rcpt = array_map('trim', explode(',', (string) Config::get('admin_notification_rcpt')));
+		$rcpt = array_filter($rcpt, fn ($a) => filter_var($a, FILTER_VALIDATE_EMAIL) !== false);
+
+		return array_values(array_unique($rcpt));
+	}
+
 	public static function checkForBlacklist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
 			if (isset($symbol['name']) &&

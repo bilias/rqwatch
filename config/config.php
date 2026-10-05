@@ -150,6 +150,12 @@ $notification_score = 50.1;
 # are no longer sent. Use 0 for no limit.
 $notification_days = 7;
 
+
+# Admin notifications: comma-separated addresses that get every quarantined
+# mail at or below notification_score, regardless of user settings.
+# Only mails arriving while this is set are included. Empty disables.
+$admin_notification_rcpt = "";
+
 # Default mail signature
 $mail_signature = $APP_NAME;
 

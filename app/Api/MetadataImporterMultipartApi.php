@@ -263,6 +263,14 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			'message_id' => $message_id,
 		);
 
+		// admin notification is decided at arrival: only mails imported
+		// while admin_notification_rcpt is set get admin_notified = 0
+		if ($mail_stored && in_array($action, ['discard', 'reject'], true)
+			&& !empty(Helper::adminNotificationRcpt())
+			&& App::migrationStatus()->adminNotifiedCompleted()) {
+			$data['admin_notified'] = 0;
+		}
+
 		[$data, $debug] = Helper::trimDataToDbLimits($data, MailLog::FIELD_LIMITS);
 
 		if (!empty($debug)) {
