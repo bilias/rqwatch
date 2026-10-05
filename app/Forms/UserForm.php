@@ -40,93 +40,92 @@ class UserForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
-        $formFactory
-            ->add('username', TextType::class, [
-                'required' => true,
-                'label' => 'Username: ',
-					 'attr' => [
-						'class' => 'username',
-						'title' => 'Enter user username',
-						'autocomplete' => 'new-username',
+		$formFactory
+			->add('username', TextType::class, [
+				'required' => true,
+				'label' => 'Username: ',
+				'attr' => [
+					'class' => 'username',
+					'title' => 'Enter user username',
+					'autocomplete' => 'new-username',
+				],
+				'constraints' => [
+					new NotBlank(),
+					new Assert\Length(
+						min: 2,
+						max: 128,
+					),
+					new Assert\Regex(
+						pattern: '/^[a-zA-Z0-9._+-]+(@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)?$/',
+						message: 'The value can only contain letters, numbers and ._+-@',
+					),
+				],
+			])
+			->add('email', EmailType::class, [
+				'required' => true,
+				'label' => 'E-mail: ',
+				'attr' => [
+					'class' => 'email',
+					'title' => 'Enter user e-mail',
+				],
+				'constraints' => [
+					new NotBlank(),
+					new Assert\Length(
+						min: 6,
+						max: 128,
+					),
+				 ],
+			])
+			->add('password', RepeatedType::class, [
+				'type' => PasswordType::class,
+				'invalid_message' => 'The password fields must match.',
+				'mapped' => false,
+				'required' => !$options['is_edit'], // Only required in "add" mode
+				'options' => [
+					'attr' => [
+						'class' => 'password',
+						'title' => 'Enter user password',
+						'autocomplete' => 'new-password',
 					 ],
-					 'constraints' => [
+					/*
+					'constraints' => $options['is_edit'] ? [] : [
 						new NotBlank(),
 						new Assert\Length(
-							min: 2,
+							min: 8,
 							max: 128,
 						),
-						new Assert\Regex(
-							pattern: '/^[a-zA-Z0-9._+-]+(@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)?$/',
-							message: 'The value can only contain letters, numbers and ._+-@',
+					],
+					*/
+					'constraints' => [
+						new Assert\When(fn($value) => !empty($value),
+							[new Assert\Length(min: 8, max: 128), ],
 						),
-					 ],
-            ])
-            ->add('email', EmailType::class, [
-                'required' => true,
-                'label' => 'E-mail: ',
-					 'attr' => [
-						'class' => 'email',
-						'title' => 'Enter user e-mail',
-					 ],
-					 'constraints' => [
-						new NotBlank(),
-						new Assert\Length(
-							min: 6,
-							max: 128,
-						),
-					 ],
-            ])
-            ->add('password', RepeatedType::class, [
-					 'type' => PasswordType::class,
-					 'invalid_message' => 'The password fields must match.',
-					 'mapped' => false,
-					 'required' => !$options['is_edit'], // Only required in "add" mode
-					 'options' => [
-						 'attr' => [
-							'class' => 'password',
-							'title' => 'Enter user password',
-							'autocomplete' => 'new-password',
-						 ],
-						/*
-						 'constraints' => $options['is_edit'] ? [] : [
-							new NotBlank(),
-							new Assert\Length(
-								min: 8,
-								max: 128,
-							),
-						 ],
-						*/
-						 'constraints' => [
-							new Assert\When(fn($value) => !empty($value), [ 
-								new Assert\Length(min: 8, max: 128), 
-							],
-							),
-						 ],
-					 ],
-					 'first_options'  => [
-						'label' => 'Password:',
-					 ],
-					 'second_options'  => [
-						'label' => 'Repeat Password:',
-					 ],
-            ])
-            ->add('firstname', TextType::class, [
-                'required' => false,
-                'label' => 'First Name: ',
-					 'attr' => [
-						'class' => 'firstname',
-						'title' => 'Enter user firstname',
-					 ],
-					 'constraints' => [
-						new Assert\Length(
-							max: 64,
-						),
-					 ],
-            ])
-            ->add('lastname', TextType::class, [
-                'required' => false,
-                'label' => 'Last Name: ',
-					 'attr' => [
+					],
+				],
+				'first_options'  => [
+					'label' => 'Password:',
+				],
+				'second_options'  => [
+					'label' => 'Repeat Password:',
+				],
+			])
+			->add('firstname', TextType::class, [
+				'required' => false,
+				'label' => 'First Name: ',
+				 'attr' => [
+					'class' => 'firstname',
+					'title' => 'Enter user firstname',
+				],
+				'constraints' => [
+					new Assert\Length(
+						max: 64,
+					),
+				],
+			])
+			->add('lastname', TextType::class, [
+				'required' => false,
+					'label' => 'Last Name: ',
+					'attr' => [
 						'class' => 'lastname',
 						'title' => 'Enter user lastname',
 					 ],
@@ -135,19 +134,20 @@ class UserForm extends AbstractType
 							max: 64,
 						),
 					 ],
-            ])
-				->add('is_admin', CheckboxType::class, [
-					'label' => 'Admin',
-					'required' => false,
-					 'attr' => [
-						'class' => 'is_admin',
-						'title' => 'Check if user is Admin',
-					 ],
-				])
-            ->add('add', SubmitType::class, [
-                'label' => $options['is_edit'] ? 'Update User' : 'Add User',
-            ]);
-				FormHelper::addNotificationsField($formFactory, $options['notifications_default']);
+			])
+			->add('is_admin', CheckboxType::class, [
+				'label' => 'Admin',
+				'required' => false,
+				 'attr' => [
+					'class' => 'is_admin',
+					'title' => 'Check if user is Admin',
+				 ],
+			])
+			->add('add', SubmitType::class, [
+				'label' => $options['is_edit'] ? 'Update User' : 'Add User',
+			]);
+
+			FormHelper::addNotificationsField($formFactory, $options['notifications_default']);
 	}
 
 	public static function create(
@@ -170,25 +170,26 @@ class UserForm extends AbstractType
 				'value' => $username,
 			]);
 			return new RedirectResponse($url);
-         /*
-         $response = new RedirectResponse($url);
-         $response->prepare($this->request);
-         return $response->send();
-         */
-      }
+			/*
+			$response = new RedirectResponse($url);
+			$response->prepare($this->request);
+			return $response->send();
+			*/
+		}
 		return null;
 	}
 
 	#[\Override]
 	public function configureOptions(OptionsResolver $resolver) {
-        $resolver->setDefaults([
-            //'data_class' => User::class,
-            //'data_class' => null,
-            'is_edit' => false,  // default to "create" mode
-				'notifications_default' => true,
-        ]);
+		$resolver->setDefaults([
+			//'data_class' => User::class,
+			//'data_class' => null,
+			'is_edit' => false,  // default to "create" mode
+			'notifications_default' => true,
+		]);
 
-        $resolver->setAllowedTypes('is_edit', 'bool');
-        $resolver->setAllowedTypes('notifications_default', 'bool');
-    }
+		$resolver->setAllowedTypes('is_edit', 'bool');
+		$resolver->setAllowedTypes('notifications_default', 'bool');
+	}
+
 }
