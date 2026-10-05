@@ -72,6 +72,12 @@ class CronNotifications extends RqwatchCliCommand
 
 		$service = new MailLogService();
 
+		// admin pass first: the user pass below returns early in several places
+		$adminServer = $show_local_only ? $_ENV['MY_API_SERVER_ALIAS'] : null;
+		$adminFailed = $this->adminNotifications(
+			$service, $output, $send_mails, $show_mails, $send_blacklisted, $adminServer
+		);
+
 		// MailLog Collection
 		$local = '';
 		if ($show_local_only) {
@@ -87,7 +93,7 @@ class CronNotifications extends RqwatchCliCommand
 				OutputInterface::VERBOSITY_VERBOSE);
 			$this->fileLogger->debug("{$this->app_name} No entries found for notification{$local}");
 			$this->printRuntime($output);
-			return Command::SUCCESS;
+			return $adminFailed > 0 ? Command::FAILURE : Command::SUCCESS;
 		} else {
 			$output->writeln("<info>{$count} entries found for notification{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
@@ -222,7 +228,7 @@ class CronNotifications extends RqwatchCliCommand
 				OutputInterface::VERBOSITY_VERBOSE);
 			$this->fileLogger->debug("{$this->app_name} No entries remain for notification{$local}");
 			$this->printRuntime($output);
-			return Command::SUCCESS;
+			return $adminFailed > 0 ? Command::FAILURE : Command::SUCCESS;
 		}
 
 		$output->writeln("<info>{$count} entries remain with a valid recipient{$local}</info>",
@@ -245,7 +251,7 @@ class CronNotifications extends RqwatchCliCommand
 			$output->writeln("<info>Use -m to send notification mails{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
 			$this->printRuntime($output);
-			return Command::SUCCESS;
+			return $adminFailed > 0 ? Command::FAILURE : Command::SUCCESS;
 		}
 
 		// SEND NOTIFICATION MAILS
@@ -265,14 +271,7 @@ class CronNotifications extends RqwatchCliCommand
 		//$logs_ar = $logs->toArray();
 
 		// get detail link url
-		$routeConfig = Routes::load();
-		$routes = $routeConfig['routes'];
-
-		$context = new RequestContext();
-		$context->setHost($_ENV['WEB_HOST_NOTIFICATIONS']);
-		$context->setScheme($_ENV['WEB_SCHEME']);
-		$context->setBaseUrl($_ENV['WEB_BASE']);
-		$urlGenerator = new UrlGenerator($routes, $context);
+		$urlGenerator = $this->notificationUrlGenerator();
 
 		$failed = 0;
 
@@ -302,9 +301,115 @@ class CronNotifications extends RqwatchCliCommand
 
 		$this->printRuntime($output);
 
-		if ($failed > 0) {
+		if ($failed > 0 || $adminFailed > 0) {
 			return Command::FAILURE;
 		}
 		return Command::SUCCESS;
 	}
+
+
+	// absolute links to the web UI for notification mails
+	private function notificationUrlGenerator(): UrlGenerator {
+		$routeConfig = Routes::load();
+
+		$context = new RequestContext();
+		$context->setHost($_ENV['WEB_HOST_NOTIFICATIONS']);
+		$context->setScheme($_ENV['WEB_SCHEME']);
+		$context->setBaseUrl($_ENV['WEB_BASE']);
+
+		return new UrlGenerator($routeConfig['routes'], $context);
+	}
+
+	/*
+	 Admin notifications, independent of user settings: every pending mail
+	 at or below notification_score that is not blacklisted (unless -b).
+	 Returns the number of failed mails.
+	*/
+	private function adminNotifications(
+		MailLogService $service,
+		OutputInterface $output,
+		bool $send_mails,
+		bool $show_mails,
+		bool $send_blacklisted,
+		?string $server
+	): int {
+		$admins = Helper::adminNotificationRcpt();
+
+		if (empty($admins) || !App::migrationStatus()->adminNotifiedCompleted()) {
+			return 0;
+		}
+
+		$local = $server !== null ? " on server: {$server}" : '';
+
+		$logs = $service->getAdminUnnotified($server);
+
+		if ($logs->isEmpty()) {
+			$output->writeln("<info>No entries found for admin notification{$local}</info>",
+				OutputInterface::VERBOSITY_VERBOSE);
+			return 0;
+		}
+
+		$notification_score = Config::get('notification_score');
+
+		[$skipped, $logs] = $logs->partition(fn ($log) =>
+			(!$send_blacklisted && Helper::checkForBlacklist($log->symbols ?? []))
+			|| $log->score > $notification_score
+		);
+
+		// skips are final, but only a sending run records them
+		if ($send_mails && $skipped->isNotEmpty()) {
+			$marked = $service->markNotificationsSkipped($skipped->pluck('id')->all(), 'admin_notified');
+			$output->writeln("<info>{$marked} entries marked as not to be admin notified{$local}</info>",
+				OutputInterface::VERBOSITY_VERBOSE);
+			$this->fileLogger->info("{$this->app_name} {$marked} entries marked as not to be admin notified{$local}");
+		}
+
+		if ($logs->isEmpty()) {
+			$output->writeln("<info>No entries remain for admin notification{$local}</info>",
+				OutputInterface::VERBOSITY_VERBOSE);
+			return 0;
+		}
+
+		if ($show_mails) {
+			$output->writeln("<comment>Admin notifications pending{$local}:</comment>",
+				OutputInterface::VERBOSITY_NORMAL);
+			foreach ($logs as $log) {
+				$output->writeln("QID: {$log->qid}, to: " . implode(', ', $admins),
+					OutputInterface::VERBOSITY_NORMAL);
+			}
+		}
+
+		if (!$send_mails) {
+			return 0;
+		}
+
+		if (empty($_ENV['MAILER_FROM'])) {
+			$output->writeln("<error>MAILER_FROM is empty. Please define it in .env{$local}</error>");
+			$this->syslogLogger->error("MAILER_FROM is empty. Please define it in .env{$local}");
+			return count($logs);
+		}
+
+		$urlGenerator = $this->notificationUrlGenerator();
+		$failed = 0;
+
+		foreach ($logs as $log) {
+			$ar = Helper::format_symbols($log->symbols ?? [], $log->score, $log->has_virus);
+			if (!empty($ar['virus_found'])) {
+				$log->virus_name = $ar['virus_found'];
+			}
+
+			if ($service->notifyAdminHtmlMail($log, $urlGenerator, $admins)) {
+				$output->writeln("<info>Sent admin notification for QID: {$log->qid}{$local}</info>",
+					OutputInterface::VERBOSITY_VERBOSE);
+				$this->syslogLogger->info("Sent admin notification for QID: {$log->qid} to '" . implode(', ', $admins) . "'{$local}");
+			} else {
+				$failed++;
+				$output->writeln("<error>Sending admin notification for QID: {$log->qid} failed{$local}</error>");
+				$this->syslogLogger->error("Sending admin notification for QID: {$log->qid} failed{$local}");
+			}
+		}
+
+		return $failed;
+	}
+
 }
