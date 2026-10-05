@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-05
+- Added default notification setting in config for all users ($user_notifications_default)
 - cli user:add removed -d option. Use --notifications|--no-notifications
 - Add user_notifications_default migration
 
