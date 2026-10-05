@@ -438,6 +438,12 @@ class MailLogController extends ViewController
 
 		$blacklisted = Helper::checkForBlacklist($ar['log']->symbols ?? []);
 
+		// still pending, but past notification_days: the cron will not retry it
+		$notification_cutoff = MailLogService::notificationCutoff();
+		$notified_expired = $ar['log']->notification_pending
+			&& $notification_cutoff !== null
+			&& $ar['log']->created_day->format('Y-m-d') < $notification_cutoff;
+
 		// admin row: only once the admin_notified columns exist
 		$admin_notifications = App::migrationStatus()->adminNotifiedCompleted();
 		$admin_notified_expired = $admin_notifications
@@ -450,6 +456,7 @@ class MailLogController extends ViewController
 			'log' => $ar['log'],
 			'notifications_disabled' => $notifications_disabled,
 			'blacklisted' => $blacklisted,
+			'notified_expired' => $notified_expired,
 			'admin_notifications' => $admin_notifications,
 			'admin_notified_expired' => $admin_notified_expired,
 			'ip_country' => $ip_country,

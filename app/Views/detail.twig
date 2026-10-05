@@ -195,6 +195,8 @@ No (Disabled due to high score)
 No (Disabled for all recipients)
 {% elseif log.notified is null %}
 No (Disabled)
+{% elseif notified_expired %}
+No (Expired)
 {% else %}
 Pending
 {% endif %}</div>
