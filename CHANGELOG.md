@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v2.1.1 - Released: 2026-10-05
+
 ### 2026-10-05
 - Admin notifications: $admin_notification_rcpt gets every quarantined mail at or below
   $notification_score, regardless of user settings

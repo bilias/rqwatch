@@ -13,7 +13,7 @@ You should avoid busy system hours.
 
   git describe --tags --abbrev=0
 
-  git checkout v2.1.0
+  git checkout v2.1.1
   ```
 
 - Update dependencies\
@@ -36,7 +36,7 @@ You should avoid busy system hours.
 
   git describe --tags --abbrev=0
 
-  git checkout v2.1.0
+  git checkout v2.1.1
   ```
 
 - Update dependencies\
