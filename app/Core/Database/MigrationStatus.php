@@ -255,6 +255,10 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::USER_NOTIFICATIONS_DEFAULT);
 	}
 
+	public function adminNotifiedCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::ADMIN_NOTIFIED);
+	}
+
 	public function getAllMigrationStates(): array {
 		$states = [];
 

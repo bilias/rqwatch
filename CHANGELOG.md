@@ -3,12 +3,13 @@
 ## Master Dev Branch
 
 ### 2026-10-05
+- Add AdminNotified migration
 - $notification_days changed from 30 -> 7
 - Skipped notifications (high score, blacklisted, disabled or no recipient)
   are now final (notified = NULL), never retried, and searchable via "Notification skipped (0/1)"
 - Added default notification setting in config for all users ($user_notifications_default)
 - cli user:add removed -d option. Use --notifications|--no-notifications
-- Add user_notifications_default migration
+- Add UserNotificationsDefault migration
 
 ### 2026-10-03
 - Add configurable username label on login page

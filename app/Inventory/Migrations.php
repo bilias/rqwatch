@@ -21,6 +21,7 @@ use App\Core\Database\Migrations\DropMailLogColumns;
 use App\Core\Database\Migrations\DropMailLogIndexes;
 use App\Core\Database\Migrations\MapUserConstraints;
 use App\Core\Database\Migrations\UserNotificationsDefault;
+use App\Core\Database\Migrations\AdminNotified;
 
 use InvalidArgumentException;
 
@@ -36,6 +37,7 @@ class Migrations
 	public const string DROP_MAIL_LOG_INDEXES = '20260911_drop_mail_log_indexes';
 	public const string MAP_USER_CONSTRAINTS = '20260912_map_user_constraints';
 	public const string USER_NOTIFICATIONS_DEFAULT = '20261005_user_notifications_default';
+	public const string ADMIN_NOTIFIED = '20261005_admin_notified';
 
 	public const array MIGRATIONS = [
 		self::MAIL_RECIPIENTS,
@@ -48,6 +50,7 @@ class Migrations
 		self::DROP_MAIL_LOG_INDEXES,
 		self::MAP_USER_CONSTRAINTS,
 		self::USER_NOTIFICATIONS_DEFAULT,
+		self::ADMIN_NOTIFIED,
 	];
 
 	public const array REQUIRED = [
@@ -93,6 +96,7 @@ class Migrations
 		self::DROP_MAIL_LOG_INDEXES => DropMailLogIndexes::class,
 		self::MAP_USER_CONSTRAINTS => MapUserConstraints::class,
 		self::USER_NOTIFICATIONS_DEFAULT => UserNotificationsDefault::class,
+		self::ADMIN_NOTIFIED => AdminNotified::class,
 	];
 
 	public const array MIGRATION_DESCR = [
@@ -106,6 +110,7 @@ class Migrations
 		self::DROP_MAIL_LOG_INDEXES => "Drop dead mail_logs indexes",
 		self::MAP_USER_CONSTRAINTS => "Map and alias user constraints",
 		self::USER_NOTIFICATIONS_DEFAULT => "User notifications default",
+		self::ADMIN_NOTIFIED => "Mail Log admin notification columns",
 	];
 
 	public const array MIGRATION_BATCH = [
@@ -119,6 +124,7 @@ class Migrations
 		self::DROP_MAIL_LOG_INDEXES => 0,
 		self::MAP_USER_CONSTRAINTS => 0,
 		self::USER_NOTIFICATIONS_DEFAULT => 0,
+		self::ADMIN_NOTIFIED => 0,
 	];
 
 	public const array MIGRATION_SLEEP = [
@@ -132,6 +138,7 @@ class Migrations
 		self::DROP_MAIL_LOG_INDEXES => 200000,
 		self::MAP_USER_CONSTRAINTS => 200000,
 		self::USER_NOTIFICATIONS_DEFAULT => 200000,
+		self::ADMIN_NOTIFIED => 200000,
 	];
 
 	public const array MIGRATION_HELP = [
@@ -145,6 +152,7 @@ class Migrations
 		self::DROP_MAIL_LOG_INDEXES => "https://github.com/bilias/rqwatch/blob/master/docs/DB_UPDATE_2_plus.md",
 		self::MAP_USER_CONSTRAINTS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_UPDATE_2_plus.md",
 		self::USER_NOTIFICATIONS_DEFAULT => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
+		self::ADMIN_NOTIFIED => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 	];
 
 	public const string STATUS_PENDING   = 'pending';

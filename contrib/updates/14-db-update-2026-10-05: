@@ -1,0 +1,5 @@
+# SQL
+ALTER TABLE `mail_logs`
+  ADD COLUMN `admin_notified` TINYINT(1) DEFAULT NULL AFTER `notify_date`,
+  ADD COLUMN `admin_notify_date` DATETIME DEFAULT NULL AFTER `admin_notified`,
+  ALGORITHM=INSTANT;

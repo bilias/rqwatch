@@ -153,6 +153,8 @@ CREATE TABLE `mail_logs` (
  `mail_location` VARCHAR(255) DEFAULT NULL,
  `notified` TINYINT(1) DEFAULT '0',
  `notify_date` DATETIME(0) DEFAULT NULL,
+ `admin_notified` TINYINT(1) DEFAULT NULL,
+ `admin_notify_date` DATETIME DEFAULT NULL,
  `released` TINYINT(1) DEFAULT '0',
  `release_date` DATETIME(0) DEFAULT NULL,
  `notification_pending` TINYINT(1) GENERATED ALWAYS AS (`mail_stored` = 1 and `notified` = 0 and `action` in ('discard','reject')) STORED,
@@ -235,4 +237,5 @@ INSERT INTO `migrations` VALUES
 ('20260908_drop_mail_log_columns','completed',NOW()),
 ('20260911_drop_mail_log_indexes','completed',NOW()),
 ('20260912_map_user_constraints','completed',NOW()),
-('20261005_user_notifications_default','completed',NOW());
+('20261005_user_notifications_default','completed',NOW()),
+('20261005_admin_notified','completed',NOW());
