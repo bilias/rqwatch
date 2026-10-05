@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 ### 2026-10-05
+- Admin notifications: $admin_notification_rcpt gets every quarantined mail at or below
+  $notification_score, regardless of user settings
 - Add AdminNotified migration
 - $notification_days changed from 30 -> 7
 - Skipped notifications (high score, blacklisted, disabled or no recipient)
