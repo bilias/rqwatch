@@ -48,6 +48,8 @@ class MailLog extends Model
 		'mail_location' => 'string',
 		'notified' => 'boolean',
 		'notify_date' => 'datetime',
+		'admin_notified' => 'boolean',
+		'admin_notify_date' => 'datetime',
 		'notification_pending' => 'boolean',
 		'released' => 'boolean',
 		'release_date' => 'datetime',

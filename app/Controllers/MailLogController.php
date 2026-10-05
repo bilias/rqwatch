@@ -438,12 +438,20 @@ class MailLogController extends ViewController
 
 		$blacklisted = Helper::checkForBlacklist($ar['log']->symbols ?? []);
 
+		// admin row: only once the admin_notified columns exist
+		$admin_notifications = App::migrationStatus()->adminNotifiedCompleted();
+		$admin_notified_expired = $admin_notifications
+			&& $ar['log']->admin_notified === false
+			&& $ar['log']->created_day->format('Y-m-d') < MailLogService::adminNotificationCutoff();
+
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),
 			'mailreleaseform' => $mailreleaseform_t,
 			'log' => $ar['log'],
 			'notifications_disabled' => $notifications_disabled,
 			'blacklisted' => $blacklisted,
+			'admin_notifications' => $admin_notifications,
+			'admin_notified_expired' => $admin_notified_expired,
 			'ip_country' => $ip_country,
 			'stripped_mail_location' => $stripped_mail_location,
 			'error' => $error,

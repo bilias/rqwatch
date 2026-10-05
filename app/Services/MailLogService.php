@@ -1461,25 +1461,28 @@ class MailLogService
 		return $query->get();
 	}
 
+	// first created_day still inside the admin_notification_days window
+	public static function adminNotificationCutoff(): string {
+		$days = (int) Config::get('admin_notification_days');
+		if ($days < 1) {
+			$days = 3;
+		}
+
+		return (new \DateTimeImmutable())
+			->sub(new \DateInterval("P{$days}D"))
+			->format('Y-m-d');
+	}
+
 	/*
 	 Mails pending admin notification (admin_notified = 0) from the last
 	 admin_notification_days days. admin_notified has no index, so the
 	 day limit is what keeps this an index range scan on created_day.
 	*/
 	public function getAdminUnnotified(?string $server = null): Collection {
-		$days = (int) Config::get('admin_notification_days');
-		if ($days < 1) {
-			$days = 3;
-		}
-
-		$cutoffDate = (new \DateTimeImmutable())
-			->sub(new \DateInterval("P{$days}D"))
-			->format('Y-m-d');
-
 		$query = MailLog::select(MailLog::SELECT_FIELDS)
 			->with($this->getMailLogSymbolsRelations())
 			->where('admin_notified', 0)
-			->where('created_day', '>=', $cutoffDate);
+			->where('created_day', '>=', self::adminNotificationCutoff());
 
 		if ($server) {
 			$query->where('server', $server);

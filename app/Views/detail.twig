@@ -199,6 +199,21 @@ No (Disabled)
 Pending
 {% endif %}</div>
  </div>
+ {% if is_admin and admin_notifications %}
+ <div class="row">
+   <div class='info'>Admin notified:</div>
+   <div class='detail'>
+{% if log.admin_notified %}
+<strong>Yes</strong>: {{ log.admin_notify_date }}
+{% elseif log.admin_notified is null %}
+No
+{% elseif admin_notified_expired %}
+No (Expired)
+{% else %}
+Pending
+{% endif %}</div>
+ </div>
+{% endif %}
  <div class="row">
    <div class='info'>Released:</div>
    <div class='detail'>
