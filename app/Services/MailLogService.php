@@ -51,6 +51,7 @@ use PhpMimeMailParser\Parser;
 
 use DateTime;
 use DateInterval;
+use DateTimeImmutable;
 
 use Exception;
 use InvalidArgumentException;
@@ -1461,8 +1462,8 @@ class MailLogService
 			return null;
 		}
 
-		return (new \DateTimeImmutable())
-			->sub(new \DateInterval("P{$days}D"))
+		return (new DateTimeImmutable())
+			->sub(new DateInterval("P{$days}D"))
 			->format('Y-m-d');
 	}
 
@@ -1473,8 +1474,8 @@ class MailLogService
 			$days = 3;
 		}
 
-		return (new \DateTimeImmutable())
-			->sub(new \DateInterval("P{$days}D"))
+		return (new DateTimeImmutable())
+			->sub(new DateInterval("P{$days}D"))
 			->format('Y-m-d');
 	}
 
