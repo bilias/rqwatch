@@ -187,10 +187,10 @@ No
 <strong>Yes</strong>: {{ log.notify_date }}
 {% elseif log.notified is not null and not log.notification_pending %}
 No
-{% elseif log.score > NOTIFICATION_SCORE %}
-No (Disabled due to high score)
 {% elseif blacklisted %}
 No (Blacklisted)
+{% elseif log.score > NOTIFICATION_SCORE %}
+No (Disabled due to high score)
 {% elseif notifications_disabled %}
 No (Disabled for all recipients)
 {% elseif log.notified is null %}
