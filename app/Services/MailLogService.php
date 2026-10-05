@@ -1420,10 +1420,6 @@ class MailLogService
 
 		$fields = MailLog::SELECT_FIELDS;
 
-		if (($cutoffDate = self::notificationCutoff()) !== null) {
-			$query->where('created_day', '>=', $cutoffDate);
-		}
-
 		$query = MailLog::select($fields)
 					->with($this->getMailLogSymbolsRelations())
 					->where('notification_pending', 1);
@@ -1434,14 +1430,7 @@ class MailLogService
 					->whereIn('action', ['discard', 'reject']); // undelivered
 					*/
 
-		$notification_days = (int) Config::get('notification_days');
-
-		// Apply date filter only if > 0
-		if (is_numeric($notification_days) && (int)$notification_days > 0) {
-			$cutoffDate = (new \DateTimeImmutable())
-				->sub(new \DateInterval("P{$notification_days}D"))
-				->format('Y-m-d');
-
+		if (($cutoffDate = self::notificationCutoff()) !== null) {
 			$query->where('created_day', '>=', $cutoffDate);
 		}
 
