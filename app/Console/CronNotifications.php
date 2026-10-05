@@ -83,9 +83,9 @@ class CronNotifications extends RqwatchCliCommand
 		}
 
 		if (($count = count($logs)) < 1) {
-			$output->writeln("<info>No entries found for notitication{$local}</info>",
+			$output->writeln("<info>No entries found for notification{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
-			$this->fileLogger->debug("{$this->app_name} No entries found for notitication{$local}");
+			$this->fileLogger->debug("{$this->app_name} No entries found for notification{$local}");
 			$this->printRuntime($output);
 			return Command::SUCCESS;
 		} else {
