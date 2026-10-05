@@ -137,6 +137,11 @@ class MailLogService
 						if ($c === 'NOT LIKE') {
 							$v = "%{$v}%";
 						}
+						if ($f === 'notification_skipped') {
+							$this->filterByNotificationSkipped($query, $c, $v);
+
+							continue; // not a mail_logs column
+						}
 						$query->where($f, $c, $v);
 					}
 					/* support NULL/NOT NULL
@@ -152,6 +157,24 @@ class MailLogService
 			}
 		}
 		return $query;
+	}
+
+	/*
+	 The cron marks a skipped notification as notified NULL. = and <> against
+	 0/1 use notified_index; any other operator compares the 0/1 expression.
+	 $c is always a FormHelper::getChoices() value.
+	*/
+	private function filterByNotificationSkipped(Builder $query, string $c, mixed $v): void {
+		if (in_array($c, ['=', '<>'], true) && in_array((string) $v, ['0', '1'], true)) {
+			if (($c === '=') === ((string) $v === '1')) {
+				$query->whereNull('notified');
+			} else {
+				$query->whereNotNull('notified');
+			}
+			return;
+		}
+
+		$query->whereRaw("(`notified` IS NULL) {$c} ?", [$v]);
 	}
 
 	/*

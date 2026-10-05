@@ -96,6 +96,8 @@ class FormHelper
 			'Released (0/1)' => 'released',
 			'Notified (0/1)' => 'notified',
 			'Notification pending (0/1)' => 'notification_pending',
+			// not a column: notified IS NULL, via filterByNotificationSkipped()
+			'Notification skipped (0/1)' => 'notification_skipped',
 			'Server' => 'server',
 		);
 
