@@ -436,11 +436,14 @@ class MailLogController extends ViewController
 				$ar['log']->recipients->pluck('recipient_email')->all()
 			);
 
+		$blacklisted = Helper::checkForBlacklist($ar['log']->symbols ?? []);
+
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),
 			'mailreleaseform' => $mailreleaseform_t,
 			'log' => $ar['log'],
 			'notifications_disabled' => $notifications_disabled,
+			'blacklisted' => $blacklisted,
 			'ip_country' => $ip_country,
 			'stripped_mail_location' => $stripped_mail_location,
 			'error' => $error,
