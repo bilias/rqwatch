@@ -193,6 +193,23 @@ class UserService
 		return $this->userNotificationsDefault = $default;
 	}
 
+	// true when none of $emails would be notified
+	public function notificationsDisabledForAll(array $emails): bool {
+		$emails = array_filter(array_map(fn ($e) => trim((string) $e), $emails));
+
+		if (empty($emails)) {
+			return false;
+		}
+
+		foreach ($emails as $email) {
+			if (!$this->notificationsDisabledFor($email)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	public function notificationsDisabledFor(string $email): bool {
 		$email = strtolower(trim($email));
 

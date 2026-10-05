@@ -31,6 +31,7 @@ use App\Forms\MailReleaseForm;
 
 use App\Models\MailLog;
 use App\Services\MailLogService;
+use App\Services\UserService;
 
 use App\Inventory\MapInventory;
 
@@ -428,10 +429,17 @@ class MailLogController extends ViewController
 
 		$map_configs = $this->getMapConfigsWithAddUrls($ar['log']);
 
+		// pending, but no recipient would be notified
+		$notifications_disabled = $ar['log']->notification_pending
+			&& (new UserService())->notificationsDisabledForAll(
+				$ar['log']->recipients->pluck('recipient_email')->all()
+			);
+
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),
 			'mailreleaseform' => $mailreleaseform_t,
 			'log' => $ar['log'],
+			'notifications_disabled' => $notifications_disabled,
 			'ip_country' => $ip_country,
 			'stripped_mail_location' => $stripped_mail_location,
 			'error' => $error,
