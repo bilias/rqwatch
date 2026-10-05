@@ -49,7 +49,7 @@
 <div class="row">
 <div class='info'>Notifications</div>
 <div class='detail'>
-{% if user.disable_notifications is null %}{{ notifications_default ? 'Yes' : 'No' }} (default){% elseif user.disable_notifications %}No{% else %}Yes{% endif %}
+{% if user.disable_notifications is null %}Default ({{ notifications_default ? 'Yes' : 'No' }}){% elseif user.disable_notifications %}No{% else %}Yes{% endif %}
 </div>
 </div>
 {% endif %}

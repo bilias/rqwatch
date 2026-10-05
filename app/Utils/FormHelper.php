@@ -55,9 +55,9 @@ class FormHelper
 			'label' => 'Notifications',
 			'required' => true,
 			'choices' => [
-				'Default (' . ($default ? 'on' : 'off') . ')' => 'default',
-				'On' => 'on',
-				'Off' => 'off',
+				'Default (' . ($default ? 'Yes' : 'No') . ')' => 'default',
+				'Yes' => 'on',
+				'No' => 'off',
 			],
 			'attr' => [
 				'class' => 'disable_notifications',
