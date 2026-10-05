@@ -1,0 +1,22 @@
+{% include 'mail/header.twig' %}
+
+<h3>Admin notification: the following mail has been saved in quarantine.</h3>
+<table>
+<tr><td><strong>Date</strong>:</td><td>{{ created_at }}</td></tr>
+<tr><td><strong>Server</strong>:</td><td>{{ server }}</td></tr>
+<tr><td><strong>MAIL From</strong>:</td><td>{{ mail_from }}</td></tr>
+<tr><td><strong>From</strong>:</td><td>{{ mime_from }}</td></tr>
+<tr><td><strong>To</strong>:</td><td>{{ rcpt_to }}</td></tr>
+<tr><td><strong>Subject</strong>:</td><td>'{{ subject }}'</td></tr>
+<tr><td><strong>Mail Queue ID</strong>:</td><td>{{ qid }}</td></tr>
+<tr><td><strong>Spam Score</strong>:</td><td>{{ score }}</td></tr>
+<tr><td><strong>Virus Detected</strong>:</td><td>{% if has_virus %}Yes {{ virus_name }}{% else %}No{% endif %}</td></tr>
+<tr><td><strong>Action</strong>:</td><td>{{ action }} ({{ getDelivery(action) }})</td></tr>
+</table>
+
+<p>
+<a target='_blank' href='{{ detailurl }}'>Click here to view mail details</a>.
+</p>
+<h4>{{ signature | nl2br }}</h4>
+
+{% include 'mail/footer.twig' %}

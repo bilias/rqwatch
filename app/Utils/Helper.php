@@ -665,6 +665,34 @@ You can view mail details and optionally release it from quarantine by clicking 
 		return $ret;
 	}
 
+	public static function getAdminNotifyText($ar): string {
+		$ret = "Admin notification: the following mail has been saved in quarantine.
+
+Date: {$ar['created_at']}
+Server: {$ar['server']}
+MAIL From: {$ar['mail_from']}
+From: {$ar['mime_from']}
+To: {$ar['rcpt_to']}
+Subject: {$ar['subject']}
+Mail Queue ID: {$ar['qid']}
+Spam Score: {$ar['score']}
+Virus Detected:";
+		if (!empty($ar['has_virus'])) {
+			$ret .= rtrim(" Yes {$ar['virus_name']}");
+		} else {
+			$ret .= " No";
+		}
+
+		$ret .= "
+Action: {$ar['action']}
+
+Mail details:
+{$ar['detailurl']}
+
+{$ar['signature']}";
+		return $ret;
+	}
+
 	public static function env_bool(string $key, bool $default = false): bool {
 		return filter_var($_ENV[$key] ?? $default, FILTER_VALIDATE_BOOLEAN);
 	}

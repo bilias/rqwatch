@@ -526,6 +526,8 @@ based on action taken by Rspamd\
 
 - `$notify_mail_subject` - Default subject in notification mail
 
+- `$admin_notify_mail_subject` - Default subject in admin notification mail
+
 - `$notification_score` - Mails with score higher than this don't get notifications.\
  Default is `50.1`
 

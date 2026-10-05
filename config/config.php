@@ -143,6 +143,9 @@ $user_notifications_default = true;
 # Default subject in notification mail
 $notify_mail_subject = "New message stored in quarantine";
 
+# Subject in admin notification mail
+$admin_notify_mail_subject = "[Admin] New message stored in quarantine";
+
 # Mails with score more than this don't get notifications
 $notification_score = 50.1;
 
