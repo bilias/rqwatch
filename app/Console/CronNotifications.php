@@ -132,6 +132,8 @@ class CronNotifications extends RqwatchCliCommand
 				return Helper::checkForBlacklist($log->symbols);
 			});
 
+			$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
+
 			if (count($removedLogs) > 0) {
 				// get the ids based on filter above
 				$removedIds = $removedLogs->pluck('id')->all();
