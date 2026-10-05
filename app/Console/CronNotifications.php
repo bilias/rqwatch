@@ -159,7 +159,7 @@ class CronNotifications extends RqwatchCliCommand
 			foreach ($removedLogs as $log) {
 				$disabledList = $log->disabled_rcpt_to ?? 'n/a';
 				$output->writeln(
-					"<comment>Notifications disabled for recipient: {$disabledList} (mail id: {$log->id}})</comment>{$local}",
+					"<comment>Notifications disabled for recipient: {$disabledList} (mail id: {$log->id})</comment>{$local}",
 					OutputInterface::VERBOSITY_VERBOSE
 				);
 			}
