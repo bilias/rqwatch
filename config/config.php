@@ -158,6 +158,11 @@ $notification_score = 50.1;
 # are no longer sent. Use 0 for no limit.
 $notification_days = 7;
 
+# Retry and catch-up window for admin notifications, in days.
+# Keep it short: admin_notified has no index, so a long window
+# makes every notification run scan the whole mail_logs table.
+$admin_notification_days = 3;
+
 # Default mail signature
 $mail_signature = $APP_NAME;
 

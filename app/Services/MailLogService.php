@@ -1315,23 +1315,98 @@ class MailLogService
 		return false;
 	}
 
+	// one mail per admin address; admin_notified = 1 once any is sent
+	public function notifyAdminHtmlMail(
+		MailLog $maillog,
+		UrlGeneratorInterface $urlGenerator,
+		array $admins,
+		?Environment $twig = null
+	): bool {
+
+		$mailer = new MailerService($this->logger, $twig);
+		$from = $_ENV['MAILER_FROM'];
+		$subject = Config::get('admin_notify_mail_subject');
+
+		$recipients = $maillog->recipients->pluck('recipient_email')->all();
+
+		$vars = array(
+			'created_at' => $maillog->created_at,
+			'server'     => $maillog->server,
+			'mail_from'  => $maillog->mail_from,
+			'mime_from'  => $maillog->mime_from,
+			'rcpt_to'    => empty($recipients) ? '(none)' : implode(', ', $recipients),
+			'subject'    => $maillog->subject,
+			'qid'        => $maillog->qid,
+			'score'      => $maillog->score,
+			'has_virus'  => $maillog->has_virus,
+			'virus_name' => $maillog->virus_name,
+			'action'     => $maillog->action,
+			'detailurl'  => $urlGenerator->generate(
+				RouteName::DETAIL->value,
+				[ 'type' => 'id', 'value' => $maillog->id ],
+				UrlGeneratorInterface::ABSOLUTE_URL
+			),
+			'signature'  => Config::get('mail_signature'),
+		);
+
+		$text_part = Helper::getAdminNotifyText($vars);
+
+		$sent = 0;
+		$failed = [];
+
+		foreach ($admins as $admin) {
+			if ($mailer->sendTemplatedEmail(
+				$from,
+				[$admin],
+				$subject,
+				'mail/notify_admin.html.twig',
+				$text_part,
+				$vars,
+			)) {
+				$sent++;
+			} else {
+				$failed[] = $admin;
+			}
+		}
+
+		if (!empty($failed)) {
+			$this->logger->error(
+				"[notifyAdminHtmlMail] mail id {$maillog->id} admin notification failed for: "
+				. implode(', ', $failed)
+			);
+		}
+
+		if ($sent > 0) {
+			// query builder: these models carry non-column attributes
+			MailLog::whereKey($maillog->id)->update([
+				'admin_notified'    => 1,
+				'admin_notify_date' => date("Y-m-d H:i:s"),
+			]);
+			return true;
+		}
+		return false;
+	}
+
 	/*
 	 Mails the cron decided never to notify. notified NULL takes them out of
 	 notification_pending. Chunked to keep Galera write-sets small. A failure
 	 leaves them pending, so the next run retries.
 	*/
-	public function markNotificationsSkipped(array $ids): int {
+	public function markNotificationsSkipped(array $ids, string $column = 'notified'): int {
+		if (!in_array($column, ['notified', 'admin_notified'], true)) {
+			throw new InvalidArgumentException("Not a notification column: {$column}");
+		}
 		$ids = array_values(array_unique(array_map('intval', $ids)));
 		$updated = 0;
 
 		try {
 			foreach (array_chunk($ids, 1000) as $chunk) {
 				$updated += MailLog::whereIn('id', $chunk)
-					->where('notified', 0)
-					->update(['notified' => null]);
+					->where($column, 0)
+					->update([$column => null]);
 			}
 		} catch (Exception $e) {
-			$this->logger->error("Failed to mark skipped notifications: " . $e->getMessage());
+			$this->logger->error("Failed to mark skipped {$column}: " . $e->getMessage());
 		}
 
 		return $updated;
@@ -1384,6 +1459,33 @@ class MailLogService
 
 		// logs
 		return $query->get();
+	}
+
+	/*
+	 Mails pending admin notification (admin_notified = 0) from the last
+	 admin_notification_days days. admin_notified has no index, so the
+	 day limit is what keeps this an index range scan on created_day.
+	*/
+	public function getAdminUnnotified(?string $server = null): Collection {
+		$days = (int) Config::get('admin_notification_days');
+		if ($days < 1) {
+			$days = 3;
+		}
+
+		$cutoffDate = (new \DateTimeImmutable())
+			->sub(new \DateInterval("P{$days}D"))
+			->format('Y-m-d');
+
+		$query = MailLog::select(MailLog::SELECT_FIELDS)
+			->with($this->getMailLogSymbolsRelations())
+			->where('admin_notified', 0)
+			->where('created_day', '>=', $cutoffDate);
+
+		if ($server) {
+			$query->where('server', $server);
+		}
+
+		return $this->applyUserScope($query)->orderBy('id')->get();
 	}
 
 	public function filterDisabledRecipients(Collection $logs, UserService $userService): void {

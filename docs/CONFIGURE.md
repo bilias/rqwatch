@@ -542,6 +542,10 @@ based on action taken by Rspamd\
  older than this many days are no longer sent. Use `0` for no limit.\
  Default is `7`
 
+- `$admin_notification_days` - Retry and catch-up window for admin notifications, in days.\
+  Keep it short: admin_notified has no index, so a long window makes every notification run scan the whole mail_logs table.\
+  Default is `3`
+
 - `$mail_signature` - Default mail signature
 
 ### Failed Import Spool
