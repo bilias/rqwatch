@@ -136,14 +136,6 @@ class UserForm extends AbstractType
 						),
 					 ],
             ])
-				->add('disable_notifications', CheckboxType::class, [
-					'label' => 'Disable notifications',
-					'required' => false,
-					 'attr' => [
-						'class' => 'disable_notifications',
-						'title' => 'Disable mail notifications for quarantined mails',
-					 ],
-				])
 				->add('is_admin', CheckboxType::class, [
 					'label' => 'Admin',
 					'required' => false,
@@ -155,6 +147,7 @@ class UserForm extends AbstractType
             ->add('add', SubmitType::class, [
                 'label' => $options['is_edit'] ? 'Update User' : 'Add User',
             ]);
+				FormHelper::addNotificationsField($formFactory, $options['notifications_default']);
 	}
 
 	public static function create(
@@ -192,8 +185,10 @@ class UserForm extends AbstractType
             //'data_class' => User::class,
             //'data_class' => null,
             'is_edit' => false,  // default to "create" mode
+				'notifications_default' => true,
         ]);
 
         $resolver->setAllowedTypes('is_edit', 'bool');
+        $resolver->setAllowedTypes('notifications_default', 'bool');
     }
 }

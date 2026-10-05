@@ -16,6 +16,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\CallbackTransformer;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class FormHelper
 {
@@ -40,6 +43,36 @@ class FormHelper
 		$form->handleRequest($request);
 
 		return $form;
+	}
+
+	/*
+	 Tri-state disable_notifications for the user and profile forms.
+	 NULL follows $default; the choices are strings because ChoiceType
+	 cannot carry a null choice value.
+	*/
+	public static function addNotificationsField(FormBuilderInterface $builder, bool $default): void {
+		$builder->add('disable_notifications', ChoiceType::class, [
+			'label' => 'Notifications',
+			'required' => true,
+			'choices' => [
+				'Default (' . ($default ? 'on' : 'off') . ')' => 'default',
+				'On' => 'on',
+				'Off' => 'off',
+			],
+			'attr' => [
+				'class' => 'disable_notifications',
+				'title' => 'Mail notifications for quarantined mails',
+			],
+		]);
+
+		$builder->get('disable_notifications')->addModelTransformer(new CallbackTransformer(
+			fn ($value) => $value === null ? 'default' : ($value ? 'off' : 'on'),
+			fn ($choice) => match ($choice) {
+				'on' => false,
+				'off' => true,
+				default => null,
+			},
+		));
 	}
 
 	public static function getFilters(bool $is_admin): array {

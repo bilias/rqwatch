@@ -282,7 +282,12 @@ class UserController extends ViewController
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
-		$profileform = ProfileForm::create($this->formFactory, $this->request, $user->toArray());
+		$profileform = ProfileForm::create(
+			$this->formFactory,
+			$this->request,
+			$user->toArray(),
+			['notifications_default' => $service->userNotificationsDefault()]
+		);
 		$profileform_t = $profileform->createView(); // for twig
 
 		if ($profileform->isSubmitted() && $profileform->isValid()) {
@@ -351,7 +356,12 @@ class UserController extends ViewController
 		}
 
 		$error = null;
-		$userform = UserForm::create($this->formFactory, $this->request);
+		$userform = UserForm::create(
+			$this->formFactory,
+			$this->request,
+			null,
+			['notifications_default' => $this->getUserService()->userNotificationsDefault()]
+		);
 
 		if ($userform->isSubmitted() && $userform->isValid()) {
 			$data = $userform->getData();
@@ -418,7 +428,15 @@ class UserController extends ViewController
 		}
 
 		// or $user->toArray() if empty attribute and not getter in Model
-		$userform = UserForm::create($this->formFactory, $this->request, $user->toArray(), ['is_edit' => true]);
+		$userform = UserForm::create(
+			$this->formFactory,
+			$this->request,
+			$user->toArray(),
+			[
+				'is_edit' => true,
+				'notifications_default' => $this->getUserService()->userNotificationsDefault(),
+			]
+		);
 
 		// Do not allow delete of the admin user or of yourself
 		if ($user->username !== 'admin'

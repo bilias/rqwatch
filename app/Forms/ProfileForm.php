@@ -24,6 +24,8 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
 use Symfony\Component\HttpFoundation\Request;
 
 use App\Utils\FormHelper;
@@ -59,14 +61,6 @@ class ProfileForm extends AbstractType
 						),
 					 ],
             ])
-				->add('disable_notifications', CheckboxType::class, [
-					 'label' => 'Disable notifications',
-					 'required' => false,
-					 'attr' => [
-						'class' => 'disable_notifications',
-						'title' => 'Disable mail notifications for quarantined mails',
-					 ],
-				])
             ->add('password', RepeatedType::class, [
 					 'type' => PasswordType::class,
 					 'invalid_message' => 'The password fields must match.',
@@ -95,13 +89,24 @@ class ProfileForm extends AbstractType
             ->add('add', SubmitType::class, [
                 'label' => 'Update',
             ]);
+				FormHelper::addNotificationsField($formFactory, $options['notifications_default']);
 	}
 
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,
-			?array $data = null): FormInterface {
+  			?array $data = null,
+  			array $options = []): FormInterface {
 
-		return FormHelper::formCreator($formFactory, $request, self::class, $data);
-	}
+  		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
+  	}
+
+  	#[\Override]
+  	public function configureOptions(OptionsResolver $resolver): void {
+  		$resolver->setDefaults([
+  			'notifications_default' => true,
+  		]);
+
+  		$resolver->setAllowedTypes('notifications_default', 'bool');
+  	}
 }
