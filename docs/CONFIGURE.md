@@ -688,7 +688,7 @@ Available commands for the "user" namespace:
       -s, --surname=SURNAME      Surname
       -a, --admin                Create user with admin privileges
       -l, --ldap                 Create an LDAP user
-      -d, --no-notifications     Disable notifications
+          --notifications|--no-notifications  Enable or disable notifications (default: follow user_notifications_default)
       -p, --password[=PASSWORD]  Specify user password
     ```
 For instance, in order to create an admin user after Installation and Configuration use:

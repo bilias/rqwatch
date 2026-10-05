@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-05
+- cli user:add removed -d option. Use --notifications|--no-notifications
 - Add user_notifications_default migration
 
 ### 2026-10-03
