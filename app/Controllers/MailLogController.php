@@ -76,7 +76,6 @@ class MailLogController extends ViewController
 	];
 
 	public function showAll(): Response {
-		$this->getAdminWarnings();
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -103,7 +102,7 @@ class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'refresh_rate' => $this->refresh_rate,
 			'subject_privacy' => $this->subject_privacy,
-			'flashes' => $this->flashbag->all(),
+			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
@@ -177,7 +176,7 @@ class MailLogController extends ViewController
 			'max_items' => $this->max_items,
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
-			'flashes' => $this->flashbag->all(),
+			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
@@ -240,7 +239,7 @@ class MailLogController extends ViewController
 			'max_items' => (int) Config::get('top_reports') ?: 30,
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
-			'flashes' => $this->flashbag->all(),
+			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
@@ -250,7 +249,6 @@ class MailLogController extends ViewController
 	}
 
 	public function showDay(?string $date = null): Response {
-	$this->getAdminWarnings();
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -278,7 +276,7 @@ class MailLogController extends ViewController
 			'refresh_rate' => $this->refresh_rate,
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
-			'flashes' => $this->flashbag->all(),
+			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
@@ -319,7 +317,7 @@ class MailLogController extends ViewController
 			'max_items' => $this->max_items,
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
-			'flashes' => $this->flashbag->all(),
+			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
@@ -368,7 +366,7 @@ class MailLogController extends ViewController
 			'chart' => $chart,
 			'show_charts' => $chart !== null,
 			'runtime' => $this->getRuntime(),
-			'flashes' => $this->flashbag->all(),
+			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
@@ -444,7 +442,7 @@ class MailLogController extends ViewController
 			'map_configs' => $map_configs,
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
-			'flashes' => $this->flashbag->all(),
+			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
@@ -619,7 +617,7 @@ class MailLogController extends ViewController
 			'symbols' => $mailobject->getSymbols(),
 			'error' => $error,
 			'runtime' => $this->getRuntime(),
-			'flashes' => $this->flashbag->all(),
+			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),
@@ -733,7 +731,6 @@ class MailLogController extends ViewController
 	}
 
 	public function search(): Response {
-		$this->getAdminWarnings();
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -798,7 +795,7 @@ class MailLogController extends ViewController
 			'show_reports' => $this->mailReportsEnabled($filters),
 			'searchform' => $searchform->createView(),
 			'runtime' => $this->getRuntime(),
-			'flashes' => $this->flashbag->all(),
+			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
 			'auth_provider' => $this->session->get('auth_provider'),

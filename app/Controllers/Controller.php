@@ -334,6 +334,12 @@ class Controller
 		}
 	}
 
+	// flashes for a rendered page, admin warnings included
+	protected function getFlashes(): array {
+		$this->getAdminWarnings();
+		return $this->flashbag->all();
+	}
+
 	protected function getHomepageUrl(): string {
 		if ($this->homepageUrl === null) {
 			$this->homepageUrl = $this->is_admin
