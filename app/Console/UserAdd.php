@@ -47,7 +47,7 @@ class UserAdd extends RqwatchCliCommand
 			->addOption('surname', 's', InputOption::VALUE_REQUIRED, 'Surname')
 			->addOption('admin', 'a', InputOption::VALUE_NONE, 'Create user with admin privileges')
 			->addOption('ldap', 'l', InputOption::VALUE_NONE, 'Create an LDAP user')
-			->addOption('no-notifications', 'd', InputOption::VALUE_NONE, 'Disable notifications')
+			->addOption('notifications', null, InputOption::VALUE_NEGATABLE, 'Enable or disable notifications (default: follow user_notifications_default)')
 			->addOption('password', 'p', InputOption::VALUE_OPTIONAL, 'Specify user password')
 			->addArgument('username', InputArgument::REQUIRED, 'Username for the user')
 			->addArgument('mail', InputArgument::REQUIRED, 'Email for the user')
@@ -143,14 +143,15 @@ class UserAdd extends RqwatchCliCommand
 			$password_hash = 'EXTERNAL_AUTH';
 		}
 
-		$notifications = $input->getOption('no-notifications');
+		// null when neither flag is given: follow user_notifications_default
+		$notifications = $input->getOption('notifications');
 
 		$data = [
 			'username' => $username,
 			'email' => $email,
 			'firstname' => $first,
 			'lastname' => $surname,
-			'disable_notifications' => $notifications,
+			'disable_notifications' => $notifications === null ? null : !$notifications,
 			'is_admin' => $is_admin,
 			'auth_provider' => $auth_provider,
 			'password' => $password_hash,
