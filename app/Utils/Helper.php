@@ -482,8 +482,9 @@ class Helper {
 		return true;
 	}
 
-	public static function format_symbols(array $symbols_ar, float $score, bool $has_virus): array {
-		$sorted_symbols = self::get_scores($symbols_ar, $score);
+	// $score is null when Rspamd sent none (the importer still stores the mail)
+	public static function format_symbols(array $symbols_ar, ?float $score, bool $has_virus): array {
+		$sorted_symbols = self::get_scores($symbols_ar, $score ?? 0.0);
 
 		$symbols = array();
 		$virus_found = null;
