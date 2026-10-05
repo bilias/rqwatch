@@ -519,6 +519,11 @@ based on action taken by Rspamd\
 
 - `$release_mail_subject` - Default subject in release mail
 
+- `$user_notifications_default` - Should notifications be enabled for users
+  who have not chosen in their profile.\
+  Needs db:migrate_user_notifications_default, otherwise always on.\
+  Default is `true`
+
 - `$notify_mail_subject` - Default subject in notification mail
 
 - `$notification_score` - Mails with score higher than this don't get notifications.\

@@ -136,6 +136,10 @@ $store_settings = array(
 # Default subject in release mail
 $release_mail_subject = "Message released from quarantine";
 
+# Should notifications be enabled for users who have not chosen in their profile.
+# Needs db:migrate_user_notifications_default, otherwise always on.
+$user_notifications_default = true;
+
 # Default subject in notification mail
 $notify_mail_subject = "New message stored in quarantine";
 

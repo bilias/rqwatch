@@ -21,6 +21,7 @@ use App\Models\MailAlias;
 use App\Models\MapCombined;
 
 use App\Inventory\MapInventory;
+use App\Inventory\Migrations;
 
 use Psr\Log\LoggerInterface;
 
@@ -48,6 +49,9 @@ class UserService
 	 * service and cannot go stale between runs.
 	 */
 	private array $notificationsDisabledCache = [];
+
+	// memo for userNotificationsDefault()
+	private ?bool $userNotificationsDefault = null;
 
 	public function __construct() {
 		$this->logger = App::fileLogger();
@@ -166,6 +170,29 @@ class UserService
 		return $logs;
 	}
 
+	/*
+	 Notifications for users who have not chosen. Honoured only once the
+	 user_notifications_default migration is completed; until then every
+	 stored 0 still means "on", so the default is forced on.
+	*/
+	public function userNotificationsDefault(): bool {
+		if ($this->userNotificationsDefault !== null) {
+			return $this->userNotificationsDefault;
+		}
+
+		$default = (bool) (Config::get('user_notifications_default') ?? true);
+
+		if (!$default && !App::migrationStatus()->userNotificationsDefaultCompleted()) {
+			$this->logger->warning(
+				"user_notifications_default is off but migration "
+				. Migrations::USER_NOTIFICATIONS_DEFAULT . " is not completed, notifying by default"
+			);
+			$default = true;
+		}
+
+		return $this->userNotificationsDefault = $default;
+	}
+
 	public function notificationsDisabledFor(string $email): bool {
 		$email = strtolower(trim($email));
 
@@ -181,11 +208,16 @@ class UserService
 		/*
 		 An alias can serve several users, so no single opt-out decides for
 		 the address: the mail arrives in one mailbox either way. Silence it
-		 only when every holder has opted out; an address with no account
-		 notifies by default.
+		 only when every holder is effectively off. NULL, and an address with
+		 no account, follow userNotificationsDefault().
 		*/
-		$disabled = $holders->isNotEmpty()
-			&& $holders->every(fn ($u) => (bool) $u->disable_notifications);
+		$default_off = !$this->userNotificationsDefault();
+
+		$disabled = $holders->isEmpty()
+			? $default_off
+			: $holders->every(fn ($u) => $u->disable_notifications === null
+				? $default_off
+				: (bool) $u->disable_notifications);
 
 		return $this->notificationsDisabledCache[$email] = $disabled;
 	}
