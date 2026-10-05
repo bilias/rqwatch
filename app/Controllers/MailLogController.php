@@ -429,8 +429,9 @@ class MailLogController extends ViewController
 
 		$map_configs = $this->getMapConfigsWithAddUrls($ar['log']);
 
-		// pending, but no recipient would be notified
-		$notifications_disabled = $ar['log']->notification_pending
+		// pending or skipped mail:
+		// true if no recipient would be notified with current settings
+		$notifications_disabled = ($ar['log']->notification_pending || $ar['log']->notified === null)
 			&& (new UserService())->notificationsDisabledForAll(
 				$ar['log']->recipients->pluck('recipient_email')->all()
 			);

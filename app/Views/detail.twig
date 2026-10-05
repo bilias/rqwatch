@@ -185,14 +185,16 @@ No
    <div class='detail'>
 {% if log.notified %}
 <strong>Yes</strong>: {{ log.notify_date }}
-{% elseif log.notification_pending and log.score > NOTIFICATION_SCORE %}
-No (Disabled due to high score or blacklist)
-{% elseif log.notification_pending and notifications_disabled %}
-No (Disabled for all recipients)
-{% elseif log.notification_pending %}
-Pending
-{% else %}
+{% elseif log.notified is not null and not log.notification_pending %}
 No
+{% elseif log.score > NOTIFICATION_SCORE %}
+No (Disabled due to high score)
+{% elseif notifications_disabled %}
+No (Disabled for all recipients)
+{% elseif log.notified is null %}
+No (Disabled)
+{% else %}
+Pending
 {% endif %}</div>
  </div>
  <div class="row">
