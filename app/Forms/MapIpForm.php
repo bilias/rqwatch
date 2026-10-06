@@ -10,7 +10,24 @@
 
 namespace App\Forms;
 
+use Symfony\Component\Form\CallbackTransformer;
+use Symfony\Component\Form\FormBuilderInterface;
+
+use App\Inventory\MapInventory;
+
 class MapIpForm extends MapWithOneFieldForm
 {
 	protected static string $fieldName = 'ip';
+
+	#[\Override]
+	public function buildForm(FormBuilderInterface $builder, array $options): void {
+		parent::buildForm($builder, $options);
+
+		// store IPs in canonical form so duplicates compare equal
+		$builder->get(static::$fieldName)->addModelTransformer(new CallbackTransformer(
+			fn($value) => $value,
+			fn($value) => is_string($value) ? MapInventory::canonicalIpOrCidr($value) : $value,
+		));
+	}
+
 }

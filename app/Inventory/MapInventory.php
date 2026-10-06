@@ -351,6 +351,16 @@ class MapInventory
 		return self::getMapsByModel($model, self::getAvailableMapConfigs($role));
 	}
 
+	// canonical text form of an IP or CIDR network; anything unparseable is returned unchanged
+	public static function canonicalIpOrCidr(string $value): string {
+		[$ip, $prefix] = array_pad(explode('/', $value, 2), 2, null);
+		if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
+			return $value;
+		}
+
+		$ip = inet_ntop(inet_pton($ip));
+		return $prefix === null ? $ip : "{$ip}/{$prefix}";
+	}
 
 	// IPv4/IPv6 address or network in CIDR notation, host bits clear
 	public static function validateIpOrCidr(mixed $value, ExecutionContextInterface $context): void {

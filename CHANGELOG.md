@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-06
+- Store IP map entries in canonical form
 - Allow IPv6 networks and verify IPs in IP maps
 - Make chart bars in Quarantine page clickable
 
