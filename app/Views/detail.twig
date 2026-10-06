@@ -207,6 +207,12 @@ Pending
    <div class='detail'>
 {% if log.admin_notified %}
 <strong>Yes</strong>: {{ log.admin_notify_date }}
+{% elseif log.admin_notified is null and not (log.mail_stored and log.action in ['discard', 'reject']) %}
+No
+{% elseif blacklisted %}
+No (Blacklisted)
+{% elseif log.score > NOTIFICATION_SCORE %}
+No (Disabled due to high score)
 {% elseif log.admin_notified is null %}
 No
 {% elseif admin_notified_expired %}
