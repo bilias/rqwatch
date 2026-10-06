@@ -3,12 +3,15 @@
 </div>
 
 <script>
-new Chart(
-    document.getElementById({{ id|json_encode(constant('JSON_HEX_TAG'))|raw }}),
-    {
-        type: {{ chart.getType()|json_encode(constant('JSON_HEX_TAG'))|raw }},
-        data: {{ chart.getData()|json_encode(constant('JSON_HEX_TAG'))|raw }},
-        options: {{ chart.getOptions()|json_encode(constant('JSON_HEX_TAG'))|raw }}
-    }
-);
+{
+	const cfg = {
+		type: {{ chart.getType()|json_encode(constant('JSON_HEX_TAG'))|raw }},
+		data: {{ chart.getData()|json_encode(constant('JSON_HEX_TAG'))|raw }},
+		options: {{ chart.getOptions()|json_encode(constant('JSON_HEX_TAG'))|raw }}
+	};
+	const linkAt = (els, c) => els.length ? (c.data.datasets[els[0].datasetIndex].links || [])[els[0].index] : null;
+	cfg.options.onClick = (e, els, c) => { const l = linkAt(els, c); if (l) window.location.href = l; };
+	cfg.options.onHover = (e, els, c) => { e.native.target.style.cursor = linkAt(els, c) ? 'pointer' : 'default'; };
+	new Chart(document.getElementById({{ id|json_encode(constant('JSON_HEX_TAG'))|raw }}), cfg);
+}
 </script>

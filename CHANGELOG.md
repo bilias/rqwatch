@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-10-06
+- Make chart bars in Quarantine page clickable
+
 ## Version v2.1.1 - Released: 2026-10-05
 
 ### 2026-10-05

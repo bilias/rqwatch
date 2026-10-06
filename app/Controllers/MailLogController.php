@@ -49,7 +49,6 @@ class MailLogController extends ViewController
 	private ?string $searchResultsUrl = null;
 	private ?string $dayLogsUrl = null;
 	private ?string $quarantineUrl = null;
-	private ?string $quarantineDayUrl = null;
 	private ?string $allUrl = null;
 
 	public function __construct() {
@@ -353,7 +352,7 @@ class MailLogController extends ViewController
 
 		if ($totalMailsInPage > 0) {
 			$chart = $this->createChart(
-				[ChartBuilder::class, 'createQuarantineChart'],
+				fn(iterable $d): Chart => ChartBuilder::createQuarantineChart($d, $this->getQuarantineDayUrl(...)),
 				$days
 			);
 		}
@@ -1084,13 +1083,9 @@ class MailLogController extends ViewController
 	}
 
 	private function getQuarantineDayUrl(string $date): string {
-		if ($this->quarantineDayUrl === null) {
-			$this->quarantineDayUrl = $this->is_admin
-				? $this->url(RouteName::ADMIN_QUARANTINE_DAY, ['date' => $date])
-				: $this->url(RouteName::QUARANTINE_DAY, ['date' => $date]);
-		}
-
-		return $this->quarantineDayUrl;
+		return $this->is_admin
+			? $this->url(RouteName::ADMIN_QUARANTINE_DAY, ['date' => $date])
+			: $this->url(RouteName::QUARANTINE_DAY, ['date' => $date]);
 	}
 
 }

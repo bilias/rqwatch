@@ -61,7 +61,7 @@ class ChartBuilder {
 		return $chart;
 	}
 
-	public static function createQuarantineChart(iterable $days): Chart {
+	public static function createQuarantineChart(iterable $days, ?callable $dayUrl = null): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
 		$days = is_array($days)
@@ -70,10 +70,12 @@ class ChartBuilder {
 
 		$labels = [];
 		$data = [];
+		$links = [];
 
 		foreach ($days as $day) {
 			 $labels[] = $day->day;
 			 $data[] = $day->cnt;
+			 $links[] = $dayUrl !== null ? $dayUrl((string) $day->day) : null;
 		}
 
 		$chart->setData([
@@ -82,6 +84,7 @@ class ChartBuilder {
 				[
 					'label' => 'Quarantined E-mails',
 					'data' => $data,
+					'links' => $links,
 					'backgroundColor' => [
 						MailCategory::STORED->color(),
 					],
