@@ -1,5 +1,10 @@
-<div class="header-chart">
-    <canvas id="{{ id }}"></canvas>
+<div class="header-chart-wrap">
+	<div class="header-chart">
+		<canvas id="{{ id }}"></canvas>
+	</div>
+	{% if chart.getAttributes().note is defined %}
+	<span class="center help-text2">{{ chart.getAttributes().note }}</span>
+	{% endif %}
 </div>
 
 <script>

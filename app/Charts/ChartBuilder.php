@@ -97,6 +97,10 @@ class ChartBuilder {
 			 'maintainAspectRatio' => false,
 		]);
 
+		if ($dayUrl !== null) {
+			$chart->setAttributes(['note' => "Click on a bar to view that day's quarantined mails"]);
+		}
+
 		return $chart;
 	}
 

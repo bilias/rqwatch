@@ -1313,9 +1313,12 @@ table.attachments .filename {
   content: "";
 }
 
-.header-chart {
+.header-chart-wrap {
  grid-column: 2;
  margin: 0 20px;
+}
+
+.header-chart {
  min-height: 200px;
  max-height: 300px;
  border: 1px solid #B0B0B0;
@@ -1332,13 +1335,13 @@ table.attachments .filename {
   }
 
   .header-left,
-  .header-chart,
+  .header-chart-wrap,
   .header-right {
     grid-column: 1;
     justify-self: start;
   }
 
-  .header-chart {
+  .header-chart-wrap {
     margin: 10px 0;
   }
 }
