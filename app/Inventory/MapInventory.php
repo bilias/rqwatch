@@ -16,7 +16,8 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Email;
-use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints\Callback;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 use App\Forms\MapWithTwoFieldsForm;
 use App\Forms\MapMailFromRcptToForm;
@@ -229,10 +230,7 @@ class MapInventory
 					'attr' => ['class' => 'uniform-input'],
 					'constraints' => [
 						new NotBlank(),
-						new Regex([
-							'pattern' => '/^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/',
-							'message' => 'Invalid IP or CIDR format.',
-						]),
+						new Callback([self::class, 'validateIpOrCidr']),
 					],
 				],
 			],
@@ -351,6 +349,42 @@ class MapInventory
 	// map names of one model that the given role may manage
 	public static function getRoleMapsByModel(string $model, string $role): array {
 		return self::getMapsByModel($model, self::getAvailableMapConfigs($role));
+	}
+
+
+	// IPv4/IPv6 address or network in CIDR notation, host bits clear
+	public static function validateIpOrCidr(mixed $value, ExecutionContextInterface $context): void {
+		if (!is_string($value) || $value === '') {
+			return;
+		}
+
+		[$ip, $prefix] = array_pad(explode('/', $value, 2), 2, null);
+		$bin = filter_var($ip, FILTER_VALIDATE_IP) !== false ? inet_pton($ip) : false;
+
+		if ($bin === false
+			|| ($prefix !== null
+				&& (!preg_match('/^(0|[1-9]\d{0,2})$/', $prefix) || (int) $prefix > strlen($bin) * 8))
+		) {
+			$context->buildViolation('Invalid IP address or CIDR network.')->addViolation();
+			return;
+		}
+
+		if ($prefix === null) {
+			return;
+		}
+
+		$network = '';
+		for ($i = 0, $n = strlen($bin); $i < $n; $i++) {
+			$keep = max(0, min(8, (int) $prefix - $i * 8));
+			$network .= chr(ord($bin[$i]) & (0xFF << (8 - $keep)) & 0xFF);
+		}
+
+		if ($network !== $bin) {
+			$context->buildViolation('{{ value }} is not a network address; did you mean {{ network }}?')
+				->setParameter('{{ value }}', $value)
+				->setParameter('{{ network }}', inet_ntop($network) . '/' . (int) $prefix)
+				->addViolation();
+		}
 	}
 
 }

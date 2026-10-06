@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-06
+- Allow IPv6 networks and verify IPs in IP maps
 - Make chart bars in Quarantine page clickable
 
 ## Version v2.1.1 - Released: 2026-10-05
