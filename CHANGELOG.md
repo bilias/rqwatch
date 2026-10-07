@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-07
+- Add support for Rspamd Fuzzy Learning
 - Quarantine per month page
 
 ### 2026-10-06

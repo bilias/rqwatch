@@ -14,6 +14,8 @@
 $API_SERVERS = array(
 	'mx1' => array(
 		'url' => 'http://127.0.0.1',
+		// this server's own rspamd controller, for fuzzy learning
+		'fuzzy_url' => 'http://127.0.0.1:11334',
 	),
 /*
 	'mx2' => array(

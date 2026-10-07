@@ -52,7 +52,8 @@ with extra tools to make the most of Rspamd’s powerful anti-spam capabilities.
       * [Users](#users)
       * [Aliases](#aliases)
       * [Maps](#maps)
-      * [Redis Caching](#redis-caching)
+      * [Fuzzy Learning](#fuzzy-learning)
+      * [Redis Caching](#redis-caching-highly-recommended)
    * [API for Rspamd - RSPAMD API (metadata_importer)](#api-for-rspamd---rspamd-api-metadata_importer)
    * [Mail API](#mail-api)
    * [CLI](#cli)
@@ -121,6 +122,7 @@ If mail is stored in Quarantine:
 - Password-less quarantine access from notification mails
 - Track notification and release datetime
 - Show Quarantined mails per day
+- Learn as spam into Rspamd Fuzzy storage (admin)
 
 Admin users have full access. Users have limited access and only to their data.
 
@@ -164,7 +166,19 @@ The Web interface provides map management and URL endpoints for Rspamd
 Rspamd downloads map files locally from the web server and this does not put additional
 stress on the database.
 
-### Redis Caching
+### Fuzzy Learning
+Admins can learn a quarantined mail as spam into the Rspamd
+[Fuzzy storage](https://docs.rspamd.com/workers/fuzzy_storage), so that similar mails
+get a fuzzy symbol and score.
+- Learn/Unlearn from the mail detail page
+- Fuzzy page listing all learned mails, with Unlearn
+- Learning runs on the API server that stores the mail, via the Mail API in [Distributed](docs/DISTRIBUTED.md) mode
+- Learned hashes are recorded, so Unlearn removes exactly what was learned, even after the mail is purged
+- Fuzzy storage shared across Rspamd servers through Redis
+
+See [Rspamd Fuzzy Learning](docs/CONFIGURE.md#rspamd-fuzzy-learning) for setup.
+
+### Redis Caching (highly recommended)
 - Session support (+ sentinel)
 - Config caching
 - Rspamd statistics caching
@@ -180,6 +194,7 @@ stress on the database.
 The Mail API is used in [Distributed](docs/DISTRIBUTED.md) mode, where Web components connect to it.
 - Release Mail via remote API
 - Get Mail via remote API
+- Fuzzy learn/unlearn via remote API
 - Web client validates remote API SSL/TLS
 - Web client is authenticated to remote API
 - Dedicated Authentication and IP access control list
@@ -188,6 +203,7 @@ The Mail API is used in [Distributed](docs/DISTRIBUTED.md) mode, where Web compo
 - Update map files if needed (cron)
 - Mail notifications to users (cron)
 - Quarantine cleanup (cron)
+- Update DB schema (upgrades)
 - User add
 
 # [Installation](docs/INSTALL.md)
