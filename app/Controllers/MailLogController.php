@@ -49,6 +49,7 @@ class MailLogController extends ViewController
 	private ?string $searchResultsUrl = null;
 	private ?string $dayLogsUrl = null;
 	private ?string $quarantineUrl = null;
+	private ?string $quarantinePerMonthUrl = null;
 	private ?string $allUrl = null;
 
 	public function __construct() {
@@ -392,7 +393,7 @@ class MailLogController extends ViewController
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$months = $service->getPaginatedQuarantinePerMonth($this->getQuarantineUrl(), $page);
+		$months = $service->getPaginatedQuarantinePerMonth($this->getQuarantinePerMonthUrl(), $page);
 		$totalMailsInPage = 0;
 		foreach ($months as $month) {
 			$totalMailsInPage += $month->cnt;
@@ -1132,6 +1133,16 @@ class MailLogController extends ViewController
 		}
 
 		return $this->quarantineUrl;
+	}
+
+	private function getQuarantinePerMonthUrl(): string {
+		if ($this->quarantinePerMonthUrl === null) {
+			$this->quarantinePerMonthUrl = $this->is_admin
+				? $this->url(RouteName::ADMIN_QUARANTINE_PER_MONTH)
+				: $this->url(RouteName::QUARANTINE_PER_MONTH);
+		}
+
+		return $this->quarantinePerMonthUrl;
 	}
 
 	private function getQuarantineDayUrl(string $date): string {
