@@ -205,7 +205,11 @@ class FuzzyService
 			throw new FuzzyException("Error. Contact admin", FuzzyError::Internal);
 		}
 
-		$apiClient = new ApiClient($api_servers[$api_server]['options'] ?? []);
+		// no redirects: a redirect can end on a page that answers 200
+		$apiClient = new ApiClient(array_merge(
+			$api_servers[$api_server]['options'] ?? [],
+			['max_redirects' => 0]
+		));
 
 		try {
 			$response = $apiClient->postWithAuth(
@@ -225,15 +229,21 @@ class FuzzyService
 			throw new FuzzyException("API server '{$api_server}' is not reachable", FuzzyError::Upstream);
 		}
 
-		if ($code === Response::HTTP_OK) {
+		// only our API's exact reply counts as success
+		if ($code === Response::HTTP_OK && $body === "Message {$action}ed") {
 			return;
 		}
 
-		$this->logger->error("{$lf} {$qid} {$action} via '{$api_server}' returned {$code}: '{$body}'");
+		$this->logger->error("{$lf} {$qid} {$action} via '{$api_server}' returned {$code}: '" .
+			mb_strimwidth($body, 0, 200, '...') . "'");
+
+		if ($code === Response::HTTP_OK) {
+			throw new FuzzyException("Error. Contact admin", FuzzyError::Upstream);
+		}
 
 		// our API answers in plain text; anything else is the web server
 		if (in_array($code, [Response::HTTP_UNAUTHORIZED, Response::HTTP_FORBIDDEN], true)) {
-			$this->logger->warning("{$lf} Check local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
+			$this->logger->warning("{$lf} Check local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL, API_ENABLE");
 			throw new FuzzyException("Error. Contact admin", FuzzyError::Internal);
 		}
 
