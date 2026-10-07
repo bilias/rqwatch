@@ -153,7 +153,7 @@ class FuzzyService
 			try {
 				// a concurrent learn of the same mail owns these hashes: keep them
 				if ($this->getByMailLogId((int) $maillog->id) === null) {
-					$this->deleteHashes((string) $maillog->server, $hashes, $flag, $qid);					
+					$this->deleteHashes((string) $maillog->server, $hashes, $flag, $qid);
 				}
 			} catch (Throwable $e2) {
 				$this->logger->critical("{$lf} {$qid} could not remove unrecorded hashes " .
