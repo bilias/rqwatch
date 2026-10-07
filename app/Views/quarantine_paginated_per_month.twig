@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+{% import 'macros/paginator.macro.twig' as ui %}
+
+{% block content %}
+<div class="center-container">
+
+<div class='quarantine'>
+
+ <span class='descr'>Quarantine
+| Total: {{ totalRecords|nf }} months
+{% if totalRecords > items_per_page %}
+| Displaying {{ items_per_page }} months/page
+{% endif %}
+<br/>{{ totalMailsInPage|nf }} mails in page
+<br/>Mails are stored in Quarantine for: {{ quarantine_months|nf }} months
+ </span>
+
+<div class='pagtop'>
+{{ ui.paginator(months, WEB_BASE) }}
+</div>
+
+ <div class="row caption">
+   <div class="cell left">Day</div>
+   <div class="cell right"># of mails</div>
+ </div>
+
+<div class='quarantine_months'>
+{% for month in months %}
+ <div class="row">
+  {% if is_admin %}
+  <div class='cell month'><a href='{{ route('ADMIN_QUARANTINE_DAY_MONTH', { date: month.month }) }}'>{{ month.month }}</a></div>
+  {% else %}
+  <div class='cell month'><a href='{{ route('QUARANTINE_DAY_MONTH', { date: month.month }) }}'>{{ month.month }}</a></div>
+  {% endif %}
+  <div class='cell right cnt'>{{ month.cnt }}</div>
+ </div>
+{% endfor %}
+</div>
+
+<div class='pagbottom'>
+{{ ui.paginator(months, WEB_BASE) }}
+</div>
+
+</div>
+<div class='help-text2'>Days without quarantined mails are not shown.</div>
+</div>
+{% endblock %}

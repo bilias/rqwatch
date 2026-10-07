@@ -734,6 +734,30 @@ class MailLogService
 			->withPath($url);
 	}
 
+	public function getPaginatedQuarantinePerMonth(string $url, int $page = 1): LengthAwarePaginator {
+		$query = MailLog::selectRaw("DATE_FORMAT(created_day, '%Y-%m') AS month, COUNT(*) as cnt");
+
+		$query = $query
+			->where('mail_stored', 1)
+			->orWhere(function ($q) {
+				$q->whereNotNull('mail_location')
+				  ->where('mail_location', '<>', '0');
+			})
+			->groupByRaw('month')
+			->orderByDesc('month');
+
+		$query = $this->applyUserScope($query);
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		// months
+		return $query
+			->paginate($this->q_items_per_page, ['month', 'cnt'], 'page', $page)
+			->withPath($url);
+	}
+
 	public function detailById(int $id): MailLog {
 		$lf = "[MailLogService_detailById]";
 		$query = MailLog::with($this->getMailLogRelations())

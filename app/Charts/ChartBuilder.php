@@ -104,4 +104,49 @@ class ChartBuilder {
 		return $chart;
 	}
 
+	public static function createQuarantinePerMonthChart(iterable $months, ?callable $monthUrl = null): Chart {
+		$chart = new Chart(Chart::TYPE_BAR);
+
+		$months = is_array($months)
+			? array_reverse($months)
+			: $months->reverse();
+
+		$labels = [];
+		$data = [];
+		$links = [];
+
+		foreach ($months as $month) {
+			 $labels[] = $month->month;
+			 $data[] = $month->cnt;
+			 $links[] = $monthUrl !== null ? $monthUrl((string) $month->month) : null;
+		}
+
+		$chart->setData([
+			 'labels' => $labels,
+			 'datasets' => [
+				[
+					'label' => 'Quarantined E-mails',
+					'data' => $data,
+					'links' => $links,
+					'backgroundColor' => [
+						MailCategory::STORED->color(),
+					],
+				],
+			 ],
+		]);
+
+		$chart->setOptions([
+			 'responsive' => true,
+			 'maintainAspectRatio' => false,
+		]);
+
+		if ($monthUrl !== null) {
+			$chart->setAttributes(['note' => "Click on a bar to view that month's quarantined mails"]);
+		}
+
+		return $chart;
+	}
+
+
+
 }

@@ -376,6 +376,58 @@ class MailLogController extends ViewController
 		]));
 	}
 
+	public function showQuarantinePerMonth(): Response {
+		// enable form rendering support
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			// form submitted and valid
+			return $response;
+		}
+
+		$service = $this->getMailLogService();
+
+		// Get page from ?page=, default 1
+		$page = $this->request->query->getInt('page', 1);
+
+		$months = $service->getPaginatedQuarantinePerMonth($this->getQuarantineUrl(), $page);
+		$totalMailsInPage = 0;
+		foreach ($months as $month) {
+			$totalMailsInPage += $month->cnt;
+		}
+
+		$chart = null;
+
+		if ($totalMailsInPage > 0) {
+			$chart = $this->createChart(
+				fn(iterable $d): Chart => ChartBuilder::createQuarantinePerMonthChart($d, $this->getQuarantineMonthUrl(...)),
+				$months
+			);
+		}
+
+		return new Response($this->twig->render('quarantine_paginated_per_month.twig', [
+			'qidform' => $qidform->createView(),
+			'months' => $months,
+			'totalRecords' => $months->total(),
+			'totalMailsInPage' => $totalMailsInPage,
+			'items_per_page' => $this->q_items_per_page,
+			'chart' => $chart,
+			'show_charts' => $chart !== null,
+			'runtime' => $this->getRuntime(),
+			'flashes' => $this->getFlashes(),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+			'quarantine_days' => (int) $_ENV['QUARANTINE_DAYS'],
+		]));
+	}
+
+
+
 	public function detail(string $type, string|int $value): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
@@ -1086,6 +1138,12 @@ class MailLogController extends ViewController
 		return $this->is_admin
 			? $this->url(RouteName::ADMIN_QUARANTINE_DAY, ['date' => $date])
 			: $this->url(RouteName::QUARANTINE_DAY, ['date' => $date]);
+	}
+
+	private function getQuarantineMonthUrl(string $month): string {
+		return $this->is_admin
+			? $this->url(RouteName::ADMIN_QUARANTINE_MONTH, ['month' => $month])
+			: $this->url(RouteName::QUARANTINE_MONTH, ['month' => $month]);
 	}
 
 }

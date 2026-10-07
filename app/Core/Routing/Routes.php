@@ -216,6 +216,20 @@ class Routes
 			],
 		));
 
+		$routes->add(RouteName::QUARANTINE_PER_MONTH->value, new Route(
+			'/quarantine_per_month',
+			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantinePerMonth',
+			  '_middleware' => $userMiddlewareClasses,
+			],
+		));
+
+		$routes->add(RouteName::ADMIN_QUARANTINE_PER_MONTH->value, new Route(
+			'/admin/quarantine_per_month',
+			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantinePerMonth',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
 		$routes->add(RouteName::QUARANTINE_DAY->value, new Route(
 			'/quarantine/{date}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineDay',
@@ -230,6 +244,22 @@ class Routes
 			  '_middleware' => $adminMiddlewareClasses,
 			],
 			[ 'date' => '\d{4}-\d{2}-\d{2}' ] // requirements, YYYY-MM-DD format
+		));
+
+		$routes->add(RouteName::QUARANTINE_MONTH->value, new Route(
+			'/quarantine/{month}', // path
+			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineMonth',
+			  '_middleware' => $userMiddlewareClasses,
+			],
+			[ 'month' => '\d{4}-\d{2}' ] // requirements, YYYY-MM format
+		));
+
+		$routes->add(RouteName::ADMIN_QUARANTINE_MONTH->value, new Route(
+			'/admin/quarantine/{month}', // path
+			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineMonth',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+			[ 'month' => '\d{4}-\d{2}' ] // requirements, YYYY-MM format
 		));
 
 		$routes->add(RouteName::DETAIL->value, new Route(

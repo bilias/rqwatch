@@ -28,8 +28,12 @@ enum RouteName: string
 	case ADMIN_DAY_LOGS = 'admin_day_logs';
 	case QUARANTINE = 'quarantine';
 	case ADMIN_QUARANTINE = 'admin_quarantine';
+	case QUARANTINE_PER_MONTH = 'quarantine_per_month';
+	case ADMIN_QUARANTINE_PER_MONTH = 'admin_quarantine_per_month';
 	case QUARANTINE_DAY = 'quarantine_day';
 	case ADMIN_QUARANTINE_DAY = 'admin_quarantine_day';
+	case QUARANTINE_MONTH = 'quarantine_month';
+	case ADMIN_QUARANTINE_MONTH = 'admin_quarantine_month';
 	case TOKEN_CONFIRM = 'token_confirm';
 	case TOKEN_VIEW = 'token_view';
 	case TOKEN_RELEASE = 'token_release';
