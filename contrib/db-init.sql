@@ -129,6 +129,8 @@ CREATE TABLE custom_map_config (
 # (4, 'from_whitelist', 'Mail/MIME From Whitelist', 'from', 'From', NOW(), NOW()),
 # (5, 'from_blacklist', 'Mail/MIME From Blacklist', 'from', 'From', NOW(), NOW());
 
+DROP TABLE IF EXISTS `mail_log_fuzzy`;
+
 DROP TABLE IF EXISTS `mail_log_tokens`;
 
 DROP TABLE IF EXISTS `mail_log_recipients`;
@@ -218,6 +220,24 @@ CREATE TABLE `mail_log_data` (
 	 ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE `mail_log_fuzzy` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `mail_log_id` int(10) unsigned DEFAULT NULL,
+  `qid` varchar(30) DEFAULT NULL,
+  `api_server` varchar(10) NOT NULL,
+  `flag` tinyint(3) unsigned NOT NULL,
+  `weight` smallint(5) unsigned NOT NULL,
+  `hashes` JSON NOT NULL,
+  `learned_by` varchar(100) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `mail_log_id_idx` (`mail_log_id`),
+  CONSTRAINT `fk_mail_log_fuzzy_mail_logs`
+    FOREIGN KEY (`mail_log_id`)
+    REFERENCES `mail_logs` (`id`)
+    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 DROP TABLE IF EXISTS `migrations`;
 
 CREATE TABLE `migrations` (
@@ -238,4 +258,5 @@ INSERT INTO `migrations` VALUES
 ('20260911_drop_mail_log_indexes','completed',NOW()),
 ('20260912_map_user_constraints','completed',NOW()),
 ('20261005_user_notifications_default','completed',NOW()),
-('20261005_admin_notified','completed',NOW());
+('20261005_admin_notified','completed',NOW()),
+('20261007_mail_log_fuzzy','completed',NOW());

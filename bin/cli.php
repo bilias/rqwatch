@@ -36,6 +36,7 @@ use App\Console\MigrateDropMailLogIndexes;
 use App\Console\MigrateMapUserConstraints;
 use App\Console\MigrateUserNotificationsDefault;
 use App\Console\MigrateAdminNotified;
+use App\Console\MigrateMailLogFuzzy;
 
 use App\Console\MigrateDb;
 use App\Console\OptimizeTable;
@@ -64,6 +65,7 @@ $application->add(new MigrateDropMailLogIndexes());
 $application->add(new MigrateMapUserConstraints());
 $application->add(new MigrateUserNotificationsDefault());
 $application->add(new MigrateAdminNotified());
+$application->add(new MigrateMailLogFuzzy());
 $application->add(new MigrateDb());
 
 $application->run();
