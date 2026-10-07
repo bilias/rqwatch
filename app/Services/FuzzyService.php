@@ -78,6 +78,7 @@ class FuzzyService
 		$server = (string) $maillog->server;
 
 		if (!self::serverEnabled($server)) {
+			$this->logger->error("[FuzzyService_learn] {$maillog->qid} no fuzzy_url for API server '{$server}'. Check config.local.php");
 			throw new FuzzyException("Fuzzy learning is not available for server '{$server}'", FuzzyError::Unavailable);
 		}
 
