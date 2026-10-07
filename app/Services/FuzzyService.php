@@ -238,7 +238,7 @@ class FuzzyService
 
 		// our API answers in plain text; anything else is the web server
 		if (in_array($code, [Response::HTTP_UNAUTHORIZED, Response::HTTP_FORBIDDEN], true)) {
-			$this->logger->warning("{$lf} Check local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL, API_ENABLE");
+			$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL, API_ENABLE");
 			throw new FuzzyException("Error. Contact admin", FuzzyError::Internal);
 		}
 
