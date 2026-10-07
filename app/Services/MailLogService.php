@@ -89,7 +89,8 @@ class MailLogService
 	}
 
 	public static function getSqlFromQuery(Builder $query): string {
-		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
+		//return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
+		return vsprintf(str_replace(['%', '?'], ['%%', '"%s"'], $query->toSql()), $query->getBindings());
 	}
 
 	/*
@@ -724,7 +725,6 @@ class MailLogService
 			->withPath($url);
 	}
 
-
 	public function getPaginatedQuarantineMonth(?string $month, string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
 
@@ -735,22 +735,31 @@ class MailLogService
 		}
 		$end = $start->modify('+1 month');
 
-		$query = MailLog::select($fields)
-			->with($this->getMailLogSymbolsRelations())
+		$idQuery = MailLog::select('id')
 			->where('created_day', '>=', $start->format('Y-m-d'))
 			->where('created_day', '<', $end->format('Y-m-d'));
 
-		$query = $this->whereEverStored($query)
+		// no LIMIT: with one, MariaDB walks PRIMARY backwards from the newest row
+		$idQuery = $this->applyUserScope($this->whereEverStored($idQuery))
 			->orderBy('id', 'DESC');
 
-		$query = $this->applyUserScope($query);
-
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-			$this->logger->info(self::getSqlFromQuery($query));
+			$this->logger->info(self::getSqlFromQuery($idQuery));
 		}
 
-		return $query
-			->paginate($this->items_per_page, $fields, 'page', $page)
+		$ids = $idQuery->pluck('id')->all();
+
+		$pageIds = array_slice($ids, ($page - 1) * $this->items_per_page, $this->items_per_page);
+
+		$items = empty($pageIds)
+			? new Collection()
+			: MailLog::select($fields)
+				->with($this->getMailLogSymbolsRelations())
+				->whereIn('id', $pageIds)
+				->orderBy('id', 'DESC')
+				->get();
+
+		return (new LengthAwarePaginator($items, count($ids), $this->items_per_page, $page))
 			->withPath($url);
 	}
 
@@ -789,9 +798,16 @@ class MailLogService
 		}
 
 		// months
-		return $query
-			->paginate($this->q_items_per_page, ['month', 'cnt'], 'page', $page)
-			->withPath($url);
+		$months = $query->get();
+
+		return new LengthAwarePaginator(
+			$months->forPage($page, $this->q_items_per_page)->values(),
+			$months->count(),
+			$this->q_items_per_page,
+			$page,
+			['path' => $url]
+		);
+
 	}
 
 	public function detailById(int $id): MailLog {

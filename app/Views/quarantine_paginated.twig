@@ -13,6 +13,7 @@
 {% endif %}
 <br/>{{ totalMailsInPage|nf }} mails in page
 <br/>Mails are stored in Quarantine for: {{ quarantine_days|nf }} days
+<br/><a href='{{ route(is_admin ? 'ADMIN_QUARANTINE_PER_MONTH' : 'QUARANTINE_PER_MONTH') }}'>Quarantine per month</a>
  </span>
 
 <div class='pagtop'>
@@ -32,7 +33,7 @@
   {% else %}
   <div class='cell day'><a href='{{ route('QUARANTINE_DAY', { date: day.day }) }}'>{{ day.day }}</a></div>
   {% endif %}
-  <div class='cell right cnt'>{{ day.cnt }}</div>
+  <div class='cell right cnt'>{{ day.cnt|nf }}</div>
  </div>
 {% endfor %}
 </div>

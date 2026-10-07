@@ -11,7 +11,7 @@
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }} months/page
 {% endif %}
-<br/>{{ totalMailsInPage|nf }} mails in page
+<br/>{{ totalMailsInPage|nf }} mails in page (including expired)
 <br/>Mails are stored in Quarantine for: {{ quarantine_days|nf }} days
  </span>
 
@@ -32,7 +32,7 @@
   {% else %}
   <div class='cell month'><a href='{{ route('QUARANTINE_MONTH', { month: month.month }) }}'>{{ month.month }}</a></div>
   {% endif %}
-  <div class='cell right cnt'>{{ month.cnt }}</div>
+  <div class='cell right cnt'>{{ month.cnt|nf }}</div>
  </div>
 {% endfor %}
 </div>

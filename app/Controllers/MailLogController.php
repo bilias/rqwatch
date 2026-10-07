@@ -327,6 +327,52 @@ class MailLogController extends ViewController
 		]));
 	}
 
+	public function showQuarantineMonth(?string $month = null): Response {
+		// enable form rendering support
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			// form submitted and valid
+			return $response;
+		}
+
+		// Get page from ?page=, default 1
+		$page = $this->request->query->getInt('page', 1);
+
+		$service = $this->getMailLogService();
+
+		try {
+			$logs = $service->getPaginatedQuarantineMonth(
+				$month,
+				$this->getQuarantineMonthUrl($month ?? date('Y-m')),
+				$page
+			);
+		} catch (InvalidArgumentException $e) {
+			$this->flashbag->add('error', $e->getMessage());
+			return new RedirectResponse($this->getQuarantinePerMonthUrl());
+		}
+
+		return new Response($this->twig->render('home_paginated.twig', [
+			'qidform' => $qidform->createView(),
+			'logs' => $logs,
+			'totalRecords' => $logs->total(),
+			'date' => $month,
+			'in_quarantine' => true,
+			'items_per_page' => $this->items_per_page,
+			'max_items' => $this->max_items,
+			'runtime' => $this->getRuntime(),
+			'subject_privacy' => $this->subject_privacy,
+			'flashes' => $this->getFlashes(),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
 	public function showQuarantine(): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
