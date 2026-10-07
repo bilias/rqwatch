@@ -10,15 +10,15 @@
 
 namespace App\Api;
 
+use App\Core\Exception\FuzzyError;
+use App\Core\Exception\FuzzyException;
+
 use App\Models\MailLogFuzzy;
 
 use App\Services\FuzzyService;
 use App\Services\MailLogService;
 
 use Symfony\Component\HttpFoundation\Response;
-
-use App\Core\Exception\FuzzyError;
-use App\Core\Exception\FuzzyException;
 
 use InvalidArgumentException;
 use Throwable;
@@ -42,20 +42,21 @@ class FuzzyMailApi extends RqwatchApi
 	#[\Override]
 	public function handle(): void {
 		$post = $this->request->request->all();
+		$node = (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '');
 
 		$remote_user = (string) ($post['remote_user'] ?? '');
 		$action = (string) ($post['action'] ?? '');
 		$id = intval($post['id'] ?? 0);
 
 		if ($remote_user === '' || !in_array($action, ['learn', 'unlearn'], true) || $id < 1) {
-			$err_msg = "{$this->clientIp} requested FuzzyMailApi with missing or invalid user, action or id";
+			$err_msg = "{$this->clientIp} requested FuzzyMailApi on '{$node}' with missing or invalid user, action or id";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, "Missing Required info",
 				$err_msg, 'critical');
 		}
 
 		if (!FuzzyService::isEnabled()) {
-			$err_msg = "{$remote_user} via {$this->clientIp} requested fuzzy {$action} of id {$id} but fuzzy learning is disabled";
+			$err_msg = "{$remote_user} via {$this->clientIp} requested fuzzy {$action} of id {$id} on '{$node}' but fuzzy learning is disabled";
 			// not 403: the caller reads 403 as an auth or ACL problem
 			$this->dropLogResponse(
 				Response::HTTP_NOT_IMPLEMENTED, "Fuzzy learning is disabled on " . ($_ENV['MY_API_SERVER_ALIAS'] ?? ''),
@@ -79,12 +80,12 @@ class FuzzyMailApi extends RqwatchApi
 				$qid = $row->qid;
 			}
 		} catch (InvalidArgumentException $e) {
-			$err_msg = "{$remote_user} via {$this->clientIp} requested fuzzy {$action} of id {$id}: " . $e->getMessage();
+			$err_msg = "{$remote_user} via {$this->clientIp} requested fuzzy {$action} of id {$id} on '{$node}': " . $e->getMessage();
 			$this->dropLogResponse(
 				Response::HTTP_UNPROCESSABLE_ENTITY, "Message not found",
 				$err_msg, 'warning');
 		} catch (FuzzyException $e) {
-			$err_msg = "{$remote_user} via {$this->clientIp} fuzzy {$action} of id {$id} failed: " . $e->getMessage();
+			$err_msg = "{$remote_user} via {$this->clientIp} fuzzy {$action} of id {$id} on '{$node}' failed: " . $e->getMessage();
 			$status = match ($e->error) {
 				FuzzyError::Conflict => Response::HTTP_CONFLICT,
 				FuzzyError::Unavailable => Response::HTTP_NOT_IMPLEMENTED,
@@ -94,13 +95,13 @@ class FuzzyMailApi extends RqwatchApi
 			$this->dropLogResponse($status, $e->getMessage(), $err_msg, 'error');
 		} catch (Throwable $e) {
 			// the real error stays in the log: it may carry SQL
-			$err_msg = "{$remote_user} via {$this->clientIp} fuzzy {$action} of id {$id} failed: " . $e->getMessage();
+			$err_msg = "{$remote_user} via {$this->clientIp} fuzzy {$action} of id {$id} on '{$node}' failed: " . $e->getMessage();
 			$this->dropLogResponse(
 				Response::HTTP_INTERNAL_SERVER_ERROR, "Internal error",
 				$err_msg, 'error');
 		}
 
-		$this->fileLogger->info("[{$this->logPrefix}] {$qid} fuzzy {$action} from '{$remote_user}' by '{$this->clientIp}' | " . $this->getRuntime());
+		$this->fileLogger->info("[{$this->logPrefix}] {$qid} fuzzy {$action} on '{$node}' from '{$remote_user}' by '{$this->clientIp}' | " . $this->getRuntime());
 
 		$response = new Response();
 		$response->setContent("Message {$action}ed");

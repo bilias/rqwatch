@@ -106,10 +106,6 @@ class FuzzyService
 		$alias = (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '');
 		$qid = (string) $maillog->qid;
 
-		if ($maillog->server !== $alias) {
-			throw new FuzzyException("Mail {$qid} is not stored on this server", FuzzyError::Conflict);
-		}
-
 		if (!$maillog->mail_stored) {
 			throw new FuzzyException("Mail {$qid} is not stored", FuzzyError::Conflict);
 		}
