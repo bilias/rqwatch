@@ -20,7 +20,9 @@ use Psr\Log\LoggerInterface;
 
 use Symfony\Component\HttpFoundation\Response;
 
-use RuntimeException;
+use App\Core\Exception\FuzzyError;
+use App\Core\Exception\FuzzyException;
+
 use Throwable;
 
 /*
@@ -62,13 +64,12 @@ class FuzzyService
 		return MailLogFuzzy::where('mail_log_id', $mailLogId)->first();
 	}
 
-
 	// learn on this node, or through the API of the node that stores the mail
 	public function learn(MailLog $maillog, string $learnedBy): void {
 		$server = (string) $maillog->server;
 
 		if (!self::serverEnabled($server)) {
-			throw new RuntimeException("Fuzzy learning is not available for server '{$server}'");
+			throw new FuzzyException("Fuzzy learning is not available for server '{$server}'", FuzzyError::Unavailable);
 		}
 
 		if ($server === ($_ENV['MY_API_SERVER_ALIAS'] ?? '')) {
@@ -97,15 +98,15 @@ class FuzzyService
 		$qid = (string) $maillog->qid;
 
 		if ($maillog->server !== $alias) {
-			throw new RuntimeException("Mail {$qid} is not stored on this server", Response::HTTP_CONFLICT);
+			throw new FuzzyException("Mail {$qid} is not stored on this server", FuzzyError::Conflict);
 		}
 
 		if (!$maillog->mail_stored) {
-			throw new RuntimeException("Mail {$qid} is not stored", Response::HTTP_CONFLICT);
+			throw new FuzzyException("Mail {$qid} is not stored", FuzzyError::Conflict);
 		}
 
 		if ($this->getByMailLogId((int) $maillog->id) !== null) {
-			throw new RuntimeException("Mail {$qid} is already learned", Response::HTTP_CONFLICT);
+			throw new FuzzyException("Mail {$qid} is already learned", FuzzyError::Conflict);
 		}
 
 		$location = (string) $maillog->mail_location;
@@ -113,7 +114,7 @@ class FuzzyService
 
 		if ($raw === false || $raw === '') {
 			$this->logger->error("{$lf} {$qid} file '{$location}' not readable");
-			throw new RuntimeException("Mail {$qid} file not readable", Response::HTTP_INTERNAL_SERVER_ERROR);
+			throw new FuzzyException("Mail {$qid} file not readable", FuzzyError::Internal);
 		}
 
 		$flag = $this->flag();
@@ -129,7 +130,7 @@ class FuzzyService
 		if (!is_array($hashes) || $hashes === [] ||
 			count(preg_grep(self::HASH_FORMAT, $hashes)) !== count($hashes)) {
 			$this->logger->error("{$lf} {$qid} unexpected fuzzyadd reply: " . json_encode($reply));
-			throw new RuntimeException("Unexpected reply from rspamd", Response::HTTP_BAD_GATEWAY);
+			throw new FuzzyException("Unexpected reply from rspamd", FuzzyError::Upstream);
 		}
 
 		try {
@@ -153,7 +154,7 @@ class FuzzyService
 				$this->logger->critical("{$lf} {$qid} could not remove unrecorded hashes " .
 					implode(',', $hashes) . ": " . $e2->getMessage());
 			}
-			throw new RuntimeException("Mail {$qid} could not be recorded");
+			throw new FuzzyException("Mail {$qid} could not be recorded", FuzzyError::Internal);
 		}
 
 		$msg = "{$qid} learned as fuzzy (flag {$flag}, weight {$weight}, " .
@@ -169,7 +170,7 @@ class FuzzyService
 		$qid = (string) $row->qid;
 
 		if ($row->api_server !== $alias) {
-			throw new RuntimeException("Mail {$qid} was not learned on this server", Response::HTTP_CONFLICT);
+			throw new FuzzyException("Mail {$qid} was not learned on this server", FuzzyError::Conflict);
 		}
 
 		$this->deleteHashes((array) $row->hashes, (int) $row->flag, $qid);
@@ -191,12 +192,12 @@ class FuzzyService
 
 		if ($base === '') {
 			$this->logger->error("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
-			throw new RuntimeException("Error. Contact admin");
+			throw new FuzzyException("Error. Contact admin", FuzzyError::Internal);
 		}
 
 		if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS'])) {
 			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set");
-			throw new RuntimeException("Error. Contact admin");
+			throw new FuzzyException("Error. Contact admin", FuzzyError::Internal);
 		}
 
 		$apiClient = new ApiClient($api_servers[$api_server]['options'] ?? []);
@@ -216,7 +217,7 @@ class FuzzyService
 			$body = trim($response->getContent(false));
 		} catch (Throwable $e) {
 			$this->logger->error("{$lf} {$qid} {$action} via '{$api_server}' failed: " . $e->getMessage());
-			throw new RuntimeException("API server '{$api_server}' is not reachable");
+			throw new FuzzyException("API server '{$api_server}' is not reachable", FuzzyError::Upstream);
 		}
 
 		if ($code === Response::HTTP_OK) {
@@ -228,14 +229,14 @@ class FuzzyService
 		// our API answers in plain text; anything else is the web server
 		if (in_array($code, [Response::HTTP_UNAUTHORIZED, Response::HTTP_FORBIDDEN], true)) {
 			$this->logger->warning("{$lf} Check local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
-			throw new RuntimeException("Error. Contact admin");
+			throw new FuzzyException("Error. Contact admin", FuzzyError::Internal);
 		}
 
 		if ($body === '' || str_contains($body, '<')) {
-			throw new RuntimeException("Error. Contact admin");
+			throw new FuzzyException("Error. Contact admin", FuzzyError::Upstream);
 		}
 
-		throw new RuntimeException($body);
+		throw new FuzzyException($body, FuzzyError::Upstream);
 	}
 
 	private function deleteHashes(array $hashes, int $flag, string $qid): void {
@@ -256,7 +257,7 @@ class FuzzyService
 
 		if ($url === '') {
 			$this->logger->error("{$lf} no fuzzy_url for API server '{$alias}'. Check config.local.php");
-			throw new RuntimeException("Fuzzy learning is not configured on this server", Response::HTTP_NOT_IMPLEMENTED);
+			throw new FuzzyException("Fuzzy learning is not configured on this server", FuzzyError::Unavailable);
 		}
 
 		$password = (string) ($_ENV['RSPAMD_CONTROLLER_ENABLE_PASS'] ?? '');
@@ -272,7 +273,7 @@ class FuzzyService
 			$content = $response->getContent(false);
 		} catch (Throwable $e) {
 			$this->logger->error("{$lf} {$qid} {$path} failed: " . $e->getMessage());
-			throw new RuntimeException("rspamd controller is not reachable", Response::HTTP_BAD_GATEWAY);
+			throw new FuzzyException("rspamd controller is not reachable", FuzzyError::Upstream);
 		}
 
 		$reply = json_decode($content, true);
@@ -280,7 +281,7 @@ class FuzzyService
 		if ($code !== Response::HTTP_OK || !is_array($reply)) {
 			$err = is_array($reply) ? (string) ($reply['error'] ?? $content) : $content;
 			$this->logger->error("{$lf} {$qid} {$path} returned {$code}: {$err}");
-			throw new RuntimeException("rspamd refused the request: {$err}", Response::HTTP_BAD_GATEWAY);
+			throw new FuzzyException("rspamd refused the request: {$err}", FuzzyError::Upstream);
 		}
 
 		return $reply;
@@ -289,7 +290,7 @@ class FuzzyService
 	private function flag(): int {
 		$flag = (int) Config::get('fuzzy_learn_flag');
 		if ($flag < 1 || $flag > 255) {
-			throw new RuntimeException("Invalid fuzzy_learn_flag in config", Response::HTTP_INTERNAL_SERVER_ERROR);
+			throw new FuzzyException("Invalid fuzzy_learn_flag in config", FuzzyError::Internal);
 		}
 		return $flag;
 	}
@@ -297,7 +298,7 @@ class FuzzyService
 	private function weight(): int {
 		$weight = (int) Config::get('fuzzy_learn_weight');
 		if ($weight < 1 || $weight > 65535) {
-			throw new RuntimeException("Invalid fuzzy_learn_weight in config", Response::HTTP_INTERNAL_SERVER_ERROR);
+			throw new FuzzyException("Invalid fuzzy_learn_weight in config", FuzzyError::Internal);
 		}
 		return $weight;
 	}

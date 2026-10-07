@@ -17,8 +17,11 @@ use App\Services\MailLogService;
 
 use Symfony\Component\HttpFoundation\Response;
 
+use App\Core\Exception\FuzzyError;
+use App\Core\Exception\FuzzyException;
+
 use InvalidArgumentException;
-use RuntimeException;
+use Throwable;
 
 class FuzzyMailApi extends RqwatchApi
 {
@@ -80,12 +83,20 @@ class FuzzyMailApi extends RqwatchApi
 			$this->dropLogResponse(
 				Response::HTTP_UNPROCESSABLE_ENTITY, "Message not found",
 				$err_msg, 'warning');
-		} catch (RuntimeException $e) {
+		} catch (FuzzyException $e) {
 			$err_msg = "{$remote_user} via {$this->clientIp} fuzzy {$action} of id {$id} failed: " . $e->getMessage();
-			// FuzzyService sets the status as the exception code
-			$code = $e->getCode();
+			$status = match ($e->error) {
+				FuzzyError::Conflict => Response::HTTP_CONFLICT,
+				FuzzyError::Unavailable => Response::HTTP_NOT_IMPLEMENTED,
+				FuzzyError::Upstream => Response::HTTP_BAD_GATEWAY,
+				FuzzyError::Internal => Response::HTTP_INTERNAL_SERVER_ERROR,
+			};
+			$this->dropLogResponse($status, $e->getMessage(), $err_msg, 'error');
+		} catch (Throwable $e) {
+			// the real error stays in the log: it may carry SQL
+			$err_msg = "{$remote_user} via {$this->clientIp} fuzzy {$action} of id {$id} failed: " . $e->getMessage();
 			$this->dropLogResponse(
-				($code >= 400 && $code <= 599) ? $code : Response::HTTP_INTERNAL_SERVER_ERROR, $e->getMessage(),
+				Response::HTTP_INTERNAL_SERVER_ERROR, "Internal error",
 				$err_msg, 'error');
 		}
 
