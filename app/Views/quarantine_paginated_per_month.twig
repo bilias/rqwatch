@@ -12,7 +12,7 @@
 | Displaying {{ items_per_page }} months/page
 {% endif %}
 <br/>{{ totalMailsInPage|nf }} mails in page
-<br/>Mails are stored in Quarantine for: {{ quarantine_months|nf }} months
+<br/>Mails are stored in Quarantine for: {{ quarantine_days|nf }} days
  </span>
 
 <div class='pagtop'>
@@ -20,7 +20,7 @@
 </div>
 
  <div class="row caption">
-   <div class="cell left">Day</div>
+   <div class="cell left">Month</div>
    <div class="cell right"># of mails</div>
  </div>
 
@@ -28,9 +28,9 @@
 {% for month in months %}
  <div class="row">
   {% if is_admin %}
-  <div class='cell month'><a href='{{ route('ADMIN_QUARANTINE_DAY_MONTH', { date: month.month }) }}'>{{ month.month }}</a></div>
+  <div class='cell month'><a href='{{ route('ADMIN_QUARANTINE_MONTH', { month: month.month }) }}'>{{ month.month }}</a></div>
   {% else %}
-  <div class='cell month'><a href='{{ route('QUARANTINE_DAY_MONTH', { date: month.month }) }}'>{{ month.month }}</a></div>
+  <div class='cell month'><a href='{{ route('QUARANTINE_MONTH', { month: month.month }) }}'>{{ month.month }}</a></div>
   {% endif %}
   <div class='cell right cnt'>{{ month.cnt }}</div>
  </div>
@@ -42,6 +42,6 @@
 </div>
 
 </div>
-<div class='help-text2'>Days without quarantined mails are not shown.</div>
+<div class='help-text2'>Months without quarantined mails are not shown.</div>
 </div>
 {% endblock %}

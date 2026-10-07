@@ -738,10 +738,12 @@ class MailLogService
 		$query = MailLog::selectRaw("DATE_FORMAT(created_day, '%Y-%m') AS month, COUNT(*) as cnt");
 
 		$query = $query
-			->where('mail_stored', 1)
-			->orWhere(function ($q) {
-				$q->whereNotNull('mail_location')
-				  ->where('mail_location', '<>', '0');
+			->where(function ($q) {
+				$q->where('mail_stored', 1)
+					->orWhere(function ($q) {
+						$q->whereNotNull('mail_location')
+							->where('mail_location', '<>', '0');
+					});
 			})
 			->groupByRaw('month')
 			->orderByDesc('month');
