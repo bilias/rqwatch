@@ -160,6 +160,17 @@ class MailLogService
 		return $query;
 	}
 
+	// mail that is or was in quarantine (expired keeps mail_location)
+	private function whereEverStored(Builder $query): Builder {
+		return $query->where(function ($q) {
+			$q->where('mail_stored', 1)
+				->orWhere(function ($q) {
+					$q->whereNotNull('mail_location')
+						->where('mail_location', '<>', '0');
+				});
+		});
+	}
+
 	/*
 	 The cron marks a skipped notification as notified NULL. = and <> against
 	 0/1 use notified_index; any other operator compares the 0/1 expression.
@@ -713,6 +724,36 @@ class MailLogService
 			->withPath($url);
 	}
 
+
+	public function getPaginatedQuarantineMonth(?string $month, string $url, int $page = 1): LengthAwarePaginator {
+		$fields = MailLog::SELECT_FIELDS;
+
+		$month ??= (new DateTimeImmutable())->format('Y-m');
+		$start = DateTimeImmutable::createFromFormat('!Y-m', $month);
+		if ($start === false || $start->format('Y-m') !== $month) {
+			throw new InvalidArgumentException("Invalid month '{$month}'");
+		}
+		$end = $start->modify('+1 month');
+
+		$query = MailLog::select($fields)
+			->with($this->getMailLogSymbolsRelations())
+			->where('created_day', '>=', $start->format('Y-m-d'))
+			->where('created_day', '<', $end->format('Y-m-d'));
+
+		$query = $this->whereEverStored($query)
+			->orderBy('id', 'DESC');
+
+		$query = $this->applyUserScope($query);
+
+		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+			$this->logger->info(self::getSqlFromQuery($query));
+		}
+
+		return $query
+			->paginate($this->items_per_page, $fields, 'page', $page)
+			->withPath($url);
+	}
+
 	public function getPaginatedQuarantine(string $url, int $page = 1): LengthAwarePaginator {
 		$query = MailLog::selectRaw('created_day as day, COUNT(*) as cnt');
 
@@ -737,14 +778,7 @@ class MailLogService
 	public function getPaginatedQuarantinePerMonth(string $url, int $page = 1): LengthAwarePaginator {
 		$query = MailLog::selectRaw("DATE_FORMAT(created_day, '%Y-%m') AS month, COUNT(*) as cnt");
 
-		$query = $query
-			->where(function ($q) {
-				$q->where('mail_stored', 1)
-					->orWhere(function ($q) {
-						$q->whereNotNull('mail_location')
-							->where('mail_location', '<>', '0');
-					});
-			})
+		$query = $this->whereEverStored($query)
 			->groupByRaw('month')
 			->orderByDesc('month');
 
