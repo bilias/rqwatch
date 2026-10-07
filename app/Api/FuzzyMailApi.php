@@ -69,15 +69,15 @@ class FuzzyMailApi extends RqwatchApi
 			if ($action === 'learn') {
 				// findMailLog throws InvalidArgumentException when no mail found
 				$maillog = (new MailLogService())->findMailLog($id);
+				$this->logRequest($remote_user, $action, (string) $maillog->qid, $node);
 				$fuzzy->learnLocal($maillog, $remote_user);
-				$qid = $maillog->qid;
 			} else {
 				$row = MailLogFuzzy::find($id);
 				if ($row === null) {
 					throw new InvalidArgumentException("Fuzzy record {$id} not found");
 				}
+				$this->logRequest($remote_user, $action, (string) $row->qid, $node);
 				$fuzzy->unlearnLocal($row, $remote_user);
-				$qid = $row->qid;
 			}
 		} catch (InvalidArgumentException $e) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested fuzzy {$action} of id {$id} on '{$node}': " . $e->getMessage();
@@ -101,10 +101,6 @@ class FuzzyMailApi extends RqwatchApi
 				$err_msg, 'error');
 		}
 
-		$msg = "[{$this->logPrefix}] '{$remote_user}' via '{$this->clientIp}' requested fuzzy {$action} of mail {$qid} on '{$node}'";
-		$this->fileLogger->info($msg);
-		$this->syslogLogger->info($msg);
-
 		$response = new Response();
 		$response->setContent("Message {$action}ed");
 		$response->setCharset('UTF-8');
@@ -112,5 +108,12 @@ class FuzzyMailApi extends RqwatchApi
 		$response->prepare($this->request);
 		$response->send();
 		exit;
+	}
+
+	// logged before the work, so the service's result line follows it
+	private function logRequest(string $remote_user, string $action, string $qid, string $node): void {
+		$msg = "[{$this->logPrefix}] '{$remote_user}' via '{$this->clientIp}' requested fuzzy {$action} of mail {$qid} on '{$node}'";
+		$this->fileLogger->info($msg);
+		$this->syslogLogger->info($msg);
 	}
 }

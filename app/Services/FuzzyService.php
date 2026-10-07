@@ -31,7 +31,7 @@ use Throwable;
  * Fuzzy learning of quarantined mail into the rspamd fuzzy storage.
  *
  * learnLocal()/unlearnLocal() run on the node that stores the mail and talk
- * to that node's own rspamd controller (API_SERVERS[alias]['fuzzy_url']).
+ * to the rspamd controller in the mail's API_SERVERS entry ('fuzzy_url').
  * Callers on other nodes go through the owning node's API.
  */
 class FuzzyService
@@ -124,7 +124,7 @@ class FuzzyService
 		$flag = $this->flag();
 		$weight = $this->weight();
 
-		$reply = $this->call('/fuzzyadd', $raw, [
+		$reply = $this->call((string) $maillog->server, '/fuzzyadd', $raw, [
 			'Flag' => (string) $flag,
 			'Weight' => (string) $weight,
 		], $qid);
@@ -153,7 +153,7 @@ class FuzzyService
 			try {
 				// a concurrent learn of the same mail owns these hashes: keep them
 				if ($this->getByMailLogId((int) $maillog->id) === null) {
-					$this->deleteHashes($hashes, $flag, $qid);
+					$this->deleteHashes((string) $maillog->server, $hashes, $flag, $qid);					
 				}
 			} catch (Throwable $e2) {
 				$this->logger->critical("{$lf} {$qid} could not remove unrecorded hashes " .
@@ -173,7 +173,7 @@ class FuzzyService
 	public function unlearnLocal(MailLogFuzzy $row, string $unlearnedBy): void {
 		$qid = (string) $row->qid;
 
-		$this->deleteHashes((array) $row->hashes, (int) $row->flag, $qid);
+		$this->deleteHashes((string) $row->api_server, (array) $row->hashes, (int) $row->flag, $qid);
 		$row->delete();
 
 		$msg = "{$qid} unlearned from fuzzy (flag {$row->flag}) by '{$unlearnedBy}'";
@@ -249,8 +249,8 @@ class FuzzyService
 		throw new FuzzyException($body, FuzzyError::Upstream);
 	}
 
-	private function deleteHashes(array $hashes, int $flag, string $qid): void {
-		$this->call('/fuzzydelhash', '', [
+	private function deleteHashes(string $server, array $hashes, int $flag, string $qid): void {
+		$this->call($server, '/fuzzydelhash', '', [
 			'Flag' => (string) $flag,
 			'Hash' => array_values($hashes),
 		], $qid);
@@ -260,14 +260,14 @@ class FuzzyService
 	 * POST to the local rspamd controller. Returns the decoded JSON reply,
 	 * throws on transport errors and non-200 replies.
 	 */
-	private function call(string $path, string $body, array $headers, string $qid): array {
+	private function call(string $server, string $path, string $body, array $headers, string $qid): array {
 		$lf = "[FuzzyService_call]";
-		$alias = (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '');
-		$url = Config::get('API_SERVERS')[$alias]['fuzzy_url'] ?? '';
+		// the mail's server entry, as the web side checked; not our own alias
+		$url = Config::get('API_SERVERS')[$server]['fuzzy_url'] ?? '';
 
 		if ($url === '') {
-			$this->logger->error("{$lf} no fuzzy_url for API server '{$alias}'. Check config.local.php");
-			throw new FuzzyException("Fuzzy learning is not configured on '{$alias}': no fuzzy_url", FuzzyError::Unavailable);
+			$this->logger->error("{$lf} no fuzzy_url for API server '{$server}'. Check config.local.php");
+			throw new FuzzyException("Fuzzy learning is not configured for '{$server}': no fuzzy_url", FuzzyError::Unavailable);
 		}
 
 		$password = (string) ($_ENV['RSPAMD_CONTROLLER_ENABLE_PASS'] ?? '');
@@ -282,16 +282,16 @@ class FuzzyService
 			$code = $response->getStatusCode();
 			$content = $response->getContent(false);
 		} catch (Throwable $e) {
-			$this->logger->error("{$lf} {$qid} {$path} on '{$alias}' failed: " . $e->getMessage());
-			throw new FuzzyException("rspamd controller {$url} on '{$alias}' is not reachable", FuzzyError::Upstream);
+			$this->logger->error("{$lf} {$qid} {$path} for '{$server}' failed: " . $e->getMessage());
+			throw new FuzzyException("rspamd controller {$url} for '{$server}' is not reachable", FuzzyError::Upstream);
 		}
 
 		$reply = json_decode($content, true);
 
 		if ($code !== Response::HTTP_OK || !is_array($reply)) {
 			$err = is_array($reply) ? (string) ($reply['error'] ?? $content) : $content;
-			$this->logger->error("{$lf} {$qid} {$path} on '{$alias}' returned {$code}: {$err}");
-			throw new FuzzyException("rspamd on '{$alias}' refused the request: {$err}", FuzzyError::Upstream);
+			$this->logger->error("{$lf} {$qid} {$path} for '{$server}' returned {$code}: {$err}");
+			throw new FuzzyException("rspamd for '{$server}' refused the request: {$err}", FuzzyError::Upstream);
 		}
 
 		return $reply;
