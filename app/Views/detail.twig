@@ -222,6 +222,20 @@ Pending
 {% endif %}</div>
  </div>
 {% endif %}
+{% if fuzzy_enabled %}
+ <div class="row">
+   <div class='info'>Fuzzy:</div>
+   <div class='detail'>
+{% if fuzzy %}
+<strong>Learned</strong>: {{ fuzzy.created_at }} by {{ fuzzy.learned_by }}
+<a href="{{ route('ADMIN_FUZZY_UNLEARN', { id: fuzzy.id, _token: csrf_token('fuzzy_unlearn') }) }}" onclick="return confirm('Remove this mail from the fuzzy storage?')"><button>Unlearn</button></a>
+{% elseif fuzzy_learnable %}
+No <a href="{{ route('ADMIN_FUZZY_LEARN', { id: log.id, _token: csrf_token('fuzzy_learn') }) }}" onclick="return confirm('Learn this mail as fuzzy spam?')"><button>Learn as spam</button></a>
+{% else %}
+No
+{% endif %}</div>
+ </div>
+{% endif %}
  <div class="row">
    <div class='info'>Released:</div>
    <div class='detail'>

@@ -66,6 +66,8 @@ enum RouteName: string
 	case ADMIN_ATTACHOPEN = 'admin_attachopen';
 	case RELEASEMAIL = 'releasemail';
 	case ADMIN_RELEASEMAIL = 'admin_releasemail';
+	case ADMIN_FUZZY_LEARN = 'admin_fuzzy_learn';
+	case ADMIN_FUZZY_UNLEARN = 'admin_fuzzy_unlearn';
 	case ADMIN_MAPS = 'admin_maps';
 	case MAPS = 'maps';
 	case ADMIN_MAP_SHOW_ALL = 'admin_map_show_all';

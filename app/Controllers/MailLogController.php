@@ -31,6 +31,7 @@ use App\Forms\MailReleaseForm;
 
 use App\Models\MailLog;
 use App\Services\MailLogService;
+use App\Services\FuzzyService;
 use App\Services\UserService;
 
 use App\Inventory\MapInventory;
@@ -548,6 +549,13 @@ class MailLogController extends ViewController
 			&& $ar['log']->admin_notified === false
 			&& $ar['log']->created_day->format('Y-m-d') < MailLogService::adminNotificationCutoff();
 
+		// admin row: fuzzy learning state, and whether Learn is offered
+		$fuzzy_enabled = $this->is_admin && FuzzyService::isEnabled();
+		$fuzzy = $fuzzy_enabled ? (new FuzzyService())->getByMailLogId($ar['log']->id) : null;
+		$fuzzy_learnable = $fuzzy_enabled && $fuzzy === null
+			&& $ar['log']->mail_stored
+			&& FuzzyService::serverEnabled($ar['log']->server);
+
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),
 			'mailreleaseform' => $mailreleaseform_t,
@@ -557,6 +565,9 @@ class MailLogController extends ViewController
 			'notified_expired' => $notified_expired,
 			'admin_notifications' => $admin_notifications,
 			'admin_notified_expired' => $admin_notified_expired,
+			'fuzzy_enabled' => $fuzzy_enabled,
+			'fuzzy' => $fuzzy,
+			'fuzzy_learnable' => $fuzzy_learnable,
 			'ip_country' => $ip_country,
 			'stripped_mail_location' => $stripped_mail_location,
 			'error' => $error,
