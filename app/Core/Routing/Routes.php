@@ -217,14 +217,14 @@ class Routes
 		));
 
 		$routes->add(RouteName::QUARANTINE_PER_MONTH->value, new Route(
-			'/quarantine_per_month',
+			'/quarantine/month',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantinePerMonth',
 			  '_middleware' => $userMiddlewareClasses,
 			],
 		));
 
 		$routes->add(RouteName::ADMIN_QUARANTINE_PER_MONTH->value, new Route(
-			'/admin/quarantine_per_month',
+			'/admin/quarantine/month',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantinePerMonth',
 			  '_middleware' => $adminMiddlewareClasses,
 			],
@@ -247,7 +247,7 @@ class Routes
 		));
 
 		$routes->add(RouteName::QUARANTINE_MONTH->value, new Route(
-			'/quarantine/{month}', // path
+			'/quarantine/month/{month}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineMonth',
 			  '_middleware' => $userMiddlewareClasses,
 			],
@@ -255,7 +255,7 @@ class Routes
 		));
 
 		$routes->add(RouteName::ADMIN_QUARANTINE_MONTH->value, new Route(
-			'/admin/quarantine/{month}', // path
+			'/admin/quarantine/month/{month}', // path
 			[ '_controller' => 'App\\Controllers\\MailLogController::showQuarantineMonth',
 			  '_middleware' => $adminMiddlewareClasses,
 			],

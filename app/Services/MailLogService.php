@@ -807,7 +807,6 @@ class MailLogService
 			$page,
 			['path' => $url]
 		);
-
 	}
 
 	public function detailById(int $id): MailLog {
