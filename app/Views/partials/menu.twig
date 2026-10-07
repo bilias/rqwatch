@@ -9,6 +9,9 @@
 {% if LOGIN_THROTTLE_ENABLED %}
  {% set throttles = route('ADMIN_THROTTLES') %}
 {% endif %}
+{% if FUZZY_LEARN_ENABLED %}
+ {% set fuzzy = route('ADMIN_FUZZY') %}
+{% endif %}
 {% else %}
 {% set homepage = route('HOMEPAGE') %}
 {% set day_logs = route('DAY_LOGS') %}
@@ -46,6 +49,13 @@
     <li class="{{ current_route == quarantine ? 'active' : '' }}">
       <a href="{{ quarantine }}">Quarantine</a>
     </li>
+{% if is_admin %}
+{% if FUZZY_LEARN_ENABLED %}
+    <li class="{{ current_route == fuzzy ? 'active' : '' }}">
+      <a href="{{ fuzzy }}">Fuzzy</a>
+    </li>
+{% endif %}
+{% endif %}
     <li class="{{ current_route == search ? 'active' : '' }}">
       <a href="{{ search }}">Search</a>
     </li>

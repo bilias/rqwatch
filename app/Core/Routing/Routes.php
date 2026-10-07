@@ -491,6 +491,13 @@ class Routes
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
 
+		$routes->add(RouteName::ADMIN_FUZZY->value, new Route(
+			'/admin/fuzzy', // path
+			[ '_controller' => 'App\\Controllers\\FuzzyController::showAll',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
 		$routes->add(RouteName::ADMIN_FUZZY_LEARN->value, new Route(
 			'/admin/fuzzy/learn/{id}', // path
 			[ '_controller' => 'App\\Controllers\\FuzzyController::learn',

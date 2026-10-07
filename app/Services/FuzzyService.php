@@ -18,6 +18,8 @@ use App\Models\MailLogFuzzy;
 
 use Psr\Log\LoggerInterface;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+
 use Symfony\Component\HttpFoundation\Response;
 
 use App\Core\Exception\FuzzyError;
@@ -62,6 +64,13 @@ class FuzzyService
 
 	public function getByMailLogId(int $mailLogId): ?MailLogFuzzy {
 		return MailLogFuzzy::where('mail_log_id', $mailLogId)->first();
+	}
+
+	// newest first; rows outlive their mail_logs row
+	public function getLearnedPaginated(string $url, int $page, int $perPage): LengthAwarePaginator {
+		return MailLogFuzzy::orderByDesc('id')
+			->paginate($perPage, ['*'], 'page', $page)
+			->withPath($url);
 	}
 
 	// learn on this node, or through the API of the node that stores the mail

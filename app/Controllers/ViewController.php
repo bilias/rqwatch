@@ -37,6 +37,8 @@ use App\Configuration\Config;
 use App\Core\Routing\RouteName;
 use App\Utils\Helper;
 
+use App\Services\FuzzyService;
+
 use ReflectionClass;
 
 use RuntimeException;
@@ -158,6 +160,7 @@ class ViewController extends Controller
 			Helper::env_bool('REDIS_ENABLE', false) &&
 			Helper::env_bool('LOGIN_THROTTLE_ENABLE', false)
 		);
+		$this->twig->addGlobal('FUZZY_LEARN_ENABLED', FuzzyService::isEnabled());
 
 		return $this->twig;
 	}

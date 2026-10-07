@@ -11,6 +11,7 @@
 namespace App\Controllers;
 
 use App\Core\Routing\RouteName;
+use App\Forms\QidForm;
 use App\Core\Exception\FuzzyException;
 
 use App\Models\MailLogFuzzy;
@@ -20,11 +21,54 @@ use App\Services\MailLogService;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use Symfony\Component\HttpFoundation\Response;
+
 use InvalidArgumentException;
 use Throwable;
 
-class FuzzyController extends Controller
+class FuzzyController extends ViewController
 {
+	public function showAll(): Response {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to show fuzzy learned mails without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
+		if (!FuzzyService::isEnabled()) {
+			$this->flashbag->add('error', "Fuzzy learning is disabled");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
+		// enable form rendering support (needed for csrf_token() in the template)
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			return $response;
+		}
+
+		$page = $this->request->query->getInt('page', 1);
+		$learned = (new FuzzyService())->getLearnedPaginated(
+			$this->url(RouteName::ADMIN_FUZZY), $page, $this->items_per_page
+		);
+
+		return new Response($this->twig->render('fuzzy.twig', [
+			'qidform' => $qidform->createView(),
+			'learned' => $learned,
+			'totalRecords' => $learned->total(),
+			'items_per_page' => $this->items_per_page,
+			'runtime' => $this->getRuntime(),
+			'flashes' => $this->getFlashes(),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
 	public function learn(int $id): RedirectResponse {
 		if ($denied = $this->checkRequest('fuzzy_learn')) {
 			return $denied;
@@ -72,6 +116,11 @@ class FuzzyController extends Controller
 		} catch (Throwable $e) {
 			$this->fileLogger->error("[FuzzyController] unlearn of record {$id} failed: " . $e->getMessage());
 			$this->flashbag->add('error', "Error. Contact admin");
+		}
+
+		// unlearn from the list page returns there
+		if ($this->request->query->get('return') === 'list') {
+			return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY));
 		}
 
 		return $this->detailResponse($row->mail_log_id);
