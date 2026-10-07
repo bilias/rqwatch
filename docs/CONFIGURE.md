@@ -324,6 +324,9 @@ If the server runs the Web service then the following settings are relevant:
   (Also see `stat_url` for `$API_SERVERS` and `$rspamd_stat_disable`
   in `config.local.php/config.php` files).
 
+- `RSPAMD_CONTROLLER_ENABLE_PASS` - Rspamd [Controller worker](https://docs.rspamd.com/workers/controller/) enable password, for fuzzy learning.\
+  Not needed when `fuzzy_url` points to a secure_ip (e.g. 127.0.0.1)
+
 ### Mail Notifications/Release from Quarantine
 If an email is quarantined and a notification must be sent (according to settings) or released from quarantine:
 - `WEB_HOST_NOTIFICATIONS` - Used for URL contruction for links in mail notifications to

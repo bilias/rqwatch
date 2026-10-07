@@ -57,6 +57,8 @@ $API_SERVERS = array(
 	'mx1' => [
 		'url' => 'https://mx1.example.com',
 		'stat_url' => 'http://mx1.example.com:11334/stat',
+		// this server's own rspamd controller, for fuzzy learning
+		'fuzzy_url' => 'http://127.0.0.1:11334',
 		'options' => [
 			'verify_peer' => true,
 			'verify_host' => true,
@@ -67,6 +69,8 @@ $API_SERVERS = array(
 	'mx2' => [
 		'url' => 'https://mx2.example.com',
 		'stat_url' => 'http://mx2.example.com:11334/stat',
+		// this server's own rspamd controller, for fuzzy learning
+		'fuzzy_url' => 'http://127.0.0.1:11334',
 		'options' => [
 			'verify_peer' => true,
 			'verify_host' => true,
@@ -87,6 +91,16 @@ $rspamd_stat_redis_key = "rqwatch_rspamd_stats";
 
 # How many seconds to cache rspamd stats in redis
 $rspamd_stat_redis_cache_ttl = 300;
+
+# Fuzzy learning of quarantined mail (admin only). Needs db:migrate_mail_log_fuzzy,
+# a writable fuzzy_check rule in rspamd and fuzzy_url in API_SERVERS.
+$fuzzy_learn_enable = false;
+
+# Must match the flag in the rspamd fuzzy_map (1-255)
+$fuzzy_learn_flag = 11;
+
+# Added to the hash count on each learn (1-65535)
+$fuzzy_learn_weight = 10;
 
 # Path to use for remote API mail release
 $RELEASE_MAIL_API_PATH = AppConfig::RELEASE_MAIL_API_PATH;
