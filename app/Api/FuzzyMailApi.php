@@ -101,7 +101,9 @@ class FuzzyMailApi extends RqwatchApi
 				$err_msg, 'error');
 		}
 
-		$this->fileLogger->info("[{$this->logPrefix}] {$qid} fuzzy {$action} on '{$node}' from '{$remote_user}' by '{$this->clientIp}' | " . $this->getRuntime());
+		$msg = "[{$this->logPrefix}] '{$remote_user}' via '{$this->clientIp}' requested fuzzy {$action} of mail {$qid} on '{$node}'";
+		$this->fileLogger->info($msg);
+		$this->syslogLogger->info($msg);
 
 		$response = new Response();
 		$response->setContent("Message {$action}ed");

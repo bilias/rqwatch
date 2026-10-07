@@ -89,7 +89,7 @@ class FuzzyService
 		$this->callApi($server, 'learn', (int) $maillog->id, $learnedBy, (string) $maillog->qid);
 	}
 
-	// unlearn on the node that did the learn
+	// unlearn by the same route learn() took: the mail's server
 	public function unlearn(MailLogFuzzy $row, string $unlearnedBy): void {
 		$server = (string) $row->api_server;
 
@@ -103,7 +103,6 @@ class FuzzyService
 
 	public function learnLocal(MailLog $maillog, string $learnedBy): MailLogFuzzy {
 		$lf = "[FuzzyService_learnLocal]";
-		$alias = (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '');
 		$qid = (string) $maillog->qid;
 
 		if (!$maillog->mail_stored) {
@@ -142,7 +141,8 @@ class FuzzyService
 			$row = MailLogFuzzy::create([
 				'mail_log_id' => (int) $maillog->id,
 				'qid' => $maillog->qid,
-				'api_server' => $alias,
+				// the mail's server, so unlearn() routes the same way learn() did
+				'api_server' => (string) $maillog->server,
 				'flag' => $flag,
 				'weight' => $weight,
 				'hashes' => array_values($hashes),
@@ -171,12 +171,7 @@ class FuzzyService
 	}
 
 	public function unlearnLocal(MailLogFuzzy $row, string $unlearnedBy): void {
-		$alias = (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '');
 		$qid = (string) $row->qid;
-
-		if ($row->api_server !== $alias) {
-			throw new FuzzyException("Mail {$qid} was not learned on this server", FuzzyError::Conflict);
-		}
 
 		$this->deleteHashes((array) $row->hashes, (int) $row->flag, $qid);
 		$row->delete();
