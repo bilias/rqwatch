@@ -267,7 +267,7 @@ class FuzzyService
 
 		if ($url === '') {
 			$this->logger->error("{$lf} no fuzzy_url for API server '{$alias}'. Check config.local.php");
-			throw new FuzzyException("Fuzzy learning is not configured on this server", FuzzyError::Unavailable);
+			throw new FuzzyException("Fuzzy learning is not configured on '{$alias}': no fuzzy_url", FuzzyError::Unavailable);
 		}
 
 		$password = (string) ($_ENV['RSPAMD_CONTROLLER_ENABLE_PASS'] ?? '');
@@ -282,16 +282,16 @@ class FuzzyService
 			$code = $response->getStatusCode();
 			$content = $response->getContent(false);
 		} catch (Throwable $e) {
-			$this->logger->error("{$lf} {$qid} {$path} failed: " . $e->getMessage());
-			throw new FuzzyException("rspamd controller is not reachable", FuzzyError::Upstream);
+			$this->logger->error("{$lf} {$qid} {$path} on '{$alias}' failed: " . $e->getMessage());
+			throw new FuzzyException("rspamd controller {$url} on '{$alias}' is not reachable", FuzzyError::Upstream);
 		}
 
 		$reply = json_decode($content, true);
 
 		if ($code !== Response::HTTP_OK || !is_array($reply)) {
 			$err = is_array($reply) ? (string) ($reply['error'] ?? $content) : $content;
-			$this->logger->error("{$lf} {$qid} {$path} returned {$code}: {$err}");
-			throw new FuzzyException("rspamd refused the request: {$err}", FuzzyError::Upstream);
+			$this->logger->error("{$lf} {$qid} {$path} on '{$alias}' returned {$code}: {$err}");
+			throw new FuzzyException("rspamd on '{$alias}' refused the request: {$err}", FuzzyError::Upstream);
 		}
 
 		return $reply;
@@ -300,6 +300,8 @@ class FuzzyService
 	private function flag(): int {
 		$flag = (int) Config::get('fuzzy_learn_flag');
 		if ($flag < 1 || $flag > 255) {
+			$this->logger->error("[FuzzyService] invalid fuzzy_learn_flag '" .
+				json_encode(Config::get('fuzzy_learn_flag')) . "' in config, must be 1-255");
 			throw new FuzzyException("Invalid fuzzy_learn_flag in config", FuzzyError::Internal);
 		}
 		return $flag;
@@ -308,6 +310,8 @@ class FuzzyService
 	private function weight(): int {
 		$weight = (int) Config::get('fuzzy_learn_weight');
 		if ($weight < 1 || $weight > 65535) {
+			$this->logger->error("[FuzzyService] invalid fuzzy_learn_weight '" .
+				json_encode(Config::get('fuzzy_learn_weight')) . "' in config, must be 1-65535");
 			throw new FuzzyException("Invalid fuzzy_learn_weight in config", FuzzyError::Internal);
 		}
 		return $weight;
