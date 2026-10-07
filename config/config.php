@@ -108,6 +108,9 @@ $RELEASE_MAIL_API_PATH = AppConfig::RELEASE_MAIL_API_PATH;
 # Path to use for remote API get mail
 $GET_MAIL_API_PATH = AppConfig::GET_MAIL_API_PATH;
 
+# Path to use for remote API fuzzy learning
+$FUZZY_MAIL_API_PATH = AppConfig::FUZZY_MAIL_API_PATH;
+
 # Directory for storing and serving map files
 $MAP_DIR = AppConfig::MAP_DIR;
 
