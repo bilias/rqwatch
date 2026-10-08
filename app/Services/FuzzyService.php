@@ -211,11 +211,18 @@ class FuzzyService
 
 	// digests of $row that other learned mails also have
 	public function sharedHashes(MailLogFuzzy $row): array {
-		return array_values(array_filter((array) $row->hashes, fn ($hash): bool =>
-			MailLogFuzzy::whereKeyNot($row->getKey())
-				->whereRaw('JSON_CONTAINS(hashes, JSON_QUOTE(?))', [(string) $hash])
-				->exists()
-		));
+		return $this->hashesHeldByOthers((array) $row->hashes, (int) $row->getKey());
+	}
+
+	// the subset of $hashes held by learned mails other than $exceptId
+	private function hashesHeldByOthers(array $hashes, ?int $exceptId = null): array {
+		return array_values(array_filter($hashes, function ($hash) use ($exceptId): bool {
+			$query = MailLogFuzzy::whereRaw('JSON_CONTAINS(hashes, JSON_QUOTE(?))', [(string) $hash]);
+			if ($exceptId !== null) {
+				$query->whereKeyNot($exceptId);
+			}
+			return $query->exists();
+		}));
 	}
 
 	public function unlearnLocal(MailLogFuzzy $row, string $unlearnedBy): void {
