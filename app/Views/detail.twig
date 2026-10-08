@@ -186,10 +186,17 @@ No
    <div class='detail'>
 {% if fuzzy %}
 {% set f = fuzzy_flags[fuzzy.flag] ?? null %}
-<strong>Learned</strong> as {{ f ? f.label : 'flag ' ~ fuzzy.flag }}{% if f and f.symbol %} ({{ f.symbol }}){% endif %}: {{ fuzzy.created_at }} by {{ fuzzy.learned_by }}
+<strong>Learned</strong> as {{ f ? f.label : 'flag ' ~ fuzzy.flag }}{% if f and f.symbol %} ({{ f.symbol }}){% endif %}, weight {{ fuzzy.weight }}: {{ fuzzy.created_at }} by {{ fuzzy.learned_by }}
 <a href="{{ route('ADMIN_FUZZY_UNLEARN', { id: fuzzy.id, _token: csrf_token('fuzzy_unlearn') }) }}" onclick="return confirm('Remove this mail from the fuzzy storage?')"><button>Unlearn</button></a>
 {% if fuzzy_shared %}
 <br>Shared with: {% for o in fuzzy_shared %}{% if o.mail_log_id %}<a href="{{ route('ADMIN_DETAIL', { type: 'id', value: o.mail_log_id }) }}">{{ o.qid }}</a>{% else %}{{ o.qid }} (purged){% endif %}{% if o.flag != fuzzy.flag %} ({{ fuzzy_flags[o.flag].label ?? ('flag ' ~ o.flag) }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+{% endif %}
+{% if fuzzy_boostable and f %}
+<form class="fuzzy-learn" method="get" action="{{ route('ADMIN_FUZZY_BOOST', { id: fuzzy.id }) }}" onsubmit="return confirm('Add this weight to the learned mail?')">
+<input type="hidden" name="_token" value="{{ csrf_token('fuzzy_boost') }}">
+<input type="number" name="weight" value="{{ min(f.weight, 65535 - fuzzy.weight) }}" min="1" max="{{ 65535 - fuzzy.weight }}" required title="Weight to add">
+<button type="submit">Add weight</button>
+</form>
 {% endif %}
 {% elseif fuzzy_learnable %}
 No

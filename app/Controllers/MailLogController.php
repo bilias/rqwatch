@@ -559,6 +559,10 @@ class MailLogController extends ViewController
 			&& $ar['log']->mail_stored
 			&& FuzzyService::serverEnabled($ar['log']->server);
 
+		$fuzzy_boostable = $fuzzy !== null && $fuzzy->weight < 65535
+			&& $ar['log']->mail_stored
+			&& FuzzyService::serverEnabled($ar['log']->server);
+
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),
 			'mailreleaseform' => $mailreleaseform_t,
@@ -572,6 +576,7 @@ class MailLogController extends ViewController
 			'fuzzy' => $fuzzy,
 			'fuzzy_shared' => $fuzzy_shared,
 			'fuzzy_learnable' => $fuzzy_learnable,
+			'fuzzy_boostable' => $fuzzy_boostable,
 			'fuzzy_flags' => $fuzzy_flags,
 			'ip_country' => $ip_country,
 			'stripped_mail_location' => $stripped_mail_location,

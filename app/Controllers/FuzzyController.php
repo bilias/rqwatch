@@ -149,6 +149,41 @@ class FuzzyController extends ViewController
 		return $this->detailResponse($row->mail_log_id);
 	}
 
+
+	// $id is the mail_log_fuzzy id: adds weight to an existing learn
+	public function boost(int $id): RedirectResponse {
+		if ($denied = $this->checkRequest('fuzzy_boost')) {
+			return $denied;
+		}
+
+		$row = MailLogFuzzy::find($id);
+
+		if ($row === null) {
+			$this->flashbag->add('error', "Fuzzy record {$id} not found");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
+		$weight = (string) $this->request->query->get('weight', '');
+		if (!ctype_digit($weight) || (int) $weight < 1 || (int) $weight > 65535) {
+			$this->flashbag->add('error', "Invalid weight, must be 1-65535");
+			return $this->detailResponse($row->mail_log_id);
+		}
+
+		try {
+			(new FuzzyService())->addWeight($row, (int) $weight, (string) $this->username);
+			$label = FuzzyService::flags()[(int) $row->flag]['label'] ?? "flag {$row->flag}";
+			$this->flashbag->add('success', "Mail {$row->qid}: weight +{$weight} added to fuzzy '{$label}', now " .
+				((int) $row->weight + (int) $weight));
+		} catch (FuzzyException $e) {
+			$this->flashbag->add('error', $e->getMessage());
+		} catch (Throwable $e) {
+			$this->fileLogger->error("[FuzzyController] add weight to record {$id} failed: " . $e->getMessage());
+			$this->flashbag->add('error', "Error. Contact admin");
+		}
+
+		return $this->detailResponse($row->mail_log_id);
+	}
+
 	// admin, valid CSRF token and the feature enabled; a redirect otherwise
 	private function checkRequest(string $csrfId): ?RedirectResponse {
 		if (!$this->is_admin) {

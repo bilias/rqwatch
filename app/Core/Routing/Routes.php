@@ -514,6 +514,15 @@ class Routes
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
 
+
+		$routes->add(RouteName::ADMIN_FUZZY_BOOST->value, new Route(
+			'/admin/fuzzy/boost/{id}', // path
+			[ '_controller' => 'App\\Controllers\\FuzzyController::boost',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+			[ 'id' => '\d{1,8}' ] // requirements
+		));
+
 		$routes->add(RouteName::ADMIN_MAPS->value, new Route(
 			'/admin/maps', // path
 			[ '_controller' => 'App\\Controllers\\MapController::showSelectMap',
