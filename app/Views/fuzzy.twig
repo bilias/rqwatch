@@ -23,6 +23,10 @@ Fuzzy learned mails: {{ totalRecords }}
  <th>Learned</th>
  <th>QID</th>
  <th>Server</th>
+ <th>List</th>
+ <th>Symbol</th>
+ <th>Flag</th>
+ <th>Weight</th>
  <th>Learned by</th>
  <th>Hashes</th>
  <th>Unlearn</th>
@@ -40,6 +44,11 @@ Fuzzy learned mails: {{ totalRecords }}
 {% endif %}
   </td>
   <td class='center'>{{ row.api_server }}</td>
+{% set f = fuzzy_flags[row.flag] ?? null %}
+  <td class='center'>{{ f ? f.label : '-' }}</td>
+  <td class='center'>{{ f and f.symbol ? f.symbol : '-' }}</td>
+  <td class='center'>{{ row.flag }}</td>
+  <td class='center'>{{ row.weight }}</td>
   <td class='center'>{{ row.learned_by }}</td>
   <td class='center'>{{ row.hashes|length }}</td>
   <td class='center'><a href="{{ route('ADMIN_FUZZY_UNLEARN', { id: row.id, return: 'list', _token: csrf_token('fuzzy_unlearn') }) }}" onclick="return confirm('Remove {{ row.qid|e('js') }} from the fuzzy storage?')">Unlearn</a></td>

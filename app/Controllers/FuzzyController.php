@@ -57,6 +57,7 @@ class FuzzyController extends ViewController
 		return new Response($this->twig->render('fuzzy.twig', [
 			'qidform' => $qidform->createView(),
 			'learned' => $learned,
+			'fuzzy_flags' => FuzzyService::flags(),
 			'totalRecords' => $learned->total(),
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
