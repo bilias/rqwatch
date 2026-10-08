@@ -123,9 +123,13 @@ class FuzzyController extends ViewController
 		}
 
 		try {
-			(new FuzzyService())->unlearn($row, (string) $this->username);
+			$fuzzy = new FuzzyService();
+			// counted before: the row is gone afterwards
+			$shared = count($fuzzy->sharedHashes($row));
+			$fuzzy->unlearn($row, (string) $this->username);
 			$label = FuzzyService::flags()[(int) $row->flag]['label'] ?? "flag {$row->flag}";
-			$this->flashbag->add('success', "Mail {$row->qid} unlearned from fuzzy '{$label}'");
+			$kept = $shared > 0 ? " ({$shared} hash(es) kept, shared with other learned mails)" : '';
+			$this->flashbag->add('success', "Mail {$row->qid} unlearned from fuzzy '{$label}'{$kept}");
 		} catch (FuzzyException $e) {
 			$this->flashbag->add('error', $e->getMessage());
 		} catch (Throwable $e) {

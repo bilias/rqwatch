@@ -209,14 +209,30 @@ class FuzzyService
 		return $row;
 	}
 
+	// digests of $row that other learned mails also have
+	public function sharedHashes(MailLogFuzzy $row): array {
+		return array_values(array_filter((array) $row->hashes, fn ($hash): bool =>
+			MailLogFuzzy::whereKeyNot($row->getKey())
+				->whereRaw('JSON_CONTAINS(hashes, JSON_QUOTE(?))', [(string) $hash])
+				->exists()
+		));
+	}
+
 	public function unlearnLocal(MailLogFuzzy $row, string $unlearnedBy): void {
 		$qid = (string) $row->qid;
 
-		$this->deleteHashes((string) $row->api_server, (array) $row->hashes, (int) $row->flag, $qid);
+		// a shared digest stays in rspamd until its last learned mail is unlearned
+		$shared = $this->sharedHashes($row);
+		$delete = array_values(array_diff((array) $row->hashes, $shared));
+
+		if ($delete !== []) {
+			$this->deleteHashes((string) $row->api_server, $delete, (int) $row->flag, $qid);
+		}
 		$row->delete();
 
 		$label = self::flags()[(int) $row->flag]['label'] ?? "flag {$row->flag}";
-		$msg = "{$qid} unlearned from fuzzy '{$label}' (flag {$row->flag}, weight {$row->weight}) by '{$unlearnedBy}'";
+		$kept = $shared !== [] ? ", kept " . count($shared) . " hash(es) shared with other learned mails" : '';
+		$msg = "{$qid} unlearned from fuzzy '{$label}' (flag {$row->flag}, weight {$row->weight}){$kept} by '{$unlearnedBy}'";
 		$this->logger->info($msg);
 		$this->syslogLogger->info($msg);
 	}
