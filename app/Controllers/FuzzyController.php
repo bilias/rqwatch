@@ -97,10 +97,12 @@ class FuzzyController extends ViewController
 		}
 
 		try {
-			(new FuzzyService())->learn($maillog, $flag, (string) $this->username, $weight);
+			$fuzzy = new FuzzyService();
+			$fuzzy->learn($maillog, $flag, (string) $this->username, $weight);
 			$entry = FuzzyService::flags()[$flag];
 			$used = $weight ?? $entry['weight'];
 			$this->flashbag->add('success', "Mail {$maillog->qid} learned as fuzzy '{$entry['label']}' (weight {$used})");
+			$this->warnShared($fuzzy, (int) $maillog->id, $flag);
 		} catch (FuzzyException $e) {
 			$this->flashbag->add('error', $e->getMessage());
 		} catch (Throwable $e) {
@@ -178,6 +180,45 @@ class FuzzyController extends ViewController
 
 		return new RedirectResponse($this->url(RouteName::ADMIN_DETAIL,
 			[ 'type' => 'id', 'value' => $mailLogId ]));
+	}
+
+
+	// warn when the hashes of a fresh learn were already learned by other mails
+	private function warnShared(FuzzyService $fuzzy, int $mailLogId, int $flag): void {
+		try {
+			$row = $fuzzy->getByMailLogId($mailLogId);
+			$others = $row ? ($fuzzy->sharedWith([$row])[$row->getKey()] ?? []) : [];
+			if ($others === []) {
+				return;
+			}
+
+			$qids = function (array $rows): string {
+				$names = array_column($rows, 'qid');
+				$more = count($names) - 3;
+				return implode(', ', array_slice($names, 0, 3)) . ($more > 0 ? " (+{$more} more)" : '');
+			};
+
+			$same = array_filter($others, fn (array $o): bool => $o['flag'] === $flag);
+			if ($same !== []) {
+				$shared = count($fuzzy->sharedHashes($row));
+				$total = count(array_unique((array) $row->hashes));
+				$what = $shared >= $total ? 'Its content was' :
+					"{$shared} of its {$total} hashes " . ($shared === 1 ? 'was' : 'were');
+				$this->flashbag->add('warning', "{$what} already learned via " . $qids($same) .
+					": this learn added its weight to the existing entry");
+			}
+
+			$labels = FuzzyService::flags();
+			foreach (array_unique(array_column($others, 'flag')) as $other) {
+				if ($other !== $flag) {
+					$label = $labels[$other]['label'] ?? "flag {$other}";
+					$this->flashbag->add('warning', "The same content is also learned as '{$label}' via " .
+						$qids(array_filter($others, fn (array $o): bool => $o['flag'] === $other)));
+				}
+			}
+		} catch (Throwable $e) {
+			$this->fileLogger->error("[FuzzyController] shared-hash check for mail {$mailLogId} failed: " . $e->getMessage());
+		}
 	}
 
 }
