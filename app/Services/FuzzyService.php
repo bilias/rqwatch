@@ -223,7 +223,7 @@ class FuzzyService
 
 	/*
 	 * POST to the fuzzy_mail API of another node. Throws with the remote
-	 * error message, or a generic one for auth and transport problems.
+	 * error message, or one that names what went wrong.
 	 */
 	private function callApi(string $api_server, string $action, int $id, string $user, string $qid, ?int $flag = null, ?int $weight = null): void {
 		$lf = "[FuzzyService_callApi]";
@@ -232,12 +232,12 @@ class FuzzyService
 
 		if ($base === '') {
 			$this->logger->error("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
-			throw new FuzzyException("Error. Contact admin", FuzzyError::Internal);
+			throw new FuzzyException("API server '{$api_server}' has no url in API_SERVERS", FuzzyError::Internal);
 		}
 
 		if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS'])) {
 			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set");
-			throw new FuzzyException("Error. Contact admin", FuzzyError::Internal);
+			throw new FuzzyException("MAIL_API_USER or MAIL_API_PASS not set", FuzzyError::Internal);
 		}
 
 		// no redirects: a redirect can end on a page that answers 200
@@ -274,17 +274,18 @@ class FuzzyService
 			mb_strimwidth($body, 0, 200, '...') . "'");
 
 		if ($code === Response::HTTP_OK) {
-			throw new FuzzyException("Error. Contact admin", FuzzyError::Upstream);
+			throw new FuzzyException("API server '{$api_server}' gave an unexpected reply ({$code})", FuzzyError::Upstream);
 		}
 
 		// our API answers in plain text; anything else is the web server
 		if (in_array($code, [Response::HTTP_UNAUTHORIZED, Response::HTTP_FORBIDDEN], true)) {
 			$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL, API_ENABLE");
-			throw new FuzzyException("Error. Contact admin", FuzzyError::Internal);
+			throw new FuzzyException("API server '{$api_server}' refused access ({$code})" .
+				(($body !== '' && !str_contains($body, '<')) ? ": {$body}" : ''), FuzzyError::Internal);
 		}
 
 		if ($body === '' || str_contains($body, '<')) {
-			throw new FuzzyException("Error. Contact admin", FuzzyError::Upstream);
+			throw new FuzzyException("API server '{$api_server}' gave an unexpected reply ({$code})", FuzzyError::Upstream);
 		}
 
 		throw new FuzzyException($body, FuzzyError::Upstream);
