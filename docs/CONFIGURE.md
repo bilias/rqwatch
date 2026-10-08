@@ -248,7 +248,7 @@ If you already have any of them, merge them instead of copying over.
 
 - `worker-fuzzy.inc`\
   Turns on the fuzzy storage worker (stock Rspamd ships it disabled)
-  and keeps the hashes in Redis for 30 days (`expire`).\
+  and keeps the hashes in Redis for 90 days (`expire`).\
   Point all your Rspamd servers at the **same** Redis, so a mail
   learned on one server is recognised by all of them.
   Leave `allow_update` at the stock `localhost`: that is how the
