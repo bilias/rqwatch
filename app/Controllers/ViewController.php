@@ -172,6 +172,9 @@ class ViewController extends Controller
 		);
 		$this->twig->addGlobal('FUZZY_LEARN_ENABLED', FuzzyService::isEnabled());
 
+		// a changed style.css gets a new URL, so browsers don't keep the old one
+		$this->twig->addGlobal('STYLE_VERSION', (string) (@filemtime(RQWATCH_ROOT . '/web/css/style.css') ?: ''));
+
 		return $this->twig;
 	}
 
