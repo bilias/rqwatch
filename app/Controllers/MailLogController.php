@@ -551,7 +551,9 @@ class MailLogController extends ViewController
 
 		// admin row: fuzzy learning state, and whether Learn is offered
 		$fuzzy_enabled = $this->is_admin && FuzzyService::isEnabled();
-		$fuzzy = $fuzzy_enabled ? (new FuzzyService())->getByMailLogId($ar['log']->id) : null;
+		$fuzzy_service = $fuzzy_enabled ? new FuzzyService() : null;
+		$fuzzy = $fuzzy_service?->getByMailLogId($ar['log']->id);
+		$fuzzy_shared = $fuzzy ? ($fuzzy_service->sharedWith([$fuzzy])[$fuzzy->id] ?? []) : [];
 		$fuzzy_flags = $fuzzy_enabled ? FuzzyService::flags() : [];
 		$fuzzy_learnable = $fuzzy_enabled && $fuzzy === null && $fuzzy_flags !== []
 			&& $ar['log']->mail_stored
@@ -568,6 +570,7 @@ class MailLogController extends ViewController
 			'admin_notified_expired' => $admin_notified_expired,
 			'fuzzy_enabled' => $fuzzy_enabled,
 			'fuzzy' => $fuzzy,
+			'fuzzy_shared' => $fuzzy_shared,
 			'fuzzy_learnable' => $fuzzy_learnable,
 			'fuzzy_flags' => $fuzzy_flags,
 			'ip_country' => $ip_country,
