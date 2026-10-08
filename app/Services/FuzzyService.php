@@ -189,16 +189,28 @@ class FuzzyService
 			]);
 		} catch (Throwable $e) {
 			$this->logger->error("{$lf} {$qid} learned but not recorded: " . $e->getMessage());
+			$concurrent = null;
 			try {
-				// a concurrent learn of the same mail owns these hashes: keep them
-				if ($this->getByMailLogId((int) $maillog->id) === null) {
-					$this->deleteHashes((string) $maillog->server, $hashes, $flag, $qid);
+				// a concurrent learn of the same mail recorded these hashes: keep them
+				$concurrent = $this->getByMailLogId((int) $maillog->id) !== null;
+				if (!$concurrent) {
+					// rspamd deletes the whole key: keep digests other learned mails have
+					$delete = array_values(array_diff($hashes, $this->hashesHeldByOthers($hashes)));
+					$this->logger->error("{$lf} {$qid} rolling back unrecorded hashes: " .
+						($delete === [] ? 'none' : implode(',', $delete)) . " (" . (count($hashes) - count($delete)) . " kept, shared)");
+					if ($delete !== []) {
+						$this->deleteHashes((string) $maillog->server, $delete, $flag, $qid);
+					}
 				}
 			} catch (Throwable $e2) {
-				$this->logger->critical("{$lf} {$qid} could not remove unrecorded hashes " .
+				$this->logger->critical("{$lf} {$qid} learned but neither recorded nor rolled back, hashes " .
 					implode(',', $hashes) . ": " . $e2->getMessage());
+				throw new FuzzyException("Mail {$qid} was learned but not recorded; see the log", FuzzyError::Internal);
 			}
-			throw new FuzzyException("Mail {$qid} could not be recorded", FuzzyError::Internal);
+			if ($concurrent) {
+				throw new FuzzyException("Mail {$qid} is already learned", FuzzyError::Conflict);
+			}
+			throw new FuzzyException("Mail {$qid} could not be learned (database error)", FuzzyError::Internal);
 		}
 
 		$msg = "{$qid} learned as fuzzy '{$entry['label']}' (flag {$flag}, weight {$weight}, " .
