@@ -987,12 +987,11 @@ class MailLogService
 		// XXX have not checked if it works with remote /subfolder in WEB_BASE
 		$url = $api_servers[$api_server]['url'] . Config::get('GET_MAIL_API_PATH');
 
-		if (array_key_exists('options', $api_servers[$api_server])) {
-			$options = $api_servers[$api_server]['options'];
-			$apiClient = new ApiClient($options);
-		} else {
-			$apiClient = new ApiClient();
-		}
+		// no redirects: a redirect can end on a page that answers 200
+		$apiClient = new ApiClient(array_merge(
+			$api_servers[$api_server]['options'] ?? [],
+			['max_redirects' => 0]
+		));
 
 		$data = array(
 			'id' => $id,
@@ -1011,17 +1010,17 @@ class MailLogService
 			$mail_file = $response->getContent(false); // Don't throw on error status
 
 			if ($statusCode === Response::HTTP_FORBIDDEN) {
-				$this->logger->error("{$lf} wrong response code: {$statusCode} Forbidden, from API server '{$api_server}'. API server said: " . PHP_EOL . "'{$mail_file}'");
+				$this->logger->error("{$lf} wrong response code: {$statusCode} Forbidden, from API server '{$api_server}'. API server said: " . PHP_EOL . "'" . mb_strimwidth($mail_file, 0, 200, '...') . "'");
 				// our API returns this
 				if ($mail_file == 'Permission denied') {
 					$this->logger->warning("{$lf} Check local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
 				} else {
 					// apache returns full http response
-					$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
+					$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL, API_ENABLE");
 				}
 				throw new Exception("Error. Contact admin");
 			} else if ($statusCode !== Response::HTTP_OK) {
-				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. API server said: '{$mail_file}'");
+				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. API server said: '" . mb_strimwidth($mail_file, 0, 200, '...') . "'");
 				throw new Exception("Error. Contact admin");
 			}
 		// SSL/TLS problems
