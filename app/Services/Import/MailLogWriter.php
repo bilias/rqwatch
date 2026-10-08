@@ -22,8 +22,6 @@ final class MailLogWriter
 {
 	private Capsule $capsule;
 
-	private const int MAX_DEADLOCK_ATTEMPTS = 3;
-
 	public function __construct() {
 		$this->capsule = App::capsule();
 	}
@@ -62,7 +60,7 @@ final class MailLogWriter
 
 					return $mailLogId;
 				},
-				attempts: self::MAX_DEADLOCK_ATTEMPTS
+				attempts: AppConfig::MAX_DEADLOCK_ATTEMPTS
 			);
 	}
 

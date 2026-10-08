@@ -92,6 +92,9 @@ public const string MAP_ACTIVITY_LOGS_TABLE = 'map_activity_logs';
 public const string DB_CHARSET = 'utf8mb4';
 public const string DB_COLLATION = 'utf8mb4_general_ci';
 
+// how many retries in deadlocks, lock waits and Galera conflicts, not duplicate keys
+public const int MAX_DEADLOCK_ATTEMPTS = 3;
+
 // Routes that may be reached without authentication. Any other route
 // declaring NO_MIDDLEWARE is a routing mistake and will be denied.
 public const array PUBLIC_ROUTES = [

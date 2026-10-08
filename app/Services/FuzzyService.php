@@ -11,6 +11,8 @@
 namespace App\Services;
 
 use App\Core\App;
+
+use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
 use App\Models\MailLog;
@@ -42,8 +44,6 @@ class FuzzyService
 	private const float TIMEOUT = 10.0;
 
 	private const int DEFAULT_WEIGHT = 10;
-
-	private const int MAX_DEADLOCK_ATTEMPTS = 3;
 
 	private LoggerInterface $logger;
 	private LoggerInterface $syslogLogger;
@@ -195,7 +195,7 @@ class FuzzyService
 							'learned_by' => $learnedBy,
 						]);
 					},
-					attempts: self::MAX_DEADLOCK_ATTEMPTS
+					attempts: AppConfig::MAX_DEADLOCK_ATTEMPTS
 				);
 		} catch (Throwable $e) {
 			$this->logger->error("{$lf} {$qid} learned but not recorded: " . $e->getMessage());
