@@ -1225,12 +1225,11 @@ class MailLogService
 		// XXX have not checked if it works with remote /subfolder in WEB_BASE
 		$url = $api_servers[$api_server]['url'] . Config::get('RELEASE_MAIL_API_PATH');
 
-		if (array_key_exists('options', $api_servers[$api_server])) {
-			$options = $api_servers[$api_server]['options'];
-			$apiClient = new ApiClient($options);
-		} else {
-			$apiClient = new ApiClient();
-		}
+		// no redirects: a redirect can end on a page that answers 200
+		$apiClient = new ApiClient(array_merge(
+			$api_servers[$api_server]['options'] ?? [],
+			['max_redirects' => 0]
+		));
 
 		$data = array(
 			'id' => $id,
@@ -1248,7 +1247,14 @@ class MailLogService
 		try {
 			$statusCode = $response->getStatusCode();
 			if ($statusCode === Response::HTTP_OK) {
-				return true;
+				// only ReleaseMailApi's exact reply counts as success
+				$body = trim($response->getContent(false));
+				if ($body === 'Message Released') {
+					return true;
+				}
+				$this->logger->error("{$lf} unexpected reply from API server '{$api_server}': 200 '" .
+					mb_strimwidth($body, 0, 200, '...') . "'");
+				return false;
 			} else if ($statusCode === Response::HTTP_FORBIDDEN) {
 				$error_msg = $response->getContent(false); // Don't throw on error status
 				$this->logger->error("{$lf} wrong response code: {$statusCode} Forbidden, from API server '{$api_server}'. API server said: " . PHP_EOL . "'{$error_msg}'");
@@ -1257,11 +1263,11 @@ class MailLogService
 					$this->logger->warning("{$lf} Check local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
 				} else {
 					// apache returns full http response
-					$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
+					$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL, API_ENABLE");
 				}
 				return false;
 			} else {
-				$error_msg = $response->getContent(false); // Don't throw on error status
+				$error_msg = mb_strimwidth($response->getContent(false), 0, 200, '...'); // Don't throw on error status
 				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. 'API server said: {$error_msg}'");
 				return false;
 			}
