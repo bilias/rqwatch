@@ -140,6 +140,26 @@ class FuzzyService
 		$this->callApi($server, 'unlearn', (int) $row->id, $unlearnedBy, (string) $row->qid);
 	}
 
+
+	// add weight by the same route learn() took: the mail's server
+	public function addWeight(MailLogFuzzy $row, int $weight, string $addedBy): void {
+		$server = (string) $row->api_server;
+
+		$this->checkWeight($weight);
+
+		if (!self::serverEnabled($server)) {
+			$this->logger->error("[FuzzyService_addWeight] {$row->qid} no fuzzy_url for API server '{$server}'. Check config.local.php");
+			throw new FuzzyException("Fuzzy learning is not available for server '{$server}'", FuzzyError::Unavailable);
+		}
+
+		if ($server === ($_ENV['MY_API_SERVER_ALIAS'] ?? '')) {
+			$this->addWeightLocal($row, $weight, $addedBy);
+			return;
+		}
+
+		$this->callApi($server, 'boost', (int) $row->id, $addedBy, (string) $row->qid, null, $weight);
+	}
+
 	// $weight overrides the list's weight from config
 	public function learnLocal(MailLog $maillog, int $flag, string $learnedBy, ?int $weight = null): MailLogFuzzy {
 		$lf = "[FuzzyService_learnLocal]";
@@ -287,6 +307,54 @@ class FuzzyService
 		$label = self::flags()[(int) $row->flag]['label'] ?? "flag {$row->flag}";
 		$kept = $shared !== [] ? ", kept " . count($shared) . " hash(es) shared with other learned mails" : '';
 		$msg = "{$qid} unlearned from fuzzy '{$label}' (flag {$row->flag}, weight {$row->weight}){$kept} by '{$unlearnedBy}'";
+		$this->logger->info($msg);
+		$this->syslogLogger->info($msg);
+	}
+
+
+	// re-add a learned mail with extra weight: rspamd adds to it, nothing is deleted
+	public function addWeightLocal(MailLogFuzzy $row, int $weight, string $addedBy): void {
+		$lf = "[FuzzyService_addWeightLocal]";
+		$qid = (string) $row->qid;
+
+		$this->checkWeight($weight);
+		if ((int) $row->weight + $weight > 65535) {
+			throw new FuzzyException("Mail {$qid}: total weight would exceed 65535", FuzzyError::Conflict);
+		}
+
+		$maillog = $row->mailLog;
+		if ($maillog === null || !$maillog->mail_stored) {
+			throw new FuzzyException("Mail {$qid} is not stored", FuzzyError::Conflict);
+		}
+
+		$entry = $this->flagEntry((int) $row->flag, $qid);
+		$hashes = $this->fuzzyAdd($maillog, (int) $row->flag, $weight, $lf);
+		$merged = array_values(array_unique(array_merge((array) $row->hashes, $hashes)));
+
+		// rspamd cannot subtract: once added, this weight is kept even if recording fails
+		try {
+			$updated = App::capsule()
+				->connection()
+				->transaction(
+					function () use ($row, $weight, $merged) {
+						return MailLogFuzzy::whereKey($row->getKey())
+							->increment('weight', $weight, ['hashes' => json_encode($merged)]);
+					},
+					attempts: AppConfig::MAX_DEADLOCK_ATTEMPTS
+				);
+		} catch (Throwable $e) {
+			$this->logger->critical("{$lf} {$qid} weight {$weight} added in rspamd but not recorded: " . $e->getMessage());
+			throw new FuzzyException("Mail {$qid}: weight added in rspamd but not recorded; see the log", FuzzyError::Internal);
+		}
+
+		if ($updated === 0) {
+			$this->logger->critical("{$lf} {$qid} weight {$weight} added in rspamd but the fuzzy record is gone, hashes " .
+				implode(',', $hashes));
+			throw new FuzzyException("Mail {$qid} was unlearned meanwhile; see the log", FuzzyError::Conflict);
+		}
+
+		$msg = "{$qid} fuzzy '{$entry['label']}' (flag {$row->flag}) weight +{$weight}, now " .
+			((int) $row->weight + $weight) . ", by '{$addedBy}'";
 		$this->logger->info($msg);
 		$this->syslogLogger->info($msg);
 	}
