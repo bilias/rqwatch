@@ -554,6 +554,8 @@ class MailLogController extends ViewController
 		$fuzzy = $fuzzy_enabled ? (new FuzzyService())->getByMailLogId($ar['log']->id) : null;
 		$fuzzy_flags = $fuzzy_enabled ? FuzzyService::flags() : [];
 		$fuzzy_learnable = $fuzzy_enabled && $fuzzy === null && $fuzzy_flags !== []
+			&& $ar['log']->mail_stored
+			&& FuzzyService::serverEnabled($ar['log']->server);
 
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),
