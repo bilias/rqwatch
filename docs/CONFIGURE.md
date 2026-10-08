@@ -968,14 +968,14 @@ Available commands for the "cron" namespace:
   hashes by then, so only the Rqwatch records go.
 
   Needs the `db:migrate_mail_log_fuzzy_hits` migration.
-```
+    ```
     ./bin/cli.php cron:fuzzy_cleanup -h
 
     Options:
       -d, --delete          Delete expired records
       -l, --local           Records of the local server only
       -s, --show            Show expired records
-```
+    ```
 
 - **cron:updatemapfiles**\
   This command scans the Rqwatch database and updates map files if needed.
