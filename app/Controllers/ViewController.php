@@ -100,6 +100,16 @@ class ViewController extends Controller
 			return Helper::get_action_details($symbols);
 		}));
 
+		// labels read once per request: the listing calls this for every row
+		$fuzzyLabels = null;
+		$this->twig->addFunction(new TwigFunction('get_fuzzy_hits', function ($symbols) use (&$fuzzyLabels) {
+			if (empty($symbols) || !is_array($symbols)) {
+				return [];
+			}
+			$fuzzyLabels ??= FuzzyService::symbolLabels();
+			return Helper::getFuzzyHits($symbols, $fuzzyLabels);
+		}));
+
 		$this->twig->addFunction(new TwigFunction('get_row_class', function ($action, $symbols = null) {
 			return Helper::get_row_class($action, $symbols);
 		}));

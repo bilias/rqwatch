@@ -136,6 +136,25 @@ class Helper {
 		return (bool) preg_match('/^RQWATCH_FUZZY_/i', $name);
 	}
 
+	/*
+	 * Our fuzzy symbols in a mail's symbols, as [['label' => ..., 'class' => ...]].
+	 * $labels maps symbol name to list label; a negative score (Not spam) gets its own class.
+	 */
+	public static function getFuzzyHits(array $symbols, array $labels): array {
+		$hits = [];
+		foreach ($symbols as $symbol) {
+			$name = (string) ($symbol['name'] ?? '');
+			if ($name === '' || !self::isFuzzySymbol($name)) {
+				continue;
+			}
+			$hits[] = [
+				'label' => $labels[strtoupper($name)] ?? $name,
+				'class' => ((float) ($symbol['score'] ?? 0)) < 0 ? 'rqwatch_fuzzy_white' : 'rqwatch_fuzzy',
+			];
+		}
+		return $hits;
+	}
+
 	public static function checkForMap(array $symbols): bool {
 		foreach ($symbols as $symbol) {
 			if (isset($symbol['name']) && !self::isFuzzySymbol($symbol['name']) && (
@@ -180,6 +199,9 @@ class Helper {
 	// change class depending on symbol
 	public static function get_symbol_class(?string $symbol = null): string {
 		if (!empty($symbol)) {
+			if (self::isFuzzySymbol($symbol)) {
+				return 'rqwatch_fuzzy';
+			}
 			$check[0]['name'] = $symbol;
 			if (self::checkForWhitelist($check)) {
 				return 'whitelist';

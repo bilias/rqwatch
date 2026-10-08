@@ -104,6 +104,17 @@ class FuzzyService
 		return $flags;
 	}
 
+	// list labels by rspamd symbol name (upper case), for showing hits in listings
+	public static function symbolLabels(): array {
+		$labels = [];
+		foreach (self::flags() as $entry) {
+			if ($entry['symbol'] !== '') {
+				$labels[strtoupper($entry['symbol'])] = $entry['label'];
+			}
+		}
+		return $labels;
+	}
+
 	public function getByMailLogId(int $mailLogId): ?MailLogFuzzy {
 		return MailLogFuzzy::where('mail_log_id', $mailLogId)->first();
 	}

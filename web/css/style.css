@@ -19,6 +19,8 @@
  --color-mail-blacklist-h: #4f240b;
  --color-mail-rqwatch_map: yellow;
  --color-mail-rqwatch_map-h: #e3e300;
+ --color-mail-rqwatch_fuzzy: #ff9933;
+ --color-mail-rqwatch_fuzzy_white: #9be89b;
  --color-disabled: #7d7d7d;
 }
 
@@ -392,6 +394,21 @@ li.active {
 }
 
 .mail .rqwatch_map {
+ display: block;
+ color: #000 !important;
+}
+
+
+.rqwatch_fuzzy {
+    background-color: var(--color-mail-rqwatch_fuzzy);
+}
+
+.rqwatch_fuzzy_white {
+    background-color: var(--color-mail-rqwatch_fuzzy_white);
+}
+
+.mail .rqwatch_fuzzy,
+.mail .rqwatch_fuzzy_white {
  display: block;
  color: #000 !important;
 }
@@ -977,6 +994,7 @@ span.stored {
 .colorcodes .whitelist { background-color: var(--color-mail-whitelist); }
 .colorcodes .blacklist { background-color: var(--color-mail-blacklist); }
 .colorcodes .rqwatch_map { background-color: var(--color-mail-rqwatch_map); }
+.colorcodes .rqwatch_fuzzy { background-color: var(--color-mail-rqwatch_fuzzy); }
 .colorcodes .clean     { background-color: var(--color-bg-clean); }
 
 .maildetail,

@@ -76,6 +76,7 @@ Total {{ totalRecords|nf }} mails
   {% set log_action = log_action ~ ' (blacklisted)' %}
 {% endif %}
 
+{% set fuzzy_hits = get_fuzzy_hits(log.symbols) %}
 {% if log.has_virus %}
   <td class='center action'>
 	{{ log_action }}<br/>
@@ -83,9 +84,15 @@ Total {{ totalRecords|nf }} mails
 	{% if action_details == 'rqwatch_map' %}
 		<span class='rqwatch_map'>[map]</span>
 	{% endif %}
+	{% for hit in fuzzy_hits %}
+		<span class='{{ hit.class }}'>[fuzzy: {{ hit.label }}]</span>
+	{% endfor %}
   </td>
-{% elseif action_details == 'rqwatch_map' %}
-  <td class='center'>{{ log_action }}<br/><span class='rqwatch_map'>[map]</span></td>
+{% elseif action_details == 'rqwatch_map' or fuzzy_hits %}
+  <td class='center'>{{ log_action }}<br/>
+	{% if action_details == 'rqwatch_map' %}<span class='rqwatch_map'>[map]</span>{% endif %}
+	{% for hit in fuzzy_hits %}<span class='{{ hit.class }}'>[fuzzy: {{ hit.label }}]</span>{% endfor %}
+  </td>
 {% else %}
   <td class='center'>{{ log_action }}</td>
 {% endif %}
