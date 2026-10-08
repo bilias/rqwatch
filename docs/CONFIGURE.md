@@ -216,7 +216,7 @@ Rqwatch lets an admin teach it: open a stored mail and learn it as
 false positive.
 
 An email can be learned once, into one list. To move it to the other
-list, Unlearn it, wait two minutes, and learn it again (see the notes).\
+list, Unlearn it and learn it again (see the notes).\
 Each list has a default weight from the config. You can change it in the
 box next to the button before you learn.
 
@@ -282,9 +282,8 @@ If you already have any of them, merge them instead of copying over.
   In Rspamd, weights add up per hash: learning a different mail with the same
   content adds its weight to the same entry, while Rqwatch shows each mail with
   its own weight. Add weight raises the weight in both.
-- Rspamd writes learns and unlearns to Redis in batches, every 60 to 90 seconds.
-  If you Unlearn a mail and Learn it again within that time, the two can reach
-  Redis in the wrong order and the new learn is lost. Wait two minutes in between.
+- Rspamd stores learns and unlearns with a short delay. If you Unlearn a mail
+  and want to learn it again, wait a couple of minutes in between.
 - If a remote API server fails, the page shows a short error.
   The details are in the file log of both the web and the API server.
 
