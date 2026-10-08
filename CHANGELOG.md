@@ -4,6 +4,9 @@
 
 ### 2026-10-08
 - Add support for Rspamd Fuzzy Learning
+- Fuzzy: show learned mails sharing a hash, warn on duplicate learns
+- Fuzzy: add weight to a learned mail
+- Main menu: hamburger at 1400px
 - GetMail API client: refuse redirects, mention API_ENABLE
 - Release API client: refuse redirects, accept only the API's reply
 
