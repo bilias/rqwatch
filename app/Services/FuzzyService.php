@@ -215,7 +215,8 @@ class FuzzyService
 		$this->deleteHashes((string) $row->api_server, (array) $row->hashes, (int) $row->flag, $qid);
 		$row->delete();
 
-		$msg = "{$qid} unlearned from fuzzy (flag {$row->flag}) by '{$unlearnedBy}'";
+		$label = self::flags()[(int) $row->flag]['label'] ?? "flag {$row->flag}";
+		$msg = "{$qid} unlearned from fuzzy '{$label}' (flag {$row->flag}, weight {$row->weight}) by '{$unlearnedBy}'";
 		$this->logger->info($msg);
 		$this->syslogLogger->info($msg);
 	}

@@ -124,7 +124,8 @@ class FuzzyController extends ViewController
 
 		try {
 			(new FuzzyService())->unlearn($row, (string) $this->username);
-			$this->flashbag->add('success', "Mail {$row->qid} unlearned from fuzzy");
+			$label = FuzzyService::flags()[(int) $row->flag]['label'] ?? "flag {$row->flag}";
+			$this->flashbag->add('success', "Mail {$row->qid} unlearned from fuzzy '{$label}'");
 		} catch (FuzzyException $e) {
 			$this->flashbag->add('error', $e->getMessage());
 		} catch (Throwable $e) {
