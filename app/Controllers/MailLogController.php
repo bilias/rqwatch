@@ -552,9 +552,8 @@ class MailLogController extends ViewController
 		// admin row: fuzzy learning state, and whether Learn is offered
 		$fuzzy_enabled = $this->is_admin && FuzzyService::isEnabled();
 		$fuzzy = $fuzzy_enabled ? (new FuzzyService())->getByMailLogId($ar['log']->id) : null;
-		$fuzzy_learnable = $fuzzy_enabled && $fuzzy === null
-			&& $ar['log']->mail_stored
-			&& FuzzyService::serverEnabled($ar['log']->server);
+		$fuzzy_flags = $fuzzy_enabled ? FuzzyService::flags() : [];
+		$fuzzy_learnable = $fuzzy_enabled && $fuzzy === null && $fuzzy_flags !== []
 
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),
@@ -568,6 +567,7 @@ class MailLogController extends ViewController
 			'fuzzy_enabled' => $fuzzy_enabled,
 			'fuzzy' => $fuzzy,
 			'fuzzy_learnable' => $fuzzy_learnable,
+			'fuzzy_flags' => $fuzzy_flags,
 			'ip_country' => $ip_country,
 			'stripped_mail_location' => $stripped_mail_location,
 			'error' => $error,

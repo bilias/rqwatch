@@ -41,6 +41,8 @@ class FuzzyService
 
 	private const float TIMEOUT = 10.0;
 
+	private const int DEFAULT_WEIGHT = 10;
+
 	private LoggerInterface $logger;
 	private LoggerInterface $syslogLogger;
 
@@ -62,6 +64,37 @@ class FuzzyService
 			&& !empty($api_servers[$server]['fuzzy_url']);
 	}
 
+	/*
+	 * The fuzzy lists of $fuzzy_learn_flags, keyed by flag:
+	 * [flag => ['label' => ..., 'symbol' => ..., 'weight' => ...]].
+	 * Invalid entries are logged and left out.
+	 */
+	public static function flags(): array {
+		$flags = [];
+
+		foreach ((array) (Config::get('fuzzy_learn_flags') ?? []) as $flag => $entry) {
+			$valid = is_int($flag) && $flag >= 1 && $flag <= 255 && is_array($entry)
+				&& trim((string) ($entry['label'] ?? '')) !== ''
+				&& is_int($entry['weight'] ?? self::DEFAULT_WEIGHT)
+				&& ($entry['weight'] ?? self::DEFAULT_WEIGHT) >= 1
+				&& ($entry['weight'] ?? self::DEFAULT_WEIGHT) <= 65535;
+
+			if (!$valid) {
+				App::fileLogger()->error("[FuzzyService] invalid fuzzy_learn_flags entry " .
+					json_encode([$flag => $entry]) . " in config: flag 1-255, label required, weight 1-65535");
+				continue;
+			}
+
+			$flags[$flag] = [
+				'label' => trim((string) $entry['label']),
+				'symbol' => trim((string) ($entry['symbol'] ?? '')),
+				'weight' => $entry['weight'] ?? self::DEFAULT_WEIGHT,
+			];
+		}
+
+		return $flags;
+	}
+
 	public function getByMailLogId(int $mailLogId): ?MailLogFuzzy {
 		return MailLogFuzzy::where('mail_log_id', $mailLogId)->first();
 	}
@@ -74,8 +107,11 @@ class FuzzyService
 	}
 
 	// learn on this node, or through the API of the node that stores the mail
-	public function learn(MailLog $maillog, string $learnedBy): void {
+	public function learn(MailLog $maillog, int $flag, string $learnedBy, ?int $weight = null): void {
 		$server = (string) $maillog->server;
+
+		$this->flagEntry($flag, (string) $maillog->qid);
+		$this->checkWeight($weight);
 
 		if (!self::serverEnabled($server)) {
 			$this->logger->error("[FuzzyService_learn] {$maillog->qid} no fuzzy_url for API server '{$server}'. Check config.local.php");
@@ -83,11 +119,11 @@ class FuzzyService
 		}
 
 		if ($server === ($_ENV['MY_API_SERVER_ALIAS'] ?? '')) {
-			$this->learnLocal($maillog, $learnedBy);
+			$this->learnLocal($maillog, $flag, $learnedBy, $weight);
 			return;
 		}
 
-		$this->callApi($server, 'learn', (int) $maillog->id, $learnedBy, (string) $maillog->qid);
+		$this->callApi($server, 'learn', (int) $maillog->id, $learnedBy, (string) $maillog->qid, $flag, $weight);
 	}
 
 	// unlearn by the same route learn() took: the mail's server
@@ -102,7 +138,8 @@ class FuzzyService
 		$this->callApi($server, 'unlearn', (int) $row->id, $unlearnedBy, (string) $row->qid);
 	}
 
-	public function learnLocal(MailLog $maillog, string $learnedBy): MailLogFuzzy {
+	// $weight overrides the list's weight from config
+	public function learnLocal(MailLog $maillog, int $flag, string $learnedBy, ?int $weight = null): MailLogFuzzy {
 		$lf = "[FuzzyService_learnLocal]";
 		$qid = (string) $maillog->qid;
 
@@ -122,8 +159,9 @@ class FuzzyService
 			throw new FuzzyException("Mail {$qid} file not readable", FuzzyError::Internal);
 		}
 
-		$flag = $this->flag();
-		$weight = $this->weight();
+		$entry = $this->flagEntry($flag, $qid);
+		$this->checkWeight($weight);
+		$weight ??= $entry['weight'];
 
 		$reply = $this->call((string) $maillog->server, '/fuzzyadd', $raw, [
 			'Flag' => (string) $flag,
@@ -163,7 +201,7 @@ class FuzzyService
 			throw new FuzzyException("Mail {$qid} could not be recorded", FuzzyError::Internal);
 		}
 
-		$msg = "{$qid} learned as fuzzy (flag {$flag}, weight {$weight}, " .
+		$msg = "{$qid} learned as fuzzy '{$entry['label']}' (flag {$flag}, weight {$weight}, " .
 			count($hashes) . " hashes) by '{$learnedBy}'";
 		$this->logger->info($msg);
 		$this->syslogLogger->info($msg);
@@ -186,7 +224,7 @@ class FuzzyService
 	 * POST to the fuzzy_mail API of another node. Throws with the remote
 	 * error message, or a generic one for auth and transport problems.
 	 */
-	private function callApi(string $api_server, string $action, int $id, string $user, string $qid): void {
+	private function callApi(string $api_server, string $action, int $id, string $user, string $qid, ?int $flag = null, ?int $weight = null): void {
 		$lf = "[FuzzyService_callApi]";
 		$api_servers = Config::get('API_SERVERS') ?? [];
 		$base = (string) ($api_servers[$api_server]['url'] ?? '');
@@ -214,7 +252,8 @@ class FuzzyService
 					'action' => $action,
 					'id' => $id,
 					'remote_user' => $user,
-				],
+				] + ($flag !== null ? ['flag' => $flag] : [])
+				  + ($weight !== null ? ['weight' => $weight] : []),
 				$_ENV['MAIL_API_USER'],
 				$_ENV['MAIL_API_PASS']
 			);
@@ -298,24 +337,23 @@ class FuzzyService
 		return $reply;
 	}
 
-	private function flag(): int {
-		$flag = (int) Config::get('fuzzy_learn_flag');
-		if ($flag < 1 || $flag > 255) {
-			$this->logger->error("[FuzzyService] invalid fuzzy_learn_flag '" .
-				json_encode(Config::get('fuzzy_learn_flag')) . "' in config, must be 1-255");
-			throw new FuzzyException("Invalid fuzzy_learn_flag in config", FuzzyError::Internal);
+	private function checkWeight(?int $weight): void {
+		if ($weight !== null && ($weight < 1 || $weight > 65535)) {
+			throw new FuzzyException("Invalid weight {$weight}, must be 1-65535", FuzzyError::Conflict);
 		}
-		return $flag;
 	}
 
-	private function weight(): int {
-		$weight = (int) Config::get('fuzzy_learn_weight');
-		if ($weight < 1 || $weight > 65535) {
-			$this->logger->error("[FuzzyService] invalid fuzzy_learn_weight '" .
-				json_encode(Config::get('fuzzy_learn_weight')) . "' in config, must be 1-65535");
-			throw new FuzzyException("Invalid fuzzy_learn_weight in config", FuzzyError::Internal);
+	// the configured list for $flag; refuses flags not in $fuzzy_learn_flags
+	private function flagEntry(int $flag, string $qid): array {
+		$flags = self::flags();
+
+		if (!isset($flags[$flag])) {
+			$alias = (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '');
+			$this->logger->error("[FuzzyService] {$qid} fuzzy flag {$flag} is not in fuzzy_learn_flags on '{$alias}'. Check config.local.php");
+			throw new FuzzyException("Fuzzy flag {$flag} is not configured on '{$alias}'", FuzzyError::Unavailable);
 		}
-		return $weight;
+
+		return $flags[$flag];
 	}
 
 }

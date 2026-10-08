@@ -1033,6 +1033,16 @@ span.stored {
   overflow-wrap: anywhere;
 }
 
+/* fuzzy learn: one small form per list on the detail page */
+.fuzzy-learn {
+  display: inline-block;
+  margin-right: 0.5em;
+}
+
+.fuzzy-learn input[type="number"] {
+  width: 5em;
+}
+
 @media (max-width: 600px) {
   .maildetail .info,
   .maildetail .detail {

@@ -69,9 +69,20 @@ class FuzzyController extends ViewController
 		]));
 	}
 
-	public function learn(int $id): RedirectResponse {
+	public function learn(int $id, int $flag): RedirectResponse {
 		if ($denied = $this->checkRequest('fuzzy_learn')) {
 			return $denied;
+		}
+
+		// optional: the list's weight from config when not given
+		$weight = null;
+		$weight_param = $this->request->query->get('weight');
+		if ($weight_param !== null && $weight_param !== '') {
+			if (!ctype_digit((string) $weight_param) || (int) $weight_param < 1 || (int) $weight_param > 65535) {
+				$this->flashbag->add('error', "Invalid weight, must be 1-65535");
+				return $this->detailResponse($id);
+			}
+			$weight = (int) $weight_param;
 		}
 
 		try {
@@ -83,12 +94,14 @@ class FuzzyController extends ViewController
 		}
 
 		try {
-			(new FuzzyService())->learn($maillog, (string) $this->username);
-			$this->flashbag->add('success', "Mail {$maillog->qid} learned as fuzzy spam");
+			(new FuzzyService())->learn($maillog, $flag, (string) $this->username, $weight);
+			$entry = FuzzyService::flags()[$flag];
+			$used = $weight ?? $entry['weight'];
+			$this->flashbag->add('success', "Mail {$maillog->qid} learned as fuzzy '{$entry['label']}' (weight {$used})");
 		} catch (FuzzyException $e) {
 			$this->flashbag->add('error', $e->getMessage());
 		} catch (Throwable $e) {
-			$this->fileLogger->error("[FuzzyController] learn of mail {$id} failed: " . $e->getMessage());
+			$this->fileLogger->error("[FuzzyController] learn of mail {$id} as flag {$flag} failed: " . $e->getMessage());
 			$this->flashbag->add('error', "Error. Contact admin");
 		}
 
@@ -158,4 +171,5 @@ class FuzzyController extends ViewController
 		return new RedirectResponse($this->url(RouteName::ADMIN_DETAIL,
 			[ 'type' => 'id', 'value' => $mailLogId ]));
 	}
+
 }

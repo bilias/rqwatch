@@ -47,9 +47,15 @@ class FuzzyMailApi extends RqwatchApi
 		$remote_user = (string) ($post['remote_user'] ?? '');
 		$action = (string) ($post['action'] ?? '');
 		$id = intval($post['id'] ?? 0);
+		$flag = intval($post['flag'] ?? 0);
+		// optional: the list's weight from config when not given
+		$weight_param = (string) ($post['weight'] ?? '');
+		$weight = $weight_param === '' ? null : (ctype_digit($weight_param) ? (int) $weight_param : 0);
 
-		if ($remote_user === '' || !in_array($action, ['learn', 'unlearn'], true) || $id < 1) {
-			$err_msg = "{$this->clientIp} requested FuzzyMailApi on '{$node}' with missing or invalid user, action or id";
+		if ($remote_user === '' || !in_array($action, ['learn', 'unlearn'], true) || $id < 1
+			|| ($action === 'learn' && $flag < 1)
+			|| ($weight !== null && ($weight < 1 || $weight > 65535))) {
+			$err_msg = "{$this->clientIp} requested FuzzyMailApi on '{$node}' with missing or invalid user, action, id, flag or weight";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, "Missing Required info",
 				$err_msg, 'critical');
@@ -70,7 +76,7 @@ class FuzzyMailApi extends RqwatchApi
 				// findMailLog throws InvalidArgumentException when no mail found
 				$maillog = (new MailLogService())->findMailLog($id);
 				$this->logRequest($remote_user, $action, (string) $maillog->qid, $node);
-				$fuzzy->learnLocal($maillog, $remote_user);
+				$fuzzy->learnLocal($maillog, $flag, $remote_user, $weight);
 			} else {
 				$row = MailLogFuzzy::find($id);
 				if ($row === null) {
@@ -116,4 +122,5 @@ class FuzzyMailApi extends RqwatchApi
 		$this->fileLogger->info($msg);
 		$this->syslogLogger->info($msg);
 	}
+
 }

@@ -96,11 +96,23 @@ $rspamd_stat_redis_cache_ttl = 300;
 # a writable fuzzy_check rule in rspamd and fuzzy_url in API_SERVERS.
 $fuzzy_learn_enable = false;
 
-# Must match the flag in the rspamd fuzzy_map (1-255)
-$fuzzy_learn_flag = 11;
-
-# Added to the hash count on each learn (1-65535)
-$fuzzy_learn_weight = 10;
+# Fuzzy lists to learn into, keyed by flag (1-255). Each flag must be in the
+# fuzzy_map of the writable fuzzy_check rule. label is shown to admins,
+# symbol is the rspamd symbol of that flag (display only), weight is the
+# default added to the hash on each learn (1-65535, default 10); admins can
+# change it per learn on the detail page.
+$fuzzy_learn_flags = array(
+	11 => array(
+		'label' => 'Spam',
+		'symbol' => 'RQWATCH_FUZZY_DENIED',
+		'weight' => 10,
+	),
+	13 => array(
+		'label' => 'Not spam',
+		'symbol' => 'RQWATCH_FUZZY_WHITE',
+		'weight' => 10,
+	),
+);
 
 # Path to use for remote API mail release
 $RELEASE_MAIL_API_PATH = AppConfig::RELEASE_MAIL_API_PATH;
