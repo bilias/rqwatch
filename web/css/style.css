@@ -1035,8 +1035,8 @@ span.stored {
 
 /* fuzzy learn: one small form per list on the detail page */
 .fuzzy-learn {
-  display: inline-block;
-  margin-right: 0.5em;
+  display: block;
+  margin: 2px 0;
 }
 
 .fuzzy-learn input[type="number"] {
