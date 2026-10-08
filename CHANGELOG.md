@@ -4,6 +4,8 @@
 
 ### 2026-10-08
 - Add support for Rspamd Fuzzy Learning
+- GetMail API client: refuse redirects, mention API_ENABLE
+- Release API client: refuse redirects, accept only the API's reply
 
 ### 2026-10-07
 - Quarantine per month page
