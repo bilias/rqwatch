@@ -170,11 +170,12 @@ stress on the database.
 Admins can learn a quarantined mail as spam, or as not spam to fix a false
 positive, into the Rspamd [Fuzzy storage](https://docs.rspamd.com/workers/fuzzy_storage),
 so that similar mails get a fuzzy symbol that raises or lowers their score.
-- Learn/Unlearn from the mail detail page
+- Learn/Unlearn/Add weight from the mail detail page
 - Configurable lists (flag, symbol, default weight), with the weight editable on each learn
-- Fuzzy page listing all learned mails, with Unlearn
+- Fuzzy page listing all learned mails and the ones that share hashes, with Unlearn
+- Warning right after a learn whose content was already learned
 - Learning runs on the API server that stores the mail, via the Mail API in [Distributed](docs/DISTRIBUTED.md) mode
-- Learned hashes are recorded, so Unlearn removes exactly what was learned, even after the mail is purged
+- Learned hashes are recorded, so Unlearn removes exactly what was learned, even after the mail is purged, and keeps hashes other learned mails still share
 - Fuzzy storage shared across Rspamd servers through Redis
 
 See [Rspamd Fuzzy Learning](docs/CONFIGURE.md#rspamd-fuzzy-learning) for setup.

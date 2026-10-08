@@ -216,9 +216,21 @@ Rqwatch lets an admin teach it: open a stored mail and learn it as
 false positive.
 
 An email can be learned once, into one list. To move it to the other
-list, Unlearn it and learn it again.\
+list, Unlearn it, wait two minutes, and learn it again (see the notes).\
 Each list has a default weight from the config. You can change it in the
 box next to the button before you learn.
+
+A learned mail that is still in quarantine has an **Add weight** box. It sends
+the mail to Rspamd again with that weight, which adds to what is there, and
+restarts the 90 days. Use it to make a learn stronger, instead of unlearning
+and learning again.
+
+Different mails can have the same content, e.g. copies of one spam campaign.
+Rspamd keeps one entry per hash, so learning several of them adds their weights
+together. **Shared with**, on the Fuzzy page and in the mail's details, lists the
+other learned mails that share a hash, and Rqwatch warns right after a learn
+whose hashes were already learned. Unlearn keeps a shared hash in Rspamd until
+the last mail that has it is unlearned.
 
 It's off by default.
 
@@ -258,15 +270,21 @@ If you already have any of them, merge them instead of copying over.
   `-5.0` for `RQWATCH_FUZZY_WHITE` and `0` for `RQWATCH_FUZZY_UNKNOWN`.
 
 ### Fuzzy Learning notes
-- Hashes expire from the fuzzy storage after 30 days (`expire`), but the Rqwatch record
+- Hashes expire from the fuzzy storage after 90 days (`expire`), but the Rqwatch record
   stays. The mail still shows as learned and Learn won't run again. To re-teach a mail
-  that is still in quarantine, Unlearn it and Learn it again.
+  that is still in quarantine, use **Add weight**: it also restarts the 90 days.
 - Small mails can't be learned. Rspamd skips anything under about 1 KB (`min_bytes`) or
   with very short text, and answers `No content to generate fuzzy for flag 11`.
   You'll see that message as is.
 - The weight decides how much of the symbol score a match gets. With the
   `hits_limit` of `20` in `fuzzy_check.conf`, a weight of `10` gives about
   90% of it and `20` gives almost all of it.
+  In Rspamd, weights add up per hash: learning a different mail with the same
+  content adds its weight to the same entry, while Rqwatch shows each mail with
+  its own weight. Add weight raises the weight in both.
+- Rspamd writes learns and unlearns to Redis in batches, every 60 to 90 seconds.
+  If you Unlearn a mail and Learn it again within that time, the two can reach
+  Redis in the wrong order and the new learn is lost. Wait two minutes in between.
 - If a remote API server fails, the page shows a short error.
   The details are in the file log of both the web and the API server.
 
