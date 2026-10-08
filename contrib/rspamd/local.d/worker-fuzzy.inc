@@ -10,4 +10,4 @@
 
 count = 1;
 backend = "redis";
-expire = 30d;
+expire = 90d;
