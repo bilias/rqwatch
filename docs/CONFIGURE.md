@@ -207,12 +207,18 @@ In advance, an administrator can choose to not use Basic Maps at all and impleme
 Custom Maps with different scores.
 
 ## Rspamd Fuzzy Learning
-Rspamd can recognise mail that looks like spam it has seen before, using
+Rspamd can recognise mail it has seen before, using
 [fuzzy hashes](https://docs.rspamd.com/workers/fuzzy_storage).
-Rqwatch lets an admin teach it: open a quarantined spam, click
-**Learn as spam**, and from then on similar mails get the
-`RQWATCH_FUZZY_DENIED` symbol and its score.
-An email can be learned once.
+Rqwatch lets an admin teach it: open a stored mail and learn it as
+**Spam** or as **Not spam**. After this similar mails get
+`RQWATCH_FUZZY_DENIED`, which adds to their score, or
+`RQWATCH_FUZZY_WHITE`, which takes from it. **Not spam** is how you fix a
+false positive.
+
+An email can be learned once, into one list. To move it to the other
+list, Unlearn it and learn it again.\
+Each list has a default weight from the config. You can change it in the
+box next to the button before you learn.
 
 It's off by default.
 
@@ -238,17 +244,18 @@ If you already have any of them, merge them instead of copying over.
 
 - `fuzzy_check.conf`\
   Adds the `rqwatch` rule next to Rspamd's public one. It talks to the
-  local storage (`localhost:11335`), it is writable (`read_only = false`),
-  and it maps flag `11` to `RQWATCH_FUZZY_DENIED`.\
-  The flag has to match `$fuzzy_learn_flag`, and no other writable rule
-  should use it, because Rspamd learns into every writable rule that has
+  local Fuzzy storage (`localhost:11335`), it is writable (`read_only = false`),
+  and it maps flag `11` to `RQWATCH_FUZZY_DENIED` and flag `13` to
+  `RQWATCH_FUZZY_WHITE`.\
+  The flags have to match `$fuzzy_learn_flags`, and no other writable rule
+  should use them, because Rspamd learns into every writable rule that has
   that flag.\
   On Rspamd 3.x write `max_score` instead of `hits_limit`.
   3.x doesn't know `hits_limit`, ignores it, and the symbol then fires with a score of 0.
 
 - `fuzzy_group.conf`\
-  Gives the symbols their scores: `5.0` for `RQWATCH_FUZZY_DENIED`
-  and `0` for `RQWATCH_FUZZY_UNKNOWN`.
+  Gives the symbols their scores: `5.0` for `RQWATCH_FUZZY_DENIED`,
+  `-5.0` for `RQWATCH_FUZZY_WHITE` and `0` for `RQWATCH_FUZZY_UNKNOWN`.
 
 ### Fuzzy Learning notes
 - Hashes expire from the fuzzy storage after 30 days (`expire`), but the Rqwatch record
@@ -257,6 +264,9 @@ If you already have any of them, merge them instead of copying over.
 - Small mails can't be learned. Rspamd skips anything under about 1 KB (`min_bytes`) or
   with very short text, and answers `No content to generate fuzzy for flag 11`.
   You'll see that message as is.
+- The weight decides how much of the symbol score a match gets. With the
+  `hits_limit` of `20` in `fuzzy_check.conf`, a weight of `10` gives about
+  90% of it and `20` gives almost all of it.
 - If a remote API server fails, the page shows a short error.
   The details are in the file log of both the web and the API server.
 
@@ -646,13 +656,18 @@ How it all fits together is in [Rspamd Fuzzy Learning](#rspamd-fuzzy-learning).
   Needs the `db:migrate_mail_log_fuzzy` migration.\
   Default is `false`
 
-- `$fuzzy_learn_flag` - The flag Rqwatch learns with (`1`-`255`).\
-  It must be the `flag` of `RQWATCH_FUZZY_DENIED` in your `fuzzy_check.conf`.\
-  Default is `11`
+- `$fuzzy_learn_flags` - The lists an admin can learn into, keyed by flag
+  (`1`-`255`). Each one has:
+  - `label`: the button text, e.g. **Learn as Spam**
+  - `symbol`: the Rspamd symbol of that flag. It's only shown in Rqwatch;
+    Rspamd maps the flag to the symbol itself.
+  - `weight`: the default weight (`1`-`65535`, default `10`). Admins can
+    change it on each learn.
 
-- `$fuzzy_learn_weight` - How much one learn adds to a hash (`1`-`65535`).\
-  Higher means a single learned mail scores closer to the full symbol weight.\
-  Default is `10`
+  Every flag must be in the `fuzzy_map` of the `rqwatch` rule in
+  `fuzzy_check.conf`. Entries that don't fit are logged and skipped.\
+  Default is `11` (Spam, `RQWATCH_FUZZY_DENIED`) and `13` (Not spam,
+  `RQWATCH_FUZZY_WHITE`), both with weight `10`
 
 - `fuzzy_url` in each `$API_SERVERS` entry - Where that API server
   finds its own Rspamd controller. Only the API server holding the mail

@@ -122,7 +122,7 @@ If mail is stored in Quarantine:
 - Password-less quarantine access from notification mails
 - Track notification and release datetime
 - Show Quarantined mails per day
-- Learn as spam into Rspamd Fuzzy storage (admin)
+- Learn as spam or not spam into Rspamd Fuzzy storage (admin)
 
 Admin users have full access. Users have limited access and only to their data.
 
@@ -167,10 +167,11 @@ Rspamd downloads map files locally from the web server and this does not put add
 stress on the database.
 
 ### Fuzzy Learning
-Admins can learn a quarantined mail as spam into the Rspamd
-[Fuzzy storage](https://docs.rspamd.com/workers/fuzzy_storage), so that similar mails
-get a fuzzy symbol and score.
+Admins can learn a quarantined mail as spam, or as not spam to fix a false
+positive, into the Rspamd [Fuzzy storage](https://docs.rspamd.com/workers/fuzzy_storage),
+so that similar mails get a fuzzy symbol that raises or lowers their score.
 - Learn/Unlearn from the mail detail page
+- Configurable lists (flag, symbol, default weight), with the weight editable on each learn
 - Fuzzy page listing all learned mails, with Unlearn
 - Learning runs on the API server that stores the mail, via the Mail API in [Distributed](docs/DISTRIBUTED.md) mode
 - Learned hashes are recorded, so Unlearn removes exactly what was learned, even after the mail is purged
