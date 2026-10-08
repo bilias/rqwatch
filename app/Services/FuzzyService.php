@@ -43,6 +43,8 @@ class FuzzyService
 
 	private const int DEFAULT_WEIGHT = 10;
 
+	private const int MAX_DEADLOCK_ATTEMPTS = 3;
+
 	private LoggerInterface $logger;
 	private LoggerInterface $syslogLogger;
 
@@ -177,16 +179,24 @@ class FuzzyService
 		}
 
 		try {
-			$row = MailLogFuzzy::create([
-				'mail_log_id' => (int) $maillog->id,
-				'qid' => $maillog->qid,
-				// the mail's server, so unlearn() routes the same way learn() did
-				'api_server' => (string) $maillog->server,
-				'flag' => $flag,
-				'weight' => $weight,
-				'hashes' => array_values($hashes),
-				'learned_by' => $learnedBy,
-			]);
+			// retries deadlocks, lock waits and Galera conflicts, not duplicate keys
+			$row = App::capsule()
+				->connection()
+				->transaction(
+					function () use ($maillog, $flag, $weight, $hashes, $learnedBy) {
+						return MailLogFuzzy::create([
+							'mail_log_id' => (int) $maillog->id,
+							'qid' => $maillog->qid,
+							// the mail's server, so unlearn() routes the same way learn() did
+							'api_server' => (string) $maillog->server,
+							'flag' => $flag,
+							'weight' => $weight,
+							'hashes' => array_values($hashes),
+							'learned_by' => $learnedBy,
+						]);
+					},
+					attempts: self::MAX_DEADLOCK_ATTEMPTS
+				);
 		} catch (Throwable $e) {
 			$this->logger->error("{$lf} {$qid} learned but not recorded: " . $e->getMessage());
 			$concurrent = null;
