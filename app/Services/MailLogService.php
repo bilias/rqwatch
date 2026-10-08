@@ -1216,6 +1216,11 @@ class MailLogService
 			return false;
 		}
 
+		if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS'])) {
+			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set");
+			return false;
+		}
+
 		$api_servers = Config::get('API_SERVERS');
 
 		if (!array_key_exists($api_server, $api_servers) or empty($api_servers[$api_server]['url'])) {
