@@ -18,6 +18,12 @@
    <div class='info'>Subject:</div>
    <div class='detail'>{{ log.subject }}</div>
  </div>
+ {% if is_admin %}
+ <div class="row">
+   <div class='info'>Server:</div>
+   <div class='detail'>{{ log.server }}</div>
+ </div>
+ {% endif %}
   <div class="row">
    <div class='info'>Received from:</div>
    <div class='detail'>

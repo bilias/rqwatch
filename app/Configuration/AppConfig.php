@@ -18,7 +18,7 @@ define('RQWATCH_ROOT', realpath(__DIR__ . '/../..'));
 class AppConfig {
 
 // Application version
-public const string VERSION = '2.1.2-dev';
+public const string VERSION = '2.1.2-dev2';
 
 public const string APP_NAME = 'Rqwatch';
 
@@ -65,6 +65,9 @@ public const string RELEASE_MAIL_API_PATH = '/api/release_mail.php';
 // Path to use for remote API get mail
 public const string GET_MAIL_API_PATH = '/api/get_mail.php';
 
+// Path to use for remote API fuzzy learning
+public const string FUZZY_MAIL_API_PATH = '/api/fuzzy_mail.php';
+
 // default REDIS
 public const string REDIS_CONFIG_KEY = 'rqwatch_config';
 public const int REDIS_CONFIG_CACHE_TTL = 300;
@@ -74,6 +77,7 @@ public const string MAIL_LOGS_TABLE = 'mail_logs';
 public const string MAIL_LOG_DATA_TABLE = 'mail_log_data';
 public const string MAIL_LOG_RECIPIENTS_TABLE = 'mail_log_recipients';
 public const string MAIL_LOG_TOKENS_TABLE = 'mail_log_tokens';
+public const string MAIL_LOG_FUZZY_TABLE = 'mail_log_fuzzy';
 public const string MIGRATIONS_TABLE = 'migrations';
 public const string USERS_TABLE = 'users';
 public const string MAIL_ALIASES_TABLE = 'mail_aliases';

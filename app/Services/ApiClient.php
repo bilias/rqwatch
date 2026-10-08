@@ -51,4 +51,14 @@ class ApiClient
 		]);
 	}
 
+
+	public function postToRspamd(string $url, string $body, array $headers, float $timeout): ResponseInterface
+	{
+		return $this->client->request('POST', $url, [
+			'headers' => $headers,
+			'body' => $body,
+			'timeout' => $timeout,
+		]);
+	}
+
 }

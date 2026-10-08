@@ -491,6 +491,29 @@ class Routes
 			[ 'id' => '\d{1,8}' ] // requirements
 		));
 
+		$routes->add(RouteName::ADMIN_FUZZY->value, new Route(
+			'/admin/fuzzy', // path
+			[ '_controller' => 'App\\Controllers\\FuzzyController::showAll',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
+		$routes->add(RouteName::ADMIN_FUZZY_LEARN->value, new Route(
+			'/admin/fuzzy/learn/{id}/{flag}', // path
+			[ '_controller' => 'App\\Controllers\\FuzzyController::learn',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+			[ 'id' => '\d{1,8}', 'flag' => '\d{1,3}' ] // requirements
+		));
+
+		$routes->add(RouteName::ADMIN_FUZZY_UNLEARN->value, new Route(
+			'/admin/fuzzy/unlearn/{id}', // path
+			[ '_controller' => 'App\\Controllers\\FuzzyController::unlearn',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+			[ 'id' => '\d{1,8}' ] // requirements
+		));
+
 		$routes->add(RouteName::ADMIN_MAPS->value, new Route(
 			'/admin/maps', // path
 			[ '_controller' => 'App\\Controllers\\MapController::showSelectMap',

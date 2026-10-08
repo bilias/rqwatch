@@ -14,12 +14,15 @@ All passwords provided are dummy entries and **should not be used**, as this is 
       * [Users personal Whitelists/Blacklists (Combined Maps)](#users-personal-whitelistsblacklists-combined-maps)
       * [Basic Maps](#basic-maps)
       * [Custom Maps](#custom-maps)
+   * [Rspamd Fuzzy Learning](#rspamd-fuzzy-learning)
+      * [Rspamd Fuzzy configuration](#rspamd-fuzzy-configuration)
+      * [Fuzzy Learning notes](#fuzzy-learning-notes)
    * [.env Configuration file](#env-configuration-file)
       * [Database Connection details](#database-connection-details)
       * [Quarantine Settings](#quarantine-settings)
       * [API Settings](#api-settings)
          * [Rspamd API settings (MetadataImporter)](#rspamd-api-settings-metadataimporter)
-         * [Mail API settings (GetMail/ReleaseMail)](#mail-api-settings-getmailreleasemail)
+         * [Mail API settings (GetMail/ReleaseMail/FuzzyMail)](#mail-api-settings-getmailreleasemailfuzzymail)
       * [Web Settings](#web-settings)
       * [Mail Notifications/Release from Quarantine](#mail-notificationsrelease-from-quarantine)
       * [Redis Settings](#redis-settings)
@@ -32,6 +35,7 @@ All passwords provided are dummy entries and **should not be used**, as this is 
       * [Logging Settings](#logging-settings)
       * [Quarantine and Notification Settings](#quarantine-and-notification-settings)
       * [Failed Import Spool](#failed-import-spool)
+      * [Fuzzy Learning Settings](#fuzzy-learning-settings)
       * [Application Settings](#application-settings)
       * [Reports and Statistics Settings](#reports-and-statistics-settings)
       * [GeoIP](#geoip)
@@ -202,6 +206,70 @@ files locally on multiple servers.
 In advance, an administrator can choose to not use Basic Maps at all and implement
 Custom Maps with different scores.
 
+## Rspamd Fuzzy Learning
+Rspamd can recognise mail it has seen before, using
+[fuzzy hashes](https://docs.rspamd.com/workers/fuzzy_storage).
+Rqwatch lets an admin teach it: open a stored mail and learn it as
+**Spam** or as **Not spam**. After this similar mails get
+`RQWATCH_FUZZY_DENIED`, which adds to their score, or
+`RQWATCH_FUZZY_WHITE`, which takes from it. **Not spam** is how you fix a
+false positive.
+
+An email can be learned once, into one list. To move it to the other
+list, Unlearn it and learn it again.\
+Each list has a default weight from the config. You can change it in the
+box next to the button before you learn.
+
+It's off by default.
+
+To turn it on:
+1. Create the table with `./bin/cli.php db:migrate_mail_log_fuzzy` (or just `./bin/cli.php db:migrate`).\
+   New installs from `db-init.sql` already have it.
+2. Set up Rspamd on every API server (see below) and reload it.
+3. In `config.local.php`, on the web **and** the API servers, set `$fuzzy_learn_enable = true;`
+   and add `fuzzy_url` to the `$API_SERVERS` entries on every API and WEB server.\
+   See [Fuzzy Learning Settings](#fuzzy-learning-settings).
+
+### Rspamd Fuzzy configuration
+You need three files from `contrib/rspamd/local.d/` in `/etc/rspamd/local.d/`.
+If you already have any of them, merge them instead of copying over.
+
+- `worker-fuzzy.inc`\
+  Turns on the fuzzy storage worker (stock Rspamd ships it disabled)
+  and keeps the hashes in Redis for 30 days (`expire`).\
+  Point all your Rspamd servers at the **same** Redis, so a mail
+  learned on one server is recognised by all of them.
+  Leave `allow_update` at the stock `localhost`: that is how the
+  controller gets to write.
+
+- `fuzzy_check.conf`\
+  Adds the `rqwatch` rule next to Rspamd's public one. It talks to the
+  local Fuzzy storage (`localhost:11335`), it is writable (`read_only = false`),
+  and it maps flag `11` to `RQWATCH_FUZZY_DENIED` and flag `13` to
+  `RQWATCH_FUZZY_WHITE`.\
+  The flags have to match `$fuzzy_learn_flags`, and no other writable rule
+  should use them, because Rspamd learns into every writable rule that has
+  that flag.\
+  On Rspamd 3.x write `max_score` instead of `hits_limit`.
+  3.x doesn't know `hits_limit`, ignores it, and the symbol then fires with a score of 0.
+
+- `fuzzy_group.conf`\
+  Gives the symbols their scores: `5.0` for `RQWATCH_FUZZY_DENIED`,
+  `-5.0` for `RQWATCH_FUZZY_WHITE` and `0` for `RQWATCH_FUZZY_UNKNOWN`.
+
+### Fuzzy Learning notes
+- Hashes expire from the fuzzy storage after 30 days (`expire`), but the Rqwatch record
+  stays. The mail still shows as learned and Learn won't run again. To re-teach a mail
+  that is still in quarantine, Unlearn it and Learn it again.
+- Small mails can't be learned. Rspamd skips anything under about 1 KB (`min_bytes`) or
+  with very short text, and answers `No content to generate fuzzy for flag 11`.
+  You'll see that message as is.
+- The weight decides how much of the symbol score a match gets. With the
+  `hits_limit` of `20` in `fuzzy_check.conf`, a weight of `10` gives about
+  90% of it and `20` gives almost all of it.
+- If a remote API server fails, the page shows a short error.
+  The details are in the file log of both the web and the API server.
+
 ## .env Configuration file
 You should create a copy of the provided file:
 ```
@@ -231,7 +299,9 @@ cp .env-example .env
   Cleanup is performed by `cron:cleanupdb`
 
 ### API Settings
-If the server runs the API (MetadataImporter, GetMail, ReleaseMail) the following settings apply:
+If the server runs the API (MetadataImporter, GetMail, ReleaseMail, FuzzyMail)
+the following settings apply:
+
 - `API_ENABLE` - Set to `false` to disable the APIs
 
 - `MY_API_SERVER_ALIAS` - If the server runs the API, specify its alias (server name).\
@@ -253,16 +323,24 @@ If the server runs the API (MetadataImporter, GetMail, ReleaseMail) the followin
 metadata_importer API\
   Use `127.0.0.1` if Rspamd and Rqwatch API run on the same host.
 
-#### Mail API settings (GetMail/ReleaseMail)
-- `MAIL_API_USER` - ReleaseMail/GetMail Mail API username\
+#### Mail API settings (GetMail/ReleaseMail/FuzzyMail)
+- `MAIL_API_USER` - ReleaseMail/GetMail/FuzzyMail Mail API username\
   Used by both Mail API (server) and Web (client)
 
-- `MAIL_API_PASS` - ReleaseMail/GetMail Mail API password\
+- `MAIL_API_PASS` - ReleaseMail/GetMail/FuzzyMail Mail API password\
   Used by both Mail API (server) and Web (client)
 
 - `MAIL_API_ACL` - Comma-separated IPs that are allowed to connect to our
-local ReleaseMail/GetMail API\
+local ReleaseMail/GetMail/FuzzyMail API\
   Use `127.0.0.1` if API and Web run on the same host.
+
+- `RSPAMD_CONTROLLER_ENABLE_PASS` - The Rspamd [controller](https://docs.rspamd.com/workers/controller/)
+  `enable_password`, used for [fuzzy learning](#rspamd-fuzzy-learning).\
+  Set it on the API servers, since they are the ones talking to Rspamd.
+  You don't need it when `fuzzy_url` is `http://127.0.0.1:11334`,
+  because Rspamd trusts localhost (`secure_ip`).
+
+The FuzzyMail API uses the same `MAIL_API_*` credentials and ACL as GetMail and ReleaseMail.
 
 ### Web Settings
 If the server runs the Web service then the following settings are relevant:
@@ -448,7 +526,7 @@ cp config.local-example.php config.local.php
 
 ### Web API Settings
 These settings are used by the web servers in order to connect to API servers (as a web client):
-- `$API_SERVERS` - Array of API server aliases (url, statistics url and TLS options)\
+- `$API_SERVERS` - Array of API server aliases (url, statistics url, fuzzy url and TLS options)\
   See `config.php` for all available options
 
 - `$SYS_CA_PATH` - Default CA path dir ([capath](https://symfony.com/doc/current/reference/configuration/framework.html#capath)) to verify remote API servers' TLS
@@ -457,11 +535,13 @@ These settings are used by the web servers in order to connect to API servers (a
 
 - `$RELEASE_MAIL_API_PATH` - Path to use for remote API mail release
 
+- `$FUZZY_MAIL_API_PATH` - Path to use for remote API fuzzy learning
+
 `MAIL_API_USER` and `MAIL_API_PASS` from `.env` are also used from web client in order to be authenticated to remote Mail API servers.
 
 If the Web server also runs the API, and `MY_API_SERVER_ALIAS` matches an entry in
 `$API_SERVERS` and mail is stored locally with a `server` entry matching its local alias name,
-then GetMail and ReleaseMail are handled locally.\
+then GetMail, ReleaseMail and FuzzyMail are handled locally.\
 In all other cases, a call to the remote API server is made.
 
 ### Rspamd Statistics
@@ -568,6 +648,36 @@ and [`cron:import_spool`](#cron) imports it later into database.
   stops spooling and answers `500`, so the metadata for those mails is not
   recorded.\
   Default is `20000`
+
+### Fuzzy Learning Settings
+How it all fits together is in [Rspamd Fuzzy Learning](#rspamd-fuzzy-learning).
+
+- `$fuzzy_learn_enable` - Turns fuzzy learning on.
+  Needs the `db:migrate_mail_log_fuzzy` migration.\
+  Default is `false`
+
+- `$fuzzy_learn_flags` - The lists an admin can learn into, keyed by flag
+  (`1`-`255`). Each one has:
+  - `label`: the button text, e.g. **Learn as Spam**
+  - `symbol`: the Rspamd symbol of that flag. It's only shown in Rqwatch;
+    Rspamd maps the flag to the symbol itself.
+  - `weight`: the default weight (`1`-`65535`, default `10`). Admins can
+    change it on each learn.
+
+  Every flag must be in the `fuzzy_map` of the `rqwatch` rule in
+  `fuzzy_check.conf`. Entries that don't fit are logged and skipped.\
+  Default is `11` (Spam, `RQWATCH_FUZZY_DENIED`) and `13` (Not spam,
+  `RQWATCH_FUZZY_WHITE`), both with weight `10`
+
+- `fuzzy_url` in each `$API_SERVERS` entry - Where that API server
+  finds its own Rspamd controller. Only the API server holding the mail
+  ever connects to it, so `http://127.0.0.1:11334` is the right value
+  everywhere, even in the config of a separate web server.\
+  It also works as a per-server switch: Learn is only offered for mails
+  whose server has a `fuzzy_url`.\
+  Set it in the config of both the web and the API servers: the API
+  server uses it to reach Rspamd, the web server only checks that it is
+  there before offering Learn.
 
 ### Application Settings
 - `$APP_NAME` - Name to use on HTML pages

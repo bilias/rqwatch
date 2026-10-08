@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+{% import 'macros/paginator.macro.twig' as ui %}
+
+{% block content %}
+
+<div class='pagtop'>
+{{ ui.paginator(learned, WEB_BASE) }}
+</div>
+
+<section>
+
+<div class='current_mails descr'>
+Fuzzy learned mails: {{ totalRecords }}
+{% if totalRecords > items_per_page %}
+| Displaying {{ items_per_page }}/page
+{% endif %}
+</div>
+
+{% if totalRecords > 0 %}
+<div class='aliases'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th>Learned</th>
+ <th>QID</th>
+ <th>Server</th>
+ <th>List</th>
+ <th>Symbol</th>
+ <th>Flag</th>
+ <th>Weight</th>
+ <th>Learned by</th>
+ <th>Hashes</th>
+ <th>Unlearn</th>
+</tr></thead>
+
+<tbody>
+{% for row in learned %}
+  <tr class='clean'>
+  <td class='center'>{{ row.created_at }}</td>
+  <td class='center'>
+{% if row.mail_log_id %}
+  <a href="{{ route('ADMIN_DETAIL', { type: 'id', value: row.mail_log_id }) }}">{{ row.qid }}</a>
+{% else %}
+  {{ row.qid }} (purged)
+{% endif %}
+  </td>
+  <td class='center'>{{ row.api_server }}</td>
+{% set f = fuzzy_flags[row.flag] ?? null %}
+  <td class='center'>{{ f ? f.label : '-' }}</td>
+  <td class='center'>{{ f and f.symbol ? f.symbol : '-' }}</td>
+  <td class='center'>{{ row.flag }}</td>
+  <td class='center'>{{ row.weight }}</td>
+  <td class='center'>{{ row.learned_by }}</td>
+  <td class='center'>{{ row.hashes|length }}</td>
+  <td class='center'><a href="{{ route('ADMIN_FUZZY_UNLEARN', { id: row.id, return: 'list', _token: csrf_token('fuzzy_unlearn') }) }}" onclick="return confirm('Remove {{ row.qid|e('js') }} from the fuzzy storage?')">Unlearn</a></td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<p class='center help-text2'>No entries found</p>
+{% endif %}
+
+</section>
+
+<div class='pagbottom'>
+{{ ui.paginator(learned, WEB_BASE) }}
+</div>
+
+{% endblock %}

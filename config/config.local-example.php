@@ -14,11 +14,15 @@
 $API_SERVERS = array(
 	'mx1' => array(
 		'url' => 'http://127.0.0.1',
+		// this server's own rspamd controller, for fuzzy learning
+		'fuzzy_url' => 'http://127.0.0.1:11334',
 	),
 /*
 	'mx2' => array(
 		'url' => 'https://mx2.example.com',
 		'stat_url' => 'http://mx2.example.com:11334/stat',
+		// this server's own rspamd controller, for fuzzy learning
+		'fuzzy_url' => 'http://127.0.0.1:11334',
 		'options' => [
 			'verify_peer' => true,
 			'verify_host' => true,
