@@ -23,10 +23,11 @@ class MailLogFuzzyHits extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_LOG_FUZZY_HITS;
 
-	// added in this order, after learned_by
+	// added in this order
 	private const array COLUMNS = [
 		'hits'        => 'INT UNSIGNED NOT NULL DEFAULT 0 AFTER `learned_by`',
 		'last_hit_at' => 'DATETIME DEFAULT NULL AFTER `hits`',
+		'updated_at'  => 'TIMESTAMP NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() AFTER `created_at`',
 	];
 
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {

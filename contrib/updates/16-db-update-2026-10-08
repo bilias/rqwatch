@@ -2,4 +2,5 @@
 ALTER TABLE `mail_log_fuzzy`
   ADD COLUMN `hits` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `learned_by`,
   ADD COLUMN `last_hit_at` DATETIME DEFAULT NULL AFTER `hits`,
+  ADD COLUMN `updated_at` TIMESTAMP NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() AFTER `created_at`,
   ALGORITHM=INSTANT;

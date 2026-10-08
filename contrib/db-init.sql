@@ -232,6 +232,7 @@ CREATE TABLE `mail_log_fuzzy` (
   `hits` int(10) unsigned NOT NULL DEFAULT 0,
   `last_hit_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `mail_log_id_idx` (`mail_log_id`),
   CONSTRAINT `fk_mail_log_fuzzy_mail_logs`
