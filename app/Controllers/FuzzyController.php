@@ -50,13 +50,15 @@ class FuzzyController extends ViewController
 		}
 
 		$page = $this->request->query->getInt('page', 1);
-		$learned = (new FuzzyService())->getLearnedPaginated(
+		$fuzzy = new FuzzyService();
+		$learned = $fuzzy->getLearnedPaginated(
 			$this->url(RouteName::ADMIN_FUZZY), $page, $this->items_per_page
 		);
 
 		return new Response($this->twig->render('fuzzy.twig', [
 			'qidform' => $qidform->createView(),
 			'learned' => $learned,
+			'shared' => $fuzzy->sharedWith($learned),
 			'fuzzy_flags' => FuzzyService::flags(),
 			'totalRecords' => $learned->total(),
 			'items_per_page' => $this->items_per_page,

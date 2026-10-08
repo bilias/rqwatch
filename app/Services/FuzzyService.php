@@ -236,6 +236,50 @@ class FuzzyService
 		return $this->hashesHeldByOthers((array) $row->hashes, (int) $row->getKey());
 	}
 
+	// per row id: the other learned mails sharing any of its hashes, oldest first
+	public function sharedWith(iterable $rows): array {
+		$hashes = [];
+		foreach ($rows as $row) {
+			foreach ((array) $row->hashes as $hash) {
+				$hashes[(string) $hash] = true;
+			}
+		}
+		if ($hashes === []) {
+			return [];
+		}
+
+		$table = AppConfig::MAIL_LOG_FUZZY_TABLE;
+		$found = App::capsule()->getConnection()->select(
+			"SELECT f.id, f.qid, f.mail_log_id, f.flag, j.h FROM {$table} f, " .
+			"JSON_TABLE(f.hashes, '$[*]' COLUMNS (h VARCHAR(128) PATH '$')) j " .
+			"WHERE j.h IN (" . implode(',', array_fill(0, count($hashes), '?')) . ")",
+			array_keys($hashes)
+		);
+
+		$holders = [];
+		foreach ($found as $r) {
+			$holders[$r->h][(int) $r->id] = [
+				'qid' => $r->qid,
+				'mail_log_id' => $r->mail_log_id === null ? null : (int) $r->mail_log_id,
+				'flag' => (int) $r->flag,
+			];
+		}
+
+		$shared = [];
+		foreach ($rows as $row) {
+			$others = [];
+			foreach ((array) $row->hashes as $hash) {
+				$others += $holders[(string) $hash] ?? [];
+			}
+			unset($others[(int) $row->getKey()]);
+			if ($others !== []) {
+				ksort($others);
+				$shared[(int) $row->getKey()] = array_values($others);
+			}
+		}
+		return $shared;
+	}
+
 	// the subset of $hashes held by learned mails other than $exceptId
 	private function hashesHeldByOthers(array $hashes, ?int $exceptId = null): array {
 		return array_values(array_filter($hashes, function ($hash) use ($exceptId): bool {
