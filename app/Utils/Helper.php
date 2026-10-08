@@ -131,9 +131,14 @@ class Helper {
 		return date("Y-m-d");
 	}
 
+	// our fuzzy_check rule's symbols (contrib fuzzy_check.conf), not a map
+	public static function isFuzzySymbol(string $name): bool {
+		return (bool) preg_match('/^RQWATCH_FUZZY_/i', $name);
+	}
+
 	public static function checkForMap(array $symbols): bool {
 		foreach ($symbols as $symbol) {
-			if (isset($symbol['name']) && (
+			if (isset($symbol['name']) && !self::isFuzzySymbol($symbol['name']) && (
 				 (preg_match('/^RQWATCH_.*$/i', $symbol['name'])) ||
 				 (preg_match('/^LOCAL_.*$/i', $symbol['name'])))) {
 					return true;
