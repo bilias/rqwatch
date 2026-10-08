@@ -359,7 +359,9 @@ class FuzzyService
 				array_merge([$at, $at], $ids)
 			);
 
-			$this->logger->info("{$qid} fuzzy hit on learned mail(s) " . $rows->pluck('qid')->implode(', '));
+			$msg = "{$qid} fuzzy hit on learned mail(s) " . $rows->pluck('qid')->implode(', ');
+			$this->logger->info($msg);
+			$this->syslogLogger->info($msg);
 		} catch (Throwable $e) {
 			$this->logger->error("[FuzzyService_recordHits] {$qid} could not record fuzzy hits: " . $e->getMessage());
 		}
