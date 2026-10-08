@@ -270,9 +270,11 @@ If you already have any of them, merge them instead of copying over.
   `-5.0` for `RQWATCH_FUZZY_WHITE` and `0` for `RQWATCH_FUZZY_UNKNOWN`.
 
 ### Fuzzy Learning notes
-- Hashes expire from the fuzzy storage after 90 days (`expire`), but the Rqwatch record
-  stays. The mail still shows as learned and Learn won't run again. To re-teach a mail
-  that is still in quarantine, use **Add weight**: it also restarts the 90 days.
+- Learned hashes expire from the fuzzy storage when they haven't matched any
+  mail for 90 days (`expire`); Add weight starts the 90 days again. Rqwatch
+  counts the hits, and [`cron:fuzzy_cleanup`](#cron) deletes the records with
+  no hit or added weight in `$fuzzy_learn_expire_days`, so the Fuzzy page
+  lists what is still active.
 - Small mails can't be learned. Rspamd skips anything under about 1 KB (`min_bytes`) or
   with very short text, and answers `No content to generate fuzzy for flag 11`.
   You'll see that message as is.
@@ -696,6 +698,11 @@ How it all fits together is in [Rspamd Fuzzy Learning](#rspamd-fuzzy-learning).
   server uses it to reach Rspamd, the web server only checks that it is
   there before offering Learn.
 
+- `$fuzzy_learn_expire_days` - How long a learned record is kept without a
+  hit or added weight. Set it to the `expire` of `worker-fuzzy.inc`.
+  [`cron:fuzzy_cleanup`](#cron) deletes older records; `0` turns that off.\
+  Default is `90`
+
 ### Application Settings
 - `$APP_NAME` - Name to use on HTML pages
 
@@ -843,6 +850,7 @@ For instance, in order to create an admin user after Installation and Configurat
 
 Available commands for the "cron" namespace:
   cron:cleanupdb       Cleanup Database
+  cron:fuzzy_cleanup   Clean expired fuzzy learn records
   cron:import_spool    Import spooled mail metadata
   cron:notifications   Notifications for stored mails
   cron:quarantine      Clean Quarantine
@@ -954,6 +962,21 @@ Available commands for the "cron" namespace:
       -s, --show            Show entries to be deleted from database
     ```
 
+- **cron:fuzzy_cleanup**\
+  This command deletes fuzzy learn records that had no hit and no added weight
+  within `$fuzzy_learn_expire_days` (default 90). Rspamd has dropped their
+  hashes by then, so only the Rqwatch records go.
+
+  Needs the `db:migrate_mail_log_fuzzy_hits` migration.
+```
+    ./bin/cli.php cron:fuzzy_cleanup -h
+
+    Options:
+      -d, --delete          Delete expired records
+      -l, --local           Records of the local server only
+      -s, --show            Show expired records
+```
+
 - **cron:updatemapfiles**\
   This command scans the Rqwatch database and updates map files if needed.
 
@@ -994,12 +1017,16 @@ The default cron template suggests:
 
 # clean database (local only) daily
 04 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:cleanupdb -d -l
+
+# delete fuzzy learn records whose hashes expired in rspamd (local only) daily
+07 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:fuzzy_cleanup -d -l
 ```
 - Sends notification every 5 minutes for mails stored locally (API servers)
 - Imports spooled mail metadata every 5 minutes (API servers)
 - Update Map files every 5 minutes (API servers)
 - Cleans Quarantine once every day for mails stored locally (API servers) 
 - Cleans Database once every day for mails stored locally (API servers)
+- Cleans expired fuzzy learn records once every day (API servers)
 
 Frequency can be adjusted to suite your setup.
 

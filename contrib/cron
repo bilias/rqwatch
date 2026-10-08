@@ -15,3 +15,6 @@
 
 # clean database (local only) daily
 04 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:cleanupdb -d -l
+
+# delete fuzzy learn records whose hashes expired in rspamd (local only) daily
+07 00 * * * root /var/www/html/rqwatch/bin/cli.php cron:fuzzy_cleanup -d -l

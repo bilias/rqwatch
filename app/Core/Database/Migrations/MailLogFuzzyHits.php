@@ -111,7 +111,7 @@ class MailLogFuzzyHits extends AbstractMigration {
 		}
 
 		if (!$this->verifySchema()) {
-			throw new RuntimeException("Failed to add fuzzy hit columns to {$table}");
+			throw new RuntimeException("Failed to add fuzzy hit and updated_at columns to {$table}");
 		}
 	}
 

@@ -114,6 +114,11 @@ $fuzzy_learn_flags = array(
 	),
 );
 
+# Days a learned record is kept without a hit. Must match expire in rspamd's
+# worker-fuzzy.inc (90d). cron:fuzzy_cleanup deletes records older than that.
+# 0 disables the cleanup.
+$fuzzy_learn_expire_days = 90;
+
 # Path to use for remote API mail release
 $RELEASE_MAIL_API_PATH = AppConfig::RELEASE_MAIL_API_PATH;
 

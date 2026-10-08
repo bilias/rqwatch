@@ -20,8 +20,8 @@ use App\Inventory\Migrations;
 
 #[AsCommand(
 	name: 'db:migrate_mail_log_fuzzy_hits',
-	description: 'Add fuzzy hit columns to mail_log_fuzzy',
-	help: 'This command adds mail_log_fuzzy.hits and last_hit_at',
+	description: 'Add fuzzy hit and updated_at columns to mail_log_fuzzy',
+	help: 'This command adds mail_log_fuzzy.hits, last_hit_at and updated_at',
 )]
 class MigrateMailLogFuzzyHits extends MigrateCliCommand
 {

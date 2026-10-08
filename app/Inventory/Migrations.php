@@ -120,7 +120,7 @@ class Migrations
 		self::USER_NOTIFICATIONS_DEFAULT => "User notifications default",
 		self::ADMIN_NOTIFIED => "Mail Log admin notification columns",
 		self::MAIL_LOG_FUZZY => "Mail Log Fuzzy",
-		self::MAIL_LOG_FUZZY_HITS => "Mail Log Fuzzy hit columns",
+		self::MAIL_LOG_FUZZY_HITS => "Mail Log Fuzzy hit and updated_at columns",
 	];
 
 	public const array MIGRATION_BATCH = [

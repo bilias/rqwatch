@@ -22,6 +22,8 @@ use Psr\Log\LoggerInterface;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 
+use Illuminate\Database\Eloquent\Builder;
+
 use Symfony\Component\HttpFoundation\Response;
 
 use App\Core\Exception\FuzzyError;
@@ -104,6 +106,30 @@ class FuzzyService
 
 	public function getByMailLogId(int $mailLogId): ?MailLogFuzzy {
 		return MailLogFuzzy::where('mail_log_id', $mailLogId)->first();
+	}
+
+	// records unchanged for $days: no learn, hit or added weight, so rspamd has let their hashes expire
+	public function getExpired(int $days, ?string $server = null): Builder {
+		$query = MailLogFuzzy::whereRaw('updated_at < NOW() - INTERVAL ? DAY', [$days]);
+		if ($server !== null) {
+			$query->where('api_server', $server);
+		}
+		return $query->orderBy('id');
+	}
+
+	// deletes the records only: their hashes are already gone from rspamd
+	public function purgeExpired(Builder $query): int {
+		$deleted = 0;
+
+		foreach ((clone $query)->get() as $row) {
+			$since = "unchanged since {$row->updated_at}, " .
+				($row->last_hit_at ? "last hit {$row->last_hit_at}" : "no hits");
+			$row->delete();
+			$deleted++;
+			$this->logger->info("{$row->qid} fuzzy record purged ({$since}, server {$row->api_server})");
+		}
+
+		return $deleted;
 	}
 
 	// newest first; rows outlive their mail_logs row

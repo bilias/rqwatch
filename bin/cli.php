@@ -22,6 +22,7 @@ use App\Console\CronQuarantine;
 use App\Console\CronCleanupDb;
 use App\Console\CronUpdateMapFiles;
 use App\Console\CronImportSpool;
+use App\Console\CronFuzzyCleanup;
 
 use App\Console\UserAdd;
 
@@ -53,6 +54,7 @@ $application->add(new CronQuarantine());
 $application->add(new CronCleanupDb());
 $application->add(new CronUpdateMapFiles());
 $application->add(new CronImportSpool());
+$application->add(new CronFuzzyCleanup());
 $application->add(new UserAdd());
 $application->add(new OptimizeTable());
 $application->add(new MigrateMailRecipients());

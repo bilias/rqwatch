@@ -19,7 +19,7 @@ class MailLogFuzzy extends Model
 {
 	protected $table = AppConfig::MAIL_LOG_FUZZY_TABLE;
 
-	// created_at has a DB default, there is no updated_at
+	// the database maintains created_at and updated_at
 	public $timestamps = false;
 
 	public const array COLUMNS = [
@@ -34,6 +34,7 @@ class MailLogFuzzy extends Model
 		'hits',
 		'last_hit_at',
 		'created_at',
+		'updated_at',
 	];
 
 	protected $casts = [
@@ -45,6 +46,7 @@ class MailLogFuzzy extends Model
 		'weight' => 'integer',
 		'hashes' => 'array',
 		'created_at' => 'datetime',
+		'updated_at' => 'datetime',
 	];
 
 	protected $fillable = [
