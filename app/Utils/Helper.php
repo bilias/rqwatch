@@ -775,7 +775,10 @@ Mail details:
 		return $unique_relay;
 	}
 
-	public static function getCountry(string $ip): ?string {
+	public static function getCountry(?string $ip): ?string {
+		if ($ip === null || $ip === '') {
+			return null;
+		}
 		if (Config::get('geoip_enable') &&
 		    ($geoip_db = Config::get('geoip_country_db')) &&
 		    !self::isLocalOrReservedIp($ip)) {

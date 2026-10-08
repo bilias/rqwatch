@@ -131,7 +131,7 @@ class ViewController extends Controller
 		}));
 	
 		$this->twig->addFunction(new TwigFunction('truncate', function ($str, $len) {
-			return mb_strimwidth($str, 0, $len, "...");
+			return mb_strimwidth((string) $str, 0, $len, "...");
 		}));
 
 		$this->twig->addFunction(new TwigFunction('getDelivery', function ($action) {
