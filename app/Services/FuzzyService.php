@@ -153,30 +153,11 @@ class FuzzyService
 			throw new FuzzyException("Mail {$qid} is already learned", FuzzyError::Conflict);
 		}
 
-		$location = (string) $maillog->mail_location;
-		$raw = is_file($location) ? file_get_contents($location) : false;
-
-		if ($raw === false || $raw === '') {
-			$this->logger->error("{$lf} {$qid} file '{$location}' not readable");
-			throw new FuzzyException("Mail {$qid} file not readable", FuzzyError::Internal);
-		}
-
 		$entry = $this->flagEntry($flag, $qid);
 		$this->checkWeight($weight);
 		$weight ??= $entry['weight'];
 
-		$reply = $this->call((string) $maillog->server, '/fuzzyadd', $raw, [
-			'Flag' => (string) $flag,
-			'Weight' => (string) $weight,
-		], $qid);
-
-		$hashes = $reply['hashes'] ?? null;
-
-		if (!is_array($hashes) || $hashes === [] ||
-			count(preg_grep(self::HASH_FORMAT, $hashes)) !== count($hashes)) {
-			$this->logger->error("{$lf} {$qid} unexpected fuzzyadd reply: " . json_encode($reply));
-			throw new FuzzyException("Unexpected reply from rspamd", FuzzyError::Upstream);
-		}
+		$hashes = $this->fuzzyAdd($maillog, $flag, $weight, $lf);
 
 		try {
 			// retries deadlocks, lock waits and Galera conflicts, not duplicate keys
@@ -426,6 +407,33 @@ class FuzzyService
 		}
 
 		return $reply;
+	}
+
+	// /fuzzyadd the stored mail; returns the hashes rspamd reports
+	private function fuzzyAdd(MailLog $maillog, int $flag, int $weight, string $lf): array {
+		$qid = (string) $maillog->qid;
+		$location = (string) $maillog->mail_location;
+		$raw = is_file($location) ? file_get_contents($location) : false;
+
+		if ($raw === false || $raw === '') {
+			$this->logger->error("{$lf} {$qid} file '{$location}' not readable");
+			throw new FuzzyException("Mail {$qid} file not readable", FuzzyError::Internal);
+		}
+
+		$reply = $this->call((string) $maillog->server, '/fuzzyadd', $raw, [
+			'Flag' => (string) $flag,
+			'Weight' => (string) $weight,
+		], $qid);
+
+		$hashes = $reply['hashes'] ?? null;
+
+		if (!is_array($hashes) || $hashes === [] ||
+			count(preg_grep(self::HASH_FORMAT, $hashes)) !== count($hashes)) {
+			$this->logger->error("{$lf} {$qid} unexpected fuzzyadd reply: " . json_encode($reply));
+			throw new FuzzyException("Unexpected reply from rspamd", FuzzyError::Upstream);
+		}
+
+		return $hashes;
 	}
 
 	private function checkWeight(?int $weight): void {
