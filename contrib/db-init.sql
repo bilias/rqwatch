@@ -229,6 +229,8 @@ CREATE TABLE `mail_log_fuzzy` (
   `weight` smallint(5) unsigned NOT NULL,
   `hashes` JSON NOT NULL,
   `learned_by` varchar(100) NOT NULL,
+  `hits` int(10) unsigned NOT NULL DEFAULT 0,
+  `last_hit_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `mail_log_id_idx` (`mail_log_id`),
@@ -259,4 +261,5 @@ INSERT INTO `migrations` VALUES
 ('20260912_map_user_constraints','completed',NOW()),
 ('20261005_user_notifications_default','completed',NOW()),
 ('20261005_admin_notified','completed',NOW()),
-('20261007_mail_log_fuzzy','completed',NOW());
+('20261007_mail_log_fuzzy','completed',NOW()),
+('20261008_mail_log_fuzzy_hits','completed',NOW());

@@ -1,0 +1,5 @@
+# SQL
+ALTER TABLE `mail_log_fuzzy`
+  ADD COLUMN `hits` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `learned_by`,
+  ADD COLUMN `last_hit_at` DATETIME DEFAULT NULL AFTER `hits`,
+  ALGORITHM=INSTANT;
