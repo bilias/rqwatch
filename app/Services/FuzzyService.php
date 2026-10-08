@@ -281,6 +281,48 @@ class FuzzyService
 		return $shared;
 	}
 
+	/*
+	 * Count a hit on every learned mail holding one of $hashes, once per
+	 * incoming mail. $at is the incoming mail's created_at (null: now).
+	 * Never throws: a failure here must not cost the import.
+	 */
+	public function recordHits(array $hashes, ?string $at, string $qid): void {
+		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT,
+			array_filter($hashes, 'is_string'))));
+		if ($hashes === []) {
+			return;
+		}
+
+		try {
+			if (!App::migrationStatus()->mailLogFuzzyHitsCompleted()) {
+				return;
+			}
+
+			$query = MailLogFuzzy::query();
+			foreach ($hashes as $hash) {
+				$query->orWhereRaw('JSON_CONTAINS(hashes, JSON_QUOTE(?))', [$hash]);
+			}
+			// read first: no write when only other storages matched
+			$rows = $query->get(['id', 'qid']);
+			if ($rows->isEmpty()) {
+				return;
+			}
+
+			// never moves last_hit_at backwards, e.g. on a spool replay
+			$ids = $rows->pluck('id')->all();
+			App::capsule()->getConnection()->update(
+				"UPDATE " . AppConfig::MAIL_LOG_FUZZY_TABLE . " SET hits = hits + 1, " .
+				"last_hit_at = GREATEST(COALESCE(last_hit_at, COALESCE(?, NOW())), COALESCE(?, NOW())) " .
+				"WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")",
+				array_merge([$at, $at], $ids)
+			);
+
+			$this->logger->info("{$qid} fuzzy hit on learned mail(s) " . $rows->pluck('qid')->implode(', '));
+		} catch (Throwable $e) {
+			$this->logger->error("[FuzzyService_recordHits] {$qid} could not record fuzzy hits: " . $e->getMessage());
+		}
+	}
+
 	// the subset of $hashes held by learned mails other than $exceptId
 	private function hashesHeldByOthers(array $hashes, ?int $exceptId = null): array {
 		return array_values(array_filter($hashes, function ($hash) use ($exceptId): bool {

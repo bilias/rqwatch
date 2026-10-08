@@ -31,6 +31,8 @@ class MailLogFuzzy extends Model
 		'weight',
 		'hashes',
 		'learned_by',
+		'hits',
+		'last_hit_at',
 		'created_at',
 	];
 
@@ -38,6 +40,8 @@ class MailLogFuzzy extends Model
 		'id' => 'integer',
 		'mail_log_id' => 'integer',
 		'flag' => 'integer',
+		'hits' => 'integer',
+		'last_hit_at' => 'datetime',
 		'weight' => 'integer',
 		'hashes' => 'array',
 		'created_at' => 'datetime',

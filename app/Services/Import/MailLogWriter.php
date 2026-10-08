@@ -18,6 +18,10 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 
 use App\Models\MailLogData;
 
+use App\Services\FuzzyService;
+
+use Throwable;
+
 final class MailLogWriter
 {
 	private Capsule $capsule;
@@ -50,7 +54,7 @@ final class MailLogWriter
 	 See ManagesTransactions.php in illuminate/database.
 	*/
 	public function insert(array $mailData, array $recipients): int {
-		return $this->capsule
+		$id = $this->capsule
 			->connection()
 			->transaction(
 				function () use ($mailData, $recipients) {
@@ -62,6 +66,26 @@ final class MailLogWriter
 				},
 				attempts: AppConfig::MAX_DEADLOCK_ATTEMPTS
 			);
+
+		// after the commit: counting fuzzy hits must never cost the mail
+		$this->recordFuzzyHits($mailData);
+
+		return $id;
+	}
+
+	// credit learned fuzzy mails whose hashes this mail matched
+	private function recordFuzzyHits(array $mailData): void {
+		$hashes = json_decode((string) ($mailData['fuzzy_hashes'] ?? ''), true);
+		if (!is_array($hashes) || $hashes === []) {
+			return;
+		}
+
+		$qid = (string) ($mailData['qid'] ?? '');
+		try {
+			(new FuzzyService())->recordHits($hashes, $mailData['created_at'] ?? null, $qid);
+		} catch (Throwable $e) {
+			App::fileLogger()->error("[MailLogWriter] {$qid} could not record fuzzy hits: " . $e->getMessage());
+		}
 	}
 
 	/*
