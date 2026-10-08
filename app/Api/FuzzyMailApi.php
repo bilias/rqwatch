@@ -54,6 +54,7 @@ class FuzzyMailApi extends RqwatchApi
 
 		if ($remote_user === '' || !in_array($action, ['learn', 'unlearn', 'boost'], true) || $id < 1
 			|| ($action === 'learn' && $flag < 1)
+			|| ($action === 'boost' && $weight === null)
 			|| ($weight !== null && ($weight < 1 || $weight > 65535))) {
 			$err_msg = "{$this->clientIp} requested FuzzyMailApi on '{$node}' with missing or invalid user, action, id, flag or weight";
 			$this->dropLogResponse(
@@ -87,7 +88,7 @@ class FuzzyMailApi extends RqwatchApi
 					$fuzzy->addWeightLocal($row, $weight, $remote_user);
 				} else {
 					$fuzzy->unlearnLocal($row, $remote_user);
-				}				
+				}
 			}
 		} catch (InvalidArgumentException $e) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested fuzzy {$action} of id {$id} on '{$node}': " . $e->getMessage();
