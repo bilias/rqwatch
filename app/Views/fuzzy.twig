@@ -28,6 +28,10 @@ Fuzzy learned mails: {{ totalRecords }}
  <th>Flag</th>
  <th>Weight</th>
  <th>Hashes</th>
+{% if fuzzy_hits %}
+ <th>Hits</th>
+ <th>Last hit</th>
+{% endif %}
  <th>Shared with</th>
  <th>Learned by</th>
  <th>Unlearn</th>
@@ -51,6 +55,10 @@ Fuzzy learned mails: {{ totalRecords }}
   <td class='center'>{{ row.flag }}</td>
   <td class='center'>{{ row.weight }}</td>
   <td class='center'>{{ row.hashes|length }}</td>
+{% if fuzzy_hits %}
+  <td class='center'>{{ row.hits }}</td>
+  <td class='center'>{{ row.last_hit_at ?? '-' }}</td>
+{% endif %}
   <td class='center'>
 {% for o in shared[row.id] ?? [] %}
 {% if o.mail_log_id %}<a href="{{ route('ADMIN_DETAIL', { type: 'id', value: o.mail_log_id }) }}">{{ o.qid }}</a>{% else %}{{ o.qid }} (purged){% endif %}{% if o.flag != row.flag %} ({{ fuzzy_flags[o.flag].label ?? ('flag ' ~ o.flag) }}){% endif %}{% if not loop.last %}, {% endif %}

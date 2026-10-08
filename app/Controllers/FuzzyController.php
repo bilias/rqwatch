@@ -60,6 +60,7 @@ class FuzzyController extends ViewController
 			'learned' => $learned,
 			'shared' => $fuzzy->sharedWith($learned),
 			'fuzzy_flags' => FuzzyService::flags(),
+			'fuzzy_hits' => FuzzyService::hitsEnabled(),
 			'totalRecords' => $learned->total(),
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),

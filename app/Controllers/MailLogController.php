@@ -578,6 +578,7 @@ class MailLogController extends ViewController
 			'fuzzy_learnable' => $fuzzy_learnable,
 			'fuzzy_boostable' => $fuzzy_boostable,
 			'fuzzy_flags' => $fuzzy_flags,
+			'fuzzy_hits' => $fuzzy_enabled && FuzzyService::hitsEnabled(),
 			'ip_country' => $ip_country,
 			'stripped_mail_location' => $stripped_mail_location,
 			'error' => $error,

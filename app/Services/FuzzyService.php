@@ -58,6 +58,11 @@ class FuzzyService
 			&& App::migrationStatus()->mailLogFuzzyCompleted();
 	}
 
+	// whether hits and last_hit_at exist to be shown
+	public static function hitsEnabled(): bool {
+		return App::migrationStatus()->mailLogFuzzyHitsCompleted();
+	}
+
 	// whether mail stored on $server can be learned
 	public static function serverEnabled(?string $server): bool {
 		$api_servers = Config::get('API_SERVERS') ?? [];
