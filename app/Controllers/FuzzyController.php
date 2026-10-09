@@ -55,7 +55,7 @@ class FuzzyController extends ViewController
 		return $this->renderList($fuzzy, $learned, $qidform, null);
 	}
 
-	// the search form posts here; result pages come back as GET with ?q=
+	// the search form posts here and is redirected to GET ?q=, the results page
 	public function search(): Response {
 		if ($denied = $this->checkListAccess()) {
 			return $denied;
@@ -76,12 +76,14 @@ class FuzzyController extends ViewController
 				$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
 				return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY));
 			}
-			$search = (string) $form->get('search')->getData();
-		} else {
-			$search = trim((string) $this->request->query->get('q', ''));
-			if ($search === '' || strlen($search) > 128 || !preg_match(FuzzySearchForm::PATTERN, $search)) {
-				return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY));
-			}
+			// a GET results page: Back, refresh and paging keep the search
+			return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY_SEARCH) . '?' .
+				http_build_query(['q' => (string) $form->get('search')->getData()]));
+		}
+
+		$search = trim((string) $this->request->query->get('q', ''));
+		if ($search === '' || strlen($search) > 128 || !preg_match(FuzzySearchForm::PATTERN, $search)) {
+			return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY));
 		}
 
 		$page = $this->request->query->getInt('page', 1);
