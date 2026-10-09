@@ -177,6 +177,25 @@ class FuzzyService
 		return $deleted;
 	}
 
+	// newest first: $search in the QID, learned by or server, or a hash prefix
+	public function searchLearnedPaginated(string $search, string $url, int $page, int $perPage): LengthAwarePaginator {
+		$like = '%' . addcslashes($search, '%_\\') . '%';
+
+		return MailLogFuzzy::where(function ($q) use ($search, $like) {
+				$q->where('qid', 'like', $like)
+					->orWhere('learned_by', 'like', $like)
+					->orWhere('api_server', 'like', $like);
+				// hashes are 128 hex characters; symbol options show a 10 character prefix
+				if (preg_match('/^[a-f0-9]{8,128}$/i', $search)) {
+					$q->orWhere('hashes', 'like', '%"' . strtolower($search) . '%');
+				}
+			})
+			->orderByDesc('id')
+			->paginate($perPage, ['*'], 'page', $page)
+			->withPath($url)
+			->appends(['q' => $search]);
+	}
+
 	// newest first; rows outlive their mail_logs row
 	public function getLearnedPaginated(string $url, int $page, int $perPage): LengthAwarePaginator {
 		return MailLogFuzzy::orderByDesc('id')

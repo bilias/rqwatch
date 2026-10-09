@@ -1,0 +1,85 @@
+<?php declare(strict_types=1);
+/*
+ Rqwatch
+ Copyright (C) 2026 Giannis Kapetanakis
+
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+*/
+
+namespace App\Forms;
+
+use Symfony\Component\Form\AbstractType;
+
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormBuilderInterface;
+
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Constraints\NotBlank;
+
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+use Symfony\Component\HttpFoundation\Request;
+
+use App\Core\Routing\RouteName;
+use App\Utils\FormHelper;
+
+class FuzzySearchForm extends AbstractType
+{
+	// QID, learned by, server or a hash prefix
+	public const string PATTERN = '/^[a-zA-Z0-9._+@-]+$/';
+
+	#[\Override]
+	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
+		$formFactory
+			->add('search', TextType::class, [
+				'required' => true,
+				'label' => 'Fuzzy search: ',
+				'attr' => [
+					'class' => 'field',
+					'title' => 'QID, learned by, server or hash prefix',
+				],
+				'constraints' => [
+					new NotBlank(),
+					new Assert\Length(
+						min: 1,
+						max: 128,
+					),
+					new Assert\Regex(
+						pattern: self::PATTERN,
+						message: 'The value can only contain letters, numbers and ._+-@',
+					),
+				],
+			])
+			->add('submit', SubmitType::class, [
+				'label' => 'Search',
+			]);
+	}
+
+	public static function create(
+			FormFactoryInterface $formFactory,
+			Request $request,
+			UrlGeneratorInterface $urlGenerator,
+			?array $data = null
+	): FormInterface {
+
+		$url = $urlGenerator->generate(RouteName::ADMIN_FUZZY_SEARCH->value);
+
+		return FormHelper::formCreator(
+			$formFactory,
+			$request,
+			self::class,
+			$data,
+			[
+				'action' => $url,
+				'method' => 'POST',
+			]
+		);
+	}
+
+}

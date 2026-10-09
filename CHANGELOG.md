@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-10-09
+- Fuzzy page: search by QID, learned by, server or hash prefix
+
 ### 2026-10-08
 - Add support for Rspamd Fuzzy Learning
 - Fuzzy: show learned mails sharing a hash, warn on duplicate learns

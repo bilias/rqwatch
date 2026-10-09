@@ -10,11 +10,24 @@
 <section>
 
 <div class='current_mails descr'>
-Fuzzy learned mails: {{ totalRecords }}
+Fuzzy learned mails{% if search %} matching '{{ search }}'{% endif %}: {{ totalRecords }}
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }}/page
 {% endif %}
+{% if search %}
+<div id="inside_links">
+<ul>
+<li><a href='{{ route('ADMIN_FUZZY') }}'>Show all learned mails</a></li>
+</ul>
 </div>
+{% endif %}
+</div>
+
+{% if fuzzysearchform %}
+<div class="mapsearchform">
+{% include 'partials/fuzzy_search.html.twig' %}
+</div>
+{% endif %}
 
 {% if totalRecords > 0 %}
 <div class='aliases'>

@@ -12,6 +12,7 @@ namespace App\Controllers;
 
 use App\Core\Routing\RouteName;
 use App\Forms\QidForm;
+use App\Forms\FuzzySearchForm;
 use App\Core\Exception\FuzzyException;
 
 use App\Models\MailLogFuzzy;
@@ -20,6 +21,9 @@ use App\Services\FuzzyService;
 use App\Services\MailLogService;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Form\FormInterface;
+
+use Illuminate\Pagination\LengthAwarePaginator;
 
 use Symfony\Component\HttpFoundation\Response;
 
@@ -29,15 +33,8 @@ use Throwable;
 class FuzzyController extends ViewController
 {
 	public function showAll(): Response {
-		if (!$this->is_admin) {
-			$this->fileLogger->warning("'{$this->username}' tried to show fuzzy learned mails without admin authorization");
-			$this->flashbag->add('error', "Permission denied");
-			return new RedirectResponse($this->getHomepageUrl());
-		}
-
-		if (!FuzzyService::isEnabled()) {
-			$this->flashbag->add('error', "Fuzzy learning is disabled");
-			return new RedirectResponse($this->getHomepageUrl());
+		if ($denied = $this->checkListAccess()) {
+			return $denied;
 		}
 
 		// enable form rendering support (needed for csrf_token() in the template)
@@ -55,22 +52,45 @@ class FuzzyController extends ViewController
 			$this->url(RouteName::ADMIN_FUZZY), $page, $this->items_per_page
 		);
 
-		return new Response($this->twig->render('fuzzy.twig', [
-			'qidform' => $qidform->createView(),
-			'learned' => $learned,
-			'shared' => $fuzzy->sharedWith($learned),
-			'fuzzy_flags' => FuzzyService::flags(),
-			'fuzzy_hits' => FuzzyService::hitsEnabled(),
-			'totalRecords' => $learned->total(),
-			'items_per_page' => $this->items_per_page,
-			'runtime' => $this->getRuntime(),
-			'flashes' => $this->getFlashes(),
-			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
-			'current_route' => $this->request->getPathInfo(),
-			'rspamd_stats' => $this->getRspamdStat(),
-		]));
+		return $this->renderList($fuzzy, $learned, $qidform, null);
+	}
+
+	// the search form posts here; result pages come back as GET with ?q=
+	public function search(): Response {
+		if ($denied = $this->checkListAccess()) {
+			return $denied;
+		}
+
+		// enable form rendering support (needed for csrf_token() in the template)
+		$this->twigFormView($this->request);
+
+		// generate and handle qid form
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			return $response;
+		}
+
+		$form = FuzzySearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
+		if ($form->isSubmitted()) {
+			if (!$form->isValid()) {
+				$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
+				return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY));
+			}
+			$search = (string) $form->get('search')->getData();
+		} else {
+			$search = trim((string) $this->request->query->get('q', ''));
+			if ($search === '' || strlen($search) > 128 || !preg_match(FuzzySearchForm::PATTERN, $search)) {
+				return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY));
+			}
+		}
+
+		$page = $this->request->query->getInt('page', 1);
+		$fuzzy = new FuzzyService();
+		$learned = $fuzzy->searchLearnedPaginated(
+			$search, $this->url(RouteName::ADMIN_FUZZY_SEARCH), $page, $this->items_per_page
+		);
+
+		return $this->renderList($fuzzy, $learned, $qidform, $search);
 	}
 
 	public function learn(int $id, int $flag): RedirectResponse {
@@ -194,6 +214,46 @@ class FuzzyController extends ViewController
 		}
 
 		return $this->detailResponse($row->mail_log_id);
+	}
+
+	// admin and the feature enabled; a redirect otherwise
+	private function checkListAccess(): ?RedirectResponse {
+		if (!$this->is_admin) {
+			$this->fileLogger->warning("'{$this->username}' tried to show fuzzy learned mails without admin authorization");
+			$this->flashbag->add('error', "Permission denied");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
+		if (!FuzzyService::isEnabled()) {
+			$this->flashbag->add('error', "Fuzzy learning is disabled");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
+		return null;
+	}
+
+	private function renderList(FuzzyService $fuzzy, LengthAwarePaginator $learned, FormInterface $qidform, ?string $search): Response {
+		$searchForm = FuzzySearchForm::create($this->formFactory, $this->request, $this->urlGenerator,
+			$search !== null ? ['search' => $search] : null);
+
+		return new Response($this->twig->render('fuzzy.twig', [
+			'qidform' => $qidform->createView(),
+			'fuzzysearchform' => $searchForm->createView(),
+			'search' => $search,
+			'learned' => $learned,
+			'shared' => $fuzzy->sharedWith($learned),
+			'fuzzy_flags' => FuzzyService::flags(),
+			'fuzzy_hits' => FuzzyService::hitsEnabled(),
+			'totalRecords' => $learned->total(),
+			'items_per_page' => $this->items_per_page,
+			'runtime' => $this->getRuntime(),
+			'flashes' => $this->getFlashes(),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
 	}
 
 	// admin, valid CSRF token and the feature enabled; a redirect otherwise

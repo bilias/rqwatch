@@ -498,6 +498,18 @@ class Routes
 			],
 		));
 
+		$routes->add(RouteName::ADMIN_FUZZY_SEARCH->value, new Route(
+			'/admin/fuzzy/search', // path
+			[ '_controller' => 'App\\Controllers\\FuzzyController::search',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+			[], // requirements
+			[], // options
+			'', // host
+			[], // schemes
+			['GET', 'POST'] // methods
+		));
+
 		$routes->add(RouteName::ADMIN_FUZZY_LEARN->value, new Route(
 			'/admin/fuzzy/learn/{id}/{flag}', // path
 			[ '_controller' => 'App\\Controllers\\FuzzyController::learn',
