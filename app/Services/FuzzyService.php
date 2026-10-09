@@ -177,14 +177,24 @@ class FuzzyService
 		return $deleted;
 	}
 
-	// newest first: $search in the QID, learned by or server, or a hash prefix
+	/*
+	 * Newest first: $search in the QID, learned by or server, or a hash prefix.
+	 * Also the records sharing a digest with a QID match (its "Shared with").
+	 */
 	public function searchLearnedPaginated(string $search, string $url, int $page, int $perPage): LengthAwarePaginator {
 		$like = '%' . addcslashes($search, '%_\\') . '%';
+		$table = AppConfig::MAIL_LOG_FUZZY_TABLE;
 
-		return MailLogFuzzy::where(function ($q) use ($search, $like) {
+		return MailLogFuzzy::where(function ($q) use ($search, $like, $table) {
 				$q->where('qid', 'like', $like)
 					->orWhere('learned_by', 'like', $like)
-					->orWhere('api_server', 'like', $like);
+					->orWhere('api_server', 'like', $like)
+					->orWhereIn('id', function ($sub) use ($like, $table) {
+						$sub->selectRaw('o.id')
+							->fromRaw("{$table} o, JSON_TABLE(o.hashes, '$[*]' COLUMNS (h VARCHAR(128) PATH '$')) oj, " .
+								"{$table} m, JSON_TABLE(m.hashes, '$[*]' COLUMNS (h VARCHAR(128) PATH '$')) mj")
+							->whereRaw('m.qid LIKE ? AND mj.h = oj.h', [$like]);
+					});
 				// hashes are 128 hex characters; symbol options show a 10 character prefix
 				if (preg_match('/^[a-f0-9]{8,128}$/i', $search)) {
 					$q->orWhere('hashes', 'like', '%"' . strtolower($search) . '%');
