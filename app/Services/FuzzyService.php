@@ -18,6 +18,8 @@ use App\Configuration\Config;
 use App\Models\MailLog;
 use App\Models\MailLogFuzzy;
 
+use App\Models\MailLogData;
+
 use Psr\Log\LoggerInterface;
 
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -113,6 +115,39 @@ class FuzzyService
 			}
 		}
 		return $labels;
+	}
+
+	/*
+	 * Learned records the stored mail $mailLogId hit on arrival: those holding
+	 * a digest from its fuzzy_hashes. As [['id', 'mail_log_id', 'qid', 'flag']].
+	 */
+	public function matchedBy(int $mailLogId): array {
+		$hashes = MailLogData::where('mail_log_id', $mailLogId)->value('fuzzy_hashes');
+		if (is_string($hashes)) {
+			$hashes = json_decode($hashes, true);
+		}
+		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT,
+			array_filter((array) $hashes, 'is_string'))));
+		if ($hashes === []) {
+			return [];
+		}
+
+		$query = MailLogFuzzy::query()
+			->where(function ($q) use ($hashes) {
+				foreach ($hashes as $hash) {
+					$q->orWhereRaw('JSON_CONTAINS(hashes, JSON_QUOTE(?))', [$hash]);
+				}
+			})
+			// not its own learn
+			->where(fn ($q) => $q->whereNull('mail_log_id')->orWhere('mail_log_id', '<>', $mailLogId));
+
+		return $query->orderBy('id')->get(['id', 'mail_log_id', 'qid', 'flag'])
+			->map(fn ($r) => [
+				'id' => (int) $r->id,
+				'mail_log_id' => $r->mail_log_id,
+				'qid' => (string) $r->qid,
+				'flag' => (int) $r->flag,
+			])->all();
 	}
 
 	public function getByMailLogId(int $mailLogId): ?MailLogFuzzy {
@@ -302,6 +337,7 @@ class FuzzyService
 		$holders = [];
 		foreach ($found as $r) {
 			$holders[$r->h][(int) $r->id] = [
+				'id' => (int) $r->id,
 				'qid' => $r->qid,
 				'mail_log_id' => $r->mail_log_id === null ? null : (int) $r->mail_log_id,
 				'flag' => (int) $r->flag,

@@ -212,6 +212,9 @@ No
 {% endfor %}
 {% else %}
 No
+{% endif %}
+{% if fuzzy_matched %}
+<br>Matched learned: {% for m in fuzzy_matched %}{% if m.mail_log_id %}<a href="{{ route('ADMIN_DETAIL', { type: 'id', value: m.mail_log_id }) }}">{{ m.qid }}</a>{% else %}{{ m.qid }} (purged){% endif %} ({{ fuzzy_flags[m.flag].label ?? ('flag ' ~ m.flag) }}){% if not loop.last %}, {% endif %}{% endfor %}
 {% endif %}</div>
  </div>
 {% endif %}

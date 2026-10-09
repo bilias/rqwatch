@@ -224,9 +224,6 @@ class FuzzyController extends ViewController
 		try {
 			$row = $fuzzy->getByMailLogId($mailLogId);
 			$others = $row ? ($fuzzy->sharedWith([$row])[$row->getKey()] ?? []) : [];
-			if ($others === []) {
-				return;
-			}
 
 			$qids = function (array $rows): string {
 				$names = array_column($rows, 'qid');
@@ -234,6 +231,18 @@ class FuzzyController extends ViewController
 				return implode(', ', array_slice($names, 0, 3)) . ($more > 0 ? " (+{$more} more)" : '');
 			};
 
+			// a near (not identical) match on arrival: different digests, so not shared
+			$sharedIds = array_column($others, 'id');
+			$near = array_filter($fuzzy->matchedBy($mailLogId),
+				fn (array $m): bool => !in_array($m['id'], $sharedIds, true));
+			if ($near !== []) {
+				$this->flashbag->add('warning', "This mail had already matched learned mail(s) " .
+					$qids($near) . ": its own hashes were added as new entries");
+			}
+
+			if ($others === []) {
+				return;
+			}
 			$same = array_filter($others, fn (array $o): bool => $o['flag'] === $flag);
 			if ($same !== []) {
 				$shared = count($fuzzy->sharedHashes($row));
