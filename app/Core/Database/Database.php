@@ -20,6 +20,8 @@ use App\Models\MailLogData;
 use App\Models\MailLogRecipient;
 use App\Models\MailLogToken;
 
+use PDO;
+
 use RuntimeException;
 
 class Database {
@@ -52,6 +54,14 @@ class Database {
 			'fetch'    => 'FETCH_ASSOC',
 		//	'prefix'   => 'my_',
 		);
+
+		// Web pages only: cap each statement so a runaway search fails fast.
+		$maxTime = (int) ($_ENV['DB_WEB_MAX_STATEMENT_TIME'] ?? 30);
+		if (defined('WEB_MODE') && $maxTime > 0) {
+			$db_config['options'] = [
+				PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION max_statement_time = {$maxTime}",
+			];
+		}
 
 		$capsule = new Capsule;
 

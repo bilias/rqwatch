@@ -305,6 +305,10 @@ cp .env-example .env
 
 - `DB_PORT` - Database port
 
+- `DB_WEB_MAX_STATEMENT_TIME` - Maximum seconds a single database statement may run
+  for web pages (not the APIs or CLI). A search that exceeds it fails instead of running on.\
+  Default is `30`. Set to `0` to disable.
+
 ### Quarantine Settings
 - `QUARANTINE_DIR` - Local Quarantine directory\
   rqwatch user must have read/write access in this directory.

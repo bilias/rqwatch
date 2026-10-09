@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-09
+- Web: cap each statement so a runaway search query fails fast
 - cron:notifications: -B sends blacklisted mails at any score
 - Fuzzy page: search by QID, learned by, server or hash prefix
 - Fuzzy search: include mails sharing a hash with a matching QID
