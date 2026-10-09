@@ -1022,37 +1022,52 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		//$map_search_form = $request->request->all('map_search_form');
-		$map_search_form = $this->request->get('map_search_form');
+		// the form posts here and is redirected to the GET results page
+		$posted = $this->request->isMethod('POST');
+		if ($posted) {
+			$map_search_form = (array) $this->request->request->all('map_search_form');
+			$model = (string) ($map_search_form['model'] ?? '');
+			$search = trim((string) ($map_search_form['field'] ?? ''));
+			$map_name = (string) ($map_search_form['map_name'] ?? '');
+		} else {
+			$model = (string) $this->request->query->get('model', '');
+			$search = trim((string) $this->request->query->get('q', ''));
+			$map_name = (string) $this->request->query->get('map', '');
+		}
 
-		if (empty($map_search_form['model'])) {
+		if ($model === '') {
 			$this->flashbag->add('error', 'Search Model empty');
 			return new RedirectResponse($this->getMapsUrl());
 		}
 
-		$model = $map_search_form['model'];
 		if ($model !== 'MapCombined' && $model !== 'MapCustom') {
 			$this->flashbag->add('error', 'Wrong search Model');
 			return new RedirectResponse($this->getMapsUrl());
 		}
 
-		if (empty($map_search_form['field'])) {
+		if ($search === '') {
 			$this->flashbag->add('error', 'Search field empty');
 			return new RedirectResponse($this->getMapsUrl());
 		}
-		$search = $map_search_form['field'];
 
-		$map_name = null;
-		if (!empty($map_search_form['map_name'])) {
-			$map_name = $map_search_form['map_name'];
+		$configs = MapInventory::getAvailableMapConfigs($this->getRole());
+
+		if ($map_name !== '' && !isset($configs[$map_name])) {
+			$this->flashbag->add('error', 'Wrong search Map');
+			return new RedirectResponse($this->getMapsUrl());
 		}
+		$map_name = $map_name !== '' ? $map_name : null;
+
+		// what the result pages carry, so Back, refresh and paging keep the search
+		$params = array_filter(['model' => $model, 'q' => $search, 'map' => $map_name], fn ($v) => $v !== null);
+		if ($posted) {
+			return new RedirectResponse($this->getMapSearchEntryUrl() . '?' . http_build_query($params));
+		}
+		$search_map_name = $map_name;
 
 		$page = $this->request->query->getInt('page', 1);
 
 		$service = $this->getMapService();
-
-		$configs = MapInventory::getAvailableMapConfigs($this->getRole());
-
 		$field_definitions = MapInventory::getFieldDefinitions();
 		$field_descriptions = [];
 		foreach ($field_definitions as $field => $definition) {
@@ -1064,7 +1079,8 @@ class MapController extends ViewController
 			$map_comb_total = null;
 			$map_gen_entries = null;
 			$map_gen_total = null;
-			$map_custom_entries = $service->searchPaginatedMapCustom($page, $this->getMapSearchEntryUrl(), $search, $map_name);
+			$map_custom_entries = $service->searchPaginatedMapCustom($page, $this->getMapSearchEntryUrl(), $search, $map_name)
+				->appends($params);
 			$map_custom_total = $map_custom_entries->total();
 
 			if ($map_custom_total === 0) {
@@ -1088,7 +1104,8 @@ class MapController extends ViewController
 			$filter_maps = MapInventory::getMapsByModel($model, $configs);
 
 			// has applyUserRcptToScope and filter maps on model
-			$map_comb_entries = $service->searchPaginatedMapCombined($page, $this->getMapSearchEntryUrl(), $filter_maps, $search, $map_name);
+			$map_comb_entries = $service->searchPaginatedMapCombined($page, $this->getMapSearchEntryUrl(), $filter_maps, $search, $map_name)
+				->appends($params);
 
 			if ($map_comb_entries->total() === 0) {
 				$this->flashbag->add('info', 'No map entries exist');
@@ -1104,7 +1121,8 @@ class MapController extends ViewController
 			$map_comb_total = $map_comb_entries->total();
 		}
 
-		$sf_data = [ 'model' => $model ];
+		// the form shows the current search, in the same scope
+		$sf_data = [ 'model' => $model, 'field' => $search, 'map_name' => $search_map_name ];
 		$mapSearchForm = MapSearchForm::create($this->formFactory, $this->request, $this->urlGenerator, $sf_data);
 
 		return new Response($this->twig->render('maps_all_paginated.twig', [
@@ -1128,7 +1146,7 @@ class MapController extends ViewController
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'maps_url_base' => $this->getMapsUrlBase(),
-			'map_name' => $map_search_form['map_name'],
+			'map_name' => $search_map_name,
 			'search_map' => true,
 		]));
 	}

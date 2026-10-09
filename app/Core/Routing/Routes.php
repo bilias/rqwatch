@@ -597,7 +597,7 @@ class Routes
 			[], // options
 			'', // host
 			[], // schemes
-			['POST'] // methods
+			['GET', 'POST'] // methods
 		));
 
 		$routes->add(RouteName::MAP_SHOW_ALL->value, new Route(
