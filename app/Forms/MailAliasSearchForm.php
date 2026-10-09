@@ -31,6 +31,8 @@ use App\Utils\FormHelper;
 
 class MailAliasSearchForm extends AbstractType
 {
+	public const string PATTERN = '/^[a-zA-Z0-9._+-]+(@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)?$/';
+
 	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
         $formFactory
@@ -48,7 +50,7 @@ class MailAliasSearchForm extends AbstractType
 							max: 128,
 						),
 						new Assert\Regex(
-							pattern: '/^[a-zA-Z0-9._+-]+(@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)?$/',
+							pattern: self::PATTERN,
 							message: 'The value can only contain letters, numbers and ._+-@',
 						),
 					 ],

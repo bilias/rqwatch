@@ -390,7 +390,7 @@ class Routes
 			[], // options
 			'', // host
 			[], // schemes
-			['POST'] // methods
+			['GET', 'POST'] // methods
 		));
 
 		$routes->add(RouteName::ADMIN_ALIASES_ADD->value, new Route(

@@ -111,23 +111,30 @@ class MailAliasController extends ViewController
 
 		$mailAliasSearchForm = MailAliasSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 
-		if ($mailAliasSearchForm->isSubmitted() && !$mailAliasSearchForm->isValid()) {
-			$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
+		if ($mailAliasSearchForm->isSubmitted()) {
+			if (!$mailAliasSearchForm->isValid()) {
+				$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
+				return new RedirectResponse($this->getAdminAliasesUrl());
+			}
+			// a GET results page: Back, refresh and paging keep the search
+			return new RedirectResponse($this->url(RouteName::ADMIN_ALIASES_SEARCH) . '?' .
+				http_build_query(['q' => (string) $mailAliasSearchForm->get('alias')->getData()]));
+		}
+
+		$search = trim((string) $this->request->query->get('q', ''));
+		if (strlen($search) < 2 || strlen($search) > 128 || !preg_match(MailAliasSearchForm::PATTERN, $search)) {
 			return new RedirectResponse($this->getAdminAliasesUrl());
 		}
 
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$mail_alias_search_form = $this->request->get('mail_alias_search_form');
-		$aliases = null;
-		if (!empty($mail_alias_search_form['alias'])) {
-			$search = $mail_alias_search_form['alias'];
+		$url = $this->url(RouteName::ADMIN_ALIASES_SEARCH);
+		$aliases = $this->getMailAliasService()->searchPaginatedAll($url, $search, $page);
 
-			$url = $this->getAdminAliasesUrl();
-			$service = $this->getMailAliasService();
-			$aliases = $service->searchPaginatedAll($url, $search, $page);
-		}
+		// the form shows the current search
+		$mailAliasSearchForm = MailAliasSearchForm::create($this->formFactory, $this->request, $this->urlGenerator,
+			['alias' => $search]);
 
 		return new Response($this->twig->render('aliases_paginated.twig', [
 			'qidform' => $qidform->createView(),
