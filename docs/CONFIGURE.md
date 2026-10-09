@@ -888,7 +888,7 @@ Available commands for the "cron" namespace:
       -l, --local           Notifications for local server only
       -m, --mail            Send notification mails
       -s, --show            Show pending notifications
-      -b, --blacklisted     Send notifications for blacklisted mails
+      -b, --blacklisted            Send notifications for blacklisted mails
       -B, --blacklisted-any-score  Send notifications for blacklisted mails at any score (implies -b)
     ```
 
