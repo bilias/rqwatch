@@ -31,7 +31,7 @@ use App\Utils\FormHelper;
 
 class MailAliasSearchForm extends AbstractType
 {
-	public const string PATTERN = '/^[a-zA-Z0-9._+-]+(@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)?$/';
+	public const string PATTERN = '/^[a-zA-Z0-9._+@-]+$/';
 
 	#[\Override]
 	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
