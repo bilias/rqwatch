@@ -620,13 +620,18 @@ class MailLogService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$stats['count'] = $query->count();
+		// Count and boundary ids in one pass; first/last are read by PK.
+		$agg = (clone $query)->toBase()
+			->select(DB::raw('COUNT(*) AS cnt, MIN(id) AS first_id, MAX(id) AS last_id'))
+			->first();
+		$stats['count'] = (int) $agg->cnt;
 
 		if (($stats['count']) > 0) {
-			$stats['first'] = $this->getFirstMailDate($query)
-				->first()?->created_at->toDateTimeString();
-			$stats['last'] = $this->getLastMailDate($query)
-				->first()?->created_at->toDateTimeString();
+			$dates = MailLog::query()->toBase()
+				->whereIn('id', [$agg->first_id, $agg->last_id])
+				->pluck('created_at', 'id');
+			$stats['first'] = $dates[$agg->first_id] ?? null;
+			$stats['last'] = $dates[$agg->last_id] ?? null;
 			$stats['stored'] = (clone $query)->where('mail_stored', 1)->count();
 			$stats['notified'] = (clone $query)->where('notified', 1)->count();
 			$stats['released'] = (clone $query)->where('released', 1)->count();
@@ -1721,20 +1726,6 @@ class MailLogService
 
 	public function getMailLogRelations(): array {
 		return ['recipients', 'mailLogData'];
-	}
-
-	private function getFirstMailDate($query) {
-		return (clone $query)
-			->from(DB::raw(AppConfig::MAIL_LOGS_TABLE . ' FORCE INDEX(created_day_index)'))
-			->select('created_at')
-			->orderBy('created_day', 'ASC');
-	}
-
-	private function getLastMailDate($query) {
-		return (clone $query)
-			->from(DB::raw(AppConfig::MAIL_LOGS_TABLE . ' FORCE INDEX(created_day_index)'))
-			->select('created_at')
-			->orderBy('created_day', 'DESC');
 	}
 
 	private function getUserRecipientEmails(): array {
