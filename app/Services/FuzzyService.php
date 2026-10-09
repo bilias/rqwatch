@@ -17,7 +17,6 @@ use App\Configuration\Config;
 
 use App\Models\MailLog;
 use App\Models\MailLogFuzzy;
-
 use App\Models\MailLogData;
 
 use Psr\Log\LoggerInterface;

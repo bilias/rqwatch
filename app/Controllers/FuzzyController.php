@@ -243,6 +243,7 @@ class FuzzyController extends ViewController
 			if ($others === []) {
 				return;
 			}
+
 			$same = array_filter($others, fn (array $o): bool => $o['flag'] === $flag);
 			if ($same !== []) {
 				$shared = count($fuzzy->sharedHashes($row));
