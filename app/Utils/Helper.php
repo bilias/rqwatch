@@ -213,7 +213,7 @@ class Helper {
 	public static function get_symbol_class(?string $symbol = null): string {
 		if (!empty($symbol)) {
 			if (($class = self::fuzzySymbolClass($symbol)) !== null) {
-				return $class;			
+				return $class;
 			}
 			$check[0]['name'] = $symbol;
 			if (self::checkForWhitelist($check)) {
