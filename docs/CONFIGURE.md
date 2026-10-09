@@ -862,7 +862,8 @@ Available commands for the "cron" namespace:
   and then sends notification mails to recipients, depending on the configuration.
 
   By default, notifications for blacklisted emails are not sent unless `-b` option 
-  is specified.\
+  is specified. `$notification_score` still applies with `-b`, so a blacklist that
+  scores higher is only notified with `-B`, which sends blacklisted mails at any score.\
   Blacklisted emails are tracked based on Rspamd symbols.
   If a symbol starts with `RQWATCH_` and ends with either `_BL` or `_BLACKLIST` then
   that email is marked as blacklisted.
@@ -888,6 +889,7 @@ Available commands for the "cron" namespace:
       -m, --mail            Send notification mails
       -s, --show            Show pending notifications
       -b, --blacklisted     Send notifications for blacklisted mails
+      -B, --blacklisted-any-score  Send notifications for blacklisted mails at any score (implies -b)
     ```
 
 - **cron:import_spool**\

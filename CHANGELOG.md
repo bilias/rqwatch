@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-09
+- cron:notifications: -B sends blacklisted mails at any score
 - Fuzzy page: search by QID, learned by, server or hash prefix
 - Fuzzy search: include mails sharing a hash with a matching QID
 - Searches (fuzzy, aliases, users, maps): results are a plain GET page, so Back

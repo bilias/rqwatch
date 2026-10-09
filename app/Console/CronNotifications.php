@@ -53,6 +53,7 @@ class CronNotifications extends RqwatchCliCommand
 			->addOption('mail', 'm', InputOption::VALUE_NONE, 'Send notification mails')
 			->addOption('show', 's', InputOption::VALUE_NONE, 'Show pending notifications')
 			->addOption('blacklisted', 'b', InputOption::VALUE_NONE, 'Send notifications for blacklisted mails')
+			->addOption('blacklisted-any-score', 'B', InputOption::VALUE_NONE, 'Send notifications for blacklisted mails at any score (implies -b)')
 		;
 	}
 
@@ -68,14 +69,16 @@ class CronNotifications extends RqwatchCliCommand
 		$send_mails = $input->getOption('mail');
 		$show_mails = $input->getOption('show');
 		$show_local_only = $input->getOption('local');
-		$send_blacklisted = $input->getOption('blacklisted');
+		// blacklisted mail can score far above notification_score; -B lets it past that check
+		$blacklisted_any_score = (bool) $input->getOption('blacklisted-any-score');
+		$send_blacklisted = $input->getOption('blacklisted') || $blacklisted_any_score;
 
 		$service = new MailLogService();
 
 		// admin pass first: the user pass below returns early in several places
 		$adminServer = $show_local_only ? $_ENV['MY_API_SERVER_ALIAS'] : null;
 		$adminFailed = $this->adminNotifications(
-			$service, $output, $send_mails, $show_mails, $send_blacklisted, $adminServer
+			$service, $output, $send_mails, $show_mails, $send_blacklisted, $blacklisted_any_score, $adminServer
 		);
 
 		// MailLog Collection
@@ -188,11 +191,11 @@ class CronNotifications extends RqwatchCliCommand
 		unset($removedLogs);
 
 		$notification_score = Config::get('notification_score');
+		$overScore = fn ($log): bool => $log->score > $notification_score
+			&& !($blacklisted_any_score && Helper::checkForBlacklist($log->symbols ?? []));
 
 		// identify empty score > $notification_score
-		$removedLogs = $logs->filter(function ($log) use ($notification_score) {
-			return $log->score > $notification_score;
-		});
+		$removedLogs = $logs->filter($overScore);
 
 		$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
 
@@ -210,9 +213,7 @@ class CronNotifications extends RqwatchCliCommand
 		unset($removedLogs);
 
 		// filter out mails with score > $notification_score
-		$logs = $logs->reject(function ($log) use ($notification_score) {
-			return $log->score > $notification_score;
-		});
+		$logs = $logs->reject($overScore);
 
 		// skips are final, but only a sending run records them
 		if ($send_mails && !empty($skippedIds)) {
@@ -322,7 +323,8 @@ class CronNotifications extends RqwatchCliCommand
 
 	/*
 	 Admin notifications, independent of user settings: every pending mail
-	 at or below notification_score that is not blacklisted (unless -b).
+	 at or below notification_score that is not blacklisted (unless -b);
+	 with -B blacklisted mail is sent at any score.
 	 Returns the number of failed mails.
 	*/
 	private function adminNotifications(
@@ -331,6 +333,7 @@ class CronNotifications extends RqwatchCliCommand
 		bool $send_mails,
 		bool $show_mails,
 		bool $send_blacklisted,
+		bool $blacklisted_any_score,
 		?string $server
 	): int {
 		$admins = Helper::adminNotificationRcpt();
@@ -353,7 +356,8 @@ class CronNotifications extends RqwatchCliCommand
 
 		[$skipped, $logs] = $logs->partition(fn ($log) =>
 			(!$send_blacklisted && Helper::checkForBlacklist($log->symbols ?? []))
-			|| $log->score > $notification_score
+			|| ($log->score > $notification_score
+				&& !($blacklisted_any_score && Helper::checkForBlacklist($log->symbols ?? [])))
 		);
 
 		// skips are final, but only a sending run records them
