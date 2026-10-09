@@ -355,7 +355,7 @@ class Routes
 			[], // options
 			'', // host
 			[], // schemes
-			['POST'] // methods
+			['GET', 'POST'] // methods
 		));
 
 		$routes->add(RouteName::ADMIN_USERLOGINAS->value, new Route(

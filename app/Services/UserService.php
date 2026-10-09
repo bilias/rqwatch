@@ -161,7 +161,8 @@ class UserService
 		try {
 			$logs = $query
 				->paginate($this->items_per_page, $fields, 'page', $page)
-				->withPath($url);
+				->withPath($url)
+				->appends(['q' => $search]);
 		} catch (Exception $e) {
 			$this->logger->error("Query error: " . $e->getMessage() . PHP_EOL);
 			Helper::failRequest("Query error");

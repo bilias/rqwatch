@@ -143,28 +143,34 @@ class UserController extends ViewController
 
 		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator);
 
-		if ($userSearchForm->isSubmitted() && !$userSearchForm->isValid()) {
-			$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
+		if ($userSearchForm->isSubmitted()) {
+			if (!$userSearchForm->isValid()) {
+				$this->flashbag->add('error', 'The value can only contain letters, numbers and ._+-@');
+				return new RedirectResponse($this->getAdminUsersUrl());
+			}
+			// a GET results page: Back, refresh and paging keep the search
+			return new RedirectResponse($this->url(RouteName::ADMIN_USERSEARCH) . '?' .
+				http_build_query(['q' => (string) $userSearchForm->get('user')->getData()]));
+		}
+
+		$search = trim((string) $this->request->query->get('q', ''));
+		if ($search === '' || strlen($search) > 128 || !preg_match(UserSearchForm::PATTERN, $search)) {
 			return new RedirectResponse($this->getAdminUsersUrl());
 		}
 
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
-		$user_search_form = $this->request->get('user_search_form');
-		$users = null;
-		$totalRecords = 0;
-		if (!empty($user_search_form['user'])) {
-			$search = $user_search_form['user'];
+		$users = $this->getUserService()->searchPaginatedAll(
+			$page,
+			$this->url(RouteName::ADMIN_USERSEARCH),
+			$search
+		);
+		$totalRecords = $users->total();
 
-			$service = $this->getUserService();
-			$users = $service->searchPaginatedAll(
-				$page,
-				$this->getAdminUsersUrl(),
-				$search
-			);
-			$totalRecords = $users->total();
-		}
+		// the form shows the current search
+		$userSearchForm = UserSearchForm::create($this->formFactory, $this->request, $this->urlGenerator,
+			['user' => $search]);
 
 		return new Response($this->twig->render('users_paginated.twig', [
 			'qidform' => $qidform->createView(),
