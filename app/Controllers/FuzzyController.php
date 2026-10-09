@@ -131,10 +131,21 @@ class FuzzyController extends ViewController
 			$fuzzy = new FuzzyService();
 			// counted before: the row is gone afterwards
 			$shared = count($fuzzy->sharedHashes($row));
+			$orphaned = $fuzzy->orphanedSlotHolders($row);
 			$fuzzy->unlearn($row, (string) $this->username);
-			$label = FuzzyService::flags()[(int) $row->flag]['label'] ?? "flag {$row->flag}";
+			$flags = FuzzyService::flags();
+			$label = $flags[(int) $row->flag]['label'] ?? "flag {$row->flag}";
 			$kept = $shared > 0 ? " ({$shared} hash(es) kept, shared with other learned mails)" : '';
 			$this->flashbag->add('success', "Mail {$row->qid} unlearned from fuzzy '{$label}'{$kept}");
+
+			// rspamd cannot drop one list's slot of a digest, only the whole digest
+			if ($orphaned !== []) {
+				$via = implode(', ', array_map(fn (array $h): string =>
+					$h['qid'] . " ('" . ($flags[$h['flag']]['label'] ?? "flag {$h['flag']}") . "')", $orphaned));
+				$this->flashbag->add('warning', "The '{$label}' entry stays active in rspamd: " .
+					"the same content is also learned via {$via}. Unlearn those too to remove it, " .
+					"then learn them again if you want them.");
+			}
 		} catch (FuzzyException $e) {
 			$this->flashbag->add('error', $e->getMessage());
 		} catch (Throwable $e) {

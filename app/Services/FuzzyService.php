@@ -413,11 +413,48 @@ class FuzzyService
 		}));
 	}
 
+	/*
+	 * Holders of $row's digests when none of them is in $row's list: rspamd
+	 * keeps such a digest on unlearn, and with it $row's list slot, which only
+	 * deleting the whole digest removes. As [['qid', 'flag']], empty if none.
+	 */
+	public function orphanedSlotHolders(MailLogFuzzy $row): array {
+		$hashes = array_values(array_unique(array_filter((array) $row->hashes, 'is_string')));
+		if ($hashes === []) {
+			return [];
+		}
+
+		$table = AppConfig::MAIL_LOG_FUZZY_TABLE;
+		$found = App::capsule()->getConnection()->select(
+			"SELECT f.qid, f.flag, j.h FROM {$table} f, " .
+			"JSON_TABLE(f.hashes, '$[*]' COLUMNS (h VARCHAR(128) PATH '$')) j " .
+			"WHERE f.id <> ? AND j.h IN (" . implode(',', array_fill(0, count($hashes), '?')) . ")",
+			array_merge([(int) $row->getKey()], $hashes)
+		);
+
+		$byHash = [];
+		foreach ($found as $r) {
+			$byHash[$r->h][] = ['qid' => (string) $r->qid, 'flag' => (int) $r->flag];
+		}
+
+		$holders = [];
+		foreach ($byHash as $list) {
+			// another holder in the same list keeps the slot legitimately
+			if (!in_array((int) $row->flag, array_column($list, 'flag'), true)) {
+				foreach ($list as $h) {
+					$holders[$h['qid']] = $h;
+				}
+			}
+		}
+		return array_values($holders);
+	}
+
 	public function unlearnLocal(MailLogFuzzy $row, string $unlearnedBy): void {
 		$qid = (string) $row->qid;
 
 		// a shared digest stays in rspamd until its last learned mail is unlearned
 		$shared = $this->sharedHashes($row);
+		$orphaned = $this->orphanedSlotHolders($row);
 		$delete = array_values(array_diff((array) $row->hashes, $shared));
 
 		if ($delete !== []) {
@@ -430,6 +467,11 @@ class FuzzyService
 		$msg = "{$qid} unlearned from fuzzy '{$label}' (flag {$row->flag}, weight {$row->weight}){$kept} by '{$unlearnedBy}'";
 		$this->logger->info($msg);
 		$this->syslogLogger->info($msg);
+
+		if ($orphaned !== []) {
+			$this->logger->warning("{$qid} fuzzy '{$label}' slot stays active in rspamd: its hash is also learned in another list by " .
+				implode(', ', array_column($orphaned, 'qid')));
+		}
 	}
 
 
