@@ -4,6 +4,12 @@
 
 ### 2026-10-09
 - Fuzzy page: search by QID, learned by, server or hash prefix
+- Fuzzy search: include mails sharing a hash with a matching QID
+- Searches (fuzzy, aliases, users, maps): results are a plain GET page, so Back
+  and refresh work and paging keeps the search
+- Map search: fix result pages after the first
+- Alias and user search: allow partial addresses (e.g. @domain)
+- Search: refresh or Back after adding a filter no longer adds it again
 
 ### 2026-10-08
 - Add support for Rspamd Fuzzy Learning

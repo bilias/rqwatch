@@ -914,6 +914,9 @@ class MailLogController extends ViewController
 				'value' => $data['value'],
 			];
 			$this->saveFiltersToSession($filters);
+
+			// back to a GET page: refresh or Back must not add the filter again
+			return new RedirectResponse($this->getSearchUrl());
 		}
 
 		// show active filters
