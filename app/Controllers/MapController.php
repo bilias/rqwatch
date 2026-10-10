@@ -988,12 +988,7 @@ class MapController extends ViewController
 			return new RedirectResponse($this->getMapsUrl());
 		}
 
-		if (!empty($map)) {
-			$url = $this->getMapShowUrl($map);
-		} else {
-			$url = $this->getMapsUrl();
-		}
-		return new RedirectResponse($url);
+		return new RedirectResponse($this->getMapShowUrl($map));
 	}
 
 	public function searchMapEntry(): Response {
