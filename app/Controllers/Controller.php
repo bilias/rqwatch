@@ -160,7 +160,7 @@ class Controller
 	}
 
 	public function getUserEmailAddresses(): array {
-		return array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
+		return array_unique(array_filter(array_merge([$this->email], $this->user_aliases)));
 	}
 
 	protected function getRuntime(): string {
