@@ -22,7 +22,6 @@ use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
-use Symfony\Component\Routing\Exception\NoConfigurationException;
 
 use App\Configuration\AppConfig;
 
@@ -184,8 +183,6 @@ class Router
 				return new RedirectResponse($loginUrl);
 				//$response = new Response('Route Not Found', 404);
 			}
-		} catch (NoConfigurationException $e) {
-			$response = new Response('An error occurred', 500);
 		}
 
 		return $response;
