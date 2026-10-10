@@ -74,7 +74,6 @@ abstract class RqwatchApi
 			$this->fileLogger->error($msg);
 			throw new RuntimeException("getAllowedIps() returned empty IP ACL in " .
 				static::class);
-			exit;
 		}
 
 		if (!in_array($this->clientIp, $allowedIps)) {
@@ -94,7 +93,6 @@ abstract class RqwatchApi
 			$this->fileLogger->error($msg);
 			throw new RuntimeException("getAuthCredentials() returned empty username or password in " .
 				static::class);
-			exit;
 		}
 
 		try {
@@ -110,7 +108,6 @@ abstract class RqwatchApi
 			$this->fileLogger->error($msg);
 			// we should never be here
 			throw new RuntimeException("Authentication failed in " . static::class);
-			exit;
 		}
 	}
 

@@ -69,7 +69,6 @@ class OpenIDConnectAuth implements AuthInterface {
 
 		// We should never reach here
 		throw new \LogicException('Unexpected return from authenticate().');
-		return false;
 	}
 
 	public function finishAuthentication(): bool {

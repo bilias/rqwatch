@@ -1291,8 +1291,6 @@ class MailLogService
 			$this->logger->error("{$lf} problem: " . $e->getMessage());
 			return false;
 		}
-
-		return false;
 	}
 
 	public function notifyHtmlMail(

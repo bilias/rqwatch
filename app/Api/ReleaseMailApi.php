@@ -122,7 +122,5 @@ class ReleaseMailApi extends RqwatchApi
 			$this->dropLogResponse(
 				Response::HTTP_INTERNAL_SERVER_ERROR, $response_msg,
 				$err_msg, 'error');
-		
-		exit;
 	}
 }

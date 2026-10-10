@@ -269,8 +269,6 @@ class UserService
 			$this->logger->error("userAdd error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}
-
-		return false;
 	}
 
 	/*
