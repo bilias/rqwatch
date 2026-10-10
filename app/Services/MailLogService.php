@@ -744,15 +744,15 @@ class MailLogService
 			->where('created_day', '>=', $start->format('Y-m-d'))
 			->where('created_day', '<', $end->format('Y-m-d'));
 
-		// no LIMIT: with one, MariaDB walks PRIMARY backwards from the newest row
-		$idQuery = $this->applyUserScope($this->whereEverStored($idQuery))
-			->orderBy('id', 'DESC');
+		// no ORDER BY or LIMIT: either makes MariaDB walk PRIMARY backwards; sorted in PHP
+		$idQuery = $this->applyUserScope($this->whereEverStored($idQuery));
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($idQuery));
 		}
 
 		$ids = $idQuery->pluck('id')->all();
+		rsort($ids, SORT_NUMERIC);
 
 		$pageIds = array_slice($ids, ($page - 1) * $this->items_per_page, $this->items_per_page);
 
