@@ -35,7 +35,6 @@ use Exception;
 
 class UserService
 {
-	private ?string $username = null;
 	private LoggerInterface $logger;
 
 	private int $items_per_page;
