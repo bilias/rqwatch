@@ -1,0 +1,7 @@
+# SQL
+ALTER TABLE `mail_logs`
+  ADD COLUMN `ever_stored` TINYINT(1) GENERATED ALWAYS AS (`mail_stored` = 1 or `mail_location` is not null and `mail_location` <> '0') VIRTUAL AFTER `mail_stored`,
+  ALGORITHM=INSTANT;
+ALTER TABLE `mail_logs`
+  ADD INDEX `ever_stored_created_day_index` (`ever_stored`,`created_day`),
+  ALGORITHM=INPLACE, LOCK=NONE;

@@ -267,6 +267,10 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::MAIL_LOG_FUZZY_HITS);
 	}
 
+	public function everStoredCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::EVER_STORED);
+	}
+
 	public function getAllMigrationStates(): array {
 		$states = [];
 

@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-10-10
+- Migration: indexed ever_stored column on mail_logs
+
 ### 2026-10-09
 - Web: cap each statement so a runaway search query fails fast
 - cron:notifications: -B sends blacklisted mails at any score

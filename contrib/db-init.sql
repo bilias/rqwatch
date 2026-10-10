@@ -152,6 +152,7 @@ CREATE TABLE `mail_logs` (
  `mime_to` VARCHAR(1024) DEFAULT NULL,
  `size` bigint(20) DEFAULT NULL,
  `mail_stored` TINYINT(1) NOT NULL DEFAULT '0',
+ `ever_stored` TINYINT(1) GENERATED ALWAYS AS (`mail_stored` = 1 or `mail_location` is not null and `mail_location` <> '0') VIRTUAL,
  `mail_location` VARCHAR(255) DEFAULT NULL,
  `notified` TINYINT(1) DEFAULT '0',
  `notify_date` DATETIME(0) DEFAULT NULL,
@@ -171,13 +172,14 @@ CREATE TABLE `mail_logs` (
   KEY `mail_from_index` (`mail_from`),
   KEY `mime_from_index` (`mime_from`),
   KEY `mime_to_index` (`mime_to`),
-  KEY `mail_stored_index` (`mail_stored`),
   KEY `has_virus_index` (`has_virus`),
   KEY `notified_index` (`notified`),
   KEY `released_index` (`released`),
   KEY `notification_pending_index` (`notification_pending`),
   KEY `created_day_action_index` (`created_day`,`action`),
+  KEY `mail_stored_index` (`mail_stored`),
   KEY `mail_stored_created_day_index` (`mail_stored`,`created_day`),
+  KEY `ever_stored_created_day_index` (`ever_stored`,`created_day`),
   KEY `has_virus_created_day_index` (`has_virus`,`created_day`),
   KEY `ip_created_day_index` (`ip`,`created_day`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
@@ -263,4 +265,5 @@ INSERT INTO `migrations` VALUES
 ('20261005_user_notifications_default','completed',NOW()),
 ('20261005_admin_notified','completed',NOW()),
 ('20261007_mail_log_fuzzy','completed',NOW()),
-('20261008_mail_log_fuzzy_hits','completed',NOW());
+('20261008_mail_log_fuzzy_hits','completed',NOW()),
+('20261010_ever_stored','completed',NOW());
