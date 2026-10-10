@@ -375,7 +375,8 @@ If the server runs the Web service then the following settings are relevant:
 - `WEB_SCHEME` - Web scheme to use (https/http)\
   Default is `https`.\
   If you have `https` WEB_SCHEME and access the site by http then you might a get error\
-  "*The CSRF token is invalid*"
+  "*The CSRF token is invalid*"\
+  With `http`, passwords, sessions and notification release links travel in cleartext.
 
 - `WEB_BASE` - Default is empty if the web server runs on `/`\
   If under `/subfolder`, also update RewriteBase in `web/.htaccess`
