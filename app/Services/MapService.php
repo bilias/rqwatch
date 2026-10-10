@@ -778,7 +778,7 @@ class MapService
 		foreach ($values as $value) {
 			$disabled = 0;
 			// If first character is #, insert as disabled entry
-			if (strlen($value) > 0 && $value[0] === '#') {
+			if ($value[0] === '#') {
 				$value = substr($value, 1); // remove #
 				$disabled = 1;
 			}
