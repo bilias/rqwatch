@@ -24,7 +24,7 @@ class AuthManager
 	private ?AuthInterface $provider = null;
 	private int $providerId = 0;
 	private ?string $providerDescr = null;
-	private ?LoggerInterface $logger;
+	private LoggerInterface $logger;
 	private ?UrlGeneratorInterface $urlGenerator = null;
 	private ?string $redirectUrl = null;
 
