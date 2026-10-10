@@ -20,6 +20,8 @@ use PhpIP\IP;
 use MaxMind\Db\Reader as MaxMindDbReader;
 
 use NetDNS2\Resolver;
+use NetDNS2\RR\A as DnsA;
+use NetDNS2\RR\PTR as DnsPtr;
 
 use Symfony\Component\HttpFoundation\Response;
 
@@ -1077,9 +1079,14 @@ Mail details:
 				$ptr = implode('.', array_reverse(explode('.', $ip))) . '.in-addr.arpa';
 			}
 			$result = $resolver->query($ptr, 'PTR');
-			$host = isset($result->answer[0])
-				? rtrim((string)$result->answer[0]->ptrdname, '.')
-				: $ip;
+			// the answer may start with a CNAME (RFC 2317)
+			$host = $ip;
+			foreach ($result->answer as $rr) {
+				if ($rr instanceof DnsPtr) {
+					$host = rtrim((string)$rr->ptrdname, '.');
+					break;
+				}
+			}
 
 		} catch (Exception $e) {
 			$host = $ip;
@@ -1121,9 +1128,14 @@ Mail details:
 				'retry'   => 0,
 			]);
 			$result = $resolver->query($host, 'A');
-			$ip = isset($result->answer[0])
-				? (string)$result->answer[0]->address
-				: $host;
+			// the answer may start with a CNAME
+			$ip = $host;
+			foreach ($result->answer as $rr) {
+				if ($rr instanceof DnsA) {
+					$ip = (string)$rr->address;
+					break;
+				}
+			}
 		} catch (Exception $e) {
 			$ip = $host;
 		}
