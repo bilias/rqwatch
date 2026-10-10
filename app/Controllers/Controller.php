@@ -10,7 +10,7 @@
 
 namespace App\Controllers;
 
-use Symfony\Component\Routing\RouteCollection;
+//use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -53,7 +53,7 @@ class Controller
 	protected LoggerInterface $syslogLogger;
 
 	private ?CsrfTokenManager $csrfManager = null;
-	private RouteCollection $routes;     // $this->route to access it
+	//private RouteCollection $routes;     // $this->route to access it
 
 	protected Request $request;
 	protected ?Session $session = null;

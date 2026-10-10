@@ -43,7 +43,6 @@ class MapService
 	private ?array $user_aliases = null;
 
 	private int $items_per_page;
-	private int $max_items;
 
 	public function __construct(?array $userContect = null) {
 		$this->logger = App::fileLogger();
@@ -57,7 +56,6 @@ class MapService
 		}
 
 		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
-		$this->max_items = (int) Config::get('max_items') ?: 10000;
 	}
 
 	protected function applyUserRcptToScope($query): Builder {

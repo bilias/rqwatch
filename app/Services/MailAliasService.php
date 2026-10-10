@@ -33,13 +33,11 @@ class MailAliasService
 	private LoggerInterface $logger;
 
 	private int $items_per_page;
-	private int $max_items;
 
 	public function __construct() {
 		$this->logger = App::fileLogger();
 
 		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
-		$this->max_items = (int) Config::get('max_items') ?: 10000;
 	}
 
 	public static function getSqlFromQuery(Builder $query): string {
