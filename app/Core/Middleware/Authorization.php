@@ -35,7 +35,6 @@ class Authorization
 		if (!$request->hasSession() || !$request->getSession()->has('username')) {
 			$this->logger->error("In Authorization without Auth",
 				$this->getLogContext($request));
-			exit;
 			return new RedirectResponse($homeUrl);
 		}
 
