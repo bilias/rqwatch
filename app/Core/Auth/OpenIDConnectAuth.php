@@ -26,7 +26,6 @@ class OpenIDConnectAuth implements AuthInterface {
 	private LoggerInterface $logger;
 
 	private bool $is_admin = false;
-	private ?string $username = null;
 	private ?string $email = null;
 	private array $mail_aliases = [];
 	private ?string $authenticatedUser = null;
@@ -43,7 +42,6 @@ class OpenIDConnectAuth implements AuthInterface {
 
 	public function __debugInfo(): array {
 		return [
-			'username' => $this->username,
 			'is_admin' => $this->is_admin,
 			'email' => $this->email,
 			'mail_aliases' => $this->mail_aliases,
