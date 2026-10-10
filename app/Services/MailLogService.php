@@ -163,6 +163,11 @@ class MailLogService
 
 	// mail that is or was in quarantine (expired keeps mail_location)
 	private function whereEverStored(Builder $query): Builder {
+		// indexed generated column of the same expression, once migrated
+		if ($this->migrationStatus->everStoredCompleted()) {
+			return $query->where('ever_stored', 1);
+		}
+
 		return $query->where(function ($q) {
 			$q->where('mail_stored', 1)
 				->orWhere(function ($q) {
