@@ -522,7 +522,8 @@ System supports OpenID Connect Authentication.
 - `OPENIDC_CLIENT_SECRET` - Client Secret
 
 - `OPENIDC_PREFERRED_USERNAME_ATTR` - IdP preferred username attribute\
- Default is `preferred_username`
+  Default is `preferred_username`. It becomes the Rqwatch username and is matched against
+  `OPENIDC_ADMINS`, so use a claim that is unique and not user-editable at the IdP.
 
 - `OPENIDC_DEBUG_CLAIMS` - Set to true to log claims returned by IdP
 
