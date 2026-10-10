@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-10
+- Update Apache rqwatch.conf. Protect /maps location
 - Migration: indexed ever_stored column on mail_logs
 
 ### 2026-10-09

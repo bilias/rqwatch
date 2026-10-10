@@ -225,7 +225,8 @@ cp /var/www/html/rqwatch/contrib/apache-rqwatch.conf /etc/httpd/conf.d/rqwatch.c
 # For Ubuntu
 cp /var/www/html/rqwatch/contrib/apache-rqwatch.conf /etc/apache2/sites-available/rqwatch.conf
 ```
-Edit `/etc/httpd/conf.d/rqwatch.conf` and define allowed IPs for `/api`.\
+Edit `/etc/httpd/conf.d/rqwatch.conf` and define allowed IPs for `/api` and `/maps`.\
+Map files contain whitelists and personal map entries; only Rspamd should be able to fetch them.\
 If using Local mode (single-host) setup, then only `127.0.0.1` should be able to connect.\
 If in Distributed mode, both `127.0.0.1` and Rqwatch Web Servers must be able to connect to the servers running the API (Rspamd servers).
 
