@@ -3,7 +3,8 @@
 ## Master Dev Branch
 
 ### 2026-10-11
-- non-admins see only their own envelope recipients
+- CHANGE: non-admins see only their own envelope recipients now.
+  Prior this they could read BCC addresses
 
 ### 2026-10-10
 - Update Apache rqwatch.conf. Protect /maps location
