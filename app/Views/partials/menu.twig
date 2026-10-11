@@ -20,7 +20,7 @@
 {% set search = route('SEARCH') %}
 {% endif %}
 {% set profile = route('PROFILE') %}
-{% set logout = route('LOGOUT') %}
+{% set logout = route('LOGOUT', { '_token': logout_token() }) %}
 
 <div class="topmainmenu">
   <button class="menu-toggle"

@@ -96,6 +96,11 @@ class ViewController extends Controller
 			return $this->url($enumCase, $params);
 		}));
 
+		// token for the logout link; checked by LoginController::logout()
+		$this->twig->addFunction(new TwigFunction('logout_token', fn() =>
+			$this->csrfManager()->getToken('logout')->getValue()
+		));
+
 		$this->twig->addFunction(new TwigFunction('get_action_details', function ($symbols) {
 			return Helper::get_action_details($symbols);
 		}));

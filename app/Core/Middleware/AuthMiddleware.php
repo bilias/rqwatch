@@ -43,7 +43,9 @@ class AuthMiddleware
 		$loginUrl = $this->urlGenerator->generate(RouteName::LOGIN->value);
 		$homeUrl = $this->urlGenerator->generate(RouteName::HOMEPAGE->value);
 
-		if ($requestPath !== $loginUrl && $requestPath !== $homeUrl) {
+		// never return to logout after login
+		if ($requestPath !== $loginUrl && $requestPath !== $homeUrl &&
+			$request->attributes->get('_route') !== RouteName::LOGOUT->value) {
 			$request->getSession()->set('login_redirect', $request->getRequestUri());
 		}
 

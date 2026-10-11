@@ -43,6 +43,12 @@ class LoginController extends ViewController
    }
 
 	public function logout(): Response {
+		if (!$this->csrfValid('logout')) {
+			$this->fileLogger->warning(
+				"Logout without valid token for '{$this->username}' from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+			);
+			return new RedirectResponse($this->getHomepageUrl());
+		}
 		if ($this->username) {
 			$this->fileLogger->info("User logout: '{$this->username}'", [
 				'is_admin' => $this->is_admin,
