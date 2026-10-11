@@ -159,13 +159,11 @@ class LoginController extends ViewController
 					"Login attempt from throttled IP:{$client_ip} for user: '{$username}'" .
 					" (retry in " . ($throttle->retryAfter() ?? 0) . "s)"
 				);
-				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 				$this->flashbag->add('error', "Max wrong login attempts reached. Please try again later.");
 				return new RedirectResponse($this->getLoginUrl());
 			}
 
 			if (empty($username) or empty($password)) {
-				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 				$this->flashbag->add('error', 'Login credentials missing');
 				return new RedirectResponse($this->getLoginUrl());
 			}
