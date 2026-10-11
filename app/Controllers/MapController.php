@@ -740,7 +740,6 @@ class MapController extends ViewController
 			return new RedirectResponse($this->getMapsUrl());
 		}
 
-
 		if ($map_entry === null) {
 			$this->flashbag->add('error', 'Map entry not found');
 			return new RedirectResponse($this->getMapShowUrl($map));
