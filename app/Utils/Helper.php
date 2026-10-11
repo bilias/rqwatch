@@ -249,7 +249,8 @@ class Helper {
 	// change row class depending on action
 	public static function get_row_class(string $action, $symbols = null) {
 		if (!empty($symbols)) {
-			if (self::checkForWhitelist($symbols)) {
+			// green only if the whitelist won; a forced reject/discard keeps its colour
+			if (!in_array($action, ['reject', 'discard'], true) && self::checkForWhitelist($symbols)) {
 				return 'whitelist';
 			}
 			if (self::checkForBlacklist($symbols)) {
