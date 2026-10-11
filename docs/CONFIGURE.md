@@ -605,7 +605,7 @@ In all other cases, a call to the remote API server is made.
 
 - `$USER_MAP_MAX_ENTRIES` - Max entries a user can add to each personal map.\
   Admins are not limited, and entries created by admins do not count.\
-  Default is `0` which is unlimited entries.
+  Default is `1000` (0 = unlimited)
 
 ### Logging Settings
 - `$LOG_FILE` - Log file for Rqwatch\
