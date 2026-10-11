@@ -3,6 +3,10 @@
 ## Master Dev Branch
 
 ### 2026-10-11
+- SEC FIX: non-admins could see, and with USER_CAN_DEL_ADMIN_MAP_ENTRIES
+  delete/toggle, other users' map entries for a shared address (alias or
+  email). Users now see only their own entries and, with
+  USER_CAN_SEE_ADMIN_MAP_ENTRIES, entries created by an admin.
 - Add quota for user personal map entries: default 1000 per user per map
   (set $USER_MAP_MAX_ENTRIES = 0 in config.local.php to keep unlimited)
 - contrib: force_actions.conf discards viruses even from whitelisted senders

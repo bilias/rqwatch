@@ -20,6 +20,7 @@ use App\Models\MapCombined;
 use App\Models\MapCustom;
 use App\Models\CustomMapConfig;
 use App\Models\MapActivityLog;
+use App\Models\User;
 
 use App\Inventory\MapInventory;
 
@@ -72,8 +73,13 @@ class MapService
 			return $query->where('id', null);
 		}
 
-		// user does not see his entries, created by admin and not him
-		if (!Config::get('USER_CAN_SEE_ADMIN_MAP_ENTRIES')) {
+		// own entries, plus entries created by an admin if USER_CAN_SEE_ADMIN_MAP_ENTRIES
+		if (Config::get('USER_CAN_SEE_ADMIN_MAP_ENTRIES')) {
+			$query = $query->where(function ($q) {
+				$q->where('user_id', $this->user_id)
+					->orWhereIn('user_id', User::where('is_admin', 1)->select('id'));
+			});
+		} else {
 			$query = $query->where('user_id', $this->user_id);
 		}
 
