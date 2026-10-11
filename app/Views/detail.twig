@@ -164,7 +164,7 @@ No
 			{% elseif stripped_mail_location %}
 				{{ stripped_mail_location }}
 			{% else %}
-				{{ log.mail_location }}
+				Quarantined mail
 			{% endif %}</a> {# is_admin #}
 			<span class='detail'>(Click to see mail and possible attachments)</span>
 	{% else %} {# not log.mail_stored #}
@@ -173,7 +173,7 @@ No
 		{% elseif stripped_mail_location %}
 			{{ stripped_mail_location }}
 		{% else %}
-			{{ log.mail_location }}
+			Quarantined mail
 		{% endif %} {# is_admin #}
 		<span class='detail'>(Has been purged from quarantine)</span>
 	{% endif %} {# log.mail_stored #}

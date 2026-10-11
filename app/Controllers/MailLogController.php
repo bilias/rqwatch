@@ -502,6 +502,10 @@ class MailLogController extends ViewController
 
 		if (!empty($ar['log']->mail_location)) {
 			$stripped_mail_location = Helper::stripBasePath($this->quarantine_dir, $ar['log']->mail_location);
+			// base not a prefix: don't expose the absolute path to non-admins
+			if ($stripped_mail_location === $ar['log']->mail_location) {
+				$stripped_mail_location = null;
+			}
 		}
 
 		// mail is in quarantine
