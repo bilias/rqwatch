@@ -219,14 +219,19 @@ class MailLogService
 			$email = "%{$email}%";
 		}
 
+		// non-admins match only their own addresses: no probing for co-recipients
+		$own = $this->adminFieldsAllowed() ? null : $this->getUserRecipientEmails();
+		$constrain = function ($q) use ($op, $email, $own) {
+			$q->where('recipient_email', $op, $email);
+			if ($own !== null) {
+				$q->whereIn('recipient_email', $own);
+			}
+		};
+
 		if ($negate) {
-			$query->whereDoesntHave('recipients', function ($q) use ($op, $email) {
-				$q->where('recipient_email', $op, $email);
-			});
+			$query->whereDoesntHave('recipients', $constrain);
 		} else {
-			$query->whereHas('recipients', function ($q) use ($op, $email) {
-				$q->where('recipient_email', $op, $email);
-			});
+			$query->whereHas('recipients', $constrain);
 		}
 	}
 
@@ -1724,11 +1729,21 @@ class MailLogService
 	}
 
 	public function getMailLogSymbolsRelations(): array {
-		return ['recipients', 'mailLogData:mail_log_id,symbols'];
+		return [...$this->recipientsRelation(), 'mailLogData:mail_log_id,symbols'];
 	}
 
 	public function getMailLogRelations(): array {
-		return ['recipients', 'mailLogData'];
+		return [...$this->recipientsRelation(), 'mailLogData'];
+	}
+
+	// non-admins see only their own envelope recipients, as in their mailbox
+	private function recipientsRelation(): array {
+		if ($this->adminFieldsAllowed()) {
+			return ['recipients'];
+		}
+
+		$emails = $this->getUserRecipientEmails();
+		return ['recipients' => fn ($q) => $q->whereIn('recipient_email', $emails)];
 	}
 
 	private function getUserRecipientEmails(): array {
