@@ -69,9 +69,6 @@ Total {{ totalRecords|nf }} mails
   {% set log_action = log_action ~ ' (map)' %}
 {% endif %}
 #}
-{% if action_details == 'whitelist' %}
-  {% set log_action = log_action ~ ' (whitelisted)' %}
-{% endif %}
 {% if action_details == 'blacklist' %}
   {% set log_action = log_action ~ ' (blacklisted)' %}
 {% endif %}
@@ -81,6 +78,9 @@ Total {{ totalRecords|nf }} mails
   <td class='center action'>
 	{{ log_action }}<br/>
 	<span class='virus'>{{ log.virus_from_symbol }}</span>
+	{% if action_details == 'whitelist' %}
+		<span class='rqwatch_whitelist'>(whitelisted)</span>
+	{% endif %}
 	{% if action_details == 'rqwatch_map' %}
 		<span class='rqwatch_map'>[map]</span>
 	{% endif %}
@@ -88,8 +88,9 @@ Total {{ totalRecords|nf }} mails
 		<span class='{{ hit.class }}'>[fuzzy: {{ hit.label }}]</span>
 	{% endfor %}
   </td>
-{% elseif action_details == 'rqwatch_map' or fuzzy_hits %}
+{% elseif action_details in ['rqwatch_map', 'whitelist'] or fuzzy_hits %}
   <td class='center'>{{ log_action }}<br/>
+	{% if action_details == 'whitelist' %}<span class='rqwatch_whitelist'>(whitelisted)</span>{% endif %}
 	{% if action_details == 'rqwatch_map' %}<span class='rqwatch_map'>[map]</span>{% endif %}
 	{% for hit in fuzzy_hits %}<span class='{{ hit.class }}'>[fuzzy: {{ hit.label }}]</span>{% endfor %}
   </td>

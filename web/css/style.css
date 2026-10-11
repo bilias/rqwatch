@@ -413,6 +413,12 @@ li.active {
  color: #000 !important;
 }
 
+.mail .rqwatch_whitelist {
+ display: block;
+ color: #000 !important;
+ background-color: var(--color-mail-whitelist);
+}
+
 .blacklist {
 	 color: #FFF;
     background-color: var(--color-mail-blacklist);
