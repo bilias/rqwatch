@@ -644,6 +644,13 @@ class MapController extends ViewController
 				return new RedirectResponse($this->getMapAddEntryUrl($map) );
 			}
 
+			if ($model === 'MapCombined' && $service->userMapQuotaReached($map)) {
+				$max = (int) Config::get('USER_MAP_MAX_ENTRIES');
+				$this->fileLogger->warning("User {$this->username} reached map entry limit ({$max}) in Map '{$map}'");
+				$this->flashbag->add('error', "Map entry limit reached ({$max}) in Map '{$mapdescr}'");
+				return new RedirectResponse($this->getMapShowUrl($map));
+			}
+
 			// add entry
 			if ($model === 'MapCombined') {
 				// has applyUseScope

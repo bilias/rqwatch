@@ -141,6 +141,24 @@ class MapService
 		return null;
 	}
 
+	// non-admins: true once the user's own entries in this map reach
+	// USER_MAP_MAX_ENTRIES (0 = unlimited)
+	public function userMapQuotaReached(string $map_name): bool {
+		$max = (int) Config::get('USER_MAP_MAX_ENTRIES');
+		if ($max <= 0 || $this->is_admin || (defined('CLI_MODE') && CLI_MODE)) {
+			return false;
+		}
+
+		try {
+			return MapCombined::where('map_name', $map_name)
+				->where('user_id', $this->user_id)
+				->count() >= $max;
+		} catch (Throwable $e) {
+			$this->logger->error("[userMapQuotaReached] " . $e->getMessage());
+			return false;
+		}
+	}
+
 	public static function getCustomMapConfigs(): Collection {
 		$query = CustomMapConfig::select(CustomMapConfig::SELECT_FIELDS)
 								  ->orderBy('map_name', 'ASC')

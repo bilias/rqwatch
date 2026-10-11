@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-11
+- Add quota for user personal map entries
 - contrib: force_actions.conf discards viruses even from whitelisted senders
   Add it to existing installs
 - SEC FIX: Restrict users seeing other user's map

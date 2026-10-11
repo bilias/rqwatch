@@ -603,6 +603,10 @@ In all other cases, a call to the remote API server is made.
   must also be set to `true` to allow delete.\
   This also applies to Enable/Disable of entry.
 
+- `$USER_MAP_MAX_ENTRIES` - Max entries a user can add to each personal map.\
+  Admins are not limited, and entries created by admins do not count.\
+  Default is `0` which is unlimited entries.
+
 ### Logging Settings
 - `$LOG_FILE` - Log file for Rqwatch\
   rqwatch user must have read/write access in the parent directory.\

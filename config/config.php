@@ -144,6 +144,10 @@ $USER_CAN_SEE_ADMIN_MAP_ENTRIES = true;
 # This also applies to Enable/Disable of entry
 $USER_CAN_DEL_ADMIN_MAP_ENTRIES = false;
 
+# Max entries a user can add to each personal map (0 = unlimited).
+# Admins are not limited, and entries created by admins do not count.
+$USER_MAP_MAX_ENTRIES = 0;
+
 # Log file for Rqwatch
 # default is APP_ROOT/logs/rqwatch.log
 $LOG_FILE = AppConfig::LOG_FILE;
