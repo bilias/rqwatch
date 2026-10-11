@@ -24,8 +24,6 @@ use App\Forms\MapSearchForm;
 use App\Inventory\MapInventory;
 use App\Services\MapService;
 
-use App\Models\MapCombined;
-use App\Models\MapCustom;
 use App\Models\CustomMapConfig;
 use App\Models\MapActivityLog;
 use App\Models\User;
@@ -733,14 +731,19 @@ class MapController extends ViewController
 		$fields = $config['fields'] ?? [];
 		$model = $config['model'];
 
-		if ($model === 'MapCombined') {
-			$map_entry = MapCombined::find($id);
-		} else if ($this->is_admin && ($model === 'MapCustom')) {
-			$map_entry = MapCustom::find($id);
+		if ($model === 'MapCombined' || ($this->is_admin && $model === 'MapCustom')) {
+			// scoped to the map and, for users, to their own entries
+			$map_entry = $this->getMapService()->findMapEntry($model, $map, $id);
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to edit entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
+		}
+
+
+		if ($map_entry === null) {
+			$this->flashbag->add('error', 'Map entry not found');
+			return new RedirectResponse($this->getMapShowUrl($map));
 		}
 
 		// Dynamically call the correct form class's `create()` method
@@ -884,10 +887,9 @@ class MapController extends ViewController
 		$model = $config['model'];
 
 		// we need the entry details for flashbag
-		if ($model === 'MapCombined') {
-			$map_entry = MapCombined::find($id);
-		} else if ($this->is_admin && ($model === 'MapCustom')) {
-			$map_entry = MapCustom::find($id);
+		if ($model === 'MapCombined' || ($this->is_admin && $model === 'MapCustom')) {
+			// scoped to the map and, for users, to their own entries
+			$map_entry = $this->getMapService()->findMapEntry($model, $map, $id);
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to del entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
@@ -1167,10 +1169,9 @@ class MapController extends ViewController
 		$model = $config['model'];
 
 		// we need the entry details for flashbag
-		if ($model === 'MapCombined') {
-			$map_entry = MapCombined::find($id);
-		} else if ($this->is_admin && ($model === 'MapCustom')) {
-			$map_entry = MapCustom::find($id);
+		if ($model === 'MapCombined' || ($this->is_admin && $model === 'MapCustom')) {
+			// scoped to the map and, for users, to their own entries
+			$map_entry = $this->getMapService()->findMapEntry($model, $map, $id);
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to toggle entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');

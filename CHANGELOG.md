@@ -3,7 +3,8 @@
 ## Master Dev Branch
 
 ### 2026-10-11
-- CHANGE: non-admins see only their own envelope recipients now.
+- SEC FIX: Restrict users seeing other user's map
+- SEC FIX: non-admins see only their own envelope recipients now.
   Prior this they could read BCC addresses
 
 ### 2026-10-10

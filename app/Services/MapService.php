@@ -127,6 +127,20 @@ class MapService
 								  ->orderBy('updated_at', 'DESC');
 	}
 
+	// one entry of a map; users get only their own (applyUserRcptToScope)
+	public function findMapEntry(string $model, string $map_name, int $id): MapCombined|MapCustom|null {
+		if ($model === 'MapCombined') {
+			$query = MapCombined::where('map_name', $map_name)->whereKey($id);
+			return $this->applyUserRcptToScope($query)->first();
+		}
+
+		if ($model === 'MapCustom' && $this->is_admin) {
+			return MapCustom::where('map_name', $map_name)->whereKey($id)->first();
+		}
+
+		return null;
+	}
+
 	public static function getCustomMapConfigs(): Collection {
 		$query = CustomMapConfig::select(CustomMapConfig::SELECT_FIELDS)
 								  ->orderBy('map_name', 'ASC')
