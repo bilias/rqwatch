@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 ### 2026-10-11
+- contrib: force_actions.conf discards viruses even from whitelisted senders
+  Add it to existing installs
 - SEC FIX: Restrict users seeing other user's map
 - SEC FIX: non-admins see only their own envelope recipients now.
   Prior this they could read BCC addresses

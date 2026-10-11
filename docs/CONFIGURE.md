@@ -140,7 +140,14 @@ cat contrib/rspamd/local.d/multimap.conf >> /etc/rspamd/local.d/multimap.conf
 `multimap.conf` defines type of map, score and enable map file download
 via http from Rqwatch API running locally on same host as Rspamd.
 
-Whitelist maps define a score of `-1000`, while Blacklist maps define a score of `1000`.
+Whitelist maps define a score of `-1000`, while Blacklist maps define a score of `1000`.\
+Whitelist maps also set `prefilter = true; action = "accept";`, which decides the
+final action even when an antivirus symbol fires. Force an action on viruses by
+appending [force_actions.conf](/contrib/rspamd/local.d/force_actions.conf) to
+Rspamd's `local.d/force_actions.conf`, adjusting the symbol to your antivirus setup:
+```
+cat contrib/rspamd/local.d/force_actions.conf >> /etc/rspamd/local.d/force_actions.conf
+```
 
 Using predefined Basic Maps or choosing to use Custom Maps (see bellow) is up to you.
 
