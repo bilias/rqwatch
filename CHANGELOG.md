@@ -3,7 +3,8 @@
 ## Master Dev Branch
 
 ### 2026-10-11
-- Add quota for user personal map entries
+- Add quota for user personal map entries: default 1000 per user per map
+  (set $USER_MAP_MAX_ENTRIES = 0 in config.local.php to keep unlimited)
 - contrib: force_actions.conf discards viruses even from whitelisted senders
   Add it to existing installs
 - SEC FIX: Restrict users seeing other user's map
