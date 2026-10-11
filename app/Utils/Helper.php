@@ -429,6 +429,33 @@ class Helper {
 		return false;
 	}
 
+	// repair only Rspamd symbol shapes that would crash the formatter; log each repair
+	public static function sanitizeSymbols(mixed $symbols, string $qid = ''): array {
+		if (!is_array($symbols)) {
+			self::logger()->warning("{$qid}: symbols is not a list, stored as empty");
+			return [];
+		}
+
+		$isList = array_is_list($symbols);
+		foreach ($symbols as $k => $s) {
+			if (!is_array($s)) {
+				self::logger()->warning("{$qid}: dropped symbol entry that is not a record");
+				unset($symbols[$k]);
+				continue;
+			}
+			if (!array_key_exists('score', $s)) {
+				self::logger()->warning("{$qid}: symbol " . ($s['name'] ?? '?') . " has no score, set to 0");
+				$symbols[$k]['score'] = 0;
+			}
+			if (isset($s['options']) && !is_array($s['options'])) {
+				self::logger()->warning("{$qid}: symbol " . ($s['name'] ?? '?') . " options not a list, wrapped");
+				$symbols[$k]['options'] = [$s['options']];
+			}
+		}
+
+		return $isList ? array_values($symbols) : $symbols;
+	}
+
 	// checks date for correct format YYYY-MM-DD
 	public static function check_date($day) {
 		if (!$day) {

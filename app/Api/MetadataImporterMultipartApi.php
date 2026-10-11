@@ -159,8 +159,6 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			$rcptArr
 		)));
 
-		$symbols   = isset($meta['symbols']) ? json_encode($meta['symbols']) : '[]';
-		
 		$server = Helper::sanitize_string($server);
 		
 		// moved to HttpFoundation
@@ -209,7 +207,8 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		$qid = (string) $qid;
 
 		// check for antivirus symbol
-		$symbolsArr = json_decode($symbols, true) ?: [];
+		$symbolsArr = Helper::sanitizeSymbols($meta['symbols'] ?? [], $qid);
+		$symbols    = json_encode($symbolsArr);
 		if (Helper::check_virus_from_all($symbolsArr)) {
 			$has_virus = 1;
 		} else {
