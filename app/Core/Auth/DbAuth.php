@@ -62,8 +62,10 @@ class DbAuth implements AuthInterface {
 		              ->where('username', $this->username)
 						  ->first();
 
-		$hash = $user->password ?? self::DUMMY_HASH;
-		$valid = Helper::passwordVerify($this->password, $hash);
+		// external accounts ("EXTERNAL_AUTH") do the same bcrypt work as
+		// unknown users and never match
+		$usable = $user !== null && password_get_info((string) $user->password)['algo'] !== null;
+		$valid = Helper::passwordVerify($this->password, $usable ? $user->password : self::DUMMY_HASH) && $usable;
 
 		if (!$user || !$valid) {
 			return false;
