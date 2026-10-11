@@ -47,7 +47,7 @@ class LoggerFactory
 		// %channel% removed
 		$output = "[%datetime%] %level_name%: %message% %context%\n";
 
-		$formatter = new LineFormatter($output, $dateFormat, true, true);
+		$formatter = new LineFormatter($output, $dateFormat, false, true);
 		$log_file_level = Config::get('LOG_FILE_LEVEL') ?? "INFO";
 
 		$handler = new StreamHandler($log_file, $log_file_level);
@@ -72,7 +72,7 @@ class LoggerFactory
 		$handler = new SyslogHandler($log_syslog_prefix, $facility, $log_syslog_level);
 
 		$output = "%level_name%: %message% %context%";
-		$formatter = new LineFormatter($output, null, true, true);
+		$formatter = new LineFormatter($output, null, false, true);
 		$handler->setFormatter($formatter);
 		$logger->pushHandler($handler);
 
