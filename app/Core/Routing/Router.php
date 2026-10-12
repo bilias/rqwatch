@@ -200,7 +200,10 @@ class Router
 	private static function applySecurityHeaders(Response $response): void {
 		$response->headers->set('X-Content-Type-Options', 'nosniff');
 		$response->headers->set('X-Frame-Options', 'DENY');
-		$response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+		// default only: a controller may set a stricter policy
+		if (!$response->headers->has('Referrer-Policy')) {
+			$response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+		}
 
 		if ($_ENV['WEB_SCHEME'] === 'https') {
 			$response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');

@@ -53,7 +53,7 @@ class QuarantineController extends ViewController
 		// enable form rendering support (needed for csrf_token() in templates)
 		$this->twigFormView($this->request);
 
-		return new Response($this->twig->render('quarantine/confirm.twig', [
+		return $this->tokenResponse($this->twig->render('quarantine/confirm.twig', [
 			'token' => $token,
 		]));
 	}
@@ -82,7 +82,7 @@ class QuarantineController extends ViewController
 
 		$this->twigFormView($this->request);
 
-		return new Response($this->twig->render('quarantine/view.twig', [
+		return $this->tokenResponse($this->twig->render('quarantine/view.twig', [
 			'token' => $token,
 			'recipient' => $tokenRow->recipient_email,
 			'log' => $mailobject->getMailLog(),
@@ -208,9 +208,17 @@ class QuarantineController extends ViewController
 
 	private function tokenMessage(string $message): Response {
 		$this->twigView();
-		return new Response($this->twig->render('quarantine/message.twig', [
+		return $this->tokenResponse($this->twig->render('quarantine/message.twig', [
 			'message' => $message,
 		]));
+	}
+
+	// token pages: keep the bearer token out of caches and referrers
+	private function tokenResponse(string $content): Response {
+		$response = new Response($content);
+		$response->headers->set('Cache-Control', 'no-store');
+		$response->headers->set('Referrer-Policy', 'no-referrer');
+		return $response;
 	}
 
 }
