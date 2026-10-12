@@ -430,6 +430,29 @@ class Helper {
 		return false;
 	}
 
+	// first pattern (fnmatch, case-insensitive) matching an antivirus symbol name or one of its options
+	public static function virusSkipMatch(array $symbols, array $patterns): ?string {
+		foreach ($symbols as $symbol) {
+			if (!is_array($symbol) || ($symbol['group'] ?? null) !== 'antivirus' || !isset($symbol['name'])) {
+				continue;
+			}
+			$names = [(string) $symbol['name']];
+			foreach ((array) ($symbol['options'] ?? []) as $opt) {
+				if (is_scalar($opt)) {
+					$names[] = (string) $opt;
+				}
+			}
+			foreach ($patterns as $pattern) {
+				foreach ($names as $name) {
+					if (fnmatch((string) $pattern, $name, FNM_CASEFOLD)) {
+						return (string) $pattern;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	// repair only Rspamd symbol shapes that would crash the formatter; log each repair
 	public static function sanitizeSymbols(mixed $symbols, string $qid = ''): array {
 		if (!is_array($symbols)) {
