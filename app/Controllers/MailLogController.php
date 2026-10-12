@@ -800,13 +800,7 @@ class MailLogController extends ViewController
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
-		$filename = $attachment->getFilename();
-		//$filenameFallback = base64_encode($filename);
-		//$filenameFallback = transliterator_transliterate('Any-Latin; Latin-ASCII; [^A-Za-z0-9_.-] remove', $filename);
-		$filenameFallback = preg_replace(
-			'#^.*\.#',
-			md5($filename) . '.', $filename
-		);
+		[$filename, $filenameFallback] = $this->attachmentNames($attachment->getFilename());
 
 		$filetype = $attachment->getFileType();
 		$content = $attachment->getContent();
@@ -849,14 +843,7 @@ class MailLogController extends ViewController
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
-
-		$filename = $attachment->getFilename();
-		//$filenameFallback = base64_encode($filename);
-		//$filenameFallback = transliterator_transliterate('Any-Latin; Latin-ASCII; [^A-Za-z0-9_.-] remove', $filename);
-		$filenameFallback = preg_replace(
-			'#^.*\.#',
-			md5($filename) . '.', $filename
-		);
+		[$filename, $filenameFallback] = $this->attachmentNames($attachment->getFilename());
 
 		//$filetype = $attachment->getFileType();
 		$filetype = $this->safeInlineContentType($attachment->getFileType());
@@ -1160,6 +1147,14 @@ class MailLogController extends ViewController
 
 	private function saveFiltersToSession(array $filters): void {
 		$this->session->set('filters', json_encode(array_values($filters)));
+	}
+
+	// name for filename* (path separators replaced) and an ASCII-only fallback
+	private function attachmentNames(?string $name): array {
+		$filename = str_replace(['/', '\\'], '_', (string) $name);
+		$ext = pathinfo($filename, PATHINFO_EXTENSION);
+		$fallback = md5($filename) . (preg_match('/^[A-Za-z0-9]{1,10}$/', $ext) ? ".{$ext}" : '');
+		return [$filename, $fallback];
 	}
 
 	private function isInlineSafeType(string $filetype): bool {
