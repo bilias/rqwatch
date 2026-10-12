@@ -10,6 +10,8 @@
 
 namespace App\Services;
 
+use App\Configuration\Config;
+
 use App\Core\App;
 
 use App\Utils\Helper;
@@ -53,6 +55,13 @@ class MailTokenService
 	 */
 	public static function isEnabled(): bool {
 		return Helper::env_bool('NOTIFICATION_RELEASE_LINKS', false);
+	}
+
+	/*
+	 * Whether an emailed link stops working once it is used.
+	 */
+	public static function isOneTime(): bool {
+		return (bool) (Config::get('notification_links_one_time') ?? true);
 	}
 
 	/*
@@ -136,6 +145,28 @@ class MailTokenService
 			);
 			return null;
 		}
+	}
+
+	/*
+	 * Use up an emailed token: replace its hash with a random value that no
+	 * link carries. Returns the new hash, or null if another request got
+	 * there first.
+	 */
+	public function redeemToken(MailLogToken $token): ?string {
+		$newHash = bin2hex(random_bytes(self::TOKEN_BYTES));
+
+		try {
+			$updated = MailLogToken::where('token_hash', $token->token_hash)
+				->update(['token_hash' => $newHash]);
+		} catch (Throwable $e) {
+			$this->logger->error(
+				"[MailTokenService] failed redeeming token for mail id {$token->mail_log_id}: "
+				. $e->getMessage()
+			);
+			return null;
+		}
+
+		return $updated === 1 ? $newHash : null;
 	}
 
 	/*

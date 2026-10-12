@@ -201,6 +201,11 @@ $notification_days = 7;
 # makes every notification run scan the whole mail_logs table.
 $admin_notification_days = 3;
 
+# Links in notification mails work once: the first "View message details" click
+# uses them up, and the message stays reachable only in that browser session.
+# Set to false to let a link be reopened until the message is released.
+$notification_links_one_time = true;
+
 # Default mail signature
 $mail_signature = $APP_NAME;
 

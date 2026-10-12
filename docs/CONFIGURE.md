@@ -448,6 +448,8 @@ If an email is quarantined and a notification must be sent (according to setting
 - `NOTIFICATION_RELEASE_LINKS` - Password-less quarantine access from notification mails.\
   Recipients get a tokenised link to view and release their own message without an account.\
   Requires the mail_log_recipients migration.\
+  Must be set on the web server as well as where `cron:notifications` runs.\
+  Links work once by default; see `$notification_links_one_time`.\
   Default is `false`
 
 ### Redis Settings
@@ -661,6 +663,11 @@ based on action taken by Rspamd\
 - `$admin_notification_days` - Retry and catch-up window for admin notifications, in days.\
   Keep it short: admin_notified has no index, so a long window makes every notification run scan the whole mail_logs table.\
   Default is `3`
+
+- `$notification_links_one_time` - Links in notification mails work once: the first
+  "View message details" click uses them up, and the message stays reachable only in
+  that browser session. Set to `false` to let a link be reopened until the message is released.\
+  Default is `true`
 
 - `$mail_signature` - Default mail signature
 

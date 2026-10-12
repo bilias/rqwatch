@@ -63,7 +63,7 @@ class QuarantineController extends ViewController
 
 		$handle = bin2hex(random_bytes(16));
 		$handles = $this->session->get(self::SESSION_KEY, []);
-		$handles[$handle] = $tokenRow->token_hash;
+		$handles[$handle] = ['hash' => $tokenRow->token_hash, 'redeemed' => false];
 		$this->session->set(self::SESSION_KEY, array_slice($handles, -self::SESSION_MAX, null, true));
 
 		// a planted session id must not inherit the handle
@@ -211,7 +211,7 @@ class QuarantineController extends ViewController
 
 		$tokenRow = $this->sessionToken($handle);
 
-		if ($tokenRow === null) {
+		if ($tokenRow === null || !$this->redeem($handle, $tokenRow)) {
 			return [null, $this->tokenError()];
 		}
 
@@ -220,13 +220,39 @@ class QuarantineController extends ViewController
 
 	// the token row behind a handle stored by link() in this session
 	private function sessionToken(string $handle): ?MailLogToken {
-		$hash = $this->session->get(self::SESSION_KEY, [])[$handle] ?? null;
+		$hash = $this->session->get(self::SESSION_KEY, [])[$handle]['hash'] ?? null;
 
 		if (!is_string($hash)) {
 			return null;
 		}
 
 		return $this->getTokenService()->findValidTokenByHash($hash);
+	}
+
+	// one-time links: the first POST rotates the hash, so the emailed link stops working
+	private function redeem(string $handle, MailLogToken $tokenRow): bool {
+		$handles = $this->session->get(self::SESSION_KEY, []);
+
+		if (!MailTokenService::isOneTime() || ($handles[$handle]['redeemed'] ?? false)) {
+			return true;
+		}
+
+		$newHash = $this->getTokenService()->redeemToken($tokenRow);
+
+		if ($newHash === null) {
+			return false;
+		}
+
+		$handles[$handle] = ['hash' => $newHash, 'redeemed' => true];
+		$this->session->set(self::SESSION_KEY, $handles);
+		$tokenRow->token_hash = $newHash;
+
+		$this->fileLogger->info(
+			"[QuarantineController] notification link for mail id {$tokenRow->mail_log_id} used from "
+			. ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+		);
+
+		return true;
 	}
 
 	/*
@@ -259,7 +285,7 @@ class QuarantineController extends ViewController
 
 	private function tokenError(): Response {
 		return $this->tokenMessage(
-			'This link is not valid or has expired. '
+			'This link is not valid, has already been used, or has expired. '
 			. 'Quarantined messages are kept for a limited time.'
 		);
 	}
