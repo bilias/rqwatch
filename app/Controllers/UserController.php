@@ -505,6 +505,10 @@ class UserController extends ViewController
 					//dump(DB::connection()->getQueryLog());
 					if ($saved === true) {
 						$this->flashbag->add('success', "User '{$user->username}' updated");
+						// fields cached in the user's sessions: end them
+						if ($user->wasChanged(['username', 'email', 'is_admin', 'auth_provider', 'password'])) {
+							UserService::endSessions((int) $user->id);
+						}
 						/*
 						if ($pass_changed) {
 							$this->flashbag->add('info', "Password changed");

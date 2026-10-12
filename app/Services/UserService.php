@@ -245,6 +245,22 @@ class UserService
 		return User::where('username', strtolower(trim($user)))->exists();
 	}
 
+	// end the user's open sessions (AuthMiddleware compares users.session_version)
+	public static function endSessions(int $userId): void {
+		if (!App::migrationStatus()->sessionVersionCompleted()) {
+			return;
+		}
+
+		try {
+			// keep updated_at: this is not an edit of the account itself
+			User::whereKey($userId)->toBase()->increment('session_version', 1, [
+				'updated_at' => App::capsule()->getConnection()->raw('`updated_at`'),
+			]);
+		} catch (Exception $e) {
+			App::fileLogger()->error("[endSessions] user id {$userId}: " . $e->getMessage());
+		}
+	}
+
 	public function userAdd(array $data): bool {
 		if (empty($data) || empty($data['username'])) {
 			return false;

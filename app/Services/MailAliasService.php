@@ -95,7 +95,7 @@ class MailAliasService
 		$userMaps = MapInventory::getRoleMapsByModel('MapCombined', 'user');
 
 		try {
-			return App::capsule()->connection()->transaction(
+			$deleted = App::capsule()->connection()->transaction(
 				function () use ($alias, $address, $user_id, $userMaps, $actingUsername) {
 					if ($address !== '' && !empty($userMaps)) {
 						$query = MapCombined::where('user_id', $user_id)
@@ -120,6 +120,13 @@ class MailAliasService
 					return (bool) $alias->delete();
 				}
 			);
+
+			// the alias is cached in the owner's sessions
+			if ($deleted) {
+				UserService::endSessions((int) $user_id);
+			}
+
+			return $deleted;
 		} catch (Exception $e) {
 			$this->logger->error(
 				"aliasDel error: delete of '{$address}' by '{$actingUsername}'"
