@@ -158,6 +158,7 @@ class QuarantineController extends ViewController
 			'textBody' => $mailobject->getTextBody(),
 			'htmlBody' => Helper::normalizeToUtf8($mailobject->getHtmlBody()),
 			'virus_found' => $mailobject->getVirusFound(),
+			'release_disabled' => empty($_ENV['MAILER_FROM']),
 			//'released' => (bool) $mailobject->getMailLog()->released,
 			//'symbols' => $mailobject->getSymbols(),
 		]));
@@ -174,6 +175,17 @@ class QuarantineController extends ViewController
 
 		if ($tokenRow === null) {
 			return $error;
+		}
+
+		// refused before sending, so the token stays usable once it is fixed
+		if (empty($_ENV['MAILER_FROM'])) {
+			$this->fileLogger->error(
+				"[QuarantineController] release of mail id {$tokenRow->mail_log_id} refused: "
+				. "MAILER_FROM is empty. Please define it in .env"
+			);
+			return $this->tokenMessage(
+				'This message cannot be released at the moment. Please contact your administrator.'
+			);
 		}
 
 		$service = $this->getScopedService($tokenRow);

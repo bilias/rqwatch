@@ -103,10 +103,14 @@ No
 </div>
 
 <div class='maildetail'>
+{% if release_disabled %}
+<p>This message cannot be released at the moment. Please contact your administrator.</p>
+{% else %}
 <form method='post' action='{{ route('TOKEN_RELEASE', { handle: handle, _token: csrf_token('token_release') }) }}'
       onsubmit="return confirm('Release this message to your mailbox?')">
   <button type='submit'>Release to my mailbox</button>
 </form>
+{% endif %}
 </div>
 
 {% if textBody %}
