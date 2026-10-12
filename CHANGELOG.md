@@ -3,7 +3,10 @@
 ## Master Dev Branch
 
 ### 2026-10-12
-- Skip user and admin notifications for mails matching the virus skip map
+- Check MAILER_DSN and MAILER_FROM on the node that sends the release
+- Add the release form to the mail page, shared with the detail page
+- Fix release dropping alternate recipients and failing for multi-recipient mail via API
+- Skip user and admin notifications for mails with virus matching the Antivirus No Notify map
 - Notification links carry the token in the URL fragment (/notify#<token>), so it
   never reaches web or proxy logs; opening a link requires JavaScript. Links in
   notifications sent before this change no longer work: users log in instead.
