@@ -78,6 +78,8 @@ class ViewController extends Controller
 					'cache' => $cache,
 					'debug' => false,
 					'auto_reload' => true,
+					// HTML-escape all output (Twig's default, made explicit)
+					'autoescape' => 'html',
 				]
 			);
 		}
