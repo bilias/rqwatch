@@ -51,7 +51,7 @@ class QuarantineController extends ViewController
 	 */
 	public function link(string $token): Response {
 		if (!MailTokenService::isEnabled()) {
-			return $this->tokenError();
+			return $this->tokenDisabled();
 		}
 
 		// an expired link is reported here, before the user clicks
@@ -79,7 +79,11 @@ class QuarantineController extends ViewController
 	 * Step 1: shows nothing about the message, only a button to proceed.
 	 */
 	public function confirm(string $handle): Response {
-		if (!MailTokenService::isEnabled() || $this->sessionToken($handle) === null) {
+		if (!MailTokenService::isEnabled()) {
+			return $this->tokenDisabled();
+		}
+
+		if ($this->sessionToken($handle) === null) {
 			return $this->tokenError();
 		}
 
@@ -194,7 +198,7 @@ class QuarantineController extends ViewController
 	 */
 	private function resolveToken(string $handle, string $csrfId): array {
 		if (!MailTokenService::isEnabled()) {
-			return [null, $this->tokenError()];
+			return [null, $this->tokenDisabled()];
 		}
 
 		if (!$this->csrfValid($csrfId)) {
@@ -241,6 +245,16 @@ class QuarantineController extends ViewController
 
 	private function getTokenService(): MailTokenService {
 		return new MailTokenService();
+	}
+
+	// links are issued by the notification cron, which may run with a different .env
+	private function tokenDisabled(): Response {
+		$this->fileLogger->warning(
+			"[QuarantineController] notification link refused: NOTIFICATION_RELEASE_LINKS is not enabled on this web node"
+		);
+		return $this->tokenMessage(
+			'Links in notification mails are disabled. Please sign in to view this message.'
+		);
 	}
 
 	private function tokenError(): Response {
