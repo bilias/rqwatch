@@ -13,6 +13,7 @@ namespace App\Controllers;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use App\Core\App;
 use App\Core\Routing\RouteName;
 use App\Core\Auth\AuthManager;
 use App\Utils\Helper;
@@ -306,6 +307,14 @@ class UserController extends ViewController
 			if ($user->auth_provider === 0) {
 				$newPassword = $profileform->get('password')->getData();
 				if (!empty($newPassword)) {
+					// a new password requires the current one
+					$current = (string) $profileform->get('current_password')->getData();
+					$hash = (string) User::whereKey($user->id)->value('password');
+					if (!Helper::passwordVerify($current, $hash)) {
+						$this->fileLogger->warning("'{$this->username}' failed password change: wrong current password from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN'));
+						$this->flashbag->add('error', 'Current password is wrong, password not changed');
+						return new RedirectResponse($this->url(RouteName::PROFILE));
+					}
 					$data['password'] = Helper::passwordHash($newPassword);
 					$pass_changed = true;
 				}
@@ -319,6 +328,11 @@ class UserController extends ViewController
 				$saved = $user->save();
 				if ($saved === true) {
 					$this->flashbag->add('success', "Profile updated");
+					// end the user's other sessions, keep this one
+					if ($pass_changed && App::migrationStatus()->sessionVersionCompleted()) {
+						UserService::endSessions((int) $user->id);
+						$this->session->set('session_version', (int) User::whereKey($user->id)->value('session_version'));
+					}
 				} else {
 					$this->flashbag->add('error', "Profile update failed");
 				}

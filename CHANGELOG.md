@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-12
+- Require the current password to change it; end other sessions on change
 - SEC FIX: sessions kept a user's aliases and admin rights from login time,
   so removed aliases or admin changes only took effect after logout. A user's
   sessions now end when an alias of theirs is deleted or an admin changes

@@ -60,6 +60,16 @@ class ProfileForm extends AbstractType
 					),
 				],
 			])
+			->add('current_password', PasswordType::class, [
+				'label' => 'Current Password:',
+				'mapped' => false,
+				'required' => false,
+				'attr' => [
+					'class' => 'password',
+					'title' => 'Required to set a new password',
+					'autocomplete' => 'current-password',
+				],
+			])
 			->add('password', RepeatedType::class, [
 				'type' => PasswordType::class,
 				'invalid_message' => 'The password fields must match.',

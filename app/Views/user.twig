@@ -140,6 +140,12 @@ Never
 
 {% if user_auth_provider == 'DB' %}
 <div class="row">
+<div class='info'>  {{ form_label(profileform.current_password) }}</div>
+<div class='detail'>   {{ form_widget(profileform.current_password) }}
+   {{ form_errors(profileform.current_password) }}</div>
+</div>
+
+<div class="row">
 <div class='info'>  {{ form_label(profileform.password.first) }}</div>
 <div class='detail'>   {{ form_widget(profileform.password.first) }}
    {{ form_errors(profileform.password.first) }}</div>
@@ -152,6 +158,7 @@ Never
 </div>
 {% else %}
 {# Mark as rendered to suppress in form_end #}
+{% do profileform.current_password.setRendered %}
 {% do profileform.password.first.setRendered %}
 {% do profileform.password.second.setRendered %}
 {% endif %}
