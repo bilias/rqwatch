@@ -165,8 +165,17 @@ class QuarantineController extends ViewController
 		}
 		*/
 
-		// destination is the token's recipient only
-		if (!$service->releaseHtmlMail([$tokenRow->recipient_email], $maillog, $this->twig)) {
+		// destination is the token's recipient only; the mail's own server
+		// sends it, since it holds the file and records the release
+		$recipient = $tokenRow->recipient_email;
+
+		if ($_ENV['MY_API_SERVER_ALIAS'] === $maillog->server) {
+			$released = $service->releaseHtmlMail([$recipient], $maillog, $this->twig);
+		} else {
+			$released = $service->releaseMailViaApi([$recipient], $maillog->id, $maillog->server, $recipient);
+		}
+
+		if (!$released) {
 			$this->fileLogger->error(
 				"[QuarantineController] release of mail id {$tokenRow->mail_log_id} to "
 				. "{$tokenRow->recipient_email} failed"
