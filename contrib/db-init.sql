@@ -130,6 +130,10 @@ CREATE TABLE custom_map_config (
 # (4, 'from_whitelist', 'Mail/MIME From Whitelist', 'from', 'From', NOW(), NOW()),
 # (5, 'from_blacklist', 'Mail/MIME From Blacklist', 'from', 'From', NOW(), NOW());
 
+INSERT INTO `custom_map_config`
+  (`map_name`, `map_description`, `field_name`, `field_label`) VALUES
+  ('rqwatch_virus_no_notify', 'Virus names (no user notification)', 'virus', 'Antivirus symbol or virus name');
+
 DROP TABLE IF EXISTS `mail_log_fuzzy`;
 
 DROP TABLE IF EXISTS `mail_log_tokens`;
@@ -268,4 +272,5 @@ INSERT INTO `migrations` VALUES
 ('20261007_mail_log_fuzzy','completed',NOW()),
 ('20261008_mail_log_fuzzy_hits','completed',NOW()),
 ('20261010_ever_stored','completed',NOW()),
-('20261012_session_version','completed',NOW());
+('20261012_session_version','completed',NOW()),
+('20261012_virus_skip_map','completed',NOW());

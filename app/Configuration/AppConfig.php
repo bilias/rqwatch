@@ -18,7 +18,7 @@ define('RQWATCH_ROOT', realpath(__DIR__ . '/../..'));
 class AppConfig {
 
 // Application version
-public const string VERSION = '2.1.2-dev3';
+public const string VERSION = '2.1.2-dev4';
 
 public const string APP_NAME = 'Rqwatch';
 
@@ -86,6 +86,7 @@ public const string USERS_TABLE = 'users';
 public const string MAIL_ALIASES_TABLE = 'mail_aliases';
 public const string MAPS_COMBINED_TABLE = 'maps_combined';
 public const string MAP_ACTIVITY_LOGS_TABLE = 'map_activity_logs';
+public const string CUSTOM_MAP_CONFIG_TABLE = 'custom_map_config';
 
 // Table encoding, declared on the Blueprint by
 // AbstractMigration::createTable() rather than left to the connection config.
