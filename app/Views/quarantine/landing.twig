@@ -1,0 +1,25 @@
+{% extends 'quarantine/base.html.twig' %}
+
+{% block content %}
+<form id='redeem' method='post' action='{{ route('TOKEN_REDEEM', { _token: csrf_token('token_redeem') }) }}'>
+  <input type='hidden' name='token' id='redeem-token' value=''>
+</form>
+
+<p id='redeem-msg'>Opening the quarantined message...</p>
+<noscript><p>This link needs JavaScript. Enable it, or log in to view the message.</p></noscript>
+
+<script>
+(function () {
+	// take the token from the fragment and drop it from the address bar and history
+	var token = window.location.hash.slice(1);
+	history.replaceState(null, '', window.location.pathname + window.location.search);
+
+	if (!/^[a-f0-9]{64}$/.test(token)) {
+		document.getElementById('redeem-msg').textContent = 'This link is invalid or incomplete.';
+		return;
+	}
+	document.getElementById('redeem-token').value = token;
+	document.getElementById('redeem').submit();
+})();
+</script>
+{% endblock %}

@@ -35,6 +35,7 @@ enum RouteName: string
 	case QUARANTINE_MONTH = 'quarantine_month';
 	case ADMIN_QUARANTINE_MONTH = 'admin_quarantine_month';
 	case TOKEN_LINK = 'token_link';
+	case TOKEN_REDEEM = 'token_redeem';
 	case TOKEN_CONFIRM = 'token_confirm';
 	case TOKEN_VIEW = 'token_view';
 	case TOKEN_RELEASE = 'token_release';

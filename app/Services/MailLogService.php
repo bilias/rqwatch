@@ -1343,16 +1343,19 @@ class MailLogService
 
 		foreach ($recipients as $recipient) {
 			$url = $detailurl;
+			$linkOneTime = false;
 
 			if ($tokenService !== null) {
 				$token = $tokenService->issueToken($maillog->id, $recipient);
 
 				if ($token !== null) {
+					// token in the fragment: never sent to the server or logged
 					$url = $urlGenerator->generate(
 						RouteName::TOKEN_LINK->value,
-						[ 'token' => $token ],
+						[],
 						UrlGeneratorInterface::ABSOLUTE_URL
-					);
+					) . '#' . $token;
+					$linkOneTime = MailTokenService::isOneTime();
 				}
 			}
 
@@ -1368,6 +1371,7 @@ class MailLogService
 				'rcpt_to'    => $recipient,
 				'action'     => $maillog->action,
 				'detailurl'  => $url,
+				'link_one_time' => $linkOneTime,
 				'signature'  => $signature,
 			);
 

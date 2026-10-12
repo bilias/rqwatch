@@ -450,6 +450,9 @@ If an email is quarantined and a notification must be sent (according to setting
   Requires the mail_log_recipients migration.\
   Must be set on the web server as well as where `cron:notifications` runs.\
   Links work once by default; see `$notification_links_one_time`.\
+  Links have the form `https://<host>/notify#<token>`: the token is in the URL fragment,\
+  which browsers never send, so it does not appear in web or proxy logs.\
+  Opening a link requires JavaScript in the browser.\
   Default is `false`
 
 If the SMTP server in `MAILER_DSN` scans submitted mail (e.g. clamav-milter),

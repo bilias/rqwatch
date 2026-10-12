@@ -105,6 +105,7 @@ public const array PUBLIC_ROUTES = [
 	RouteName::LOGIN_OPENIDC->value,
 	RouteName::OPENIDC_CALLBACK->value,
 	RouteName::TOKEN_LINK->value,
+	RouteName::TOKEN_REDEEM->value,
 	RouteName::TOKEN_CONFIRM->value,
 	RouteName::TOKEN_VIEW->value,
 	RouteName::TOKEN_RELEASE->value,

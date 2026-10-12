@@ -31,12 +31,14 @@ use Exception;
  * message for exactly one recipient - it is not a login and grants nothing
  * else.
  *
- * The emailed link is the only URL carrying the token: link() stores its hash
- * in the session under a random handle and redirects. Later URLs carry only
- * the handle, which means nothing without the session cookie.
+ * The emailed link is /notify#<token>. The fragment never reaches the server,
+ * so no URL in any request or log carries the token: landing() serves a page
+ * whose script posts it to link(), which stores its hash in the session under
+ * a random handle and redirects. Later URLs carry only the handle, which means
+ * nothing without the session cookie.
  *
- * link() and confirm() are plain GETs because mail security appliances and
- * clients prefetch links in email; they perform no action. view() and
+ * landing() and confirm() are plain GETs because mail security appliances and
+ * clients prefetch links in email; they perform no action. link(), view() and
  * release() are POST + CSRF so a prefetch cannot trigger them.
  */
 class QuarantineController extends ViewController
@@ -47,12 +49,37 @@ class QuarantineController extends ViewController
 	private const int SESSION_MAX = 10;
 
 	/*
-	 * Step 0: emailed link lands here. Trades the token for a handle.
+	 * Step 0: the emailed link lands here; the page's script posts the token
+	 * from the URL fragment to link().
 	 */
-	public function link(string $token): Response {
+	public function landing(): Response {
 		if (!MailTokenService::isEnabled()) {
 			return $this->tokenDisabled();
 		}
+
+		// enable form rendering support (needed for csrf_token() in templates)
+		$this->twigFormView($this->request);
+
+		return $this->tokenResponse($this->twig->render('quarantine/landing.twig'));
+	}
+
+	/*
+	 * Step 0b: trades the posted token for a handle.
+	 */
+	public function link(): Response {
+		if (!MailTokenService::isEnabled()) {
+			return $this->tokenDisabled();
+		}
+
+		if (!$this->csrfValid('token_redeem')) {
+			$this->fileLogger->warning(
+				"[QuarantineController] CSRF check failed on token_redeem from "
+				. ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+			);
+			return $this->tokenError();
+		}
+
+		$token = (string) $this->request->request->get('token', '');
 
 		// an expired link is reported here, before the user clicks
 		$tokenRow = $this->getTokenService()->findValidToken($token);

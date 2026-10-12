@@ -3,6 +3,10 @@
 ## Master Dev Branch
 
 ### 2026-10-12
+- Notification links carry the token in the URL fragment (/notify#<token>), so it
+  never reaches web or proxy logs; opening a link requires JavaScript. Links in
+  notifications sent before this change no longer work: users log in instead.
+- Notification mails say when a link can be used only once
 - Make notification links one-time by default, configurable by $notification_links_one_time
 - Trade the emailed quarantine token for a session-bound handle on landing
 - Require the current password to change it; end other sessions on change

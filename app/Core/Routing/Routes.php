@@ -75,15 +75,33 @@ class Routes
 		));
 
 		// Password-less quarantine access from notification mails.
-		// The emailed link trades its token for a session-bound handle, so the
-		// token appears in no other URL. Link and confirm are safe GETs (mail
-		// scanners prefetch links); view and release are POST + CSRF.
+		// The emailed link is /notify#<token>: the token is in the fragment, which
+		// browsers never send, so no request line or log carries it. The landing
+		// page posts it to /notify/redeem, which trades it for a session-bound
+		// handle. Landing and confirm are safe GETs (mail scanners prefetch
+		// links); redeem, view and release are POST + CSRF.
 		$routes->add(RouteName::TOKEN_LINK->value, new Route(
-			'/notify/{token}', // path
+			'/notify', // path
+			[ '_controller' => 'App\\Controllers\\QuarantineController::landing',
+			  '_middleware' => $noMiddlewareClasses,
+			],
+			[], // requirements
+			[], // options
+			'', // host
+			[], // schemes
+			['GET'] // methods
+		));
+
+		$routes->add(RouteName::TOKEN_REDEEM->value, new Route(
+			'/notify/redeem', // path
 			[ '_controller' => 'App\\Controllers\\QuarantineController::link',
 			  '_middleware' => $noMiddlewareClasses,
 			],
-			[ 'token' => '[a-f0-9]{64}' ] // requirements
+			[], // requirements
+			[], // options
+			'', // host
+			[], // schemes
+			['POST'] // methods
 		));
 
 		$routes->add(RouteName::TOKEN_CONFIRM->value, new Route(

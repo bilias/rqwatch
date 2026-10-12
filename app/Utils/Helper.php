@@ -731,9 +731,12 @@ Virus Detected:";
 Action: {$ar['action']}
 
 You can view mail details and optionally release it from quarantine by clicking here:
-{$ar['detailurl']}
+{$ar['detailurl']}";
+		if (!empty($ar['link_one_time'])) {
+			$ret .= "\nThis link can be used only once.";
+		}
 
-{$ar['signature']}";
+		$ret .= "\n\n{$ar['signature']}";
 		return $ret;
 	}
 
