@@ -72,6 +72,9 @@ public const string FUZZY_MAIL_API_PATH = '/api/fuzzy_mail.php';
 public const string REDIS_CONFIG_KEY = 'rqwatch_config';
 public const int REDIS_CONFIG_CACHE_TTL = 300;
 
+// DNS
+public const int DNS_MAX_RELAYS = 30;
+
 // default TABLES
 public const string MAIL_LOGS_TABLE = 'mail_logs';
 public const string MAIL_LOG_DATA_TABLE = 'mail_log_data';

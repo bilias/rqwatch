@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-10-12
+- Cap max mail relays that can be DNS resolved in details page
+
 ### 2026-10-11
 - SEC FIX: non-admins could see, and with USER_CAN_DEL_ADMIN_MAP_ENTRIES
   delete/toggle, other users' map entries for a shared address (alias or

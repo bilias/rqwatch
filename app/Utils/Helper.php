@@ -10,6 +10,7 @@
 
 namespace App\Utils;
 
+use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
 use App\Core\App;
@@ -770,10 +771,11 @@ Mail details:
 
 	public static function extract_mail_relays(string $headers): array {
 		$lines = preg_split('/\r\n|\r|\n/', $headers);
+		$budget = AppConfig::DNS_MAX_RELAYS; // max DNS lookups per message
 		$relays = [];
 
 		foreach ($lines as $line) {
-			if (stripos($line, 'Received:') === false) {
+			if (stripos($line, 'Received:') !== 0) {
 				continue;
 			}
 
@@ -810,7 +812,7 @@ Mail details:
 			if (!empty($ips)) {
 				foreach (array_reverse($ips) as $ip) {
 					// Resolve hostname from IP (optional; basic reverse lookup)
-					$resolvedHost = self::my_gethostbyaddr($ip);
+					$resolvedHost = $budget-- > 0 ? self::my_gethostbyaddr($ip) : $ip;
 					$relays[] = [
 						'ip' => $ip,
 						'host' => ($resolvedHost !== $ip) ? $resolvedHost : ($host ?? null),
@@ -818,7 +820,7 @@ Mail details:
 				}
 			} elseif ($host) {
 				// No IP found — try resolving IP from hostname
-				$resolvedIp = self::my_gethostbyname($host);
+				$resolvedIp = $budget-- > 0 ? self::my_gethostbyname($host) : $host;
 				if (filter_var($resolvedIp, FILTER_VALIDATE_IP)) {
 					$relays[] = [
 						'ip' => $resolvedIp,
