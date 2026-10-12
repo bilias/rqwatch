@@ -75,23 +75,31 @@ class Routes
 		));
 
 		// Password-less quarantine access from notification mails.
-		// All three are public: the token is the only credential.
-		// The confirm page is a safe GET (mail scanners prefetch links);
-		// view and release are POST + CSRF so a prefetch cannot trigger them.
-		$routes->add(RouteName::TOKEN_CONFIRM->value, new Route(
+		// The emailed link trades its token for a session-bound handle, so the
+		// token appears in no other URL. Link and confirm are safe GETs (mail
+		// scanners prefetch links); view and release are POST + CSRF.
+		$routes->add(RouteName::TOKEN_LINK->value, new Route(
 			'/notify/{token}', // path
-			[ '_controller' => 'App\\Controllers\\QuarantineController::confirm',
+			[ '_controller' => 'App\\Controllers\\QuarantineController::link',
 			  '_middleware' => $noMiddlewareClasses,
 			],
 			[ 'token' => '[a-f0-9]{64}' ] // requirements
 		));
 
+		$routes->add(RouteName::TOKEN_CONFIRM->value, new Route(
+			'/notify/confirm/{handle}', // path
+			[ '_controller' => 'App\\Controllers\\QuarantineController::confirm',
+			  '_middleware' => $noMiddlewareClasses,
+			],
+			[ 'handle' => '[a-f0-9]{32}' ] // requirements
+		));
+
 		$routes->add(RouteName::TOKEN_VIEW->value, new Route(
-			'/notify/view/{token}', // path
+			'/notify/view/{handle}', // path
 			[ '_controller' => 'App\\Controllers\\QuarantineController::view',
 			  '_middleware' => $noMiddlewareClasses,
 			],
-			[ 'token' => '[a-f0-9]{64}' ], // requirements
+			[ 'handle' => '[a-f0-9]{32}' ], // requirements
 			[], // options
 			'', // host
 			[], // schemes
@@ -99,11 +107,11 @@ class Routes
 		));
 
 		$routes->add(RouteName::TOKEN_RELEASE->value, new Route(
-			'/notify/release/{token}', // path
+			'/notify/release/{handle}', // path
 			[ '_controller' => 'App\\Controllers\\QuarantineController::release',
 			  '_middleware' => $noMiddlewareClasses,
 			],
-			[ 'token' => '[a-f0-9]{64}' ], // requirements
+			[ 'handle' => '[a-f0-9]{32}' ], // requirements
 			[], // options
 			'', // host
 			[], // schemes

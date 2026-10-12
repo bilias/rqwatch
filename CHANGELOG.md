@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-12
+- Trade the emailed quarantine token for a session-bound handle on landing
 - Require the current password to change it; end other sessions on change
 - SEC FIX: sessions kept a user's aliases and admin rights from login time,
   so removed aliases or admin changes only took effect after logout. A user's

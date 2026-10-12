@@ -1349,7 +1349,7 @@ class MailLogService
 
 				if ($token !== null) {
 					$url = $urlGenerator->generate(
-						RouteName::TOKEN_CONFIRM->value,
+						RouteName::TOKEN_LINK->value,
 						[ 'token' => $token ],
 						UrlGeneratorInterface::ABSOLUTE_URL
 					);

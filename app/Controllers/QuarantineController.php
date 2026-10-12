@@ -10,6 +10,8 @@
 
 namespace App\Controllers;
 
+use App\Core\Routing\RouteName;
+
 use App\Models\MailLogToken;
 
 use App\Services\MailLogService;
@@ -17,6 +19,7 @@ use App\Services\MailTokenService;
 
 use App\Utils\Helper;
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 use Exception;
@@ -24,29 +27,59 @@ use Exception;
 /*
  * Password-less quarantine access from notification mails.
  *
- * All three actions are public: the token in the URL is the only credential.
- * A token authorizes view and release of exactly one message for exactly one
- * recipient - it is not a login and grants nothing else.
+ * All actions are public. A token authorizes view and release of exactly one
+ * message for exactly one recipient - it is not a login and grants nothing
+ * else.
  *
- * confirm() is a plain GET because mail security appliances and clients
- * prefetch links in email. It renders boilerplate only and performs no
- * action. view() and release() are POST + CSRF so a prefetch cannot trigger
- * them.
+ * The emailed link is the only URL carrying the token: link() stores its hash
+ * in the session under a random handle and redirects. Later URLs carry only
+ * the handle, which means nothing without the session cookie.
+ *
+ * link() and confirm() are plain GETs because mail security appliances and
+ * clients prefetch links in email; they perform no action. view() and
+ * release() are POST + CSRF so a prefetch cannot trigger them.
  */
 class QuarantineController extends ViewController
 {
+	private const string SESSION_KEY = 'notify_tokens';
+
+	// handles kept per session; the oldest is dropped beyond this
+	private const int SESSION_MAX = 10;
+
 	/*
-	 * Step 1: emailed link lands here. Safe for link scanners to fetch.
-	 * Shows nothing about the message, only a button to proceed.
+	 * Step 0: emailed link lands here. Trades the token for a handle.
 	 */
-	public function confirm(string $token): Response {
+	public function link(string $token): Response {
 		if (!MailTokenService::isEnabled()) {
 			return $this->tokenError();
 		}
 
-		// Read-only validation so an expired link is reported before the
-		// user clicks, rather than after.
-		if ($this->getTokenService()->findValidToken($token) === null) {
+		// an expired link is reported here, before the user clicks
+		$tokenRow = $this->getTokenService()->findValidToken($token);
+
+		if ($tokenRow === null) {
+			return $this->tokenError();
+		}
+
+		$handle = bin2hex(random_bytes(16));
+		$handles = $this->session->get(self::SESSION_KEY, []);
+		$handles[$handle] = $tokenRow->token_hash;
+		$this->session->set(self::SESSION_KEY, array_slice($handles, -self::SESSION_MAX, null, true));
+
+		// a planted session id must not inherit the handle
+		$this->session->migrate(true);
+
+		return $this->tokenResponse(new RedirectResponse(
+			$this->url(RouteName::TOKEN_CONFIRM, ['handle' => $handle]),
+			Response::HTTP_SEE_OTHER
+		));
+	}
+
+	/*
+	 * Step 1: shows nothing about the message, only a button to proceed.
+	 */
+	public function confirm(string $handle): Response {
+		if (!MailTokenService::isEnabled() || $this->sessionToken($handle) === null) {
 			return $this->tokenError();
 		}
 
@@ -54,15 +87,15 @@ class QuarantineController extends ViewController
 		$this->twigFormView($this->request);
 
 		return $this->tokenResponse($this->twig->render('quarantine/confirm.twig', [
-			'token' => $token,
+			'handle' => $handle,
 		]));
 	}
 
 	/*
 	 * Step 2: show the held message. POST only.
 	 */
-	public function view(string $token): Response {
-		[$tokenRow, $error] = $this->resolveToken($token, 'token_view');
+	public function view(string $handle): Response {
+		[$tokenRow, $error] = $this->resolveToken($handle, 'token_view');
 
 		if ($tokenRow === null) {
 			return $error;
@@ -83,7 +116,7 @@ class QuarantineController extends ViewController
 		$this->twigFormView($this->request);
 
 		return $this->tokenResponse($this->twig->render('quarantine/view.twig', [
-			'token' => $token,
+			'handle' => $handle,
 			'recipient' => $tokenRow->recipient_email,
 			'log' => $mailobject->getMailLog(),
 			'textBody' => $mailobject->getTextBody(),
@@ -100,8 +133,8 @@ class QuarantineController extends ViewController
 	 * The destination comes from the token row, never from the request, so a
 	 * token holder cannot redirect mail to an address of their choosing.
 	 */
-	public function release(string $token): Response {
-		[$tokenRow, $error] = $this->resolveToken($token, 'token_release');
+	public function release(string $handle): Response {
+		[$tokenRow, $error] = $this->resolveToken($handle, 'token_release');
 
 		if ($tokenRow === null) {
 			return $error;
@@ -159,7 +192,7 @@ class QuarantineController extends ViewController
 	 * Every failure renders the same page, so a caller cannot tell whether a
 	 * token was unknown, expired, or the CSRF check failed.
 	 */
-	private function resolveToken(string $token, string $csrfId): array {
+	private function resolveToken(string $handle, string $csrfId): array {
 		if (!MailTokenService::isEnabled()) {
 			return [null, $this->tokenError()];
 		}
@@ -172,13 +205,24 @@ class QuarantineController extends ViewController
 			return [null, $this->tokenError()];
 		}
 
-		$tokenRow = $this->getTokenService()->findValidToken($token);
+		$tokenRow = $this->sessionToken($handle);
 
 		if ($tokenRow === null) {
 			return [null, $this->tokenError()];
 		}
 
 		return [$tokenRow, null];
+	}
+
+	// the token row behind a handle stored by link() in this session
+	private function sessionToken(string $handle): ?MailLogToken {
+		$hash = $this->session->get(self::SESSION_KEY, [])[$handle] ?? null;
+
+		if (!is_string($hash)) {
+			return null;
+		}
+
+		return $this->getTokenService()->findValidTokenByHash($hash);
 	}
 
 	/*
@@ -214,8 +258,8 @@ class QuarantineController extends ViewController
 	}
 
 	// token pages: keep the bearer token out of caches and referrers
-	private function tokenResponse(string $content): Response {
-		$response = new Response($content);
+	private function tokenResponse(Response|string $content): Response {
+		$response = $content instanceof Response ? $content : new Response($content);
 		$response->headers->set('Cache-Control', 'no-store');
 		$response->headers->set('Referrer-Policy', 'no-referrer');
 		return $response;

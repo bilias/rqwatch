@@ -112,9 +112,20 @@ class MailTokenService
 			return null;
 		}
 
+		return $this->findValidTokenByHash(hash('sha256', $token));
+	}
+
+	/*
+	 * Same as findValidToken(), keyed by the stored hash.
+	 */
+	public function findValidTokenByHash(string $hash): ?MailLogToken {
+		if (!preg_match(self::TOKEN_FORMAT, $hash)) {
+			return null;
+		}
+
 		try {
 			return MailLogToken::with('mailLog')
-				->where('token_hash', hash('sha256', $token))
+				->where('token_hash', $hash)
 				->whereHas('mailLog', function ($query) {
 					$query->where('mail_stored', 1);
 				})

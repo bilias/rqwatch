@@ -103,7 +103,7 @@ No
 </div>
 
 <div class='maildetail'>
-<form method='post' action='{{ route('TOKEN_RELEASE', { token: token, _token: csrf_token('token_release') }) }}'
+<form method='post' action='{{ route('TOKEN_RELEASE', { handle: handle, _token: csrf_token('token_release') }) }}'
       onsubmit="return confirm('Release this message to your mailbox?')">
   <button type='submit'>Release to my mailbox</button>
 </form>
