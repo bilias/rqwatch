@@ -220,7 +220,7 @@ class MailLogService
 		}
 
 		// non-admins match only their own addresses: no probing for co-recipients
-		$own = $this->adminFieldsAllowed() ? null : $this->getUserRecipientEmails();
+		$own = ($this->adminFieldsAllowed() || $this->is_admin === null) ? null : $this->getUserRecipientEmails();
 		$constrain = function ($q) use ($op, $email, $own) {
 			$q->where('recipient_email', $op, $email);
 			if ($own !== null) {
@@ -1738,7 +1738,8 @@ class MailLogService
 
 	// non-admins see only their own envelope recipients, as in their mailbox
 	private function recipientsRelation(): array {
-		if ($this->adminFieldsAllowed()) {
+		// admins, CLI and system callers without user context (mail APIs) see all recipients
+		if ($this->adminFieldsAllowed() || $this->is_admin === null) {
 			return ['recipients'];
 		}
 
@@ -1748,7 +1749,7 @@ class MailLogService
 
 	private function getUserRecipientEmails(): array {
 			return array_filter(array_map(
-				fn ($e) => strtolower(trim($e)),
+				fn ($e) => strtolower(trim((string) $e)),
 				array_merge([$this->email], $this->user_aliases ?? [])
 			));
 	}
