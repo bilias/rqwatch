@@ -234,6 +234,10 @@ class QuarantineController extends ViewController
 			"[QuarantineController] mail id {$tokenRow->mail_log_id} released to "
 			. "{$tokenRow->recipient_email} via notification link"
 		);
+		// per-mail trail; a remote release is logged there by the node that sent it
+		if ($_ENV['MY_API_SERVER_ALIAS'] === $maillog->server) {
+			$this->syslogLogger->info("Message {$maillog->qid} released to '{$recipient}' via notification link");
+		}
 
 		// single use: the link cannot be replayed
 		$this->getTokenService()->deleteToken($tokenRow);
