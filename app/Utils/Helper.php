@@ -770,7 +770,8 @@ Mail details:
 	}
 
 	public static function extract_mail_relays(string $headers): array {
-		$lines = preg_split('/\r\n|\r|\n/', $headers);
+		// unfold continuation lines so each header is one line
+		$lines = preg_split('/\r\n|\r|\n/', preg_replace('/(?:\r\n|\r|\n)[ \t]+/', ' ', $headers));
 		$budget = AppConfig::DNS_MAX_RELAYS; // max DNS lookups per message
 		$relays = [];
 
@@ -794,17 +795,18 @@ Mail details:
 
 			// Try to extract all IPs in brackets [1.2.3.4]
 			$ips = [];
-			if (preg_match_all('/[\[\(](IPv6:)?([^\]\)]+)[\]\)]/i', $line, $ipMatches)) {
-				foreach ($ipMatches[2] as $rawIp) {
-					$cleanIp = preg_replace('/^IPv6:/i', '', $rawIp);
-					if (filter_var($cleanIp, FILTER_VALIDATE_IP)) {
-						$ips[] = $cleanIp;
+			// [1.2.3.4], [IPv6:2001:db8::1] or (1.2.3.4); brackets holding only an address
+			if (preg_match_all('/[\[\(](?:IPv6:)?([0-9a-f:.]+)[\]\)]/i', $line, $ipMatches)) {
+				foreach ($ipMatches[1] as $rawIp) {
+					if (filter_var($rawIp, FILTER_VALIDATE_IP)) {
+						$ips[] = $rawIp;
 					}
 				}
 			}
 
-			// Try to extract hostname from "from" or "by"
-			if (preg_match('/(?:from|by)\s+([a-z0-9\.\-]+\.[a-z]{2,})/i', $line, $hostMatch)) {
+			// sender from "from"; "by" (the receiving host) only for hops without an IP
+			if (preg_match('/\bfrom\s+([a-z0-9\.\-]+\.[a-z]{2,})/i', $line, $hostMatch)
+				|| (empty($ips) && preg_match('/\bby\s+([a-z0-9\.\-]+\.[a-z]{2,})/i', $line, $hostMatch))) {
 				$host = strtolower($hostMatch[1]);
 			}
 
