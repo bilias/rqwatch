@@ -232,6 +232,7 @@ class MapController extends ViewController
 
 		foreach ($map_configs as $key => $map_config) {
 			$map_configs[$key]['map_entries'] = $map_config->MapsCustom->count();
+			$map_configs[$key]['protected'] = MapService::isProtectedMap($map_config->map_name);
 		}
 
 		return new Response($this->twig->render('maps_custom_config.twig', [
@@ -348,6 +349,16 @@ class MapController extends ViewController
 			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 		}
 
+		$customMap = CustomMapConfig::find($id);
+		if (is_null($customMap)) {
+			$this->flashbag->add('error', 'Custom map not found!');
+			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
+		}
+		if (MapService::isProtectedMap($customMap->map_name)) {
+			$this->flashbag->add('error', "Custom map '{$customMap->map_name}' is the virus skip map and cannot be edited");
+			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -367,7 +378,7 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$customMapConfig = CustomMapConfig::find($id)->toArray();
+		$customMapConfig = $customMap->toArray();
 
 		$mapform = CustomMapConfigForm::create($this->formFactory, $this->request, $customMapConfig);
 
@@ -863,6 +874,12 @@ class MapController extends ViewController
 			$this->flashbag->add('error', 'Custom map not found!');
 			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 		}
+
+		if (MapService::isProtectedMap($custom_map->map_name)) {
+			$this->flashbag->add('error', "Custom map '{$custom_map->map_name}' is the virus skip map and cannot be deleted");
+			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
+		}
+
 		$service = $this->getMapService();
 		if ($service->delCustomMap($id)) {
 			$this->flashbag->add('success', "Custom Map '{$custom_map->map_name}' deleted.");

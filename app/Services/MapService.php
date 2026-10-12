@@ -211,6 +211,12 @@ class MapService
 		return $map;
 	}
 
+	// the active virus skip map's definition cannot be edited or deleted
+	public static function isProtectedMap(string $map_name): bool {
+		$active = self::activeVirusSkipMap();
+		return $active !== null && strcasecmp($active, trim($map_name)) === 0;
+	}
+
 	// enabled patterns of the active virus skip map; [] when inactive, null on a query error
 	public static function getVirusSkipPatterns(): ?array {
 		$map = self::activeVirusSkipMap();
@@ -997,6 +1003,11 @@ class MapService
 
 		$org_map_name = $customMapConfig->map_name;
 
+		if (self::isProtectedMap($org_map_name)) {
+			$this->logger->error("[updateCustomMapConfig] '{$org_map_name}' is the virus skip map, refusing edit");
+			return false;
+		}
+
 		// Update custom_map_config
 		$customMapConfig->fill($data);
 		try {
@@ -1046,6 +1057,11 @@ class MapService
 	public function delCustomMap(int $id): bool {
 		$custom_map = CustomMapConfig::find($id);
 		if (is_null($custom_map)) {
+			return false;
+		}
+
+		if (self::isProtectedMap($custom_map->map_name)) {
+			$this->logger->error("[delCustomMap] '{$custom_map->map_name}' is the virus skip map, refusing delete");
 			return false;
 		}
 
