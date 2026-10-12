@@ -3,7 +3,12 @@
 ## Master Dev Branch
 
 ### 2026-10-12
-- Add users.session_version migration
+- SEC FIX: sessions kept a user's aliases and admin rights from login time,
+  so removed aliases or admin changes only took effect after logout. A user's
+  sessions now end when an alias of theirs is deleted or an admin changes
+  their username, email, password, admin flag or auth provider, and when the
+  user is deleted. Run `php bin/cli.php db:migrate_session_version`
+  (instant; no one is logged out); until then behaviour is unchanged.
 - Fix: Sender-controlled attachment filename can make attachment-open requests fail
 - Cap max mail relays that can be DNS resolved in details page
 
