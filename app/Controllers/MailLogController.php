@@ -582,6 +582,7 @@ class MailLogController extends ViewController
 			'virus_skip' => $virus_skip,
 			'notified_expired' => $notified_expired,
 			'admin_notifications' => $admin_notifications,
+			'admin_notifications_enabled' => !empty(Helper::adminNotificationRcpt()),
 			'admin_notified_expired' => $admin_notified_expired,
 			'fuzzy_enabled' => $fuzzy_enabled,
 			'fuzzy' => $fuzzy,

@@ -1502,11 +1502,17 @@ class MailLogService
 		$ids = array_values(array_unique(array_map('intval', $ids)));
 		$updated = 0;
 
+		// an admin skip is dated: admin_notified NULL without a date was never enabled
+		$values = [$column => null];
+		if ($column === 'admin_notified') {
+			$values['admin_notify_date'] = date("Y-m-d H:i:s");
+		}
+
 		try {
 			foreach (array_chunk($ids, 1000) as $chunk) {
 				$updated += MailLog::whereIn('id', $chunk)
 					->where($column, 0)
-					->update([$column => null]);
+					->update($values);
 			}
 		} catch (Exception $e) {
 			$this->logger->error("Failed to mark skipped {$column}: " . $e->getMessage());
