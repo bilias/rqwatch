@@ -33,6 +33,7 @@ use App\Models\MailLog;
 use App\Services\MailLogService;
 use App\Services\FuzzyService;
 use App\Services\UserService;
+use App\Services\MapService;
 
 use App\Inventory\MapInventory;
 
@@ -541,6 +542,11 @@ class MailLogController extends ViewController
 
 		$blacklisted = Helper::checkForBlacklist($ar['log']->symbols ?? []);
 
+		// virus skip map entry matching this mail; only mails with an antivirus symbol can match
+		$virus_skip = $ar['log']->has_virus
+			? Helper::virusSkipMatch($ar['log']->symbols ?? [], MapService::getVirusSkipPatterns() ?? [])
+			: null;
+
 		// still pending, but past notification_days: the cron will not retry it
 		$notification_cutoff = MailLogService::notificationCutoff();
 		$notified_expired = $ar['log']->notification_pending
@@ -573,6 +579,7 @@ class MailLogController extends ViewController
 			'log' => $ar['log'],
 			'notifications_disabled' => $notifications_disabled,
 			'blacklisted' => $blacklisted,
+			'virus_skip' => $virus_skip,
 			'notified_expired' => $notified_expired,
 			'admin_notifications' => $admin_notifications,
 			'admin_notified_expired' => $admin_notified_expired,

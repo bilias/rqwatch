@@ -227,6 +227,8 @@ No
 No
 {% elseif blacklisted %}
 No (Blacklisted)
+{% elseif virus_skip is not null %}
+No (Virus{% if is_admin %} skip map: {{ virus_skip }}{% endif %})
 {% elseif log.score > NOTIFICATION_SCORE %}
 No (Disabled due to high score)
 {% elseif notifications_disabled %}
@@ -249,6 +251,8 @@ Pending
 No
 {% elseif blacklisted %}
 No (Blacklisted)
+{% elseif virus_skip is not null %}
+No (Virus skip map: {{ virus_skip }})
 {% elseif log.score > NOTIFICATION_SCORE %}
 No (Disabled due to high score)
 {% elseif log.admin_notified is null %}
