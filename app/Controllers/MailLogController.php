@@ -499,7 +499,6 @@ class MailLogController extends ViewController
 		}
 
 		$stripped_mail_location = null;
-		$mailreleaseform_t = null;
 
 		if (!empty($ar['log']->mail_location)) {
 			$stripped_mail_location = Helper::stripBasePath($this->quarantine_dir, $ar['log']->mail_location);
@@ -509,25 +508,7 @@ class MailLogController extends ViewController
 			}
 		}
 
-		// mail is in quarantine
-		if ($ar['log']->mail_stored && !empty($ar['log']->mail_location)) {
-			$form_data = array(
-				'id' => $ar['log']->id,
-				'email' => $ar['log']->mail_recipients,
-			);
-
-			// mailreleaseform submit goes to seperate method releaseMail()
-			$options = ['action' => $this->getReleaseUrl($ar['log']->id)];
-
-			$mailreleaseform = MailReleaseForm::create($this->formFactory, $this->request, $form_data, $options);
-			$mailreleaseform_t = $mailreleaseform->createView();
-		}
-
-		$mailreleaseform_disabled=false;
-		if (empty($_ENV['MAILER_FROM'])) {
-			$this->fileLogger->error('MAILER_FROM is empty. Please define it in .env');
-			$mailreleaseform_disabled=true;
-		}
+		[$mailreleaseform_t, $mailreleaseform_disabled] = $this->releaseFormView($ar['log']);
 
 		$ip_country = Helper::getCountry($ar['log']->ip);
 
@@ -751,7 +732,7 @@ class MailLogController extends ViewController
 
 	public function showMail(int $id): Response {
 		// enable form rendering support
-		$this->twigView();
+		$this->twigFormView($this->request);
 
 		$error = null;
 		$service = $this->getMailLogService();
@@ -767,6 +748,8 @@ class MailLogController extends ViewController
 
 		$htmlBody = Helper::normalizeToUtf8($mailobject->getHtmlBody());
 
+		[$mailreleaseform, $mailreleaseform_disabled] = $this->releaseFormView($mailobject->getMailLog());
+
 		$attached = $mailobject->getAttached();
 		foreach ($attached as &$attach) {
 			$attach['inline_safe'] = $this->isInlineSafeType($attach['filetype']);
@@ -781,6 +764,8 @@ class MailLogController extends ViewController
 			'log' => $mailobject->getMailLog(),
 			'virus_found' => $mailobject->getVirusFound(),
 			'symbols' => $mailobject->getSymbols(),
+			'mailreleaseform' => $mailreleaseform,
+			'mailreleaseform_disabled' => $mailreleaseform_disabled,
 			'error' => $error,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
@@ -1169,6 +1154,28 @@ class MailLogController extends ViewController
 		$ext = pathinfo($filename, PATHINFO_EXTENSION);
 		$fallback = md5($filename) . (preg_match('/^[A-Za-z0-9]{1,10}$/', $ext) ? ".{$ext}" : '');
 		return [$filename, $fallback];
+	}
+
+	// release form of a quarantined mail for the detail and mail pages: [view or null, disabled]
+	// it posts to releaseMail(), which re-checks access and recipients
+	private function releaseFormView(MailLog $log): array {
+		$view = null;
+		if ($log->mail_stored && !empty($log->mail_location)) {
+			$form = MailReleaseForm::create(
+				$this->formFactory,
+				$this->request,
+				['id' => $log->id, 'email' => $log->mail_recipients],
+				['action' => $this->getReleaseUrl($log->id)]
+			);
+			$view = $form->createView();
+		}
+
+		$disabled = empty($_ENV['MAILER_FROM']);
+		if ($disabled) {
+			$this->fileLogger->error('MAILER_FROM is empty. Please define it in .env');
+		}
+
+		return [$view, $disabled];
 	}
 
 	private function isInlineSafeType(string $filetype): bool {
