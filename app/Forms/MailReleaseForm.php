@@ -48,7 +48,8 @@ class MailReleaseForm extends AbstractType
 					 'invalid_message' => 'Please enter a valid E-mail address',
 					 'attr' => [
 						'class' => 'email',
-						'title' => 'Enter alternative e-mail for release',
+						'title' => 'Enter alternative e-mail(s) for release, comma separated',
+						'multiple' => 'multiple',
 					 ],
             ])
 				->add('release', CheckboxType::class, [

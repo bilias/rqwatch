@@ -691,7 +691,7 @@ class MailLogController extends ViewController
 
 			// add original recipient checked
 			if (!empty($data['release']) and !empty($data['email'])) {
-				$release_to[] = $data['email'];
+				$release_to = array_merge($release_to, array_filter($rcptToList));
 			}
 			if (!empty($data['release_alt']) and empty($data['email_alt'])) {
 				$this->flashbag->add('error', "Cannot release to empty alternate recipient");
@@ -702,8 +702,14 @@ class MailLogController extends ViewController
 				return $this->getDetailIdResponse($maillog->id);
 			}
 			if (!empty($data['release_alt']) and !empty($data['email_alt'])) {
-				$release_to[] = $data['email_alt'];
+				$alt = Helper::parseEmailList($data['email_alt']);
+				if ($alt === null) {
+					$this->flashbag->add('error', "Invalid alternate recipient address");
+					return $this->getDetailIdResponse($maillog->id);
+				}
+				$release_to = array_merge($release_to, $alt);
 			}
+			$release_to = array_values(array_unique($release_to));
 
 			// Mail stored locally
 			if ($_ENV['MY_API_SERVER_ALIAS'] === $maillog->server) {

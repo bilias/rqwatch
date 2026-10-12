@@ -193,6 +193,20 @@ class Helper {
 		return false;
 	}
 
+	// comma-separated addresses, trimmed, lowercased and deduplicated; null if empty or any is invalid
+	public static function parseEmailList(string $list): ?array {
+		$emails = array_filter(
+			array_map(fn ($e) => strtolower(trim($e)), explode(',', $list)),
+			fn ($e) => $e !== ''
+		);
+		foreach ($emails as $e) {
+			if (filter_var($e, FILTER_VALIDATE_EMAIL) === false) {
+				return null;
+			}
+		}
+		return empty($emails) ? null : array_values(array_unique($emails));
+	}
+
 	// $admin_notification_rcpt as a list; invalid addresses are dropped
 	public static function adminNotificationRcpt(): array {
 		$rcpt = array_map('trim', explode(',', (string) Config::get('admin_notification_rcpt')));

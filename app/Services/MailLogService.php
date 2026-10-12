@@ -1188,8 +1188,14 @@ class MailLogService
 
 		$text_part = Helper::getReleaseText($vars);
 
-		// make array of recipients
-		$recipients = array_map('trim', explode(',', $release_to[0]));
+		// one address per entry; a comma-joined entry is still split
+		$recipients = array_values(array_unique(array_filter(
+			array_map('trim', explode(',', implode(',', $release_to)))
+		)));
+		if (empty($recipients)) {
+			$this->logger->error("[releaseHtmlMail] {$maillog->qid}: no recipient");
+			return false;
+		}
 
 		$send_mail = $mailer->sendTemplatedEmail(
 			$from,
