@@ -25,6 +25,7 @@ use App\Core\Database\Migrations\AdminNotified;
 use App\Core\Database\Migrations\MailLogFuzzyMigration;
 use App\Core\Database\Migrations\MailLogFuzzyHits;
 use App\Core\Database\Migrations\EverStored;
+use App\Core\Database\Migrations\SessionVersion;
 
 use InvalidArgumentException;
 
@@ -44,6 +45,7 @@ class Migrations
 	public const string MAIL_LOG_FUZZY = '20261007_mail_log_fuzzy';
 	public const string MAIL_LOG_FUZZY_HITS = '20261008_mail_log_fuzzy_hits';
 	public const string EVER_STORED = '20261010_ever_stored';
+	public const string SESSION_VERSION = '20261012_session_version';
 
 	public const array MIGRATIONS = [
 		self::MAIL_RECIPIENTS,
@@ -60,6 +62,7 @@ class Migrations
 		self::MAIL_LOG_FUZZY,
 		self::MAIL_LOG_FUZZY_HITS,
 		self::EVER_STORED,
+		self::SESSION_VERSION,
 	];
 
 	public const array REQUIRED = [
@@ -109,6 +112,7 @@ class Migrations
 		self::MAIL_LOG_FUZZY => MailLogFuzzyMigration::class,
 		self::MAIL_LOG_FUZZY_HITS => MailLogFuzzyHits::class,
 		self::EVER_STORED => EverStored::class,
+		self::SESSION_VERSION => SessionVersion::class,
 	];
 
 	public const array MIGRATION_DESCR = [
@@ -126,6 +130,7 @@ class Migrations
 		self::MAIL_LOG_FUZZY => "Mail Log Fuzzy",
 		self::MAIL_LOG_FUZZY_HITS => "Mail Log Fuzzy hit and updated_at columns",
 		self::EVER_STORED => "Mail Log ever_stored column and index",
+		self::SESSION_VERSION => "Users session_version column",
 	];
 
 	public const array MIGRATION_BATCH = [
@@ -143,6 +148,7 @@ class Migrations
 		self::MAIL_LOG_FUZZY => 0,
 		self::MAIL_LOG_FUZZY_HITS => 0,
 		self::EVER_STORED => 0,
+		self::SESSION_VERSION => 0,
 	];
 
 	public const array MIGRATION_SLEEP = [
@@ -160,6 +166,7 @@ class Migrations
 		self::MAIL_LOG_FUZZY => 200000,
 		self::MAIL_LOG_FUZZY_HITS => 200000,
 		self::EVER_STORED => 200000,
+		self::SESSION_VERSION => 200000,
 	];
 
 	public const array MIGRATION_HELP = [
@@ -177,6 +184,7 @@ class Migrations
 		self::MAIL_LOG_FUZZY => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::MAIL_LOG_FUZZY_HITS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::EVER_STORED => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
+		self::SESSION_VERSION => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 	];
 
 	public const string STATUS_PENDING   = 'pending';

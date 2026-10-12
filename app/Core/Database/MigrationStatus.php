@@ -271,6 +271,10 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::EVER_STORED);
 	}
 
+	public function sessionVersionCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::SESSION_VERSION);
+	}
+
 	public function getAllMigrationStates(): array {
 		$states = [];
 

@@ -1,0 +1,4 @@
+# SQL
+ALTER TABLE `users`
+  ADD COLUMN `session_version` int(10) unsigned NOT NULL DEFAULT 0 AFTER `password`,
+  ALGORITHM=INSTANT;

@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-12
+- Add users.session_version migration
 - Fix: Sender-controlled attachment filename can make attachment-open requests fail
 - Cap max mail relays that can be DNS resolved in details page
 

@@ -18,6 +18,7 @@ CREATE TABLE users (
  `last_login` datetime DEFAULT NULL,
  `auth_provider` tinyint(3) unsigned NOT NULL DEFAULT 0,
  `password` VARCHAR(255) NOT NULL,
+ `session_version` int(10) unsigned NOT NULL DEFAULT 0,
  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   KEY `username_index` (`username`)
@@ -266,4 +267,5 @@ INSERT INTO `migrations` VALUES
 ('20261005_admin_notified','completed',NOW()),
 ('20261007_mail_log_fuzzy','completed',NOW()),
 ('20261008_mail_log_fuzzy_hits','completed',NOW()),
-('20261010_ever_stored','completed',NOW());
+('20261010_ever_stored','completed',NOW()),
+('20261012_session_version','completed',NOW());

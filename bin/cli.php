@@ -40,6 +40,7 @@ use App\Console\MigrateAdminNotified;
 use App\Console\MigrateMailLogFuzzy;
 use App\Console\MigrateMailLogFuzzyHits;
 use App\Console\MigrateEverStored;
+use App\Console\MigrateSessionVersion;
 
 use App\Console\MigrateDb;
 use App\Console\OptimizeTable;
@@ -72,6 +73,7 @@ $application->add(new MigrateAdminNotified());
 $application->add(new MigrateMailLogFuzzy());
 $application->add(new MigrateMailLogFuzzyHits());
 $application->add(new MigrateEverStored());
+$application->add(new MigrateSessionVersion());
 $application->add(new MigrateDb());
 
 $application->run();
