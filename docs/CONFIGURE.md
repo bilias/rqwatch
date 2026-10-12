@@ -452,6 +452,10 @@ If an email is quarantined and a notification must be sent (according to setting
   Links work once by default; see `$notification_links_one_time`.\
   Default is `false`
 
+If the SMTP server in `MAILER_DSN` scans submitted mail (e.g. clamav-milter),
+releasing a virus-flagged message is refused. Exempt the `MAILER_DSN` login,
+e.g. clamav-milter `SkipAuthenticated ^rqwatch@example\.com$`.
+
 ### Redis Settings
 Rqwatch supports Redis for saving login sessions, caching configuration
 (`config.php` and `config.local.php`), caching of Rspamd statistics,
