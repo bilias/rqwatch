@@ -179,7 +179,6 @@ class Router
 			} else {
 				// user is NOT authenticated
 				// redirect to login page
-				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 				return new RedirectResponse($loginUrl);
 				//$response = new Response('Route Not Found', 404);
 			}
