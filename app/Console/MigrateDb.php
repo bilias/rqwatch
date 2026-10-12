@@ -70,8 +70,8 @@ class MigrateDb extends MigrateCliCommand
 			// completed and verified
 			if (!$force && $migration->isApplied()) {
 				$output->writeln(
-					"<info>Migration $details is already applied</info>"
-				);
+					"<info>Migration $details is already applied</info>",
+					OutputInterface::VERBOSITY_VERBOSE);
 				continue;
 			}
 
