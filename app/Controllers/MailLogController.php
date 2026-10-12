@@ -696,14 +696,6 @@ class MailLogController extends ViewController
 			// Mail stored locally
 			if ($_ENV['MY_API_SERVER_ALIAS'] === $maillog->server) {
 				$success = $service->releaseHtmlMail($release_to, $maillog, $this->twig);
-				if ($success) {
-					$this->fileLogger->info("Message {$maillog->qid} released to '" .
-						implode(', ', $release_to) . "' by '" . $this->email .
-						"' via local web/api");
-					$this->syslogLogger->info("Message {$maillog->qid} released to '" .
-						implode(', ', $release_to) . "' by '" . $this->email .
-						"' via local web/api");
-				}
 			// Mail stored in remote server. Call their API
 			} else {
 				$success = $service->releaseMailViaApi(
@@ -715,6 +707,12 @@ class MailLogController extends ViewController
 			}
 
 			if ($success) {
+				// per-mail trail of who released it; a remote node also logs its own send
+				$msg = "Message {$maillog->qid} released to '" . implode(', ', $release_to)
+					. "' by '{$this->email}' from '" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+					. "' via web (sent by {$maillog->server})";
+				$this->fileLogger->info($msg);
+				$this->syslogLogger->info($msg);
 				$this->flashbag->add('success', 
 					"Mail {$maillog->qid} released to " .
 					implode(', ', $release_to));
