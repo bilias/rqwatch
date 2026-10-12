@@ -1025,7 +1025,7 @@ class MailLogService
 			$mail_file = $response->getContent(false); // Don't throw on error status
 
 			if ($statusCode === Response::HTTP_FORBIDDEN) {
-				$this->logger->error("{$lf} wrong response code: {$statusCode} Forbidden, from API server '{$api_server}'. API server said: " . PHP_EOL . "'" . mb_strimwidth($mail_file, 0, 200, '...') . "'");
+				$this->logger->error("{$lf} wrong response code: {$statusCode} Forbidden, from API server '{$api_server}'. API server said: '" . mb_strimwidth($mail_file, 0, 200, '...') . "'");
 				// our API returns this
 				if ($mail_file == 'Permission denied') {
 					$this->logger->warning("{$lf} Check local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
@@ -1288,7 +1288,7 @@ class MailLogService
 				return false;
 			} else if ($statusCode === Response::HTTP_FORBIDDEN) {
 				$error_msg = $response->getContent(false); // Don't throw on error status
-				$this->logger->error("{$lf} wrong response code: {$statusCode} Forbidden, from API server '{$api_server}'. API server said: " . PHP_EOL . "'{$error_msg}'");
+				$this->logger->error("{$lf} wrong response code: {$statusCode} Forbidden, from API server '{$api_server}'. API server said: '" . mb_strimwidth($error_msg, 0, 200, '...') . "'");
 				// our API returns this
 				if ($error_msg == 'Permission denied') {
 					$this->logger->warning("{$lf} Check local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL");
@@ -1299,7 +1299,7 @@ class MailLogService
 				return false;
 			} else {
 				$error_msg = mb_strimwidth($response->getContent(false), 0, 200, '...'); // Don't throw on error status
-				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. 'API server said: {$error_msg}'");
+				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. API server said: '{$error_msg}'");
 				return false;
 			}
 		// SSL/TLS problems
