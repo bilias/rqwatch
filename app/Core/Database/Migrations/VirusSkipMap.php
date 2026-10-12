@@ -91,7 +91,7 @@ class VirusSkipMap extends AbstractMigration {
 
 		$this->capsule->table(AppConfig::CUSTOM_MAP_CONFIG_TABLE)->insert([
 			'map_name' => $map,
-			'map_description' => 'Virus names (no user notification)',
+			'map_description' => 'Virus no notification',
 			'field_name' => 'virus',
 			'field_label' => 'Antivirus symbol or virus name',
 		]);

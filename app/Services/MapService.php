@@ -202,6 +202,33 @@ class MapService
 		return $field;
 	}
 
+	// configured virus skip map, or null while disabled or not yet migrated
+	public static function activeVirusSkipMap(): ?string {
+		$map = trim((string) Config::get('notification_skip_virus_map'));
+		if ($map === '' || !App::migrationStatus()->virusSkipMapCompleted()) {
+			return null;
+		}
+		return $map;
+	}
+
+	// enabled patterns of the active virus skip map; [] when inactive, null on a query error
+	public static function getVirusSkipPatterns(): ?array {
+		$map = self::activeVirusSkipMap();
+		if ($map === null) {
+			return [];
+		}
+
+		try {
+			return MapCustom::where('map_name', $map)
+				->where('disabled', 0)
+				->pluck('pattern')
+				->all();
+		} catch (Throwable $e) {
+			App::fileLogger()->error("[getVirusSkipPatterns] Query error: " . $e->getMessage());
+			return null;
+		}
+	}
+
 	public function searchPaginatedMapCombined(
 		int $page,
 		string $url,

@@ -20,7 +20,7 @@ use App\Inventory\Migrations;
 
 #[AsCommand(
 	name: 'db:migrate_virus_skip_map',
-	description: 'Create the custom map of viruses that get no user notification',
+	description: 'Create the custom map of viruses that get no notification',
 	help: 'This command creates the custom map named by $notification_skip_virus_map, and refuses if a map with that name already exists',
 )]
 class MigrateVirusSkipMap extends MigrateCliCommand

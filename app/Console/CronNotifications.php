@@ -27,6 +27,7 @@ use App\Core\App;
 use App\Utils\Helper;
 use App\Services\MailLogService;
 use App\Services\UserService;
+use App\Services\MapService;
 
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Generator\UrlGenerator;
@@ -159,6 +160,37 @@ class CronNotifications extends RqwatchCliCommand
 			$logs = $logs->reject(function ($log) {
 				return Helper::checkForBlacklist($log->symbols ?? []);
 			});
+		}
+
+		// mails whose antivirus symbol or virus name is in the virus skip map.
+		// A read error stops the run: skips are final, a sent notification is not undone
+		$virusPatterns = MapService::getVirusSkipPatterns();
+		if ($virusPatterns === null) {
+			$output->writeln("<error>Could not read the virus skip map{$local}</error>");
+			$this->fileLogger->error("{$this->app_name} Could not read the virus skip map{$local}");
+			$this->printRuntime($output);
+			return Command::FAILURE;
+		}
+
+		if (!empty($virusPatterns)) {
+			$matched = [];
+			[$removedLogs, $logs] = $logs->partition(function ($log) use ($virusPatterns, &$matched) {
+				$pattern = Helper::virusSkipMatch($log->symbols ?? [], $virusPatterns);
+				if ($pattern === null) {
+					return false;
+				}
+				$matched[$log->id] = $pattern;
+				return true;
+			});
+
+			$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
+
+			foreach ($matched as $id => $pattern) {
+				$output->writeln("<comment>Virus skip map entry '{$pattern}' matched id: {$id}</comment>, disabling notification{$local}",
+					OutputInterface::VERBOSITY_VERBOSE);
+				$this->fileLogger->debug("{$this->app_name} Virus skip map entry '{$pattern}' matched id: {$id}, disabling notification{$local}");
+			}
+			unset($removedLogs, $matched);
 		}
 
 		// Filter out logs for users with notifications disabled
@@ -354,10 +386,18 @@ class CronNotifications extends RqwatchCliCommand
 
 		$notification_score = Config::get('notification_score');
 
+		$virusPatterns = MapService::getVirusSkipPatterns();
+		if ($virusPatterns === null) {
+			$output->writeln("<error>Could not read the virus skip map, no admin notifications sent{$local}</error>");
+			$this->fileLogger->error("{$this->app_name} Could not read the virus skip map, no admin notifications sent{$local}");
+			return 1;
+		}
+
 		[$skipped, $logs] = $logs->partition(fn ($log) =>
 			(!$send_blacklisted && Helper::checkForBlacklist($log->symbols ?? []))
 			|| ($log->score > $notification_score
 				&& !($blacklisted_any_score && Helper::checkForBlacklist($log->symbols ?? [])))
+			|| (!empty($virusPatterns) && Helper::virusSkipMatch($log->symbols ?? [], $virusPatterns) !== null)
 		);
 
 		// skips are final, but only a sending run records them

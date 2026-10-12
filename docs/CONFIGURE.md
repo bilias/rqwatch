@@ -663,6 +663,14 @@ based on action taken by Rspamd\
 - `$notification_score` - Mails with score higher than this don't get notifications.\
  Default is `50.1`
 
+- `$notification_skip_virus_map` - Custom map whose entries stop notifications
+  for mails with a matching antivirus symbol or virus name, e.g. `SECURITE_SPAM` or
+  `SecuriteInfo.com.Spam-*`. Entries are case-insensitive globs. Applies to user and
+  admin notifications.\
+  The map is created by db:migrate_virus_skip_map, which refuses if a map with that
+  name already exists. Empty disables.\
+  Default is `"rqwatch_virus_no_notify"`
+
 - `$notification_days` - Retry and catch-up window: pending notifications
  older than this many days are no longer sent. Use `0` for no limit.\
  Default is `7`

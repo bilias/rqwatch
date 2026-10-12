@@ -132,7 +132,7 @@ CREATE TABLE custom_map_config (
 
 INSERT INTO `custom_map_config`
   (`map_name`, `map_description`, `field_name`, `field_label`) VALUES
-  ('rqwatch_virus_no_notify', 'Virus names (no user notification)', 'virus', 'Antivirus symbol or virus name');
+  ('rqwatch_virus_no_notify', 'Virus no notification', 'virus', 'Antivirus symbol or virus name');
 
 DROP TABLE IF EXISTS `mail_log_fuzzy`;
 

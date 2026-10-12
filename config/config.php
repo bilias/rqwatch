@@ -192,7 +192,7 @@ $admin_notify_mail_subject = "[Admin] New message stored in quarantine";
 # Mails with score more than this don't get notifications
 $notification_score = 50.1;
 
-# Custom map of antivirus symbols or virus names whose mails get no user notification.
+# Custom map of antivirus symbols or virus names whose mails get no notification, user or admin.
 # Entries are case-insensitive globs, e.g. SECURITE_SPAM or SecuriteInfo.com.Spam-*
 # The map is created by db:migrate. Empty disables.
 $notification_skip_virus_map = "rqwatch_virus_no_notify";
