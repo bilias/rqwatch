@@ -23,14 +23,10 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use App\Configuration\Config;
 
-use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
 class LoginForm extends AbstractType
@@ -86,23 +82,4 @@ class LoginForm extends AbstractType
 		return FormHelper::formCreator($formFactory, $request, self::class);
 	}
 
-	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
-		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData();
-			$username = $data['username'];
-			$password = $data['password'];
-
-			$url = $urlGenerator->generate(RouteName::LOGIN->value, [
-				'username' => $username,
-				'password' => $password,
-			]);
-			return new RedirectResponse($url);
-         /*
-         $response = new RedirectResponse($url);
-         $response->prepare($this->request);
-         return $response->send();
-         */
-      }
-		return null;
-	}
 }
