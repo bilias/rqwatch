@@ -63,7 +63,7 @@ class QuarantineController extends ViewController
 
 		$handle = bin2hex(random_bytes(16));
 		$handles = $this->session->get(self::SESSION_KEY, []);
-		$handles[$handle] = ['hash' => $tokenRow->token_hash, 'redeemed' => false];
+		$handles[$handle] = ['hash' => $tokenRow->token_hash, 'redeemed' => false, 'seen' => time()];
 		$this->session->set(self::SESSION_KEY, array_slice($handles, -self::SESSION_MAX, null, true));
 
 		// a planted session id must not inherit the handle
@@ -220,11 +220,22 @@ class QuarantineController extends ViewController
 
 	// the token row behind a handle stored by link() in this session
 	private function sessionToken(string $handle): ?MailLogToken {
-		$hash = $this->session->get(self::SESSION_KEY, [])[$handle]['hash'] ?? null;
+		$handles = $this->session->get(self::SESSION_KEY, []);
+		$hash = $handles[$handle]['hash'] ?? null;
 
 		if (!is_string($hash)) {
 			return null;
 		}
+
+		// idle handles expire on their own, whatever the session lifetime
+		if (time() - ($handles[$handle]['seen'] ?? 0) > MailTokenService::idleSeconds()) {
+			unset($handles[$handle]);
+			$this->session->set(self::SESSION_KEY, $handles);
+			return null;
+		}
+
+		$handles[$handle]['seen'] = time();
+		$this->session->set(self::SESSION_KEY, $handles);
 
 		return $this->getTokenService()->findValidTokenByHash($hash);
 	}
@@ -243,7 +254,8 @@ class QuarantineController extends ViewController
 			return false;
 		}
 
-		$handles[$handle] = ['hash' => $newHash, 'redeemed' => true];
+		$handles[$handle]['hash'] = $newHash;
+		$handles[$handle]['redeemed'] = true;
 		$this->session->set(self::SESSION_KEY, $handles);
 		$tokenRow->token_hash = $newHash;
 

@@ -44,6 +44,8 @@ class MailTokenService
 	// sha256 hex digest of the token, as stored in token_hash
 	private const string TOKEN_FORMAT = '/^[a-f0-9]{64}$/';
 
+	private const int DEFAULT_IDLE_MINUTES = 10;
+
 	private LoggerInterface $logger;
 
 	public function __construct() {
@@ -62,6 +64,14 @@ class MailTokenService
 	 */
 	public static function isOneTime(): bool {
 		return (bool) (Config::get('notification_links_one_time') ?? true);
+	}
+
+	/*
+	 * Seconds a link stays usable in its browser session without a page load.
+	 */
+	public static function idleSeconds(): int {
+		$minutes = (int) (Config::get('notification_links_idle_minutes') ?? self::DEFAULT_IDLE_MINUTES);
+		return 60 * ($minutes < 1 ? self::DEFAULT_IDLE_MINUTES : $minutes);
 	}
 
 	/*

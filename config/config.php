@@ -206,6 +206,10 @@ $admin_notification_days = 3;
 # Set to false to let a link be reopened until the message is released.
 $notification_links_one_time = true;
 
+# Minutes a notification link stays usable in its browser session without a
+# page load. Values below 1 fall back to 10.
+$notification_links_idle_minutes = 10;
+
 # Default mail signature
 $mail_signature = $APP_NAME;
 

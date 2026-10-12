@@ -669,6 +669,10 @@ based on action taken by Rspamd\
   that browser session. Set to `false` to let a link be reopened until the message is released.\
   Default is `true`
 
+- `$notification_links_idle_minutes` - Minutes a notification link stays usable in its
+  browser session without a page load. Values below 1 fall back to 10.\
+  Default is `10`
+
 - `$mail_signature` - Default mail signature
 
 ### Failed Import Spool
