@@ -599,6 +599,7 @@ class UserController extends ViewController
 
 			$this->session->set('username', $user->username);
 			$this->session->set('user_id', $user->id);
+			$this->session->set('session_version', (int) ($user->session_version ?? 0));
 			$this->session->set('email', $user->email);
 			$this->session->set('is_admin', $user->is_admin);
 

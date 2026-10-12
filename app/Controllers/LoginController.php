@@ -475,6 +475,7 @@ class LoginController extends ViewController
 		$this->session->set('is_admin', $is_admin);
 		$this->session->set('auth_provider', $auth_provider);
 		$this->session->set('user_id', $user_id);
+		$this->session->set('session_version', (int) ($user->session_version ?? 0));
 
 		// Load user aliases and set them in session
 		$aliases = self::getMailAliases($user, $auth->getUserEmailAliases());

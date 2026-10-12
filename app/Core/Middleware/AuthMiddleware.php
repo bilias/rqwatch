@@ -10,14 +10,19 @@
 
 namespace App\Core\Middleware;
 
+use App\Core\App;
 use App\Core\Routing\RouteName;
+use App\Models\User;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 use Psr\Log\LoggerInterface;
+
+use Throwable;
 
 class AuthMiddleware
 {
@@ -34,6 +39,14 @@ class AuthMiddleware
 		// already authed
 		if ($request->hasSession() && $request->getSession()->has('username')) {
 			if (!empty($request->getSession()->get('username'))) {
+				$session = $request->getSession();
+				if (!$this->sessionStillValid($session)) {
+					$this->logger->info("Session of '" . $session->get('username') . "' ended: account changed");
+					$session->invalidate();
+					$session->getFlashBag()->add('error', 'Your account was changed, please log in again');
+					return new RedirectResponse($this->urlGenerator->generate(RouteName::LOGIN->value));
+				}
+
 				// user is already authenticated
 				return $next($request);
 			}
@@ -51,6 +64,32 @@ class AuthMiddleware
 
 		// redirect to login page
 		return new RedirectResponse($loginUrl);
+	}
+
+	// false once users.session_version was bumped by an account change, or the user is gone
+	private function sessionStillValid(SessionInterface $session): bool {
+		if (!App::migrationStatus()->sessionVersionCompleted()) {
+			return true;
+		}
+
+		try {
+			$current = User::whereKey((int) $session->get('user_id', 0))->value('session_version');
+		} catch (Throwable $e) {
+			$this->logger->error("[AuthMiddleware] session check failed: " . $e->getMessage());
+			return true;
+		}
+
+		if ($current === null) {
+			return false;
+		}
+
+		// session from before this check existed: adopt the current version
+		if (!$session->has('session_version')) {
+			$session->set('session_version', (int) $current);
+			return true;
+		}
+
+		return (int) $session->get('session_version') === (int) $current;
 	}
 
 }
