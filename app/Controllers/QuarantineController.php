@@ -79,7 +79,12 @@ class QuarantineController extends ViewController
 			return $this->tokenError();
 		}
 
-		$token = (string) $this->request->request->get('token', '');
+		// all(): get() throws on an array-valued field (token[]=...)
+		$token = $this->request->request->all()['token'] ?? '';
+
+		if (!is_string($token)) {
+			return $this->tokenError();
+		}
 
 		// an expired link is reported here, before the user clicks
 		$tokenRow = $this->getTokenService()->findValidToken($token);
