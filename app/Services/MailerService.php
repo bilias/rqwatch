@@ -33,6 +33,11 @@ class MailerService
 	private ?Environment $twig = null;
 	private LoggerInterface $logger;
 
+	// this node can send mail: both MAILER_DSN and MAILER_FROM are set
+	public static function isConfigured(): bool {
+		return !empty($_ENV['MAILER_DSN']) && !empty($_ENV['MAILER_FROM']);
+	}
+
 	public function __construct(LoggerInterface $logger, ?Environment $twig = null) {
 		$this->logger = $logger;
 

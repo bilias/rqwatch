@@ -28,6 +28,7 @@ use App\Utils\Helper;
 use App\Services\MailLogService;
 use App\Services\UserService;
 use App\Services\MapService;
+use App\Services\MailerService;
 
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Generator\UrlGenerator;
@@ -309,9 +310,9 @@ class CronNotifications extends RqwatchCliCommand
 		$failed = 0;
 
 		foreach ($logs as $log) {
-			if (empty($_ENV['MAILER_FROM'])) {
-				$output->writeln("<error>MAILER_FROM is empty. Please define it in .env{$local}</error>");
-				$this->syslogLogger->error("MAILER_FROM is empty. Please define it in .env{$local}");
+			if (!MailerService::isConfigured()) {
+				$output->writeln("<error>MAILER_DSN or MAILER_FROM is not set in .env{$local}</error>");
+				$this->syslogLogger->error("MAILER_DSN or MAILER_FROM is not set in .env{$local}");
 				return Command::FAILURE;
 			}
 
@@ -427,9 +428,9 @@ class CronNotifications extends RqwatchCliCommand
 			return 0;
 		}
 
-		if (empty($_ENV['MAILER_FROM'])) {
-			$output->writeln("<error>MAILER_FROM is empty. Please define it in .env{$local}</error>");
-			$this->syslogLogger->error("MAILER_FROM is empty. Please define it in .env{$local}");
+		if (!MailerService::isConfigured()) {
+			$output->writeln("<error>MAILER_DSN or MAILER_FROM is not set in .env{$local}</error>");
+			$this->syslogLogger->error("MAILER_DSN or MAILER_FROM is not set in .env{$local}");
 			return count($logs);
 		}
 

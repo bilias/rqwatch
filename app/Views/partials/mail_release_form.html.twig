@@ -1,39 +1,40 @@
  {% if mailreleaseform %}
 <div class='releaseform'>
+{% if mailreleaseform_disabled %}
+ <div class="row">
+  <div class='info'>Release mail from quarantine</div>
+  <div class='detail'>
+{% if is_admin %}
+<span style="color: red;">Release is disabled on this node: MAILER_DSN or MAILER_FROM is not set in .env</span>
+{% else %}
+Mail cannot be released. Contact administrator
+{% endif %}
+  </div>
+ </div>
+ </div>
+{% else %}
  {{ form_start(mailreleaseform) }}
 
  <div class="row">
   <div class='info'>Release mail from quarantine</div>
   <div class='detail'>{{ form_widget(mailreleaseform.release, {
-    'disabled': mailreleaseform_disabled|default(false),
     'id': 'release_checkbox'
 	 }) }}
   to original recipient: {{ form_widget(mailreleaseform.email) }}
   {{ form_errors(mailreleaseform.release) }}</div>
   <div class='info'>&nbsp;</div>
   <div class='detail'>{{ form_widget(mailreleaseform.release_alt, {
-    'disabled': mailreleaseform_disabled|default(false),
 	 'id': 'release_alt_checkbox'
 	 }) }}
   to alternate recipient(s): {{ form_widget(mailreleaseform.email_alt, {
-    'disabled': mailreleaseform_disabled|default(false),
     'id': 'release_alt_value'
 	 }) }}
   {{ form_errors(mailreleaseform.release_alt) }}
   {{ form_errors(mailreleaseform.email_alt) }}</div>
   <div class='info'>&nbsp;</div>
   <div class='detail'>{{ form_widget(mailreleaseform.submit, {
-    'disabled': mailreleaseform_disabled|default(false),
     'id': 'submit_button'
 	 }) }}
-{% if mailreleaseform_disabled %}
-{% if is_admin %}
-<span style="color: red;">MAILER_FROM is empty. Please define it in .env</span>
-{% else %}
-Mail cannot be released. Contact administrator
-{% endif %}
-{% endif %}
-
   </div>
  </div>
 
@@ -66,4 +67,5 @@ document.addEventListener('DOMContentLoaded', function () {
     releaseAltValue.addEventListener('input', toggleSubmit);
 });
 </script>
+{% endif %}
  {% endif %}

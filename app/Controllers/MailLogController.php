@@ -34,6 +34,7 @@ use App\Services\MailLogService;
 use App\Services\FuzzyService;
 use App\Services\UserService;
 use App\Services\MapService;
+use App\Services\MailerService;
 
 use App\Inventory\MapInventory;
 
@@ -593,12 +594,6 @@ class MailLogController extends ViewController
 	}
 
 	public function releaseMail(int $id): RedirectResponse {
-		if (empty($_ENV['MAILER_FROM'])) {
-			$this->fileLogger->error('MAILER_FROM is empty. Please define it in .env');
-			$this->flashbag->add('error', "MAILER_FROM is empty. Contact admin");
-			return new RedirectResponse($this->getHomepageUrl());
-		}
-
 		$service = $this->getMailLogService();
 
 		try {
@@ -608,6 +603,12 @@ class MailLogController extends ViewController
 			$this->syslogLogger->warning("{$this->email} tried to release mail with id: {$id}. Either mail does not exist or user does not have access to it.", ['email' => $this->email, 'is_admin' => $this->is_admin]);
 			$this->flashbag->add('error', $e->getMessage());
 			return new RedirectResponse($this->getHomepageUrl());
+		}
+
+		if ($_ENV['MY_API_SERVER_ALIAS'] === $maillog->server && !MailerService::isConfigured()) {
+			$this->fileLogger->error('MAILER_DSN or MAILER_FROM is not set in .env');
+			$this->flashbag->add('error', "Mail cannot be released. Contact administrator");
+			return $this->getDetailIdResponse($maillog->id);
 		}
 
 		$this->twigFormView($this->request);
@@ -1170,9 +1171,10 @@ class MailLogController extends ViewController
 			$view = $form->createView();
 		}
 
-		$disabled = empty($_ENV['MAILER_FROM']);
+		// a remote mail is sent by its own node, which checks its own settings
+		$disabled = $_ENV['MY_API_SERVER_ALIAS'] === $log->server && !MailerService::isConfigured();
 		if ($disabled) {
-			$this->fileLogger->error('MAILER_FROM is empty. Please define it in .env');
+			$this->fileLogger->error('MAILER_DSN or MAILER_FROM is not set in .env');
 		}
 
 		return [$view, $disabled];

@@ -1163,6 +1163,11 @@ class MailLogService
 
 	// twig can be null, it will be created
 	public function releaseHtmlMail(array $release_to, MailLog $maillog, ?Environment $twig = null): bool {
+		if (!MailerService::isConfigured()) {
+			$this->logger->error("[releaseHtmlMail] {$maillog->qid}: MAILER_DSN or MAILER_FROM is not set in .env");
+			return false;
+		}
+
 		$mailer = new MailerService($this->logger, $twig);
 		$from = $_ENV['MAILER_FROM'];
 		$signature = Config::get('mail_signature');

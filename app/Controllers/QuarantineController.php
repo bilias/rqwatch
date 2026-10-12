@@ -16,6 +16,7 @@ use App\Models\MailLogToken;
 
 use App\Services\MailLogService;
 use App\Services\MailTokenService;
+use App\Services\MailerService;
 
 use App\Utils\Helper;
 
@@ -158,7 +159,7 @@ class QuarantineController extends ViewController
 			'textBody' => $mailobject->getTextBody(),
 			'htmlBody' => Helper::normalizeToUtf8($mailobject->getHtmlBody()),
 			'virus_found' => $mailobject->getVirusFound(),
-			'release_disabled' => empty($_ENV['MAILER_FROM']),
+			'release_disabled' => $this->releaseDisabled($mailobject->getMailLog()->server),
 			//'released' => (bool) $mailobject->getMailLog()->released,
 			//'symbols' => $mailobject->getSymbols(),
 		]));
@@ -177,17 +178,6 @@ class QuarantineController extends ViewController
 			return $error;
 		}
 
-		// refused before sending, so the token stays usable once it is fixed
-		if (empty($_ENV['MAILER_FROM'])) {
-			$this->fileLogger->error(
-				"[QuarantineController] release of mail id {$tokenRow->mail_log_id} refused: "
-				. "MAILER_FROM is empty. Please define it in .env"
-			);
-			return $this->tokenMessage(
-				'This message cannot be released at the moment. Please contact your administrator.'
-			);
-		}
-
 		$service = $this->getScopedService($tokenRow);
 
 		try {
@@ -199,6 +189,17 @@ class QuarantineController extends ViewController
 				. $e->getMessage()
 			);
 			return $this->tokenError();
+		}
+
+		// refused before sending, so the token stays usable once it is fixed
+		if ($this->releaseDisabled($maillog->server)) {
+			$this->fileLogger->error(
+				"[QuarantineController] release of mail id {$tokenRow->mail_log_id} refused: "
+				. "MAILER_DSN or MAILER_FROM is not set in .env"
+			);
+			return $this->tokenMessage(
+				'This message cannot be released at the moment. Please contact your administrator.'
+			);
 		}
 
 		/*
@@ -346,6 +347,11 @@ class QuarantineController extends ViewController
 		return $this->tokenMessage(
 			'Links in notification mails are disabled. Please sign in to view this message.'
 		);
+	}
+
+	// a local mail needs this node's mailer; a remote one is sent and checked by its own node
+	private function releaseDisabled(string $server): bool {
+		return $_ENV['MY_API_SERVER_ALIAS'] === $server && !MailerService::isConfigured();
 	}
 
 	private function tokenError(): Response {

@@ -13,6 +13,7 @@ namespace App\Api;
 use App\Core\App;
 
 use App\Services\MailLogService;
+use App\Services\MailerService;
 
 use Symfony\Component\HttpFoundation\Response;
 
@@ -97,6 +98,14 @@ class ReleaseMailApi extends RqwatchApi
 				$err_msg, 'warning');
 		}
 		
+		if (!MailerService::isConfigured()) {
+			$err_msg = "Message {$maillog->qid} release refused via API by {$this->clientIp}: MAILER_DSN or MAILER_FROM is not set in .env";
+			$response_msg = "Mail release not configured";
+			$this->dropLogResponse(
+				Response::HTTP_SERVICE_UNAVAILABLE, $response_msg,
+				$err_msg, 'error');
+		}
+
 		if ($service->releaseHtmlMail($release_to, $maillog)) {
 			$runtime = $this->getRuntime();
 			$msg = "Message {$maillog->qid} released to '" .
