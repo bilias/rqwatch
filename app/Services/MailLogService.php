@@ -1034,7 +1034,7 @@ class MailLogService
 					$this->logger->warning("{$lf} Check remote web server access control as well as local and remote MAIL_API_USER, MAIL_API_PASS, MAIL_API_ACL, API_ENABLE");
 				}
 				throw new Exception("Error. Contact admin");
-			} else if ($statusCode !== Response::HTTP_OK) {
+			} elseif ($statusCode !== Response::HTTP_OK) {
 				$this->logger->error("{$lf} wrong response code: {$statusCode} from API server '{$api_server}'. API server said: '" . mb_strimwidth($mail_file, 0, 200, '...') . "'");
 				throw new Exception("Error. Contact admin");
 			}
@@ -1286,7 +1286,7 @@ class MailLogService
 				$this->logger->error("{$lf} unexpected reply from API server '{$api_server}': 200 '" .
 					mb_strimwidth($body, 0, 200, '...') . "'");
 				return false;
-			} else if ($statusCode === Response::HTTP_FORBIDDEN) {
+			} elseif ($statusCode === Response::HTTP_FORBIDDEN) {
 				$error_msg = $response->getContent(false); // Don't throw on error status
 				$this->logger->error("{$lf} wrong response code: {$statusCode} Forbidden, from API server '{$api_server}'. API server said: '" . mb_strimwidth($error_msg, 0, 200, '...') . "'");
 				// our API returns this

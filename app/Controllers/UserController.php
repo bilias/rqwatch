@@ -392,7 +392,7 @@ class UserController extends ViewController
 
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
-			} else if ($service->userExists($data['username'])) {
+			} elseif ($service->userExists($data['username'])) {
 				$this->flashbag->add('error', "User '{$data['username']}' already exists");
 			} else {
 				$newPassword = trim($userform->get('password')->getData());
@@ -497,7 +497,7 @@ class UserController extends ViewController
 			// username change and new username exists
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
-			} else if (($data['username'] !== $user->username) and
+			} elseif (($data['username'] !== $user->username) and
 			           ($service->userExists($data['username']))) {
 				$this->flashbag->add('error', "Username '{$data['username']}' already exists.");
 			} else {

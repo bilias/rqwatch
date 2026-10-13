@@ -429,7 +429,7 @@ class MapService
 			foreach ($map_fields as $field) {
 				$query = $query->where($field, $data[$field]);
 			}
-		} else if ($model === 'MapCustom') {
+		} elseif ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			//$query = $query->where('pattern', $data[$map_fields[0]]);
 			// handle multi line entries
@@ -1099,7 +1099,7 @@ class MapService
 				$query = $query->where('user_id', $this->user_id);
 			}
 
-		} else if ($model === 'MapCustom') {
+		} elseif ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('id', $id);
 		} else {
@@ -1153,7 +1153,7 @@ class MapService
 				$query = $query->where('user_id', $this->user_id);
 			}
 
-		} else if ($model === 'MapCustom') {
+		} elseif ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 		} else {
 			return false;
@@ -1201,7 +1201,7 @@ class MapService
 				$query = $query->where('user_id', $this->user_id);
 			}
 
-		} else if ($model === 'MapCustom') {
+		} elseif ($model === 'MapCustom') {
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('id', $id);
 		} else {
