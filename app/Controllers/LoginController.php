@@ -439,7 +439,7 @@ class LoginController extends ViewController
 			'session_id' => $this->session->getId(),
 		]);
 
-		if (($auth_provider === 'LDAP' || $auth_provider === 'OPENIDC')) {
+		if ($auth_provider === 'LDAP' || $auth_provider === 'OPENIDC') {
 			// update auth_provider in DB
 			if ($auth_provider_id !== $user->auth_provider) {
 				$update['auth_provider'] = $auth_provider_id;
