@@ -14,7 +14,6 @@ use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogHandler;
-use Monolog\Formatter\LineFormatter;
 
 use App\Configuration\Config;
 
@@ -47,7 +46,7 @@ class LoggerFactory
 		// %channel% removed
 		$output = "[%datetime%] %level_name%: %message% %context%\n";
 
-		$formatter = new LineFormatter($output, $dateFormat, false, true);
+		$formatter = new SafeLineFormatter($output, $dateFormat, false, true);
 		$log_file_level = Config::get('LOG_FILE_LEVEL') ?? "INFO";
 
 		$handler = new StreamHandler($log_file, $log_file_level);
@@ -72,7 +71,7 @@ class LoggerFactory
 		$handler = new SyslogHandler($log_syslog_prefix, $facility, $log_syslog_level);
 
 		$output = "%level_name%: %message% %context%";
-		$formatter = new LineFormatter($output, null, false, true);
+		$formatter = new SafeLineFormatter($output, null, false, true);
 		$handler->setFormatter($formatter);
 		$logger->pushHandler($handler);
 
