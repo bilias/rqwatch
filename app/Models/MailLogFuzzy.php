@@ -59,6 +59,7 @@ class MailLogFuzzy extends Model
 		'learned_by',
 	];
 
+	/** @return BelongsTo<MailLog, $this> */
 	public function mailLog(): BelongsTo {
 		return $this->belongsTo(
 			MailLog::class,
