@@ -67,7 +67,7 @@ final class Kernel
 			'startMemory' => $this->startMemory,
 		];
 		// load config
-		$this->loadConfig($extra_cached_data);
+		$this->bootConfig($extra_cached_data);
 
 		// connect to db
 		$this->bootDatabase();
@@ -142,7 +142,7 @@ final class Kernel
 		}
 	}
 
-	private function loadConfig(array $extra_cached_data): void {
+	private function bootConfig(array $extra_cached_data): void {
 		// load (and cache) configuration
 		Config::loadConfig(
 			fileLogger: $this->fileLogger,
