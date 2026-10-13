@@ -21,6 +21,7 @@ use App\Core\Routing\RouteName;
 use App\Utils\Helper;
 
 use RuntimeException;
+use Throwable;
 
 class OpenIDConnectAuth implements AuthInterface {
 	private LoggerInterface $logger;
@@ -270,8 +271,12 @@ class OpenIDConnectAuth implements AuthInterface {
 			return null;
 		}
 
-		$oidc = $this->createClient();
-		return $oidc->getEndSessionEndpoint();
+		try {
+			return $this->createClient()->getEndSessionEndpoint();
+		} catch (Throwable $e) {
+			$this->logger->warning("OPENIDC end_session_endpoint unavailable: " . $e->getMessage());
+			return null;
+		}
 	}
 
 }
