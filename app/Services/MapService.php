@@ -197,9 +197,7 @@ class MapService
 			return ['field_name' => '', 'field_label' => ''];
 		}
 
-		$field = $row->toArray();
-
-		return $field;
+		return $row->toArray();
 	}
 
 	// configured virus skip map, or null while disabled or not yet migrated
