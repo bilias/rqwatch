@@ -497,7 +497,7 @@ class UserController extends ViewController
 			// username change and new username exists
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
-			} elseif (($data['username'] !== $user->username) and
+			} elseif (($data['username'] !== $user->username) &&
 			           ($service->userExists($data['username']))) {
 				$this->flashbag->add('error', "Username '{$data['username']}' already exists.");
 			} else {

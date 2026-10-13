@@ -54,7 +54,7 @@ class DbAuth implements AuthInterface {
 
 	#[\Override]
 	public function authenticate(): bool {
-		if (empty($this->username) or empty($this->password)) {
+		if (empty($this->username) || empty($this->password)) {
 			return false;
 		}
 

@@ -416,11 +416,11 @@ class Helper {
 	// expects json decoded array with one symbol
 	public static function check_virus($symbol): string|false {
 
-		if (!is_array($symbol) or count($symbol) == 0) {
+		if (!is_array($symbol) || count($symbol) == 0) {
 			return false;
 		}
-		if (isset($symbol['group']) and $symbol['group'] == 'antivirus') {
-			if (isset($symbol['options']) and isset($symbol['options'][0])) {
+		if (isset($symbol['group']) && $symbol['group'] == 'antivirus') {
+			if (isset($symbol['options']) && isset($symbol['options'][0])) {
 				$virus = $symbol['options'][0];
 			} else {
 				$virus = '';
@@ -434,7 +434,7 @@ class Helper {
 	// expects json decoded array with all symbols. Untyped on purpose:
 	// MailLog's accessor passes null when mailLogData was not eager loaded
 	public static function check_virus_from_all($symbols): string|false {
-		if (!is_array($symbols) or count($symbols) == 0) {
+		if (!is_array($symbols) || count($symbols) == 0) {
 			return false;
 		}
 
@@ -603,7 +603,7 @@ class Helper {
 			 $name = $symbol['name'];
 			 $score = $symbol['score'];
 
-			 if ($has_virus and ($virus = Helper::check_virus($symbol))) {
+			 if ($has_virus && ($virus = Helper::check_virus($symbol))) {
 					$symbols[] = "$name:$score:$virus";
 					$virus_found = $virus;
 			 } elseif (isset($symbol['options'])) {
@@ -684,7 +684,7 @@ class Helper {
 	}
 
 	public static function passwordVerify(string $clear_pass, string $hash): bool {
-		if (!empty($clear_pass) and !empty($hash) and 
+		if (!empty($clear_pass) && !empty($hash) &&
 		    password_verify($clear_pass, $hash)) {
 				return true;
 		}

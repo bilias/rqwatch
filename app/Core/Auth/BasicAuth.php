@@ -27,7 +27,7 @@ class BasicAuth implements AuthInterface {
 	protected ?string $authenticatedUser = null;
 
 	public function __construct(string $username, #[SensitiveParameter] string $password, LoggerInterface $logger) {
-		if (empty($username) or empty($password)) {
+		if (empty($username) || empty($password)) {
 			throw new HttpException(500, 'API credentials not configured');
 		}
 

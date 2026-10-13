@@ -163,7 +163,7 @@ class LoginController extends ViewController
 				return new RedirectResponse($this->getLoginUrl());
 			}
 
-			if (empty($username) or empty($password)) {
+			if (empty($username) || empty($password)) {
 				$this->flashbag->add('error', 'Login credentials missing');
 				return new RedirectResponse($this->getLoginUrl());
 			}
@@ -487,10 +487,10 @@ class LoginController extends ViewController
 
 	private function getRedirectUrl(string $login_redirect): string {
 		$url = $this->getHomepageUrl();
-		if ($login_redirect !== $this->url(RouteName::LOGIN) and
-		    $login_redirect !== $this->url(RouteName::LOGOUT) and
-		    $login_redirect !== $this->url(RouteName::ADMIN_HOMEPAGE) and
-		    $login_redirect !== $this->url(RouteName::HOMEPAGE) and
+		if ($login_redirect !== $this->url(RouteName::LOGIN) &&
+		    $login_redirect !== $this->url(RouteName::LOGOUT) &&
+		    $login_redirect !== $this->url(RouteName::ADMIN_HOMEPAGE) &&
+		    $login_redirect !== $this->url(RouteName::HOMEPAGE) &&
 			 $login_redirect !== $this->getHomepageUrl()) {
 				if (str_starts_with($login_redirect, '/') && !str_starts_with($login_redirect, '//')) {
 					$url = $login_redirect;

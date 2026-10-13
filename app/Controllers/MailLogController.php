@@ -629,12 +629,12 @@ class MailLogController extends ViewController
 				return $this->getDetailIdResponse($maillog->id);
 			}
 
-			if (empty($data['release']) and empty($data['release_alt'])) {
+			if (empty($data['release']) && empty($data['release_alt'])) {
 				$this->flashbag->add('error', "No recipient checked");
 				return $this->getDetailIdResponse($maillog->id);
 			}
 
-			if (!empty($data['release']) and (empty($data['email']) or $data['email'] === 'unknown')) {
+			if (!empty($data['release']) && (empty($data['email']) || $data['email'] === 'unknown')) {
 				$this->flashbag->add('error', "Cannot release to empty of unknown original recipient. Use alternate recipient");
 				return $this->getDetailIdResponse($maillog->id);
 			}
@@ -672,18 +672,18 @@ class MailLogController extends ViewController
 			$release_to = [];
 
 			// add original recipient checked
-			if (!empty($data['release']) and !empty($data['email'])) {
+			if (!empty($data['release']) && !empty($data['email'])) {
 				$release_to = array_merge($release_to, array_filter($rcptToList));
 			}
-			if (!empty($data['release_alt']) and empty($data['email_alt'])) {
+			if (!empty($data['release_alt']) && empty($data['email_alt'])) {
 				$this->flashbag->add('error', "Cannot release to empty alternate recipient");
 				return $this->getDetailIdResponse($maillog->id);
 			}
-			if (empty($data['release_alt']) and !empty($data['email_alt'])) {
+			if (empty($data['release_alt']) && !empty($data['email_alt'])) {
 				$this->flashbag->add('error', "Alternate recipient checkbox not ticked");
 				return $this->getDetailIdResponse($maillog->id);
 			}
-			if (!empty($data['release_alt']) and !empty($data['email_alt'])) {
+			if (!empty($data['release_alt']) && !empty($data['email_alt'])) {
 				$alt = Helper::parseEmailList($data['email_alt']);
 				if ($alt === null) {
 					$this->flashbag->add('error', "Invalid alternate recipient address");

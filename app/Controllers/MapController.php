@@ -125,7 +125,7 @@ class MapController extends ViewController
 			$field_descriptions[$field] = $definition['description'];
 		}
 
-		if ($this->is_admin and $model === 'MapCustom') {
+		if ($this->is_admin && $model === 'MapCustom') {
 			$map_comb_entries = null;
 			$map_comb_total = null;
 			$map_gen_entries = null;
@@ -1268,7 +1268,7 @@ class MapController extends ViewController
 	}
 
 	private function getMapUser(?User $user = null): string {
-		if (!empty($user) and !empty($user->username)) {
+		if (!empty($user) && !empty($user->username)) {
 			return $user->username;
 		}
 		return 'Deleted user';

@@ -995,7 +995,7 @@ class MailLogService
 		// get raw mail from remote API server
 		$api_servers = Config::get('API_SERVERS');
 
-		if (!array_key_exists($api_server, $api_servers) or empty($api_servers[$api_server]['url'])) {
+		if (!array_key_exists($api_server, $api_servers) || empty($api_servers[$api_server]['url'])) {
 			Helper::debug_exception_err("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
 			throw new Exception("Error. Contact admin");
 		}
@@ -1249,7 +1249,7 @@ class MailLogService
 
 		$api_servers = Config::get('API_SERVERS');
 
-		if (!array_key_exists($api_server, $api_servers) or empty($api_servers[$api_server]['url'])) {
+		if (!array_key_exists($api_server, $api_servers) || empty($api_servers[$api_server]['url'])) {
 			$this->logger->error("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
 			return false;
 		}

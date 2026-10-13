@@ -88,7 +88,7 @@ abstract class RqwatchApi
 	protected function checkAuth(): void {
 		[$username, $password] = $this->getAuthCredentials();
 
-		if (empty($username) or empty($password)) {
+		if (empty($username) || empty($password)) {
 			$msg = "getAuthCredentials() returned empty username or password in " . static::class;
 			$this->fileLogger->error($msg);
 			throw new RuntimeException("getAuthCredentials() returned empty username or password in " .
