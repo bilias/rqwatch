@@ -947,7 +947,7 @@ Mail details:
 		$realDir = realpath($dir);
 
 		if ($realDir === false || $realQuarantine === false) {
-			self::logger()->warning("Quarantine directory problem");
+			self::logger()->warning("Quarantine directory problem: {$dir}");
 			return false;
 		}
 
