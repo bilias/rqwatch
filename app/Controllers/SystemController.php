@@ -47,13 +47,13 @@ class SystemController extends Controller
 
 			// Force reload the config and cache it again
 			Config::loadAndInitWithRedisCache(
-				App::cache(),
-				AppConfig::CONFIG_DEFAULT_PATH,
-				AppConfig::CONFIG_LOCAL_PATH,
-				[],
-				$_ENV['REDIS_CONFIG_KEY'],
-				(int) $_ENV['REDIS_CONFIG_CACHE_TTL'],
-				true
+				redis: App::cache(),
+				defaultConfigPath: AppConfig::CONFIG_DEFAULT_PATH,
+				localConfigPath: AppConfig::CONFIG_LOCAL_PATH,
+				extras: [],
+				redisKey: $_ENV['REDIS_CONFIG_KEY'],
+				ttlSeconds: (int) $_ENV['REDIS_CONFIG_CACHE_TTL'],
+				forceReload: true,
 			);
 			$this->fileLogger->info("Config reloaded and cached in Redis");
 			$this->flashbag->add('info', "Config reloaded and cached in Redis");

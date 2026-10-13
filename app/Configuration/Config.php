@@ -147,12 +147,12 @@ class Config {
 		if (Helper::env_bool('REDIS_ENABLE') && $cache !== null) {
 			try {
 				self::loadAndInitWithRedisCache(
-					$cache,
-					$defaultConfigPath,
-					$localConfigPath,
-					$extras,
-					$redisKey,
-					$ttlSeconds
+					redis: $cache,
+					defaultConfigPath: $defaultConfigPath,
+					localConfigPath: $localConfigPath,
+					extras: $extras,
+					redisKey: $redisKey,
+					ttlSeconds: $ttlSeconds,
 				);
 			} catch (Throwable $e) {
 				$fileLogger->error('Config [loadConfig] Redis connection failed: ' . $e->getMessage());

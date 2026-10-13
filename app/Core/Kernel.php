@@ -145,13 +145,13 @@ final class Kernel
 	private function loadConfig(array $extra_cached_data): void {
 		// load (and cache) configuration
 		Config::loadConfig(
-			$this->fileLogger,
-			$this->cache,
-			AppConfig::CONFIG_DEFAULT_PATH,
-			AppConfig::CONFIG_LOCAL_PATH,
-			$extra_cached_data,
-			$_ENV['REDIS_CONFIG_KEY'],             // optional Redis key
-			(int) $_ENV['REDIS_CONFIG_CACHE_TTL']  // optional Config TTL
+			fileLogger: $this->fileLogger,
+			cache: $this->cache,
+			defaultConfigPath: AppConfig::CONFIG_DEFAULT_PATH,
+			localConfigPath: AppConfig::CONFIG_LOCAL_PATH,
+			extras: $extra_cached_data,
+			redisKey: $_ENV['REDIS_CONFIG_KEY'],
+			ttlSeconds: (int) $_ENV['REDIS_CONFIG_CACHE_TTL'],
 		);
 	}
 
