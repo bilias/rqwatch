@@ -3,21 +3,32 @@
 ## Master Dev Branch
 
 ### 2026-10-13
-- Cache DNS timeouts and SERVFAIL for 60s instead of the negative TTL
+- Cache DNS timeouts and SERVFAIL for 60s ($dns_resolv_redis_fail_cache_ttl)
+  instead of the negative TTL
 - Login Throttle on /64 for IPv6 clients
-- Deny CHANGE_ME_ mock password usage
+- Deny CHANGE_ME_ mock password usage: the importer and mail APIs refuse a
+  CHANGE_ME_ placeholder in RSPAMD_API_PASS or MAIL_API_PASS
+- OIDC: don't fail the login page when end_session_endpoint is unavailable
+- Release: refuse when the stored original is missing instead of sending the
+  notice without it
 
 ### 2026-10-12
 - Check MAILER_DSN and MAILER_FROM on the node that sends the release
 - Add the release form to the mail page, shared with the detail page
 - Fix release dropping alternate recipients and failing for multi-recipient mail via API
-- Skip user and admin notifications for mails with virus matching the Antivirus No Notify map
+- Fix password-less release in distributed mode: the mail's own server sends it
+- Password-less release is refused with a message while MAILER_FROM is empty
+- Log every release (file and syslog) on the web node with user, client IP and sending node
+- Skip user and admin notifications for mails with virus matching the
+  Antivirus No Notify map ($notification_skip_virus_map; the map is created by db:migrate)
 - Notification links carry the token in the URL fragment (/notify#<token>), so it
   never reaches web or proxy logs; opening a link requires JavaScript. Links in
   notifications sent before this change no longer work: users log in instead.
 - Notification mails say when a link can be used only once
 - Make notification links one-time by default, configurable by $notification_links_one_time
+- Password-less access expires after $notification_links_idle_minutes (default 10) idle
 - Trade the emailed quarantine token for a session-bound handle on landing
+- Notification link pages send Cache-Control: no-store and Referrer-Policy: no-referrer
 - Require the current password to change it; end other sessions on change
 - SEC FIX: sessions kept a user's aliases and admin rights from login time,
   so removed aliases or admin changes only took effect after logout. A user's
@@ -26,7 +37,9 @@
   user is deleted. Run `php bin/cli.php db:migrate_session_version`
   (instant; no one is logged out); until then behaviour is unchanged.
 - Fix: Sender-controlled attachment filename can make attachment-open requests fail
-- Cap max mail relays that can be DNS resolved in details page
+- Mail Relays: parse only real Received: headers, extract Postfix, Exim, IPv6
+  and folded IPs, cap DNS lookups per details page
+- No login delay on unmatched routes, blocked IPs or empty credentials
 
 ### 2026-10-11
 - SEC FIX: non-admins could see, and with USER_CAN_DEL_ADMIN_MAP_ENTRIES
@@ -37,16 +50,33 @@
   (set $USER_MAP_MAX_ENTRIES = 0 in config.local.php to keep unlimited)
 - contrib: force_actions.conf discards viruses even from whitelisted senders
   Add it to existing installs
-- SEC FIX: Restrict users seeing other user's map
+- SEC FIX: Restrict users seeing other user's map. Map entry edit, delete
+  and toggle looked the entry up by id alone, so a non-admin could open,
+  delete or toggle any user's entry by changing the id in the URL.
+  Entries are now scoped to the map and to the user's own entries.
 - SEC FIX: non-admins see only their own envelope recipients now.
   Prior this they could read BCC addresses
+- SEC FIX: login takes the same time for unknown, local and externally
+  provisioned (LDAP/OIDC) users, so usernames cannot be enumerated by timing
+- SEC FIX: CR/LF in logged values is neutralised so log lines cannot be
+  forged; the importer accepts only alphanumeric QIDs
+- SEC FIX: logout link requires a CSRF token
+- Don't show the absolute quarantine path to non-admins
+- Importer: repair malformed Rspamd symbols (logged) instead of failing
+- Whitelisted mail is green only when the whitelist won, not on a forced reject/discard
 
 ### 2026-10-10
-- Update Apache rqwatch.conf. Protect /maps location
+- SEC FIX: Update Apache rqwatch.conf. Protect /maps location. Map files
+  (whitelists, personal map entries) were readable by anyone.
+  Add the <Location /maps> block to existing installs
 - Migration: indexed ever_stored column on mail_logs
+- Fix PTR and A lookups when the DNS answer starts with a CNAME (RFC 2317)
+- Authorization: redirect home instead of a blank page without a session
 
 ### 2026-10-09
-- Web: cap each statement so a runaway search query fails fast
+- Web: cap each statement (DB_WEB_MAX_STATEMENT_TIME, default 30s) so a
+  runaway search query fails fast
+- Fuzzy: show which learned mail a mail matched
 - cron:notifications: -B sends blacklisted mails at any score
 - Fuzzy page: search by QID, learned by, server or hash prefix
 - Fuzzy search: include mails sharing a hash with a matching QID
@@ -62,6 +92,8 @@
 - Fuzzy: add weight to a learned mail
 - Fuzzy: add hit counters
 - Fuzzy: cron:fuzzy_cleanup cli
+- Fuzzy: mark mails with a local fuzzy hit in listings
+- Fix detail page and listings failing on mails without IP or subject
 - Main menu: hamburger at 1400px
 - GetMail API client: refuse redirects, mention API_ENABLE
 - Release API client: refuse redirects, accept only the API's reply
