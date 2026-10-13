@@ -33,7 +33,7 @@ Blocked IPs: {{ blocked|length }}
 <tbody>
 {% for ip, ttl in blocked %}
   <tr class='clean'>
-  <td class='center'>{{ ip }}</td>
+  <td class='center'>{{ ip }}{% if ip ends with '::' %}/64{% endif %}</td>
   <td class='center'>
   {%- if ttl < 0 -%}
     never
@@ -70,7 +70,7 @@ IPs with failed attempts: {{ counters|length }}
 <tbody>
 {% for ip, entry in counters %}
   <tr class='clean'>
-  <td class='center'>{{ ip }}</td>
+  <td class='center'>{{ ip }}{% if ip ends with '::' %}/64{% endif %}</td>
   <td class='center'>{{ entry.count }} / {{ max_attempts }}</td>
   <td class='center'>
   {%- if entry.ttl < 0 -%}

@@ -53,6 +53,7 @@ final class LoginThrottle
 	private readonly int $blockDuration;
 	private readonly bool $enabled;
 	private readonly array $whitelist;
+	private readonly string $key;
 
 	/**
 	 * $cache is null when REDIS_ENABLE is false or the connection failed at
@@ -79,6 +80,8 @@ final class LoginThrottle
 			array_map('trim', explode(',', (string)($_ENV['LOGIN_IPS_WHITELIST'] ?? ''))),
 			static fn(string $ip): bool => $ip !== ''
 		));
+
+		$this->key = self::keyFor($this->clientIp);
 	}
 
 	/*
@@ -264,11 +267,33 @@ final class LoginThrottle
 			&& !in_array($this->clientIp, $this->whitelist, true);
 	}
 
+	/*
+	 * IPv6 clients are keyed on their /64: one host normally holds a whole
+	 * /64 and can rotate through it. The key is the bare network address
+	 * (2001:db8:1:2::), so it still passes FILTER_VALIDATE_IP and the clear
+	 * route's charset. IPv4 stays exact, and so does ::/64, which holds
+	 * loopback and the IPv4-mapped addresses (masking those would put every
+	 * IPv4 client in one bucket).
+	 */
+	private static function keyFor(string $ip): string {
+		if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false) {
+			return $ip;
+		}
+
+		$bin = inet_pton($ip);
+		if ($bin === false || str_starts_with($bin, str_repeat("\0", 8))) {
+			return $ip;
+		}
+
+		return inet_ntop(substr($bin, 0, 8) . str_repeat("\0", 8)) ?: $ip;
+	}
+
 	private function countKey(): string {
-		return self::COUNT_PREFIX . $this->clientIp;
+		return self::COUNT_PREFIX . $this->key;
 	}
 
 	private function blockKey(): string {
-		return self::BLOCK_PREFIX . $this->clientIp;
+		return self::BLOCK_PREFIX . $this->key;
 	}
+
 }

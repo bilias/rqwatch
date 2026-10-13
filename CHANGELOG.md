@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2026-10-13
+- Login Throttle on /64 for IPv6 clients
+- Deny CHANGE_ME_ mock password usage
+
 ### 2026-10-12
 - Check MAILER_DSN and MAILER_FROM on the node that sends the release
 - Add the release form to the mail page, shared with the detail page
