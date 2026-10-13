@@ -1209,14 +1209,14 @@ class MailLogService
 		}
 
 		$send_mail = $mailer->sendTemplatedEmail(
-			$from,
-			$recipients,
-			$subject,
-			'mail/release.html.twig',  // twig template
-			$text_part,                // Text part of mail
-			$vars,                     // twig vars
-			$maillog->mail_location,   // path to raw mail
-			'Original Message.eml',    // attachment name
+			from: $from,
+			recipients: $recipients,
+			subject: $subject,
+			template: 'mail/release.html.twig',
+			text: $text_part,
+			context: $vars,
+			attachmentPath: $maillog->mail_location,
+			attachmentName: 'Original Message.eml',
 		);
 
 		if ($send_mail) {
@@ -1395,13 +1395,13 @@ class MailLogService
 			$text_part = Helper::getNotifyText($vars);
 
 			$send_mail = $mailer->sendTemplatedEmail(
-				$from,
+				from: $from,
 				//$recipients,
-				[$recipient],
-				$subject,
-				'mail/notify.html.twig',  // twig template
-				$text_part,                // Text part of mail
-				$vars,                     // twig vars
+				recipients: [$recipient],
+				subject: $subject,
+				template: 'mail/notify.html.twig',
+				text: $text_part,
+				context: $vars,
 			);
 
 			if ($send_mail) {
@@ -1476,12 +1476,12 @@ class MailLogService
 
 		foreach ($admins as $admin) {
 			if ($mailer->sendTemplatedEmail(
-				$from,
-				[$admin],
-				$subject,
-				'mail/notify_admin.html.twig',
-				$text_part,
-				$vars,
+				from: $from,
+				recipients: [$admin],
+				subject: $subject,
+				template: 'mail/notify_admin.html.twig',
+				text: $text_part,
+				context: $vars,
 			)) {
 				$sent++;
 			} else {
