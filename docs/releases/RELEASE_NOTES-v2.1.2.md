@@ -45,7 +45,7 @@ Rqwatch 2.x+ contains updates to the database schema.
    - Follow [2.x DB UPDATE Guide](https://github.com/bilias/rqwatch/blob/master/docs/DB_UPDATE_2_plus.md)
 
    The 2.1.1 and 2.1.2 migrations are applied by the same `db:migrate` run.\
-   Then follow the `.env`, Apache and Rspamd steps of **From 2.1.x** above.
+   Then follow the `.env`, Apache and Rspamd steps of **From 2.x** above.
 
 # Security
 - Map entry edit, delete and toggle looked the entry up by id alone, so a non-admin could open, delete
@@ -99,7 +99,7 @@ Rqwatch 2.x+ contains updates to the database schema.
 - Mail Relays: only real `Received:` headers are parsed; Postfix, Exim, IPv6 and folded IPs are extracted;
   DNS lookups per details page are capped
 - DNS timeouts and SERVFAIL are cached for 60s (`$dns_resolv_redis_fail_cache_ttl`) instead of the negative 3600s TTL
-- Login throttle blocks IPv6 clients on their /64
+- Login throttle counts IPv6 clients on their /64
 - No login delay on unmatched routes, blocked IPs or empty credentials
 - Password-less release is refused with a message while `MAILER_FROM` is empty.
   `MAILER_DSN` and `MAILER_FROM` are checked on the node that sends the release
@@ -121,8 +121,8 @@ Rqwatch 2.x+ contains updates to the database schema.
 - Users must enter their current password to change it.
 - Personal map entries are capped at 1000 per user per map.
   Set `$USER_MAP_MAX_ENTRIES = 0` to keep unlimited.
-- Release log lines have a new format (user, client IP, sending node). Adjust any log parsing.
-  Every release is logged (file and syslog) on the web node with user, client IP and sending node
+- Every release is logged (file and syslog) on the web node with user, client IP and sending node.
+  The release log line format changed; adjust any log parsing.
 
 # Fixes
 - Fix release dropping alternate recipients and failing for multi-recipient mail via API
@@ -133,7 +133,9 @@ Rqwatch 2.x+ contains updates to the database schema.
 - Fix detail page and listings failing on mails without IP or subject
 - Fix PTR and A lookups when the DNS answer starts with a CNAME (RFC 2317)
 - OIDC: don't fail the login page when `end_session_endpoint` is unavailable
-- Fix Map search result pagination after the first
+- Fix Map search pagination
 - Authorization: redirect home instead of a blank page without a session
+
+v2.1.2 should be considered as a stable release
 
 **Full Changelog**: https://github.com/bilias/rqwatch/compare/v2.1.1...v2.1.2
