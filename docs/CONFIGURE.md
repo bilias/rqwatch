@@ -67,7 +67,10 @@ Edit `/etc/rspamd/local.d/metadata_exporter.conf`:
   This is needed in order for the (API) server to identify if an email is stored in
   quarantine locally or remotely on another API server.
 
-After configuring `metadata_exporter.conf` and editing `.env` and `config.local.php` a reload in needed for Rspamd.
+After configuring `metadata_exporter.conf` and editing `.env` and `config.local.php`, check the configuration and reload Rspamd:
+```
+rspamadm configtest && systemctl reload rspamd
+```
 
 Also see [API Settings](#api-settings) for remote side API authentication and ACL settings for Rspamd MetadataImporter.
 
