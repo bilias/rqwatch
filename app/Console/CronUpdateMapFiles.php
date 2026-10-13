@@ -87,11 +87,7 @@ class CronUpdateMapFiles extends RqwatchCliCommand
 				return true;
 			}
 
-			if ($lastModifiedLocal < $last_activity) {
-				return true;
-			} else {
-				return false;
-			}
+			return $lastModifiedLocal < $last_activity;
 		}
 		return true;
 	}
