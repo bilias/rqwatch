@@ -144,7 +144,7 @@ class MailLogController extends ViewController
 					$queryParams[$field] = $value;
 				}
 				// special case
-				if (strtolower($field) === 'date') {
+				if ($field === 'date') {
 					// Remove dual date from search (ie date > )
 					// and date = from Reports -> Mails by Day
 					// that comes back in results with ?date= query

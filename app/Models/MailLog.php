@@ -129,6 +129,7 @@ class MailLog extends Model
 		'date',
 	];
 
+	// lowercase
 	public const array REPORT_DYN_FIELDS = [
 		'ip',
 		'mail_from',
