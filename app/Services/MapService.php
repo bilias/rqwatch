@@ -89,7 +89,7 @@ class MapService
 		}
 
 		// Combine primary email with mail aliases
-		$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
+		$emails = array_unique(array_filter(array_merge([$this->email], $this->user_aliases)));
 		return $query->whereIn('rcpt_to', $emails);
 	}
 
