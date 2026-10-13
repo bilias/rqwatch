@@ -43,7 +43,7 @@ class MigrateDb extends MigrateCliCommand
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
 			// ->addOption('batch', 'b', InputOption::VALUE_OPTIONAL, 'Batch size', $this->default_batch_size)
 			// ->addOption('sleep', 's', InputOption::VALUE_OPTIONAL, 'Microseconds to sleep between each batch', self::DEFAULT_SLEEP)
-			->addOption('force', 'f', InputOption::VALUE_NONE, 'Force restart/continue migration');
+			->addOption('force', 'f', InputOption::VALUE_NONE, 'Force restart/continue migration')
 		;
 	}
 
