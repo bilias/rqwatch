@@ -635,7 +635,7 @@ class MailLogController extends ViewController
 			}
 
 			if (!empty($data['release']) && $data['email'] === 'unknown') {
-				$this->flashbag->add('error', "Cannot release to empty of unknown original recipient. Use alternate recipient");
+				$this->flashbag->add('error', "Cannot release to unknown original recipient. Use alternate recipient");
 				return $this->getDetailIdResponse($maillog->id);
 			}
 
