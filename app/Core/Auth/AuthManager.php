@@ -162,12 +162,10 @@ class AuthManager
 			return new DbAuth($username, $password, $logger);
 		}
 
-		if (Helper::env_bool('LDAP_AUTH_ENABLED')) {
-			if (str_contains($username, '@')) {
-				$this->providerDescr = "LDAP";
-				$this->providerId = array_search("LDAP", self::$authProviders);
-				return new LdapAuth($username, $password, $logger);
-			}
+		if (Helper::env_bool('LDAP_AUTH_ENABLED') && str_contains($username, '@')) {
+			$this->providerDescr = "LDAP";
+			$this->providerId = array_search("LDAP", self::$authProviders);
+			return new LdapAuth($username, $password, $logger);
 		}
 
 		// Default to DB

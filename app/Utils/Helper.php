@@ -81,12 +81,10 @@ class Helper {
 			$dir_raw .= "unknown/" . uniqid();
 		}
 
-		if (!file_exists($dir_raw)) {
-			if (!@mkdir($dir_raw, 0750, true) && !is_dir($dir_raw)) {
-				$err = error_get_last()['message'] ?? 'unknown error';
-				self::logger()->error("Error creating directory $dir_raw: $err");
-				return null;
-			}
+		if (!file_exists($dir_raw) && !@mkdir($dir_raw, 0750, true) && !is_dir($dir_raw)) {
+			$err = error_get_last()['message'] ?? 'unknown error';
+			self::logger()->error("Error creating directory $dir_raw: $err");
+			return null;
 		}
 
 		$file_raw = $dir_raw . "/mail.eml";

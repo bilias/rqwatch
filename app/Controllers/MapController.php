@@ -409,13 +409,10 @@ class MapController extends ViewController
 				return new RedirectResponse($edit_url);
 			}
 
-			// map_name change
-			if ($customMapConfig['map_name'] !== $map_name) {
-				// check if new name exists
-				if ($service->mapExists($map_name)) {
-					$this->flashbag->add('error', "Map '{$map_name}' already exists!");
-					return new RedirectResponse($edit_url);
-				}
+			// map_name change and check if new name exists
+			if ($customMapConfig['map_name'] !== $map_name && $service->mapExists($map_name)) {
+				$this->flashbag->add('error', "Map '{$map_name}' already exists!");
+				return new RedirectResponse($edit_url);
 			}
 
 			// update entry

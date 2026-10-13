@@ -37,19 +37,17 @@ class AuthMiddleware
 	public function handle(Request $request, callable $next): Response {
 
 		// already authed
-		if ($request->hasSession() && $request->getSession()->has('username')) {
-			if (!empty($request->getSession()->get('username'))) {
-				$session = $request->getSession();
-				if (!$this->sessionStillValid($session)) {
-					$this->logger->info("Session of '" . $session->get('username') . "' ended: account changed");
-					$session->invalidate();
-					$session->getFlashBag()->add('error', 'Your account was changed, please log in again');
-					return new RedirectResponse($this->urlGenerator->generate(RouteName::LOGIN->value));
-				}
-
-				// user is already authenticated
-				return $next($request);
+		if ($request->hasSession() && $request->getSession()->has('username') && !empty($request->getSession()->get('username'))) {
+			$session = $request->getSession();
+			if (!$this->sessionStillValid($session)) {
+				$this->logger->info("Session of '" . $session->get('username') . "' ended: account changed");
+				$session->invalidate();
+				$session->getFlashBag()->add('error', 'Your account was changed, please log in again');
+				return new RedirectResponse($this->urlGenerator->generate(RouteName::LOGIN->value));
 			}
+
+			// user is already authenticated
+			return $next($request);
 		}
 
 		$requestPath = $request->getPathInfo();

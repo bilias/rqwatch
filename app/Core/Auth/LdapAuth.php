@@ -309,10 +309,8 @@ class LdapAuth implements AuthInterface {
 		}
 
 		$baseAttr = strtok($field, ';');
-		if (array_key_exists($baseAttr, $attrs)) {
-			if (array_key_exists(0, $attrs[$baseAttr])) {
-				return trim($attrs[$baseAttr][0]);
-			}
+		if (array_key_exists($baseAttr, $attrs) && array_key_exists(0, $attrs[$baseAttr])) {
+			return trim($attrs[$baseAttr][0]);
 		}
 
 		return null;

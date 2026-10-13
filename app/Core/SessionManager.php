@@ -127,12 +127,12 @@ class SessionManager
 		if (self::$session === null) {
 			return true;
 		}
-		if (self::$session_timeout) {
-			if (time() - self::$session->getMetadataBag()->getLastUsed() > self::$session_timeout) {
-				self::destroy();
-				return true;
-			}
+
+		if (self::$session_timeout && time() - self::$session->getMetadataBag()->getLastUsed() > self::$session_timeout) {
+			self::destroy();
+			return true;
 		}
+
 		return false;
 	}
 
