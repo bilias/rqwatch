@@ -2,6 +2,8 @@
 
 ## Master Dev Branch
 
+## Version v2.1.2 - Released: 2026-10-13
+
 ### 2026-10-13
 - Cache DNS timeouts and SERVFAIL for 60s ($dns_resolv_redis_fail_cache_ttl)
   instead of the negative TTL
