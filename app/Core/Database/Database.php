@@ -42,7 +42,7 @@ class Database {
 	];
 
 	public static function boot(): Capsule {
-		$db_config = Array (
+		$db_config = [
 			'host'     => $_ENV['DB_HOST'],
 			'username' => $_ENV['DB_USER'],
 			'password' => $_ENV['DB_PASS'],
@@ -53,7 +53,7 @@ class Database {
 			'driver'   => 'mysql',
 			'fetch'    => 'FETCH_ASSOC',
 		//	'prefix'   => 'my_',
-		);
+		];
 
 		// Web pages only: cap each statement so a runaway search fails fast.
 		$maxTime = (int) ($_ENV['DB_WEB_MAX_STATEMENT_TIME'] ?? 30);
