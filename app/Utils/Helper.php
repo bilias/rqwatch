@@ -23,6 +23,8 @@ use MaxMind\Db\Reader as MaxMindDbReader;
 use NetDNS2\Resolver;
 use NetDNS2\RR\A as DnsA;
 use NetDNS2\RR\PTR as DnsPtr;
+use NetDNS2\Exception as DnsException;
+use NetDNS2\ENUM\Error as DnsError;
 
 use Symfony\Component\HttpFoundation\Response;
 
@@ -1115,6 +1117,17 @@ Mail details:
 		return $input;
 	}
 
+	/*
+	 Only NXDOMAIN is a definite "no name" (an empty NOERROR answer does not
+	 throw). A timeout (INT_FAILED_SOCKET), SERVFAIL or any other failure is
+	 cached for dns_resolv_redis_fail_cache_ttl instead, so one slow cold
+	 lookup does not hide the name for the whole negative TTL.
+	*/
+	private static function dnsTransientFailure(Exception $e): bool {
+		return !($e instanceof DnsException
+			&& $e->getCode() === DnsError::DNS_NXDOMAIN->value);
+	}
+
 	public static function my_gethostbyaddr(string $ip): string {
 		if (!Config::get('dns_resolv')) {
 			return $ip;
@@ -1128,6 +1141,7 @@ Mail details:
 			$redisKey = Config::get('dns_resolv_redis_key') . ":ptr:{$ip}";
 			$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
 			$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
+			$failTtl  = (int) Config::get('dns_resolv_redis_fail_cache_ttl') ?: 60;
 			try {
 				$cached = App::cache()->get($redisKey);
 				if ($cached !== false) {
@@ -1138,6 +1152,7 @@ Mail details:
 			}
 		}
 
+		$transient = false;
 		try {
 			$resolver = new Resolver([
 				'timeout' => Config::get('dns_resolv_timeout'),
@@ -1162,11 +1177,12 @@ Mail details:
 
 		} catch (Exception $e) {
 			$host = $ip;
+			$transient = self::dnsTransientFailure($e);
 		}
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			try {
-				App::cache()->set($redisKey, $host, $host === $ip ? $negTtl : $ttl);
+				App::cache()->set($redisKey, $host, $host === $ip ? ($transient ? $failTtl : $negTtl) : $ttl);
 			} catch (Throwable $e) {
 				// ignore cache write failure
 			}
@@ -1184,6 +1200,7 @@ Mail details:
 			$redisKey = Config::get('dns_resolv_redis_key') . ':fwd:' . $host;
 			$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
 			$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
+			$failTtl  = (int) Config::get('dns_resolv_redis_fail_cache_ttl') ?: 60;
 			try {
 				$cached = App::cache()->get($redisKey);
 				if ($cached !== false) {
@@ -1194,6 +1211,7 @@ Mail details:
 			}
 		}
 
+		$transient = false;
 		try {
 			$resolver = new Resolver([
 				'timeout' => Config::get('dns_resolv_timeout'),
@@ -1210,11 +1228,12 @@ Mail details:
 			}
 		} catch (Exception $e) {
 			$ip = $host;
+			$transient = self::dnsTransientFailure($e);
 		}
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			try {
-				App::cache()->set($redisKey, $ip, $ip === $host ? $negTtl : $ttl);
+				App::cache()->set($redisKey, $ip, $ip === $host ? ($transient ? $failTtl : $negTtl) : $ttl);
 			} catch (Throwable $e) {
 				// ignore cache write failure
 			}

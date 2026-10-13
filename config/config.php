@@ -295,8 +295,11 @@ $dns_resolv_redis_key = 'rqwatch_dns_cache';
 # How many seconds to cache DNS queries in Redis
 $dns_resolv_redis_cache_ttl = 86400;
 
-# How many seconds to cache a failed DNS query (no answer, NXDOMAIN or timeout)
+# How many seconds to cache a DNS query with no answer or NXDOMAIN
 $dns_resolv_redis_neg_cache_ttl = 3600;
+
+# How many seconds to cache a DNS query that failed (timeout, SERVFAIL)
+$dns_resolv_redis_fail_cache_ttl = 60;
 
 # Keep mail metadata in Redis when the database refuses a write, so
 # cron:import_spool can import it later. Set false to

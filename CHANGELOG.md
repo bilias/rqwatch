@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-13
+- Cache DNS timeouts and SERVFAIL for 60s instead of the negative TTL
 - Login Throttle on /64 for IPv6 clients
 - Deny CHANGE_ME_ mock password usage
 

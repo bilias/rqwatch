@@ -792,8 +792,12 @@ on maillogs pages.\
  Default is `86400` which is one day
 
 - `$dns_resolv_redis_neg_cache_ttl` - How many seconds to cache a DNS query that
- got no answer, NXDOMAIN or timed out.\
+ got no answer or NXDOMAIN.\
  Default is `3600`
+
+- `$dns_resolv_redis_fail_cache_ttl` - How many seconds to cache a DNS query that
+ failed (timeout, SERVFAIL).\
+ Default is `60`
 
 ### Reports and Statistics Settings
 - `$top_reports` - How many items to show in Top reports under Search.\
