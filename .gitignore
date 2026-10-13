@@ -14,3 +14,4 @@ NOTES
 gh-md-toc
 .idea
 phpstan.neon
+psalm-out
