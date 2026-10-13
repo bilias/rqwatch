@@ -565,9 +565,9 @@ class FuzzyService
 			throw new FuzzyException("API server '{$api_server}' has no url in API_SERVERS", FuzzyError::Internal);
 		}
 
-		if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS'])) {
-			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set");
-			throw new FuzzyException("MAIL_API_USER or MAIL_API_PASS not set", FuzzyError::Internal);
+		if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS']) || str_starts_with($_ENV['MAIL_API_PASS'], 'CHANGE_ME_')) {
+			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a CHANGE_ME_ placeholder");
+			throw new FuzzyException("MAIL_API_USER or MAIL_API_PASS not set or a CHANGE_ME_ placeholder", FuzzyError::Internal);
 		}
 
 		// no redirects: a redirect can end on a page that answers 200

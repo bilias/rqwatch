@@ -95,6 +95,17 @@ abstract class RqwatchApi
 				static::class);
 		}
 
+		/*
+		 .env-example ships CHANGE_ME_ placeholders, and RSPAMD_API_PASS is
+		 pre-matched with contrib's metadata_exporter.conf: an install that
+		 copies both unchanged would accept a publicly known password.
+		*/
+		if (str_starts_with($password, 'CHANGE_ME_')) {
+			$msg = "Placeholder API password in .env for " . static::class . "; set a real one";
+			$this->fileLogger->critical($msg);
+			throw new RuntimeException($msg);
+		}
+
 		try {
 			$this->auth = new BasicAuth($username, $password, $this->fileLogger);
 		} catch (HttpException $e) {

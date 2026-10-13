@@ -1093,8 +1093,8 @@ class MailLogService
 		} else {
 			try {
 				// has applyUserScope
-				if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS'])) {
-					$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set");
+				if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS']) || str_starts_with($_ENV['MAIL_API_PASS'], 'CHANGE_ME_')) {
+					$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a CHANGE_ME_ placeholder");
 					throw new Exception("Error. Contact admin");
 				}
 				$mailobject = $this->getMailObjectViaApi($maillog->id, $maillog->server);
@@ -1242,8 +1242,8 @@ class MailLogService
 			return false;
 		}
 
-		if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS'])) {
-			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set");
+		if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS']) || str_starts_with($_ENV['MAIL_API_PASS'], 'CHANGE_ME_')) {
+			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a CHANGE_ME_ placeholder");
 			return false;
 		}
 
