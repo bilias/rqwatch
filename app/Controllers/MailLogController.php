@@ -187,6 +187,7 @@ class MailLogController extends ViewController
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'queryParams' => $queryParams,
+			'filters' => $filters,
 		]));
 	}
 
@@ -239,6 +240,7 @@ class MailLogController extends ViewController
 			'mode' => $mode,
 			'logs' => $logs,
 			'sum' => $sum,
+			'filters' => $filters,
 			'items_per_page' => $this->items_per_page,
 			'max_items' => (int) Config::get('top_reports') ?: 30,
 			'runtime' => $this->getRuntime(),

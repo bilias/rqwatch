@@ -5,6 +5,21 @@
 
 {% include 'partials/colorcodes.html.twig' %}
 
+{% if filters is defined %}
+<div class="center-container">
+<div class='active_filters'>
+<span class='descr'>Active Filters</span>
+<ul>
+{% for filter in filters %}
+ <li class='filtername'>{{ filter.filter }} {{ filter.choice }} "{{ filter.value }}"</li>
+{% else %}
+<li class='filtername'>No filters</li>
+{% endfor %}
+</ul>
+</div>
+</div>
+{% endif %}
+
 <div class='pagtop'>
 {{ ui.paginator(logs, WEB_BASE, queryParams) }}
 </div>
