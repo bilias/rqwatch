@@ -17,7 +17,7 @@ You should avoid busy system hours.
 - Update dependencies\
   `composer install`
 
-- `composer dump-autoload` will be needed if you have run it in the past
+- `composer dump-autoload -o` optional, only with OPcache enabled
 
 - Start the migration. Run on **one** API server only. Schema changes replicate on Galera.\
   If you run multiple API servers and each one with a separate DB, then you must
@@ -38,4 +38,4 @@ You should avoid busy system hours.
 - Update dependencies\
   `composer install`
 
-- `composer dump-autoload` will be needed if you have run it in the past
+- `composer dump-autoload -o` optional, only with OPcache enabled

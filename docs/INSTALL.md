@@ -150,7 +150,7 @@ composer install
 
 composer check-platform-reqs
 
-composer dump-autoload -o # optional
+composer dump-autoload -o # optional, only with OPcache enabled
 ```
 
 Remove write permissions:

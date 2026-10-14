@@ -33,5 +33,5 @@ Here is the procedure to apply this update:
 - Update dependencies\
 `composer install`
 
-- `composer dump-autoload` will be needed if you have run it in the past
+- `composer dump-autoload -o` optional, only with OPcache enabled
 

@@ -31,8 +31,8 @@ composer check-platform-reqs
 # then you must run it on all API servers.
 ./bin/cli.php db:migrate
 
-# needed if you have run it in the past
-composer dump-autoload
+# optional, only with OPcache enabled
+composer dump-autoload -o
 ```
 
 Your should also read Release Instructions carefully for important changes.

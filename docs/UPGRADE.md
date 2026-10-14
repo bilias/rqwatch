@@ -32,8 +32,8 @@ composer check-platform-reqs
 # Check and perform Database updates
 ./bin/cli.php db:migrate
 
-# needed if you have run it in the past
-composer dump-autoload
+# optional, only with OPcache enabled
+composer dump-autoload -o
 ```
 
 Your should also read Release Instructions carefully for important changes.
