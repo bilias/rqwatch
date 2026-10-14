@@ -253,7 +253,7 @@ class CronNotifications extends RqwatchCliCommand
 			$skipped = $service->markNotificationsSkipped($skippedIds);
 			$output->writeln("<info>{$skipped} entries marked as not to be notified{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
-			$this->fileLogger->info("{$this->app_name} {$skipped} entries marked as not to be notified{$local}");
+			$this->fileLogger->debug("{$this->app_name} {$skipped} entries marked as not to be notified{$local}");
 		}
 		unset($skippedIds);
 
