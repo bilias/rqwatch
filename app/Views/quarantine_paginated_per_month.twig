@@ -13,6 +13,7 @@
 {% endif %}
 <br/>{{ totalMailsInPage|nf }} mails in page (including expired)
 <br/>Mails are stored in Quarantine for: {{ quarantine_days|nf }} days
+<br/><a href='{{ route(is_admin ? 'ADMIN_QUARANTINE' : 'QUARANTINE') }}'>Quarantine per day</a>
  </span>
 
 <div class='pagtop'>

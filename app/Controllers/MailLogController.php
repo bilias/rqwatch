@@ -404,7 +404,7 @@ class MailLogController extends ViewController
 
 		if ($totalMailsInPage > 0) {
 			$chart = $this->createChart(
-				fn(iterable $d): Chart => ChartBuilder::createQuarantineChart($d, $this->getQuarantineDayUrl(...)),
+				fn(iterable $d): Chart => ChartBuilder::createQuarantineChart($d, $this->getQuarantineDayUrl(...), $this->getQuarantineDayTotals($service, $d)),
 				$days
 			);
 		}
@@ -454,7 +454,7 @@ class MailLogController extends ViewController
 
 		if ($totalMailsInPage > 0) {
 			$chart = $this->createChart(
-				fn(iterable $d): Chart => ChartBuilder::createQuarantinePerMonthChart($d, $this->getQuarantineMonthUrl(...)),
+				fn(iterable $d): Chart => ChartBuilder::createQuarantinePerMonthChart($d, $this->getQuarantineMonthUrl(...), $this->getQuarantineMonthTotals($service, $d)),
 				$months
 			);
 		}
@@ -1065,6 +1065,48 @@ class MailLogController extends ViewController
 		}
 
 		return $builder($stats);
+	}
+
+	// totals for the stored/total bar; 31 days, cheap whatever the table size
+	private function getQuarantineDayTotals(MailLogService $service, iterable $days): array {
+		$keys = [];
+		foreach ($days as $day) {
+			$keys[] = (string) $day->day;
+		}
+
+		if ($keys === []) {
+			return [];
+		}
+
+		return $service->getDailyTotals(min($keys), max($keys));
+	}
+
+	// totals for the stored/total bar; reads the whole history,
+	// same cost class as unfiltered stats, so gated the same way
+	private function getQuarantineMonthTotals(MailLogService $service, iterable $months): array {
+		if (!$this->mailStatsEnabled([])) {
+			return [];
+		}
+
+		$keys = [];
+		foreach ($months as $month) {
+			$keys[] = (string) $month->month;
+		}
+
+		if ($keys === []) {
+			return [];
+		}
+
+		$from = min($keys) . '-01';
+		$to = date('Y-m-t', strtotime(max($keys) . '-01'));
+
+		$totals = [];
+		foreach ($service->getDailyTotals($from, $to) as $day => $total) {
+			$month = substr($day, 0, 7);
+			$totals[$month] = ($totals[$month] ?? 0) + $total;
+		}
+
+		return $totals;
 	}
 
 	private function mailReportsEnabled($filters): bool {

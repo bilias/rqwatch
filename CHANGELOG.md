@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-14
+- Add bars with percentages in the Quarantine charts
 - Show active filters in reports and results pages
 
 ## Version v2.1.2 - Released: 2026-10-13

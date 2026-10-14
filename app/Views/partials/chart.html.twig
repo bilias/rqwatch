@@ -3,7 +3,7 @@
 		<canvas id="{{ id }}"></canvas>
 	</div>
 	{% if chart.getAttributes().note is defined %}
-	<span class="center help-text2">{{ chart.getAttributes().note }}</span>
+	<span class="center help-text2">{{ chart.getAttributes().note|nl2br }}</span>
 	{% endif %}
 </div>
 

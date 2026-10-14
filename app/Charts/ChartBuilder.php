@@ -12,6 +12,9 @@ namespace App\Charts;
 
 class ChartBuilder {
 
+	// translucent MailCategory::STORED
+	private const STORED_RATIO_COLOR = '#76b7b2';
+
 	public static function createSearchChart(array $stats): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
@@ -61,7 +64,7 @@ class ChartBuilder {
 		return $chart;
 	}
 
-	public static function createQuarantineChart(iterable $days, ?callable $dayUrl = null): Chart {
+	public static function createQuarantineChart(iterable $days, ?callable $dayUrl = null, array $totals = []): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
 		$days = is_array($days)
@@ -71,11 +74,13 @@ class ChartBuilder {
 		$labels = [];
 		$data = [];
 		$links = [];
+		$ratios = [];
 
 		foreach ($days as $day) {
 			 $labels[] = $day->day;
 			 $data[] = $day->cnt;
 			 $links[] = $dayUrl !== null ? $dayUrl((string) $day->day) : null;
+			 $ratios[] = self::storedRatio((int) $day->cnt, $totals[(string) $day->day] ?? 0);
 		}
 
 		$chart->setData([
@@ -97,14 +102,18 @@ class ChartBuilder {
 			 'maintainAspectRatio' => false,
 		]);
 
+		if ($totals !== []) {
+			self::addStoredRatio($chart, $ratios, $links);
+		}
+
 		if ($dayUrl !== null) {
-			$chart->setAttributes(['note' => "Click on a bar to view that day's quarantined mails"]);
+			$chart->setAttributes(['note' => "Click on a bar to view that day's quarantined mails\nClick on a label at the top to toggle its bars"]);
 		}
 
 		return $chart;
 	}
 
-	public static function createQuarantinePerMonthChart(iterable $months, ?callable $monthUrl = null): Chart {
+	public static function createQuarantinePerMonthChart(iterable $months, ?callable $monthUrl = null, array $totals = []): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
 		$months = is_array($months)
@@ -114,11 +123,13 @@ class ChartBuilder {
 		$labels = [];
 		$data = [];
 		$links = [];
+		$ratios = [];
 
 		foreach ($months as $month) {
 			 $labels[] = $month->month;
 			 $data[] = $month->cnt;
 			 $links[] = $monthUrl !== null ? $monthUrl((string) $month->month) : null;
+			 $ratios[] = self::storedRatio((int) $month->cnt, $totals[(string) $month->month] ?? 0);
 		}
 
 		$chart->setData([
@@ -140,13 +151,51 @@ class ChartBuilder {
 			 'maintainAspectRatio' => false,
 		]);
 
+		if ($totals !== []) {
+			self::addStoredRatio($chart, $ratios, $links);
+		}
+
 		if ($monthUrl !== null) {
-			$chart->setAttributes(['note' => "Click on a bar to view that month's quarantined mails"]);
+			$chart->setAttributes(['note' => "Click on a bar to view that month's quarantined mails\nClick on a label at the top to toggle its bars"]);
 		}
 
 		return $chart;
 	}
 
+	// percentage of all mail (same day/month, same user scope) that was stored
+	private static function storedRatio(int $stored, int $total): ?float {
+		return $total > 0 ? round(100 * $stored / $total, 1) : null;
+	}
 
+	// second bar per label on a right-hand 0-100 axis
+	private static function addStoredRatio(Chart $chart, array $ratios, array $links): void {
+		$data = $chart->getData();
+		$data['datasets'][] = [
+			'label' => 'Stored / Total (%)',
+			'data' => $ratios,
+			'links' => $links,
+			'yAxisID' => 'y1',
+			'backgroundColor' => [
+				self::STORED_RATIO_COLOR,
+			],
+		];
+		$chart->setData($data);
 
+		$options = $chart->getOptions();
+		$options['scales'] = [
+			'y' => [
+				'display' => 'auto',
+				'beginAtZero' => true,
+			],
+			'y1' => [
+				'display' => 'auto',
+				'position' => 'right',
+				'min' => 0,
+				'grace' => '20%',
+				'grid' => ['drawOnChartArea' => false],
+				'title' => ['display' => true, 'text' => '% of total'],
+			],
+		];
+		$chart->setOptions($options);
+	}
 }
