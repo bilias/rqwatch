@@ -113,7 +113,12 @@ class FuzzyMailApi extends RqwatchApi
 		}
 
 		$response = new Response();
-		$response->setContent("Message {$action}ed");
+		$response->setContent(match ($action) {
+			'learn' => 'Message learned',
+			'unlearn' => 'Message unlearned',
+			'boost' => 'Message boosted',
+		});
+		$response->headers->set('Content-Type', 'text/plain');
 		$response->setCharset('UTF-8');
 		$response->setStatusCode(Response::HTTP_OK);
 		$response->prepare($this->request);
