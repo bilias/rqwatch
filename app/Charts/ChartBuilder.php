@@ -12,7 +12,7 @@ namespace App\Charts;
 
 class ChartBuilder {
 
-	// translucent MailCategory::STORED
+	// distinct from every MailCategory colour (Tableau 10 teal)
 	private const STORED_RATIO_COLOR = '#76b7b2';
 
 	public static function createSearchChart(array $stats): Chart {
