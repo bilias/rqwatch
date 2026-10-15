@@ -64,7 +64,10 @@ class ViewController extends Controller
 		if (!$this->twig ) {
 			$cache = AppConfig::TWIG_CACHE_PATH;
 
-			if (!is_dir($cache) && !@mkdir($cache, 0750, true)) {
+			if (defined('CLI_MODE') && CLI_MODE) {
+				// crons run as root: never create root-owned dirs in the shared web cache
+				$cache = false;
+			} elseif (!is_dir($cache) && !@mkdir($cache, 0750, true)) {
 				App::fileLogger()->warning("Twig cache dir not creatable: {$cache}; running uncached");
 				$cache = false;
 			} elseif (!is_writable($cache)) {
