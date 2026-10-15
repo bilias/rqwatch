@@ -59,9 +59,15 @@ final class RedisCache implements CacheInterface
 				return $ttl;
 			}
 
-			$this->logger->warning("RedisCache ttl got {$ttl} for key '{$key}'");
+			// -2: key gone (expired, possibly mid-request) - normal
+			// -1: key exists without expiry - unexpected for our keys
+			if ($ttl === -2) {
+				$this->logger->debug("RedisCache ttl got -2 (expired/not found) for key '{$key}'");
+			} else {
+				$this->logger->warning("RedisCache ttl got {$ttl} for key '{$key}'");
+			}
 
-			return null; // either -1 (no expiry) or -2 (not found)
+			return null;
 		} catch (Throwable $e) {
 			$this->logger->error("RedisCache ttl: " . $e->getMessage());
 
