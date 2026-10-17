@@ -148,6 +148,22 @@ $USER_CAN_DEL_ADMIN_MAP_ENTRIES = false;
 # Admins are not limited, and entries created by admins do not count.
 $USER_MAP_MAX_ENTRIES = 1000;
 
+# Rspamd symbols of the built-in maps, for map hit reports. Key: map name (its
+# file is <map name>.txt), value: every symbol whose rule reads that map.
+# Custom maps take their symbols from the map definition.
+$map_symbols = array(
+	'mail_from_rcpt_to_whitelist' => array('RQWATCH_SMTP_FROM_RCPT_TO_WHITELIST'),
+	'mail_from_rcpt_to_blacklist' => array('RQWATCH_SMTP_FROM_RCPT_TO_BLACKLIST'),
+	'mime_from_rcpt_to_whitelist' => array('RQWATCH_MIME_FROM_RCPT_TO_WHITELIST'),
+	'mime_from_rcpt_to_blacklist' => array('RQWATCH_MIME_FROM_RCPT_TO_BLACKLIST'),
+	'mail_from_whitelist' => array('RQWATCH_SMTP_FROM_WHITELIST'),
+	'mail_from_blacklist' => array('RQWATCH_SMTP_FROM_BLACKLIST'),
+	'mime_from_whitelist' => array('RQWATCH_MIME_FROM_WHITELIST'),
+	'mime_from_blacklist' => array('RQWATCH_MIME_FROM_BLACKLIST'),
+	'ip_whitelist' => array('RQWATCH_IP_WHITELIST'),
+	'ip_blacklist' => array('RQWATCH_IP_BLACKLIST'),
+);
+
 # Log file for Rqwatch
 # default is APP_ROOT/logs/rqwatch.log
 $LOG_FILE = AppConfig::LOG_FILE;
