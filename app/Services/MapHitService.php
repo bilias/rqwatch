@@ -342,6 +342,62 @@ class MapHitService
 		return addcslashes($value, '\\%_');
 	}
 
+	/*
+	 * First mail id of the backfill window: the last $days days including
+	 * today, or the whole mail log. Null when there is no mail.
+	 */
+	public function backfillStartId(?int $days): ?int {
+		$query = App::capsule()->getConnection()->table(AppConfig::MAIL_LOGS_TABLE);
+		self::backfillWindow($query, $days);
+		$id = $query->min('id');
+		return $id === null ? null : (int) $id;
+	}
+
+	public function backfillCount(int $startId, ?int $days): int {
+		$query = App::capsule()->getConnection()->table(AppConfig::MAIL_LOGS_TABLE)
+			->where('id', '>=', $startId);
+		self::backfillWindow($query, $days);
+		return $query->count();
+	}
+
+	// the last $days days including today; null: no limit
+	private static function backfillWindow($query, ?int $days, string $column = 'created_day'): void {
+		if ($days !== null) {
+			$query->whereRaw("{$column} >= CURDATE() - INTERVAL ? DAY", [$days - 1]);
+		}
+	}
+
+	/*
+	 * Record again the hits of the next $batch mails after $afterId, replacing
+	 * the rows they have, so the result reflects the current maps and symbols.
+	 * Returns [last mail id, mails], last id null when no mail is left.
+	 */
+	public function backfillBatch(int $afterId, int $batch, ?int $days): array {
+		$db = App::capsule()->getConnection();
+
+		$query = $db->table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
+			->join(AppConfig::MAIL_LOG_DATA_TABLE . ' as md', 'md.mail_log_id', '=', 'ml.id')
+			->where('ml.id', '>', $afterId)
+			->orderBy('ml.id')
+			->limit($batch);
+		self::backfillWindow($query, $days, 'ml.created_day');
+		$mails = $query->get(['ml.id', 'ml.qid', 'md.symbols']);
+
+		if ($mails->isEmpty()) {
+			return [null, 0];
+		}
+
+		$db->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE)
+			->whereIn('mail_log_id', $mails->pluck('id')->all())
+			->delete();
+
+		foreach ($mails as $mail) {
+			$this->recordHits((int) $mail->id, (string) $mail->symbols, (string) $mail->qid);
+		}
+
+		return [(int) $mails->last()->id, $mails->count()];
+	}
+
 	// symbol name => symbol_names.id, adding the names not seen before
 	private function symbolIds(array $names): array {
 		$table = App::capsule()->getConnection()->table(AppConfig::SYMBOL_NAMES_TABLE);

@@ -46,6 +46,7 @@ use App\Console\MigrateMapHits;
 
 use App\Console\MigrateDb;
 use App\Console\OptimizeTable;
+use App\Console\MapHitsBackfill;
 
 (new Kernel())->boot();
 
@@ -61,6 +62,7 @@ $application->add(new CronImportSpool());
 $application->add(new CronFuzzyCleanup());
 $application->add(new UserAdd());
 $application->add(new OptimizeTable());
+$application->add(new MapHitsBackfill());
 $application->add(new MigrateMailRecipients());
 $application->add(new MigrateCreatedDay());
 $application->add(new MigrateMailLogData());
