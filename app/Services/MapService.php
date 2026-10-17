@@ -10,6 +10,7 @@
 
 namespace App\Services;
 
+use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
 use App\Core\App;
@@ -450,8 +451,12 @@ class MapService
 		return $map_configs;
 	}
 
-	public function getPaginatedMapCustom(string $map_name, int $page, string $url): LengthAwarePaginator {
+	public function getPaginatedMapCustom(string $map_name, int $page, string $url, bool $idle = false): LengthAwarePaginator {
 		$query = $this->getMapCustomQuery($map_name);
+		if ($idle && self::mapHitsEnabled()) {
+			MapHitService::whereIdle($query, MapHitService::ENTRY_CUSTOM,
+				AppConfig::MAPS_CUSTOM_TABLE, max(MapHitService::WINDOWS));
+		}
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -469,8 +474,12 @@ class MapService
 		return $map;
 	}
 
-	public function getPaginatedMapCombined(string $map_name, array $map_fields, int $page, string $url): LengthAwarePaginator {
+	public function getPaginatedMapCombined(string $map_name, array $map_fields, int $page, string $url, bool $idle = false): LengthAwarePaginator {
 		$query = $this->getMapCombinedQuery($map_name, $map_fields);
+		if ($idle && self::mapHitsEnabled()) {
+			MapHitService::whereIdle($query, MapHitService::ENTRY_COMBINED,
+				AppConfig::MAPS_COMBINED_TABLE, max(MapHitService::WINDOWS));
+		}
 
 		try {
 			$map = $query

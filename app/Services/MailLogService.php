@@ -427,10 +427,14 @@ class MailLogService
 	/*
 	 * One page of the mails in $ids (newest first, already capped at
 	 * max_items), fetched by primary key. For lists resolved elsewhere, such
-	 * as map hits; the ids are not scoped here.
+	 * as map hits; a non-admin keeps only the mails in their scope.
 	 */
 	public function getPaginatedByIds(array $ids, string $url, int $page = 1): LengthAwarePaginator {
 		try {
+			if (!$this->is_admin && $ids !== []) {
+				$ids = $this->applyUserScope(MailLog::select('id')->whereIn('id', $ids))
+					->orderBy('id', 'DESC')->pluck('id')->all();
+			}
 			return $this->paginateIds($ids, $url, $page);
 		} catch (Exception $e) {
 			$this->logger->error("MailLogService_getPaginatedByIds Query error: " . $e->getMessage());

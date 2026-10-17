@@ -86,9 +86,13 @@ class MapHitController extends ViewController
 		]));
 	}
 
-	// the mails behind one count of the report: ?map= or ?symbol=, and ?days=
+	/*
+	 * The mails behind one count: ?map= (with ?entry= for one entry, the only
+	 * form open to users, for entries they can see) or ?symbol=, and ?days=
+	 */
 	public function showMails(): Response {
-		if ($denied = $this->checkAccess()) {
+		$entry = $this->request->query->getInt('entry', 0);
+		if ($denied = $this->checkAccess($entry > 0)) {
 			return $denied;
 		}
 
@@ -99,7 +103,7 @@ class MapHitController extends ViewController
 			return $response;
 		}
 
-		$report = $this->url(RouteName::ADMIN_MAP_HITS);
+		$report = $this->is_admin ? $this->url(RouteName::ADMIN_MAP_HITS) : $this->getHomepageUrl();
 
 		$days = $this->request->query->getInt('days', max(MapHitService::WINDOWS));
 		if (!in_array($days, MapHitService::WINDOWS, true)) {
@@ -112,7 +116,21 @@ class MapHitController extends ViewController
 		$service = new MapHitService();
 
 		try {
-			if ($map !== '' && isset($maps[$map])) {
+			if ($map !== '' && $entry > 0) {
+				$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
+				$found = $config ? (new MapService($this->getUserContext()))->findMapEntry($config['model'], $map, $entry) : null;
+				if ($found === null) {
+					return new RedirectResponse($report);
+				}
+				$ids = $service->entryHitMailIds(MapHitService::entryModel($config['model']), $entry, $days, $this->max_items);
+				$key = $config['model'] === 'MapCustom'
+					? (string) $found->getAttribute('pattern')
+					: implode(' | ', array_map(fn ($f) => (string) $found->getAttribute($f), $config['fields']));
+				$filter = ['filter' => 'Map entry', 'choice' => 'of ' . $config['description'], 'value' => $key];
+				$params = ['map' => $map, 'entry' => $entry, 'days' => $days];
+			} elseif (!$this->is_admin) {
+				return new RedirectResponse($report);
+			} elseif ($map !== '' && isset($maps[$map])) {
 				[$model, $symbols] = $maps[$map];
 				$ids = $service->mapHitMailIds($map, $model, $symbols, $days, $this->max_items);
 				$configs = MapInventory::getMapConfigs();
@@ -133,7 +151,7 @@ class MapHitController extends ViewController
 
 		$page = $this->request->query->getInt('page', 1);
 		$logs = (new MailLogService($this->getUserContext()))
-			->getPaginatedByIds($ids, $this->url(RouteName::ADMIN_MAP_HITS_MAILS), $page);
+			->getPaginatedByIds($ids, $this->url($this->is_admin ? RouteName::ADMIN_MAP_HITS_MAILS : RouteName::MAP_HITS_MAILS), $page);
 
 		$period = $days === 1 ? 'today' : "the last {$days} days";
 
@@ -157,8 +175,9 @@ class MapHitController extends ViewController
 		]));
 	}
 
-	private function checkAccess(): ?RedirectResponse {
-		if (!$this->is_admin) {
+	// admin only, unless $entry: one entry's mails, which users may see
+	private function checkAccess(bool $entry = false): ?RedirectResponse {
+		if (!$this->is_admin && !$entry) {
 			$this->fileLogger->warning("'{$this->username}' tried to show map hits without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
 			return new RedirectResponse($this->getHomepageUrl());

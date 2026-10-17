@@ -20,6 +20,8 @@ use App\Inventory\MapInventory;
 
 use Psr\Log\LoggerInterface;
 
+use Illuminate\Database\Eloquent\Builder;
+
 use Throwable;
 
 class MapHitService
@@ -396,6 +398,65 @@ class MapHitService
 		}
 
 		return [(int) $mails->last()->id, $mails->count()];
+	}
+
+	// entry_model of a map model ('MapCombined', 'MapCustom')
+	public static function entryModel(string $model): int {
+		return $model === 'MapCustom' ? self::ENTRY_CUSTOM : self::ENTRY_COMBINED;
+	}
+
+	/*
+	 * Per entry of $ids: distinct mails in the last $days days and the day of
+	 * its last hit ever, as id => ['hits' => n, 'last' => day or null].
+	 */
+	public function entryHits(int $model, array $ids, int $days): array {
+		$ids = array_values(array_unique(array_map('intval', $ids)));
+		$result = array_fill_keys($ids, ['hits' => 0, 'last' => null]);
+		if ($ids === []) {
+			return $result;
+		}
+
+		$table = App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE);
+
+		$counts = (clone $table)->where('entry_model', $model)->whereIn('entry_id', $ids)
+			->whereRaw('created_day >= CURDATE() - INTERVAL ? DAY', [$days - 1])
+			->groupBy('entry_id')
+			->selectRaw('entry_id, COUNT(DISTINCT mail_log_id) AS hits')
+			->pluck('hits', 'entry_id')->all();
+		$last = (clone $table)->where('entry_model', $model)->whereIn('entry_id', $ids)
+			->groupBy('entry_id')
+			->selectRaw('entry_id, MAX(created_day) AS last')
+			->pluck('last', 'entry_id')->all();
+
+		foreach ($ids as $id) {
+			$result[$id] = ['hits' => (int) ($counts[$id] ?? 0), 'last' => $last[$id] ?? null];
+		}
+		return $result;
+	}
+
+	// mail ids credited to an entry in the last $days days, newest first
+	public function entryHitMailIds(int $model, int $entryId, int $days, int $limit): array {
+		return App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE)
+			->where('entry_model', $model)
+			->where('entry_id', $entryId)
+			->whereRaw('created_day >= CURDATE() - INTERVAL ? DAY', [$days - 1])
+			->orderBy('mail_log_id', 'DESC')
+			->distinct()
+			->limit($limit)
+			->pluck('mail_log_id')
+			->map(fn ($id) => (int) $id)
+			->all();
+	}
+
+	// limit an entry query on $table to entries with no hit in the last $days days
+	public static function whereIdle(Builder $query, int $model, string $table, int $days): void {
+		$query->whereNotExists(function ($q) use ($model, $table, $days) {
+			$q->selectRaw('1')
+				->from(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE)
+				->where('entry_model', $model)
+				->whereColumn('entry_id', "{$table}.id")
+				->whereRaw('created_day >= CURDATE() - INTERVAL ? DAY', [$days - 1]);
+		});
 	}
 
 	// report windows in days, today included

@@ -15,7 +15,7 @@ Custom Map: <a target='_blank' href="{{ maps_url_base ~ map ~ '.txt' }}">{{ mapd
 {% else %}
 Custom Map: {{ mapdescr }}<br/>
 {% endif %}
-{{ totalRecords|nf }} entries
+{{ totalRecords|nf }} {{ idle ? 'idle ' }}entries
 {% if last_activity %}
 | Updated {{ last_activity }}
 {% endif %}
@@ -25,6 +25,9 @@ Custom Map: {{ mapdescr }}<br/>
 
 <div id="inside_links">
 <ul>
+{% if entry_hits is not null %}
+<li><a href='{{ route('ADMIN_MAP_SHOW', { map: map }) }}{{ idle ? '' : '?idle=1' }}'>{{ idle ? 'Show all entries' : 'Show idle entries (no hits in ' ~ hits_days ~ ' days)' }}</a></li>
+{% endif %}
 <li><a href='{{ route('ADMIN_MAP_ADD_ENTRY', { map: map} ) }}'>Add New entry</a></li>
 <li><a href='{{ route('ADMIN_MAP_DEL_ALL_ENTRIES', { map: map, _token: csrf_token('map_delall') } ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr|e('js') }}\'?')">Delete All Entries</a></li>
 </ul>
@@ -46,6 +49,10 @@ Custom Map: {{ mapdescr }}<br/>
  <th class='email'>{{ descriptions[loop.index0] ?? field }}</th>
  {% endfor %}
  <th class='email'>Updated</th>
+{% if entry_hits is not null %}
+ <th class='email'>Hits ({{ hits_days }} days)</th>
+ <th class='email'>Last hit</th>
+{% endif %}
  <th class='email'>Enable/Disable</th>
  <th class='email'>Delete</th>
  <th class='email'>Edit</th>
@@ -57,6 +64,11 @@ Custom Map: {{ mapdescr }}<br/>
       <tr class='clean'>
           <td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.pattern }}</td>
 			 <td class='center'>{{ entry.updated_at }}</td>
+{% if entry_hits is not null %}
+{% set hit = entry_hits[entry.id] ?? null %}
+			 <td class='center'>{% if hit and hit.hits > 0 %}<a href="{{ route('ADMIN_MAP_HITS_MAILS') }}?map={{ map|url_encode }}&amp;entry={{ entry.id }}&amp;days={{ hits_days }}">{{ hit.hits|nf }}</a>{% else %}0{% endif %}</td>
+			 <td class='center'>{{ hit.last ?? 'never' }}</td>
+{% endif %}
 			 <td class='center'>
 				<a href="{{ route('ADMIN_MAP_TOGGLE_ENTRY', { map: map, id: entry.id, _token: csrf_token('map_toggle') }) }}">
 				{{ entry.disabled ? 'Enable' : 'Disable' }}</a>

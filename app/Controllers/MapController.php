@@ -23,12 +23,14 @@ use App\Forms\MapSearchForm;
 
 use App\Inventory\MapInventory;
 use App\Services\MapService;
+use App\Services\MapHitService;
 
 use App\Models\CustomMapConfig;
 use App\Models\MapActivityLog;
 use App\Models\User;
 
 use RuntimeException;
+use Throwable;
 
 class MapController extends ViewController
 {
@@ -505,10 +507,14 @@ class MapController extends ViewController
 
 		$page = $this->request->query->getInt('page', 1);
 
+		// entries with no hit in the hits window
+		$map_hits = MapService::mapHitsEnabled();
+		$idle = $map_hits && $this->request->query->get('idle') === '1';
+
 		if($config['model'] === 'MapCombined') {
 			$model = 'MapCombined';
 			// has applyUserRcptToScope
-			$map_entries = $service->getPaginatedMapCombined($map, $fields, $page, $this->getMapShowUrl($map));
+			$map_entries = $service->getPaginatedMapCombined($map, $fields, $page, $this->getMapShowUrl($map), $idle);
 
 			foreach ($map_entries as $key => $map_entry) {
 				$map_entries[$key]->map_username = $this->getMapUser($map_entry->user);
@@ -516,7 +522,7 @@ class MapController extends ViewController
 			}
 		} elseif($this->is_admin && $config['model'] === 'MapCustom') {
 			$model = 'MapCustom';
-			$map_entries = $service->getPaginatedMapCustom($map, $page, $this->getMapShowUrl($map));
+			$map_entries = $service->getPaginatedMapCustom($map, $page, $this->getMapShowUrl($map), $idle);
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to show map in " . $this->request->getPathInfo() . " with wrong model {$config['model']} or non admin rights");
 			$this->flashbag->add('error', 'Error in map');
@@ -531,6 +537,20 @@ class MapController extends ViewController
 
 		$last_activity = (string) MapActivityLog::where('map_name', $map)->value('last_changed_at');
 
+		$hits_days = max(MapHitService::WINDOWS);
+		$entry_hits = null;
+		if ($map_hits) {
+			if ($idle) {
+				$map_entries->appends(['idle' => 1]);
+			}
+			try {
+				$entry_hits = (new MapHitService())->entryHits(MapHitService::entryModel($model),
+					array_map(fn ($e) => (int) $e->id, $map_entries->items()), $hits_days);
+			} catch (Throwable $e) {
+				$this->fileLogger->error("[MapController_showMap] map hits query error: " . $e->getMessage());
+			}
+		}
+
 		return new Response($this->twig->render('map_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'mapsearchform' => $mapSearchForm->createView(),
@@ -543,6 +563,9 @@ class MapController extends ViewController
 			'descriptions' => $descriptions,
 			'map_entries' => $map_entries,
 			'totalRecords' => $map_entries->total(),
+			'entry_hits' => $entry_hits,
+			'hits_days' => $hits_days,
+			'idle' => $idle,
 			'last_activity' => $last_activity,
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),

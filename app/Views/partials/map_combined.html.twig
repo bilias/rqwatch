@@ -13,7 +13,7 @@ Basic/Combined Map: <a target='_blank' href="{{ maps_url_base ~ map ~ '.txt' }}"
 {% else %}
 Basic/Combined Map: {{ mapdescr }}<br/>
 {% endif %}
-{{ totalRecords|nf }} entries
+{{ totalRecords|nf }} {{ idle ? 'idle ' }}entries
 {% if last_activity %}
 | Updated {{ last_activity }}
 {% endif %}
@@ -22,6 +22,9 @@ Basic/Combined Map: {{ mapdescr }}<br/>
 {% endif %}
 <div id="inside_links">
 <ul>
+{% if entry_hits is not null %}
+<li><a href='{{ route(is_admin ? 'ADMIN_MAP_SHOW' : 'MAP_SHOW', { map: map }) }}{{ idle ? '' : '?idle=1' }}'>{{ idle ? 'Show all entries' : 'Show idle entries (no hits in ' ~ hits_days ~ ' days)' }}</a></li>
+{% endif %}
 {% if is_admin %}
 <li><a href='{{ route('ADMIN_MAP_ADD_ENTRY', { map: map} ) }}'>Add New entry</a></li>
 <li><a href='{{ route('ADMIN_MAP_DEL_ALL_ENTRIES', { map: map, _token: csrf_token('map_delall') } ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr|e('js') }}\'?')">Delete All Entries</a></li>
@@ -48,6 +51,10 @@ Basic/Combined Map: {{ mapdescr }}<br/>
  <th class='email'>{{ descriptions[loop.index0] ?? field }}</th>
  {% endfor %}
  <th class='email'>Updated</th>
+{% if entry_hits is not null %}
+ <th class='email'>Hits ({{ hits_days }} days)</th>
+ <th class='email'>Last hit</th>
+{% endif %}
  <th class='email'>Creator</th>
  <th class='email'>Enable/Disable</th>
  <th class='email'>Delete</th>
@@ -63,6 +70,11 @@ Basic/Combined Map: {{ mapdescr }}<br/>
 			 {% set parts = parts|merge([descriptions[loop.index0] ~ ': ' ~ attribute(entry, field)]) %}
         {% endfor %}
 			 <td class='center'>{{ entry.updated_at }}</td>
+{% if entry_hits is not null %}
+{% set hit = entry_hits[entry.id] ?? null %}
+			 <td class='center'>{% if hit and hit.hits > 0 %}<a href="{{ route(is_admin ? 'ADMIN_MAP_HITS_MAILS' : 'MAP_HITS_MAILS') }}?map={{ map|url_encode }}&amp;entry={{ entry.id }}&amp;days={{ hits_days }}">{{ hit.hits|nf }}</a>{% else %}0{% endif %}</td>
+			 <td class='center'>{{ hit.last ?? 'never' }}</td>
+{% endif %}
 			 <td class='center'>{{ entry.map_username }}</td>
 
 		  {% set entry_str = parts|join(', ') %}

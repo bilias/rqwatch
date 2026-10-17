@@ -605,6 +605,13 @@ class Routes
 			],
 		));
 
+		$routes->add(RouteName::MAP_HITS_MAILS->value, new Route(
+			'/user/maps/hits/mails', // path
+			[ '_controller' => 'App\\Controllers\\MapHitController::showMails',
+			  '_middleware' => $userMiddlewareClasses,
+			],
+		));
+
 		$routes->add(RouteName::ADMIN_MAPS_CUSTOM_ADD->value, new Route(
 			'/admin/maps/custom/add', // path
 			[ '_controller' => 'App\\Controllers\\MapController::addCustomMap',
