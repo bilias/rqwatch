@@ -844,6 +844,9 @@ class MapService
 		}
 
 		try {
+			// the old key, to detach its hits if the edit changes it
+			$old = MapCombined::where('id', $data['id'])->first($map_fields);
+
 			$success = MapCombined::where('id', $data['id'])
 			                      ->update($new_data);
 
@@ -855,6 +858,15 @@ class MapService
 		} catch (Throwable $e) {
 			$this->logger->error("[addMapCombinedEntry] Query save error: " . $e->getMessage() . PHP_EOL);
 			return false;
+		}
+
+		if ($old !== null) {
+			foreach ($map_fields as $field) {
+				if (strtolower(trim((string) $old->$field)) !== (string) $new_data[$field]) {
+					(new MapHitService())->detachEntry(MapHitService::ENTRY_COMBINED, (int) $data['id']);
+					break;
+				}
+			}
 		}
 
 		$last_update = date("Y-m-d H:i:s");
@@ -973,6 +985,9 @@ class MapService
 		}
 
 		try {
+			// the old key, to detach its hits if the edit changes it
+			$old = MapCustom::where('id', $data['id'])->value('pattern');
+
 			$success = MapCustom::where('id', $data['id'])
 			                    ->update([
 			                       'pattern' => $value,
@@ -988,6 +1003,10 @@ class MapService
 		} catch (Throwable $e) {
 			$this->logger->error("[updateMapCustomEntry] Query update error: " . $e->getMessage() . PHP_EOL);
 			return false;
+		}
+
+		if ($old !== null && MapHitService::customIdentity((string) $old) !== MapHitService::customIdentity((string) $value)) {
+			(new MapHitService())->detachEntry(MapHitService::ENTRY_CUSTOM, (int) $data['id']);
 		}
 
 		$last_update = date("Y-m-d H:i:s");

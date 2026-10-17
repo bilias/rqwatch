@@ -32,8 +32,8 @@ class MapHitService
 
 	// entry_model values
 	private const int ENTRY_NONE = 0;
-	private const int ENTRY_COMBINED = 1;
-	private const int ENTRY_CUSTOM = 2;
+	public const int ENTRY_COMBINED = 1;
+	public const int ENTRY_CUSTOM = 2;
 
 	/*
 	 * Record the map and local rule symbols of an imported mail, with their
@@ -205,7 +205,7 @@ class MapHitService
 
 			$ids = [];
 			foreach ($rows as $id => $pattern) {
-				if (strcasecmp(self::customKey((string) $pattern), $key) === 0) {
+				if (strcasecmp(self::customIdentity((string) $pattern)[0], $key) === 0) {
 					$ids[] = [self::ENTRY_CUSTOM, (int) $id];
 				}
 			}
@@ -219,7 +219,7 @@ class MapHitService
 			$rows = (clone $table)->where('map_name', $map)->where('disabled', 0)
 				->where('pattern', 'like', '%/%')->pluck('pattern', 'id')->all();
 			foreach ($rows as $id => $pattern) {
-				$networks[$id] = self::customKey((string) $pattern);
+				$networks[$id] = self::customIdentity((string) $pattern)[0];
 			}
 			return $this->longestPrefix($keys[0], $networks, self::ENTRY_CUSTOM);
 		}
@@ -227,11 +227,7 @@ class MapHitService
 		return [];
 	}
 
-	/*
-	 * Custom entries carrying $name as their own symbol: the value after the
-	 * key reads "SYMBOL", "SYMBOL:score" or "SYMBOL:score:options", the key
-	 * of a regexp line ending at its closing /flags.
-	 */
+	// custom entries carrying $name as their own symbol
 	private function ownSymbolEntries(string $name): array {
 		$like = self::escapeLike($name);
 		$rows = App::capsule()->getConnection()->table(AppConfig::MAPS_CUSTOM_TABLE)
@@ -244,9 +240,7 @@ class MapHitService
 
 		$entries = [];
 		foreach ($rows as $id => $pattern) {
-			$pattern = (string) $pattern;
-			$re = str_starts_with($pattern, '/') ? '~^/.*/[A-Za-z]*\s+(\S+)~s' : '~^\S+\s+(\S+)~';
-			if (preg_match($re, $pattern, $m) && explode(':', $m[1], 2)[0] === $name) {
+			if (self::customIdentity((string) $pattern)[1] === $name) {
 				$entries[] = [self::ENTRY_CUSTOM, (int) $id];
 			}
 		}
@@ -294,8 +288,54 @@ class MapHitService
 		return (ord($addr[$bytes]) & $mask) === (ord($net[$bytes]) & $mask);
 	}
 
-	private static function customKey(string $pattern): string {
-		return (string) strtok(trim($pattern), " \t");
+	/*
+	 * A custom entry's key and own symbol, as [key, symbol or null]. The key
+	 * of a regexp line ends at its closing /flags, any other at the first
+	 * whitespace; the value after it reads "SYMBOL", "SYMBOL:score" or
+	 * "SYMBOL:score:options", or is a score.
+	 */
+	public static function customIdentity(string $pattern): array {
+		$pattern = trim($pattern);
+		$re = str_starts_with($pattern, '/') ? '~^(/.*/[A-Za-z]*)(?:\s+(\S+))?~s' : '~^(\S+)(?:\s+(\S+))?~';
+		if (!preg_match($re, $pattern, $m)) {
+			return [$pattern, null];
+		}
+		$symbol = isset($m[2]) ? explode(':', $m[2], 2)[0] : null;
+		if ($symbol === null || is_numeric($symbol) || !MapService::validSymbol($symbol)) {
+			$symbol = null;
+		}
+		return [$m[1], $symbol];
+	}
+
+	/*
+	 * Detach an entry's hits after its key changed: they stay on the map,
+	 * credited to no entry. A hit whose mail already has an uncredited row
+	 * for that symbol is deleted instead. Never throws.
+	 */
+	public function detachEntry(int $model, int $entryId): void {
+		try {
+			if (!MapService::mapHitsEnabled()) {
+				return;
+			}
+
+			$db = App::capsule()->getConnection();
+			$table = AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE;
+
+			$moved = $db->update(
+				"UPDATE IGNORE `{$table}` SET entry_model = ?, entry_id = 0 WHERE entry_model = ? AND entry_id = ?",
+				[self::ENTRY_NONE, $model, $entryId]
+			);
+			$dropped = $db->delete(
+				"DELETE FROM `{$table}` WHERE entry_model = ? AND entry_id = ?",
+				[$model, $entryId]
+			);
+
+			if ($moved + $dropped > 0) {
+				$this->logger->info("[MapHitService] entry {$model}:{$entryId} key changed, detached " . ($moved + $dropped) . " hit(s)");
+			}
+		} catch (Throwable $e) {
+			$this->logger->error("[MapHitService_detachEntry] entry {$model}:{$entryId}: " . $e->getMessage());
+		}
 	}
 
 	private static function escapeLike(string $value): string {
