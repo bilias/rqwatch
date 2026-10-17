@@ -115,7 +115,8 @@ class MapHitService
 				continue;
 			}
 			$name = $symbol['name'] ?? (is_string($key) ? $key : null);
-			if (!is_string($name) || !MapService::validSymbol($name)) {
+			// fuzzy symbols have their own hits (FuzzyService::recordHits())
+			if (!is_string($name) || !MapService::validSymbol($name) || Helper::isFuzzySymbol($name)) {
 				continue;
 			}
 			if (!isset($symbolMaps[$name]) && !Helper::symbolMatches($name, 'local_symbol_patterns')) {
