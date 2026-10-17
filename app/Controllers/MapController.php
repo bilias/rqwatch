@@ -188,6 +188,9 @@ class MapController extends ViewController
 			'map_gen_total' => $map_gen_total,
 			'map_custom_entries' => $map_custom_entries,
 			'map_custom_total' => $map_custom_total,
+			'comb_hits' => $this->pageEntryHits('MapCombined', $map_comb_entries),
+			'custom_hits' => $this->pageEntryHits('MapCustom', $map_custom_entries),
+			'hits_days' => max(MapHitService::WINDOWS),
 			'field_descriptions' => $field_descriptions,
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
@@ -541,18 +544,10 @@ class MapController extends ViewController
 		$last_activity = (string) MapActivityLog::where('map_name', $map)->value('last_changed_at');
 
 		$hits_days = max(MapHitService::WINDOWS);
-		$entry_hits = null;
-		if ($map_hits) {
-			if ($idle) {
-				$map_entries->appends(['idle' => 1]);
-			}
-			try {
-				$entry_hits = (new MapHitService())->entryHits(MapHitService::entryModel($model),
-					array_map(fn ($e) => (int) $e->id, $map_entries->items()), $hits_days);
-			} catch (Throwable $e) {
-				$this->fileLogger->error("[MapController_showMap] map hits query error: " . $e->getMessage());
-			}
+		if ($idle) {
+			$map_entries->appends(['idle' => 1]);
 		}
+		$entry_hits = $this->pageEntryHits($model, $map_entries);
 
 		return new Response($this->twig->render('map_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -1184,6 +1179,9 @@ class MapController extends ViewController
 			'map_gen_total' => $map_gen_total,
 			'map_custom_entries' => $map_custom_entries,
 			'map_custom_total' => $map_custom_total,
+			'comb_hits' => $this->pageEntryHits('MapCombined', $map_comb_entries),
+			'custom_hits' => $this->pageEntryHits('MapCustom', $map_custom_entries),
+			'hits_days' => max(MapHitService::WINDOWS),
 			'field_descriptions' => $field_descriptions,
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
@@ -1197,6 +1195,23 @@ class MapController extends ViewController
 			'map_name' => $search_map_name,
 			'search_map' => true,
 		]));
+	}
+
+	/*
+	 * Per entry on a page of map entries: distinct mails in the longest hits
+	 * window and the last hit; null before the map hits migration.
+	 */
+	private function pageEntryHits(string $model, $entries): ?array {
+		if ($entries === null || !MapService::mapHitsEnabled()) {
+			return null;
+		}
+		try {
+			return (new MapHitService())->entryHits(MapHitService::entryModel($model),
+				array_map(fn ($e) => (int) $e->id, $entries->items()), max(MapHitService::WINDOWS));
+		} catch (Throwable $e) {
+			$this->fileLogger->error("[MapController] map hits query error: " . $e->getMessage());
+			return null;
+		}
 	}
 
 	public function toggleMapEntry(string $map, int $id): Response {

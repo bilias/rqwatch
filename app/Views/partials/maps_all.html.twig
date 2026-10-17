@@ -44,6 +44,10 @@ Total: {{ map_comb_total|nf }} entries
  <th>{{ field_descriptions.rcpt_to }}</th>
  <th>{{ field_descriptions.ip }}</th>
  <th>Updated</th>
+{% if comb_hits is not null %}
+ <th>Hits ({{ hits_days }} days)</th>
+ <th>Last hit</th>
+{% endif %}
  <th>Creator</th>
  <th>Enable/Disable</th>
  <th>Delete</th>
@@ -64,6 +68,11 @@ Total: {{ map_comb_total|nf }} entries
 			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.rcpt_to }}</td>
 			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.ip }}</td>
 			<td class='center'>{{ entry.updated_at }}</td>
+{% if comb_hits is not null %}
+{% set hit = comb_hits[entry.id] ?? null %}
+			<td class='center'>{% if hit and hit.hits > 0 %}<a href="{{ route(is_admin ? 'ADMIN_MAP_HITS_MAILS' : 'MAP_HITS_MAILS') }}?map={{ entry.map_name|url_encode }}&amp;entry={{ entry.id }}&amp;days={{ hits_days }}">{{ hit.hits|nf }}</a>{% else %}0{% endif %}</td>
+			<td class='center'>{{ hit.last ?? 'never' }}</td>
+{% endif %}
 			<td class='center'>{{ entry.map_username }}</td>
 			<td class='center'>
 			{% if is_admin %}
@@ -179,6 +188,10 @@ Total: {{ map_custom_total|nf }} entries
  <th>Field</th>
  <th>Pattern</th>
  <th>Updated</th>
+{% if custom_hits is not null %}
+ <th>Hits ({{ hits_days }} days)</th>
+ <th>Last hit</th>
+{% endif %}
  <th>Enable/Disable</th>
  <th>Delete</th>
  <th>Edit</th>
@@ -192,6 +205,11 @@ Total: {{ map_custom_total|nf }} entries
 			<td class='center'>{{ entry.field_description }}</td>
 			<td class='center {{ entry.disabled ? 'disabled' }}'>{{ entry.pattern }}</td>
 			<td class='center'>{{ entry.updated_at }}</td>
+{% if custom_hits is not null %}
+{% set hit = custom_hits[entry.id] ?? null %}
+			<td class='center'>{% if hit and hit.hits > 0 %}<a href="{{ route('ADMIN_MAP_HITS_MAILS') }}?map={{ entry.map_name|url_encode }}&amp;entry={{ entry.id }}&amp;days={{ hits_days }}">{{ hit.hits|nf }}</a>{% else %}0{% endif %}</td>
+			<td class='center'>{{ hit.last ?? 'never' }}</td>
+{% endif %}
 			<td class='center'>
 			   <a href="{{ route('ADMIN_MAP_TOGGLE_ENTRY', { map: entry.map_name, id: entry.id, _token: csrf_token('map_toggle') }) }}">
 				{{ entry.disabled ? 'Enable' : 'Disable' }}</a>
