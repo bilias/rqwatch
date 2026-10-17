@@ -14,15 +14,14 @@ use App\Core\App;
 
 use App\Configuration\AppConfig;
 
+use App\Utils\Helper;
+
 use Psr\Log\LoggerInterface;
 
 use Throwable;
 
 class MapHitService
 {
-	// symbols recorded whether or not a map names them, as checkForMap() treats them
-	private const array PREFIXES = ['RQWATCH_', 'LOCAL_'];
-
 	private LoggerInterface $logger;
 
 	public function __construct() {
@@ -76,7 +75,7 @@ class MapHitService
 		}
 	}
 
-	// symbol name => score for the prefixed symbols and those a map names
+	// symbol name => score for the local rule symbols and those a map names
 	private function wantedSymbols(string $symbols): array {
 		$list = json_decode($symbols, true);
 		if (!is_array($list) || $list === []) {
@@ -99,7 +98,7 @@ class MapHitService
 			if (!is_string($name) || !MapService::validSymbol($name)) {
 				continue;
 			}
-			if (!isset($mapped[$name]) && !$this->hasPrefix($name)) {
+			if (!isset($mapped[$name]) && !Helper::symbolMatches($name, 'local_symbol_patterns')) {
 				continue;
 			}
 			$score = $symbol['score'] ?? null;
@@ -107,15 +106,6 @@ class MapHitService
 		}
 
 		return $scores;
-	}
-
-	private function hasPrefix(string $name): bool {
-		foreach (self::PREFIXES as $prefix) {
-			if (str_starts_with($name, $prefix)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	// symbol name => symbol_names.id, adding the names not seen before

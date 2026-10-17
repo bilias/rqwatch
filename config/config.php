@@ -164,6 +164,16 @@ $map_symbols = array(
 	'ip_blacklist' => array('RQWATCH_IP_BLACKLIST'),
 );
 
+# Rspamd symbols of local rules and maps: shell-style patterns (fnmatch),
+# matched case-insensitively.
+# Recorded as map hits and shown as [map]:
+$local_symbol_patterns = array('RQWATCH_*', 'LOCAL_*');
+# True whitelist symbols, the -1000 rules (green rows, whitelisted tag):
+$whitelist_symbol_patterns = array('RQWATCH_*_WL', 'RQWATCH_*_WHITELIST');
+# True blacklist symbols, the +1000 rules (red rows, notification blacklist
+# checks -b/-B, detail page reason):
+$blacklist_symbol_patterns = array('RQWATCH_*_BL', 'RQWATCH_*_BLACKLIST');
+
 # Log file for Rqwatch
 # default is APP_ROOT/logs/rqwatch.log
 $LOG_FILE = AppConfig::LOG_FILE;

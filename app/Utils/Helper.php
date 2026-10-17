@@ -40,6 +40,16 @@ use InvalidArgumentException;
 
 class Helper {
 
+	// used when a *_symbol_patterns config value is missing or invalid
+	private const array SYMBOL_PATTERNS = [
+		'local_symbol_patterns' => ['RQWATCH_*', 'LOCAL_*'],
+		'whitelist_symbol_patterns' => ['RQWATCH_*_WL', 'RQWATCH_*_WHITELIST'],
+		'blacklist_symbol_patterns' => ['RQWATCH_*_BL', 'RQWATCH_*_BLACKLIST'],
+	];
+
+	// patterns read from config, per process
+	private static array $symbolPatterns = [];
+
 	private static function logger(): LoggerInterface {
 		return App::fileLogger();
 	}
@@ -171,12 +181,35 @@ class Helper {
 		return $hits;
 	}
 
+	/*
+	 * Does a symbol name match one of the patterns of a *_symbol_patterns
+	 * config value (fnmatch, case-insensitive).
+	 */
+	public static function symbolMatches(string $name, string $patterns): bool {
+		if (!isset(self::$symbolPatterns[$patterns])) {
+			$list = Config::get($patterns);
+			$valid = is_array($list) && $list !== []
+				&& array_filter($list, fn ($p) => !is_string($p) || trim($p) === '') === [];
+			if (!$valid) {
+				self::logger()->error("[Helper] invalid {$patterns} in config: list of symbol patterns, using defaults");
+				$list = self::SYMBOL_PATTERNS[$patterns] ?? [];
+			}
+			self::$symbolPatterns[$patterns] = array_map('trim', array_values($list));
+		}
+
+		foreach (self::$symbolPatterns[$patterns] as $pattern) {
+			if (fnmatch($pattern, $name, FNM_CASEFOLD)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static function checkForMap(array $symbols): bool {
 		foreach ($symbols as $symbol) {
-			if (isset($symbol['name']) && !self::isFuzzySymbol($symbol['name']) && (
-				 (preg_match('/^RQWATCH_.*$/i', $symbol['name'])) ||
-				 (preg_match('/^LOCAL_.*$/i', $symbol['name'])))) {
-					return true;
+			if (isset($symbol['name']) && !self::isFuzzySymbol((string) $symbol['name'])
+				&& self::symbolMatches((string) $symbol['name'], 'local_symbol_patterns')) {
+				return true;
 			}
 		}
 		return false;
@@ -184,11 +217,10 @@ class Helper {
 
 	public static function checkForWhitelist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
-			if (isset($symbol['name']) &&
-			    preg_match('/^RQWATCH_.*_(WL|WHITELIST)/i', $symbol['name'])
-			) {
-					return true;
-			  }
+			if (isset($symbol['name'])
+				&& self::symbolMatches((string) $symbol['name'], 'whitelist_symbol_patterns')) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -217,11 +249,10 @@ class Helper {
 
 	public static function checkForBlacklist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
-			if (isset($symbol['name']) &&
-			    preg_match('/^RQWATCH_.*_(BL|BLACKLIST)/i', $symbol['name'])
-			) {
-					return true;
-			  }
+			if (isset($symbol['name'])
+				&& self::symbolMatches((string) $symbol['name'], 'blacklist_symbol_patterns')) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -232,7 +263,8 @@ class Helper {
 			if (($class = self::fuzzySymbolClass($symbol)) !== null) {
 				return $class;
 			}
-			$check[0]['name'] = $symbol;
+			// a detail line is "NAME:score:options"
+			$check[0]['name'] = explode(':', $symbol, 2)[0];
 			if (self::checkForWhitelist($check)) {
 				return 'whitelist';
 			}
