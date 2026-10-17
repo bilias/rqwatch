@@ -510,11 +510,14 @@ class MapController extends ViewController
 		// entries with no hit in the hits window
 		$map_hits = MapService::mapHitsEnabled();
 		$idle = $map_hits && $this->request->query->get('idle') === '1';
+		// one entry, as the detail page links it
+		$entry_filter = $this->request->query->getInt('entry', 0);
+		$entry_filter = $entry_filter > 0 ? $entry_filter : null;
 
 		if($config['model'] === 'MapCombined') {
 			$model = 'MapCombined';
 			// has applyUserRcptToScope
-			$map_entries = $service->getPaginatedMapCombined($map, $fields, $page, $this->getMapShowUrl($map), $idle);
+			$map_entries = $service->getPaginatedMapCombined($map, $fields, $page, $this->getMapShowUrl($map), $idle, $entry_filter);
 
 			foreach ($map_entries as $key => $map_entry) {
 				$map_entries[$key]->map_username = $this->getMapUser($map_entry->user);
@@ -522,7 +525,7 @@ class MapController extends ViewController
 			}
 		} elseif($this->is_admin && $config['model'] === 'MapCustom') {
 			$model = 'MapCustom';
-			$map_entries = $service->getPaginatedMapCustom($map, $page, $this->getMapShowUrl($map), $idle);
+			$map_entries = $service->getPaginatedMapCustom($map, $page, $this->getMapShowUrl($map), $idle, $entry_filter);
 		} else {
 			$this->fileLogger->warning("User {$this->username} tried to show map in " . $this->request->getPathInfo() . " with wrong model {$config['model']} or non admin rights");
 			$this->flashbag->add('error', 'Error in map');
@@ -566,6 +569,7 @@ class MapController extends ViewController
 			'entry_hits' => $entry_hits,
 			'hits_days' => $hits_days,
 			'idle' => $idle,
+			'entry_filter' => $entry_filter,
 			'last_activity' => $last_activity,
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),

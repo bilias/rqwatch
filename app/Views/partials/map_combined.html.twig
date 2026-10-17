@@ -22,8 +22,10 @@ Basic/Combined Map: {{ mapdescr }}<br/>
 {% endif %}
 <div id="inside_links">
 <ul>
-{% if entry_hits is not null %}
-<li><a href='{{ route(is_admin ? 'ADMIN_MAP_SHOW' : 'MAP_SHOW', { map: map }) }}{{ idle ? '' : '?idle=1' }}'>{{ idle ? 'Show all entries' : 'Show idle entries (no hits in ' ~ hits_days ~ ' days)' }}</a></li>
+{% if idle or entry_filter %}
+<li><a href='{{ route(is_admin ? 'ADMIN_MAP_SHOW' : 'MAP_SHOW', { map: map }) }}'>Show all entries</a></li>
+{% elseif entry_hits is not null %}
+<li><a href='{{ route(is_admin ? 'ADMIN_MAP_SHOW' : 'MAP_SHOW', { map: map }) }}?idle=1'>Show idle entries (no hits in {{ hits_days }} days)</a></li>
 {% endif %}
 {% if is_admin %}
 <li><a href='{{ route('ADMIN_MAP_ADD_ENTRY', { map: map} ) }}'>Add New entry</a></li>

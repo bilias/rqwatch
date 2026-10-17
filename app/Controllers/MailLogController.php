@@ -601,7 +601,7 @@ class MailLogController extends ViewController
 	/*
 	 * Per symbol name, links to the maps a mail's recorded hit belongs to
 	 * (maps naming the symbol, maps of the entries it was credited to) and to
-	 * the credited entries' mails; only maps and entries the viewer can see.
+	 * the credited entries; only maps and entries the viewer can see.
 	 */
 	private function symbolLinks(int $mailLogId): array {
 		if (!MapService::mapHitsEnabled()) {
@@ -624,8 +624,6 @@ class MailLogController extends ViewController
 			}
 			$entryMaps = $hitService->entryMaps(array_merge([], ...array_values($hits)));
 			$mapService = new MapService($this->getUserContext());
-			// the mail may be older than any report window
-			$days = 0;
 
 			$links = [];
 			foreach ($hits as $name => $entries) {
@@ -642,8 +640,8 @@ class MailLogController extends ViewController
 					}
 					$entryLinks[] = [
 						'label' => 'entry',
-						'url' => $this->url($this->is_admin ? RouteName::ADMIN_MAP_HITS_MAILS : RouteName::MAP_HITS_MAILS)
-							. '?' . http_build_query(['map' => $map, 'entry' => $id, 'days' => $days]),
+						'url' => $this->url($this->is_admin ? RouteName::ADMIN_MAP_SHOW : RouteName::MAP_SHOW, ['map' => $map])
+							. '?' . http_build_query(['entry' => $id]),
 					];
 				}
 				foreach (array_unique($maps) as $map) {

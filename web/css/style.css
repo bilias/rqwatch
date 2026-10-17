@@ -682,6 +682,7 @@ span.stored {
 .active_filters .filtername {
  text-align: left;
  padding-left: 5px;
+ overflow-wrap: anywhere; /* long values without spaces, e.g. a regexp */
 }
 
 .active_filters .filtervalue {
