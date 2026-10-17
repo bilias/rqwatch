@@ -351,7 +351,7 @@ class MapHitService
 	 */
 	public function backfillStartId(?int $days): ?int {
 		$query = App::capsule()->getConnection()->table(AppConfig::MAIL_LOGS_TABLE);
-		self::backfillWindow($query, $days);
+		self::dayWindow($query, $days);
 		$id = $query->min('id');
 		return $id === null ? null : (int) $id;
 	}
@@ -359,12 +359,12 @@ class MapHitService
 	public function backfillCount(int $startId, ?int $days): int {
 		$query = App::capsule()->getConnection()->table(AppConfig::MAIL_LOGS_TABLE)
 			->where('id', '>=', $startId);
-		self::backfillWindow($query, $days);
+		self::dayWindow($query, $days);
 		return $query->count();
 	}
 
 	// the last $days days including today; null: no limit
-	private static function backfillWindow($query, ?int $days, string $column = 'created_day'): void {
+	private static function dayWindow($query, ?int $days, string $column = 'created_day'): void {
 		if ($days !== null) {
 			$query->whereRaw("{$column} >= CURDATE() - INTERVAL ? DAY", [$days - 1]);
 		}
@@ -383,7 +383,7 @@ class MapHitService
 			->where('ml.id', '>', $afterId)
 			->orderBy('ml.id')
 			->limit($batch);
-		self::backfillWindow($query, $days, 'ml.created_day');
+		self::dayWindow($query, $days, 'ml.created_day');
 		$mails = $query->get(['ml.id', 'ml.qid', 'md.symbols']);
 
 		if ($mails->isEmpty()) {
@@ -435,12 +435,14 @@ class MapHitService
 		return $result;
 	}
 
-	// mail ids credited to an entry in the last $days days, newest first
-	public function entryHitMailIds(int $model, int $entryId, int $days, int $limit): array {
-		return App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE)
+	// mail ids credited to an entry in the last $days days (null: any day), newest first
+	public function entryHitMailIds(int $model, int $entryId, ?int $days, int $limit): array {
+		$query = App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE)
 			->where('entry_model', $model)
-			->where('entry_id', $entryId)
-			->whereRaw('created_day >= CURDATE() - INTERVAL ? DAY', [$days - 1])
+			->where('entry_id', $entryId);
+		self::dayWindow($query, $days);
+
+		return $query
 			->orderBy('mail_log_id', 'DESC')
 			->distinct()
 			->limit($limit)
@@ -561,8 +563,8 @@ class MapHitService
 		return $result;
 	}
 
-	// mail ids hit by a map in the last $days days, newest first
-	public function mapHitMailIds(string $map, string $model, array $symbols, int $days, int $limit): array {
+	// mail ids hit by a map in the last $days days (null: any day), newest first
+	public function mapHitMailIds(string $map, string $model, array $symbols, ?int $days, int $limit): array {
 		$symbolIds = array_values($this->existingSymbolIds($symbols));
 		[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, $days);
 
@@ -572,17 +574,19 @@ class MapHitService
 		), 'mail_log_id'));
 	}
 
-	// mail ids with an uncredited hit of $symbol in the last $days days, newest first
-	public function symbolHitMailIds(string $symbol, int $days, int $limit): array {
+	// mail ids with an uncredited hit of $symbol in the last $days days (null: any day), newest first
+	public function symbolHitMailIds(string $symbol, ?int $days, int $limit): array {
 		$id = $this->existingSymbolIds([$symbol])[$symbol] ?? null;
 		if ($id === null) {
 			return [];
 		}
 
-		return App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE)
+		$query = App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE)
 			->where('symbol_id', $id)
-			->where('entry_model', self::ENTRY_NONE)
-			->whereRaw('created_day >= CURDATE() - INTERVAL ? DAY', [$days - 1])
+			->where('entry_model', self::ENTRY_NONE);
+		self::dayWindow($query, $days);
+
+		return $query
 			->orderBy('mail_log_id', 'DESC')
 			->distinct()
 			->limit($limit)

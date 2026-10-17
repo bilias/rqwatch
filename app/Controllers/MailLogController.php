@@ -624,7 +624,8 @@ class MailLogController extends ViewController
 			}
 			$entryMaps = $hitService->entryMaps(array_merge([], ...array_values($hits)));
 			$mapService = new MapService($this->getUserContext());
-			$days = max(MapHitService::WINDOWS);
+			// the mail may be older than any report window
+			$days = 0;
 
 			$links = [];
 			foreach ($hits as $name => $entries) {

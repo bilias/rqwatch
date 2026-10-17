@@ -105,10 +105,12 @@ class MapHitController extends ViewController
 
 		$report = $this->is_admin ? $this->url(RouteName::ADMIN_MAP_HITS) : $this->getHomepageUrl();
 
+		// 0: every recorded hit, as the detail page links a mail's entry
 		$days = $this->request->query->getInt('days', max(MapHitService::WINDOWS));
-		if (!in_array($days, MapHitService::WINDOWS, true)) {
+		if ($days !== 0 && !in_array($days, MapHitService::WINDOWS, true)) {
 			return new RedirectResponse($report);
 		}
+		$window = $days === 0 ? null : $days;
 
 		$map = (string) $this->request->query->get('map', '');
 		$symbol = (string) $this->request->query->get('symbol', '');
@@ -122,7 +124,7 @@ class MapHitController extends ViewController
 				if ($found === null) {
 					return new RedirectResponse($report);
 				}
-				$ids = $service->entryHitMailIds(MapHitService::entryModel($config['model']), $entry, $days, $this->max_items);
+				$ids = $service->entryHitMailIds(MapHitService::entryModel($config['model']), $entry, $window, $this->max_items);
 				$key = $config['model'] === 'MapCustom'
 					? (string) $found->getAttribute('pattern')
 					: implode(' | ', array_map(fn ($f) => (string) $found->getAttribute($f), $config['fields']));
@@ -132,12 +134,12 @@ class MapHitController extends ViewController
 				return new RedirectResponse($report);
 			} elseif ($map !== '' && isset($maps[$map])) {
 				[$model, $symbols] = $maps[$map];
-				$ids = $service->mapHitMailIds($map, $model, $symbols, $days, $this->max_items);
+				$ids = $service->mapHitMailIds($map, $model, $symbols, $window, $this->max_items);
 				$configs = MapInventory::getMapConfigs();
 				$filter = ['filter' => 'Map', 'choice' => 'hit by', 'value' => $configs[$map]['description'] ?? $map];
 				$params = ['map' => $map, 'days' => $days];
 			} elseif ($symbol !== '' && MapService::validSymbol($symbol)) {
-				$ids = $service->symbolHitMailIds($symbol, $days, $this->max_items);
+				$ids = $service->symbolHitMailIds($symbol, $window, $this->max_items);
 				$filter = ['filter' => 'Symbol', 'choice' => 'not credited to a map', 'value' => $symbol];
 				$params = ['symbol' => $symbol, 'days' => $days];
 			} else {
@@ -153,7 +155,11 @@ class MapHitController extends ViewController
 		$logs = (new MailLogService($this->getUserContext()))
 			->getPaginatedByIds($ids, $this->url($this->is_admin ? RouteName::ADMIN_MAP_HITS_MAILS : RouteName::MAP_HITS_MAILS), $page);
 
-		$period = $days === 1 ? 'today' : "the last {$days} days";
+		$period = match ($days) {
+			0 => 'any recorded day',
+			1 => 'today',
+			default => "the last {$days} days",
+		};
 
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
