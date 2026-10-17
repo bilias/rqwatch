@@ -220,6 +220,43 @@ class MapService
 		return App::migrationStatus()->mapHitsCompleted();
 	}
 
+	/*
+	 * Rspamd symbols reading each map, as map name => list of symbols:
+	 * $map_symbols for the built-in maps, the map definition for custom maps.
+	 * Invalid config entries are logged and skipped.
+	 */
+	public static function mapSymbols(): array {
+		$maps = [];
+
+		foreach ((array) (Config::get('map_symbols') ?? []) as $map => $symbols) {
+			$list = array_values(array_filter((array) $symbols, fn ($s) => is_string($s) && self::validSymbol($s)));
+			if (!is_string($map) || $list === [] || count($list) !== count((array) $symbols)) {
+				App::fileLogger()->error("[MapService] invalid map_symbols entry " .
+					json_encode([$map => $symbols]) . " in config: map name => list of symbol names");
+			}
+			if (is_string($map) && $list !== []) {
+				$maps[$map] = $list;
+			}
+		}
+
+		if (self::mapHitsEnabled()) {
+			$custom = CustomMapConfig::whereNotNull('symbols')->pluck('symbols', 'map_name');
+			foreach ($custom as $map => $symbols) {
+				$list = array_values(array_filter(explode(',', (string) $symbols), [self::class, 'validSymbol']));
+				if ($list !== []) {
+					$maps[$map] = $list;
+				}
+			}
+		}
+
+		return $maps;
+	}
+
+	// rspamd symbol name, as accepted by the custom map form
+	public static function validSymbol(string $symbol): bool {
+		return preg_match('/^[A-Za-z0-9_]{1,128}$/', $symbol) === 1;
+	}
+
 	// a custom map's symbols are stored only once the migration has added the column
 	private static function prepareSymbols(array $data): array {
 		if (!array_key_exists('symbols', $data)) {

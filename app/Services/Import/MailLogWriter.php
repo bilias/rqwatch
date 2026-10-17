@@ -19,6 +19,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use App\Models\MailLogData;
 
 use App\Services\FuzzyService;
+use App\Services\MapHitService;
 
 use Throwable;
 
@@ -67,8 +68,9 @@ final class MailLogWriter
 				attempts: AppConfig::MAX_DEADLOCK_ATTEMPTS
 			);
 
-		// after the commit: counting fuzzy hits must never cost the mail
+		// after the commit: counting hits must never cost the mail
 		$this->recordFuzzyHits($mailData);
+		$this->recordMapHits($id, $mailData);
 
 		return $id;
 	}
@@ -85,6 +87,16 @@ final class MailLogWriter
 			(new FuzzyService())->recordHits($hashes, $mailData['created_at'] ?? null, $qid);
 		} catch (Throwable $e) {
 			App::fileLogger()->error("[MailLogWriter] {$qid} could not record fuzzy hits: " . $e->getMessage());
+		}
+	}
+
+	// record the map and local rule symbols this mail carries
+	private function recordMapHits(int $mailLogId, array $mailData): void {
+		$qid = (string) ($mailData['qid'] ?? '');
+		try {
+			(new MapHitService())->recordHits($mailLogId, (string) ($mailData['symbols'] ?? ''), $qid);
+		} catch (Throwable $e) {
+			App::fileLogger()->error("[MailLogWriter] {$qid} could not record map hits: " . $e->getMessage());
 		}
 	}
 
