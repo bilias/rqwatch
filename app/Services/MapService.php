@@ -215,6 +215,30 @@ class MapService
 		return $active !== null && strcasecmp($active, trim($map_name)) === 0;
 	}
 
+	// map hit recording and reports, once the MAP_HITS migration has run
+	public static function mapHitsEnabled(): bool {
+		return App::migrationStatus()->mapHitsCompleted();
+	}
+
+	// a custom map's symbols are stored only once the migration has added the column
+	private static function prepareSymbols(array $data): array {
+		if (!array_key_exists('symbols', $data)) {
+			return $data;
+		}
+		if (!self::mapHitsEnabled()) {
+			unset($data['symbols']);
+			return $data;
+		}
+
+		// trimmed and deduplicated, case kept; null when none
+		$symbols = array_values(array_unique(array_filter(
+			array_map('trim', explode(',', (string) $data['symbols'])),
+			fn ($s) => $s !== ''
+		)));
+		$data['symbols'] = $symbols === [] ? null : implode(',', $symbols);
+		return $data;
+	}
+
 	// enabled patterns of the active virus skip map; [] when inactive, null on a query error
 	public static function getVirusSkipPatterns(): ?array {
 		$map = self::activeVirusSkipMap();
@@ -958,6 +982,7 @@ class MapService
 
 		$customMapConfig = new CustomMapConfig();
 
+		$data = self::prepareSymbols($data);
 		$customMapConfig->fill($data);
 		if (!$customMapConfig->save()) {
 			return false;
@@ -1007,6 +1032,7 @@ class MapService
 		}
 
 		// Update custom_map_config
+		$data = self::prepareSymbols($data);
 		$customMapConfig->fill($data);
 		try {
 			$success = $customMapConfig->save();

@@ -21,6 +21,9 @@ Manage Custom Maps | Total: {{ totalRecords }} entries
  <th>Map Description</th>
  <th>Field Name</th>
  <th>Field Label</th>
+{% if map_symbols %}
+ <th>Rspamd Symbols</th>
+{% endif %}
  <th>Updated</th>
  <th>Entries</th>
  <th>Delete</th>
@@ -34,6 +37,9 @@ Manage Custom Maps | Total: {{ totalRecords }} entries
 			<td class='center'><a href="{{ route('ADMIN_MAP_SHOW', { map: entry.map_name }) }}">{{ entry.map_description }}</a></td>
 			<td class='center'>{{ entry.field_name }}</td>
 			<td class='center'>{{ entry.field_label }}</td>
+			{% if map_symbols %}
+			<td class='center'>{{ entry.symbols ? entry.symbols|replace({',': ', '}) : '-' }}</td>
+			{% endif %}
 			<td class='center'>{{ entry.updated_at }}</td>
 			<td class='center'><a href="{{ route('ADMIN_MAP_SHOW', { map: entry.map_name }) }}">{{ entry.map_entries|nf }}</a></td>
 			{% if entry.protected %}

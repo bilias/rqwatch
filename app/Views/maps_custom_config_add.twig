@@ -40,6 +40,14 @@
    {{ form_errors(mapform.field_label) }}
 	{{ form_help(mapform.field_label) }}</div>
 </div>
+{% if mapform.symbols is defined %}
+<div class="row">
+<div class='info'>{{ form_label(mapform.symbols) }}</div>
+<div class='detail'>{{ form_widget(mapform.symbols) }}
+	{{ form_errors(mapform.symbols) }}
+	{{ form_help(mapform.symbols) }}</div>
+</div>
+{% endif %}
 <div class="row btn">
    {{ form_widget(mapform.submit) }}
 </div>

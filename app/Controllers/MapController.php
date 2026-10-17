@@ -240,6 +240,7 @@ class MapController extends ViewController
 			'mapselectform' => $mapCombinedSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'map_configs' => $map_configs,
+			'map_symbols' => MapService::mapHitsEnabled(),
 			'totalRecords' => $map_configs->total(),
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
@@ -279,7 +280,8 @@ class MapController extends ViewController
 			return $response;
 		}
 
-		$mapform = CustomMapConfigForm::create($this->formFactory, $this->request);
+		$mapform = CustomMapConfigForm::create($this->formFactory, $this->request, null,
+			['map_symbols' => MapService::mapHitsEnabled()]);
 
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();
@@ -380,7 +382,8 @@ class MapController extends ViewController
 
 		$customMapConfig = $customMap->toArray();
 
-		$mapform = CustomMapConfigForm::create($this->formFactory, $this->request, $customMapConfig);
+		$mapform = CustomMapConfigForm::create($this->formFactory, $this->request, $customMapConfig,
+			['map_symbols' => MapService::mapHitsEnabled()]);
 
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();

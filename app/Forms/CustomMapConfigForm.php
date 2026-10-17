@@ -22,6 +22,8 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -112,10 +114,40 @@ class CustomMapConfigForm extends AbstractType
 							message: 'Only letters, numbers, space and ._-()  are allowed',
 						),
 					 ],
-            ])
-            ->add('submit', SubmitType::class, [
-                'label' => 'Submit',
             ]);
+
+		// only once the map hits migration has added the column
+		if ($options['map_symbols']) {
+			$formFactory->add('symbols', TextType::class, [
+				'required' => false,
+				'label' => 'Rspamd Symbols: ',
+				'help' => 'Symbols of the rspamd rules that read this map, comma-separated. Used for map hits.',
+				'attr' => [
+					'class' => 'label',
+					'title' => 'Enter rspamd symbol names',
+				],
+				'constraints' => [
+					new Assert\Length(max: 255),
+					new Assert\Regex(
+						pattern: '/^\s*[A-Za-z0-9_]+(\s*,\s*[A-Za-z0-9_]+)*\s*$/',
+						message: 'Comma-separated symbol names: only letters, numbers and _ are allowed',
+					),
+				],
+			]);
+		}
+
+		$formFactory->add('submit', SubmitType::class, [
+			'label' => 'Submit',
+		]);
+	}
+
+	#[\Override]
+	public function configureOptions(OptionsResolver $resolver): void {
+		$resolver->setDefaults([
+			'map_symbols' => false,
+		]);
+
+		$resolver->setAllowedTypes('map_symbols', 'bool');
 	}
 
 	public static function create(

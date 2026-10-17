@@ -38,6 +38,7 @@ class CustomMapConfig extends Model
 		'map_description',
 		'field_name',
 		'field_label',
+		'symbols',
 	];
 
 	public const array SELECT_FIELDS = [
