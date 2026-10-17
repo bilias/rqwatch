@@ -295,7 +295,8 @@ No
 	 <div id='symbols' style='display:none;'>
 {% endif %}
 {% for symbol in symbols %}
-<span class='{{ get_symbol_class(symbol) }}'>{{ symbol }}</span><br/>
+<span class='{{ get_symbol_class(symbol) }}'>{{ symbol }}</span>
+{%- for link in symbol_links[symbol|split(':')|first] ?? [] %} <a href="{{ link.url }}">[{{ link.label }}]</a>{% endfor %}<br/>
 {% endfor %}
     </div>
    </div>

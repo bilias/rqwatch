@@ -34,12 +34,14 @@ use App\Services\MailLogService;
 use App\Services\FuzzyService;
 use App\Services\UserService;
 use App\Services\MapService;
+use App\Services\MapHitService;
 use App\Services\MailerService;
 
 use App\Inventory\MapInventory;
 
 use Exception;
 use InvalidArgumentException;
+use Throwable;
 
 class MailLogController extends ViewController
 {
@@ -581,6 +583,7 @@ class MailLogController extends ViewController
 			'error' => $error,
 			'mailreleaseform_disabled' => $mailreleaseform_disabled,
 			'symbols' => $ar['symbols'],
+			'symbol_links' => $this->symbolLinks((int) $ar['log']->id),
 			'virus_found' => $ar['virus_found'],
 			'relays' => $ar['received'],
 			'map_configs' => $map_configs,
@@ -593,6 +596,72 @@ class MailLogController extends ViewController
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
+	}
+
+	/*
+	 * Per symbol name, links to the maps a mail's recorded hit belongs to
+	 * (maps naming the symbol, maps of the entries it was credited to) and to
+	 * the credited entries' mails; only maps and entries the viewer can see.
+	 */
+	private function symbolLinks(int $mailLogId): array {
+		if (!MapService::mapHitsEnabled()) {
+			return [];
+		}
+
+		try {
+			$hitService = new MapHitService();
+			$hits = $hitService->mailHits($mailLogId);
+			if ($hits === []) {
+				return [];
+			}
+
+			$available = MapInventory::getAvailableMapConfigs($this->getRole());
+			$byName = [];
+			foreach (MapService::mapSymbols() as $map => $names) {
+				foreach ($names as $name) {
+					$byName[$name][] = $map;
+				}
+			}
+			$entryMaps = $hitService->entryMaps(array_merge([], ...array_values($hits)));
+			$mapService = new MapService($this->getUserContext());
+			$days = max(MapHitService::WINDOWS);
+
+			$links = [];
+			foreach ($hits as $name => $entries) {
+				$maps = $byName[$name] ?? [];
+				$entryLinks = [];
+				foreach ($entries as [$model, $id]) {
+					$map = $entryMaps["{$model}:{$id}"] ?? null;
+					if ($map === null || !isset($available[$map])) {
+						continue;
+					}
+					$maps[] = $map;
+					if (!$this->is_admin && $mapService->findMapEntry($available[$map]['model'], $map, $id) === null) {
+						continue;
+					}
+					$entryLinks[] = [
+						'label' => 'entry',
+						'url' => $this->url($this->is_admin ? RouteName::ADMIN_MAP_HITS_MAILS : RouteName::MAP_HITS_MAILS)
+							. '?' . http_build_query(['map' => $map, 'entry' => $id, 'days' => $days]),
+					];
+				}
+				foreach (array_unique($maps) as $map) {
+					if (isset($available[$map])) {
+						$links[$name][] = [
+							'label' => $available[$map]['description'] ?? $map,
+							'url' => $this->url($this->is_admin ? RouteName::ADMIN_MAP_SHOW : RouteName::MAP_SHOW, ['map' => $map]),
+						];
+					}
+				}
+				foreach ($entryLinks as $link) {
+					$links[$name][] = $link;
+				}
+			}
+			return $links;
+		} catch (Throwable $e) {
+			$this->fileLogger->error("[MailLogController_symbolLinks] map hits query error: " . $e->getMessage());
+			return [];
+		}
 	}
 
 	public function releaseMail(int $id): RedirectResponse {

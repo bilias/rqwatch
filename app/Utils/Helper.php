@@ -17,6 +17,8 @@ use App\Core\App;
 
 use App\Core\Auth\AuthManager;
 
+use App\Services\MapService;
+
 use PhpIP\IP;
 use MaxMind\Db\Reader as MaxMindDbReader;
 
@@ -208,7 +210,8 @@ class Helper {
 	public static function checkForMap(array $symbols): bool {
 		foreach ($symbols as $symbol) {
 			if (isset($symbol['name']) && !self::isFuzzySymbol((string) $symbol['name'])
-				&& self::symbolMatches((string) $symbol['name'], 'local_symbol_patterns')) {
+				&& (self::symbolMatches((string) $symbol['name'], 'local_symbol_patterns')
+					|| isset(MapService::mappedSymbolSet()[(string) $symbol['name']]))) {
 				return true;
 			}
 		}

@@ -460,6 +460,44 @@ class MapHitService
 		});
 	}
 
+	// one mail's recorded hits, as symbol name => [[entry_model, entry_id], ...]
+	public function mailHits(int $mailLogId): array {
+		$rows = App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE . ' as h')
+			->join(AppConfig::SYMBOL_NAMES_TABLE . ' as sn', 'sn.id', '=', 'h.symbol_id')
+			->where('h.mail_log_id', $mailLogId)
+			->get(['sn.name', 'h.entry_model', 'h.entry_id']);
+
+		$hits = [];
+		foreach ($rows as $row) {
+			$hits[$row->name] ??= [];
+			if ((int) $row->entry_model !== self::ENTRY_NONE) {
+				$hits[$row->name][] = [(int) $row->entry_model, (int) $row->entry_id];
+			}
+		}
+		return $hits;
+	}
+
+	// map name of each existing entry, as "model:id" => map name
+	public function entryMaps(array $entries): array {
+		$ids = [self::ENTRY_COMBINED => [], self::ENTRY_CUSTOM => []];
+		foreach ($entries as [$model, $id]) {
+			$ids[$model][] = $id;
+		}
+
+		$maps = [];
+		foreach ([self::ENTRY_COMBINED => AppConfig::MAPS_COMBINED_TABLE, self::ENTRY_CUSTOM => AppConfig::MAPS_CUSTOM_TABLE] as $model => $table) {
+			if ($ids[$model] === []) {
+				continue;
+			}
+			$found = App::capsule()->getConnection()->table($table)
+				->whereIn('id', array_unique($ids[$model]))->pluck('map_name', 'id')->all();
+			foreach ($found as $id => $map) {
+				$maps["{$model}:{$id}"] = $map;
+			}
+		}
+		return $maps;
+	}
+
 	// report windows in days, today included
 	public const array WINDOWS = [1, 7, 31];
 

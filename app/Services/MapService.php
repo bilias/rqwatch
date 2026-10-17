@@ -37,6 +37,8 @@ use RuntimeException;
 
 class MapService
 {
+	private static ?array $mappedSymbolSet = null;
+
 	private LoggerInterface $logger;
 	private ?bool $is_admin = null;
 	private ?string $username = null;
@@ -251,6 +253,24 @@ class MapService
 		}
 
 		return $maps;
+	}
+
+	// names of all symbols a map names, read once per process; [] on a query error
+	public static function mappedSymbolSet(): array {
+		if (self::$mappedSymbolSet === null) {
+			$set = [];
+			try {
+				foreach (self::mapSymbols() as $names) {
+					foreach ($names as $name) {
+						$set[$name] = true;
+					}
+				}
+			} catch (Throwable $e) {
+				App::fileLogger()->error("[MapService] cannot read map symbols: " . $e->getMessage());
+			}
+			self::$mappedSymbolSet = $set;
+		}
+		return self::$mappedSymbolSet;
 	}
 
 	// rspamd symbol name, as accepted by the custom map form
