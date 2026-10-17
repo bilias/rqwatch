@@ -48,7 +48,8 @@ class MapInventory
 
 	// also need to create child form class in app/Forms
 	// and add the Form use at top
-	public static function getMapConfigs(?string $map = null): ?array {
+	// $withCustom = false: the built-in maps only, without a query
+	public static function getMapConfigs(?string $map = null, bool $withCustom = true): ?array {
 		$configs = [
 			'mail_from_rcpt_to_whitelist' => [
 				'model' => 'MapCombined',
@@ -143,10 +144,10 @@ class MapInventory
 		];
 
 		// add custom map configs from db in config
-		$custom_map_configs = MapService::getCustomMapConfigs();
+		$custom_map_configs = $withCustom ? MapService::getCustomMapConfigs() : null;
 
 		// we have custom maps
-		if ($custom_map_configs->count() > 0) {
+		if ($custom_map_configs !== null && $custom_map_configs->count() > 0) {
 			$custom_configs = array();
 			foreach ($custom_map_configs as $cmf) {
 				$custom_configs[$cmf->map_name]['model'] = 'MapCustom';

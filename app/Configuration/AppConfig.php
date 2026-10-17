@@ -87,6 +87,7 @@ public const string MIGRATIONS_TABLE = 'migrations';
 public const string USERS_TABLE = 'users';
 public const string MAIL_ALIASES_TABLE = 'mail_aliases';
 public const string MAPS_COMBINED_TABLE = 'maps_combined';
+public const string MAPS_CUSTOM_TABLE = 'maps_custom';
 public const string MAP_ACTIVITY_LOGS_TABLE = 'map_activity_logs';
 public const string CUSTOM_MAP_CONFIG_TABLE = 'custom_map_config';
 
