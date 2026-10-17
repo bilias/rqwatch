@@ -398,6 +398,152 @@ class MapHitService
 		return [(int) $mails->last()->id, $mails->count()];
 	}
 
+	// report windows in days, today included
+	public const array WINDOWS = [1, 7, 31];
+
+	/*
+	 * Hits per map, as map name => ['windows' => [days => mails], 'last' => day
+	 * or null]: distinct mails in each window and the day of the last hit
+	 * ever. A map's hits are those of its symbols and those credited to its
+	 * entries (entries carrying their own symbol). $maps is map name =>
+	 * [model, symbols].
+	 */
+	public function mapHits(array $maps): array {
+		$ids = $this->existingSymbolIds(array_merge([], ...array_column($maps, 1)));
+
+		$result = [];
+		foreach ($maps as $map => [$model, $symbols]) {
+			$symbolIds = array_values(array_intersect_key($ids, array_flip($symbols)));
+			[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, max(self::WINDOWS));
+
+			$row = App::capsule()->getConnection()->selectOne(
+				"SELECT " . self::windowCounts('t') . " FROM ({$sql}) t", $bindings
+			);
+			[$lastSql, $lastBindings] = $this->mapHitsSource($map, $model, $symbolIds, null);
+			$last = App::capsule()->getConnection()->selectOne(
+				"SELECT MAX(t.created_day) AS last FROM ({$lastSql}) t", $lastBindings
+			);
+
+			$result[$map] = [
+				'windows' => self::windowValues($row),
+				'last' => $last->last ?? null,
+			];
+		}
+
+		return $result;
+	}
+
+	/*
+	 * Hits of the recorded symbols that are not credited to any map: neither
+	 * one of $mappedSymbols nor credited to an entry. Symbol name =>
+	 * ['windows' => [days => mails], 'last' => day], those hit in the longest
+	 * window only.
+	 */
+	public function unmappedHits(array $mappedSymbols): array {
+		$mappedIds = array_values($this->existingSymbolIds($mappedSymbols));
+		$days = max(self::WINDOWS);
+
+		$query = App::capsule()->getConnection()
+			->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE . ' as h')
+			->join(AppConfig::SYMBOL_NAMES_TABLE . ' as sn', 'sn.id', '=', 'h.symbol_id')
+			->where('h.entry_model', self::ENTRY_NONE)
+			->whereRaw('h.created_day >= CURDATE() - INTERVAL ? DAY', [$days - 1])
+			->groupBy('sn.name')
+			->selectRaw('sn.name, ' . self::windowCounts('h') . ', MAX(h.created_day) AS last');
+		if ($mappedIds !== []) {
+			$query->whereNotIn('h.symbol_id', $mappedIds);
+		}
+
+		$result = [];
+		foreach ($query->get() as $row) {
+			$result[$row->name] = ['windows' => self::windowValues($row), 'last' => $row->last];
+		}
+		return $result;
+	}
+
+	// mail ids hit by a map in the last $days days, newest first
+	public function mapHitMailIds(string $map, string $model, array $symbols, int $days, int $limit): array {
+		$symbolIds = array_values($this->existingSymbolIds($symbols));
+		[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, $days);
+
+		return array_map('intval', array_column(App::capsule()->getConnection()->select(
+			"SELECT DISTINCT t.mail_log_id FROM ({$sql}) t ORDER BY t.mail_log_id DESC LIMIT " . (int) $limit,
+			$bindings
+		), 'mail_log_id'));
+	}
+
+	// mail ids with an uncredited hit of $symbol in the last $days days, newest first
+	public function symbolHitMailIds(string $symbol, int $days, int $limit): array {
+		$id = $this->existingSymbolIds([$symbol])[$symbol] ?? null;
+		if ($id === null) {
+			return [];
+		}
+
+		return App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE)
+			->where('symbol_id', $id)
+			->where('entry_model', self::ENTRY_NONE)
+			->whereRaw('created_day >= CURDATE() - INTERVAL ? DAY', [$days - 1])
+			->orderBy('mail_log_id', 'DESC')
+			->distinct()
+			->limit($limit)
+			->pluck('mail_log_id')
+			->map(fn ($id) => (int) $id)
+			->all();
+	}
+
+	/*
+	 * SQL selecting (created_day, mail_log_id) of a map's hits, as [sql,
+	 * bindings]: hits of its symbols, and hits credited to its entries.
+	 * $days null: no window.
+	 */
+	private function mapHitsSource(string $map, string $model, array $symbolIds, ?int $days): array {
+		$hits = AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE;
+		[$entries, $entryModel] = $model === 'MapCustom'
+			? [AppConfig::MAPS_CUSTOM_TABLE, self::ENTRY_CUSTOM]
+			: [AppConfig::MAPS_COMBINED_TABLE, self::ENTRY_COMBINED];
+
+		$window = $days === null ? '' : ' AND h.created_day >= CURDATE() - INTERVAL ? DAY';
+		$windowBinding = $days === null ? [] : [$days - 1];
+
+		$parts = [];
+		$bindings = [];
+		if ($symbolIds !== []) {
+			$parts[] = "SELECT h.created_day, h.mail_log_id FROM {$hits} h WHERE h.symbol_id IN ("
+				. implode(',', array_fill(0, count($symbolIds), '?')) . "){$window}";
+			$bindings = array_merge($bindings, $symbolIds, $windowBinding);
+		}
+		$parts[] = "SELECT h.created_day, h.mail_log_id FROM {$hits} h JOIN {$entries} e ON e.id = h.entry_id"
+			. " WHERE h.entry_model = ? AND e.map_name = ?{$window}";
+		$bindings = array_merge($bindings, [$entryModel, $map], $windowBinding);
+
+		return [implode(' UNION ALL ', $parts), $bindings];
+	}
+
+	// COUNT(DISTINCT) of mails per window over $alias.created_day
+	private static function windowCounts(string $alias): string {
+		return implode(', ', array_map(fn ($d) =>
+			"COUNT(DISTINCT CASE WHEN {$alias}.created_day >= CURDATE() - INTERVAL " . ($d - 1) .
+			" DAY THEN {$alias}.mail_log_id END) AS d{$d}", self::WINDOWS));
+	}
+
+	private static function windowValues(?object $row): array {
+		$values = [];
+		foreach (self::WINDOWS as $d) {
+			$values[$d] = (int) ($row->{"d{$d}"} ?? 0);
+		}
+		return $values;
+	}
+
+	// symbol name => symbol_names.id, for the names recorded so far
+	private function existingSymbolIds(array $names): array {
+		$names = array_values(array_unique($names));
+		if ($names === []) {
+			return [];
+		}
+		return array_map('intval', App::capsule()->getConnection()->table(AppConfig::SYMBOL_NAMES_TABLE)
+			->whereIn('name', $names)->pluck('id', 'name')->all());
+	}
+
 	// symbol name => symbol_names.id, adding the names not seen before
 	private function symbolIds(array $names): array {
 		$table = App::capsule()->getConnection()->table(AppConfig::SYMBOL_NAMES_TABLE);

@@ -6,4 +6,14 @@
  {% include 'partials/map_select.base.twig' %}
 {% endif %}
 
+{% if map_hits %}
+<div class='mapform descr'>
+<div id="inside_links">
+<ul>
+<li><a href='{{ route('ADMIN_MAP_HITS') }}'>Map hits</a></li>
+</ul>
+</div>
+</div>
+{% endif %}
+
 {% endblock %}

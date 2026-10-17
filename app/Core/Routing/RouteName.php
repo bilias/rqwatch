@@ -77,6 +77,8 @@ enum RouteName: string
 	case MAPS = 'maps';
 	case ADMIN_MAP_SHOW_ALL = 'admin_map_show_all';
 	case ADMIN_MAPS_CUSTOM_SHOW = 'admin_maps_custom_show';
+	case ADMIN_MAP_HITS = 'admin_map_hits';
+	case ADMIN_MAP_HITS_MAILS = 'admin_map_hits_mails';
 	case ADMIN_MAPS_CUSTOM_ADD = 'admin_maps_custom_add';
 	case ADMIN_MAPS_CUSTOM_EDIT = 'admin_maps_custom_edit';
 	case ADMIN_MAPS_CUSTOM_DEL = 'admin_maps_custom_del';

@@ -591,6 +591,20 @@ class Routes
 			],
 		));
 
+		$routes->add(RouteName::ADMIN_MAP_HITS->value, new Route(
+			'/admin/maps/hits', // path
+			[ '_controller' => 'App\\Controllers\\MapHitController::showReport',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
+		$routes->add(RouteName::ADMIN_MAP_HITS_MAILS->value, new Route(
+			'/admin/maps/hits/mails', // path
+			[ '_controller' => 'App\\Controllers\\MapHitController::showMails',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
 		$routes->add(RouteName::ADMIN_MAPS_CUSTOM_ADD->value, new Route(
 			'/admin/maps/custom/add', // path
 			[ '_controller' => 'App\\Controllers\\MapController::addCustomMap',

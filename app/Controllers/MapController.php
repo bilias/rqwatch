@@ -82,6 +82,7 @@ class MapController extends ViewController
 			'qidform' => $qidform->createView(),
 			'mapselectform' => $mapCombinedSelectForm->createView(),
 			'mapselectcustomform' => $mapCustomSelectForm->createView(),
+			'map_hits' => $this->is_admin && MapService::mapHitsEnabled(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,

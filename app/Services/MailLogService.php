@@ -424,6 +424,57 @@ class MailLogService
 		return $log;
 	}
 
+	/*
+	 * One page of the mails in $ids (newest first, already capped at
+	 * max_items), fetched by primary key. For lists resolved elsewhere, such
+	 * as map hits; the ids are not scoped here.
+	 */
+	public function getPaginatedByIds(array $ids, string $url, int $page = 1): LengthAwarePaginator {
+		try {
+			return $this->paginateIds($ids, $url, $page);
+		} catch (Exception $e) {
+			$this->logger->error("MailLogService_getPaginatedByIds Query error: " . $e->getMessage());
+			Helper::failRequest("Query error");
+		}
+	}
+
+	private function paginateIds(array $ids, string $url, int $page): LengthAwarePaginator {
+		// already capped by the caller's limit
+		$total = count($ids);
+
+		$pageIds = array_slice(
+			$ids,
+			($page - 1) * $this->items_per_page,
+			$this->items_per_page
+		);
+
+		if (empty($pageIds)) {
+			$itemsForPage = new Collection();
+		} else {
+			$query = MailLog::select(MailLog::SELECT_FIELDS)
+				->with($this->getMailLogSymbolsRelations())
+				->whereIn('id', $pageIds)
+				->orderBy('id', 'DESC');
+
+			if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
+				$this->logger->info(self::getSqlFromQuery($query));
+			}
+
+			$itemsForPage = $query->get();
+		}
+
+		// we need to enforce the upper limit,
+		// that's why the manual LengthAwarePaginator paginator
+		$paginator = new LengthAwarePaginator(
+			$itemsForPage,
+			$total,
+			$this->items_per_page,
+			$page
+		);
+
+		return $paginator->withPath($url);
+	}
+
 	public function getPaginatedAll(
 		array $filters,
 		string $url,
@@ -431,8 +482,6 @@ class MailLogService
 	): LengthAwarePaginator {
 
 		$lf = "MailLogService_getPaginatedAll";
-
-		$fields = MailLog::SELECT_FIELDS;
 
 		// Resolve the matching ids first, capped at max_items.
 		//
@@ -456,40 +505,7 @@ class MailLogService
 			// pluck() goes through toBase(), so no eager loads fire here
 			$ids = $idQuery->pluck('id')->all();
 
-			// already capped by the limit on $idQuery
-			$total = count($ids);
-
-			$pageIds = array_slice(
-				$ids,
-				($page - 1) * $this->items_per_page,
-				$this->items_per_page
-			);
-
-			if (empty($pageIds)) {
-				$itemsForPage = new Collection();
-			} else {
-				$query = MailLog::select($fields)
-					->with($this->getMailLogSymbolsRelations())
-					->whereIn('id', $pageIds)
-					->orderBy('id', 'DESC');
-
-				if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
-					$this->logger->info(self::getSqlFromQuery($query));
-				}
-
-				$itemsForPage = $query->get();
-			}
-
-			// we need to enforce the upper limit,
-			// that's why the manual LengthAwarePaginator paginator
-			$paginator = new LengthAwarePaginator(
-				$itemsForPage,
-				$total,
-				$this->items_per_page,
-				$page
-			);
-
-			$logs = $paginator->withPath($url);
+			$logs = $this->paginateIds($ids, $url, $page);
 		} catch (Exception $e) {
 			$this->logger->error("{$lf} Query error: " . $e->getMessage());
 			Helper::failRequest("Query error");

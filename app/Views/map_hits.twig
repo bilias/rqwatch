@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+
+<section>
+
+<div class='current_mails descr'>
+Map hits: distinct mails today, in the last 7 and the last 31 days
+<div id="inside_links">
+<ul>
+<li><a href='{{ route('ADMIN_MAPS') }}'>Maps</a></li>
+</ul>
+</div>
+</div>
+
+<div class='aliases'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th>Map</th>
+ <th>Symbols</th>
+{% for days in windows %}
+ <th>{{ days == 1 ? 'Today' : days ~ ' days' }}</th>
+{% endfor %}
+ <th>Last hit</th>
+</tr></thead>
+
+<tbody>
+{% for row in rows %}
+  <tr class='clean'>
+  <td class='center'><a href="{{ route('ADMIN_MAP_SHOW', { map: row.map }) }}">{{ row.description }}</a><br/>{{ row.map }}</td>
+  <td class='center'>{{ row.symbols ? row.symbols|join(', ') : '-' }}</td>
+{% for days in windows %}
+  <td class='center'>
+{% if row.windows[days] > 0 %}
+  <a href="{{ route('ADMIN_MAP_HITS_MAILS') }}?map={{ row.map|url_encode }}&amp;days={{ days }}">{{ row.windows[days]|nf }}</a>
+{% else %}
+  0
+{% endif %}
+  </td>
+{% endfor %}
+  <td class='center'>{{ row.last ?? 'never' }}{% if row.windows[longest] == 0 %} (idle){% endif %}</td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+{% if unmapped is not empty %}
+<div class='current_mails descr'>
+Recorded symbols not credited to a map, hit in the last {{ longest }} days
+</div>
+
+<div class='aliases'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th>Symbol</th>
+{% for days in windows %}
+ <th>{{ days == 1 ? 'Today' : days ~ ' days' }}</th>
+{% endfor %}
+ <th>Last hit</th>
+</tr></thead>
+
+<tbody>
+{% for symbol, hit in unmapped %}
+  <tr class='clean'>
+  <td class='center'>{{ symbol }}</td>
+{% for days in windows %}
+  <td class='center'>
+{% if hit.windows[days] > 0 %}
+  <a href="{{ route('ADMIN_MAP_HITS_MAILS') }}?symbol={{ symbol|url_encode }}&amp;days={{ days }}">{{ hit.windows[days]|nf }}</a>
+{% else %}
+  0
+{% endif %}
+  </td>
+{% endfor %}
+  <td class='center'>{{ hit.last }}</td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
+
+</section>
+
+{% endblock %}
