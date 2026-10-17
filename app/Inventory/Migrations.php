@@ -27,6 +27,7 @@ use App\Core\Database\Migrations\MailLogFuzzyHits;
 use App\Core\Database\Migrations\EverStored;
 use App\Core\Database\Migrations\SessionVersion;
 use App\Core\Database\Migrations\VirusSkipMap;
+use App\Core\Database\Migrations\MapHits;
 
 use InvalidArgumentException;
 
@@ -48,6 +49,7 @@ class Migrations
 	public const string EVER_STORED = '20261010_ever_stored';
 	public const string SESSION_VERSION = '20261012_session_version';
 	public const string VIRUS_SKIP_MAP = '20261012_virus_skip_map';
+	public const string MAP_HITS = '20261017_map_hits';
 
 	public const array MIGRATIONS = [
 		self::MAIL_RECIPIENTS,
@@ -66,6 +68,7 @@ class Migrations
 		self::EVER_STORED,
 		self::SESSION_VERSION,
 		self::VIRUS_SKIP_MAP,
+		self::MAP_HITS,
 	];
 
 	public const array REQUIRED = [
@@ -117,6 +120,7 @@ class Migrations
 		self::EVER_STORED => EverStored::class,
 		self::SESSION_VERSION => SessionVersion::class,
 		self::VIRUS_SKIP_MAP => VirusSkipMap::class,
+		self::MAP_HITS => MapHits::class,
 	];
 
 	public const array MIGRATION_DESCR = [
@@ -136,6 +140,7 @@ class Migrations
 		self::EVER_STORED => "Mail Log ever_stored column and index",
 		self::SESSION_VERSION => "Users session_version column",
 		self::VIRUS_SKIP_MAP => "Virus notification skip map",
+		self::MAP_HITS => "Map hits schema",
 	];
 
 	public const array MIGRATION_BATCH = [
@@ -155,6 +160,7 @@ class Migrations
 		self::EVER_STORED => 0,
 		self::SESSION_VERSION => 0,
 		self::VIRUS_SKIP_MAP => 0,
+		self::MAP_HITS => 0,
 	];
 
 	public const array MIGRATION_SLEEP = [
@@ -174,6 +180,7 @@ class Migrations
 		self::EVER_STORED => 200000,
 		self::SESSION_VERSION => 200000,
 		self::VIRUS_SKIP_MAP => 200000,
+		self::MAP_HITS => 200000,
 	];
 
 	public const array MIGRATION_HELP = [
@@ -193,6 +200,7 @@ class Migrations
 		self::EVER_STORED => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::SESSION_VERSION => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::VIRUS_SKIP_MAP => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
+		self::MAP_HITS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 	];
 
 	public const string STATUS_PENDING   = 'pending';

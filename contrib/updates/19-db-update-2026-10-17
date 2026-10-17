@@ -1,0 +1,30 @@
+# SQL
+ALTER TABLE `custom_map_config`
+  ADD COLUMN `symbols` VARCHAR(255) DEFAULT NULL AFTER `field_label`,
+  ALGORITHM=INSTANT;
+
+CREATE TABLE `symbol_names` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name_index` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `mail_log_symbol_hits` (
+  `symbol_id` int(10) unsigned NOT NULL,
+  `created_day` date NOT NULL,
+  `mail_log_id` int(10) unsigned NOT NULL,
+  `entry_model` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `entry_id` int(10) unsigned NOT NULL DEFAULT 0,
+  `score` double DEFAULT NULL,
+  PRIMARY KEY (`symbol_id`,`created_day`,`mail_log_id`,`entry_model`,`entry_id`),
+  KEY `mail_log_id_index` (`mail_log_id`),
+  KEY `entry_index` (`entry_model`,`entry_id`,`created_day`),
+  CONSTRAINT `fk_mail_log_symbol_hits_mail_logs`
+    FOREIGN KEY (`mail_log_id`)
+    REFERENCES `mail_logs` (`id`)
+    ON DELETE CASCADE,
+  CONSTRAINT `fk_mail_log_symbol_hits_symbol_names`
+    FOREIGN KEY (`symbol_id`)
+    REFERENCES `symbol_names` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

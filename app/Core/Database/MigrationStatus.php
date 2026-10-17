@@ -279,6 +279,10 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::SESSION_VERSION);
 	}
 
+	public function mapHitsCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::MAP_HITS);
+	}
+
 	public function getAllMigrationStates(): array {
 		$states = [];
 

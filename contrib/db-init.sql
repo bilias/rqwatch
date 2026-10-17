@@ -116,6 +116,7 @@ CREATE TABLE custom_map_config (
   map_description VARCHAR(128) NOT NULL, -- map description
   field_name TEXT NOT NULL,        -- field name
   field_label TEXT NOT NULL,       -- field description
+  symbols VARCHAR(255) DEFAULT NULL, -- rspamd symbols of the map, comma-separated
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -133,6 +134,8 @@ CREATE TABLE custom_map_config (
 INSERT INTO `custom_map_config`
   (`map_name`, `map_description`, `field_name`, `field_label`) VALUES
   ('rqwatch_virus_no_notify', 'Antivirus No Notification', 'virus', 'Antivirus symbol or virus name');
+
+DROP TABLE IF EXISTS `mail_log_symbol_hits`;
 
 DROP TABLE IF EXISTS `mail_log_fuzzy`;
 
@@ -248,6 +251,34 @@ CREATE TABLE `mail_log_fuzzy` (
     ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+DROP TABLE IF EXISTS `symbol_names`;
+
+CREATE TABLE `symbol_names` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name_index` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `mail_log_symbol_hits` (
+  `symbol_id` int(10) unsigned NOT NULL,
+  `created_day` date NOT NULL,
+  `mail_log_id` int(10) unsigned NOT NULL,
+  `entry_model` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `entry_id` int(10) unsigned NOT NULL DEFAULT 0,
+  `score` double DEFAULT NULL,
+  PRIMARY KEY (`symbol_id`,`created_day`,`mail_log_id`,`entry_model`,`entry_id`),
+  KEY `mail_log_id_index` (`mail_log_id`),
+  KEY `entry_index` (`entry_model`,`entry_id`,`created_day`),
+  CONSTRAINT `fk_mail_log_symbol_hits_mail_logs`
+    FOREIGN KEY (`mail_log_id`)
+    REFERENCES `mail_logs` (`id`)
+    ON DELETE CASCADE,
+  CONSTRAINT `fk_mail_log_symbol_hits_symbol_names`
+    FOREIGN KEY (`symbol_id`)
+    REFERENCES `symbol_names` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 DROP TABLE IF EXISTS `migrations`;
 
 CREATE TABLE `migrations` (
@@ -273,4 +304,5 @@ INSERT INTO `migrations` VALUES
 ('20261008_mail_log_fuzzy_hits','completed',NOW()),
 ('20261010_ever_stored','completed',NOW()),
 ('20261012_session_version','completed',NOW()),
-('20261012_virus_skip_map','completed',NOW());
+('20261012_virus_skip_map','completed',NOW()),
+('20261017_map_hits','completed',NOW());
