@@ -212,7 +212,12 @@ class Controller
 						$this->fileLogger->debug("Rspamd stats loaded from Redis cache");
 						return $stats;
 					}
-					$this->fileLogger->warning("Empty Rspamd stats returned from Redis cache");
+					// cached empty: every server failed recently, don't ask again yet
+					if ($stats === []) {
+						$this->fileLogger->debug("Rspamd stats unavailable (cached failure)");
+						return [];
+					}
+					$this->fileLogger->warning("Invalid Rspamd stats returned from Redis cache");
 				}
 			} catch (Throwable $e) {
 				$this->fileLogger->error("Redis error when reading Rspamd stats: " . $e->getMessage());
@@ -225,14 +230,24 @@ class Controller
 		$apiClient = new ApiClient();
 		$password = $_ENV['RSPAMD_CONTROLLER_PASS'];
 
-		$stats = [];
+		// start every request before reading any: the client runs them concurrently,
+		// so a dead controller costs one timeout, not one per server
+		$responses = [];
 		foreach ($api_servers as $api_server => $config) {
 			if (empty($config['stat_url'])) {
 				$this->fileLogger->error("API server '{$api_server}' has an empty stat_url. Check config.local.php");
 				continue;
 			}
 			try {
-				$response = $apiClient->getWithRspamdPassword($config['stat_url'], $password);
+				$responses[$api_server] = $apiClient->getWithRspamdPassword($config['stat_url'], $password);
+			} catch (Exception $e) {
+				$this->fileLogger->error("Stat request to '{$api_server}' failed: " . $e->getMessage());
+			}
+		}
+
+		$stats = [];
+		foreach ($responses as $api_server => $response) {
+			try {
 				$responseCode = $response->getStatusCode();
 				if ($responseCode === Response::HTTP_OK) {
 					$stats[$api_server] = json_decode($response->getContent(), true);
@@ -246,7 +261,10 @@ class Controller
 		}
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
-			// Store in Redis for future use
+			// Store in Redis for future use; a total failure for a shorter time
+			if ($stats === []) {
+				$ttl = min($ttl, (int) Config::get('rspamd_stat_redis_failure_ttl') ?: 60);
+			}
 			try {
 				App::cache()->set($redisKey, json_encode($stats), $ttl);
 				$this->fileLogger->debug("Rspamd stats cached in Redis for {$ttl} seconds");

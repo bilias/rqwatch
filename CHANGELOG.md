@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-19
+- Rspamd stats: cache a total failure briefly, fetch the servers concurrently
 - Map hits: Rqwatch records which maps and map entries matched each mail.
   Run `php bin/cli.php db:migrate` (or `db:migrate_map_hits`), link the custom maps to
   their Rspamd symbols (new Rspamd Symbols field; built-in maps use `$map_symbols`),

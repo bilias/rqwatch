@@ -658,6 +658,11 @@ In all other cases, a call to the remote API server is made.
 - `$rspamd_stat_redis_cache_ttl` - How many seconds to cache Rspamd statistics in Redis.\
  Default is `300`
 
+- `$rspamd_stat_redis_failure_ttl` - After every Rspamd server failed to answer, how many
+ seconds to show no statistics before asking again (Redis only), instead of waiting for
+ the timeout on every page.\
+ Default is `60`
+
 ### Map Settings
 - `$MAP_DIR` - Directory for storing and serving map files\
   rqwatch user must have read/write access in this directory.

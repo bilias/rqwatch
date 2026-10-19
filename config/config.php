@@ -92,6 +92,10 @@ $rspamd_stat_redis_key = "rqwatch_rspamd_stats";
 # How many seconds to cache rspamd stats in redis
 $rspamd_stat_redis_cache_ttl = 300;
 
+# How many seconds to wait before asking again after every Rspamd server failed
+# (redis only). Pages show no stats meanwhile, without waiting for the timeout.
+$rspamd_stat_redis_failure_ttl = 60;
+
 # Fuzzy learning of quarantined mail (admin only). Needs db:migrate_mail_log_fuzzy,
 # a writable fuzzy_check rule in rspamd and fuzzy_url in API_SERVERS.
 $fuzzy_learn_enable = false;
