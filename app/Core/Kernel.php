@@ -150,8 +150,8 @@ final class Kernel
 			defaultConfigPath: AppConfig::CONFIG_DEFAULT_PATH,
 			localConfigPath: AppConfig::CONFIG_LOCAL_PATH,
 			extras: $extra_cached_data,
-			redisKey: $_ENV['REDIS_CONFIG_KEY'],
-			ttlSeconds: (int) $_ENV['REDIS_CONFIG_CACHE_TTL'],
+			redisKey: Config::redisConfigKey(),
+			ttlSeconds: Config::redisConfigTtl(),
 		);
 	}
 

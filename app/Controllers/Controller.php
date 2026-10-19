@@ -262,7 +262,7 @@ class Controller
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			return Config::getRedisConfigTTL(
 				App::cache(),
-				$_ENV['REDIS_CONFIG_KEY']
+				Config::redisConfigKey()
 			);
 		}
 		return null;

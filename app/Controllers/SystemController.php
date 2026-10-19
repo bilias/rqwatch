@@ -51,8 +51,8 @@ class SystemController extends Controller
 				defaultConfigPath: AppConfig::CONFIG_DEFAULT_PATH,
 				localConfigPath: AppConfig::CONFIG_LOCAL_PATH,
 				extras: [],
-				redisKey: $_ENV['REDIS_CONFIG_KEY'],
-				ttlSeconds: (int) $_ENV['REDIS_CONFIG_CACHE_TTL'],
+				redisKey: Config::redisConfigKey(),
+				ttlSeconds: Config::redisConfigTtl(),
 				forceReload: true,
 			);
 			$this->fileLogger->info("Config reloaded and cached in Redis");
