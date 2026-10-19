@@ -564,13 +564,13 @@ class MapHitService
 	}
 
 	/*
-	 * Mail ids hit by a map in the last $days days (null: any day), newest
-	 * first; $outcome limits them as mapOutcome() counts them: 'action',
-	 * 'released' => true, 'notified' => true.
+	 * Mail ids hit by a map in the last $days days (null: any day) or on
+	 * $day, newest first; $outcome limits them as mapOutcome() counts them:
+	 * 'action', 'released' => true, 'notified' => true.
 	 */
-	public function mapHitMailIds(string $map, string $model, array $symbols, ?int $days, int $limit, array $outcome = []): array {
+	public function mapHitMailIds(string $map, string $model, array $symbols, ?int $days, int $limit, array $outcome = [], ?string $day = null): array {
 		$symbolIds = array_values($this->existingSymbolIds($symbols));
-		[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, $days);
+		[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, $days, $day);
 
 		$where = [];
 		if (isset($outcome['action'])) {
@@ -589,6 +589,30 @@ class MapHitService
 			"SELECT DISTINCT t.mail_log_id FROM ({$sql}) t{$join} ORDER BY t.mail_log_id DESC LIMIT " . (int) $limit,
 			$bindings
 		), 'mail_log_id'));
+	}
+
+	/*
+	 * A map's distinct mails per day over the last $days days, oldest first,
+	 * days without hits included: day (Y-m-d) => mails
+	 */
+	public function mapDailyHits(string $map, string $model, array $symbols, int $days): array {
+		$db = App::capsule()->getConnection();
+		$symbolIds = array_values($this->existingSymbolIds($symbols));
+		[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, $days);
+
+		$counts = [];
+		foreach ($db->select("SELECT t.created_day AS day, COUNT(DISTINCT t.mail_log_id) AS mails FROM ({$sql}) t GROUP BY t.created_day", $bindings) as $row) {
+			$counts[(string) $row->day] = (int) $row->mails;
+		}
+
+		// the database's today, as the windows use
+		$today = new \DateTimeImmutable((string) $db->selectOne('SELECT CURDATE() AS d')->d);
+		$result = [];
+		for ($i = $days - 1; $i >= 0; $i--) {
+			$d = $today->modify("-{$i} day")->format('Y-m-d');
+			$result[$d] = $counts[$d] ?? 0;
+		}
+		return $result;
 	}
 
 	/*
@@ -642,16 +666,21 @@ class MapHitService
 	/*
 	 * SQL selecting (created_day, mail_log_id) of a map's hits, as [sql,
 	 * bindings]: hits of its symbols, and hits credited to its entries.
-	 * $days null: no window.
+	 * $days null: no window; $day (Y-m-d): that day only, instead of $days.
 	 */
-	private function mapHitsSource(string $map, string $model, array $symbolIds, ?int $days): array {
+	private function mapHitsSource(string $map, string $model, array $symbolIds, ?int $days, ?string $day = null): array {
 		$hits = AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE;
 		[$entries, $entryModel] = $model === 'MapCustom'
 			? [AppConfig::MAPS_CUSTOM_TABLE, self::ENTRY_CUSTOM]
 			: [AppConfig::MAPS_COMBINED_TABLE, self::ENTRY_COMBINED];
 
-		$window = $days === null ? '' : ' AND h.created_day >= CURDATE() - INTERVAL ? DAY';
-		$windowBinding = $days === null ? [] : [$days - 1];
+		if ($day !== null) {
+			$window = ' AND h.created_day = ?';
+			$windowBinding = [$day];
+		} else {
+			$window = $days === null ? '' : ' AND h.created_day >= CURDATE() - INTERVAL ? DAY';
+			$windowBinding = $days === null ? [] : [$days - 1];
+		}
 
 		$parts = [];
 		$bindings = [];

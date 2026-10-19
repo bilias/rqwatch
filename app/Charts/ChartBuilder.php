@@ -163,6 +163,34 @@ class ChartBuilder {
 	}
 
 	// percentage of all mail (same day/month, same user scope) that was stored
+	// a map's distinct mails per day (day => mails), a bar per day linking to that day's mails
+	public static function createMapHitsChart(array $days, callable $dayUrl): Chart {
+		$chart = new Chart(Chart::TYPE_BAR);
+
+		$chart->setData([
+			'labels' => array_keys($days),
+			'datasets' => [
+				[
+					'label' => 'Mails hit',
+					'data' => array_values($days),
+					'links' => array_map(fn ($d) => $dayUrl((string) $d), array_keys($days)),
+					'backgroundColor' => [
+						MailCategory::TOTAL->color(),
+					],
+				],
+			],
+		]);
+
+		$chart->setOptions([
+			'responsive' => true,
+			'maintainAspectRatio' => false,
+		]);
+
+		$chart->setAttributes(['note' => "Click on a bar to view that day's mails"]);
+
+		return $chart;
+	}
+
 	private static function storedRatio(int $stored, int $total): ?float {
 		return $total > 0 ? round(100 * $stored / $total, 1) : null;
 	}

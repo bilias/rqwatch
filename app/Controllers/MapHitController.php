@@ -10,6 +10,7 @@
 
 namespace App\Controllers;
 
+use App\Charts\ChartBuilder;
 use App\Configuration\Config;
 use App\Core\Routing\RouteName;
 use App\Forms\QidForm;
@@ -117,6 +118,7 @@ class MapHitController extends ViewController
 		$maps = $this->maps();
 		$service = new MapHitService();
 		$outcomeFilters = [];
+		$period = null;
 
 		try {
 			if ($map !== '' && $entry > 0) {
@@ -136,7 +138,14 @@ class MapHitController extends ViewController
 			} elseif ($map !== '' && isset($maps[$map])) {
 				[$model, $symbols] = $maps[$map];
 				[$outcome, $outcomeFilters, $outcomeParams] = $this->outcomeQuery();
-				$ids = $service->mapHitMailIds($map, $model, $symbols, $window, $this->max_items, $outcome);
+				// one day of the trend chart
+				$day = (string) $this->request->query->get('day', '');
+				$day = preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) && strtotime($day) !== false ? $day : null;
+				$ids = $service->mapHitMailIds($map, $model, $symbols, $window, $this->max_items, $outcome, $day);
+				if ($day !== null) {
+					$period = "the day {$day}";
+					$outcomeParams['day'] = $day;
+				}
 				$configs = MapInventory::getMapConfigs();
 				$filter = ['filter' => 'Map', 'choice' => 'hit by', 'value' => $configs[$map]['description'] ?? $map];
 				$params = ['map' => $map, 'days' => $days] + $outcomeParams;
@@ -157,7 +166,7 @@ class MapHitController extends ViewController
 		$logs = (new MailLogService($this->getUserContext()))
 			->getPaginatedByIds($ids, $this->url($this->is_admin ? RouteName::ADMIN_MAP_HITS_MAILS : RouteName::MAP_HITS_MAILS), $page);
 
-		$period = match ($days) {
+		$period ??= match ($days) {
 			0 => 'any recorded day',
 			1 => 'today',
 			default => "the last {$days} days",
@@ -208,8 +217,18 @@ class MapHitController extends ViewController
 		}
 
 		[$model, $symbols] = $maps[$map];
+		$service = new MapHitService();
+		$chart = null;
 		try {
-			$outcome = (new MapHitService())->mapOutcome($map, $model, $symbols, $days);
+			$outcome = $service->mapOutcome($map, $model, $symbols, $days);
+			// the trend always spans the longest window
+			if (Config::get('show_charts')) {
+				$mails = $this->url(RouteName::ADMIN_MAP_HITS_MAILS);
+				$chart = ChartBuilder::createMapHitsChart(
+					$service->mapDailyHits($map, $model, $symbols, max(MapHitService::WINDOWS)),
+					fn (string $day) => $mails . '?' . http_build_query(['map' => $map, 'day' => $day])
+				);
+			}
 		} catch (Throwable $e) {
 			$this->fileLogger->error("[MapHitController_showOutcome] query error: " . $e->getMessage());
 			$this->flashbag->add('error', "Map hits query error. Check logs.");
@@ -232,6 +251,8 @@ class MapHitController extends ViewController
 			'windows' => MapHitService::WINDOWS,
 			'outcome' => $outcome,
 			'totals' => $totals,
+			'chart' => $chart,
+			'show_charts' => $chart !== null,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
