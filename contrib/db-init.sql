@@ -132,8 +132,8 @@ CREATE TABLE custom_map_config (
 # (5, 'from_blacklist', 'Mail/MIME From Blacklist', 'from', 'From', NOW(), NOW());
 
 INSERT INTO `custom_map_config`
-  (`map_name`, `map_description`, `field_name`, `field_label`) VALUES
-  ('rqwatch_virus_no_notify', 'Antivirus No Notification', 'virus', 'Antivirus symbol or virus name');
+  (`map_name`, `map_description`, `field_name`, `field_label`, `symbols`) VALUES
+  ('rqwatch_virus_no_notify', 'Antivirus No Notification', 'virus', 'Antivirus symbol or virus name', 'RQWATCH_VIRUS_NO_NOTIFY');
 
 DROP TABLE IF EXISTS `mail_log_symbol_hits`;
 

@@ -3,6 +3,9 @@ ALTER TABLE `custom_map_config`
   ADD COLUMN `symbols` VARCHAR(255) DEFAULT NULL AFTER `field_label`,
   ALGORITHM=INSTANT;
 
+UPDATE `custom_map_config` SET `symbols` = 'RQWATCH_VIRUS_NO_NOTIFY'
+  WHERE `map_name` = 'rqwatch_virus_no_notify' AND `symbols` IS NULL;
+
 CREATE TABLE `symbol_names` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
