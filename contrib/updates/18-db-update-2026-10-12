@@ -2,3 +2,11 @@
 ALTER TABLE `users`
   ADD COLUMN `session_version` int(10) unsigned NOT NULL DEFAULT 0 AFTER `password`,
   ALGORITHM=INSTANT;
+
+-- the virus notification skip map (db:migrate_virus_skip_map); skipped if the map exists
+INSERT INTO `custom_map_config`
+  (`map_name`, `map_description`, `field_name`, `field_label`)
+  SELECT 'rqwatch_virus_no_notify', 'Antivirus No Notification', 'virus',
+    'Antivirus symbol or virus name'
+  FROM DUAL WHERE NOT EXISTS
+    (SELECT 1 FROM `custom_map_config` WHERE `map_name` = 'rqwatch_virus_no_notify');

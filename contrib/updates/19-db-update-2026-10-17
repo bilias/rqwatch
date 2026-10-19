@@ -3,14 +3,7 @@ ALTER TABLE `custom_map_config`
   ADD COLUMN `symbols` VARCHAR(255) DEFAULT NULL AFTER `field_label`,
   ALGORITHM=INSTANT;
 
--- the virus skip map, as db:migrate_virus_skip_map creates it (2.1.2), if missing
-INSERT INTO `custom_map_config`
-  (`map_name`, `map_description`, `field_name`, `field_label`, `symbols`)
-  SELECT 'rqwatch_virus_no_notify', 'Antivirus No Notification', 'virus',
-    'Antivirus symbol or virus name', 'RQWATCH_VIRUS_NO_NOTIFY'
-  FROM DUAL WHERE NOT EXISTS
-    (SELECT 1 FROM `custom_map_config` WHERE `map_name` = 'rqwatch_virus_no_notify');
-
+-- the virus notification skip map (18-db-update-2026-10-12)
 UPDATE `custom_map_config` SET `symbols` = 'RQWATCH_VIRUS_NO_NOTIFY'
   WHERE `map_name` = 'rqwatch_virus_no_notify' AND `symbols` IS NULL;
 
