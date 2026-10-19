@@ -116,6 +116,7 @@ class MapHitController extends ViewController
 		$symbol = (string) $this->request->query->get('symbol', '');
 		$maps = $this->maps();
 		$service = new MapHitService();
+		$outcomeFilters = [];
 
 		try {
 			if ($map !== '' && $entry > 0) {
@@ -134,10 +135,11 @@ class MapHitController extends ViewController
 				return new RedirectResponse($report);
 			} elseif ($map !== '' && isset($maps[$map])) {
 				[$model, $symbols] = $maps[$map];
-				$ids = $service->mapHitMailIds($map, $model, $symbols, $window, $this->max_items);
+				[$outcome, $outcomeFilters, $outcomeParams] = $this->outcomeQuery();
+				$ids = $service->mapHitMailIds($map, $model, $symbols, $window, $this->max_items, $outcome);
 				$configs = MapInventory::getMapConfigs();
 				$filter = ['filter' => 'Map', 'choice' => 'hit by', 'value' => $configs[$map]['description'] ?? $map];
-				$params = ['map' => $map, 'days' => $days];
+				$params = ['map' => $map, 'days' => $days] + $outcomeParams;
 			} elseif ($symbol !== '' && MapService::validSymbol($symbol)) {
 				$ids = $service->symbolHitMailIds($symbol, $window, $this->max_items);
 				$filter = ['filter' => 'Symbol', 'choice' => 'not credited to a map', 'value' => $symbol];
@@ -164,7 +166,7 @@ class MapHitController extends ViewController
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'logs' => $logs,
-			'filters' => [$filter, ['filter' => 'Date', 'choice' => 'in', 'value' => $period]],
+			'filters' => array_merge([$filter], $outcomeFilters, [['filter' => 'Date', 'choice' => 'in', 'value' => $period]]),
 			'queryParams' => $params,
 			'totalRecords' => $logs->total(),
 			'items_per_page' => $this->items_per_page,
@@ -179,6 +181,91 @@ class MapHitController extends ViewController
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
+	}
+
+	/*
+	 * A map's mails per action, released and notified, in one window: the
+	 * report's outcome link
+	 */
+	public function showOutcome(): Response {
+		if ($denied = $this->checkAccess()) {
+			return $denied;
+		}
+
+		$this->twigFormView($this->request);
+
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			return $response;
+		}
+
+		$report = $this->url(RouteName::ADMIN_MAP_HITS);
+		$map = (string) $this->request->query->get('map', '');
+		$days = $this->request->query->getInt('days', max(MapHitService::WINDOWS));
+		$maps = $this->maps();
+		if (!isset($maps[$map]) || !in_array($days, MapHitService::WINDOWS, true)) {
+			return new RedirectResponse($report);
+		}
+
+		[$model, $symbols] = $maps[$map];
+		try {
+			$outcome = (new MapHitService())->mapOutcome($map, $model, $symbols, $days);
+		} catch (Throwable $e) {
+			$this->fileLogger->error("[MapHitController_showOutcome] query error: " . $e->getMessage());
+			$this->flashbag->add('error', "Map hits query error. Check logs.");
+			return new RedirectResponse($report);
+		}
+
+		$totals = ['mails' => 0, 'released' => 0, 'notified' => 0];
+		foreach ($outcome as $counts) {
+			foreach ($totals as $k => $v) {
+				$totals[$k] = $v + $counts[$k];
+			}
+		}
+
+		return new Response($this->twig->render('map_hits_outcome.twig', [
+			'qidform' => $qidform->createView(),
+			'map' => $map,
+			'description' => MapInventory::getMapConfigs()[$map]['description'] ?? $map,
+			'symbols' => $symbols,
+			'days' => $days,
+			'windows' => MapHitService::WINDOWS,
+			'outcome' => $outcome,
+			'totals' => $totals,
+			'runtime' => $this->getRuntime(),
+			'flashes' => $this->getFlashes(),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
+	/*
+	 * The outcome filters of a map's mails list (?action=, ?released=1,
+	 * ?notified=1), as [service filters, Active Filters lines, query params]
+	 */
+	private function outcomeQuery(): array {
+		$outcome = [];
+		$filters = [];
+		$params = [];
+
+		$action = (string) $this->request->query->get('action', '');
+		if ($action !== '' && preg_match('/^[a-z ]{1,20}$/', $action)) {
+			$outcome['action'] = $action;
+			$filters[] = ['filter' => 'Action', 'choice' => 'is', 'value' => $action];
+			$params['action'] = $action;
+		}
+		foreach (['released' => 'Released', 'notified' => 'Notified'] as $key => $label) {
+			if ($this->request->query->get($key) === '1') {
+				$outcome[$key] = true;
+				$filters[] = ['filter' => $label, 'choice' => 'is', 'value' => 'yes'];
+				$params[$key] = 1;
+			}
+		}
+
+		return [$outcome, $filters, $params];
 	}
 
 	// admin only, unless $entry: one entry's mails, which users may see

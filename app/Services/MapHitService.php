@@ -563,15 +563,59 @@ class MapHitService
 		return $result;
 	}
 
-	// mail ids hit by a map in the last $days days (null: any day), newest first
-	public function mapHitMailIds(string $map, string $model, array $symbols, ?int $days, int $limit): array {
+	/*
+	 * Mail ids hit by a map in the last $days days (null: any day), newest
+	 * first; $outcome limits them as mapOutcome() counts them: 'action',
+	 * 'released' => true, 'notified' => true.
+	 */
+	public function mapHitMailIds(string $map, string $model, array $symbols, ?int $days, int $limit, array $outcome = []): array {
 		$symbolIds = array_values($this->existingSymbolIds($symbols));
 		[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, $days);
 
+		$where = [];
+		if (isset($outcome['action'])) {
+			$where[] = 'ml.action = ?';
+			$bindings[] = (string) $outcome['action'];
+		}
+		if (!empty($outcome['released'])) {
+			$where[] = 'ml.released = 1';
+		}
+		if (!empty($outcome['notified'])) {
+			$where[] = 'ml.notified = 1';
+		}
+		$join = $where === [] ? '' : ' JOIN ' . AppConfig::MAIL_LOGS_TABLE . ' ml ON ml.id = t.mail_log_id WHERE ' . implode(' AND ', $where);
+
 		return array_map('intval', array_column(App::capsule()->getConnection()->select(
-			"SELECT DISTINCT t.mail_log_id FROM ({$sql}) t ORDER BY t.mail_log_id DESC LIMIT " . (int) $limit,
+			"SELECT DISTINCT t.mail_log_id FROM ({$sql}) t{$join} ORDER BY t.mail_log_id DESC LIMIT " . (int) $limit,
 			$bindings
 		), 'mail_log_id'));
+	}
+
+	/*
+	 * How a map's mails of the last $days days ended up, per action: action
+	 * => ['mails' => n, 'released' => n, 'notified' => n], most mails first.
+	 */
+	public function mapOutcome(string $map, string $model, array $symbols, int $days): array {
+		$symbolIds = array_values($this->existingSymbolIds($symbols));
+		[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, $days);
+
+		$rows = App::capsule()->getConnection()->select(
+			"SELECT ml.action, COUNT(*) AS mails, SUM(ml.released = 1) AS released, SUM(ml.notified = 1) AS notified"
+			. " FROM (SELECT DISTINCT t.mail_log_id FROM ({$sql}) t) x"
+			. " JOIN " . AppConfig::MAIL_LOGS_TABLE . " ml ON ml.id = x.mail_log_id"
+			. " GROUP BY ml.action ORDER BY mails DESC",
+			$bindings
+		);
+
+		$outcome = [];
+		foreach ($rows as $row) {
+			$outcome[(string) $row->action] = [
+				'mails' => (int) $row->mails,
+				'released' => (int) $row->released,
+				'notified' => (int) $row->notified,
+			];
+		}
+		return $outcome;
 	}
 
 	// mail ids with an uncredited hit of $symbol in the last $days days (null: any day), newest first

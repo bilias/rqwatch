@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+
+<section>
+
+<div class='current_mails descr'>
+Map hits outcome: {{ description }} ({{ map }}){% if symbols %}, {{ symbols|join(', ') }}{% endif %}<br/>
+Mails hit {{ days == 1 ? 'today' : 'in the last ' ~ days ~ ' days' }}, per action
+<div id="inside_links">
+<ul>
+{% for window in windows %}
+{% if window != days %}
+<li><a href='{{ route('ADMIN_MAP_HITS_OUTCOME') }}?map={{ map|url_encode }}&amp;days={{ window }}'>{{ window == 1 ? 'Today' : window ~ ' days' }}</a></li>
+{% endif %}
+{% endfor %}
+<li><a href='{{ route('ADMIN_MAP_HITS') }}'>Map hits</a></li>
+</ul>
+</div>
+</div>
+
+{% set mails = route('ADMIN_MAP_HITS_MAILS') ~ '?map=' ~ map|url_encode ~ '&days=' ~ days %}
+
+<div class='aliases'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th>Action</th>
+ <th>Mails</th>
+ <th>Released</th>
+ <th>Notified</th>
+</tr></thead>
+
+<tbody>
+{% for action, counts in outcome %}
+  <tr class='clean'>
+  <td class='center'>{{ action != '' ? action : '-' }}</td>
+{% for key in ['mails', 'released', 'notified'] %}
+  <td class='center'>
+{% if counts[key] > 0 and action != '' %}
+  <a href="{{ mails }}&amp;action={{ action|url_encode }}{{ key != 'mails' ? '&' ~ key ~ '=1' }}">{{ counts[key]|nf }}</a>
+{% else %}
+  {{ counts[key]|nf }}
+{% endif %}
+  </td>
+{% endfor %}
+  </tr>
+{% else %}
+  <tr><td colspan='4' class='center'>No hits</td></tr>
+{% endfor %}
+{% if outcome is not empty %}
+  <tr class='clean'>
+  <td class='center'>Total</td>
+{% for key in ['mails', 'released', 'notified'] %}
+  <td class='center'>
+{% if totals[key] > 0 %}
+  <a href="{{ mails }}{{ key != 'mails' ? '&' ~ key ~ '=1' }}">{{ totals[key]|nf }}</a>
+{% else %}
+  0
+{% endif %}
+  </td>
+{% endfor %}
+  </tr>
+{% endif %}
+</tbody>
+</table>
+</div>
+
+</section>
+
+{% endblock %}

@@ -79,6 +79,7 @@ enum RouteName: string
 	case ADMIN_MAPS_CUSTOM_SHOW = 'admin_maps_custom_show';
 	case ADMIN_MAP_HITS = 'admin_map_hits';
 	case ADMIN_MAP_HITS_MAILS = 'admin_map_hits_mails';
+	case ADMIN_MAP_HITS_OUTCOME = 'admin_map_hits_outcome';
 	case MAP_HITS_MAILS = 'map_hits_mails';
 	case ADMIN_MAPS_CUSTOM_ADD = 'admin_maps_custom_add';
 	case ADMIN_MAPS_CUSTOM_EDIT = 'admin_maps_custom_edit';

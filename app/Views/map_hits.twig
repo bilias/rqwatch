@@ -27,7 +27,11 @@ Map hits: distinct mails today, in the last 7 and the last 31 days
 <tbody>
 {% for row in rows %}
   <tr class='clean'>
-  <td class='center'><a href="{{ route('ADMIN_MAP_SHOW', { map: row.map }) }}">{{ row.description }}</a><br/>{{ row.map }}</td>
+  <td class='center'><a href="{{ route('ADMIN_MAP_SHOW', { map: row.map }) }}">{{ row.description }}</a><br/>{{ row.map }}
+{% if row.windows[longest] > 0 %}
+  <br/><a href="{{ route('ADMIN_MAP_HITS_OUTCOME') }}?map={{ row.map|url_encode }}&amp;days={{ longest }}">[outcome]</a>
+{% endif %}
+  </td>
   <td class='center'>{{ row.symbols ? row.symbols|join(', ') : '-' }}</td>
 {% for days in windows %}
   <td class='center'>

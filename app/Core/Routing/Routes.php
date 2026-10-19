@@ -605,6 +605,13 @@ class Routes
 			],
 		));
 
+		$routes->add(RouteName::ADMIN_MAP_HITS_OUTCOME->value, new Route(
+			'/admin/maps/hits/outcome', // path
+			[ '_controller' => 'App\\Controllers\\MapHitController::showOutcome',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
 		$routes->add(RouteName::MAP_HITS_MAILS->value, new Route(
 			'/user/maps/hits/mails', // path
 			[ '_controller' => 'App\\Controllers\\MapHitController::showMails',
