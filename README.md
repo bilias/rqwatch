@@ -52,6 +52,7 @@ with extra tools to make the most of Rspamd’s powerful anti-spam capabilities.
       * [Users](#users)
       * [Aliases](#aliases)
       * [Maps](#maps)
+      * [Map Hits](#map-hits)
       * [Fuzzy Learning](#fuzzy-learning)
       * [Redis Caching](#redis-caching-highly-recommended)
    * [API for Rspamd - RSPAMD API (metadata_importer)](#api-for-rspamd---rspamd-api-metadata_importer)
@@ -107,6 +108,7 @@ The following functionalities are supported:
 - Search mails by filters
 - Mail statistics (by filters)
 - Top mail reports (by filters)
+- Top Rspamd symbols reports (by filters), per action: all symbols, or local and mapped only
 - Show mail metadata
 - Show mail headers
 - Show Rspamd symbols
@@ -165,6 +167,18 @@ The Web interface provides map management and URL endpoints for Rspamd
 
 Rspamd downloads map files locally from the web server and this does not put additional
 stress on the database.
+
+### Map Hits
+Rqwatch records which maps and map entries matched each mail, from its Rspamd symbols.
+- Map hits report: mails per map today, in 7 and 31 days, last hit, idle maps (admin)
+- Outcome of a map's mails by action, released and notified, with a 31-day trend chart (admin)
+- Hits and Last hit per entry, idle entries filter, and the mails of each entry
+  (users for their personal maps)
+- Mail detail page links each symbol to its map and entry
+- Top local and mapped symbols report, by filters
+- Backfill from the stored symbols of past mail
+
+See [Map Hits](docs/CONFIGURE.md#map-hits) for setup.
 
 ### Fuzzy Learning
 Admins can learn a quarantined mail as spam, or as not spam to fix a false

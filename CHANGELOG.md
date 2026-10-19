@@ -2,6 +2,23 @@
 
 ## Master Dev Branch
 
+### 2026-10-19
+- Map hits: Rqwatch records which maps and map entries matched each mail.
+  Run `php bin/cli.php db:migrate` (or `db:migrate_map_hits`), link the custom maps to
+  their Rspamd symbols (new Rspamd Symbols field; built-in maps use `$map_symbols`),
+  then `php bin/cli.php db:map_hits_backfill -r -a` for past mail.
+  See docs/CONFIGURE.md#map-hits
+- Map hits report (admin): mails per map today, in 7 and 31 days, last hit, idle maps;
+  per map outcome by action, released and notified, with a 31-day trend chart
+- Hits and Last hit per map entry, idle entries filter and the mails of each entry;
+  users see these for their personal maps
+- Mail detail page links each symbol to its map and map entry
+- Top Rspamd Symbols and Top Local and Mapped Symbols reports, per action,
+  with links to the mails
+- A search stopped by `DB_WEB_MAX_STATEMENT_TIME` shows a message instead of an error
+- Top Actions report links each action to its mails
+- Wrap long values in Active Filters
+
 ### 2026-10-17
 - Configurable local, whitelist and blacklist symbol patterns
 

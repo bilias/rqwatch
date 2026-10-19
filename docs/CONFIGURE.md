@@ -184,11 +184,17 @@ RQWATCH_BAD_WORDS {
 example map entry:
 /common spam text/i LOCAL_spam_text_1:10
 ```
-- Adding `RQWATCH_` (or `LOCAL_`) as a prefix of Map Name in `multimap.conf`, tells Rqwatch to match it as a local map on the web interface.
-- Adding `_WL` or `_WHITELIST` as a suffix of Map Name, tells Rqwatch to match it
-as a whitelisted entry.
-- Adding `_BL` or `_BLACKLIST` as a suffix of Map Name, tells Rqwatch to match it
-as a blacklisted entry.
+Rqwatch recognises symbols by name, with the patterns in [Map Settings](#map-settings):
+- `RQWATCH_*` or `LOCAL_*` (`$local_symbol_patterns`) marks a symbol as a local map or
+rule on the web interface, and records it for [Map Hits](#map-hits).
+- `RQWATCH_*_WL` or `RQWATCH_*_WHITELIST` (`$whitelist_symbol_patterns`) marks it as a
+whitelisted entry.
+- `RQWATCH_*_BL` or `RQWATCH_*_BLACKLIST` (`$blacklist_symbol_patterns`) marks it as a
+blacklisted entry (also used by notifications, see [cron:notifications](#cron)).
+
+In the Custom Map definition, **Rspamd Symbols** lists the symbols of the Rspamd rules
+that read the map (comma-separated), e.g. `RQWATCH_BAD_WORDS`. It is needed for
+[Map Hits](#map-hits) and appears once the map hits migration has run.
 
 Custom maps can be used with any plugin of Rspamd that reads maps of one field such as:
 multimap, whitelist, spf, dmarc, reputation, antivirus etc.
@@ -215,6 +221,58 @@ files locally on multiple servers.
 
 In advance, an administrator can choose to not use Basic Maps at all and implement
 Custom Maps with different scores.
+
+## Map Hits
+Rqwatch records which maps, and which map entries, matched each imported mail,
+from the mail's Rspamd symbols. Admins see:
+- **Map hits** report (Maps > Map hits): distinct mails per map today, in 7 and in
+31 days, the last hit, and idle maps. Each count opens those mails. Recorded symbols
+that no map is linked to are listed separately.
+- **Outcome** of a map (`[outcome]` on the report, or the map page): its mails per
+action, released and notified, with a 31-day chart of hits per day.
+- **Hits** and **Last hit** per entry on map pages, search results and all-entries
+pages, an **idle entries** filter, and the mails of each entry.
+- Links on the mail detail page from each symbol to its map and entry.
+- **Top Local and Mapped Symbols** report under Search (the `RQWATCH_*`/`LOCAL_*` and linked
+symbols), next to the Top Rspamd Symbols report (every symbol). Both take the search filters,
+or the last 7 days when there are none, and read the newest `$max_items` matching mails.
+
+Users see Hits and Last hit on their personal maps, and the mails of their own entries.
+
+To turn it on:
+1. Run `./bin/cli.php db:migrate_map_hits` (or just `./bin/cli.php db:migrate`).\
+   New installs from `db-init.sql` already have it. New mail is recorded from then on.
+2. Link the maps to their Rspamd symbols:
+   - Built-in maps: `$map_symbols` in [Map Settings](#map-settings). The defaults match `contrib/`.
+   - Custom maps: the **Rspamd Symbols** field of each map definition. List every rule that
+     reads the map file, including composites built on the map's symbol, e.g.
+     `RQWATCH_WHITE_SMTP_FROM,RQWATCH_WHITE_SMTP_FROM_DKIM_ALLOW`.
+3. Record the history with `./bin/cli.php db:map_hits_backfill`:
+   ```
+   ./bin/cli.php db:map_hits_backfill -v        # count the mails only
+   ./bin/cli.php db:map_hits_backfill -r -v     # the last 31 days
+   ./bin/cli.php db:map_hits_backfill -r -a -v  # the whole mail log
+   ```
+   It reads each mail's stored symbols and replaces its recorded hits, so run it again
+   after changing map symbols. It is safe to run next to live imports.
+
+### Map Hits notes
+- A hit is recorded for every symbol matching `$local_symbol_patterns` and every symbol
+  a map is linked to; fuzzy symbols are left out (they have their own hits).
+- A hit is credited to the map entry that produced it when Rqwatch can tell which:
+  - the symbol's option is the entry: exact maps (from, rcpt, domain, header values),
+    Combined Maps and the `whitelist` module (`domain:D:+`), case-insensitive;
+  - IP maps: the entry whose network holds the IP, the most specific one, as Rspamd matches;
+  - entries carrying their own symbol (`/regexp/i LOCAL_name:10` with `dynamic_symbols = true`).
+- Regexp and glob maps without own symbols are counted for the map, not per entry:
+  Rspamd reports the matched value, not the expression that matched it.
+- Exclusion lists (`whitelist` of the `dkim`, `spf`, `rbl`, `antivirus` and `reputation`
+  modules) make a module skip a check without a symbol, so they never show hits.
+- Editing an entry's key (or its own symbol) moves its past hits to the map only;
+  a deleted entry's hits stay on the map.
+- The virus skip map (`$notification_skip_virus_map`) is linked to `RQWATCH_VIRUS_NO_NOTIFY`.
+  Rqwatch reads that map itself, so it shows hits only if an Rspamd rule with that symbol
+  reads the map too.
 
 ## Rspamd Fuzzy Learning
 Rspamd can recognise mail it has seen before, using
@@ -316,7 +374,8 @@ cp .env-example .env
 - `DB_PORT` - Database port
 
 - `DB_WEB_MAX_STATEMENT_TIME` - Maximum seconds a single database statement may run
-  for web pages (not the APIs or CLI). A search that exceeds it fails instead of running on.\
+  for web pages (not the APIs or CLI). A search that exceeds it is stopped and the
+  search page asks for more filters, for example a date.\
   Default is `30`. Set to `0` to disable.
 
 ### Quarantine Settings
@@ -619,6 +678,23 @@ In all other cases, a call to the remote API server is made.
   Admins are not limited, and entries created by admins do not count.\
   Default is `1000` (0 = unlimited)
 
+- `$map_symbols` - Rspamd symbols of the built-in maps, for [Map Hits](#map-hits):
+  map name => list of the symbols whose rules read it.\
+  Custom maps take theirs from the map definition.\
+  Default matches the rules in `contrib/rspamd/`
+
+- `$local_symbol_patterns` - Symbols of local rules and maps: shown as `[map]` and
+  recorded for [Map Hits](#map-hits). Shell-style patterns, case-insensitive.\
+  Default is `array('RQWATCH_*', 'LOCAL_*')`
+
+- `$whitelist_symbol_patterns` - Whitelist symbols (the `-1000` rules): green rows
+  and the whitelisted tag.\
+  Default is `array('RQWATCH_*_WL', 'RQWATCH_*_WHITELIST')`
+
+- `$blacklist_symbol_patterns` - Blacklist symbols (the `+1000` rules): red rows,
+  the notification blacklist checks (`-b`/`-B`) and the reason on the detail page.\
+  Default is `array('RQWATCH_*_BL', 'RQWATCH_*_BLACKLIST')`
+
 ### Logging Settings
 - `$LOG_FILE` - Log file for Rqwatch\
   rqwatch user must have read/write access in the parent directory.\
@@ -803,7 +879,8 @@ on maillogs pages.\
  Default is `60`
 
 ### Reports and Statistics Settings
-- `$top_reports` - How many items to show in Top reports under Search.\
+- `$top_reports` - How many items to show in Top reports under Search, including
+ the Rspamd symbols report.\
  Default is `30`
 
 - `$show_mail_stats` - Calculate and show statistics on the mail search page.\
@@ -915,8 +992,8 @@ Available commands for the "cron" namespace:
   is specified. `$notification_score` still applies with `-b`, so a blacklist that
   scores higher is only notified with `-B`, which sends blacklisted mails at any score.\
   Blacklisted emails are tracked based on Rspamd symbols.
-  If a symbol starts with `RQWATCH_` and ends with either `_BL` or `_BLACKLIST` then
-  that email is marked as blacklisted.
+  A symbol matching `$blacklist_symbol_patterns` (by default `RQWATCH_*_BL` or
+  `RQWATCH_*_BLACKLIST`) marks that email as blacklisted.
 
   Users are also able to disable notifications by visiting their Profile page and
   opting out of notifications. This also applies for their aliases.
