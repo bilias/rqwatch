@@ -12,7 +12,8 @@ Rqwatch 2.x+ contains updates to the database schema.
   ./bin/cli.php db:migrate
   ```
   This applies one new migration, `Map hits schema`: a column on `custom_map_config`
-  and two new tables. It is instant.
+  and two new tables. It is instant. It also links the virus notification skip map
+  (`$notification_skip_virus_map`) to the symbol `RQWATCH_VIRUS_NO_NOTIFY`.
 - Link your custom maps to the Rspamd symbols that read them, in the new **Rspamd Symbols**
   field of each custom map definition. List every rule that reads the map file, including
   composites built on its symbol. Built-in maps use `$map_symbols`; the defaults match `contrib/`.
@@ -61,5 +62,7 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 
 # Fixes
 - Long values without spaces (e.g. a regexp) wrap inside Active Filters
+- SQL update files: `18-db-update-2026-10-12` now creates the virus notification skip map
+  (`rqwatch_virus_no_notify`), which only `db:migrate` created in 2.1.2
 
 **Full Changelog**: https://github.com/bilias/rqwatch/compare/v2.1.2...v2.1.3
