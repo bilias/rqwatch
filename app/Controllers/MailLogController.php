@@ -1311,16 +1311,20 @@ class MailLogController extends ViewController
 	}
 
 	private function getMailStats(MailLogService $service, array $filters): array {
-		if ($this->mailStatsEnabled($filters)) {
 			// has applyUserScope
-			$stats = $service->getStats($filters);
+			try {
+				$stats = $service->getStats($filters);
+			} catch (QueryTimeoutException $e) {
+				$this->flashbag->add('error', "Statistics took too long and were stopped. "
+					. "Narrow the search with more filters, for example a date.");
+				return [];
+			}
 
 			if ($stats === null) {
 				// distinguish a failed stats query from stats being
 				// disabled: both render no block, only one is an error
 				$this->flashbag->add('error',
 					"Statistics unavailable - query error. Check the logs, and remove the filter if it persists.");
-
 				return [];
 			}
 

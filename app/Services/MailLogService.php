@@ -741,9 +741,16 @@ class MailLogService
 
 		try {
 			return $this->collectStats($filters);
-		} catch (Exception $e) {
+		} catch (QueryException $e) {
+			if (self::isStatementTimeout($e)) {
+				$this->logger->warning("{$lf} query stopped by max_statement_time: " . $e->getMessage());
+				throw new QueryTimeoutException("Statistics took too long and were stopped", 0, $e);
+			}
 			$this->logger->error("{$lf} Query error: " . $e->getMessage());
 
+			return null;
+		} catch (Exception $e) {
+			$this->logger->error("{$lf} Query error: " . $e->getMessage());
 			return null;
 		}
 	}
