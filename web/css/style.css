@@ -1152,6 +1152,11 @@ span.stored {
  gap: 0.5rem;
 }
 
+/* a box with links only, no text line above: even spacing */
+#inside_links.single ul {
+ margin-top: 0px;
+}
+
 #inside_links li {
  display: inline;
  margin: 0;
