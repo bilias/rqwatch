@@ -32,6 +32,9 @@ class MapHitService
 		$this->logger = App::fileLogger();
 	}
 
+	// recorded by Rqwatch itself for mails matching the virus notification skip map
+	public const string VIRUS_SKIP_SYMBOL = 'RQWATCH_VIRUS_NO_NOTIFY';
+
 	// entry_model values
 	private const int ENTRY_NONE = 0;
 	public const int ENTRY_COMBINED = 1;
@@ -57,6 +60,16 @@ class MapHitService
 			}
 
 			$wanted = $this->wantedSymbols($symbols, $symbolMaps);
+
+			// rspamd never reads the virus skip map: Rqwatch records its matches
+			// itself, in mail_log_symbol_hits only, as cron:notifications matches them
+			if (!isset($wanted[self::VIRUS_SKIP_SYMBOL])) {
+				$virusEntries = $this->virusSkipEntries($symbols);
+				if ($virusEntries !== []) {
+					$wanted[self::VIRUS_SKIP_SYMBOL] = ['score' => null, 'options' => [], 'entries' => $virusEntries];
+				}
+			}
+
 			if ($wanted === []) {
 				return;
 			}
@@ -76,9 +89,9 @@ class MapHitService
 				if (!isset($ids[$name])) {
 					continue;
 				}
-				$entries = isset($symbolMaps[$name])
+				$entries = $symbol['entries'] ?? (isset($symbolMaps[$name])
 					? $this->optionEntries($symbolMaps[$name], $symbol['options'])
-					: $this->ownSymbolEntries($name);
+					: $this->ownSymbolEntries($name));
 				if ($entries === []) {
 					$entries = [[self::ENTRY_NONE, 0]];
 				}
@@ -100,6 +113,39 @@ class MapHitService
 		} catch (Throwable $e) {
 			$this->logger->error("[MapHitService_recordHits] {$qid} could not record map hits: " . $e->getMessage());
 		}
+	}
+
+	/*
+	 * Enabled entries of the virus notification skip map matching the mail's
+	 * antivirus symbols, by Helper::virusSkipMatch() as cron:notifications
+	 * applies them, as [[entry_model, id], ...]
+	 */
+	private function virusSkipEntries(string $symbols): array {
+		$list = json_decode($symbols, true);
+		if (!is_array($list)) {
+			return [];
+		}
+		$antivirus = array_filter($list, fn ($s) => is_array($s) && ($s['group'] ?? null) === 'antivirus');
+		if ($antivirus === []) {
+			return [];
+		}
+
+		$map = MapService::activeVirusSkipMap();
+		if ($map === null) {
+			return [];
+		}
+
+		$patterns = App::capsule()->getConnection()->table(AppConfig::MAPS_CUSTOM_TABLE)
+			->where('map_name', $map)->where('disabled', 0)
+			->pluck('pattern', 'id')->all();
+
+		$entries = [];
+		foreach ($patterns as $id => $pattern) {
+			if (Helper::virusSkipMatch($antivirus, [(string) $pattern]) !== null) {
+				$entries[] = [self::ENTRY_CUSTOM, (int) $id];
+			}
+		}
+		return $entries;
 	}
 
 	// symbol name => [score, options] for the local rule symbols and those a map names
