@@ -10,3 +10,12 @@ INSERT INTO `custom_map_config`
     'Antivirus symbol or virus name'
   FROM DUAL WHERE NOT EXISTS
     (SELECT 1 FROM `custom_map_config` WHERE `map_name` = 'rqwatch_virus_no_notify');
+
+-- record that map as the db:migrate_virus_skip_map migration did, so a later
+-- db:migrate does not refuse it as a foreign map with the same name
+INSERT IGNORE INTO `migrations` (`migration`, `status`, `status_at`)
+  SELECT '20261012_virus_skip_map', 'completed', NOW()
+  FROM `custom_map_config`
+  WHERE `map_name` = 'rqwatch_virus_no_notify' AND `field_name` = 'virus'
+    AND `map_description` = 'Antivirus No Notification'
+  LIMIT 1;

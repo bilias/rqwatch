@@ -5,7 +5,8 @@ ALTER TABLE `custom_map_config`
 
 -- the virus notification skip map (18-db-update-2026-10-12)
 UPDATE `custom_map_config` SET `symbols` = 'RQWATCH_VIRUS_NO_NOTIFY'
-  WHERE `map_name` = 'rqwatch_virus_no_notify' AND `symbols` IS NULL;
+  WHERE `map_name` = 'rqwatch_virus_no_notify' AND `field_name` = 'virus'
+    AND `map_description` = 'Antivirus No Notification' AND `symbols` IS NULL;
 
 CREATE TABLE `symbol_names` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
