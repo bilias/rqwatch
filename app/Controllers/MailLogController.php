@@ -279,7 +279,10 @@ class MailLogController extends ViewController
 		]));
 	}
 
-	// top rspamd symbols of the current search (admin): ?sort=score (average), ?info=1
+	/*
+	 * Top rspamd symbols of the current search (admin): ?sort=score (average),
+	 * ?info=1; ?local=1 for the symbols Rqwatch records only (map hits)
+	 */
 	public function showSymbolsReport(): Response {
 		$this->twigFormView($this->request);
 
@@ -297,10 +300,17 @@ class MailLogController extends ViewController
 
 		$sort = $this->request->query->get('sort') === 'score' ? 'score' : 'mails';
 		$informational = $this->request->query->get('info') === '1';
+		$local = $this->request->query->get('local') === '1';
 		$limit = (int) Config::get('top_reports') ?: 30;
 
+		if ($local && !MapService::mapHitsEnabled()) {
+			$this->flashbag->add('error', "Map hits need the map hits migration (db:migrate_map_hits)");
+			return new RedirectResponse($this->getSearchUrl());
+		}
+
 		try {
-			[$mails, $actions, $rows, $since] = $this->getMailLogService()->getSymbolsReport($filters, $informational, $sort, $limit);
+			[$mails, $actions, $rows, $since] = $this->getMailLogService()
+				->getSymbolsReport($filters, $informational, $sort, $limit, $local);
 		} catch (Throwable $e) {
 			$this->fileLogger->error("[MailLogController_showSymbolsReport] query error: " . $e->getMessage());
 			$this->flashbag->add('error', "Symbols report query error. Check logs.");
@@ -313,6 +323,7 @@ class MailLogController extends ViewController
 			'actions' => $actions,
 			'mails' => $mails,
 			'since' => $since,
+			'local' => $local,
 			'sort' => $sort,
 			'informational' => $informational,
 			'limit' => $limit,
@@ -1075,6 +1086,7 @@ class MailLogController extends ViewController
 			'chart'   => $chart,
 			'show_charts' => $chart !== null,
 			'show_reports' => $this->mailReportsEnabled($filters),
+			'map_hits' => $this->is_admin && MapService::mapHitsEnabled(),
 			'searchform' => $searchform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),

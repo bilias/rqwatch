@@ -15,12 +15,13 @@
 </div>
 
 <div class='current_mails descr'>
-Top {{ limit }} Rspamd symbols by {{ sort == 'score' ? 'average score' : 'quantity' }},
+Top {{ limit }} {{ local ? 'local and mapped ' }}Rspamd symbols by {{ sort == 'score' ? 'average score' : 'quantity' }},
 in the newest {{ mails|nf }} mail{{ mails == 1 ? '' : 's' }} of the search{% if mails >= max_items %} (capped at {{ max_items|nf }}){% endif %}
 <div id="inside_links">
 <ul>
-<li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?{{ {sort: sort == 'score' ? null : 'score', info: informational ? 1 : null}|url_encode }}'>Sort by {{ sort == 'score' ? 'quantity' : 'average score' }}</a></li>
-<li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?{{ {sort: sort == 'score' ? 'score' : null, info: informational ? null : 1}|url_encode }}'>{{ informational ? 'Hide' : 'Show' }} informational symbols (score 0)</a></li>
+{% set base = {local: local ? 1 : null, sort: sort == 'score' ? 'score' : null, info: informational ? 1 : null} %}
+<li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?{{ base|merge({sort: sort == 'score' ? null : 'score'})|url_encode }}'>Sort by {{ sort == 'score' ? 'quantity' : 'average score' }}</a></li>
+<li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?{{ base|merge({info: informational ? null : 1})|url_encode }}'>{{ informational ? 'Hide' : 'Show' }} informational symbols (score 0)</a></li>
 <li><a href='{{ route('ADMIN_SEARCH') }}'>Search</a></li>
 </ul>
 </div>

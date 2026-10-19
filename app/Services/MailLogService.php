@@ -492,11 +492,14 @@ class MailLogService
 	 * last 7 days when there are no filters), as [mails read, actions shown,
 	 * rows, since]: per symbol, mails, mails per action and the average
 	 * score; since is the first day read when there were no filters.
+	 * $local: only the symbols Rqwatch records (local rules and mapped
+	 * symbols, from mail_log_symbol_hits), otherwise every symbol, from
+	 * mail_log_data.symbols.
 	 * $informational keeps symbols that scored 0 in every mail; $sort is
 	 * 'mails' or 'score' (absolute average). Reads mail_log_data.symbols of
 	 * each mail, so the max_items cap bounds the cost.
 	 */
-	public function getSymbolsReport(array $filters, bool $informational, string $sort, int $limit): array {
+	public function getSymbolsReport(array $filters, bool $informational, string $sort, int $limit, bool $local = false): array {
 		$idQuery = $this->applyUserScope(
 			$this->getQueryByFilters(MailLog::select('id'), $filters)
 		);
@@ -514,15 +517,28 @@ class MailLogService
 
 		$mails = (int) $db->selectOne("SELECT COUNT(*) AS n FROM ({$idSql}) ids", $bindings)->n;
 
+		if ($local) {
+			// one row per mail and symbol: a hit credited to several entries has several rows
+			$source = "(SELECT DISTINCT h.symbol_id, h.mail_log_id, h.score"
+				. " FROM ({$idSql}) ids"
+				. " JOIN " . AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE . " h ON h.mail_log_id = ids.id) jt"
+				. " JOIN " . AppConfig::SYMBOL_NAMES_TABLE . " sn ON sn.id = jt.symbol_id"
+				. " JOIN " . AppConfig::MAIL_LOGS_TABLE . " ml ON ml.id = jt.mail_log_id";
+			$name = 'sn.name';
+		} else {
+			$source = "({$idSql}) ids"
+				. " JOIN " . AppConfig::MAIL_LOGS_TABLE . " ml ON ml.id = ids.id"
+				. " JOIN " . AppConfig::MAIL_LOG_DATA_TABLE . " md ON md.mail_log_id = ml.id"
+				. " CROSS JOIN JSON_TABLE(md.symbols, '$[*]' COLUMNS ("
+				. "name VARCHAR(128) PATH '$.name', score DOUBLE PATH '$.score')) jt";
+			$name = 'jt.name';
+		}
+
 		$cells = $db->select(
-			"SELECT jt.name, ml.action, COUNT(*) AS mails,"
+			"SELECT {$name} AS name, ml.action, COUNT(*) AS mails,"
 			. " SUM(COALESCE(jt.score, 0) <> 0) AS scored, SUM(COALESCE(jt.score, 0)) AS score"
-			. " FROM ({$idSql}) ids"
-			. " JOIN " . AppConfig::MAIL_LOGS_TABLE . " ml ON ml.id = ids.id"
-			. " JOIN " . AppConfig::MAIL_LOG_DATA_TABLE . " md ON md.mail_log_id = ml.id"
-			. " CROSS JOIN JSON_TABLE(md.symbols, '$[*]' COLUMNS ("
-			. "name VARCHAR(128) PATH '$.name', score DOUBLE PATH '$.score')) jt"
-			. " GROUP BY jt.name, ml.action",
+			. " FROM {$source}"
+			. " GROUP BY {$name}, ml.action",
 			$bindings
 		);
 
