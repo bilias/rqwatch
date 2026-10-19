@@ -479,6 +479,60 @@ class MailLogService
 		return $paginator->withPath($url);
 	}
 
+	/*
+	 * Rspamd symbols of the newest max_items mails matching $filters (of the
+	 * last 7 days when there are no filters), as [mails read, rows]: per
+	 * symbol, mails, mails per action group, average and total score.
+	 * $informational keeps symbols that scored 0 in every mail; $sort is
+	 * 'mails' or 'score' (absolute total). Reads mail_log_data.symbols of each
+	 * mail, so the max_items cap bounds the cost.
+	 */
+	public function getSymbolsReport(array $filters, bool $informational, string $sort, int $limit): array {
+		$idQuery = $this->applyUserScope(
+			$this->getQueryByFilters(MailLog::select('id'), $filters)
+		);
+		if ($filters === []) {
+			$idQuery->whereRaw('created_day >= CURDATE() - INTERVAL 6 DAY');
+		}
+		$idQuery->orderBy('id', 'DESC')->limit($this->max_items);
+
+		$ids = $idQuery->toBase();
+		$idSql = $ids->toSql();
+		$bindings = $ids->getBindings();
+
+		$db = App::capsule()->getConnection();
+		$mails = (int) $db->selectOne("SELECT COUNT(*) AS n FROM ({$idSql}) ids", $bindings)->n;
+
+		$having = $informational ? '' : ' HAVING SUM(COALESCE(jt.score, 0) <> 0) > 0';
+		$order = $sort === 'score' ? 'ABS(SUM(jt.score)) DESC' : 'mails DESC';
+
+		$rows = $db->select(
+			"SELECT jt.name, COUNT(*) AS mails,"
+			. " SUM(ml.action = 'no action') AS no_action,"
+			. " SUM(ml.action IN ('add header', 'rewrite subject')) AS junk,"
+			. " SUM(ml.action IN ('reject', 'discard', 'soft reject')) AS rejected,"
+			. " AVG(jt.score) AS avg_score, SUM(jt.score) AS total_score"
+			. " FROM ({$idSql}) ids"
+			. " JOIN " . AppConfig::MAIL_LOGS_TABLE . " ml ON ml.id = ids.id"
+			. " JOIN " . AppConfig::MAIL_LOG_DATA_TABLE . " md ON md.mail_log_id = ml.id"
+			. " CROSS JOIN JSON_TABLE(md.symbols, '$[*]' COLUMNS ("
+			. "name VARCHAR(128) PATH '$.name', score DOUBLE PATH '$.score')) jt"
+			. " GROUP BY jt.name{$having} ORDER BY {$order}, jt.name LIMIT " . (int) $limit,
+			$bindings
+		);
+
+		// SUM() and AVG() come back as strings
+		return [$mails, array_map(fn ($r) => [
+			'name' => (string) $r->name,
+			'mails' => (int) $r->mails,
+			'no_action' => (int) $r->no_action,
+			'junk' => (int) $r->junk,
+			'rejected' => (int) $r->rejected,
+			'avg_score' => (float) $r->avg_score,
+			'total_score' => (float) $r->total_score,
+		], $rows)];
+	}
+
 	public function getPaginatedAll(
 		array $filters,
 		string $url,

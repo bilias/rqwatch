@@ -24,6 +24,7 @@ enum RouteName: string
 	case ADMIN_SEARCH_RESULTS = 'admin_search_results';
 	case REPORTS = 'reports';
 	case ADMIN_REPORTS = 'admin_reports';
+	case ADMIN_SYMBOLS_REPORT = 'admin_symbols_report';
 	case DAY_LOGS = 'day_logs';
 	case ADMIN_DAY_LOGS = 'admin_day_logs';
 	case QUARANTINE = 'quarantine';

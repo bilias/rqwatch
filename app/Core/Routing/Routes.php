@@ -198,6 +198,13 @@ class Routes
 			],
 		));
 
+		$routes->add(RouteName::ADMIN_SYMBOLS_REPORT->value, new Route(
+			'/admin/symbols/report', // path
+			[ '_controller' => 'App\\Controllers\\MailLogController::showSymbolsReport',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
 		$routes->add(RouteName::ADMIN_REPORTS->value, new Route(
 			'/admin/reports/{field}/{mode}',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showReports',

@@ -256,6 +256,53 @@ class MailLogController extends ViewController
 		]));
 	}
 
+	// top rspamd symbols of the current search (admin): ?sort=score, ?info=1
+	public function showSymbolsReport(): Response {
+		$this->twigFormView($this->request);
+
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			return $response;
+		}
+
+		$filters = $this->getFiltersFromSession();
+
+		if (!$this->mailReportsEnabled($filters)) {
+			$this->flashbag->add('warning', "Mail Reports are disabled");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
+		$sort = $this->request->query->get('sort') === 'score' ? 'score' : 'mails';
+		$informational = $this->request->query->get('info') === '1';
+		$limit = (int) Config::get('top_reports') ?: 30;
+
+		try {
+			[$mails, $rows] = $this->getMailLogService()->getSymbolsReport($filters, $informational, $sort, $limit);
+		} catch (Throwable $e) {
+			$this->fileLogger->error("[MailLogController_showSymbolsReport] query error: " . $e->getMessage());
+			$this->flashbag->add('error', "Symbols report query error. Check logs.");
+			return new RedirectResponse($this->getSearchUrl());
+		}
+
+		return new Response($this->twig->render('symbols_report.twig', [
+			'qidform' => $qidform->createView(),
+			'rows' => $rows,
+			'mails' => $mails,
+			'sort' => $sort,
+			'informational' => $informational,
+			'limit' => $limit,
+			'filters' => $filters,
+			'max_items' => $this->max_items,
+			'runtime' => $this->getRuntime(),
+			'flashes' => $this->getFlashes(),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
 	public function showDay(?string $date = null): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);

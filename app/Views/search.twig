@@ -160,6 +160,8 @@
  <li><a href='{{ route('ADMIN_REPORTS', { field: 'server'}) }}'>Top Servers by Quantity</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'server', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('ADMIN_REPORTS', { field: 'server', mode: 'volume'}) }}'>Volume</a></li>
+ <li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}'>Top Rspamd Symbols by Quantity</a>
+ / <a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?sort=score'>Score</a></li>
   {% endif %}
  {% else %}
  <li><a href='{{ route('SEARCH_RESULTS') }}'>Search Results</a></li>

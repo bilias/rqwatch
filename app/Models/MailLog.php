@@ -136,6 +136,8 @@ class MailLog extends Model
 		'mail_recipients',
 		'date',
 		'server',
+		// the symbols report, with the name in double quotes for an exact match
+		'symbols',
 	];
 
 	// Fields a non-admin must not filter on or report by.
