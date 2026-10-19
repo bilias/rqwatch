@@ -1311,6 +1311,7 @@ class MailLogController extends ViewController
 	}
 
 	private function getMailStats(MailLogService $service, array $filters): array {
+		if ($this->mailStatsEnabled($filters)) {
 			// has applyUserScope
 			try {
 				$stats = $service->getStats($filters);
