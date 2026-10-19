@@ -13,6 +13,7 @@ namespace App\Core\Database\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 
 use App\Configuration\AppConfig;
+use App\Configuration\Config;
 use App\Inventory\Migrations;
 
 use Symfony\Component\Console\Output\OutputInterface;
@@ -74,6 +75,7 @@ class MapHits extends AbstractMigration {
 	// each part is skipped when present, so a failed run can be re-run
 	private function runMigration(OutputInterface $output): void {
 		$this->addCustomMapSymbols($output);
+		$this->setVirusSkipMapSymbol($output);
 		$this->createSymbolNamesTable($output);
 		$this->createSymbolHitsTable($output);
 
@@ -99,6 +101,22 @@ class MapHits extends AbstractMigration {
 			"ALTER TABLE `{$table}` ADD COLUMN `symbols` VARCHAR(255) DEFAULT NULL AFTER `field_label`, ALGORITHM=INSTANT"
 		);
 		$output->writeln("<info>Added column symbols to {$table}</info>");
+	}
+
+	// the virus skip map (VIRUS_SKIP_MAP, 2.1.2) gets its symbol, unless one is set
+	private function setVirusSkipMapSymbol(OutputInterface $output): void {
+		$map = trim((string) Config::get('notification_skip_virus_map'));
+		if ($map === '') {
+			return;
+		}
+
+		$updated = $this->capsule->table(AppConfig::CUSTOM_MAP_CONFIG_TABLE)
+			->where('map_name', $map)
+			->whereNull('symbols')
+			->update(['symbols' => 'RQWATCH_VIRUS_NO_NOTIFY']);
+		if ($updated > 0) {
+			$output->writeln("<info>Set symbols of custom map '{$map}' to RQWATCH_VIRUS_NO_NOTIFY</info>");
+		}
 	}
 
 	private function createSymbolNamesTable(OutputInterface $output): void {
