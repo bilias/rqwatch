@@ -17,7 +17,7 @@ Map hits: distinct mails today, in the last 7 and the last 31 days
 <table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
 <thead><tr>
  <th>Map</th>
- <th>Symbols</th>
+ <th class='symbols'>Symbols</th>
 {% for days in windows %}
  <th>{{ days == 1 ? 'Today' : days ~ ' days' }}</th>
 {% endfor %}

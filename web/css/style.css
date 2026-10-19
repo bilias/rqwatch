@@ -170,6 +170,10 @@ table.mail .date {
 	white-space: nowrap;
 }
 
+table.mail th.symbols {
+	width: 50%;
+}
+
 table.mail caption {
 	border-radius: 2px;
 }
