@@ -256,7 +256,7 @@ class MailLogController extends ViewController
 		]));
 	}
 
-	// top rspamd symbols of the current search (admin): ?sort=score, ?info=1
+	// top rspamd symbols of the current search (admin): ?sort=score (average), ?info=1
 	public function showSymbolsReport(): Response {
 		$this->twigFormView($this->request);
 
@@ -277,7 +277,7 @@ class MailLogController extends ViewController
 		$limit = (int) Config::get('top_reports') ?: 30;
 
 		try {
-			[$mails, $rows] = $this->getMailLogService()->getSymbolsReport($filters, $informational, $sort, $limit);
+			[$mails, $actions, $rows] = $this->getMailLogService()->getSymbolsReport($filters, $informational, $sort, $limit);
 		} catch (Throwable $e) {
 			$this->fileLogger->error("[MailLogController_showSymbolsReport] query error: " . $e->getMessage());
 			$this->flashbag->add('error', "Symbols report query error. Check logs.");
@@ -287,6 +287,7 @@ class MailLogController extends ViewController
 		return new Response($this->twig->render('symbols_report.twig', [
 			'qidform' => $qidform->createView(),
 			'rows' => $rows,
+			'actions' => $actions,
 			'mails' => $mails,
 			'sort' => $sort,
 			'informational' => $informational,

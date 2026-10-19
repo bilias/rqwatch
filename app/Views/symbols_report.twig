@@ -15,11 +15,11 @@
 </div>
 
 <div class='current_mails descr'>
-Top {{ limit }} Rspamd symbols by {{ sort == 'score' ? 'total score' : 'quantity' }},
+Top {{ limit }} Rspamd symbols by {{ sort == 'score' ? 'average score' : 'quantity' }},
 in the newest {{ mails|nf }} mail{{ mails == 1 ? '' : 's' }} of the search{% if mails >= max_items %} (capped at {{ max_items|nf }}){% endif %}
 <div id="inside_links">
 <ul>
-<li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?{{ {sort: sort == 'score' ? null : 'score', info: informational ? 1 : null}|url_encode }}'>Sort by {{ sort == 'score' ? 'quantity' : 'total score' }}</a></li>
+<li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?{{ {sort: sort == 'score' ? null : 'score', info: informational ? 1 : null}|url_encode }}'>Sort by {{ sort == 'score' ? 'quantity' : 'average score' }}</a></li>
 <li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?{{ {sort: sort == 'score' ? 'score' : null, info: informational ? null : 1}|url_encode }}'>{{ informational ? 'Hide' : 'Show' }} informational symbols (score 0)</a></li>
 <li><a href='{{ route('ADMIN_SEARCH') }}'>Search</a></li>
 </ul>
@@ -31,25 +31,25 @@ in the newest {{ mails|nf }} mail{{ mails == 1 ? '' : 's' }} of the search{% if 
 <thead><tr>
  <th>Symbol</th>
  <th>Mails</th>
- <th>No action</th>
- <th>Junk</th>
- <th>Rejected</th>
+{% for action in actions %}
+ <th>{{ action != '' ? action|capitalize : '-' }}</th>
+{% endfor %}
  <th>Avg score</th>
- <th>Total score</th>
 </tr></thead>
 <tbody>
 {% for row in rows %}
   <tr class='clean'>
-  <td class='left'><a href="{{ route('ADMIN_SEARCH_RESULTS') }}?symbols={{ ('"' ~ row.name ~ '"')|url_encode }}">{{ row.name }}</a></td>
+{% set symbol = '"' ~ row.name ~ '"' %}
+  <td class='left'><a href="{{ route('ADMIN_SEARCH_RESULTS') }}?{{ {symbols: symbol}|url_encode }}">{{ row.name }}</a></td>
   <td class='center'>{{ row.mails|nf }}</td>
-  <td class='center'>{{ row.no_action|nf }}</td>
-  <td class='center'>{{ row.junk|nf }}</td>
-  <td class='center'>{{ row.rejected|nf }}</td>
+{% for action in actions %}
+{% set n = row.actions[action] ?? 0 %}
+  <td class='center'>{% if n > 0 and action != '' %}<a href="{{ route('ADMIN_SEARCH_RESULTS') }}?{{ {symbols: symbol, action: action}|url_encode }}">{{ n|nf }}</a>{% else %}{{ n|nf }}{% endif %}</td>
+{% endfor %}
   <td class='center'>{{ row.avg_score|nf(2) }}</td>
-  <td class='center'>{{ row.total_score|nf(2) }}</td>
   </tr>
 {% else %}
-  <tr><td colspan='7' class='center'>No symbols</td></tr>
+  <tr><td colspan='{{ 3 + actions|length }}' class='center'>No symbols</td></tr>
 {% endfor %}
 </tbody>
 </table>

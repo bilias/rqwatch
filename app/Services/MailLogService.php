@@ -479,13 +479,18 @@ class MailLogService
 		return $paginator->withPath($url);
 	}
 
+	// rspamd actions in their order; others found in the data follow
+	public const array SYMBOL_REPORT_ACTIONS = [
+		'no action', 'greylist', 'add header', 'rewrite subject', 'soft reject', 'reject', 'discard',
+	];
+
 	/*
 	 * Rspamd symbols of the newest max_items mails matching $filters (of the
-	 * last 7 days when there are no filters), as [mails read, rows]: per
-	 * symbol, mails, mails per action group, average and total score.
+	 * last 7 days when there are no filters), as [mails read, actions shown,
+	 * rows]: per symbol, mails, mails per action and the average score.
 	 * $informational keeps symbols that scored 0 in every mail; $sort is
-	 * 'mails' or 'score' (absolute total). Reads mail_log_data.symbols of each
-	 * mail, so the max_items cap bounds the cost.
+	 * 'mails' or 'score' (absolute average). Reads mail_log_data.symbols of
+	 * each mail, so the max_items cap bounds the cost.
 	 */
 	public function getSymbolsReport(array $filters, bool $informational, string $sort, int $limit): array {
 		$idQuery = $this->applyUserScope(
@@ -503,34 +508,50 @@ class MailLogService
 		$db = App::capsule()->getConnection();
 		$mails = (int) $db->selectOne("SELECT COUNT(*) AS n FROM ({$idSql}) ids", $bindings)->n;
 
-		$having = $informational ? '' : ' HAVING SUM(COALESCE(jt.score, 0) <> 0) > 0';
-		$order = $sort === 'score' ? 'ABS(SUM(jt.score)) DESC' : 'mails DESC';
-
-		$rows = $db->select(
-			"SELECT jt.name, COUNT(*) AS mails,"
-			. " SUM(ml.action = 'no action') AS no_action,"
-			. " SUM(ml.action IN ('add header', 'rewrite subject')) AS junk,"
-			. " SUM(ml.action IN ('reject', 'discard', 'soft reject')) AS rejected,"
-			. " AVG(jt.score) AS avg_score, SUM(jt.score) AS total_score"
+		$cells = $db->select(
+			"SELECT jt.name, ml.action, COUNT(*) AS mails,"
+			. " SUM(COALESCE(jt.score, 0) <> 0) AS scored, SUM(COALESCE(jt.score, 0)) AS score"
 			. " FROM ({$idSql}) ids"
 			. " JOIN " . AppConfig::MAIL_LOGS_TABLE . " ml ON ml.id = ids.id"
 			. " JOIN " . AppConfig::MAIL_LOG_DATA_TABLE . " md ON md.mail_log_id = ml.id"
 			. " CROSS JOIN JSON_TABLE(md.symbols, '$[*]' COLUMNS ("
 			. "name VARCHAR(128) PATH '$.name', score DOUBLE PATH '$.score')) jt"
-			. " GROUP BY jt.name{$having} ORDER BY {$order}, jt.name LIMIT " . (int) $limit,
+			. " GROUP BY jt.name, ml.action",
 			$bindings
 		);
 
-		// SUM() and AVG() come back as strings
-		return [$mails, array_map(fn ($r) => [
-			'name' => (string) $r->name,
-			'mails' => (int) $r->mails,
-			'no_action' => (int) $r->no_action,
-			'junk' => (int) $r->junk,
-			'rejected' => (int) $r->rejected,
-			'avg_score' => (float) $r->avg_score,
-			'total_score' => (float) $r->total_score,
-		], $rows)];
+		$rows = [];
+		$seen = [];
+		foreach ($cells as $c) {
+			$name = (string) $c->name;
+			$action = (string) $c->action;
+			$rows[$name] ??= ['name' => $name, 'mails' => 0, 'actions' => [], 'scored' => 0, 'score' => 0.0];
+			$rows[$name]['mails'] += (int) $c->mails;
+			$rows[$name]['actions'][$action] = (int) $c->mails;
+			$rows[$name]['scored'] += (int) $c->scored;
+			$rows[$name]['score'] += (float) $c->score;
+			$seen[$action] = true;
+		}
+
+		if (!$informational) {
+			$rows = array_filter($rows, fn ($r) => $r['scored'] > 0);
+		}
+		foreach ($rows as &$r) {
+			$r['avg_score'] = $r['score'] / $r['mails'];
+			unset($r['scored'], $r['score']);
+		}
+		unset($r);
+
+		usort($rows, $sort === 'score'
+			? fn ($a, $b) => [abs($b['avg_score']), $a['name']] <=> [abs($a['avg_score']), $b['name']]
+			: fn ($a, $b) => [$b['mails'], $a['name']] <=> [$a['mails'], $b['name']]);
+		$rows = array_slice($rows, 0, $limit);
+
+		$extra = array_diff(array_keys($seen), self::SYMBOL_REPORT_ACTIONS);
+		sort($extra);
+		$actions = array_merge(array_values(array_intersect(self::SYMBOL_REPORT_ACTIONS, array_keys($seen))), $extra);
+
+		return [$mails, $actions, $rows];
 	}
 
 	public function getPaginatedAll(
