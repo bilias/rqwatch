@@ -39,6 +39,8 @@ use App\Services\MailerService;
 
 use App\Inventory\MapInventory;
 
+use App\Core\Exception\QueryTimeoutException;
+
 use Exception;
 use InvalidArgumentException;
 use Throwable;
@@ -97,7 +99,11 @@ class MailLogController extends ViewController
 
 		$service = $this->getMailLogService();
 
-		$logs = $service->getPaginatedAll(array(), $this->getAllUrl(), $page);
+		try {
+			$logs = $service->getPaginatedAll(array(), $this->getAllUrl(), $page);
+		} catch (QueryTimeoutException $e) {
+			Helper::failRequest($e->getMessage());
+		}
 
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -167,12 +173,29 @@ class MailLogController extends ViewController
 			}
 		}
 
+		// ?since=Y-m-d: from that day on, as the symbols report links its last days
+		$since = (string) $this->request->query->get('since', '');
+		if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $since) && strtotime($since) !== false) {
+			$filters[] = [
+				'filter' => 'Date',
+				'choice' => 'is greater than or equal',
+				'value' => $since
+			];
+			$queryParams['since'] = $since;
+		}
+
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
 		$service = $this->getMailLogService();
 
-		$logs = $service->getPaginatedAll($filters, $this->getSearchResultsUrl(), $page);
+		try {
+			$logs = $service->getPaginatedAll($filters, $this->getSearchResultsUrl(), $page);
+		} catch (QueryTimeoutException $e) {
+			$this->flashbag->add('error', $e->getMessage()
+				. ". Narrow it with more filters, for example a date.");
+			return new RedirectResponse($this->getSearchUrl());
+		}
 
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -277,7 +300,7 @@ class MailLogController extends ViewController
 		$limit = (int) Config::get('top_reports') ?: 30;
 
 		try {
-			[$mails, $actions, $rows] = $this->getMailLogService()->getSymbolsReport($filters, $informational, $sort, $limit);
+			[$mails, $actions, $rows, $since] = $this->getMailLogService()->getSymbolsReport($filters, $informational, $sort, $limit);
 		} catch (Throwable $e) {
 			$this->fileLogger->error("[MailLogController_showSymbolsReport] query error: " . $e->getMessage());
 			$this->flashbag->add('error', "Symbols report query error. Check logs.");
@@ -289,6 +312,7 @@ class MailLogController extends ViewController
 			'rows' => $rows,
 			'actions' => $actions,
 			'mails' => $mails,
+			'since' => $since,
 			'sort' => $sort,
 			'informational' => $informational,
 			'limit' => $limit,

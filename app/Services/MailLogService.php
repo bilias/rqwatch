@@ -41,6 +41,9 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 use Illuminate\Database\Capsule\Manager as DB;
+use Illuminate\Database\QueryException;
+
+use App\Core\Exception\QueryTimeoutException;
 
 use App\Core\Routing\RouteName;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -487,7 +490,8 @@ class MailLogService
 	/*
 	 * Rspamd symbols of the newest max_items mails matching $filters (of the
 	 * last 7 days when there are no filters), as [mails read, actions shown,
-	 * rows]: per symbol, mails, mails per action and the average score.
+	 * rows, since]: per symbol, mails, mails per action and the average
+	 * score; since is the first day read when there were no filters.
 	 * $informational keeps symbols that scored 0 in every mail; $sort is
 	 * 'mails' or 'score' (absolute average). Reads mail_log_data.symbols of
 	 * each mail, so the max_items cap bounds the cost.
@@ -496,8 +500,11 @@ class MailLogService
 		$idQuery = $this->applyUserScope(
 			$this->getQueryByFilters(MailLog::select('id'), $filters)
 		);
+		$db = App::capsule()->getConnection();
+		$since = null;
 		if ($filters === []) {
-			$idQuery->whereRaw('created_day >= CURDATE() - INTERVAL 6 DAY');
+			$since = (string) $db->selectOne('SELECT CURDATE() - INTERVAL 6 DAY AS d')->d;
+			$idQuery->where('created_day', '>=', $since);
 		}
 		$idQuery->orderBy('id', 'DESC')->limit($this->max_items);
 
@@ -505,7 +512,6 @@ class MailLogService
 		$idSql = $ids->toSql();
 		$bindings = $ids->getBindings();
 
-		$db = App::capsule()->getConnection();
 		$mails = (int) $db->selectOne("SELECT COUNT(*) AS n FROM ({$idSql}) ids", $bindings)->n;
 
 		$cells = $db->select(
@@ -551,7 +557,12 @@ class MailLogService
 		sort($extra);
 		$actions = array_merge(array_values(array_intersect(self::SYMBOL_REPORT_ACTIONS, array_keys($seen))), $extra);
 
-		return [$mails, $actions, $rows];
+		return [$mails, $actions, $rows, $since];
+	}
+
+	// a query stopped by max_statement_time
+	private static function isStatementTimeout(QueryException $e): bool {
+		return (int) ($e->errorInfo[1] ?? 0) === 1969;
 	}
 
 	public function getPaginatedAll(
@@ -585,6 +596,13 @@ class MailLogService
 			$ids = $idQuery->pluck('id')->all();
 
 			$logs = $this->paginateIds($ids, $url, $page);
+		} catch (QueryException $e) {
+			if (self::isStatementTimeout($e)) {
+				$this->logger->warning("{$lf} query stopped by max_statement_time: " . $e->getMessage());
+				throw new QueryTimeoutException("The search took too long and was stopped", 0, $e);
+			}
+			$this->logger->error("{$lf} Query error: " . $e->getMessage());
+			Helper::failRequest("Query error");
 		} catch (Exception $e) {
 			$this->logger->error("{$lf} Query error: " . $e->getMessage());
 			Helper::failRequest("Query error");

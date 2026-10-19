@@ -9,7 +9,7 @@
 {% for filter in filters %}
  <li class='filtername'>{{ filter.filter }} {{ filter.choice }} "{{ filter.value }}"</li>
 {% else %}
-<li class='filtername'>No filters: the last 7 days</li>
+<li class='filtername'>No filters: the last 7 days, since {{ since }}</li>
 {% endfor %}
 </ul>
 </div>
@@ -40,11 +40,11 @@ in the newest {{ mails|nf }} mail{{ mails == 1 ? '' : 's' }} of the search{% if 
 {% for row in rows %}
   <tr class='clean'>
 {% set symbol = '"' ~ row.name ~ '"' %}
-  <td class='left'><a href="{{ route('ADMIN_SEARCH_RESULTS') }}?{{ {symbols: symbol}|url_encode }}">{{ row.name }}</a></td>
+  <td class='left'><a href="{{ route('ADMIN_SEARCH_RESULTS') }}?{{ {symbols: symbol, since: since}|url_encode }}">{{ row.name }}</a></td>
   <td class='center'>{{ row.mails|nf }}</td>
 {% for action in actions %}
 {% set n = row.actions[action] ?? 0 %}
-  <td class='center'>{% if n > 0 and action != '' %}<a href="{{ route('ADMIN_SEARCH_RESULTS') }}?{{ {symbols: symbol, action: action}|url_encode }}">{{ n|nf }}</a>{% else %}{{ n|nf }}{% endif %}</td>
+  <td class='center'>{% if n > 0 and action != '' %}<a href="{{ route('ADMIN_SEARCH_RESULTS') }}?{{ {symbols: symbol, action: action, since: since}|url_encode }}">{{ n|nf }}</a>{% else %}{{ n|nf }}{% endif %}</td>
 {% endfor %}
   <td class='center'>{{ row.avg_score|nf(2) }}</td>
   </tr>
