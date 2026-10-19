@@ -173,14 +173,15 @@ class MailLogController extends ViewController
 			}
 		}
 
-		// ?since=Y-m-d: from that day on, as the symbols report links its last days
+		// ?since=Y-m-d: from that day on, as the symbols report links its
+		// default window; listed first, as the report shows it
 		$since = (string) $this->request->query->get('since', '');
 		if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $since) && strtotime($since) !== false) {
-			$filters[] = [
+			array_unshift($filters, [
 				'filter' => 'Date',
 				'choice' => 'is greater than or equal',
 				'value' => $since
-			];
+			]);
 			$queryParams['since'] = $since;
 		}
 

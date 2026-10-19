@@ -9,7 +9,7 @@
 {% for filter in filters %}
  <li class='filtername'>{{ filter.filter }} {{ filter.choice }} "{{ filter.value }}"</li>
 {% else %}
-<li class='filtername'>No filters: the last 7 days, since {{ since }}</li>
+<li class='filtername'>Date is greater than or equal "{{ since }}" (default when no filter is selected: the last 7 days)</li>
 {% endfor %}
 </ul>
 </div>
