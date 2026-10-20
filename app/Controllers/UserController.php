@@ -630,6 +630,8 @@ class UserController extends ViewController
 			$this->session->set('user_aliases', $aliases);
 			$this->session->set('old_username', $old_username);
 			$this->session->set('old_auth_provider', $old_auth_provider);
+			// impersonation starts with the user's view, not the admin's filters
+			$this->session->remove('filters');
 
 			// push session vars to $this->vars
 			$this->setSessionVars($this->session);
