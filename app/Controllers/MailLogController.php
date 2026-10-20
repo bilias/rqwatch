@@ -438,7 +438,6 @@ class MailLogController extends ViewController
 			'items_per_page' => $this->items_per_page,
 			'max_items' => $this->max_items,
 			'runtime' => $this->getRuntime(),
-			'refresh_rate' => $this->refresh_rate,
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
