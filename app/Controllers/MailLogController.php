@@ -1228,6 +1228,38 @@ class MailLogController extends ViewController
 		return new RedirectResponse($this->getSearchUrl());
 	}
 
+	public function search_filter_add_week(): RedirectResponse {
+		$last_7_days = date("Y-m-d", strtotime("-6 days"));
+		$last_7_days_filter = array(
+			'filter' => 'Date',
+			'choice' => 'is greater than or equal',
+			'value' => $last_7_days
+		);
+
+		$filters = $this->getFiltersFromSession();
+		$filters[] = $last_7_days_filter;
+		$this->saveFiltersToSession($filters);
+
+		// get back to search page
+		return new RedirectResponse($this->getSearchUrl());
+	}
+
+	public function search_filter_add_month(): RedirectResponse {
+		$last_31_days = date("Y-m-d", strtotime("-30 days"));
+		$last_31_days_filter = array(
+			'filter' => 'Date',
+			'choice' => 'is greater than or equal',
+			'value' => $last_31_days
+		);
+
+		$filters = $this->getFiltersFromSession();
+		$filters[] = $last_31_days_filter;
+		$this->saveFiltersToSession($filters);
+
+		// get back to search page
+		return new RedirectResponse($this->getSearchUrl());
+	}
+
 	public function search_filter_del(?int $filter_id = null): RedirectResponse {
 
 		// user asked to delete a specific filter number

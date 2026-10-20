@@ -50,6 +50,10 @@ enum RouteName: string
 	case ADMIN_SEARCH_FILTER_DEL = 'admin_search_filter_del';
 	case SEARCH_FILTER_ADD_DAY = 'search_filter_add_day';
 	case ADMIN_SEARCH_FILTER_ADD_DAY = 'admin_search_filter_add_day';
+	case SEARCH_FILTER_ADD_WEEK = 'search_filter_add_week';
+	case ADMIN_SEARCH_FILTER_ADD_WEEK = 'admin_search_filter_add_week';
+	case SEARCH_FILTER_ADD_MONTH = 'search_filter_add_month';
+	case ADMIN_SEARCH_FILTER_ADD_MONTH = 'admin_search_filter_add_month';
 	case ADMIN_USERS = 'admin_users';
 	case ADMIN_USERADD = 'admin_useradd';
 	case ADMIN_USEREDIT = 'admin_useredit';

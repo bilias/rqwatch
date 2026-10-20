@@ -371,6 +371,34 @@ class Routes
 			]
 		));
 
+		$routes->add(RouteName::SEARCH_FILTER_ADD_WEEK->value, new Route(
+			'/search/add_week', // path
+			[ '_controller' => 'App\\Controllers\\MailLogController::search_filter_add_week',
+			  '_middleware' => $userMiddlewareClasses,
+			]
+		));
+
+		$routes->add(RouteName::ADMIN_SEARCH_FILTER_ADD_WEEK->value, new Route(
+			'/admin/search/add_week', // path
+			[ '_controller' => 'App\\Controllers\\MailLogController::search_filter_add_week',
+			  '_middleware' => $adminMiddlewareClasses,
+			]
+		));
+
+		$routes->add(RouteName::SEARCH_FILTER_ADD_MONTH->value, new Route(
+			'/search/add_month', // path
+			[ '_controller' => 'App\\Controllers\\MailLogController::search_filter_add_month',
+			  '_middleware' => $userMiddlewareClasses,
+			]
+		));
+
+		$routes->add(RouteName::ADMIN_SEARCH_FILTER_ADD_MONTH->value, new Route(
+			'/admin/search/add_month', // path
+			[ '_controller' => 'App\\Controllers\\MailLogController::search_filter_add_month',
+			  '_middleware' => $adminMiddlewareClasses,
+			]
+		));
+
 		$routes->add(RouteName::ADMIN_USERS->value, new Route(
 			'/admin/users', // path
 			[ '_controller' => 'App\\Controllers\\UserController::showAll',

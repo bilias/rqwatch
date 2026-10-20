@@ -22,9 +22,13 @@
 <div class="filter-actions">
     <span class="addday">
         {% if is_admin %}
-            <a href="{{ route('ADMIN_SEARCH_FILTER_ADD_DAY') }}">Add today filter</a>
+            <a href="{{ route('ADMIN_SEARCH_FILTER_ADD_DAY') }}">Today filter</a> /
+            <a href="{{ route('ADMIN_SEARCH_FILTER_ADD_WEEK') }}">Last 7 days filter</a> /
+            <a href="{{ route('ADMIN_SEARCH_FILTER_ADD_MONTH') }}">Last 31 days filter</a>
         {% else %}
-            <a href="{{ route('SEARCH_FILTER_ADD_DAY') }}">Add today filter</a>
+            <a href="{{ route('SEARCH_FILTER_ADD_DAY') }}">Today filter</a>
+            <a href="{{ route('SEARCH_FILTER_ADD_WEEK') }}">Last 7 days filter</a>
+            <a href="{{ route('SEARCH_FILTER_ADD_MONTH') }}">Last 31 days filter</a>
         {% endif %}
     </span>
 
