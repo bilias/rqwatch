@@ -28,6 +28,14 @@ class VirusService
 		'month' => 'Last 31 days',
 	];
 
+	// each window as a condition on created_day, for the report and its mails
+	public const array WINDOW_SQL = [
+		'today' => '= CURDATE()',
+		'yesterday' => '= CURDATE() - INTERVAL 1 DAY',
+		'week' => '>= CURDATE() - INTERVAL 6 DAY',
+		'month' => '>= CURDATE() - INTERVAL 30 DAY',
+	];
+
 	private LoggerInterface $logger;
 
 	public function __construct() {

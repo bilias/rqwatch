@@ -389,6 +389,66 @@ class MailLogController extends ViewController
 		]));
 	}
 
+	// the mails behind one virus report count: ?virus=, ?window= and ?fail=1 for a scan failure
+	public function showVirusMails(): Response {
+		$report = $this->url(RouteName::ADMIN_VIRUS_REPORT);
+
+		$virus = (string) $this->request->query->get('virus', '');
+		$window = (string) $this->request->query->get('window', 'month');
+		$fail = $this->request->query->get('fail') === '1';
+		if ($virus === '' || mb_strlen($virus) > 255 || !isset(VirusService::WINDOWS[$window])) {
+			return new RedirectResponse($report);
+		}
+
+		$this->twigFormView($this->request);
+
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			return $response;
+		}
+
+		$filters = $this->getFiltersFromSession();
+
+		if (!$this->mailReportsEnabled($filters) || !VirusService::reportEnabled()) {
+			return new RedirectResponse($report);
+		}
+
+		$service = $this->getMailLogService();
+
+		try {
+			$ids = $service->getVirusMailIds($filters, $virus, $window, $fail);
+		} catch (Throwable $e) {
+			$this->fileLogger->error("[MailLogController_showVirusMails] query error: " . $e->getMessage());
+			$this->flashbag->add('error', "Virus report query error. Check logs.");
+			return new RedirectResponse($report);
+		}
+
+		$page = $this->request->query->getInt('page', 1);
+		$logs = $service->getPaginatedByIds($ids, $this->url(RouteName::ADMIN_VIRUS_REPORT_MAILS), $page);
+
+		return new Response($this->twig->render('home_paginated.twig', [
+			'qidform' => $qidform->createView(),
+			'logs' => $logs,
+			'filters' => array_merge($filters, [
+				['filter' => $fail ? 'Scan failure' : 'Virus', 'choice' => 'is equal to', 'value' => $virus],
+				['filter' => 'Date', 'choice' => 'in', 'value' => VirusService::WINDOWS[$window]],
+			]),
+			'queryParams' => ['virus' => $virus, 'window' => $window] + ($fail ? ['fail' => '1'] : []),
+			'totalRecords' => $logs->total(),
+			'items_per_page' => $this->items_per_page,
+			'max_items' => $this->max_items,
+			'runtime' => $this->getRuntime(),
+			'refresh_rate' => $this->refresh_rate,
+			'subject_privacy' => $this->subject_privacy,
+			'flashes' => $this->getFlashes(),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
 	public function showDay(?string $date = null): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);

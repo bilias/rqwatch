@@ -212,6 +212,13 @@ class Routes
 			],
 		));
 
+		$routes->add(RouteName::ADMIN_VIRUS_REPORT_MAILS->value, new Route(
+			'/admin/viruses/report/mails', // path
+			[ '_controller' => 'App\\Controllers\\MailLogController::showVirusMails',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
 		$routes->add(RouteName::ADMIN_REPORTS->value, new Route(
 			'/admin/reports/{field}/{mode}',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showReports',

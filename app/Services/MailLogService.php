@@ -38,6 +38,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 use Illuminate\Database\Capsule\Manager as DB;
@@ -582,23 +583,20 @@ class MailLogService
 	 * scan failures (symbols ending in _FAIL, rspamd's default name)
 	 */
 	public function getVirusReport(array $filters, int $limit): array {
+		$counts = [];
+		foreach (VirusService::WINDOW_SQL as $window => $condition) {
+			$counts[] = "COUNT(DISTINCT IF(v.created_day {$condition}, v.mail_log_id, NULL)) AS {$window}";
+		}
+
 		$query = App::capsule()->getConnection()
 			->table(AppConfig::MAIL_LOG_VIRUSES_TABLE . ' as v')
 			->selectRaw("RIGHT(v.av, 5) = '_FAIL' AS fail, IF(v.name = '', v.av, v.name) AS virus,"
-				. " GROUP_CONCAT(DISTINCT v.av ORDER BY v.av SEPARATOR ', ') AS engines,"
-				. " COUNT(DISTINCT IF(v.created_day = CURDATE(), v.mail_log_id, NULL)) AS today,"
-				. " COUNT(DISTINCT IF(v.created_day = CURDATE() - INTERVAL 1 DAY, v.mail_log_id, NULL)) AS yesterday,"
-				. " COUNT(DISTINCT IF(v.created_day >= CURDATE() - INTERVAL 6 DAY, v.mail_log_id, NULL)) AS week,"
-				. " COUNT(DISTINCT v.mail_log_id) AS month")
-			->whereRaw('v.created_day >= CURDATE() - INTERVAL 30 DAY')
+				. " GROUP_CONCAT(DISTINCT v.av ORDER BY v.av SEPARATOR ', ') AS engines, "
+				. implode(', ', $counts))
+			->whereRaw('v.created_day ' . VirusService::WINDOW_SQL['month'])
 			->groupBy('fail', 'virus');
 
-		// the search and user scope, unless an admin has no filters; nothing
-		// more in the subquery, or the optimizer drives from mail_logs
-		if ($filters !== [] || !$this->is_admin) {
-			$ids = $this->applyUserScope($this->getQueryByFilters(MailLog::select('id'), $filters));
-			$query->whereIn('v.mail_log_id', $ids->toBase());
-		}
+		$this->scopeVirusQuery($query, $filters);
 
 		$windows = array_fill_keys(array_keys(VirusService::WINDOWS), []);
 		$failures = [];
@@ -627,6 +625,45 @@ class MailLogService
 		usort($failures, fn ($a, $b) => [$b['windows']['month'], $a['virus']] <=> [$a['windows']['month'], $b['virus']]);
 
 		return [$windows, $failures];
+	}
+
+	/*
+	 * Ids of the mails behind one virus report count, newest first, capped at
+	 * max_items: $virus is the report's key (the name, or the antivirus symbol
+	 * when the name is empty), $fail the failures table
+	 */
+	public function getVirusMailIds(array $filters, string $virus, string $window, bool $fail): array {
+		$query = App::capsule()->getConnection()
+			->table(AppConfig::MAIL_LOG_VIRUSES_TABLE . ' as v')
+			->distinct()
+			->select('v.mail_log_id')
+			// not IF(name = '', av, name) = ?, which cannot use name_day_index
+			->where(function ($q) use ($virus) {
+				$q->where('v.name', $virus)
+					->orWhere(fn ($q) => $q->where('v.name', '')->where('v.av', $virus));
+			})
+			->whereRaw('v.created_day ' . VirusService::WINDOW_SQL[$window])
+			->whereRaw("RIGHT(v.av, 5) " . ($fail ? '=' : '<>') . " '_FAIL'");
+
+		$this->scopeVirusQuery($query, $filters);
+
+		return $query->orderBy('v.mail_log_id', 'DESC')
+			->limit($this->max_items)
+			->pluck('mail_log_id')
+			->map(fn ($id) => (int) $id)
+			->all();
+	}
+
+	/*
+	 * The search and user scope on a mail_log_viruses query, unless an admin
+	 * has no filters; nothing more in the subquery, or the optimizer drives
+	 * from mail_logs
+	 */
+	private function scopeVirusQuery(QueryBuilder $query, array $filters): void {
+		if ($filters !== [] || !$this->is_admin) {
+			$ids = $this->applyUserScope($this->getQueryByFilters(MailLog::select('id'), $filters));
+			$query->whereIn('v.mail_log_id', $ids->toBase());
+		}
 	}
 
 	// a query stopped by max_statement_time

@@ -26,6 +26,7 @@ enum RouteName: string
 	case ADMIN_REPORTS = 'admin_reports';
 	case ADMIN_SYMBOLS_REPORT = 'admin_symbols_report';
 	case ADMIN_VIRUS_REPORT = 'admin_virus_report';
+	case ADMIN_VIRUS_REPORT_MAILS = 'admin_virus_report_mails';
 	case DAY_LOGS = 'day_logs';
 	case ADMIN_DAY_LOGS = 'admin_day_logs';
 	case QUARANTINE = 'quarantine';

@@ -30,7 +30,7 @@ Top {{ limit }} viruses of the search: distinct mails today, yesterday, in the l
 {% for row in rows %}
   <tr class='clean'>
   <td class='left'>{{ row.virus }}{% if row.engines != row.virus %}<br/>{{ row.engines }}{% endif %}</td>
-  <td class='center'>{{ row.mails|nf }}</td>
+  <td class='center'><a href="{{ route('ADMIN_VIRUS_REPORT_MAILS') }}?{{ {virus: row.virus, window: window}|url_encode }}">{{ row.mails|nf }}</a></td>
   </tr>
 {% else %}
   <tr><td colspan='2' class='center'>No viruses</td></tr>
@@ -59,7 +59,7 @@ Scan failures: distinct mails
   <tr class='clean'>
   <td class='left'>{{ row.virus }}{% if row.engines != row.virus %}<br/>{{ row.engines }}{% endif %}</td>
 {% for window, label in labels %}
-  <td class='center'>{{ row.windows[window]|nf }}</td>
+  <td class='center'>{% if row.windows[window] > 0 %}<a href="{{ route('ADMIN_VIRUS_REPORT_MAILS') }}?{{ {virus: row.virus, window: window, fail: 1}|url_encode }}">{{ row.windows[window]|nf }}</a>{% else %}0{% endif %}</td>
 {% endfor %}
   </tr>
 {% endfor %}
