@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block content %}
+<div class="center-container">
+
+<div class='active_filters'>
+<span class='descr'>Active Filters</span>
+<ul>
+{% for filter in filters %}
+ <li class='filtername'>{{ filter.filter }} {{ filter.choice }} "{{ filter.value }}"</li>
+{% else %}
+ <li class='filtername'>None</li>
+{% endfor %}
+</ul>
+</div>
+
+<div class='current_mails descr'>
+Top {{ limit }} viruses of the search: distinct mails today, yesterday, in the last 7 and the last 31 days
+<div id="inside_links">
+<ul>
+<li><a href='{{ route(is_admin ? 'ADMIN_SEARCH' : 'SEARCH') }}'>Search</a></li>
+</ul>
+</div>
+</div>
+
+<div class='virus_windows'>
+{% for window, rows in windows %}
+<div class='aliases'>
+<table border='0' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th>{{ labels[window] }}</th>
+ <th>Mails</th>
+</tr></thead>
+<tbody>
+{% for row in rows %}
+  <tr class='clean'>
+  <td class='left'>{{ row.virus }}{% if row.engines != row.virus %}<br/>{{ row.engines }}{% endif %}</td>
+  <td class='center'>{{ row.mails|nf }}</td>
+  </tr>
+{% else %}
+  <tr><td colspan='2' class='center'>No viruses</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endfor %}
+</div>
+
+{% if failures is not empty %}
+<div class='current_mails descr'>
+Scan failures: distinct mails
+</div>
+
+<div class='aliases'>
+<table border='0' align='center' cellpadding='5' cellspacing='1' class='mail rowhover'>
+<thead><tr>
+ <th>Failure</th>
+{% for window, label in labels %}
+ <th>{{ label }}</th>
+{% endfor %}
+</tr></thead>
+<tbody>
+{% for row in failures %}
+  <tr class='clean'>
+  <td class='left'>{{ row.virus }}{% if row.engines != row.virus %}<br/>{{ row.engines }}{% endif %}</td>
+{% for window, label in labels %}
+  <td class='center'>{{ row.windows[window]|nf }}</td>
+{% endfor %}
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
+
+</div>
+{% endblock %}

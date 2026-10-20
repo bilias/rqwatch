@@ -166,6 +166,9 @@
  <li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?local=1'>Top Local and Mapped Symbols by Quantity</a>
  / <a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?local=1&amp;sort=score'>Score</a></li>
 {% endif %}
+{% if virus_report %}
+ <li><a href='{{ route('ADMIN_VIRUS_REPORT') }}'>Top Viruses</a></li>
+{% endif %}
   {% endif %}
  {% else %}
  <li><a href='{{ route('SEARCH_RESULTS') }}'>Search Results</a></li>
@@ -205,6 +208,9 @@
  <li><a href='{{ route('REPORTS', { field: 'action'}) }}'>Top Actions by Quantity</a>
  / <a href='{{ route('REPORTS', { field: 'action', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'action', mode: 'volume'}) }}'>Volume</a></li>
+{% if virus_report %}
+ <li><a href='{{ route('VIRUS_REPORT') }}'>Top Viruses</a></li>
+{% endif %}
   {% endif %}
  {% endif %}
 </ul>

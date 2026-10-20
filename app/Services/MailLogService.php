@@ -576,6 +576,59 @@ class MailLogService
 		return [$mails, $actions, $rows, $since];
 	}
 
+	/*
+	 * Antivirus names of the virus mails matching $filters, per
+	 * VirusService::WINDOWS: the top $limit names of each window, and the
+	 * scan failures (symbols ending in _FAIL, rspamd's default name)
+	 */
+	public function getVirusReport(array $filters, int $limit): array {
+		$query = App::capsule()->getConnection()
+			->table(AppConfig::MAIL_LOG_VIRUSES_TABLE . ' as v')
+			->selectRaw("RIGHT(v.av, 5) = '_FAIL' AS fail, IF(v.name = '', v.av, v.name) AS virus,"
+				. " GROUP_CONCAT(DISTINCT v.av ORDER BY v.av SEPARATOR ', ') AS engines,"
+				. " COUNT(DISTINCT IF(v.created_day = CURDATE(), v.mail_log_id, NULL)) AS today,"
+				. " COUNT(DISTINCT IF(v.created_day = CURDATE() - INTERVAL 1 DAY, v.mail_log_id, NULL)) AS yesterday,"
+				. " COUNT(DISTINCT IF(v.created_day >= CURDATE() - INTERVAL 6 DAY, v.mail_log_id, NULL)) AS week,"
+				. " COUNT(DISTINCT v.mail_log_id) AS month")
+			->whereRaw('v.created_day >= CURDATE() - INTERVAL 30 DAY')
+			->groupBy('fail', 'virus');
+
+		// the search and user scope, unless an admin has no filters; nothing
+		// more in the subquery, or the optimizer drives from mail_logs
+		if ($filters !== [] || !$this->is_admin) {
+			$ids = $this->applyUserScope($this->getQueryByFilters(MailLog::select('id'), $filters));
+			$query->whereIn('v.mail_log_id', $ids->toBase());
+		}
+
+		$windows = array_fill_keys(array_keys(VirusService::WINDOWS), []);
+		$failures = [];
+		foreach ($query->get() as $r) {
+			$row = ['virus' => (string) $r->virus, 'engines' => (string) $r->engines];
+			$counts = [];
+			foreach (array_keys(VirusService::WINDOWS) as $window) {
+				$counts[$window] = (int) $r->{$window};
+			}
+			if ((int) $r->fail === 1) {
+				$failures[] = $row + ['windows' => $counts];
+				continue;
+			}
+			foreach ($counts as $window => $mails) {
+				if ($mails > 0) {
+					$windows[$window][] = $row + ['mails' => $mails];
+				}
+			}
+		}
+
+		foreach ($windows as &$rows) {
+			usort($rows, fn ($a, $b) => [$b['mails'], $a['virus']] <=> [$a['mails'], $b['virus']]);
+			$rows = array_slice($rows, 0, $limit);
+		}
+		unset($rows);
+		usort($failures, fn ($a, $b) => [$b['windows']['month'], $a['virus']] <=> [$a['windows']['month'], $b['virus']]);
+
+		return [$windows, $failures];
+	}
+
 	// a query stopped by max_statement_time
 	private static function isStatementTimeout(QueryException $e): bool {
 		return (int) ($e->errorInfo[1] ?? 0) === 1969;

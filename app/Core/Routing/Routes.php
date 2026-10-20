@@ -205,6 +205,20 @@ class Routes
 			],
 		));
 
+		$routes->add(RouteName::VIRUS_REPORT->value, new Route(
+			'/viruses/report', // path
+			[ '_controller' => 'App\\Controllers\\MailLogController::showVirusReport',
+			  '_middleware' => $userMiddlewareClasses,
+			],
+		));
+
+		$routes->add(RouteName::ADMIN_VIRUS_REPORT->value, new Route(
+			'/admin/viruses/report', // path
+			[ '_controller' => 'App\\Controllers\\MailLogController::showVirusReport',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+		));
+
 		$routes->add(RouteName::ADMIN_REPORTS->value, new Route(
 			'/admin/reports/{field}/{mode}',
 			[ '_controller' => 'App\\Controllers\\MailLogController::showReports',

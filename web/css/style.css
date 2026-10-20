@@ -552,6 +552,19 @@ span.stored {
   flex-wrap: wrap; /* optional: allows stacking on small screens */
 }
 
+/* the virus report's window tables, side by side */
+.virus_windows {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.virus_windows td {
+  overflow-wrap: anywhere;
+}
+
 .mapform-wrapper {
   /* flex: 1 1 45%; */ /* each form takes up to 45% of the width */
   flex: 1 1 auto; /* grows to fit content */

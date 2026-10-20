@@ -34,6 +34,7 @@ use App\Services\MailLogService;
 use App\Services\FuzzyService;
 use App\Services\UserService;
 use App\Services\MapService;
+use App\Services\VirusService;
 use App\Services\MapHitService;
 use App\Services\MailerService;
 
@@ -330,6 +331,56 @@ class MailLogController extends ViewController
 			'limit' => $limit,
 			'filters' => $filters,
 			'max_items' => $this->max_items,
+			'runtime' => $this->getRuntime(),
+			'flashes' => $this->getFlashes(),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
+	}
+
+	// top antivirus names of the current search in each report window, and the scan failures
+	public function showVirusReport(): Response {
+		$this->twigFormView($this->request);
+
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			return $response;
+		}
+
+		$filters = $this->getFiltersFromSession();
+
+		if (!$this->mailReportsEnabled($filters)) {
+			$this->flashbag->add('warning', "Mail Reports are disabled");
+			return new RedirectResponse($this->getHomepageUrl());
+		}
+
+		if (!VirusService::reportEnabled()) {
+			$this->flashbag->add('error', $this->is_admin
+				? "The virus report needs the mail log viruses migration (db:migrate_mail_log_viruses)"
+				: "The virus report is not available");
+			return new RedirectResponse($this->getSearchUrl());
+		}
+
+		$limit = (int) Config::get('top_reports') ?: 30;
+
+		try {
+			[$windows, $failures] = $this->getMailLogService()->getVirusReport($filters, $limit);
+		} catch (Throwable $e) {
+			$this->fileLogger->error("[MailLogController_showVirusReport] query error: " . $e->getMessage());
+			$this->flashbag->add('error', "Virus report query error. Check logs.");
+			return new RedirectResponse($this->getSearchUrl());
+		}
+
+		return new Response($this->twig->render('virus_report.twig', [
+			'qidform' => $qidform->createView(),
+			'windows' => $windows,
+			'failures' => $failures,
+			'labels' => VirusService::WINDOWS,
+			'filters' => $filters,
+			'limit' => $limit,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
@@ -1088,6 +1139,7 @@ class MailLogController extends ViewController
 			'show_charts' => $chart !== null,
 			'show_reports' => $this->mailReportsEnabled($filters),
 			'map_hits' => $this->is_admin && MapService::mapHitsEnabled(),
+			'virus_report' => VirusService::reportEnabled(),
 			'searchform' => $searchform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),

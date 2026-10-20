@@ -20,10 +20,23 @@ use Throwable;
 
 class VirusService
 {
+	// report windows, today included
+	public const array WINDOWS = [
+		'today' => 'Today',
+		'yesterday' => 'Yesterday',
+		'week' => 'Last 7 days',
+		'month' => 'Last 31 days',
+	];
+
 	private LoggerInterface $logger;
 
 	public function __construct() {
 		$this->logger = App::fileLogger();
+	}
+
+	// the report reads mail_log_viruses, complete once its migration has run
+	public static function reportEnabled(): bool {
+		return App::migrationStatus()->mailLogVirusesCompleted();
 	}
 
 	/*
