@@ -283,6 +283,10 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::MAP_HITS);
 	}
 
+	public function mailLogVirusesCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::MAIL_LOG_VIRUSES);
+	}
+
 	public function getAllMigrationStates(): array {
 		$states = [];
 

@@ -279,6 +279,20 @@ CREATE TABLE `mail_log_symbol_hits` (
     REFERENCES `symbol_names` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE `mail_log_viruses` (
+  `mail_log_id` int(10) unsigned NOT NULL,
+  `created_day` date NOT NULL,
+  `av` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+  PRIMARY KEY (`mail_log_id`,`av`,`name`),
+  KEY `name_day_index` (`name`,`created_day`),
+  KEY `day_index` (`created_day`),
+  CONSTRAINT `fk_mail_log_viruses_mail_logs`
+    FOREIGN KEY (`mail_log_id`)
+    REFERENCES `mail_logs` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 DROP TABLE IF EXISTS `migrations`;
 
 CREATE TABLE `migrations` (
@@ -305,4 +319,5 @@ INSERT INTO `migrations` VALUES
 ('20261010_ever_stored','completed',NOW()),
 ('20261012_session_version','completed',NOW()),
 ('20261012_virus_skip_map','completed',NOW()),
-('20261017_map_hits','completed',NOW());
+('20261017_map_hits','completed',NOW()),
+('20261020_mail_log_viruses','completed',NOW());

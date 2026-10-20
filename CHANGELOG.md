@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-10-20
+- Migration: mail_log_viruses table with batched backfill from stored symbols
+
 ### 2026-10-19
 - Rspamd stats: cache a total failure briefly, fetch the servers concurrently
 - Map hits: Rqwatch records which maps and map entries matched each mail.
