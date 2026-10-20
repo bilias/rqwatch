@@ -358,9 +358,7 @@ class MailLogController extends ViewController
 		}
 
 		if (!VirusService::reportEnabled()) {
-			$this->flashbag->add('error', $this->is_admin
-				? "The virus report needs the mail log viruses migration (db:migrate_mail_log_viruses)"
-				: "The virus report is not available");
+			$this->flashbag->add('error', "The virus report needs the mail log viruses migration (db:migrate_mail_log_viruses)");
 			return new RedirectResponse($this->getSearchUrl());
 		}
 
@@ -1139,7 +1137,7 @@ class MailLogController extends ViewController
 			'show_charts' => $chart !== null,
 			'show_reports' => $this->mailReportsEnabled($filters),
 			'map_hits' => $this->is_admin && MapService::mapHitsEnabled(),
-			'virus_report' => VirusService::reportEnabled(),
+			'virus_report' => $this->is_admin && VirusService::reportEnabled(),
 			'searchform' => $searchform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),

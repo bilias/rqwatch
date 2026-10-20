@@ -208,9 +208,6 @@
  <li><a href='{{ route('REPORTS', { field: 'action'}) }}'>Top Actions by Quantity</a>
  / <a href='{{ route('REPORTS', { field: 'action', mode: 'stored'}) }}'>Stored</a>
  / <a href='{{ route('REPORTS', { field: 'action', mode: 'volume'}) }}'>Volume</a></li>
-{% if virus_report %}
- <li><a href='{{ route('VIRUS_REPORT') }}'>Top Viruses</a></li>
-{% endif %}
   {% endif %}
  {% endif %}
 </ul>
