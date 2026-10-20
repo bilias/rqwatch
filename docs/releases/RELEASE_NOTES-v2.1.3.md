@@ -12,7 +12,7 @@ Rqwatch 2.x+ contains updates to the database schema.
   ./bin/cli.php db:migrate
   ```
   This applies two new migrations:
-  - `Map hits`: a column on `custom_map_config` and two new tables. It is instant.
+  - `Map Hits`: a column on `custom_map_config` and two new tables. It is instant.
     It also links the virus notification skip map (`$notification_skip_virus_map`) to the
     symbol `RQWATCH_VIRUS_NO_NOTIFY`.
   - `Mail Log Viruses`: a new table `mail_log_viruses`, filled from the stored symbols of
