@@ -178,14 +178,15 @@ class FuzzyService
 	}
 
 	/*
-	 * Newest first: $search in the QID, learned by or server, or a hash prefix.
-	 * Also the records sharing a digest with a QID match (its "Shared with").
+	 * Newest first, or by last hit ($sort 'hit'): $search in the QID, learned by
+	 * or server, or a hash prefix. Also the records sharing a digest with a QID
+	 * match (its "Shared with").
 	 */
-	public function searchLearnedPaginated(string $search, string $url, int $page, int $perPage): LengthAwarePaginator {
+	public function searchLearnedPaginated(string $search, string $url, int $page, int $perPage, string $sort = 'learned'): LengthAwarePaginator {
 		$like = '%' . addcslashes($search, '%_\\') . '%';
 		$table = AppConfig::MAIL_LOG_FUZZY_TABLE;
 
-		return MailLogFuzzy::where(function ($q) use ($search, $like, $table) {
+		$query = MailLogFuzzy::where(function ($q) use ($search, $like, $table) {
 				$q->where('qid', 'like', $like)
 					->orWhere('learned_by', 'like', $like)
 					->orWhere('api_server', 'like', $like)
@@ -199,18 +200,28 @@ class FuzzyService
 				if (preg_match('/^[a-f0-9]{8,128}$/i', $search)) {
 					$q->orWhere('hashes', 'like', '%"' . strtolower($search) . '%');
 				}
-			})
-			->orderByDesc('id')
+			});
+
+		return self::sortLearned($query, $sort)
 			->paginate($perPage, ['*'], 'page', $page)
 			->withPath($url)
-			->appends(['q' => $search]);
+			->appends(array_filter(['q' => $search, 'sort' => $sort === 'hit' ? 'hit' : null]));
 	}
 
-	// newest first; rows outlive their mail_logs row
-	public function getLearnedPaginated(string $url, int $page, int $perPage): LengthAwarePaginator {
-		return MailLogFuzzy::orderByDesc('id')
+	// newest first, or by last hit ($sort 'hit'); rows outlive their mail_logs row
+	public function getLearnedPaginated(string $url, int $page, int $perPage, string $sort = 'learned'): LengthAwarePaginator {
+		return self::sortLearned(MailLogFuzzy::query(), $sort)
 			->paginate($perPage, ['*'], 'page', $page)
-			->withPath($url);
+			->withPath($url)
+			->appends(array_filter(['sort' => $sort === 'hit' ? 'hit' : null]));
+	}
+
+	// 'hit': latest hit first, never hit last; otherwise newest learned first
+	private static function sortLearned($query, string $sort) {
+		if ($sort === 'hit') {
+			$query->orderByRaw('last_hit_at IS NULL')->orderByDesc('last_hit_at');
+		}
+		return $query->orderByDesc('id');
 	}
 
 	// learn on this node, or through the API of the node that stores the mail

@@ -14,10 +14,17 @@ Fuzzy learned mails{% if search %} matching '{{ search }}'{% endif %}: {{ totalR
 {% if totalRecords > items_per_page %}
 | Displaying {{ items_per_page }}/page
 {% endif %}
-{% if search %}
+| sorted by {{ sort == 'hit' ? 'last hit' : 'learned date' }}
+{% if search or fuzzy_hits %}
 <div id="inside_links">
 <ul>
-<li><a href='{{ route('ADMIN_FUZZY') }}'>Show all learned mails</a></li>
+{% if search %}
+<li><a href='{{ route('ADMIN_FUZZY') }}{{ sort == 'hit' ? '?sort=hit' }}'>Show all learned mails</a></li>
+{% endif %}
+{% if fuzzy_hits %}
+{% set other = sort == 'hit' ? null : 'hit' %}
+<li><a href='{{ search ? route('ADMIN_FUZZY_SEARCH') ~ '?' ~ {q: search, sort: other}|url_encode : route('ADMIN_FUZZY') ~ (other ? '?sort=hit') }}'>Sort by {{ other ? 'last hit' : 'learned date' }}</a></li>
+{% endif %}
 </ul>
 </div>
 {% endif %}

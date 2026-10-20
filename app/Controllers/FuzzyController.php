@@ -48,11 +48,12 @@ class FuzzyController extends ViewController
 
 		$page = $this->request->query->getInt('page', 1);
 		$fuzzy = new FuzzyService();
+		$sort = $this->listSort();
 		$learned = $fuzzy->getLearnedPaginated(
-			$this->url(RouteName::ADMIN_FUZZY), $page, $this->items_per_page
+			$this->url(RouteName::ADMIN_FUZZY), $page, $this->items_per_page, $sort
 		);
 
-		return $this->renderList($fuzzy, $learned, $qidform, null);
+		return $this->renderList($fuzzy, $learned, $qidform, null, $sort);
 	}
 
 	// the search form posts here and is redirected to GET ?q=, the results page
@@ -88,11 +89,17 @@ class FuzzyController extends ViewController
 
 		$page = $this->request->query->getInt('page', 1);
 		$fuzzy = new FuzzyService();
+		$sort = $this->listSort();
 		$learned = $fuzzy->searchLearnedPaginated(
-			$search, $this->url(RouteName::ADMIN_FUZZY_SEARCH), $page, $this->items_per_page
+			$search, $this->url(RouteName::ADMIN_FUZZY_SEARCH), $page, $this->items_per_page, $sort
 		);
 
-		return $this->renderList($fuzzy, $learned, $qidform, $search);
+		return $this->renderList($fuzzy, $learned, $qidform, $search, $sort);
+	}
+
+	// ?sort=hit: by last hit, once the fuzzy hits migration has added the column
+	private function listSort(): string {
+		return $this->request->query->get('sort') === 'hit' && FuzzyService::hitsEnabled() ? 'hit' : 'learned';
 	}
 
 	public function learn(int $id, int $flag): RedirectResponse {
@@ -234,7 +241,7 @@ class FuzzyController extends ViewController
 		return null;
 	}
 
-	private function renderList(FuzzyService $fuzzy, LengthAwarePaginator $learned, FormInterface $qidform, ?string $search): Response {
+	private function renderList(FuzzyService $fuzzy, LengthAwarePaginator $learned, FormInterface $qidform, ?string $search, string $sort = 'learned'): Response {
 		$searchForm = FuzzySearchForm::create($this->formFactory, $this->request, $this->urlGenerator,
 			$search !== null ? ['search' => $search] : null);
 
@@ -242,6 +249,7 @@ class FuzzyController extends ViewController
 			'qidform' => $qidform->createView(),
 			'fuzzysearchform' => $searchForm->createView(),
 			'search' => $search,
+			'sort' => $sort,
 			'learned' => $learned,
 			'shared' => $fuzzy->sharedWith($learned),
 			'fuzzy_flags' => FuzzyService::flags(),
