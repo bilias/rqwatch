@@ -352,7 +352,7 @@ class MailLogController extends ViewController
 
 		$filters = $this->getFiltersFromSession();
 
-		if (!$this->mailReportsEnabled($filters)) {
+		if (!$this->mailReportsEnabled(VirusService::reportFilters($filters))) {
 			$this->flashbag->add('warning', "Mail Reports are disabled");
 			return new RedirectResponse($this->getHomepageUrl());
 		}
@@ -377,7 +377,7 @@ class MailLogController extends ViewController
 			'windows' => $windows,
 			'failures' => $failures,
 			'labels' => VirusService::WINDOWS,
-			'filters' => $filters,
+			'filters' => VirusService::markIgnoredFilters($filters),
 			'limit' => $limit,
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
@@ -409,7 +409,7 @@ class MailLogController extends ViewController
 
 		$filters = $this->getFiltersFromSession();
 
-		if (!$this->mailReportsEnabled($filters) || !VirusService::reportEnabled()) {
+		if (!$this->mailReportsEnabled(VirusService::reportFilters($filters)) || !VirusService::reportEnabled()) {
 			return new RedirectResponse($report);
 		}
 
@@ -429,7 +429,7 @@ class MailLogController extends ViewController
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'logs' => $logs,
-			'filters' => array_merge($filters, [
+			'filters' => array_merge(VirusService::markIgnoredFilters($filters), [
 				['filter' => $fail ? 'Scan failure' : 'Virus', 'choice' => 'is equal to', 'value' => $virus],
 				['filter' => 'Date', 'choice' => 'in', 'value' => VirusService::WINDOWS[$window]],
 			]),

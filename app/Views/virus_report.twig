@@ -7,7 +7,7 @@
 <span class='descr'>Active Filters</span>
 <ul>
 {% for filter in filters %}
- <li class='filtername'>{{ filter.filter }} {{ filter.choice }} "{{ filter.value }}"</li>
+ <li class='filtername'>{{ filter.filter }} {{ filter.choice }} "{{ filter.value }}"{% if filter.ignored ?? false %} (ignored){% endif %}</li>
 {% else %}
  <li class='filtername'>None</li>
 {% endfor %}

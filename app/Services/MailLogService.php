@@ -655,11 +655,12 @@ class MailLogService
 	}
 
 	/*
-	 * The search and user scope on a mail_log_viruses query, unless an admin
-	 * has no filters; nothing more in the subquery, or the optimizer drives
-	 * from mail_logs
+	 * The search (but its Date filters) and user scope on a mail_log_viruses
+	 * query, unless an admin has no filters; nothing more in the subquery, or
+	 * the optimizer drives from mail_logs
 	 */
 	private function scopeVirusQuery(QueryBuilder $query, array $filters): void {
+		$filters = VirusService::reportFilters($filters);
 		if ($filters !== [] || !$this->is_admin) {
 			$ids = $this->applyUserScope($this->getQueryByFilters(MailLog::select('id'), $filters));
 			$query->whereIn('v.mail_log_id', $ids->toBase());

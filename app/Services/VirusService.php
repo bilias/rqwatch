@@ -28,6 +28,9 @@ class VirusService
 		'month' => 'Last 31 days',
 	];
 
+	// search filters the report ignores: its windows are the dates
+	public const array IGNORED_FILTERS = ['Date'];
+
 	// each window as a condition on created_day, for the report and its mails
 	public const array WINDOW_SQL = [
 		'today' => '= CURDATE()',
@@ -40,6 +43,22 @@ class VirusService
 
 	public function __construct() {
 		$this->logger = App::fileLogger();
+	}
+
+	// the search filters the report applies
+	public static function reportFilters(array $filters): array {
+		return array_values(array_filter(
+			$filters,
+			fn ($f) => !in_array($f['filter'] ?? null, self::IGNORED_FILTERS, true)
+		));
+	}
+
+	// the filters for display, the ignored ones marked
+	public static function markIgnoredFilters(array $filters): array {
+		return array_map(
+			fn ($f) => $f + ['ignored' => in_array($f['filter'] ?? null, self::IGNORED_FILTERS, true)],
+			$filters
+		);
 	}
 
 	// the report reads mail_log_viruses, complete once its migration has run
