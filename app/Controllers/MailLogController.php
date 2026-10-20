@@ -88,6 +88,7 @@ class MailLogController extends ViewController
 	private const INLINE_AS_TEXT_TYPES = [
 		'message/delivery-status',
 		'text/rfc822-headers',
+		'message/rfc822',
 	];
 
 	public function showAll(): Response {
