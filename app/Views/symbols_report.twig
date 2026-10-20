@@ -22,7 +22,6 @@ in the newest {{ mails|nf }} mail{{ mails == 1 ? '' : 's' }} of the search{% if 
 {% set base = {local: local ? 1 : null, sort: sort == 'score' ? 'score' : null, info: informational ? 1 : null} %}
 <li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?{{ base|merge({sort: sort == 'score' ? null : 'score'})|url_encode }}'>Sort by {{ sort == 'score' ? 'quantity' : 'average score' }}</a></li>
 <li><a href='{{ route('ADMIN_SYMBOLS_REPORT') }}?{{ base|merge({info: informational ? null : 1})|url_encode }}'>{{ informational ? 'Hide' : 'Show' }} informational symbols (score 0)</a></li>
-<li><a href='{{ route('ADMIN_SEARCH') }}'>Search</a></li>
 </ul>
 </div>
 </div>
