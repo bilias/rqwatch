@@ -472,9 +472,17 @@ class LoginController extends ViewController
 
 		// a timed-out session keeps its data (SessionManager::destroy() only drops
 		// username, so the login form's CSRF token survives); drop what a previous
-		// user left behind. Identity keys are overwritten below; login_redirect is
-		// still read by the callers.
-		foreach (['filters', 'old_username', 'old_auth_provider', 'openidc_id_token'] as $key) {
+		// user left behind. user_aliases goes first so a failure in getMailAliases()
+		// cannot leave the new user with the old aliases; login_redirect is still
+		// read by the callers.
+		foreach ([
+			'username',
+			'user_aliases',
+			'filters',
+			'old_username',
+			'old_auth_provider',
+			'openidc_id_token'
+		] as $key) {
 			$this->session->remove($key);
 		}
 
