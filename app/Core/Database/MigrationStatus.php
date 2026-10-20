@@ -287,6 +287,15 @@ final class MigrationStatus
 		return $this->isMigrationCompleted(Migrations::MAIL_LOG_VIRUSES);
 	}
 
+	// the table exists from RUNNING on; the backfill covers mails imported before
+	public function mailLogVirusesWritable(): bool {
+		return in_array(
+			$this->getMigrationState(Migrations::MAIL_LOG_VIRUSES),
+			[Migrations::STATUS_RUNNING, Migrations::STATUS_COMPLETED],
+			true
+		);
+	}
+
 	public function getAllMigrationStates(): array {
 		$states = [];
 

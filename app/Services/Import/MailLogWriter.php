@@ -20,6 +20,7 @@ use App\Models\MailLogData;
 
 use App\Services\FuzzyService;
 use App\Services\MapHitService;
+use App\Services\VirusService;
 
 use Throwable;
 
@@ -71,6 +72,7 @@ final class MailLogWriter
 		// after the commit: counting hits must never cost the mail
 		$this->recordFuzzyHits($mailData);
 		$this->recordMapHits($id, $mailData);
+		$this->recordViruses($id, $mailData);
 
 		return $id;
 	}
@@ -97,6 +99,20 @@ final class MailLogWriter
 			(new MapHitService())->recordHits($mailLogId, (string) ($mailData['symbols'] ?? ''), $qid);
 		} catch (Throwable $e) {
 			App::fileLogger()->error("[MailLogWriter] {$qid} could not record map hits: " . $e->getMessage());
+		}
+	}
+
+	// record the antivirus symbols and names of a virus mail
+	private function recordViruses(int $mailLogId, array $mailData): void {
+		if (empty($mailData['has_virus'])) {
+			return;
+		}
+
+		$qid = (string) ($mailData['qid'] ?? '');
+		try {
+			(new VirusService())->recordViruses($mailLogId, (string) ($mailData['symbols'] ?? ''), $qid);
+		} catch (Throwable $e) {
+			App::fileLogger()->error("[MailLogWriter] {$qid} could not record viruses: " . $e->getMessage());
 		}
 	}
 
