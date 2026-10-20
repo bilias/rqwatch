@@ -166,6 +166,29 @@ class ViewController extends Controller
 			return number_format($number, $decimals, ',', '.');
 		}));
 
+
+		// Escape text, turn http(s) URLs into links opening in a new tab.
+		// Output is marked safe; nl2br (pre_escape) won't re-escape it.
+		// {{ message|linkify|nl2br }} opens links in a new tab (the default).
+		// {{ message|linkify(false)|nl2br }} opens them in the same tab.
+		$this->twig->addFilter(new TwigFilter('linkify', function (string $text, bool $newTab = true): string {
+			$target = $newTab ? ' target="_blank" rel="noopener noreferrer"' : '';
+			$parts = preg_split('~(https?://[^\s<>"\']+)~i', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+			$out = '';
+			foreach ($parts as $i => $part) {
+				// even indexes: plain text, odd indexes: captured URLs
+				if ($i % 2 === 0) {
+					$out .= htmlspecialchars($part, ENT_QUOTES);
+					continue;
+				}
+				$url = rtrim($part, '.,;:!?)');
+				$e = htmlspecialchars($url, ENT_QUOTES);
+				$out .= '<a href="' . $e . '"' . $target . '>' . $e . '</a>'
+					. htmlspecialchars(substr($part, strlen($url)), ENT_QUOTES);
+			}
+			return $out;
+		}, ['is_safe' => ['html']]));
+
 		$this->twig->addGlobal('APP_NAME', Config::get('APP_NAME') ?? AppConfig::APP_NAME);
 		$this->twig->addGlobal('APP_INFO', Config::get('APP_INFO') ?? AppConfig::APP_INFO);
 		$this->twig->addGlobal('APP_LOGO_PATH', Config::get('APP_LOGO_PATH') ?? AppConfig::APP_LOGO_PATH);
