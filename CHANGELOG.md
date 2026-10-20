@@ -3,6 +3,8 @@
 ## Master Dev Branch
 
 ### 2026-10-20
+- Add sort by last hit in Fuzzy
+- Add quick filters for week and month in search
 - Top Viruses report (admin): the virus names of the search's mails today,
   yesterday, in the last 7 and the last 31 days, with antivirus scan failures listed apart.
   Run `php bin/cli.php db:migrate` (or `db:migrate_mail_log_viruses`) to create and fill
@@ -30,6 +32,7 @@
 
 ### 2026-10-17
 - Configurable local, whitelist and blacklist symbol patterns
+- Map symbols config for built-in maps
 
 ### 2026-10-14
 - Update components
