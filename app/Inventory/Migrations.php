@@ -144,7 +144,7 @@ class Migrations
 		self::EVER_STORED => "Mail Log ever_stored column and index",
 		self::SESSION_VERSION => "Users session_version column",
 		self::VIRUS_SKIP_MAP => "Virus notification skip map",
-		self::MAP_HITS => "Map hits schema",
+		self::MAP_HITS => "Map hits",
 		self::MAIL_LOG_VIRUSES => "Mail Log Viruses",
 	];
 
