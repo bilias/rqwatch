@@ -342,8 +342,7 @@ class Controller
 			if ($status === Migrations::STATUS_RUNNING) {
 				$this->flashbag->add('info', $message);
 			} else {
-				$message .= ". See " .
-					Migrations::MIGRATION_HELP[$migration];
+				$message .= ".\n" . Migrations::MIGRATION_HELP[$migration];
 				$this->flashbag->add('warning', $message);
 				$this->fileLogger->warning($message);
 			}
