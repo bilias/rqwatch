@@ -6,7 +6,8 @@
 - Top Viruses report (admin): the virus names of the search's mails today,
   yesterday, in the last 7 and the last 31 days, with antivirus scan failures listed apart.
   Run `php bin/cli.php db:migrate` (or `db:migrate_mail_log_viruses`) to create and fill
-  the new `mail_log_viruses` table; the report link appears once it has completed
+  the new `mail_log_viruses` table; the report link appears once it has completed.
+  Each count links to its mails; Date filters are ignored (shown as "(ignored)")
 - Migration: mail_log_viruses table with batched backfill from stored symbols
 
 ### 2026-10-19

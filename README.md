@@ -109,6 +109,8 @@ The following functionalities are supported:
 - Mail statistics (by filters)
 - Top mail reports (by filters)
 - Top Rspamd symbols reports (by filters), per action: all symbols, or local and mapped only
+- Top viruses report (by filters, admin): today, yesterday, in 7 and 31 days, scan failures
+  apart, with links to the mails
 - Show mail metadata
 - Show mail headers
 - Show Rspamd symbols

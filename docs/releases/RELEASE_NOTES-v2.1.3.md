@@ -11,9 +11,13 @@ Rqwatch 2.x+ contains updates to the database schema.
   ```
   ./bin/cli.php db:migrate
   ```
-  This applies one new migration, `Map hits schema`: a column on `custom_map_config`
-  and two new tables. It is instant. It also links the virus notification skip map
-  (`$notification_skip_virus_map`) to the symbol `RQWATCH_VIRUS_NO_NOTIFY`.
+  This applies two new migrations:
+  - `Map hits schema`: a column on `custom_map_config` and two new tables. It is instant.
+    It also links the virus notification skip map (`$notification_skip_virus_map`) to the
+    symbol `RQWATCH_VIRUS_NO_NOTIFY`.
+  - `Mail Log Viruses`: a new table `mail_log_viruses`, filled from the stored symbols of
+    past virus mails in batches (about 10-15 seconds for ~32k virus mails). `mail_logs`
+    is not altered. Re-running it fills only the mails that are missing.
 - Link your custom maps to the Rspamd symbols that read them, in the new **Rspamd Symbols**
   field of each custom map definition. List every rule that reads the map file, including
   composites built on its symbol. Built-in maps use `$map_symbols`; the defaults match `contrib/`.
@@ -43,6 +47,11 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
     and the mails of each entry. Users see these for their personal maps.
   - The mail detail page links each symbol to its map and map entry.
   - `db:map_hits_backfill` records the hits of past mail from its stored symbols.
+- **Top Viruses** report under Search (admin): the virus names of the search's mails today,
+  yesterday, in the last 7 and the last 31 days, each count linked to its mails, with
+  antivirus scan failures (`*_FAIL` symbols) listed apart. It applies the search filters
+  except Date, which it shows as "(ignored)". Rqwatch now records each mail's antivirus
+  symbols and virus names at import, in `mail_log_viruses`.
 - **Top Rspamd Symbols** and **Top Local and Mapped Symbols** reports under Search:
   symbols of the newest `$max_items` mails of the search, per action, with links to the mails.
   Without filters they read the last 7 days.

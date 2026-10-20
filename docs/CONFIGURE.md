@@ -885,8 +885,15 @@ on maillogs pages.\
 
 ### Reports and Statistics Settings
 - `$top_reports` - How many items to show in Top reports under Search, including
- the Rspamd symbols report.\
+ the Rspamd symbols and the virus reports.\
  Default is `30`
+
+- The **Top Viruses** report (admin) counts the mails per virus name today, yesterday,
+ in the last 7 and the last 31 days. It needs the `db:migrate_mail_log_viruses` migration
+ (or just `./bin/cli.php db:migrate`), which also records the viruses of past mail.
+ It applies the search filters except Date, which it ignores for its own windows.
+ Scan failures are the antivirus symbols ending in `_FAIL`, Rspamd's default
+ `symbol_fail`; a failure symbol with another name is listed among the viruses.
 
 - `$show_mail_stats` - Calculate and show statistics on the mail search page.\
  Default is `true`
