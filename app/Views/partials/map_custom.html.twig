@@ -25,6 +25,11 @@ Custom Map: {{ mapdescr }}<br/>
 
 <div id="inside_links">
 <ul>
+<li><a href='{{ route('ADMIN_MAP_ADD_ENTRY', { map: map} ) }}'>Add New entry</a></li>
+<li><a href='{{ route('ADMIN_MAP_DEL_ALL_ENTRIES', { map: map, _token: csrf_token('map_delall') } ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr|e('js') }}\'?')">Delete All Entries</a></li>
+</ul>
+{% if idle or entry_filter or entry_hits is not null %}
+<ul>
 {% if idle or entry_filter %}
 <li><a href='{{ route('ADMIN_MAP_SHOW', { map: map }) }}'>Show all entries</a></li>
 {% elseif entry_hits is not null %}
@@ -33,9 +38,8 @@ Custom Map: {{ mapdescr }}<br/>
 {% if entry_hits is not null %}
 <li><a href='{{ route('ADMIN_MAP_HITS_OUTCOME') }}?map={{ map|url_encode }}&amp;days={{ hits_days }}'>Map hits outcome</a></li>
 {% endif %}
-<li><a href='{{ route('ADMIN_MAP_ADD_ENTRY', { map: map} ) }}'>Add New entry</a></li>
-<li><a href='{{ route('ADMIN_MAP_DEL_ALL_ENTRIES', { map: map, _token: csrf_token('map_delall') } ) }}' onclick="return confirm('Are you sure you want to delete all entries from map: \'{{ mapdescr|e('js') }}\'?')">Delete All Entries</a></li>
 </ul>
+{% endif %}
 </div>
 </div>
 

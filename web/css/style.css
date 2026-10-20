@@ -1174,6 +1174,11 @@ span.stored {
  margin-top: 0px;
 }
 
+/* a second line of links right under the first */
+#inside_links ul + ul {
+ margin-top: 0.3rem;
+}
+
 #inside_links li {
  display: inline;
  margin: 0;
