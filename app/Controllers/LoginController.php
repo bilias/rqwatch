@@ -470,6 +470,14 @@ class LoginController extends ViewController
 		// new id and deletes the old server-side record.
 		$this->session->migrate(true);
 
+		// a timed-out session keeps its data (SessionManager::destroy() only drops
+		// username, so the login form's CSRF token survives); drop what a previous
+		// user left behind. Identity keys are overwritten below; login_redirect is
+		// still read by the callers.
+		foreach (['filters', 'old_username', 'old_auth_provider', 'openidc_id_token'] as $key) {
+			$this->session->remove($key);
+		}
+
 		$this->session->set('username', $username);
 		$this->session->set('email', $email);
 		$this->session->set('is_admin', $is_admin);
