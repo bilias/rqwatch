@@ -143,6 +143,8 @@ DROP TABLE IF EXISTS `mail_log_tokens`;
 
 DROP TABLE IF EXISTS `mail_log_recipients`;
 
+DROP TABLE IF EXISTS `mail_log_viruses`;
+
 DROP TABLE IF EXISTS `mail_logs`;
 
 CREATE TABLE `mail_logs` (
