@@ -84,6 +84,12 @@ class MailLogController extends ViewController
 		'image/webp',
 	];
 
+	// plain-text report parts, served as text/plain
+	private const INLINE_AS_TEXT_TYPES = [
+		'message/delivery-status',
+		'text/rfc822-headers',
+	];
+
 	public function showAll(): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
@@ -1521,13 +1527,22 @@ class MailLogController extends ViewController
 		return [$view, $disabled];
 	}
 
+	private function normalizeFileType(string $filetype): string {
+		return strtolower(trim(explode(';', $filetype)[0]));
+	}
+
 	private function isInlineSafeType(string $filetype): bool {
-		$normalized = strtolower(trim(explode(';', $filetype)[0]));
-		return in_array($normalized, self::INLINE_SAFE_TYPES, true);
+		$normalized = $this->normalizeFileType($filetype);
+		return in_array($normalized, self::INLINE_SAFE_TYPES, true)
+			|| in_array($normalized, self::INLINE_AS_TEXT_TYPES, true);
 	}
 
 	private function safeInlineContentType(string $filetype): string {
-		return $this->isInlineSafeType($filetype) ? $filetype : 'application/octet-stream';
+		$normalized = $this->normalizeFileType($filetype);
+		if (in_array($normalized, self::INLINE_AS_TEXT_TYPES, true)) {
+			return 'text/plain; charset=utf-8';
+		}
+		return in_array($normalized, self::INLINE_SAFE_TYPES, true) ? $filetype : 'application/octet-stream';
 	}
 
 	private function getSearchResultsUrl(): string {
