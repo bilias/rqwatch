@@ -428,6 +428,13 @@ li.active {
     background-color: var(--color-mail-blacklist);
 }
 
+mark.homoglyph {
+	color: #000;
+	background-color: orange;
+	font-weight: bold;
+	outline: 1px solid #c00;
+}
+
 a.stored {
 	background-color: orange;
 	display: inline-block;

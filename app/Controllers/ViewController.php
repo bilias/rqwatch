@@ -189,6 +189,41 @@ class ViewController extends Controller
 			return $out;
 		}, ['is_safe' => ['html']]));
 
+
+		// Escape text; in words mixing Latin with another script (homoglyph
+		// spoofing, e.g. Cyrillic о/а in "Eurоbаnk"), wrap non-Latin letters
+		// and invisible format chars (\p{Cf}) in <mark class="homoglyph">.
+		// Pure Greek / pure Latin words are untouched. Output is marked safe.
+		$this->twig->addFilter(new TwigFilter('mark_homoglyphs', function (?string $text): string {
+			$parts = preg_split('/([\p{L}\p{M}\p{Cf}]+)/u', (string) $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+			if ($parts === false) {
+				return htmlspecialchars((string) $text, ENT_QUOTES | ENT_SUBSTITUTE);
+			}
+			$out = '';
+			foreach ($parts as $i => $part) {
+				// even indexes: separators, odd indexes: words
+				$mixed = $i % 2 === 1 && preg_match('/\p{L}/u', $part)
+					&& (preg_match('/\p{Cf}/u', $part)
+						|| (preg_match('/\p{Latin}/u', $part) && preg_match('/(?!\p{Latin})\p{L}/u', $part)));
+				if (!$mixed) {
+					$out .= htmlspecialchars($part, ENT_QUOTES | ENT_SUBSTITUTE);
+					continue;
+				}
+				foreach (mb_str_split($part) as $ch) {
+					$cp = sprintf('U+%04X', mb_ord($ch));
+					if (preg_match('/\p{Cf}/u', $ch)) {
+						$out .= '<mark class="homoglyph" title="invisible ' . $cp . '">·</mark>';
+					} elseif (preg_match('/(?!\p{Latin})\p{L}/u', $ch)) {
+						$out .= '<mark class="homoglyph" title="' . $cp . '">'
+							. htmlspecialchars($ch, ENT_QUOTES | ENT_SUBSTITUTE) . '</mark>';
+					} else {
+						$out .= htmlspecialchars($ch, ENT_QUOTES | ENT_SUBSTITUTE);
+					}
+				}
+			}
+			return $out;
+		}, ['is_safe' => ['html']]));
+
 		$this->twig->addGlobal('APP_NAME', Config::get('APP_NAME') ?? AppConfig::APP_NAME);
 		$this->twig->addGlobal('APP_INFO', Config::get('APP_INFO') ?? AppConfig::APP_INFO);
 		$this->twig->addGlobal('APP_LOGO_PATH', Config::get('APP_LOGO_PATH') ?? AppConfig::APP_LOGO_PATH);

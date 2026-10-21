@@ -12,7 +12,7 @@
 {% if subject_privacy is same as(false) %}
  <div class="row">
    <div class='info'>Subject:</div>
-   <div class='detail'>{{ log.subject }}</div>
+   <div class='detail'>{{ log.subject|mark_homoglyphs }}</div>
  </div>
 {% endif %}
  {% if is_admin %}
@@ -90,7 +90,7 @@
  </div>
  <div class="row">
    <div class='info'>MIME From:</div>
-   <div class='detail'>{{ log.mime_from }}
+   <div class='detail'>{{ log.mime_from|mark_homoglyphs }}
 	{% if is_admin %}
     {% if map_configs['mime_from_whitelist']['add_url'] %}
 	  <br/><a class='whitelist' href='{{ map_configs['mime_from_whitelist']['add_url'] }}'>Add to '{{ map_configs['mime_from_whitelist']['description'] }}'</a>
