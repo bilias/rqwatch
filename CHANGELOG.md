@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-10-21
+- Mark homoglyphs in Subject and MIME FROM address
+
 ### 2026-10-20
 - Add sort by last hit in Fuzzy
 - Add quick filters for week and month in search
