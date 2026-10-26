@@ -147,7 +147,13 @@ class FuzzyController extends ViewController
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
 			'logs' => $logs,
-			'filters' => [['filter' => 'Fuzzy hit', 'choice' => "on '{$label}' learned mail", 'value' => $row->qid]],
+			'filters' => [[
+				'filter' => 'Fuzzy hit',
+				'choice' => "on '{$label}' learned mail",
+				'value' => $row->qid,
+				// by id: a qid can repeat; none once the learned mail is purged
+				'url' => $row->mail_log_id ? $this->url(RouteName::ADMIN_DETAIL, ['type' => 'id', 'value' => $row->mail_log_id]) : null,
+			]],
 			'queryParams' => [],
 			'totalRecords' => $logs->total(),
 			'items_per_page' => $this->items_per_page,
