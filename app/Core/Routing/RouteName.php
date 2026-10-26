@@ -77,6 +77,7 @@ enum RouteName: string
 	case ADMIN_RELEASEMAIL = 'admin_releasemail';
 	case ADMIN_FUZZY = 'admin_fuzzy';
 	case ADMIN_FUZZY_SEARCH = 'admin_fuzzy_search';
+	case ADMIN_FUZZY_HITS = 'admin_fuzzy_hits';
 	case ADMIN_FUZZY_LEARN = 'admin_fuzzy_learn';
 	case ADMIN_FUZZY_UNLEARN = 'admin_fuzzy_unlearn';
 	case ADMIN_FUZZY_BOOST = 'admin_fuzzy_boost';

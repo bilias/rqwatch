@@ -66,6 +66,11 @@ class FuzzyService
 		return App::migrationStatus()->mailLogFuzzyHitsCompleted();
 	}
 
+	// whether the mails behind the hits can be listed
+	public static function hitMailsEnabled(): bool {
+		return App::migrationStatus()->mailLogFuzzyHitsMailsCompleted();
+	}
+
 	// whether mail stored on $server can be learned
 	public static function serverEnabled(?string $server): bool {
 		$api_servers = Config::get('API_SERVERS') ?? [];
@@ -400,10 +405,10 @@ class FuzzyService
 
 	/*
 	 * Count a hit on every learned mail holding one of $hashes, once per
-	 * incoming mail. $at is the incoming mail's created_at (null: now).
-	 * Never throws: a failure here must not cost the import.
+	 * incoming mail $mailLogId, and link the two. $at is the incoming mail's
+	 * created_at (null: now). Never throws: a failure here must not cost the import.
 	 */
-	public function recordHits(array $hashes, ?string $at, string $qid): void {
+	public function recordHits(int $mailLogId, array $hashes, ?string $at, string $qid): void {
 		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT,
 			array_filter($hashes, 'is_string'))));
 		if ($hashes === []) {
@@ -434,12 +439,30 @@ class FuzzyService
 				array_merge([$at, $at], $ids)
 			);
 
+			// ignores rows the MAIL_LOG_FUZZY_HITS_MAILS backfill wrote meanwhile
+			if (App::migrationStatus()->mailLogFuzzyHitsMailsWritable()) {
+				App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)->insertOrIgnore(
+					array_map(fn ($id) => ['fuzzy_id' => (int) $id, 'mail_log_id' => $mailLogId], $ids)
+				);
+			}
+
 			$msg = "{$qid} fuzzy hit on learned mail(s) " . $rows->pluck('qid')->implode(', ');
 			$this->logger->info($msg);
 			$this->syslogLogger->info($msg);
 		} catch (Throwable $e) {
 			$this->logger->error("[FuzzyService_recordHits] {$qid} could not record fuzzy hits: " . $e->getMessage());
 		}
+	}
+
+	// the mails that hit learned mail $fuzzyId, newest first
+	public function getHitMailIds(int $fuzzyId, int $limit): array {
+		return App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)
+			->where('fuzzy_id', $fuzzyId)
+			->orderBy('mail_log_id', 'DESC')
+			->limit($limit)
+			->pluck('mail_log_id')
+			->map(fn ($id) => (int) $id)
+			->all();
 	}
 
 	// the subset of $hashes held by learned mails other than $exceptId

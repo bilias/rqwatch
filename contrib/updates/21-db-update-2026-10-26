@@ -1,0 +1,17 @@
+# SQL
+CREATE TABLE `mail_log_fuzzy_hits` (
+  `fuzzy_id` int(10) unsigned NOT NULL,
+  `mail_log_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`fuzzy_id`,`mail_log_id`),
+  KEY `mail_log_id_index` (`mail_log_id`),
+  CONSTRAINT `fk_mail_log_fuzzy_hits_mail_log_fuzzy`
+    FOREIGN KEY (`fuzzy_id`)
+    REFERENCES `mail_log_fuzzy` (`id`)
+    ON DELETE CASCADE,
+  CONSTRAINT `fk_mail_log_fuzzy_hits_mail_logs`
+    FOREIGN KEY (`mail_log_id`)
+    REFERENCES `mail_logs` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- then fill it: php bin/cli.php db:migrate_mail_log_fuzzy_hits_mails (or db:migrate)

@@ -81,6 +81,7 @@ public const string MAIL_LOG_DATA_TABLE = 'mail_log_data';
 public const string MAIL_LOG_RECIPIENTS_TABLE = 'mail_log_recipients';
 public const string MAIL_LOG_TOKENS_TABLE = 'mail_log_tokens';
 public const string MAIL_LOG_FUZZY_TABLE = 'mail_log_fuzzy';
+public const string MAIL_LOG_FUZZY_HITS_TABLE = 'mail_log_fuzzy_hits';
 public const string SYMBOL_NAMES_TABLE = 'symbol_names';
 public const string MAIL_LOG_SYMBOL_HITS_TABLE = 'mail_log_symbol_hits';
 public const string MAIL_LOG_VIRUSES_TABLE = 'mail_log_viruses';

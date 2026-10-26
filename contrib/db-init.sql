@@ -137,6 +137,8 @@ INSERT INTO `custom_map_config`
 
 DROP TABLE IF EXISTS `mail_log_symbol_hits`;
 
+DROP TABLE IF EXISTS `mail_log_fuzzy_hits`;
+
 DROP TABLE IF EXISTS `mail_log_fuzzy`;
 
 DROP TABLE IF EXISTS `mail_log_tokens`;
@@ -253,6 +255,21 @@ CREATE TABLE `mail_log_fuzzy` (
     ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE `mail_log_fuzzy_hits` (
+  `fuzzy_id` int(10) unsigned NOT NULL,
+  `mail_log_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`fuzzy_id`,`mail_log_id`),
+  KEY `mail_log_id_index` (`mail_log_id`),
+  CONSTRAINT `fk_mail_log_fuzzy_hits_mail_log_fuzzy`
+    FOREIGN KEY (`fuzzy_id`)
+    REFERENCES `mail_log_fuzzy` (`id`)
+    ON DELETE CASCADE,
+  CONSTRAINT `fk_mail_log_fuzzy_hits_mail_logs`
+    FOREIGN KEY (`mail_log_id`)
+    REFERENCES `mail_logs` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 DROP TABLE IF EXISTS `symbol_names`;
 
 CREATE TABLE `symbol_names` (
@@ -322,4 +339,5 @@ INSERT INTO `migrations` VALUES
 ('20261012_session_version','completed',NOW()),
 ('20261012_virus_skip_map','completed',NOW()),
 ('20261017_map_hits','completed',NOW()),
-('20261020_mail_log_viruses','completed',NOW());
+('20261020_mail_log_viruses','completed',NOW()),
+('20261026_mail_log_fuzzy_hits_mails','completed',NOW());

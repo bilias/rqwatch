@@ -296,6 +296,19 @@ final class MigrationStatus
 		);
 	}
 
+	public function mailLogFuzzyHitsMailsCompleted(): bool {
+		return $this->isMigrationCompleted(Migrations::MAIL_LOG_FUZZY_HITS_MAILS);
+	}
+
+	// the table exists from RUNNING on; the backfill covers hits recorded before
+	public function mailLogFuzzyHitsMailsWritable(): bool {
+		return in_array(
+			$this->getMigrationState(Migrations::MAIL_LOG_FUZZY_HITS_MAILS),
+			[Migrations::STATUS_RUNNING, Migrations::STATUS_COMPLETED],
+			true
+		);
+	}
+
 	public function getAllMigrationStates(): array {
 		$states = [];
 

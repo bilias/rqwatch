@@ -585,6 +585,14 @@ class Routes
 			['GET', 'POST'] // methods
 		));
 
+		$routes->add(RouteName::ADMIN_FUZZY_HITS->value, new Route(
+			'/admin/fuzzy/hits/{id}', // path
+			[ '_controller' => 'App\\Controllers\\FuzzyController::showHitMails',
+			  '_middleware' => $adminMiddlewareClasses,
+			],
+			[ 'id' => '\d{1,8}' ] // requirements
+		));
+
 		$routes->add(RouteName::ADMIN_FUZZY_LEARN->value, new Route(
 			'/admin/fuzzy/learn/{id}/{flag}', // path
 			[ '_controller' => 'App\\Controllers\\FuzzyController::learn',

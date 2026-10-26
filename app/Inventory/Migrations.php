@@ -29,6 +29,7 @@ use App\Core\Database\Migrations\SessionVersion;
 use App\Core\Database\Migrations\VirusSkipMap;
 use App\Core\Database\Migrations\MapHits;
 use App\Core\Database\Migrations\MailLogViruses;
+use App\Core\Database\Migrations\MailLogFuzzyHitsMails;
 
 use InvalidArgumentException;
 
@@ -52,6 +53,7 @@ class Migrations
 	public const string VIRUS_SKIP_MAP = '20261012_virus_skip_map';
 	public const string MAP_HITS = '20261017_map_hits';
 	public const string MAIL_LOG_VIRUSES = '20261020_mail_log_viruses';
+	public const string MAIL_LOG_FUZZY_HITS_MAILS = '20261026_mail_log_fuzzy_hits_mails';
 
 	public const array MIGRATIONS = [
 		self::MAIL_RECIPIENTS,
@@ -72,6 +74,7 @@ class Migrations
 		self::VIRUS_SKIP_MAP,
 		self::MAP_HITS,
 		self::MAIL_LOG_VIRUSES,
+		self::MAIL_LOG_FUZZY_HITS_MAILS,
 	];
 
 	public const array REQUIRED = [
@@ -125,6 +128,7 @@ class Migrations
 		self::VIRUS_SKIP_MAP => VirusSkipMap::class,
 		self::MAP_HITS => MapHits::class,
 		self::MAIL_LOG_VIRUSES => MailLogViruses::class,
+		self::MAIL_LOG_FUZZY_HITS_MAILS => MailLogFuzzyHitsMails::class,
 	];
 
 	public const array MIGRATION_DESCR = [
@@ -146,6 +150,7 @@ class Migrations
 		self::VIRUS_SKIP_MAP => "Virus notification skip map",
 		self::MAP_HITS => "Map Hits",
 		self::MAIL_LOG_VIRUSES => "Mail Log Viruses",
+		self::MAIL_LOG_FUZZY_HITS_MAILS => "Mail Log Fuzzy hit mails",
 	];
 
 	public const array MIGRATION_BATCH = [
@@ -167,6 +172,7 @@ class Migrations
 		self::VIRUS_SKIP_MAP => 0,
 		self::MAP_HITS => 0,
 		self::MAIL_LOG_VIRUSES => 1000,
+		self::MAIL_LOG_FUZZY_HITS_MAILS => 7,
 	];
 
 	public const array MIGRATION_SLEEP = [
@@ -188,6 +194,7 @@ class Migrations
 		self::VIRUS_SKIP_MAP => 200000,
 		self::MAP_HITS => 200000,
 		self::MAIL_LOG_VIRUSES => 200000,
+		self::MAIL_LOG_FUZZY_HITS_MAILS => 200000,
 	];
 
 	public const array MIGRATION_HELP = [
@@ -209,6 +216,7 @@ class Migrations
 		self::VIRUS_SKIP_MAP => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::MAP_HITS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 		self::MAIL_LOG_VIRUSES => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
+		self::MAIL_LOG_FUZZY_HITS_MAILS => "https://github.com/bilias/rqwatch/blob/master/docs/DB_MIGRATION.md",
 	];
 
 	public const string STATUS_PENDING   = 'pending';

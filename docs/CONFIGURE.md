@@ -343,6 +343,9 @@ If you already have any of them, merge them instead of copying over.
   counts the hits, and [`cron:fuzzy_cleanup`](#cron) deletes the records with
   no hit or added weight in `$fuzzy_learn_expire_days`, so the Fuzzy page
   lists what is still active.
+- Each hit count on the Fuzzy page links to the mails that hit it. Needs the
+  `db:migrate_mail_log_fuzzy_hits_mails` migration, which also links the hits
+  counted before it from the stored fuzzy hashes. Hits on purged mails are not listed.
 - Small mails can't be learned. Rspamd skips anything under about 1 KB (`min_bytes`) or
   with very short text, and answers `No content to generate fuzzy for flag 11`.
   You'll see that message as is.

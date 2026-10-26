@@ -44,6 +44,7 @@ use App\Console\MigrateSessionVersion;
 use App\Console\MigrateVirusSkipMap;
 use App\Console\MigrateMapHits;
 use App\Console\MigrateMailLogViruses;
+use App\Console\MigrateMailLogFuzzyHitsMails;
 
 use App\Console\MigrateDb;
 use App\Console\OptimizeTable;
@@ -82,6 +83,7 @@ $application->add(new MigrateSessionVersion());
 $application->add(new MigrateVirusSkipMap());
 $application->add(new MigrateMapHits());
 $application->add(new MigrateMailLogViruses());
+$application->add(new MigrateMailLogFuzzyHitsMails());
 $application->add(new MigrateDb());
 
 $application->run();

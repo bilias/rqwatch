@@ -70,7 +70,7 @@ final class MailLogWriter
 			);
 
 		// after the commit: counting hits must never cost the mail
-		$this->recordFuzzyHits($mailData);
+		$this->recordFuzzyHits($id, $mailData);
 		$this->recordMapHits($id, $mailData);
 		$this->recordViruses($id, $mailData);
 
@@ -78,7 +78,7 @@ final class MailLogWriter
 	}
 
 	// credit learned fuzzy mails whose hashes this mail matched
-	private function recordFuzzyHits(array $mailData): void {
+	private function recordFuzzyHits(int $mailLogId, array $mailData): void {
 		$hashes = json_decode((string) ($mailData['fuzzy_hashes'] ?? ''), true);
 		if (!is_array($hashes) || $hashes === []) {
 			return;
@@ -86,7 +86,7 @@ final class MailLogWriter
 
 		$qid = (string) ($mailData['qid'] ?? '');
 		try {
-			(new FuzzyService())->recordHits($hashes, $mailData['created_at'] ?? null, $qid);
+			(new FuzzyService())->recordHits($mailLogId, $hashes, $mailData['created_at'] ?? null, $qid);
 		} catch (Throwable $e) {
 			App::fileLogger()->error("[MailLogWriter] {$qid} could not record fuzzy hits: " . $e->getMessage());
 		}

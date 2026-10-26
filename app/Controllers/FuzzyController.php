@@ -11,6 +11,7 @@
 namespace App\Controllers;
 
 use App\Core\Routing\RouteName;
+use App\Configuration\Config;
 use App\Forms\QidForm;
 use App\Forms\FuzzySearchForm;
 use App\Core\Exception\FuzzyException;
@@ -95,6 +96,72 @@ class FuzzyController extends ViewController
 		);
 
 		return $this->renderList($fuzzy, $learned, $qidform, $search, $sort);
+	}
+
+	// the mails that hit learned mail $id, the fuzzy list's Hits link
+	public function showHitMails(int $id): Response {
+		if ($denied = $this->checkListAccess()) {
+			return $denied;
+		}
+
+		$list = $this->url(RouteName::ADMIN_FUZZY);
+
+		if (!FuzzyService::hitMailsEnabled()) {
+			$this->flashbag->add('error', "The fuzzy hit mails need the mail log fuzzy hit mails migration (db:migrate_mail_log_fuzzy_hits_mails)");
+			return new RedirectResponse($list);
+		}
+
+		$row = MailLogFuzzy::find($id);
+		if ($row === null) {
+			$this->flashbag->add('error', "Fuzzy record {$id} not found");
+			return new RedirectResponse($list);
+		}
+
+		$this->twigFormView($this->request);
+
+		$qidform = QidForm::create($this->formFactory, $this->request);
+		if ($response = QidForm::check_form($qidform, $this->urlGenerator, $this->is_admin)) {
+			return $response;
+		}
+
+		try {
+			$ids = (new FuzzyService())->getHitMailIds($id, $this->max_items);
+		} catch (Throwable $e) {
+			$this->fileLogger->error("[FuzzyController_showHitMails] query error: " . $e->getMessage());
+			$this->flashbag->add('error', "Fuzzy hits query error. Check logs.");
+			return new RedirectResponse($list);
+		}
+
+		$page = $this->request->query->getInt('page', 1);
+		$logs = (new MailLogService($this->getUserContext()))
+			->getPaginatedByIds($ids, $this->url(RouteName::ADMIN_FUZZY_HITS, ['id' => $id]), $page);
+
+		// hits counted on mails since purged, or before this list was recorded
+		if ($logs->total() < (int) $row->hits) {
+			$this->flashbag->add('info', "{$logs->total()} of {$row->hits} hits listed: the rest are on purged mails or were counted before the hits were linked");
+		}
+
+		$flags = FuzzyService::flags();
+		$label = $flags[(int) $row->flag]['label'] ?? "flag {$row->flag}";
+
+		return new Response($this->twig->render('home_paginated.twig', [
+			'qidform' => $qidform->createView(),
+			'logs' => $logs,
+			'filters' => [['filter' => 'Fuzzy hit', 'choice' => "on '{$label}' learned mail", 'value' => $row->qid]],
+			'queryParams' => [],
+			'totalRecords' => $logs->total(),
+			'items_per_page' => $this->items_per_page,
+			'max_items' => $this->max_items,
+			'runtime' => $this->getRuntime(),
+			'refresh_rate' => $this->refresh_rate,
+			'subject_privacy' => Config::get('subject_privacy'),
+			'flashes' => $this->getFlashes(),
+			'is_admin' => $this->is_admin,
+			'username' => $this->username,
+			'auth_provider' => $this->session->get('auth_provider'),
+			'current_route' => $this->request->getPathInfo(),
+			'rspamd_stats' => $this->getRspamdStat(),
+		]));
 	}
 
 	// ?sort=hit: by last hit, once the fuzzy hits migration has added the column
@@ -254,6 +321,7 @@ class FuzzyController extends ViewController
 			'shared' => $fuzzy->sharedWith($learned),
 			'fuzzy_flags' => FuzzyService::flags(),
 			'fuzzy_hits' => FuzzyService::hitsEnabled(),
+			'fuzzy_hit_mails' => FuzzyService::hitMailsEnabled(),
 			'totalRecords' => $learned->total(),
 			'items_per_page' => $this->items_per_page,
 			'runtime' => $this->getRuntime(),
