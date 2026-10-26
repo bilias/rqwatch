@@ -464,6 +464,11 @@ span.stored {
   box-sizing: border-box;
 }
 
+.quarantine.wide,
+.active_filters.wide {
+	max-width: 900px;
+}
+
 @media (max-width: 400px) {
   .quarantine {
     padding: 8px;

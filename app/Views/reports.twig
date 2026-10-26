@@ -3,7 +3,7 @@
 {% block content %}
 <div class="center-container">
 
-<div class='active_filters'>
+<div class='active_filters wide'>
 <span class='descr'>Active Filters</span>
 <ul>
 {% for filter in filters %}
@@ -14,7 +14,7 @@
 </ul>
 </div>
 
-<div class='quarantine'>
+<div class='quarantine wide'>
 
  <span class='descr'>Top {{ max_items }} {{ field|replace({'_': ' '})|upper }}
  {% if mode == 'stored' %}
