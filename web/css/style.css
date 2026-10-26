@@ -992,7 +992,7 @@ span.stored {
 }
 
 .cell.host {
-	flex: 2;
+	flex: 2.5;
 }
 
 .cell.center {
