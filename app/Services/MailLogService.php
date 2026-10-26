@@ -763,11 +763,13 @@ class MailLogService
 				break;
 			case 'date':
 				if ($mode === 'month') {
-					// no early exit as for day: full scan + temp table, 23.6k pages
-					// on 872k rows unfiltered; 2.3 s cold, 0.74 s warm for the same scan
-					// grouped by year (production, Oct 2026)
-					$query = MailLog::selectRaw("DATE_FORMAT(created_day, '%Y-%m') AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
-						->groupByRaw('date');
+					// Ever stored: purging clears mail_stored but keeps mail_location,
+					// so months past QUARANTINE_DAYS would otherwise read 0.
+					$stored = $this->migrationStatus->everStoredCompleted()
+						? 'ever_stored'
+						: "(mail_stored = 1 OR mail_location IS NOT NULL AND mail_location <> '0')";
+					$query = MailLog::selectRaw("DATE_FORMAT(MIN(created_day), '%Y-%m') AS date, COUNT(*) AS total, SUM(size) as total_size, SUM({$stored}) AS total_stored")
+						->groupByRaw('EXTRACT(YEAR_MONTH FROM created_day)');
 				} else {
 					$query = MailLog::selectRaw("created_day AS date, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
 						->groupBy('created_day');

@@ -36,7 +36,7 @@
    <div class="cell left host">Hostname</div>
   {% endif %}
    <div class="cell right"># Total</div>
-   <div class="cell right"># Stored</div>
+   <div class="cell right"># {{ (field == 'date' and mode == 'month') ? 'Ever stored' : 'Stored' }}</div>
    <div class="cell right">Total size</div>
  </div>
 

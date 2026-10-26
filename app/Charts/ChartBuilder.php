@@ -192,8 +192,8 @@ class ChartBuilder {
 		return $chart;
 	}
 
-	// reports by date (rows newest first): mails and stored per day or month ($unit),
-	// size (MB) on the right axis
+	// reports by date (rows newest first): mails and stored per day or month ($unit;
+	// month counts ever stored), size (MB) on the right axis
 	public static function createReportsDayChart(array $rows, callable $dayUrl, string $unit = 'day'): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
@@ -221,7 +221,7 @@ class ChartBuilder {
 					'backgroundColor' => [MailCategory::TOTAL->color()],
 				],
 				[
-					'label' => MailCategory::STORED->label(),
+					'label' => $unit === 'month' ? 'Ever stored' : MailCategory::STORED->label(),
 					'data' => $stored,
 					'links' => $links,
 					'backgroundColor' => [MailCategory::STORED->color()],
