@@ -991,6 +991,10 @@ span.stored {
   text-align: right;
 }
 
+.cell.host {
+	flex: 2;
+}
+
 .cell.center {
   text-align: center;
 }

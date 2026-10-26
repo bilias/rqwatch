@@ -59,7 +59,7 @@
   </div>
  {% if field == 'ip' %}
   {% set host = value ? gethostbyaddr(value) %}
-  <div class='cell day'>{{ host != value ? host }}</div>
+  <div class='cell day host'>{{ host != value ? host }}</div>
  {% endif %}
   <div class='cell right cnt'>{{ log.total|nf }}</div>
   <div class='cell right cnt'>{{ log.total_stored }}</div>
@@ -69,7 +69,7 @@
  <div class="row caption">
   <div class='cell day'>Total:</div>
  {% if field == 'ip' %}
-  <div class='cell day'></div>
+  <div class='cell day host'></div>
  {% endif %}
   <div class='cell right cnt'>{{ sum.count|nf }}</div>
   <div class='cell right cnt'>{{ sum.stored|nf }}</div>
