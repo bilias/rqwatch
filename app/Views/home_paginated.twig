@@ -11,7 +11,7 @@
 <span class='descr'>Active Filters</span>
 <ul>
 {% for filter in filters %}
- <li class='filtername'>{{ filter.filter }} {{ filter.choice }} "{% if filter.url ?? false %}<a href="{{ filter.url }}">{{ filter.value }}</a>{% else %}{{ filter.value }}{% endif %}"{% if filter.ignored ?? false %} (ignored){% endif %}</li>
+ <li class='filtername'><span>{{ filter.filter }} {{ filter.choice }} "{% if filter.url ?? false %}<a href="{{ filter.url }}">{{ filter.value }}</a>{% else %}{{ filter.value }}{% endif %}"{% if filter.ignored ?? false %} (ignored){% endif %}</span></li>
 {% else %}
 <li class='filtername'>No filters</li>
 {% endfor %}
