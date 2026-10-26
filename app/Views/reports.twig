@@ -23,6 +23,8 @@
   by Volume
  {% elseif field == 'date' and mode == 'day' %}
   by Date
+ {% elseif field == 'date' and mode == 'month' %}
+  by Month
  {% else %}
   by Quantity
  {% endif %}
@@ -41,15 +43,16 @@
 <div class='quarantine_days'>
 {% for log in logs %}
  {% set value = attribute(log, field) %}
+ {% set param = (field == 'date' and mode == 'month') ? 'month' : field %}
  <div class="row">
   <div class='cell day'>
   {% if field in reportFields %}
 	{% if is_admin %}
-	<a href="{{ route('ADMIN_SEARCH_RESULTS') }}?{{ field }}={{ value|url_encode }}">
+	<a href="{{ route('ADMIN_SEARCH_RESULTS') }}?{{ param }}={{ value|url_encode }}">
 		{{ value }}
    </a>
 	{% else %}
-	<a href="{{ route('SEARCH_RESULTS') }}?{{ field }}={{ value|url_encode }}">
+	<a href="{{ route('SEARCH_RESULTS') }}?{{ param }}={{ value|url_encode }}">
 		{{ value }}
    </a>
 	{% endif %}

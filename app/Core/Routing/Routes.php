@@ -194,7 +194,7 @@ class Routes
 			],
 			// requirements
 			[ 'field' => '[a-zA-Z_0-9]{1,64}',
-			  'mode' => 'count|volume|day|stored',
+			  'mode' => 'count|volume|day|month|stored',
 			],
 		));
 
@@ -227,7 +227,7 @@ class Routes
 			],
 			// requirements
 			[ 'field' => '[a-zA-Z_0-9]{1,64}',
-			  'mode' => 'count|volume|day|stored',
+			  'mode' => 'count|volume|day|month|stored',
 			],
 		));
 

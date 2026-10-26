@@ -193,6 +193,28 @@ class MailLogController extends ViewController
 			$queryParams['since'] = $since;
 		}
 
+		// ?month=Y-m: that calendar month, from Reports -> Mails by Month;
+		// replaces any Date filter, as ?date= does
+		$month = (string) $this->request->query->get('month', '');
+		if (preg_match('/^(\d{4})-(\d{2})$/', $month, $m) && checkdate((int) $m[2], 1, (int) $m[1])) {
+			$filters = array_values(array_filter(
+				$filters,
+				static fn(array $filter): bool =>
+					($filter['filter'] ?? null) !== 'Date'
+			));
+			$filters[] = [
+				'filter' => 'Date',
+				'choice' => 'is greater than or equal',
+				'value' => "{$month}-01"
+			];
+			$filters[] = [
+				'filter' => 'Date',
+				'choice' => 'is less than or equal',
+				'value' => date('Y-m-t', strtotime("{$month}-01"))
+			];
+			$queryParams['month'] = $month;
+		}
+
 		// Get page from ?page=, default 1
 		$page = $this->request->query->getInt('page', 1);
 
@@ -273,9 +295,10 @@ class MailLogController extends ViewController
 		}
 
 		$chart = null;
-		if ($field === 'date' && $mode === 'day') {
+		if ($field === 'date' && in_array($mode, ['day', 'month'], true)) {
+			$param = $mode === 'month' ? 'month' : 'date';
 			$chart = $this->createChart(
-				fn(array $d): Chart => ChartBuilder::createReportsDayChart($d, fn(string $day): string => $this->getSearchResultsUrl() . '?date=' . rawurlencode($day)),
+				fn(array $d): Chart => ChartBuilder::createReportsDayChart($d, fn(string $v): string => $this->getSearchResultsUrl() . "?{$param}=" . rawurlencode($v), $mode),
 				$logs
 			);
 		}

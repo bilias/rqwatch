@@ -192,8 +192,9 @@ class ChartBuilder {
 		return $chart;
 	}
 
-	// reports by date (rows newest first): mails and stored per day, size (MB) on the right axis
-	public static function createReportsDayChart(array $rows, callable $dayUrl): Chart {
+	// reports by date (rows newest first): mails and stored per day or month ($unit),
+	// size (MB) on the right axis
+	public static function createReportsDayChart(array $rows, callable $dayUrl, string $unit = 'day'): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
 		$labels = [];
@@ -255,7 +256,7 @@ class ChartBuilder {
 			],
 		]);
 
-		$chart->setAttributes(['note' => "Click on a day to view its mails\nClick on a label at the top to toggle its bars"]);
+		$chart->setAttributes(['note' => "Click on a {$unit} to view its mails\nClick on a label at the top to toggle its bars"]);
 
 		return $chart;
 	}
