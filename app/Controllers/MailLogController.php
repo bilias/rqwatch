@@ -267,6 +267,10 @@ class MailLogController extends ViewController
 
 		$field = isset($logs[0]) ? array_key_first($logs[0]) : null;
 
+		if ($field === 'ip') {
+			$logs = array_map(fn($log) => $log + ['country' => Helper::getCountry($log['ip'])], $logs);
+		}
+
 		return new Response($this->twig->render('reports.twig', [
 			'qidform' => $qidform->createView(),
 			'field' => $field,

@@ -59,7 +59,7 @@
   </div>
  {% if field == 'ip' %}
   {% set host = value ? gethostbyaddr(value) %}
-  <div class='cell day host'>{{ host != value ? host }}</div>
+  <div class='cell day host'>{{ host != value ? host }}{% if log.country %} ({{ log.country }}){% endif %}</div>
  {% endif %}
   <div class='cell right cnt'>{{ log.total|nf }}</div>
   <div class='cell right cnt'>{{ log.total_stored }}</div>
