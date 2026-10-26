@@ -30,7 +30,7 @@
 
  <div class="row caption">
    <div class="cell left">{{ field|replace({'_': ' '})|upper }}</div>
-  {% if field == 'ip' %}
+  {% if show_host %}
    <div class="cell left host">Hostname</div>
   {% endif %}
    <div class="cell right"># Total</div>
@@ -57,7 +57,7 @@
 		{{ value }}
   {% endif %}
   </div>
- {% if field == 'ip' %}
+ {% if show_host %}
   {% set host = value ? gethostbyaddr(value) %}
   <div class='cell day host'>{{ host != value ? host }}{% if log.country %} ({{ log.country }}){% endif %}</div>
  {% endif %}
@@ -68,7 +68,7 @@
 {% endfor %}
  <div class="row caption">
   <div class='cell day'>Total:</div>
- {% if field == 'ip' %}
+ {% if show_host %}
   <div class='cell day host'></div>
  {% endif %}
   <div class='cell right cnt'>{{ sum.count|nf }}</div>
