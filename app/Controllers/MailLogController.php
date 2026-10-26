@@ -272,6 +272,14 @@ class MailLogController extends ViewController
 			$logs = array_map(fn($log) => $log + ['country' => Helper::getCountry($log['ip'])], $logs);
 		}
 
+		$chart = null;
+		if ($field === 'date' && $mode === 'day') {
+			$chart = $this->createChart(
+				fn(array $d): Chart => ChartBuilder::createReportsDayChart($d, fn(string $day): string => $this->getSearchResultsUrl() . '?date=' . rawurlencode($day)),
+				$logs
+			);
+		}
+
 		return new Response($this->twig->render('reports.twig', [
 			'qidform' => $qidform->createView(),
 			'field' => $field,
@@ -291,6 +299,8 @@ class MailLogController extends ViewController
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
+			'chart' => $chart,
+			'show_charts' => $chart !== null,
 		]));
 	}
 

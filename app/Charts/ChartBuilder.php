@@ -14,6 +14,7 @@ class ChartBuilder {
 
 	// distinct from every MailCategory colour (Tableau 10 teal)
 	private const STORED_RATIO_COLOR = '#76b7b2';
+	private const SIZE_COLOR = '#59a14f';
 
 	public static function createSearchChart(array $stats): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
@@ -187,6 +188,74 @@ class ChartBuilder {
 		]);
 
 		$chart->setAttributes(['note' => "Click on a bar to view that day's mails"]);
+
+		return $chart;
+	}
+
+	// reports by date (rows newest first): mails and stored per day, size (MB) on the right axis
+	public static function createReportsDayChart(array $rows, callable $dayUrl): Chart {
+		$chart = new Chart(Chart::TYPE_BAR);
+
+		$labels = [];
+		$total = [];
+		$stored = [];
+		$size = [];
+		$links = [];
+
+		foreach (array_reverse($rows) as $row) {
+			$labels[] = (string) $row['date'];
+			$total[] = (int) $row['total'];
+			$stored[] = (int) $row['total_stored'];
+			$size[] = round((float) $row['total_size'] / 1048576, 1);
+			$links[] = $dayUrl((string) $row['date']);
+		}
+
+		$chart->setData([
+			'labels' => $labels,
+			'datasets' => [
+				[
+					'label' => MailCategory::TOTAL->label(),
+					'data' => $total,
+					'links' => $links,
+					'backgroundColor' => [MailCategory::TOTAL->color()],
+				],
+				[
+					'label' => MailCategory::STORED->label(),
+					'data' => $stored,
+					'links' => $links,
+					'backgroundColor' => [MailCategory::STORED->color()],
+				],
+				[
+					'label' => 'Size (MB)',
+					'data' => $size,
+					'links' => $links,
+					'yAxisID' => 'y1',
+					'backgroundColor' => [self::SIZE_COLOR],
+				],
+			],
+		]);
+
+		$chart->setOptions([
+			'responsive' => true,
+			'maintainAspectRatio' => false,
+			'interaction' => ['mode' => 'index', 'intersect' => false],
+			'scales' => [
+				'y' => [
+					'display' => 'auto',
+					'beginAtZero' => true,
+					'title' => ['display' => true, 'text' => 'Mails'],
+				],
+				'y1' => [
+					'display' => 'auto',
+					'position' => 'right',
+					'beginAtZero' => true,
+					'grid' => ['drawOnChartArea' => false],
+					'title' => ['display' => true, 'text' => 'MB'],
+				],
+			],
+		]);
+
+		$chart->setAttributes(['note' => "Click on a day to view its mails\nClick on a label at the top to toggle its bars"]);
 
 		return $chart;
 	}
