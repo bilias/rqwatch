@@ -1332,7 +1332,7 @@ class MailLogController extends ViewController
 			: RouteName::MAP_ADD_ENTRY;
 
 		foreach ($configs as $mapName => &$cfg) {
-			$queryParams = ['map' => $mapName];
+			$queryParams = ['map' => $mapName, 'return-mail' => $log->id];
 
 			foreach ($cfg['fields'] ?? [] as $field) {
 				$sourceField = $fieldMap[$field] ?? $field;

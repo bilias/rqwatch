@@ -675,14 +675,14 @@ class MapController extends ViewController
 			// has applyUserRcptToScope
 			if ($service->mapEntryExists($model, $map, $fields, $data)) {
 				$this->flashbag->add('error', "Entry '{$entry_str}' already exists in Map '{$mapdescr}'");
-				return new RedirectResponse($this->getMapAddEntryUrl($map) );
+				return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapAddEntryUrl($map));
 			}
 
 			if ($model === 'MapCombined' && $service->userMapQuotaReached($map)) {
 				$max = (int) Config::get('USER_MAP_MAX_ENTRIES');
 				$this->fileLogger->warning("User {$this->username} reached map entry limit ({$max}) in Map '{$map}'");
 				$this->flashbag->add('error', "Map entry limit reached ({$max}) in Map '{$mapdescr}'");
-				return new RedirectResponse($this->getMapShowUrl($map));
+				return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapShowUrl($map));
 			}
 
 			// add entry
@@ -690,7 +690,7 @@ class MapController extends ViewController
 				// has applyUseScope
 				if ($service->addMapCombinedEntry($map, $fields, $data)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
-					return new RedirectResponse($this->getMapShowUrl($map));
+					return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
 					return new RedirectResponse($this->getMapAddEntryUrl($map));
@@ -698,7 +698,7 @@ class MapController extends ViewController
 			} elseif ($this->is_admin && $model === 'MapCustom') {
 				if($service->addMapCustomEntry($map, $data[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
-					return new RedirectResponse($this->getMapShowUrl($map));
+					return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
 					return new RedirectResponse($this->getMapAddEntryUrl($map));
@@ -1401,6 +1401,17 @@ class MapController extends ViewController
 		return $this->is_admin
 			? $this->url(RouteName::ADMIN_MAP_SHOW, ['map' => $map])
 			: $this->url(RouteName::MAP_SHOW, ['map' => $map]);
+	}
+
+	// the mail's detail page when the add came from it (?return-mail=<id>)
+	private function getReturnMailUrl(): ?string {
+		$id = $this->request->query->getInt('return-mail');
+		if ($id < 1) {
+			return null;
+		}
+		return $this->is_admin
+			? $this->url(RouteName::ADMIN_DETAIL, ['type' => 'id', 'value' => $id])
+			: $this->url(RouteName::DETAIL, ['type' => 'id', 'value' => $id]);
 	}
 
 	private function getMapAddEntryUrl(string $map): string {
