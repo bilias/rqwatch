@@ -30,6 +30,9 @@
 
  <div class="row caption">
    <div class="cell left">{{ field|replace({'_': ' '})|upper }}</div>
+  {% if field == 'ip' %}
+   <div class="cell left">Hostname</div>
+  {% endif %}
    <div class="cell right"># Total</div>
    <div class="cell right"># Stored</div>
    <div class="cell right">Total size</div>
@@ -54,6 +57,10 @@
 		{{ value }}
   {% endif %}
   </div>
+ {% if field == 'ip' %}
+  {% set host = value ? gethostbyaddr(value) %}
+  <div class='cell day'>{{ host != value ? host }}</div>
+ {% endif %}
   <div class='cell right cnt'>{{ log.total|nf }}</div>
   <div class='cell right cnt'>{{ log.total_stored }}</div>
   <div class='cell right cnt'>{{ formatSizeUnits(log.total_size) }}</div>
@@ -61,6 +68,9 @@
 {% endfor %}
  <div class="row caption">
   <div class='cell day'>Total:</div>
+ {% if field == 'ip' %}
+  <div class='cell day'></div>
+ {% endif %}
   <div class='cell right cnt'>{{ sum.count|nf }}</div>
   <div class='cell right cnt'>{{ sum.stored|nf }}</div>
   <div class='cell right cnt'>{{ formatSizeUnits(sum.size) }}</div>
