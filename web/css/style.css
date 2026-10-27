@@ -458,7 +458,7 @@ span.stored {
 .map {
   display: block;
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   margin: 20px auto; /* adds top margin & centers block */
   box-sizing: border-box;
   box-sizing: border-box;
@@ -552,7 +552,7 @@ span.stored {
 
 .searchform {
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   border: 0px;
   margin: 20px auto;
   box-sizing: border-box;
@@ -657,7 +657,7 @@ span.stored {
  /*  background-color: var(--color-bg-clean); */
 	text-align: center;
 	display: block;
-	width: 600px;
+	width: 800px;
 	margin-bottom: 1px;
 }
 
@@ -674,7 +674,7 @@ span.stored {
 
 .active_filters {
  width: 100%;
- max-width: 600px;
+ max-width: 800px;
  background-color: var(--color-bg-clean);
  border: 0px;
  margin: 20px auto;
@@ -738,7 +738,7 @@ span.stored {
  display: flow-root;
  padding-top: 0px;
  width: 100%;
- max-width: 600px;
+ max-width: 800px;
  margin: 20px auto;
  box-sizing: border-box;
 }
