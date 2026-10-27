@@ -11,6 +11,7 @@
 namespace App\Utils;
 
 use App\Models\MailLog;
+use App\Services\FuzzyService;
 use App\Services\VirusService;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -101,12 +102,18 @@ class FormHelper
 			'Notification pending (0/1)' => 'notification_pending',
 			// not a column: notified IS NULL, via filterByNotificationSkipped()
 			'Notification skipped (0/1)' => 'notification_skipped',
+			// mail_log_fuzzy_hits via filterByFuzzyHit()
+			'Fuzzy hit (0/1)' => 'fuzzy_hit',
 			'Server' => 'server',
 		);
 
 		// mail_log_viruses is complete once its migration has run
 		if (!VirusService::reportEnabled()) {
 			unset($filters['Virus']);
+		}
+		// as the Hits links: fuzzy on and mail_log_fuzzy_hits complete
+		if (!FuzzyService::isEnabled() || !FuzzyService::hitMailsEnabled()) {
+			unset($filters['Fuzzy hit (0/1)']);
 		}
 
 		if ($is_admin) {

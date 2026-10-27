@@ -165,6 +165,11 @@ class MailLogService
 
 							continue; // not a mail_logs column
 						}
+						if ($f === 'fuzzy_hit') {
+							$this->filterByFuzzyHit($query, $c, $v);
+
+							continue; // mail_log_fuzzy_hits, not a mail_logs column
+						}
 						$query->where($f, $c, $v);
 					}
 					/* support NULL/NOT NULL
@@ -214,6 +219,27 @@ class MailLogService
 		}
 
 		$query->whereRaw("(`notified` IS NULL) {$c} ?", [$v]);
+	}
+
+	/*
+	 Fuzzy hit: the mail hit a learned mail (mail_log_fuzzy_hits). = and <>
+	 against 0/1 are EXISTS / NOT EXISTS on mail_log_id_index; any other
+	 operator compares the EXISTS as 0/1. $c is always a
+	 FormHelper::getChoices() value.
+	*/
+	private function filterByFuzzyHit(Builder $query, string $c, mixed $v): void {
+		$id = $query->qualifyColumn('id');
+		$exists = fn ($q) => $q->selectRaw('1')
+			->from(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE . ' as fh')
+			->whereColumn('fh.mail_log_id', $id);
+
+		if (in_array($c, ['=', '<>'], true) && in_array((string) $v, ['0', '1'], true)) {
+			$query->whereExists($exists, 'and', ($c === '=') !== ((string) $v === '1'));
+			return;
+		}
+
+		$sub = $exists($query->getQuery()->newQuery());
+		$query->whereRaw("(EXISTS ({$sub->toSql()})) {$c} ?", [...$sub->getBindings(), $v]);
 	}
 
 	/*

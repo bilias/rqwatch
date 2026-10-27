@@ -144,6 +144,7 @@ class MailLog extends Model
 	// Fields a non-admin must not filter on or report by.
 	public const array ADMIN_ONLY_FIELDS = [
 		'server',
+		'fuzzy_hit',
 	];
 
 	// Static DB field length limits
