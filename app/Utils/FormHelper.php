@@ -91,6 +91,8 @@ class FormHelper
 			'RCPT To' => 'mail_recipients',
 			'MIME From' => 'mime_from',
 			'MIME To' => 'mime_to',
+			// mail_log_fuzzy_hits via filterByFuzzyHit()
+			'Fuzzy hit (0/1)' => 'fuzzy_hit',
 			'Has Virus (0/1)' => 'has_virus',
 			// mail_log_viruses via filterByVirus()
 			'Virus' => 'virus',
@@ -102,8 +104,6 @@ class FormHelper
 			'Notification pending (0/1)' => 'notification_pending',
 			// not a column: notified IS NULL, via filterByNotificationSkipped()
 			'Notification skipped (0/1)' => 'notification_skipped',
-			// mail_log_fuzzy_hits via filterByFuzzyHit()
-			'Fuzzy hit (0/1)' => 'fuzzy_hit',
 			'Server' => 'server',
 		);
 
