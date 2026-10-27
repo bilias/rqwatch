@@ -115,7 +115,7 @@ class MailLogService
 		}
 
 		if (!empty($filters)) {
-			// Date filters, for filterByVirus()
+			// Date filters, for filterByVirus() and filterByLocalSymbol()
 			$days = [];
 			foreach ($filters as $filter) {
 				if (($filter['filter'] ?? null) === 'created_day'
@@ -152,6 +152,12 @@ class MailLogService
 							$this->filterByVirus($query, $c, $v, $days);
 
 							continue; // mail_log_viruses, not a mail_logs column
+						}
+
+						if ($f === 'local_symbol') {
+							$this->filterByLocalSymbol($query, $c, $v, $days);
+
+							continue; // mail_log_symbol_hits, not a mail_logs column
 						}
 
 						if ($c === 'LIKE') {
@@ -364,17 +370,75 @@ class MailLogService
 			$q->selectRaw('1')
 				->from(AppConfig::MAIL_LOG_VIRUSES_TABLE . ' as vf')
 				->whereColumn('vf.mail_log_id', $id);
-			foreach ($days as [$dc, $dv]) {
-				if ($dc === 'LIKE' || $dc === 'NOT LIKE') {
-					$dv = "%{$dv}%";
-				}
-				$q->where('vf.created_day', $dc, $dv);
-			}
+			$this->whereDays($q, 'vf.created_day', $days);
 			$q->where(function ($q) use ($name, $av, $op, $val) {
 				$q->where($name, $op, $val)
 					->orWhere(fn ($q) => $q->where('vf.name', '')->where($av, $op, $val));
 			});
 		}, 'and', $negate);
+	}
+
+	/*
+	 * Local symbol filter on mail_log_symbol_hits (the symbols matching
+	 * $local_symbol_patterns or linked to a map). The names are resolved to
+	 * ids first (symbol_names is small) and inlined: with a join to
+	 * symbol_names the optimizer cannot see how few hits match and walked
+	 * mail_logs PRIMARY (contains + Date 567 ms; the ids 22 ms). = stays
+	 * utf8mb4_bin, exact like rspamd's names; the other operators compare
+	 * case-insensitively. $days as in filterByVirus().
+	 */
+	private function filterByLocalSymbol(Builder $query, string $c, mixed $v, array $days): void {
+		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
+
+		$op = match ($c) {
+			'<>', '!='   => '=',
+			'NOT LIKE'   => 'LIKE',
+			'NOT REGEXP' => 'REGEXP',
+			default      => $c,
+		};
+
+		$val = (string) $v;
+		if ($op === 'LIKE') {
+			$val = "%{$val}%";
+		}
+
+		$collate = $op === '=' ? '' : ' COLLATE ' . AppConfig::DB_COLLATION;
+		$ids = $query->getQuery()->newQuery()
+			->from(AppConfig::SYMBOL_NAMES_TABLE)
+			->where(DB::raw('`name`' . $collate), $op, $val)
+			->pluck('id')
+			->all();
+
+		if ($ids === []) {
+			// no such symbol: no mail has it, every mail lacks it
+			if (!$negate) {
+				$query->whereRaw('0 = 1');
+			}
+			return;
+		}
+
+		$id = $query->qualifyColumn('id');
+		$query->whereExists(function ($q) use ($ids, $id, $days) {
+			$q->selectRaw('1')
+				->from(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE . ' as sh')
+				->whereColumn('sh.mail_log_id', $id)
+				->whereIntegerInRaw('sh.symbol_id', $ids);
+			$this->whereDays($q, 'sh.created_day', $days);
+		}, 'and', $negate);
+	}
+
+	/*
+	 * The search's Date filters repeated on a child table's created_day,
+	 * which is the mail's own day: the result is the same, the plan a
+	 * range on the child's index.
+	 */
+	private function whereDays(QueryBuilder $q, string $column, array $days): void {
+		foreach ($days as [$dc, $dv]) {
+			if ($dc === 'LIKE' || $dc === 'NOT LIKE') {
+				$dv = "%{$dv}%";
+			}
+			$q->where($column, $dc, $dv);
+		}
 	}
 
 	public function cleanDb(Builder $query, int $batch): int {

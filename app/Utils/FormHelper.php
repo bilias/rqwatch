@@ -12,6 +12,7 @@ namespace App\Utils;
 
 use App\Models\MailLog;
 use App\Services\FuzzyService;
+use App\Services\MapService;
 use App\Services\VirusService;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -99,6 +100,8 @@ class FormHelper
 			'Size' => 'size',
 			'Headers' => 'headers',
 			'Rspamd symbols' => 'symbols',
+			// mail_log_symbol_hits via filterByLocalSymbol()
+			'Local symbol' => 'local_symbol',
 			'Released (0/1)' => 'released',
 			'Notified (0/1)' => 'notified',
 			'Notification pending (0/1)' => 'notification_pending',
@@ -114,6 +117,10 @@ class FormHelper
 		// as the Hits links: fuzzy on and mail_log_fuzzy_hits complete
 		if (!FuzzyService::isEnabled() || !FuzzyService::hitMailsEnabled()) {
 			unset($filters['Fuzzy hit (0/1)']);
+		}
+		// mail_log_symbol_hits is complete once its migration has run
+		if (!MapService::mapHitsEnabled()) {
+			unset($filters['Local symbol']);
 		}
 
 		if ($is_admin) {
