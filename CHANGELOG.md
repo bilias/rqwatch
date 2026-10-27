@@ -3,6 +3,10 @@
 ## Master Dev Branch
 
 ### 2026-10-26
+- Search: Add Virus search filter
+- Reports: add reports by month
+- Reports: bar chart of total, stored and size per day on date/day
+- Reports: hide Hostname column when dns_resolv is off
 - Fuzzy: each hit count links to the mails that hit the learned mail.
   Run `php bin/cli.php db:migrate` (or `db:migrate_mail_log_fuzzy_hits_mails`) to create
   the new `mail_log_fuzzy_hits` table and link the existing hits

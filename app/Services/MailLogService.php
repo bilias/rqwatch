@@ -115,6 +115,17 @@ class MailLogService
 		}
 
 		if (!empty($filters)) {
+			// Date filters, for filterByVirus()
+			$days = [];
+			foreach ($filters as $filter) {
+				if (($filter['filter'] ?? null) === 'created_day'
+				    && array_key_exists('choice', $filter)
+				    && array_key_exists('value', $filter)
+				) {
+					$days[] = [$filter['choice'], $filter['value']];
+				}
+			}
+
 			foreach ($filters as $filter) {
 				if (array_key_exists('filter', $filter) &&
 				    array_key_exists('choice', $filter) &&
@@ -135,6 +146,12 @@ class MailLogService
 							$this->filterByMailLogData($query, $f, $c, $v);
 
 							continue; // don't run $query->where('headers', ...) on mail_logs
+						}
+
+						if ($f === 'virus') {
+							$this->filterByVirus($query, $c, $v, $days);
+
+							continue; // mail_log_viruses, not a mail_logs column
 						}
 
 						if ($c === 'LIKE') {
@@ -285,6 +302,53 @@ class MailLogService
 				$q->where($col, $op, $val);
 			});
 		}
+	}
+
+	/*
+	 * Virus filter on mail_log_viruses, matching the virus report's key:
+	 * the name, or the antivirus symbol when the name is empty. = stays
+	 * utf8mb4_bin (exact, as in the report, and sargable on name_day_index);
+	 * the other operators compare case-insensitively like every filter.
+	 * Alias vf, not v: scopeVirusQuery() nests this inside a query on v.
+	 * $days are the search's Date filters, repeated on vf.created_day (the
+	 * mail's own day, so the result is the same): without them a contains
+	 * plus Date search walked mail_logs PRIMARY, 712 ms vs 3 ms measured.
+	 */
+	private function filterByVirus(Builder $query, string $c, mixed $v, array $days): void {
+		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
+
+		$op = match ($c) {
+			'<>', '!='   => '=',
+			'NOT LIKE'   => 'LIKE',
+			'NOT REGEXP' => 'REGEXP',
+			default      => $c,
+		};
+
+		$val = (string) $v;
+		if ($op === 'LIKE') {
+			$val = "%{$val}%";
+		}
+
+		$collate = $op === '=' ? '' : ' COLLATE ' . AppConfig::DB_COLLATION;
+		$name = DB::raw('`vf`.`name`' . $collate);
+		$av = DB::raw('`vf`.`av`' . $collate);
+		$id = $query->qualifyColumn('id');
+
+		$query->whereExists(function ($q) use ($name, $av, $op, $val, $id, $days) {
+			$q->selectRaw('1')
+				->from(AppConfig::MAIL_LOG_VIRUSES_TABLE . ' as vf')
+				->whereColumn('vf.mail_log_id', $id);
+			foreach ($days as [$dc, $dv]) {
+				if ($dc === 'LIKE' || $dc === 'NOT LIKE') {
+					$dv = "%{$dv}%";
+				}
+				$q->where('vf.created_day', $dc, $dv);
+			}
+			$q->where(function ($q) use ($name, $av, $op, $val) {
+				$q->where($name, $op, $val)
+					->orWhere(fn ($q) => $q->where('vf.name', '')->where($av, $op, $val));
+			});
+		}, 'and', $negate);
 	}
 
 	public function cleanDb(Builder $query, int $batch): int {

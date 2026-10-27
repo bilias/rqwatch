@@ -11,6 +11,7 @@
 namespace App\Utils;
 
 use App\Models\MailLog;
+use App\Services\VirusService;
 
 use Symfony\Component\HttpFoundation\Request;
 
@@ -90,6 +91,8 @@ class FormHelper
 			'MIME From' => 'mime_from',
 			'MIME To' => 'mime_to',
 			'Has Virus (0/1)' => 'has_virus',
+			// mail_log_viruses via filterByVirus()
+			'Virus' => 'virus',
 			'Size' => 'size',
 			'Headers' => 'headers',
 			'Rspamd symbols' => 'symbols',
@@ -100,6 +103,11 @@ class FormHelper
 			'Notification skipped (0/1)' => 'notification_skipped',
 			'Server' => 'server',
 		);
+
+		// mail_log_viruses is complete once its migration has run
+		if (!VirusService::reportEnabled()) {
+			unset($filters['Virus']);
+		}
 
 		if ($is_admin) {
 			return $filters;
