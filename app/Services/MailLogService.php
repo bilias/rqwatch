@@ -115,7 +115,7 @@ class MailLogService
 		}
 
 		if (!empty($filters)) {
-			// Date filters, for filterByVirus() and filterByLocalSymbol()
+			// Date filters, for filterByVirus(), filterByLocalSymbol() and filterByMapHit()
 			$days = [];
 			foreach ($filters as $filter) {
 				if (($filter['filter'] ?? null) === 'created_day'
@@ -175,6 +175,11 @@ class MailLogService
 							$this->filterByFuzzyHit($query, $c, $v);
 
 							continue; // mail_log_fuzzy_hits, not a mail_logs column
+						}
+						if ($f === 'map_hit') {
+							$this->filterByMapHit($query, $c, $v, $days);
+
+							continue; // mail_log_symbol_hits, not a mail_logs column
 						}
 						$query->where($f, $c, $v);
 					}
@@ -246,6 +251,59 @@ class MailLogService
 
 		$sub = $exists($query->getQuery()->newQuery());
 		$query->whereRaw("(EXISTS ({$sub->toSql()})) {$c} ?", [...$sub->getBindings(), $v]);
+	}
+
+	/*
+	 Map hit: the mail has a hit that counts for a map, as in the Map hits
+	 report - its symbol is linked to a map, or it is credited to an entry.
+	 Nearly every hit is mapped, so a positive EXISTS materializes the whole
+	 hits table; with a Date range a scalar subquery probes per mail instead
+	 (52 ms vs 0.31-0.81 s measured), without one EXISTS stays cheaper for
+	 the stats (1.1 s vs 2.8 s). = 0 is NOT EXISTS, probed per mail either way.
+	 Any other operator compares the EXISTS as 0/1. $c is always a
+	 FormHelper::getChoices() value.
+	*/
+	private function filterByMapHit(Builder $query, string $c, mixed $v, array $days): void {
+		$ids = [];
+		$names = array_keys(MapService::mappedSymbolSet());
+		if ($names !== []) {
+			$ids = $query->getQuery()->newQuery()
+				->from(AppConfig::SYMBOL_NAMES_TABLE)
+				->whereIn('name', $names)
+				->pluck('id')
+				->all();
+		}
+
+		$id = $query->qualifyColumn('id');
+		$hits = fn ($q) => $q->selectRaw('1')
+			->from(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE . ' as sh')
+			->whereColumn('sh.mail_log_id', $id)
+			->where(function ($q) use ($ids) {
+				$q->whereRaw('`sh`.`entry_model` <> 0');
+				if ($ids !== []) {
+					$q->orWhereIntegerInRaw('sh.symbol_id', $ids);
+				}
+			});
+
+		if (!in_array($c, ['=', '<>'], true) || !in_array((string) $v, ['0', '1'], true)) {
+			$sub = $hits($query->getQuery()->newQuery());
+			$query->whereRaw("(EXISTS ({$sub->toSql()})) {$c} ?", [...$sub->getBindings(), $v]);
+			return;
+		}
+
+		if (($c === '=') !== ((string) $v === '1')) {
+			$query->whereExists($hits, 'and', true);
+			return;
+		}
+
+		$ranged = array_filter($days, fn ($d) => in_array($d[0], ['=', '<', '<=', '>', '>='], true));
+		if ($ranged === []) {
+			$query->whereExists($hits);
+			return;
+		}
+
+		$sub = $hits($query->getQuery()->newQuery())->limit(1);
+		$query->whereRaw("({$sub->toSql()}) IS NOT NULL", $sub->getBindings());
 	}
 
 	/*

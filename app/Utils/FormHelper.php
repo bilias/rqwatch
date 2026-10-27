@@ -102,6 +102,8 @@ class FormHelper
 			'Rspamd symbols' => 'symbols',
 			// mail_log_symbol_hits via filterByLocalSymbol()
 			'Local symbol' => 'local_symbol',
+			// mail_log_symbol_hits via filterByMapHit()
+			'Map hit (0/1)' => 'map_hit',
 			'Released (0/1)' => 'released',
 			'Notified (0/1)' => 'notified',
 			'Notification pending (0/1)' => 'notification_pending',
@@ -121,6 +123,7 @@ class FormHelper
 		// mail_log_symbol_hits is complete once its migration has run
 		if (!MapService::mapHitsEnabled()) {
 			unset($filters['Local symbol']);
+			unset($filters['Map hit (0/1)']);
 		}
 
 		if ($is_admin) {

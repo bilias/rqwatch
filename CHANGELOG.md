@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-26
+- Search: Add Map hit search filter
 - Search: Add Local symbol search filter
 - Search: Add Fuzzy hit search filter
 - Search: Add Virus search filter
