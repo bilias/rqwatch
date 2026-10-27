@@ -690,7 +690,7 @@ span.stored {
 .active_filters .filter-actions {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     padding: 15px 5px 0;
 }
 
@@ -729,6 +729,11 @@ span.stored {
 
 .active_filters .addday {
  padding-left: 5px;
+	text-align: left;
+}
+
+.active_filters .addday a {
+	display: block;
 }
 
 .statistics,
