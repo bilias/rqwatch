@@ -22,12 +22,12 @@ Manage Custom Maps | Total: {{ totalRecords }} entries
  <th>Field Name</th>
  <th>Field Label</th>
 {% if map_symbols %}
- <th>Rspamd Symbols</th>
+ <th class='map_symbols'>Rspamd Symbols</th>
 {% endif %}
  <th>Updated</th>
- <th>Entries</th>
- <th>Delete</th>
- <th>Edit</th>
+ <th class='nowrap'>Entries</th>
+ <th class='nowrap'>Delete</th>
+ <th class='nowrap'>Edit</th>
 </tr></thead>
 
 <tbody>
@@ -41,13 +41,13 @@ Manage Custom Maps | Total: {{ totalRecords }} entries
 			<td class='center'>{{ entry.symbols ? entry.symbols|replace({',': ', '}) : '-' }}</td>
 			{% endif %}
 			<td class='center'>{{ entry.updated_at }}</td>
-			<td class='center'><a href="{{ route('ADMIN_MAP_SHOW', { map: entry.map_name }) }}">{{ entry.map_entries|nf }}</a></td>
+			<td class='center nowrap'><a href="{{ route('ADMIN_MAP_SHOW', { map: entry.map_name }) }}">{{ entry.map_entries|nf }}</a></td>
 			{% if entry.protected %}
-			<td class='center' title='Used by notification_skip_virus_map'>-</td>
-			<td class='center' title='Used by notification_skip_virus_map'>-</td>
+			<td class='center nowrap' title='Used by notification_skip_virus_map'>-</td>
+			<td class='center nowrap' title='Used by notification_skip_virus_map'>-</td>
 			{% else %}
-			<td class='center'><a href="{{ route('ADMIN_MAPS_CUSTOM_DEL', { id: entry.id, _token: csrf_token('custom_map_del') }) }}" onclick="return confirm('Are you sure you want to delete custom map:\n\'{{ entry.map_description|e('js') }}\'?\n\'{{ entry.map_entries|e('js') }}\' map entries will also be deleted.')">Delete</a></td>
-			<td class='center'><a href="{{ route('ADMIN_MAPS_CUSTOM_EDIT', { id: entry.id }) }}">Edit</a></td>
+			<td class='center nowrap'><a href="{{ route('ADMIN_MAPS_CUSTOM_DEL', { id: entry.id, _token: csrf_token('custom_map_del') }) }}" onclick="return confirm('Are you sure you want to delete custom map:\n\'{{ entry.map_description|e('js') }}\'?\n\'{{ entry.map_entries|e('js') }}\' map entries will also be deleted.')">Delete</a></td>
+			<td class='center nowrap'><a href="{{ route('ADMIN_MAPS_CUSTOM_EDIT', { id: entry.id }) }}">Edit</a></td>
 			{% endif %}
       </tr>
     {% endfor %}

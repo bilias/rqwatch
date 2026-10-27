@@ -175,6 +175,17 @@ table.mail th.symbols {
 	width: 50%;
 }
 
+table.mail th.map_symbols {
+	width: 60%;
+}
+
+table.mail th.nowrap,
+table.mail td.nowrap {
+	white-space: nowrap;
+	overflow-wrap: normal;
+	word-break: normal;
+}
+
 table.mail caption {
 	border-radius: 2px;
 }
