@@ -69,11 +69,7 @@
       "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M",
       "psalm": "psalm -c qa/psalm.xml --no-progress",
       "psalm-taint": "psalm -c qa/psalm.xml --taint-analysis --no-cache --ignore-baseline --no-progress",
-      "opengrep-rules": "sh qa/opengrep-rules.sh",
-      "opengrep": [
-         "@opengrep-rules",
-         "opengrep scan --error --config qa/opengrep.yml --config .semgrep-rules/php --config .semgrep-rules/generic/secrets --config .semgrep-rules/yaml/github-actions --exclude-rule semgrep-rules.php.lang.security.unlink-use ."
-      ],
+      "opengrep": "sh qa/opengrep.sh",
       "analyse": [
          "@phpstan",
          "@psalm"

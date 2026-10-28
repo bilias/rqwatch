@@ -3,7 +3,8 @@
 ## Master Dev Branch
 
 ### 2026-10-28
-- Add opengrep checks
+- CI: add Opengrep job with signature-verified binary
+- Add Opengrep checks
 - Fix normalizeToUtf8 charset fallback
 - Add psalm, phpstan checks
 
