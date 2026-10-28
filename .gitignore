@@ -18,3 +18,4 @@ gh-md-toc
 /opengrep.sarif
 /opengrep.tmp
 /psalm-taint.sarif
+/qa/.phpunit.result.cache
