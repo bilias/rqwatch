@@ -640,6 +640,12 @@ class MapService
 		}
 	}
 
+	// Same charset CustomMapConfigForm enforces; built-in map names match it too
+	/** @psalm-taint-escape file */
+	private static function fileSafeMapName(string $map_name): ?string {
+		return preg_match('/^[a-z0-9_\-]+$/', $map_name) ? $map_name : null;
+	}
+
 	public function updateMapFile(
 		string $model,
 		string $map_name,
@@ -653,6 +659,14 @@ class MapService
 			$this->logger->error("MAP_DIR not writable: {$map_dir}");
 			return false;
 		}
+
+		// map_name becomes a file name below
+		$safe_name = self::fileSafeMapName($map_name);
+		if ($safe_name === null) {
+			$this->logger->error("Invalid map name for map file: {$map_name}");
+			return false;
+		}
+		$map_name = $safe_name;
 
 		$tmpfile = tempnam($map_dir, "{$map_name}_");
 
