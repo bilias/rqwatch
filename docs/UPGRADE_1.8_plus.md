@@ -21,10 +21,10 @@ git fetch --tags origin
 git checkout v1.8.4
 
 # upgrade dependencies
-composer install
+composer install --no-dev
 
 # verify php modules
-composer check-platform-reqs
+composer check-platform-reqs --no-dev
 
 # Check and perform Database updates on one API server only. Schema changes
 # replicate on Galera. If you run multiple API servers and each one with a separate DB,

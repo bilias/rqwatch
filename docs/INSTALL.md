@@ -146,9 +146,9 @@ cd /var/www/html/rqwatch/
 
 git config --global --add safe.directory /var/www/html/rqwatch
 
-composer install
+composer install --no-dev
 
-composer check-platform-reqs
+composer check-platform-reqs --no-dev
 
 composer dump-autoload -o # optional, only with OPcache enabled
 ```

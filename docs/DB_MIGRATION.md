@@ -17,7 +17,7 @@ You should avoid busy system hours.
   ```
 
 - Update dependencies\
-  `composer install`
+  `composer install --no-dev`
 
 - `composer dump-autoload -o` optional, only with OPcache enabled
 
@@ -40,6 +40,6 @@ You should avoid busy system hours.
   ```
 
 - Update dependencies\
-  `composer install`
+  `composer install --no-dev`
 
 - `composer dump-autoload -o` optional, only with OPcache enabled

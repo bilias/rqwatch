@@ -13,7 +13,7 @@ Here is the procedure to apply this update:
 `git pull`
 
 - Update dependencies\
-`composer install`
+`composer install --no-dev`
 
 - Migrate mail recipient entries. This will take rcpt_to entries from mail_logs and
   insert them in `mail_log_recipients` table. Run on **one** API server only.
@@ -31,7 +31,7 @@ Here is the procedure to apply this update:
 `git pull`
 
 - Update dependencies\
-`composer install`
+`composer install --no-dev`
 
 - `composer dump-autoload -o` optional, only with OPcache enabled
 

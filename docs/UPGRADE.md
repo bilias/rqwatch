@@ -24,10 +24,10 @@ git describe --tags --abbrev=0
 git checkout v2.1.2
 
 # upgrade dependencies
-composer install
+composer install --no-dev
 
 # verify php modules
-composer check-platform-reqs
+composer check-platform-reqs --no-dev
 
 # Check and perform Database updates
 ./bin/cli.php db:migrate
