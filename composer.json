@@ -59,5 +59,19 @@
         "maxmind-db/reader": "^1.12.1",
         "jumbojett/openid-connect-php": "^1.0",
         "mikepultz/netdns2": "^2.0"
-    }
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.3",
+        "larastan/larastan": "^3.13",
+        "vimeo/psalm": "^6.5"
+    },
+   "scripts": {
+      "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M",
+      "psalm": "psalm -c qa/psalm.xml --no-progress",
+      "psalm-taint": "psalm -c qa/psalm.xml --taint-analysis --no-cache --ignore-baseline --no-progress",
+      "analyse": [
+         "@phpstan",
+         "@psalm"
+      ]
+   }
 }

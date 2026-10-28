@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="6.5.0@38fc8444edf0cebc9205296ee6e30e906ade783b">
+  <file src="app/Charts/ChartBuilder.php">
+    <UndefinedInterfaceMethod>
+      <code><![CDATA[reverse]]></code>
+      <code><![CDATA[reverse]]></code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="app/Console/CronQuarantine.php">
+    <InvalidArgument>
+      <code><![CDATA[$logs]]></code>
+    </InvalidArgument>
+  </file>
+  <file src="app/Console/CronUpdateMapFiles.php">
+    <InvalidArrayOffset>
+      <code><![CDATA[[ $map => $map_config ]]]></code>
+    </InvalidArrayOffset>
+  </file>
+  <file src="app/Console/OptimizeTable.php">
+    <InvalidArrayOffset>
+      <code><![CDATA[$units[$i]]]></code>
+    </InvalidArrayOffset>
+  </file>
+  <file src="app/Controllers/Controller.php">
+    <UndefinedInterfaceMethod>
+      <code><![CDATA[getFlashBag]]></code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="app/Controllers/MailLogController.php">
+    <RedundantCondition>
+      <code><![CDATA[!empty($data['email_alt'])]]></code>
+    </RedundantCondition>
+  </file>
+  <file src="app/Controllers/MapController.php">
+    <RedundantCondition>
+      <code><![CDATA[$this->is_admin && $model === 'MapCustom']]></code>
+    </RedundantCondition>
+  </file>
+  <file src="app/Controllers/ViewController.php">
+    <UndefinedInterfaceMethod>
+      <code><![CDATA[addPath]]></code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="app/Core/Auth/BasicAuth.php">
+    <RedundantCondition>
+      <code><![CDATA[API_MODE]]></code>
+    </RedundantCondition>
+  </file>
+  <file src="app/Core/Auth/RqwatchOpenIDConnectClient.php">
+    <InvalidReturnStatement>
+      <code><![CDATA[$this->getProviderConfigValue('end_session_endpoint')]]></code>
+    </InvalidReturnStatement>
+    <InvalidReturnType>
+      <code><![CDATA[string]]></code>
+    </InvalidReturnType>
+  </file>
+  <file src="app/Core/Cache/RedisCache.php">
+    <InvalidCast>
+      <code><![CDATA[$connection->ttl($key)]]></code>
+      <code><![CDATA[$this->getConnection()->incr($key)]]></code>
+    </InvalidCast>
+    <InvalidOperand>
+      <code><![CDATA[$connection->del($keys)]]></code>
+    </InvalidOperand>
+    <InvalidReturnStatement>
+      <code><![CDATA[$this->client]]></code>
+      <code><![CDATA[$this->getConnection()->set(
+				$key,
+				$value,
+				['ex' => $ttl]
+			)]]></code>
+      <code><![CDATA[$this->getConnection()->set($key, $value)]]></code>
+      <code><![CDATA[$ttl]]></code>
+    </InvalidReturnStatement>
+    <InvalidReturnType>
+      <code><![CDATA[?int]]></code>
+      <code><![CDATA[Redis]]></code>
+      <code><![CDATA[bool]]></code>
+    </InvalidReturnType>
+  </file>
+  <file src="app/Core/Kernel.php">
+    <RedundantCondition>
+      <code><![CDATA[ALLOW_DEGRADED_DB]]></code>
+    </RedundantCondition>
+  </file>
+  <file src="app/Core/Middleware/AuthMiddleware.php">
+    <UndefinedInterfaceMethod>
+      <code><![CDATA[getFlashBag]]></code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="app/Core/Middleware/Authorization.php">
+    <UndefinedInterfaceMethod>
+      <code><![CDATA[getFlashBag]]></code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="app/Core/SessionManager.php">
+    <InvalidNullableReturnType>
+      <code><![CDATA[Session]]></code>
+    </InvalidNullableReturnType>
+    <NullableReturnStatement>
+      <code><![CDATA[self::$session]]></code>
+    </NullableReturnStatement>
+  </file>
+  <file src="app/Inventory/MapInventory.php">
+    <FalsableReturnStatement>
+      <code><![CDATA[$prefix === null ? $ip : "{$ip}/{$prefix}"]]></code>
+    </FalsableReturnStatement>
+    <NullableReturnStatement>
+      <code><![CDATA[$config]]></code>
+    </NullableReturnStatement>
+    <TypeDoesNotContainNull>
+      <code><![CDATA[$config[$field] === null]]></code>
+    </TypeDoesNotContainNull>
+    <TypeDoesNotContainType>
+      <code><![CDATA[$role === 'user']]></code>
+      <code><![CDATA[$role === 'user']]></code>
+      <code><![CDATA[($role === 'user') &&
+					in_array('user', $config['access'] ?? [], true)]]></code>
+    </TypeDoesNotContainType>
+  </file>
+  <file src="app/Models/MailLogFuzzy.php">
+    <InvalidDocblock>
+      <code><![CDATA[public function mailLog(): BelongsTo {]]></code>
+    </InvalidDocblock>
+  </file>
+  <file src="app/Services/FuzzyService.php">
+    <InvalidArgument>
+      <code><![CDATA[fn ($q) => $q->whereNull('mail_log_id')->orWhere('mail_log_id', '<>', $mailLogId)]]></code>
+      <code><![CDATA[function ($q) use ($hashes) {
+				foreach ($hashes as $hash) {
+					$q->orWhereRaw('JSON_CONTAINS(hashes, JSON_QUOTE(?))', [$hash]);
+				}
+			}]]></code>
+    </InvalidArgument>
+    <InvalidTemplateParam>
+      <code><![CDATA[$query->orderBy('id')->get(['id', 'mail_log_id', 'qid', 'flag'])
+			->map(fn ($r) => [
+				'id' => (int) $r->id,
+				'mail_log_id' => $r->mail_log_id,
+				'qid' => (string) $r->qid,
+				'flag' => (int) $r->flag,
+			])]]></code>
+    </InvalidTemplateParam>
+    <UndefinedMethod>
+      <code><![CDATA[orWhereRaw]]></code>
+      <code><![CDATA[whereNull]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="app/Services/MailLogService.php">
+    <InvalidArgument>
+      <code><![CDATA[$query]]></code>
+      <code><![CDATA[$query]]></code>
+      <code><![CDATA[$query]]></code>
+      <code><![CDATA[$query]]></code>
+      <code><![CDATA[function ($q) {
+			$q->where('mail_stored', 1)
+				->orWhere(function ($q) {
+					$q->whereNotNull('mail_location')
+						->where('mail_location', '<>', '0');
+				});
+		}]]></code>
+    </InvalidArgument>
+    <UndefinedMethod>
+      <code><![CDATA[where]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="app/Services/MapService.php">
+    <InvalidArgument>
+      <code><![CDATA[function($q) use ($search) {
+				foreach (MapCombined::SEARCH_FIELDS as $field) {
+					$q->orWhere($field, 'LIKE', "%{$search}%");
+				}
+			}]]></code>
+    </InvalidArgument>
+    <UndefinedMethod>
+      <code><![CDATA[orWhere]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="app/Utils/Helper.php">
+    <FalsableReturnStatement>
+      <code><![CDATA[iconv('UTF-8', 'UTF-8//IGNORE', $converted)]]></code>
+      <code><![CDATA[iconv('UTF-8', 'UTF-8//IGNORE', $input)]]></code>
+    </FalsableReturnStatement>
+  </file>
+</files>

@@ -13,5 +13,3 @@ NOTES
 *.md.toc.*
 gh-md-toc
 .idea
-phpstan.neon
-psalm-out

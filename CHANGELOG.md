@@ -2,11 +2,16 @@
 
 ## Master Dev Branch
 
-### 2026-10-26
+### 2026-10-28
+- Add psalm, phpstan checks
+
+### 2026-10-27
 - Search: Add Map hit search filter
 - Search: Add Local symbol search filter
 - Search: Add Fuzzy hit search filter
 - Search: Add Virus search filter
+
+### 2026-10-26
 - Reports: add reports by month
 - Reports: bar chart of total, stored and size per day on date/day
 - Reports: hide Hostname column when dns_resolv is off

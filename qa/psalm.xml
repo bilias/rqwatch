@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<psalm
+	errorLevel="4"
+	resolveFromConfigFile="false"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="https://getpsalm.org/schema/config"
+	xsi:schemaLocation="https://getpsalm.org/schema/config ../vendor/vimeo/psalm/config.xsd"
+	findUnusedBaselineEntry="true"
+	findUnusedCode="false"
+	allConstantsGlobal="true"
+	errorBaseline="qa/psalm-baseline.xml"
+>
+	<!-- Paths are relative to the project root: run from there (composer scripts do) -->
+	<projectFiles>
+		<directory name="app" />
+		<ignoreFiles>
+			<directory name="vendor" />
+		</ignoreFiles>
+	</projectFiles>
+
+	<stubs>
+		<file name="qa/taint-stubs.phpstub"/>
+	</stubs>
+
+	<issueHandlers>
+		<ParamNameMismatch errorLevel="suppress"/>
+		<RedundantCast errorLevel="suppress"/>
+
+		<!-- Laravel schema/query builder magic methods are poorly stubbed -->
+		<InvalidArgument>
+			<errorLevel type="suppress">
+				<directory name="app/Core/Database/Migrations"/>
+			</errorLevel>
+		</InvalidArgument>
+		<TooManyArguments>
+			<errorLevel type="suppress">
+				<directory name="app/Core/Database/Migrations"/>
+			</errorLevel>
+		</TooManyArguments>
+
+		<!-- Optional backends in Symfony RedisAdapter's return type; not installed -->
+		<UndefinedClass>
+			<errorLevel type="suppress">
+				<referencedClass name="Relay\Relay"/>
+				<referencedClass name="Relay\Cluster"/>
+				<referencedClass name="Predis\ClientInterface"/>
+			</errorLevel>
+		</UndefinedClass>
+	</issueHandlers>
+</psalm>

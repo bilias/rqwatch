@@ -1,0 +1,118 @@
+includes:
+	- ../vendor/larastan/larastan/extension.neon
+
+parameters:
+	level: 5
+	paths:
+		- ../app
+		- ../bin
+		- ../web
+		- ../config
+	dynamicConstantNames:
+		- CLI_MODE
+		- API_MODE
+		- WEB_MODE
+		- ALLOW_DEGRADED_DB
+	bootstrapFiles:
+		- ../app/Configuration/AppConfig.php
+		- phpstan-bootstrap.php
+
+	# PHPStan paths are relative to this file (qa/); Larastan's own path
+	# parameters are plain strings, so anchor them to the working directory.
+	# Larastan: rqwatch is not a Laravel app, so give every path explicitly
+	# (an empty one falls back to config_path()/database_path(), which don't exist here)
+	configDirectories:
+		- %currentWorkingDirectory%/config
+	databaseMigrationsPath:
+		- %currentWorkingDirectory%/contrib
+	disableMigrationScan: true
+	squashedMigrationsPath:
+		- %currentWorkingDirectory%/contrib
+
+	ignoreErrors:
+		-
+			identifier: argument.type
+			message: '#expects App\\Models\\MailLog, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			path: ../app/Console/CronNotifications.php
+			count: 2
+		-
+			identifier: argument.type
+			message: '#expects App\\Core\\Cache\\RedisCache, App\\Core\\Cache\\CacheInterface\|null given\.$#'
+			paths:
+				- ../app/Controllers/Controller.php
+				- ../app/Controllers/SystemController.php
+		-
+			identifier: return.type
+			message: '#^Method App\\Services\\MapService::findMapEntry\(\) should return App\\Models\\MapCombined\|App\\Models\\MapCustom\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			path: ../app/Services/MapService.php
+		-
+			message: '#^Call to an undefined static method Illuminate\\Database\\Capsule\\Manager::\w+\(\)\.$#'
+			identifier: staticMethod.notFound
+		-
+			message: '#^Access to an undefined property App\\Models\\\w+::\$\w+\.$#'
+			identifier: property.notFound
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model::\$\w+\.$#'
+			identifier: property.notFound
+		-
+			message: '#^Call to an undefined method Traversable<mixed, mixed>::reverse\(\)\.$#'
+			identifier: method.notFound
+			path: ../app/Charts/ChartBuilder.php
+		-
+			message: '#^Call to an undefined method Illuminate\\Support\\Fluent::instant\(\)\.$#'
+			identifier: method.notFound
+			path: ../app/Core/Database/Migrations/DropMailLogColumns.php
+		-
+			message: '#^Call to an undefined method Twig\\Loader\\LoaderInterface::addPath\(\)\.$#'
+			identifier: method.notFound
+			path: ../app/Controllers/ViewController.php
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\HttpFoundation\\Session\\SessionInterface::getFlashBag\(\)\.$#'
+			identifier: method.notFound
+			paths:
+				- ../app/Core/Middleware/Authorization.php
+				- ../app/Core/Middleware/AuthMiddleware.php
+		-
+			message: '#^Method App\\Services\\MailLogService::\w+\(\) should return App\\Models\\MailLog but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			path: ../app/Services/MailLogService.php
+			count: 4
+		-
+			message: '#^Property App\\Controllers\\Controller::\$(session|flashbag) \(.+\) does not accept Symfony\\Component\\HttpFoundation\\Session\\(SessionInterface|Flash\\FlashBagInterface)\.$#'
+			identifier: assign.propertyType
+			path: ../app/Controllers/Controller.php
+			count: 2
+		-
+			identifier: assign.propertyType
+			message: '#^Property App\\Models\\MailLog::\$release_date \(Carbon\\Carbon\|null\) does not accept string\.$#'
+			path: ../app/Services/MailLogService.php
+		-
+			identifier: deadCode.unreachable
+			path: ../app/Core/Database/Migrations/IdActionIndex.php
+			count: 2
+		-
+			identifier: isset.offset
+			path: ../app/Core/Database/Migrations/IdActionIndex.php
+			count: 2
+		-
+			identifier: booleanNot.alwaysTrue
+			path: ../app/Core/Database/Migrations/IdActionIndex.php
+		-
+			identifier: method.unused
+			path: ../app/Core/Database/Migrations/IdActionIndex.php
+		-
+			identifier: property.onlyWritten
+			message: '#::\$logger is never read#'
+			path: ../app/Core/Auth/DbAuth.php
+		-
+			identifier: booleanAnd.leftAlwaysTrue
+			path: ../app/Controllers/MapController.php
+		-
+			identifier: identical.alwaysTrue
+			path: ../app/Controllers/MapController.php
+		-
+			identifier: identical.alwaysFalse
+			path: ../app/Inventory/MapInventory.php
+		-
+			identifier: notIdentical.alwaysTrue
+			path: ../app/Utils/Helper.php
