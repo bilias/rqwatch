@@ -13,7 +13,7 @@
  anonymous requests and the admin check on an existing session.
 */
 
-namespace Tests\Security;
+namespace Tests\Access;
 
 use App\Core\Middleware\AuthMiddleware;
 use App\Core\Middleware\Authorization;

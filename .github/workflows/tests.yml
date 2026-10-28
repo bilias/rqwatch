@@ -1,4 +1,4 @@
-name: Tests
+name: Security tests
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   security:
-    name: Security tests
+    name: Access control
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -31,10 +31,10 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Route access and middleware tests
-        run: composer test
+        run: composer test-access
 
   scoping:
-    name: Scoping tests
+    name: Data scoping
     runs-on: ubuntu-24.04
     services:
       mariadb:
@@ -61,7 +61,7 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Scoping tests
+      - name: Data scoping tests
         env:
           SCOPING_DB_EXEC: docker exec -i ${{ job.services.mariadb.id }} mariadb -uroot -pscoping-test
           SCOPING_DB_HOST: 127.0.0.1

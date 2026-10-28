@@ -5,8 +5,8 @@
 	failOnWarning="true"
 	failOnRisky="true">
 	<testsuites>
-		<testsuite name="security">
-			<directory>../tests/Security</directory>
+		<testsuite name="access">
+			<directory>../tests/Access</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

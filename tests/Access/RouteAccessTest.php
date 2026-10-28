@@ -15,7 +15,7 @@
  the failure is the prompt to review that decision.
 */
 
-namespace Tests\Security;
+namespace Tests\Access;
 
 use App\Configuration\AppConfig;
 use App\Core\Middleware\AuthMiddleware;
