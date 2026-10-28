@@ -16,7 +16,7 @@
 # phpunit. Run from the project root.
 set -euo pipefail
 
-MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
+MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11@sha256:6c65a843396dc6c78dd0da19eccaa0a91d25d9d26a4c2afcb75010ac3f59f5ea}"
 SRC=$(pwd)
 WORK=$(mktemp -d)
 CID=
