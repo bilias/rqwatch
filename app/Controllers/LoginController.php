@@ -42,6 +42,26 @@ class LoginController extends ViewController
       return $this->loginUrl;
    }
 
+	// The request's own scheme and host if trusted, so OIDC returns users to the name they
+	// browsed (the session cookie is host-only); otherwise WEB_SCHEME://WEB_HOST
+	private function oidcBaseUrl(): string {
+		$host = $this->request->getHost();
+		$trusted = array_merge(
+			[$_ENV['WEB_HOST'] ?? '', $_ENV['WEB_HOST_NOTIFICATIONS'] ?? ''],
+			explode(',', $_ENV['OPENIDC_TRUSTED_HOSTS'] ?? '')
+		);
+
+		foreach ($trusted as $name) {
+			if ($host !== '' && strtolower(preg_replace('/:\d+$/', '', trim($name))) === $host) {
+				return $this->request->getSchemeAndHttpHost();
+			}
+		}
+
+		$this->fileLogger->warning("OPENIDC: untrusted host '{$host}' from "
+			. ($this->request->getClientIp() ?? 'unknown') . ", using WEB_HOST");
+		return $_ENV['WEB_SCHEME'] . '://' . $_ENV['WEB_HOST'];
+	}
+
 	public function logout(): Response {
 		if (!$this->csrfValid('logout')) {
 			$this->fileLogger->warning(
@@ -69,7 +89,7 @@ class LoginController extends ViewController
 				return $this->logout_openidc();
 			}
 			// OPENIDC_RP_INITIATED_LOGOUT=false
-			$fullLoginUrl = $this->request->getSchemeAndHttpHost()
+			$fullLoginUrl = $this->oidcBaseUrl()
 				. $this->getLoginUrl()
 				. '?openidc_session_active=1';
 
@@ -91,7 +111,7 @@ class LoginController extends ViewController
 			return new RedirectResponse($this->getLoginUrl());
 		}
 
-		$postLogoutRedirectUrl = $this->request->getSchemeAndHttpHost() . $this->url(RouteName::LOGIN);
+		$postLogoutRedirectUrl = $this->oidcBaseUrl() . $this->url(RouteName::LOGIN);
 		$auth = new AuthManager($this->fileLogger, $this->urlGenerator, $postLogoutRedirectUrl);
 
 		try {
@@ -215,7 +235,7 @@ class LoginController extends ViewController
 			if ($openidcLogoutUrl && $clientId) {
 				$separator = str_contains($openidcLogoutUrl, '?') ? '&' : '?';
 
-				$fullLoginUrl = $this->request->getSchemeAndHttpHost() . $this->getLoginUrl();
+				$fullLoginUrl = $this->oidcBaseUrl() . $this->getLoginUrl();
 				$openidcLogoutUrl .= $separator . http_build_query([
 					'client_id' => $clientId,
 					'post_logout_redirect_uri' => $fullLoginUrl,
@@ -255,7 +275,7 @@ class LoginController extends ViewController
 		// get new session if it is expired
 		SessionManager::checkSessionExpired();
 
-		$callbackUrl = $this->request->getSchemeAndHttpHost() . $this->url(RouteName::OPENIDC_CALLBACK);
+		$callbackUrl = $this->oidcBaseUrl() . $this->url(RouteName::OPENIDC_CALLBACK);
 		$auth = new AuthManager($this->fileLogger, $this->urlGenerator, $callbackUrl);
 
 		try {

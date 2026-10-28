@@ -599,7 +599,16 @@ System supports OpenID Connect Authentication.
 
 - `OPENIDC_URL` - Provider URL
 
-- `OPENIDC_CLIENT_ID` - Client ID
+- `OPENIDC_CLIENT_ID` - Client ID\
+  Register `https://<name>/openidc/callback` as a redirect URI and `https://<name>/login`
+  as a post-logout redirect URI for every host name users browse Rqwatch with
+  (prefixed with `WEB_BASE` if set).
+
+- `OPENIDC_TRUSTED_HOSTS` - Other host names users browse Rqwatch with, comma-separated
+  (port is ignored)\
+  `WEB_HOST` and `WEB_HOST_NOTIFICATIONS` are always trusted. OIDC callback and logout
+  URLs use the requested host when it is trusted, so each name keeps its own session;
+  any other name is replaced by `WEB_HOST` and logged as `OPENIDC: untrusted host`.
 
 - `OPENIDC_CLIENT_SECRET` - Client Secret
 
