@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-28
+- CI: add daily composer audit workflow
 - CI: add Opengrep job with signature-verified binary
 - Add Opengrep checks
 - Fix normalizeToUtf8 charset fallback
