@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  security:
+  access:
     name: Access control
     runs-on: ubuntu-24.04
     steps:
