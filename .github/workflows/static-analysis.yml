@@ -1,7 +1,9 @@
 name: Static analysis
 
 on:
+on:
   push:
+    branches: [master]
   pull_request:
 
 permissions:
@@ -37,7 +39,7 @@ jobs:
         run: composer psalm-taint -- --output-format=github --report=psalm-taint.sarif
 
       - name: Upload taint results to Security tab
-        if: ${{ !cancelled() && hashFiles('psalm-taint.sarif') != '' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        if: ${{ !cancelled() && hashFiles('psalm-taint.sarif') != '' && github.actor != 'dependabot[bot]' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
         uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: psalm-taint.sarif
