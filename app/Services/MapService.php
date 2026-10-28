@@ -767,7 +767,7 @@ class MapService
 
 		$map_file = rtrim($map_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $map_name . ".txt";
 		if (!rename($tmpfile, $map_file)) {
-		   unlink($tmpfile);
+			unlink($tmpfile);
 			return false;
 		}
 
