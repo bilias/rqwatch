@@ -56,6 +56,16 @@ class Helper {
 		return App::fileLogger();
 	}
 
+	// Rspamd queue id as a path component: alphanumeric, else a unique placeholder
+	/** @psalm-taint-escape file */
+	private static function fileSafeQid(string $qid): string {
+		if (preg_match('/^[a-zA-Z0-9]+$/', $qid)) {
+			return $qid;
+		}
+		self::logger()->warning("QID invalid format: {$qid}");
+		return "invalid/" . uniqid();
+	}
+
 	// Stores raw mail into filesystem. Can be used for release to user
 	public static function store_raw_mail(
 		string $dir,
@@ -84,11 +94,7 @@ class Helper {
 		$dir_raw = $dir . "/" . $date . "/";
 
 		if (!empty($qid) && $qid != "unknown") {
-			if (!preg_match('/^[a-zA-Z0-9]+$/', $qid)) {
-				self::logger()->warning("QID invalid format: {$qid}");
-				$qid = "invalid/" . uniqid();
-			}
-			$dir_raw .= $qid;
+			$dir_raw .= self::fileSafeQid($qid);
 		} else {
 			$dir_raw .= "unknown/" . uniqid();
 		}
@@ -572,6 +578,8 @@ class Helper {
 		}
 
 		// symbols_array is string
+		// stub is an HTML sink even with $return = true.
+		/** @psalm-suppress TaintedHtml */
 		$symbols_array = print_r(json_decode($symbols, true), true);
 
 		if (!$fp_web_headers = fopen("{$dir}/web_headers", "w")) {
