@@ -80,6 +80,7 @@ class OptimizeTable extends RqwatchCliCommand
 
 			// a configured limit would kill the rebuild partway
 			$connection->statement('SET SESSION max_statement_time = 0');
+			// nosemgrep: rqwatch-raw-sql -- table checked against self::tables()
 			$connection->statement("OPTIMIZE TABLE `{$table}`");
 		} catch (\Throwable $e) {
 			$this->fileLogger->error(

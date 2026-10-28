@@ -1,0 +1,64 @@
+# rqwatch-specific Opengrep rules. Run from the project root:
+#   composer opengrep
+# A reviewed, safe finding is silenced on its line or the line above with
+#   // nosemgrep: <rule-id> -- <why it is safe>      (PHP)
+#   {# nosemgrep: <rule-id> -- <why it is safe> #}   (Twig)
+rules:
+  - id: rqwatch-twig-raw
+    languages: [generic]
+    severity: WARNING
+    message: >-
+      Twig output without autoescaping. Make sure the value is escaped in PHP
+      or safe by construction, then mark the line with nosemgrep and the reason.
+    metadata:
+      category: security
+      cwe: ["CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"]
+    paths:
+      include: ["*.twig"]
+    patterns:
+      - pattern-either:
+          - pattern-regex: '\|\s*raw\b'
+          - pattern-regex: '\{%-?\s*autoescape\s+false'
+      # JSON embedded in <script>: json_encode with JSON_HEX_TAG is safe
+      - pattern-not-regex: "json_encode\\(constant\\('JSON_HEX_TAG'\\)\\)\\s*\\|\\s*raw"
+
+  - id: rqwatch-raw-sql
+    languages: [php]
+    severity: WARNING
+    message: >-
+      Raw SQL built from a non-literal value. Values belong in bindings (?);
+      identifiers must come from a fixed list. Review, then mark the line with
+      nosemgrep and the reason.
+    metadata:
+      category: security
+      cwe: ["CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"]
+    paths:
+      # table and column names in migrations come from constants
+      exclude: ["app/Core/Database/Migrations/"]
+    patterns:
+      - pattern-either:
+          - patterns:
+              - pattern: $Q->$M($SQL, ...)
+              - metavariable-regex:
+                  metavariable: $M
+                  regex: ^(whereRaw|orWhereRaw|selectRaw|orderByRaw|havingRaw|orHavingRaw|groupByRaw|fromRaw)$
+          - pattern: DB::raw($SQL)
+          # connection queries; a string-literal first argument tells them
+          # apart from query builder select($columns)
+          - patterns:
+              - pattern-either:
+                  - pattern: $C->getConnection()->$N($SQL, ...)
+                  - pattern: $DB->$N($SQL, ...)
+              - metavariable-regex:
+                  metavariable: $N
+                  regex: ^(select|selectOne|scalar|statement|unprepared|affectingStatement)$
+              - metavariable-regex:
+                  metavariable: $SQL
+                  regex: (?s)^["'].*
+      - metavariable-pattern:
+          metavariable: $SQL
+          patterns:
+            - pattern-not: '"..."'
+            - pattern-not: "'...'"
+      # report the SQL argument, so nosemgrep goes next to it
+      - focus-metavariable: $SQL

@@ -116,7 +116,7 @@ No
 {% if textBody %}
 <h3>Mail Body in plain text:</h3>
 <hr/>
-{{ textBody|raw }}
+{{ textBody|raw }} {# nosemgrep: rqwatch-twig-raw -- MailObject escapes it with htmlspecialchars() #}
 {% endif %}
 
 {% if htmlBody %}

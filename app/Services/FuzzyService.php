@@ -197,6 +197,7 @@ class FuzzyService
 					->orWhere('api_server', 'like', $like)
 					->orWhereIn('id', function ($sub) use ($like, $table) {
 						$sub->selectRaw('o.id')
+							// nosemgrep: rqwatch-raw-sql -- table name is an AppConfig constant
 							->fromRaw("{$table} o, JSON_TABLE(o.hashes, '$[*]' COLUMNS (h VARCHAR(128) PATH '$')) oj, " .
 								"{$table} m, JSON_TABLE(m.hashes, '$[*]' COLUMNS (h VARCHAR(128) PATH '$')) mj")
 							->whereRaw('m.qid LIKE ? AND mj.h = oj.h', [$like]);
@@ -372,6 +373,7 @@ class FuzzyService
 
 		$table = AppConfig::MAIL_LOG_FUZZY_TABLE;
 		$found = App::capsule()->getConnection()->select(
+			// nosemgrep: rqwatch-raw-sql -- table name is an AppConfig constant; hashes bound
 			"SELECT f.id, f.qid, f.mail_log_id, f.flag, j.h FROM {$table} f, " .
 			"JSON_TABLE(f.hashes, '$[*]' COLUMNS (h VARCHAR(128) PATH '$')) j " .
 			"WHERE j.h IN (" . implode(',', array_fill(0, count($hashes), '?')) . ")",
@@ -489,6 +491,7 @@ class FuzzyService
 
 		$table = AppConfig::MAIL_LOG_FUZZY_TABLE;
 		$found = App::capsule()->getConnection()->select(
+			// nosemgrep: rqwatch-raw-sql -- table name is an AppConfig constant; values bound
 			"SELECT f.qid, f.flag, j.h FROM {$table} f, " .
 			"JSON_TABLE(f.hashes, '$[*]' COLUMNS (h VARCHAR(128) PATH '$')) j " .
 			"WHERE f.id <> ? AND j.h IN (" . implode(',', array_fill(0, count($hashes), '?')) . ")",

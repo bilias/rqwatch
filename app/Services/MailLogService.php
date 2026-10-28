@@ -229,6 +229,7 @@ class MailLogService
 			return;
 		}
 
+		// nosemgrep: rqwatch-raw-sql -- $c is a FormHelper::getChoices() operator; value bound
 		$query->whereRaw("(`notified` IS NULL) {$c} ?", [$v]);
 	}
 
@@ -250,6 +251,7 @@ class MailLogService
 		}
 
 		$sub = $exists($query->getQuery()->newQuery());
+		// nosemgrep: rqwatch-raw-sql -- $c is a FormHelper::getChoices() operator; subquery bindings passed
 		$query->whereRaw("(EXISTS ({$sub->toSql()})) {$c} ?", [...$sub->getBindings(), $v]);
 	}
 
@@ -287,6 +289,7 @@ class MailLogService
 
 		if (!in_array($c, ['=', '<>'], true) || !in_array((string) $v, ['0', '1'], true)) {
 			$sub = $hits($query->getQuery()->newQuery());
+			// nosemgrep: rqwatch-raw-sql -- $c is a FormHelper::getChoices() operator; subquery bindings passed
 			$query->whereRaw("(EXISTS ({$sub->toSql()})) {$c} ?", [...$sub->getBindings(), $v]);
 			return;
 		}
@@ -303,6 +306,7 @@ class MailLogService
 		}
 
 		$sub = $hits($query->getQuery()->newQuery())->limit(1);
+		// nosemgrep: rqwatch-raw-sql -- subquery from toSql(), its bindings passed
 		$query->whereRaw("({$sub->toSql()}) IS NOT NULL", $sub->getBindings());
 	}
 
@@ -379,6 +383,7 @@ class MailLogService
 		}
 
 		$col = DB::raw(
+			// nosemgrep: rqwatch-raw-sql -- $f is 'headers' or 'symbols' (getQueryByFilters)
 			'`' . AppConfig::MAIL_LOG_DATA_TABLE . '`.`' . $f . '`'
 			. ' COLLATE ' . AppConfig::DB_COLLATION
 		);
@@ -420,7 +425,9 @@ class MailLogService
 		}
 
 		$collate = $op === '=' ? '' : ' COLLATE ' . AppConfig::DB_COLLATION;
+		// nosemgrep: rqwatch-raw-sql -- $collate is '' or the DB_COLLATION constant
 		$name = DB::raw('`vf`.`name`' . $collate);
+		// nosemgrep: rqwatch-raw-sql -- $collate is '' or the DB_COLLATION constant
 		$av = DB::raw('`vf`.`av`' . $collate);
 		$id = $query->qualifyColumn('id');
 
@@ -463,6 +470,7 @@ class MailLogService
 		$collate = $op === '=' ? '' : ' COLLATE ' . AppConfig::DB_COLLATION;
 		$ids = $query->getQuery()->newQuery()
 			->from(AppConfig::SYMBOL_NAMES_TABLE)
+			// nosemgrep: rqwatch-raw-sql -- $collate is '' or the DB_COLLATION constant
 			->where(DB::raw('`name`' . $collate), $op, $val)
 			->pluck('id')
 			->all();
@@ -728,6 +736,7 @@ class MailLogService
 		$idSql = $ids->toSql();
 		$bindings = $ids->getBindings();
 
+		// nosemgrep: rqwatch-raw-sql -- subquery from toSql(), its bindings passed
 		$mails = (int) $db->selectOne("SELECT COUNT(*) AS n FROM ({$idSql}) ids", $bindings)->n;
 
 		if ($local) {
@@ -748,6 +757,7 @@ class MailLogService
 		}
 
 		$cells = $db->select(
+			// nosemgrep: rqwatch-raw-sql -- fixed aliases, constants and toSql(); bindings passed
 			"SELECT {$name} AS name, ml.action, COUNT(*) AS mails,"
 			. " SUM(COALESCE(jt.score, 0) <> 0) AS scored, SUM(COALESCE(jt.score, 0)) AS score"
 			. " FROM {$source}"
@@ -802,9 +812,11 @@ class MailLogService
 
 		$query = App::capsule()->getConnection()
 			->table(AppConfig::MAIL_LOG_VIRUSES_TABLE . ' as v')
+			// nosemgrep: rqwatch-raw-sql -- built from VirusService::WINDOW_SQL constants
 			->selectRaw("RIGHT(v.av, 5) = '_FAIL' AS fail, IF(v.name = '', v.av, v.name) AS virus,"
 				. " GROUP_CONCAT(DISTINCT v.av ORDER BY v.av SEPARATOR ', ') AS engines, "
 				. implode(', ', $counts))
+			// nosemgrep: rqwatch-raw-sql -- VirusService::WINDOW_SQL constant
 			->whereRaw('v.created_day ' . VirusService::WINDOW_SQL['month'])
 			->groupBy('fail', 'virus');
 
@@ -854,6 +866,7 @@ class MailLogService
 				$q->where('v.name', $virus)
 					->orWhere(fn ($q) => $q->where('v.name', '')->where('v.av', $virus));
 			})
+			// nosemgrep: rqwatch-raw-sql -- $window checked against VirusService::WINDOWS by the caller
 			->whereRaw('v.created_day ' . VirusService::WINDOW_SQL[$window])
 			->whereRaw("RIGHT(v.av, 5) " . ($fail ? '=' : '<>') . " '_FAIL'");
 
@@ -958,6 +971,7 @@ class MailLogService
 			case 'mime_from_domain':
 			case 'mime_to_domain':
 				$baseField = str_replace('_domain', '', $field);
+				// nosemgrep: rqwatch-raw-sql -- $field checked against MailLog::REPORT_FIELDS above
 				$query = MailLog::selectRaw("LOWER(TRIM(TRAILING '>' FROM SUBSTRING_INDEX({$baseField}, '@', -1))) AS {$field}, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
 				                ->where($baseField, 'LIKE', '%@%')
 				                ->groupBy($field);
@@ -990,6 +1004,7 @@ class MailLogService
 			default:
 				//$fields = [ $field, DB::raw('count(*) as total') ];
 				//$query = MailLog::select($fields);
+				// nosemgrep: rqwatch-raw-sql -- $field checked against MailLog::REPORT_FIELDS above
 				$query = MailLog::selectRaw("{$field} AS {$field}, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
 				                ->groupBy($field);
 				break;

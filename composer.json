@@ -69,6 +69,7 @@
       "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M",
       "psalm": "psalm -c qa/psalm.xml --no-progress",
       "psalm-taint": "psalm -c qa/psalm.xml --taint-analysis --no-cache --ignore-baseline --no-progress",
+      "opengrep": "opengrep scan --config qa/opengrep.yml --error app",
       "analyse": [
          "@phpstan",
          "@psalm"

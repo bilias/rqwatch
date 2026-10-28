@@ -175,7 +175,7 @@ Please be very carefull before opening or saving any of the files bellow.
 {% if textBody %}
 <h3>Mail Body in Text:</h3>
 <hr/>
-{{ textBody|raw }}
+{{ textBody|raw }} {# nosemgrep: rqwatch-twig-raw -- MailObject escapes it with htmlspecialchars() #}
 {% endif %}
 {% if htmlBody %}
 <h3>Mail Body in HTML:</h3>

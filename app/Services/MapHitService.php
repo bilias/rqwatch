@@ -412,6 +412,7 @@ class MapHitService
 	// the last $days days including today; null: no limit
 	private static function dayWindow($query, ?int $days, string $column = 'created_day'): void {
 		if ($days !== null) {
+			// nosemgrep: rqwatch-raw-sql -- $column is a literal from the callers; days bound
 			$query->whereRaw("{$column} >= CURDATE() - INTERVAL ? DAY", [$days - 1]);
 		}
 	}
@@ -565,10 +566,12 @@ class MapHitService
 			[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, max(self::WINDOWS));
 
 			$row = App::capsule()->getConnection()->selectOne(
+				// nosemgrep: rqwatch-raw-sql -- built from constants and placeholders; bindings passed
 				"SELECT " . self::windowCounts('t') . " FROM ({$sql}) t", $bindings
 			);
 			[$lastSql, $lastBindings] = $this->mapHitsSource($map, $model, $symbolIds, null);
 			$last = App::capsule()->getConnection()->selectOne(
+				// nosemgrep: rqwatch-raw-sql -- built from constants and placeholders; bindings passed
 				"SELECT MAX(t.created_day) AS last FROM ({$lastSql}) t", $lastBindings
 			);
 
@@ -597,6 +600,7 @@ class MapHitService
 			->where('h.entry_model', self::ENTRY_NONE)
 			->whereRaw('h.created_day >= CURDATE() - INTERVAL ? DAY', [$days - 1])
 			->groupBy('sn.name')
+			// nosemgrep: rqwatch-raw-sql -- windowCounts() is built from the WINDOWS constant
 			->selectRaw('sn.name, ' . self::windowCounts('h') . ', MAX(h.created_day) AS last');
 		if ($mappedIds !== []) {
 			$query->whereNotIn('h.symbol_id', $mappedIds);
@@ -632,6 +636,7 @@ class MapHitService
 		$join = $where === [] ? '' : ' JOIN ' . AppConfig::MAIL_LOGS_TABLE . ' ml ON ml.id = t.mail_log_id WHERE ' . implode(' AND ', $where);
 
 		return array_map('intval', array_column(App::capsule()->getConnection()->select(
+			// nosemgrep: rqwatch-raw-sql -- built from constants and placeholders; limit cast to int
 			"SELECT DISTINCT t.mail_log_id FROM ({$sql}) t{$join} ORDER BY t.mail_log_id DESC LIMIT " . (int) $limit,
 			$bindings
 		), 'mail_log_id'));
@@ -647,6 +652,7 @@ class MapHitService
 		[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, $days);
 
 		$counts = [];
+		// nosemgrep: rqwatch-raw-sql -- built from constants and placeholders; bindings passed
 		foreach ($db->select("SELECT t.created_day AS day, COUNT(DISTINCT t.mail_log_id) AS mails FROM ({$sql}) t GROUP BY t.created_day", $bindings) as $row) {
 			$counts[(string) $row->day] = (int) $row->mails;
 		}
@@ -670,6 +676,7 @@ class MapHitService
 		[$sql, $bindings] = $this->mapHitsSource($map, $model, $symbolIds, $days);
 
 		$rows = App::capsule()->getConnection()->select(
+			// nosemgrep: rqwatch-raw-sql -- built from constants and placeholders; bindings passed
 			"SELECT ml.action, COUNT(*) AS mails, SUM(ml.released = 1) AS released, SUM(ml.notified = 1) AS notified"
 			. " FROM (SELECT DISTINCT t.mail_log_id FROM ({$sql}) t) x"
 			. " JOIN " . AppConfig::MAIL_LOGS_TABLE . " ml ON ml.id = x.mail_log_id"
