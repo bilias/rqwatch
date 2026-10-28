@@ -83,6 +83,28 @@
       "analyse": [
          "@phpstan",
          "@psalm"
+      ],
+      "analyze": "@analyse",
+      "check": [
+         "@composer validate --no-check-publish",
+         "@composer audit --locked --abandoned=report",
+         "@test",
+         "@analyse",
+         "@psalm-taint",
+         "@opengrep",
+         "@test-scoping"
       ]
+   },
+   "scripts-descriptions": {
+      "phpstan": "PHPStan with Larastan (qa/phpstan.neon)",
+      "psalm": "Psalm type checks (qa/psalm.xml)",
+      "psalm-taint": "Psalm taint analysis; regenerates the vendor taint stub first",
+      "test": "Route access and middleware tests (no database)",
+      "test-scoping": "Data-scoping tests against a throwaway MariaDB (Podman)",
+      "opengrep": "Opengrep with the rqwatch and pinned community rules",
+      "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",
+      "analyse": "PHPStan and Psalm",
+      "analyze": "Alias of analyse",
+      "check": "Everything CI runs, cheapest first; stops at the first failure"
    }
 }
