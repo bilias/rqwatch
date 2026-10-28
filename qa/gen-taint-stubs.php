@@ -29,7 +29,7 @@ const TAINTS = [
 		'all' => SOURCE, 'get' => SOURCE,
 	],
 	// request line and raw body. Host-derived getters (getHost, getSchemeAndHttpHost...)
-	// are left out: absolute URLs need them; guard with Request::setTrustedHosts()
+	// are left out: their only use is checked against OPENIDC_TRUSTED_HOSTS
 	'Symfony\Component\HttpFoundation\Request' => [
 		'getContent' => SOURCE, 'getRequestUri' => SOURCE, 'getPathInfo' => SOURCE,
 		'getUri' => SOURCE, 'getQueryString' => SOURCE,
