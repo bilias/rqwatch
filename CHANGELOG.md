@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-28
+- Add route access and middleware security tests (+CI)
 - CI: add daily composer audit workflow
 - CI: add Opengrep job with signature-verified binary
 - Add Opengrep checks

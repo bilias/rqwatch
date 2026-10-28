@@ -6,7 +6,8 @@ vendor
 logs/*
 /fpm/
 config/config.local.php
-test*
+/test*
+!/tests/
 *org
 NOTES
 *.md.orig.*

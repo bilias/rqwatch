@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- paths are relative to this file (qa/) -->
+<phpunit bootstrap="../vendor/autoload.php"
+	colors="true"
+	failOnWarning="true"
+	failOnRisky="true">
+	<testsuites>
+		<testsuite name="security">
+			<directory>../tests/Security</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

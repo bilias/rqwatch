@@ -35,6 +35,10 @@ jobs:
       - name: Taint stub matches vendor
         run: sh qa/taint-stubs.sh --check
 
+      - name: Security tests
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: composer test
+
       # each check runs even if an earlier one failed, so one run reports all
       - name: PHPStan
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}

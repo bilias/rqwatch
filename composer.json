@@ -63,12 +63,14 @@
     "require-dev": {
         "phpstan/phpstan": "^2.3",
         "larastan/larastan": "^3.13",
-        "vimeo/psalm": "^6.5"
+        "vimeo/psalm": "^6.5",
+        "phpunit/phpunit": "^12"
     },
    "scripts": {
       "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M",
       "psalm": "psalm -c qa/psalm.xml --no-progress",
       "psalm-taint": "sh qa/psalm-taint.sh",
+      "test": "phpunit -c qa/phpunit.xml",
       "opengrep": "sh qa/opengrep.sh",
       "taint-stubs": "sh qa/taint-stubs.sh",
       "post-update-cmd": "@taint-stubs",
