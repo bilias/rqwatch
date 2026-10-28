@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-28
+- Add opengrep checks
 - Fix normalizeToUtf8 charset fallback
 - Add psalm, phpstan checks
 
