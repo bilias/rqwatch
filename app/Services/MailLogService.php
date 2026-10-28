@@ -240,7 +240,7 @@ class MailLogService
 	*/
 	private function filterByFuzzyHit(Builder $query, string $c, mixed $v): void {
 		$id = $query->qualifyColumn('id');
-		$exists = fn ($q) => $q->selectRaw('1')
+		$exists = fn (QueryBuilder $q): QueryBuilder => $q->selectRaw('1')
 			->from(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE . ' as fh')
 			->whereColumn('fh.mail_log_id', $id);
 
@@ -275,7 +275,7 @@ class MailLogService
 		}
 
 		$id = $query->qualifyColumn('id');
-		$hits = fn ($q) => $q->selectRaw('1')
+		$hits = fn (QueryBuilder $q): QueryBuilder => $q->selectRaw('1')
 			->from(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE . ' as sh')
 			->whereColumn('sh.mail_log_id', $id)
 			->where(function ($q) use ($ids) {
