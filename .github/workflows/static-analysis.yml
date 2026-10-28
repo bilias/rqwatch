@@ -27,15 +27,25 @@ jobs:
           coverage: none
 
       - name: Composer install
+        id: install
         run: composer install --no-interaction --no-progress --prefer-dist
 
+      # fail fast and visibly when the stub no longer matches vendor
+      # (qa/psalm-taint.sh checks it again before the analysis)
+      - name: Taint stub matches vendor
+        run: sh qa/taint-stubs.sh --check
+
+      # each check runs even if an earlier one failed, so one run reports all
       - name: PHPStan
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: composer phpstan -- --no-progress --error-format=github
 
       - name: Psalm
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: composer psalm -- --no-cache --output-format=github
 
       - name: Psalm taint
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: composer psalm-taint -- --output-format=github --report=psalm-taint.sarif
 
       - name: Upload taint results to Security tab
@@ -44,9 +54,6 @@ jobs:
         with:
           sarif_file: psalm-taint.sarif
           category: psalm-taint
-
-      - name: Taint stub matches vendor
-        run: composer taint-stubs-check
 
   opengrep:
     name: Opengrep
