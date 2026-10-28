@@ -94,12 +94,20 @@ parameters:
 		-
 			identifier: method.unused
 			path: ../app/Core/Database/Migrations/IdActionIndex.php
+		# defensive re-checks: editMapEntry() already rejects non-admin MapCustom
 		-
 			identifier: booleanAnd.leftAlwaysTrue
+			message: '#^Left side of && is always true\.$#'
 			path: ../app/Controllers/MapController.php
+			count: 1
 		-
 			identifier: identical.alwaysTrue
+			message: '#^Strict comparison using === between .MapCustom. and .MapCustom. will always evaluate to true\.$#'
 			path: ../app/Controllers/MapController.php
+			count: 1
+		# defensive null check on map configs, which may come from the DB
 		-
 			identifier: identical.alwaysFalse
+			message: '#^Strict comparison using === between .+ and null will always evaluate to false\.$#'
 			path: ../app/Inventory/MapInventory.php
+			count: 1
