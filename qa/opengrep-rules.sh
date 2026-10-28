@@ -1,4 +1,12 @@
 #!/bin/sh
+
+# Rqwatch
+# Copyright (C) 2026 Giannis Kapetanakis
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 # Fetch Semgrep's maintained community rules at a pinned commit into
 # .semgrep-rules/ (gitignored); Opengrep runs them. The rules are under the
 # Semgrep Rules License v1.0: internal use only, not redistributed here.

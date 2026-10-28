@@ -1,5 +1,14 @@
 <?php declare(strict_types=1);
 /*
+ Rqwatch
+ Copyright (C) 2026 Giannis Kapetanakis
+
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this
+ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+*/
+
+/*
  Route-level access policy. Every route must be public (listed in
  AppConfig::PUBLIC_ROUTES), user (login required) or admin (login + admin).
  Adding a route, or changing its access, means updating the lists here:
