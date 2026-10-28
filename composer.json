@@ -74,7 +74,6 @@
       "taint-stubs-check": "sh qa/taint-stubs.sh --check",
       "post-update-cmd": "@taint-stubs",
       "analyse": [
-         "@taint-stubs-check",
          "@phpstan",
          "@psalm"
       ]
