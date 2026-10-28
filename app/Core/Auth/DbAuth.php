@@ -45,6 +45,7 @@ class DbAuth implements AuthInterface {
 		];
 	}
 
+	// nosemgrep: detected-bcrypt-hash -- dummy hash for constant-time failed logins, matches no password
 	private const DUMMY_HASH = '$2y$10$U7CGK4SOy3UaqaM2M2KxmuN8ER.qtoIk2uyeL2CDoGG7cXSwgSwQ.';
 
 	#[\Override]

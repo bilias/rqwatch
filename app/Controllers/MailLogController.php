@@ -1541,6 +1541,7 @@ class MailLogController extends ViewController
 	private function attachmentNames(?string $name): array {
 		$filename = str_replace(['/', '\\'], '_', (string) $name);
 		$ext = pathinfo($filename, PATHINFO_EXTENSION);
+		// nosemgrep: weak-crypto -- md5 only derives a fallback download filename
 		$fallback = md5($filename) . (preg_match('/^[A-Za-z0-9]{1,10}$/', $ext) ? ".{$ext}" : '');
 		return [$filename, $fallback];
 	}
