@@ -36,12 +36,6 @@ parameters:
 			path: ../app/Console/CronNotifications.php
 			count: 2
 		-
-			identifier: argument.type
-			message: '#expects App\\Core\\Cache\\RedisCache, App\\Core\\Cache\\CacheInterface\|null given\.$#'
-			paths:
-				- ../app/Controllers/Controller.php
-				- ../app/Controllers/SystemController.php
-		-
 			identifier: return.type
 			message: '#^Method App\\Services\\MapService::findMapEntry\(\) should return App\\Models\\MapCombined\|App\\Models\\MapCustom\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
 			path: ../app/Services/MapService.php

@@ -11,6 +11,7 @@
 namespace App\Controllers;
 
 use App\Core\App;
+use App\Core\Cache\RedisCache;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
@@ -46,8 +47,12 @@ class SystemController extends Controller
 		try {
 
 			// Force reload the config and cache it again
+			$cache = App::cache();
+			if (!$cache instanceof RedisCache) {
+				throw new \RuntimeException('Redis cache is not available');
+			}
 			Config::loadAndInitWithRedisCache(
-				redis: App::cache(),
+				redis: $cache,
 				defaultConfigPath: AppConfig::CONFIG_DEFAULT_PATH,
 				localConfigPath: AppConfig::CONFIG_LOCAL_PATH,
 				extras: [],

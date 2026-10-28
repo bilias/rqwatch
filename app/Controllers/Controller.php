@@ -26,6 +26,7 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 use App\Configuration\Config;
 
 use App\Core\App;
+use App\Core\Cache\RedisCache;
 
 use App\Inventory\Migrations;
 
@@ -277,11 +278,9 @@ class Controller
 	}
 
 	private function getRedisConfigTTL(): ?int {
-		if (Helper::env_bool('REDIS_ENABLE')) {
-			return Config::getRedisConfigTTL(
-				App::cache(),
-				Config::redisConfigKey()
-			);
+		$cache = App::cache();
+		if (Helper::env_bool('REDIS_ENABLE') && $cache instanceof RedisCache) {
+			return Config::getRedisConfigTTL($cache, Config::redisConfigKey());
 		}
 		return null;
 	}
