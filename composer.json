@@ -70,7 +70,11 @@
       "psalm": "psalm -c qa/psalm.xml --no-progress",
       "psalm-taint": "psalm -c qa/psalm.xml --taint-analysis --no-cache --ignore-baseline --no-progress",
       "opengrep": "sh qa/opengrep.sh",
+      "taint-stubs": "sh qa/taint-stubs.sh",
+      "taint-stubs-check": "sh qa/taint-stubs.sh --check",
+      "post-update-cmd": "@taint-stubs",
       "analyse": [
+         "@taint-stubs-check",
          "@phpstan",
          "@psalm"
       ]

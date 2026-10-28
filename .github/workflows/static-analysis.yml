@@ -46,7 +46,7 @@ jobs:
           category: psalm-taint
 
       - name: Taint stub matches vendor
-        run: php qa/gen-taint-stubs.php | diff -u qa/taint-stubs.phpstub -
+        run: composer taint-stubs-check
 
   opengrep:
     name: Opengrep

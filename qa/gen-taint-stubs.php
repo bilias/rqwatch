@@ -5,8 +5,8 @@
  attacker data, which arguments are executed as SQL or sent as HTML);
  signatures and docblocks are copied from the installed vendor code.
 
- Re-run after composer update/upgrade:
-	php qa/gen-taint-stubs.php > qa/taint-stubs.phpstub
+ Run through qa/taint-stubs.sh (composer taint-stubs), which also runs
+ after composer update; CI checks it with composer taint-stubs-check.
  It exits non-zero if a listed method or parameter no longer exists.
 */
 
