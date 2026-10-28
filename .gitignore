@@ -14,3 +14,6 @@ NOTES
 gh-md-toc
 .idea
 /.semgrep-rules/
+/opengrep.sarif
+/opengrep.tmp
+/psalm-taint.sarif
