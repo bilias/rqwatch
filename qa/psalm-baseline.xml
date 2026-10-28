@@ -176,10 +176,4 @@
       <code><![CDATA[orWhere]]></code>
     </UndefinedMethod>
   </file>
-  <file src="app/Utils/Helper.php">
-    <FalsableReturnStatement>
-      <code><![CDATA[iconv('UTF-8', 'UTF-8//IGNORE', $converted)]]></code>
-      <code><![CDATA[iconv('UTF-8', 'UTF-8//IGNORE', $input)]]></code>
-    </FalsableReturnStatement>
-  </file>
 </files>

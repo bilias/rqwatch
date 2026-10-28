@@ -1114,23 +1114,29 @@ Mail details:
 			return '';
 		}
 
-		$encodings = [
-			'UTF-8',
-			'Windows-1253',
-			'ISO-8859-7',
-			'ISO-8859-1',
-			'Windows-1252'
-		];
+		if (mb_check_encoding($input, 'UTF-8')) {
+			return $input;
+		}
 
-		foreach ($encodings as $enc) {
-			$converted = @mb_convert_encoding($input, 'UTF-8', $enc);
+		// Not UTF-8: the MIME part declared no charset (the parser passes it
+		// through unchanged) or a wrong one. Try the HTML's own <meta> charset,
+		// then the configured fallback. Any byte string decodes as a
+		// single-byte charset, so the fallback is a guess the admin chooses.
+		$charsets = [];
+		if (preg_match('/<meta\b[^>]*\bcharset\s*=\s*["\']?\s*([\w.:-]+)/i', $input, $m)
+			&& !in_array(strtolower($m[1]), ['utf-8', 'utf8'], true)) {
+			$charsets[] = $m[1];
+		}
+		$charsets[] = (string) (Config::get('mail_fallback_charset') ?: 'Windows-1252');
 
+		foreach ($charsets as $enc) {
+			$converted = @iconv($enc, 'UTF-8//IGNORE', $input);
 			if ($converted !== false && mb_check_encoding($converted, 'UTF-8')) {
-				return iconv('UTF-8', 'UTF-8//IGNORE', $converted);
+				return $converted;
 			}
 		}
 
-		return iconv('UTF-8', 'UTF-8//IGNORE', $input);
+		return mb_scrub($input, 'UTF-8');
 	}
 
 	public static function debug_exception_err(?string $input): string {

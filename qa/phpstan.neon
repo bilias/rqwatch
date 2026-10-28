@@ -103,6 +103,3 @@ parameters:
 		-
 			identifier: identical.alwaysFalse
 			path: ../app/Inventory/MapInventory.php
-		-
-			identifier: notIdentical.alwaysTrue
-			path: ../app/Utils/Helper.php

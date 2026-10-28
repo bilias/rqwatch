@@ -201,6 +201,11 @@ $store_settings = array(
 	'reject'          => true,
 );
 
+# Charset for quarantined mail bodies that are not UTF-8 and declare no
+# usable charset (no MIME charset, no HTML <meta> charset). Any iconv name:
+# 'Windows-1252' (Western), 'CP1253' (Greek), 'Windows-1251' (Cyrillic)...
+$mail_fallback_charset = 'Windows-1252';
+
 # Default subject in release mail
 $release_mail_subject = "Message released from quarantine";
 
