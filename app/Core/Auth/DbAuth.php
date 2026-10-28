@@ -15,14 +15,11 @@ use SensitiveParameter; // For method params
 
 use App\Utils\Helper;
 
-use Psr\Log\LoggerInterface;
-
 use RuntimeException;
 
 class DbAuth implements AuthInterface {
 	private string $username;
 	private string $password;
-	private LoggerInterface $logger;
 
 	private bool $is_admin = false;
 	private ?string $email = null;
@@ -31,12 +28,10 @@ class DbAuth implements AuthInterface {
 
 	public function __construct(
 		string $username,
-		#[SensitiveParameter] string $password,
-		LoggerInterface $logger
+		#[SensitiveParameter] string $password
 	) {
 		$this->username = $username;
 		$this->password = $password;
-		$this->logger = $logger;
 	}
 
 	public function __debugInfo(): array {

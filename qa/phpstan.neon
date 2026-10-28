@@ -95,10 +95,6 @@ parameters:
 			identifier: method.unused
 			path: ../app/Core/Database/Migrations/IdActionIndex.php
 		-
-			identifier: property.onlyWritten
-			message: '#::\$logger is never read#'
-			path: ../app/Core/Auth/DbAuth.php
-		-
 			identifier: booleanAnd.leftAlwaysTrue
 			path: ../app/Controllers/MapController.php
 		-

@@ -159,7 +159,7 @@ class AuthManager
 
 		if ($username === 'admin') {
 			$this->providerDescr = "DB";
-			return new DbAuth($username, $password, $logger);
+			return new DbAuth($username, $password);
 		}
 
 		if (Helper::env_bool('LDAP_AUTH_ENABLED') && str_contains($username, '@')) {
@@ -170,7 +170,7 @@ class AuthManager
 
 		// Default to DB
 		$this->providerDescr = "DB";
-		return new DbAuth($username, $password, $logger);
+		return new DbAuth($username, $password);
 	}
 
 	public function getIdToken(): ?string {
