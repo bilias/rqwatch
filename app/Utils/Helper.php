@@ -561,9 +561,6 @@ class Helper {
 		return preg_replace('/[^a-zA-Z0-9.\-]/', '', $mail);
 	}
 
-	// Debug dump to files only. Psalm's print_r() stub is an HTML sink even
-	// with $return = true.
-	/** @psalm-suppress TaintedHtml */
 	public static function log_to_files(string $dir, $symbols, $web_headers, $stringHeaders, $arrayHeaders): bool {
 		if (!is_dir($dir)) {
 			self::logger()->warning("$dir does not exist");
@@ -580,8 +577,8 @@ class Helper {
 			return false;
 		}
 
-		// symbols_array is string, written to a file below.
-		$symbols_array = print_r(json_decode($symbols, true), true);
+		// symbols_array is string: pretty JSON (Psalm treats print_r() as an HTML sink)
+		$symbols_array = (string) json_encode(json_decode($symbols, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
 		if (!$fp_web_headers = fopen("{$dir}/web_headers", "w")) {
 			self::logger()->error("Cannot open file ({$dir}/web_headers)");
