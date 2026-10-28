@@ -577,8 +577,8 @@ class Helper {
 			return false;
 		}
 
-		// symbols_array is string
-		// stub is an HTML sink even with $return = true.
+		// symbols_array is string, written to a file below.
+		// Psalm's print_r() stub is an HTML sink even with $return = true.
 		/** @psalm-suppress TaintedHtml */
 		$symbols_array = print_r(json_decode($symbols, true), true);
 
