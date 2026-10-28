@@ -1,0 +1,37 @@
+name: Static analysis
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  analyse:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          extensions: ldap, redis, mailparse, mbstring, iconv, pdo_mysql, gmp, curl
+          coverage: none
+
+      - name: Composer install
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: PHPStan
+        run: composer phpstan -- --no-progress --error-format=github
+
+      - name: Psalm
+        run: composer psalm -- --no-cache --output-format=github
+
+      - name: Psalm taint
+        run: composer psalm-taint -- --output-format=github
+
+      - name: Taint stub matches vendor
+        run: php qa/gen-taint-stubs.php | diff -u qa/taint-stubs.phpstub -
