@@ -501,6 +501,8 @@ class LoginController extends ViewController
 		return true;
 	}
 
+	// Only same-origin paths ("/x", not "//host") pass; everything else goes home
+	/** @psalm-taint-escape header */
 	private function getRedirectUrl(string $login_redirect): string {
 		$url = $this->getHomepageUrl();
 		if ($login_redirect !== $this->url(RouteName::LOGIN) &&
