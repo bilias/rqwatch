@@ -28,11 +28,11 @@ const TAINTS = [
 	'Symfony\Component\HttpFoundation\HeaderBag' => [
 		'all' => SOURCE, 'get' => SOURCE,
 	],
-	// request line and raw body. Host-derived getters (getHost, getSchemeAndHttpHost...)
-	// are left out: their only use is checked against OPENIDC_TRUSTED_HOSTS
+	// request line, raw body and Host; LoginController::oidcBaseUrl() escapes the Host
 	'Symfony\Component\HttpFoundation\Request' => [
 		'getContent' => SOURCE, 'getRequestUri' => SOURCE, 'getPathInfo' => SOURCE,
 		'getUri' => SOURCE, 'getQueryString' => SOURCE,
+		'getHost' => SOURCE, 'getSchemeAndHttpHost' => SOURCE,
 	],
 	// session values are stored request data (e.g. login_redirect)
 	'Symfony\Component\HttpFoundation\Session\SessionInterface' => [

@@ -53,7 +53,9 @@ class LoginController extends ViewController
 
 		foreach ($trusted as $name) {
 			if ($host !== '' && strtolower(preg_replace('/:\d+$/', '', trim($name))) === $host) {
-				return $this->request->getSchemeAndHttpHost();
+				/** @psalm-taint-escape header */
+				$baseUrl = $this->request->getSchemeAndHttpHost();
+				return $baseUrl;
 			}
 		}
 

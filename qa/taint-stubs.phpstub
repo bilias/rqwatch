@@ -167,6 +167,28 @@ namespace Symfony\Component\HttpFoundation {
 		 * @psalm-taint-source input
 		 */
 		public function getQueryString(): ?string {}
+
+		/**
+		 * Returns the host name.
+		 *
+		 * This method can read the client host name from the "X-Forwarded-Host" header
+		 * when trusted proxies were set via "setTrustedProxies()".
+		 *
+		 * The "X-Forwarded-Host" header must contain the client host name.
+		 *
+		 * @throws SuspiciousOperationException when the host name is invalid or not trusted
+		 * @psalm-taint-source input
+		 */
+		public function getHost(): string {}
+
+		/**
+		 * Gets the scheme and HTTP host.
+		 *
+		 * If the URL was called with basic authentication, the user
+		 * and the password are not added to the generated string.
+		 * @psalm-taint-source input
+		 */
+		public function getSchemeAndHttpHost(): string {}
 	}
 
 	/**
