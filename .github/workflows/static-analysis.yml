@@ -81,6 +81,12 @@ jobs:
       - name: Opengrep
         run: sh qa/opengrep.sh --sarif-output=opengrep.sarif
 
+      # GitHub ignores SARIF suppressions; keep only results not marked nosemgrep
+      - name: Drop suppressed results from SARIF
+        if: ${{ !cancelled() && hashFiles('opengrep.sarif') != '' }}
+        run: |
+          jq '.runs[].results |= map(select((.suppressions // []) == []))' opengrep.sarif > opengrep.tmp
+          mv opengrep.tmp opengrep.sarif
       - name: Upload Opengrep results to Security tab
         if: ${{ !cancelled() && hashFiles('opengrep.sarif') != '' && github.actor != 'dependabot[bot]' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
         uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
