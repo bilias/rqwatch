@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   analyse:
+    name: PHPStan + Psalm
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -48,6 +49,7 @@ jobs:
         run: php qa/gen-taint-stubs.php | diff -u qa/taint-stubs.phpstub -
 
   opengrep:
+    name: Opengrep
     runs-on: ubuntu-24.04
     permissions:
       contents: read
