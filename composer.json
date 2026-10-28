@@ -24,6 +24,11 @@
             "app/"
         ]
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "require": {
         "php": "^8.3",
         "ext-mysqlnd": "*",
@@ -71,6 +76,7 @@
       "psalm": "psalm -c qa/psalm.xml --no-progress",
       "psalm-taint": "sh qa/psalm-taint.sh",
       "test": "phpunit -c qa/phpunit.xml",
+      "test-scoping": "bash qa/scoping-tests.sh",
       "opengrep": "sh qa/opengrep.sh",
       "taint-stubs": "sh qa/taint-stubs.sh",
       "post-update-cmd": "@taint-stubs",
