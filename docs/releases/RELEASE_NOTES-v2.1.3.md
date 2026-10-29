@@ -29,6 +29,9 @@ Rqwatch 2.x+ contains updates to the database schema.
   About 5 ms per mail, so a full log of ~860k mails takes 70-90 minutes. Run it in `tmux`
   or `screen`; it is safe next to live imports and can be re-run. Run it again after
   changing map symbols.
+- Apache: replace the `<Location /api>` and `<Location /maps>` blocks with the `<Directory>`
+  blocks from [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
+  They match the directories rather than the URL, so they also apply under a subdirectory (`WEB_BASE`).
 
 ## From 1.8.x
 Follow **From 1.8.x** in the
