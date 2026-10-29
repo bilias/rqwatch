@@ -325,12 +325,18 @@ class UserController extends ViewController
 				if ($pass_changed) {
 					$user->password = $data['password'];
 				}
-				$saved = $user->save();
+				$saved = App::capsule()->connection()->transaction(function () use ($user, $pass_changed) {
+					$saved = $user->save();
+					// end the user's other sessions
+					if ($saved && $pass_changed) {
+						UserService::endSessions((int) $user->id);
+					}
+					return $saved;
+				});
 				if ($saved === true) {
 					$this->flashbag->add('success', "Profile updated");
-					// end the user's other sessions, keep this one
+					// keep this session
 					if ($pass_changed && App::migrationStatus()->sessionVersionCompleted()) {
-						UserService::endSessions((int) $user->id);
 						$this->session->set('session_version', (int) User::whereKey($user->id)->value('session_version'));
 					}
 				} else {
@@ -515,14 +521,17 @@ class UserController extends ViewController
 					if ($pass_changed) {
 						$user->password = $data['password'];
 					}
-					$saved = $user->save();
+					$saved = App::capsule()->connection()->transaction(function () use ($user) {
+						$saved = $user->save();
+						// fields cached in the user's sessions: end them
+						if ($saved && $user->wasChanged(['username', 'email', 'is_admin', 'auth_provider', 'password'])) {
+							UserService::endSessions((int) $user->id);
+						}
+						return $saved;
+					});
 					//dump(DB::connection()->getQueryLog());
 					if ($saved === true) {
 						$this->flashbag->add('success', "User '{$user->username}' updated");
-						// fields cached in the user's sessions: end them
-						if ($user->wasChanged(['username', 'email', 'is_admin', 'auth_provider', 'password'])) {
-							UserService::endSessions((int) $user->id);
-						}
 						/*
 						if ($pass_changed) {
 							$this->flashbag->add('info', "Password changed");

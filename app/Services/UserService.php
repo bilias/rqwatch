@@ -245,20 +245,17 @@ class UserService
 		return User::where('username', strtolower(trim($user)))->exists();
 	}
 
-	// end the user's open sessions (AuthMiddleware compares users.session_version)
+	// end the user's open sessions (AuthMiddleware compares users.session_version);
+	// throws, so call it inside the transaction that makes the account change
 	public static function endSessions(int $userId): void {
 		if (!App::migrationStatus()->sessionVersionCompleted()) {
 			return;
 		}
 
-		try {
-			// keep updated_at: this is not an edit of the account itself
-			User::whereKey($userId)->toBase()->increment('session_version', 1, [
-				'updated_at' => App::capsule()->getConnection()->raw('`updated_at`'),
-			]);
-		} catch (Exception $e) {
-			App::fileLogger()->error("[endSessions] user id {$userId}: " . $e->getMessage());
-		}
+		// keep updated_at: this is not an edit of the account itself
+		User::whereKey($userId)->toBase()->increment('session_version', 1, [
+			'updated_at' => App::capsule()->getConnection()->raw('`updated_at`'),
+		]);
 	}
 
 	public function userAdd(array $data): bool {

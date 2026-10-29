@@ -117,14 +117,14 @@ class MailAliasService
 						}
 					}
 
-					return (bool) $alias->delete();
+					$removed = (bool) $alias->delete();
+					// the alias is cached in the owner's sessions
+					if ($removed) {
+						UserService::endSessions((int) $user_id);
+					}
+					return $removed;
 				}
 			);
-
-			// the alias is cached in the owner's sessions
-			if ($deleted) {
-				UserService::endSessions((int) $user_id);
-			}
 
 			return $deleted;
 		} catch (Exception $e) {
