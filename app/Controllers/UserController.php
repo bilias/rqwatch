@@ -344,8 +344,8 @@ class UserController extends ViewController
 				}
 				return new RedirectResponse($this->getHomepageUrl());
 			} catch (Exception $e) {
-				$error = $e->getMessage();
-				$this->flashbag->add('error', $error);
+				$this->fileLogger->error("Profile update of '{$this->username}' failed: " . $e->getMessage());
+				$this->flashbag->add('error', "Profile update failed");
 			}
 		}
 
