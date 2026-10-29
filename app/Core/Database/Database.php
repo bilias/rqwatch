@@ -53,7 +53,6 @@ class Database {
 			// the session clock follows PHP's, which writes date() values
 			'timezone' => date('P'),
 			'driver'   => 'mysql',
-			'driver'   => 'mysql',
 			'fetch'    => 'FETCH_ASSOC',
 		//	'prefix'   => 'my_',
 		];
