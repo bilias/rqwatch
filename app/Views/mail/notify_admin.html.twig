@@ -2,16 +2,16 @@
 
 <h3>Admin notification: the following mail has been saved in quarantine.</h3>
 <table>
-<tr><td><strong>Date</strong>:</td><td>{{ created_at }}</td></tr>
-<tr><td><strong>Server</strong>:</td><td>{{ server }}</td></tr>
-<tr><td><strong>MAIL From</strong>:</td><td>{{ mail_from }}</td></tr>
-<tr><td><strong>From</strong>:</td><td>{{ mime_from }}</td></tr>
-<tr><td><strong>To</strong>:</td><td>{{ rcpt_to }}</td></tr>
-<tr><td><strong>Subject</strong>:</td><td>'{{ subject }}'</td></tr>
-<tr><td><strong>Mail Queue ID</strong>:</td><td>{{ qid }}</td></tr>
-<tr><td><strong>Spam Score</strong>:</td><td>{{ score }}</td></tr>
-<tr><td><strong>Virus Detected</strong>:</td><td>{% if has_virus %}Yes {{ virus_name }}{% else %}No{% endif %}</td></tr>
-<tr><td><strong>Action</strong>:</td><td>{{ action }} ({{ getDelivery(action) }})</td></tr>
+<tr><th scope="row" style="text-align:left;">Date:</th><td>{{ created_at }}</td></tr>
+<tr><th scope="row" style="text-align:left;">Server:</th><td>{{ server }}</td></tr>
+<tr><th scope="row" style="text-align:left;">MAIL From:</th><td>{{ mail_from }}</td></tr>
+<tr><th scope="row" style="text-align:left;">From:</th><td>{{ mime_from }}</td></tr>
+<tr><th scope="row" style="text-align:left;">To:</th><td>{{ rcpt_to }}</td></tr>
+<tr><th scope="row" style="text-align:left;">Subject:</th><td>'{{ subject }}'</td></tr>
+<tr><th scope="row" style="text-align:left;">Mail Queue ID:</th><td>{{ qid }}</td></tr>
+<tr><th scope="row" style="text-align:left;">Spam Score:</th><td>{{ score }}</td></tr>
+<tr><th scope="row" style="text-align:left;">Virus Detected:</th><td>{% if has_virus %}Yes {{ virus_name }}{% else %}No{% endif %}</td></tr>
+<tr><th scope="row" style="text-align:left;">Action:</th><td>{{ action }} ({{ getDelivery(action) }})</td></tr>
 </table>
 
 <p>

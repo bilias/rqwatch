@@ -9,15 +9,15 @@
 and attached to this mail.</h3>
 <h4 style="{{ base }}">Please be very carefull before opening any attachment the original mail might have!</h4>
 <table style="{{ base }}">
-<tr><td style="{{ base }}"><strong>Date</strong>:</td><td style="{{ base }}">{{ created_at }}</td></tr>
-<tr><td style="{{ base }}"><strong>From</strong>:</td><td style="{{ base }}">{{ mime_from }}</td></tr>
-<tr><td style="{{ base }}"><strong>To</strong>:</td><td style="{{ base }}">{{ rcpt_to }}</td></tr>
-<tr><td style="{{ base }}"><strong>Subject</strong>:</td><td style="{{ base }}">'{{ subject }}'</td></tr>
-<tr><td style="{{ base }}"><strong>Mail Queue ID</strong>:</td><td style="{{ base }}">{{ qid }}</td></tr>
-<tr><td style="{{ base }}"><strong>Message ID</strong>:</td><td style="{{ base }}">{{ message_id }}</td></tr>
-<tr><td style="{{ base }}"><strong>Spam Score</strong>:</td><td style="{{ base }}">{{ score }}</td></tr>
-<tr><td style="{{ base }}"><strong>Virus Detected</strong>:</td><td style="{{ base }}">{% if has_virus %}Yes {{ virus_name }}{% else %}No{% endif %}</td></tr>
-<tr><td style="{{ base }}"><strong>Action</strong>:</td><td style="{{ base }}">{{ action }}</td></tr>
+<tr><th scope="row" style="{{ base }} text-align:left;">Date:</th><td style="{{ base }}">{{ created_at }}</td></tr>
+<tr><th scope="row" style="{{ base }} text-align:left;">From:</th><td style="{{ base }}">{{ mime_from }}</td></tr>
+<tr><th scope="row" style="{{ base }} text-align:left;">To:</th><td style="{{ base }}">{{ rcpt_to }}</td></tr>
+<tr><th scope="row" style="{{ base }} text-align:left;">Subject:</th><td style="{{ base }}">'{{ subject }}'</td></tr>
+<tr><th scope="row" style="{{ base }} text-align:left;">Mail Queue ID:</th><td style="{{ base }}">{{ qid }}</td></tr>
+<tr><th scope="row" style="{{ base }} text-align:left;">Message ID:</th><td style="{{ base }}">{{ message_id }}</td></tr>
+<tr><th scope="row" style="{{ base }} text-align:left;">Spam Score:</th><td style="{{ base }}">{{ score }}</td></tr>
+<tr><th scope="row" style="{{ base }} text-align:left;">Virus Detected:</th><td style="{{ base }}">{% if has_virus %}Yes {{ virus_name }}{% else %}No{% endif %}</td></tr>
+<tr><th scope="row" style="{{ base }} text-align:left;">Action:</th><td style="{{ base }}">{{ action }}</td></tr>
 </table>
 
 <h4 style="{{ base }}">{{ signature | nl2br }}</h4>
