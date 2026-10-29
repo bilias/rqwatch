@@ -580,12 +580,15 @@ class Helper {
 		// symbols_array is string: pretty JSON (Psalm treats print_r() as an HTML sink)
 		$symbols_array = (string) json_encode(json_decode($symbols, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
+		// no credentials on disk: Basic Auth and the .env secrets Dotenv puts in $_SERVER
+		$redact = fn(string $key, $value) => preg_match('/_PW$|PASS|SECRET|DSN|AUTHORIZATION/i', $key) ? '[redacted]' : $value;
+
 		if (!$fp_web_headers = fopen("{$dir}/web_headers", "w")) {
 			self::logger()->error("Cannot open file ({$dir}/web_headers)");
 		}
 
 		foreach ($web_headers as $key => $value) {
-			fwrite($fp_web_headers, "$key => $value\r\n");
+			fwrite($fp_web_headers, "$key => " . $redact((string) $key, $value) . "\r\n");
 		}
 		fclose($fp_web_headers);
 
@@ -594,7 +597,7 @@ class Helper {
 		}
 
 		foreach ($_SERVER as $key => $value) {
-			fwrite($fp_server, "$key => $value\r\n");
+			fwrite($fp_server, "$key => " . $redact((string) $key, $value) . "\r\n");
 		}
 		fclose($fp_server);
 
