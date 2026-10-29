@@ -401,7 +401,7 @@ class UserController extends ViewController
 			} elseif ($service->userExists($data['username'])) {
 				$this->flashbag->add('error', "User '{$data['username']}' already exists");
 			} else {
-				$newPassword = trim($userform->get('password')->getData());
+				$newPassword = trim((string) $userform->get('password')->getData());
 				if (empty($newPassword)) {
 						$this->flashbag->add('error', 'Empty password not allowed.');
 						return new RedirectResponse($this->getAdminUsersUrl());
