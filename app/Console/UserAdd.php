@@ -48,7 +48,7 @@ class UserAdd extends RqwatchCliCommand
 			->addOption('admin', 'a', InputOption::VALUE_NONE, 'Create user with admin privileges')
 			->addOption('ldap', 'l', InputOption::VALUE_NONE, 'Create an LDAP user')
 			->addOption('notifications', null, InputOption::VALUE_NEGATABLE, 'Enable or disable notifications (default: follow user_notifications_default)')
-			->addOption('password', 'p', InputOption::VALUE_OPTIONAL, 'Specify user password')
+			->addOption('password', 'p', InputOption::VALUE_OPTIONAL, 'Specify user password (visible in ps and shell history; omit to be prompted)')
 			->addArgument('username', InputArgument::REQUIRED, 'Username for the user')
 			->addArgument('mail', InputArgument::REQUIRED, 'Email for the user')
 		;
