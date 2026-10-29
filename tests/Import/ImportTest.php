@@ -81,7 +81,7 @@ final class ImportTest extends TestCase
 		$qid = self::qid();
 		$mail = self::message($qid, "Virus {$qid}", 'virus');
 		$reply = self::scan($qid, $mail, ['alice@rqwatch.test']);
-				$this->assertSame('discard', $reply['action'], 'fixture: contrib force_actions.conf and actions.conf');
+		$this->assertSame('discard', $reply['action'], 'fixture: contrib force_actions.conf and actions.conf');
 
 		$row = self::row($qid);
 		$this->assertImported($reply, $row, $mail);
