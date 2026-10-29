@@ -16,7 +16,7 @@
 # phpunit. Run from the project root.
 set -euo pipefail
 
-MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11@sha256:6c65a843396dc6c78dd0da19eccaa0a91d25d9d26a4c2afcb75010ac3f59f5ea}"
+MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 SRC=$(pwd)
 WORK=$(mktemp -d)
 CID=
@@ -38,7 +38,7 @@ if [ -z "${SCOPING_DB_EXEC:-}" ]; then
 	DB_HOST=127.0.0.1
 	DB_PORT=$(free_port)
 	DB_PASS=scoping-test
-	CID=$(podman run -d --rm -e MARIADB_ROOT_PASSWORD="$DB_PASS" \
+	CID=$(podman run -d --rm --pull=newer -e MARIADB_ROOT_PASSWORD="$DB_PASS" \
 		-p "127.0.0.1:${DB_PORT}:3306" --tmpfs /var/lib/mysql "$MARIADB_IMAGE")
 	DB_EXEC="podman exec -i $CID mariadb -uroot -p$DB_PASS"
 	for i in $(seq 60); do
