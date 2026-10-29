@@ -10,7 +10,8 @@
 # by php -S, posts them to the importer; tests/Import compares what was stored
 # with rspamd's own verdict. Rspamd also runs contrib's maps, reading the map
 # files this copy generates from tests/Import/fixtures.sql. Redis holds the
-# failed-import spool. MariaDB, Redis and rspamd run as rootless Podman
+# failed-import spool and rspamd's fuzzy storage, which this copy learns into
+# through its fuzzy API. MariaDB, Redis and rspamd run as rootless Podman
 # containers, rspamd on the host network so it reaches php -S on loopback.
 # Extra arguments go to phpunit. Run from the project root.
 set -euo pipefail
@@ -68,7 +69,12 @@ cd "$WORK"
 mkdir -p logs q
 
 WEB_PORT=$(free_port)
+NORMAL_PORT=$(free_port)
+CONTROLLER_PORT=$(free_port)
+PROXY_PORT=$(free_port)
+FUZZY_PORT=$(free_port)
 API_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
+MAIL_API_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
 APP_DB_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
 sed -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	-e "s#^QUARANTINE_DIR=.*#QUARANTINE_DIR=${WORK}/q#" \
@@ -80,12 +86,26 @@ sed -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	-e "s#^API_ENABLE=.*#API_ENABLE=true#" \
 	-e "s#^RSPAMD_API_PASS=.*#RSPAMD_API_PASS=${API_PASS}#" \
 	-e "s#^RSPAMD_API_ACL=.*#RSPAMD_API_ACL=\"127.0.0.1\"#" \
+	-e "s#^MAIL_API_PASS=.*#MAIL_API_PASS=${MAIL_API_PASS}#" \
+	-e "s#^MAIL_API_ACL=.*#MAIL_API_ACL=\"127.0.0.1\"#" \
 	-e "s#^MAILER_DSN=.*#MAILER_DSN=\"null://null\"#" \
 	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=true#" \
 	-e "s#^REDIS_DSN=.*#REDIS_DSN=\"redis://127.0.0.1:${REDIS_PORT}\"#" \
 	-e "s#^LDAP_AUTH_ENABLED=.*#LDAP_AUTH_ENABLED=false#" \
 	-e "s#^OPENIDC_AUTH_ENABLED=.*#OPENIDC_AUTH_ENABLED=false#" \
 	.env-example > .env
+
+# fuzzy learning through this server's own rspamd controller (a secure_ip,
+# so no password)
+cat > config/config.local.php <<PHP
+<?php
+\$fuzzy_learn_enable = true;
+\$API_SERVERS = ['mx1' => [
+	'url' => 'http://127.0.0.1:${WEB_PORT}',
+	'fuzzy_url' => 'http://127.0.0.1:${CONTROLLER_PORT}',
+	'options' => [],
+]];
+PHP
 
 $DB_EXEC < contrib/db-init.sql
 # rqwatch's own account: without SUPER, so the tests can refuse its writes
@@ -103,8 +123,9 @@ for map in ip_blacklist mail_from_blacklist mime_from_blacklist mail_from_whitel
 done
 
 # rspamd configuration: contrib's exporter rule pointed at this copy,
-# contrib's maps reading this copy's map files, contrib's force_actions,
-# actions and groups, and the test's rules and single normal worker
+# contrib's maps reading this copy's map files, contrib's fuzzy storage on
+# the test Redis, contrib's force_actions, actions and groups, and the
+# test's rules and single normal worker
 mkdir -p rspamd/local.d rspamd/lua.local.d
 sed -e "s#^\([[:space:]]*url = \).*#\1\"http://127.0.0.1:${WEB_PORT}/api/metadata_importer_multipart.php?server=mx1\";#" \
 	-e "s#^\([[:space:]]*password = \).*#\1\"${API_PASS}\";#" \
@@ -119,6 +140,13 @@ for f in contrib/rspamd/local.d/multimap.conf contrib/rspamd/lua.local.d/rqwatch
 	sed "s#http://127.0.0.1/maps/#http://127.0.0.1:${WEB_PORT}/maps/#" "$f" > "$dest"
 	grep -q "127.0.0.1:${WEB_PORT}/maps/" "$dest" || { echo "${f}: map URL not found" >&2; exit 1; }
 done
+sed "s#^\([[:space:]]*servers = \).*#\1\"127.0.0.1:${FUZZY_PORT}\";#" \
+	contrib/rspamd/local.d/fuzzy_check.conf > rspamd/local.d/fuzzy_check.conf
+grep -q "127.0.0.1:${FUZZY_PORT}" rspamd/local.d/fuzzy_check.conf \
+	|| { echo "contrib/rspamd/local.d/fuzzy_check.conf: servers line not found" >&2; exit 1; }
+{ cat contrib/rspamd/local.d/worker-fuzzy.inc; echo "servers = \"127.0.0.1:${REDIS_PORT}\";"
+	cat tests/Import/rspamd/local.d/worker-fuzzy.inc; } > rspamd/local.d/worker-fuzzy.inc
+cp contrib/rspamd/local.d/fuzzy_group.conf rspamd/local.d/
 cp contrib/rspamd/local.d/force_actions.conf contrib/rspamd/local.d/actions.conf \
 	contrib/rspamd/local.d/groups.conf tests/Import/rspamd/local.d/worker-normal.inc rspamd/local.d/
 cp tests/Import/rspamd/rspamd.local.lua rspamd/
@@ -134,14 +162,12 @@ for i in $(seq 30); do
 done
 
 # rspamd
-NORMAL_PORT=$(free_port)
-CONTROLLER_PORT=$(free_port)
-PROXY_PORT=$(free_port)
 RSPAMD_CID=$(podman run -d --rm --pull=newer --network host \
 	-e RSPAMD_LOCAL_ADDR=127.0.0.1 \
 	-e RSPAMD_PORT_NORMAL="$NORMAL_PORT" \
 	-e RSPAMD_PORT_CONTROLLER="$CONTROLLER_PORT" \
 	-e RSPAMD_PORT_PROXY="$PROXY_PORT" \
+	-e RSPAMD_PORT_FUZZY="$FUZZY_PORT" \
 	-v "${WORK}/rspamd:/etc/rspamd:ro,Z" "$RSPAMD_IMAGE")
 for i in $(seq 60); do
 	curl -fs -o /dev/null "http://127.0.0.1:${NORMAL_PORT}/ping" && break
@@ -156,6 +182,9 @@ echo "rspamd $(curl -s "http://127.0.0.1:${CONTROLLER_PORT}/stat" | php -r 'echo
 status=0
 IMPORT_RSPAMD_URL="http://127.0.0.1:${NORMAL_PORT}" \
 IMPORT_ROOT="$WORK" \
+IMPORT_WEB_URL="http://127.0.0.1:${WEB_PORT}" \
+IMPORT_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \
+IMPORT_MAIL_API_PASS="$MAIL_API_PASS" \
 IMPORT_QUARANTINE_DIR="${WORK}/q" \
 IMPORT_DB_DSN="mysql:host=127.0.0.1;port=${DB_PORT};dbname=rqwatch;charset=utf8mb4" \
 IMPORT_DB_USER=root \
