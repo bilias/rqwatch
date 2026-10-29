@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-10-29
+- CI: rspamd import integration tests
 - QA: rspamd metadata export -> importer end-to-end test (rspamd:4 + MariaDB via Podman)
 - Login throttle: a successful login no longer resets the failure counter
 
