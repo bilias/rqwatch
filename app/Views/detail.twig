@@ -197,7 +197,8 @@ No
 {% if fuzzy_boostable and f %}
 <form class="fuzzy-learn" method="get" action="{{ route('ADMIN_FUZZY_BOOST', { id: fuzzy.id }) }}" onsubmit="return confirm('Add this weight to the learned mail?')">
 <input type="hidden" name="_token" value="{{ csrf_token('fuzzy_boost') }}">
-<input type="number" name="weight" value="{{ min(f.weight, 65535 - fuzzy.weight) }}" min="1" max="{{ 65535 - fuzzy.weight }}" required title="Weight to add">
+<label for="fuzzy-boost-weight" class="sr-only">Weight to add</label>
+<input type="number" id="fuzzy-boost-weight" name="weight" value="{{ min(f.weight, 65535 - fuzzy.weight) }}" min="1" max="{{ 65535 - fuzzy.weight }}" required title="Weight to add">
 <button type="submit">Add weight</button>
 </form>
 {% endif %}
@@ -206,7 +207,8 @@ No
 {% for flag, f in fuzzy_flags %}
 <form class="fuzzy-learn" method="get" action="{{ route('ADMIN_FUZZY_LEARN', { id: log.id, flag: flag }) }}" onsubmit="return confirm('Learn this mail as {{ f.label|e('js') }}?')">
 <input type="hidden" name="_token" value="{{ csrf_token('fuzzy_learn') }}">
-<input type="number" name="weight" value="{{ f.weight }}" min="1" max="65535" required title="Weight">
+<label for="fuzzy-learn-weight-{{ flag }}" class="sr-only">Weight</label>
+<input type="number" id="fuzzy-learn-weight-{{ flag }}" name="weight" value="{{ f.weight }}" min="1" max="65535" required title="Weight">
 <button type="submit">Learn as {{ f.label }}</button>
 </form>
 {% endfor %}
