@@ -11,6 +11,7 @@
 namespace App\Core\Middleware;
 
 use App\Core\App;
+use App\Core\Auth\AuthManager;
 use App\Core\Routing\RouteName;
 use App\Models\User;
 
@@ -66,8 +67,14 @@ class AuthMiddleware
 		return new RedirectResponse($loginUrl);
 	}
 
-	// false once users.session_version was bumped by an account change, or the user is gone
+	// false once an LDAP/OIDC user's admin status no longer matches *_ADMINS,
+	// users.session_version was bumped by an account change, or the user is gone
 	private function sessionStillValid(SessionInterface $session): bool {
+		$external_admin = AuthManager::isExternalAdmin((string) $session->get('auth_provider', ''), (string) $session->get('username', ''));
+		if ($external_admin !== null && $external_admin !== (bool) $session->get('is_admin')) {
+			return false;
+		}
+
 		if (!App::migrationStatus()->sessionVersionCompleted()) {
 			return true;
 		}

@@ -151,6 +151,23 @@ class AuthManager
 		return 'UNKNOWN';
 	}
 
+	// admin per LDAP_ADMINS / OPENIDC_ADMINS; null for other providers
+	public static function isExternalAdmin(string $provider, string $username): ?bool {
+		$var = match ($provider) {
+			'LDAP' => 'LDAP_ADMINS',
+			'OPENIDC' => 'OPENIDC_ADMINS',
+			default => null,
+		};
+		if ($var === null) {
+			return null;
+		}
+		$admins = array_map(
+			fn($a) => strtolower(trim($a)),
+			explode(',', (string) ($_ENV[$var] ?? ''))
+		);
+		return in_array(strtolower(trim($username)), $admins, true);
+	}
+
 	private function selectAuthProvider(
 		string $username,
 		string $password,

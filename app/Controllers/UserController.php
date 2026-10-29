@@ -619,10 +619,10 @@ class UserController extends ViewController
 			$this->session->set('user_id', $user->id);
 			$this->session->set('session_version', (int) ($user->session_version ?? 0));
 			$this->session->set('email', $user->email);
-			$this->session->set('is_admin', $user->is_admin);
-
 			// need this to get the auth_provider description
-			$this->session->set('auth_provider', AuthManager::getAuthProviderById($user->auth_provider));
+			$provider = AuthManager::getAuthProviderById($user->auth_provider);
+			$this->session->set('is_admin', AuthManager::isExternalAdmin($provider, $user->username) ?? (bool) $user->is_admin);
+			$this->session->set('auth_provider', $provider);
 			$aliases = array_unique(array_map('strtolower', array_filter(
 				$user->mailAliases()->pluck('alias')->toArray(),
 				fn($alias) => !empty(trim($alias))

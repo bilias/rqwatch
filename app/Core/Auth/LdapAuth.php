@@ -218,16 +218,7 @@ class LdapAuth implements AuthInterface {
 
 		$this->authenticatedUser = strtolower(trim($this->username));
 
-		// search if user is admin
-		if (array_key_exists('LDAP_ADMINS', $_ENV) && !empty($_ENV['LDAP_ADMINS'])) {
-			$ldap_admins_ar = array_map(
-				fn($a) => strtolower(trim($a)),
-				explode(',', $_ENV['LDAP_ADMINS'])
-			);
-			if (in_array($this->authenticatedUser, $ldap_admins_ar, true)) {
-				$this->is_admin = true;
-			}
-		}
+		$this->is_admin = AuthManager::isExternalAdmin('LDAP', $this->authenticatedUser) === true;
 
 		$sn = $this->getValue($attrs, $ldap_sn_attr);
 		if (!empty($sn)) {
