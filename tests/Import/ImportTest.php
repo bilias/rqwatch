@@ -12,12 +12,14 @@
  qa/import-tests.sh runs: each test scans a mail through rspamd, whose
  metadata_exporter (contrib's rule) posts it to the importer, then compares
  the stored rows with rspamd's own verdict for that scan. The X-Import-Test
- header picks a rule from tests/Import/rspamd/rspamd.local.lua.
+ header picks a rule from tests/Import/rspamd/rspamd.local.lua; the map
+ entries come from tests/Import/fixtures.sql.
 */
 
 namespace Tests\Import;
 
 use PDO;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -26,9 +28,22 @@ final class ImportTest extends TestCase
 	private const SERVER = 'mx1';
 	private const IP = '192.0.2.10';
 	private const MAIL_FROM = 'Sender@Sender.TEST';
+	private const MIME_FROM = 'Sender <sender@sender.test>';
+	private const RCPT = 'alice@rqwatch.test';
 	private const WAIT_SECONDS = 15;
+	// MapHitService::ENTRY_COMBINED
+	private const ENTRY_COMBINED = 1;
 
 	private static ?PDO $db = null;
+
+	/** @var array{mail: string, ip: string, from: string, mime_from: string} */
+	private array $sent;
+
+	public static function setUpBeforeClass(): void {
+		if (getenv('IMPORT_RSPAMD_URL') !== false) {
+			self::waitForMaps();
+		}
+	}
 
 	protected function setUp(): void {
 		if (getenv('IMPORT_RSPAMD_URL') === false) {
@@ -36,61 +51,124 @@ final class ImportTest extends TestCase
 		}
 	}
 
+	#[TestDox('Clean mail: logged with UTF-8 subject and every recipient, not quarantined')]
 	public function testCleanMailIsLoggedNotStored(): void {
-		$qid = self::qid();
 		$subject = 'Καλημέρα κόσμε';
-		$mail = self::message($qid, '=?UTF-8?B?' . base64_encode($subject) . '?=', 'clean');
-		$reply = self::scan($qid, $mail, ['alice@rqwatch.test', 'Bob@RQWATCH.test']);
+		[$qid, $reply, $row] = $this->import('clean', '=?UTF-8?B?' . base64_encode($subject) . '?=',
+			rcpts: [self::RCPT, 'Bob@RQWATCH.test']);
 		$this->assertSame('no action', $reply['action'], 'fixture: rspamd verdict');
 
-		$row = self::row($qid);
-		$this->assertImported($reply, $row, $mail);
 		$this->assertSame($subject, $row['subject']);
 		$this->assertSame('alice@rqwatch.test, bob@rqwatch.test', $row['rcpt_to']);
 		$this->assertSame(['alice@rqwatch.test', 'bob@rqwatch.test'], self::recipients((int) $row['id']));
 		$this->assertSame(0, (int) $row['has_virus']);
-		$this->assertSame(0, (int) $row['mail_stored']);
-		$this->assertNull($row['mail_location']);
-		$this->assertDirectoryDoesNotExist(self::quarantineDir() . '/' . date('Y-m-d') . "/{$qid}");
+		$this->assertNotQuarantined($row, $qid);
 	}
 
+	#[TestDox('Reject by score: quarantined byte for byte, LOCAL_* symbol recorded as a hit')]
 	public function testRejectedMailIsQuarantined(): void {
-		$qid = self::qid();
-		$mail = self::message($qid, "Spam {$qid}", 'spam');
-		$reply = self::scan($qid, $mail, ['alice@rqwatch.test']);
+		[, $reply, $row] = $this->import('spam');
 		$this->assertSame('reject', $reply['action'], 'fixture: rspamd verdict');
 
-		$row = self::row($qid);
-		$this->assertImported($reply, $row, $mail);
 		$this->assertSame(0, (int) $row['has_virus']);
-		$this->assertQuarantined($row, $mail);
-
-		// LOCAL_* symbols are recorded as map hits (no map entry: model 0)
-		$hit = self::query(
-			'SELECT h.entry_model, h.score FROM mail_log_symbol_hits h
-				JOIN symbol_names s ON s.id = h.symbol_id
-				WHERE h.mail_log_id = ? AND s.name = ?',
-			[(int) $row['id'], 'LOCAL_IMPORT_TEST_SPAM']
-		);
-		$this->assertCount(1, $hit, 'map hit for LOCAL_IMPORT_TEST_SPAM');
-		$this->assertSame(0, (int) $hit[0]['entry_model']);
-		$this->assertEqualsWithDelta(50.0, (float) $hit[0]['score'], 0.001);
+		$this->assertQuarantined($row);
+		$this->assertHit((int) $row['id'], 'LOCAL_IMPORT_TEST_SPAM', 0, 0, 50.0);
 	}
 
+	#[TestDox('Discard by score: contrib actions.conf threshold (12) below reject')]
+	public function testScoreDiscardIsQuarantined(): void {
+		[, $reply, $row] = $this->import('discard');
+		$this->assertSame('discard', $reply['action'], 'fixture: contrib actions.conf');
+
+		$this->assertQuarantined($row);
+	}
+
+	#[TestDox('Virus: discarded by contrib force_actions.conf, virus recorded')]
 	public function testVirusIsDiscardedAndRecorded(): void {
-		$qid = self::qid();
-		$mail = self::message($qid, "Virus {$qid}", 'virus');
-		$reply = self::scan($qid, $mail, ['alice@rqwatch.test']);
+		[, $reply, $row] = $this->import('virus');
 		$this->assertSame('discard', $reply['action'], 'fixture: contrib force_actions.conf and actions.conf');
 
+		$this->assertQuarantined($row);
+		$this->assertVirus($row);
+	}
+
+	#[TestDox('IP blacklist (CIDR entry): rejected, hit credited to the entry')]
+	public function testIpBlacklistRejects(): void {
+		[, $reply, $row] = $this->import('clean', ip: '198.51.100.7');
+		$this->assertSame('reject', $reply['action'], 'fixture: contrib multimap.conf');
+
+		$this->assertQuarantined($row);
+		$this->assertMapHit($row, 'RQWATCH_IP_BLACKLIST', 'ip_blacklist');
+	}
+
+	#[TestDox('SMTP From blacklist: discarded, hit credited to the entry')]
+	public function testSmtpFromBlacklistDiscards(): void {
+		[, $reply, $row] = $this->import('clean', from: 'smtp-bl@sender.test');
+		$this->assertSame('discard', $reply['action'], 'fixture: contrib multimap.conf');
+
+		$this->assertQuarantined($row);
+		$this->assertMapHit($row, 'RQWATCH_SMTP_FROM_BLACKLIST', 'mail_from_blacklist');
+	}
+
+	#[TestDox('MIME From blacklist: discarded, hit credited to the entry')]
+	public function testMimeFromBlacklistDiscards(): void {
+		[, $reply, $row] = $this->import('clean', mimeFrom: 'Listed <mime-bl@sender.test>');
+		$this->assertSame('discard', $reply['action'], 'fixture: contrib multimap.conf');
+
+		$this->assertQuarantined($row);
+		$this->assertMapHit($row, 'RQWATCH_MIME_FROM_BLACKLIST', 'mime_from_blacklist');
+	}
+
+	#[TestDox('SMTP From/RCPT To blacklist (Lua map): rejected, hit credited to the entry')]
+	public function testSmtpFromRcptToBlacklistRejects(): void {
+		[, $reply, $row] = $this->import('clean', from: 'pair-bl@sender.test', rcpts: [self::RCPT, 'bob@rqwatch.test']);
+		$this->assertSame('reject', $reply['action'], 'fixture: contrib lua.local.d and groups.conf');
+
+		$this->assertQuarantined($row);
+		$this->assertMapHit($row, 'RQWATCH_SMTP_FROM_RCPT_TO_BLACKLIST', 'mail_from_rcpt_to_blacklist');
+	}
+
+	#[TestDox('SMTP From whitelist: spam accepted, not quarantined, hit credited')]
+	public function testWhitelistAcceptsSpam(): void {
+		[$qid, $reply, $row] = $this->import('spam', from: 'smtp-wl@sender.test');
+		$this->assertSame('no action', $reply['action'], 'fixture: contrib multimap.conf');
+
+		$this->assertNotQuarantined($row, $qid);
+		$this->assertMapHit($row, 'RQWATCH_SMTP_FROM_WHITELIST', 'mail_from_whitelist');
+	}
+
+	#[TestDox('SMTP From whitelist with a virus: still discarded by force_actions.conf')]
+	public function testWhitelistedVirusIsDiscarded(): void {
+		[, $reply, $row] = $this->import('virus', from: 'smtp-wl@sender.test');
+		$this->assertSame('discard', $reply['action'], 'fixture: contrib force_actions.conf');
+
+		$this->assertQuarantined($row);
+		$this->assertVirus($row);
+		$this->assertMapHit($row, 'RQWATCH_SMTP_FROM_WHITELIST', 'mail_from_whitelist');
+	}
+
+	/**
+	 * Scans a test mail and returns its qid, rspamd's reply and the imported
+	 * row, after checking what every import must satisfy.
+	 * @param list<string> $rcpts
+	 * @return array{0: string, 1: array<string, mixed>, 2: array<string, mixed>}
+	 */
+	private function import(
+		string $test,
+		?string $subject = null,
+		array $rcpts = [self::RCPT],
+		string $from = self::MAIL_FROM,
+		string $mimeFrom = self::MIME_FROM,
+		string $ip = self::IP,
+	): array {
+		$qid = self::qid();
+		$mail = self::message($qid, $subject ?? ucfirst($test) . " {$qid}", $test, $mimeFrom);
+		$this->sent = ['mail' => $mail, 'ip' => $ip, 'from' => $from, 'mime_from' => $mimeFrom];
+
+		$reply = self::scan($mail, self::scanHeaders($qid, $ip, $from, $rcpts));
 		$row = self::row($qid);
-		$this->assertImported($reply, $row, $mail);
-		$this->assertSame(1, (int) $row['has_virus']);
-		$this->assertQuarantined($row, $mail);
-		$this->assertSame(
-			[['av' => 'CLAM_VIRUS', 'name' => 'Eicar-Test-Signature']],
-			self::query('SELECT av, name FROM mail_log_viruses WHERE mail_log_id = ?', [(int) $row['id']])
-		);
+		$this->assertImported($reply, $row);
+		return [$qid, $reply, $row];
 	}
 
 	/**
@@ -98,16 +176,16 @@ final class ImportTest extends TestCase
 	 * @param array<string, mixed> $reply
 	 * @param array<string, mixed> $row
 	 */
-	private function assertImported(array $reply, array $row, string $mail): void {
+	private function assertImported(array $reply, array $row): void {
 		$this->assertSame(self::SERVER, $row['server']);
 		$this->assertSame($reply['action'], $row['action']);
 		$this->assertEqualsWithDelta((float) $reply['score'], (float) $row['score'], 0.005, 'score');
-		$this->assertSame(self::IP, $row['ip']);
-		$this->assertSame(strtolower(self::MAIL_FROM), $row['mail_from']);
-		$this->assertSame('Sender <sender@sender.test>', $row['mime_from']);
-		$this->assertSame('alice@rqwatch.test', $row['mime_to']);
+		$this->assertSame($this->sent['ip'], $row['ip']);
+		$this->assertSame(strtolower($this->sent['from']), $row['mail_from']);
+		$this->assertSame($this->sent['mime_from'], $row['mime_from']);
+		$this->assertSame(self::RCPT, $row['mime_to']);
 		$this->assertSame("<{$row['qid']}@sender.test>", $row['message_id']);
-		$this->assertSame(strlen($mail), (int) $row['size'], 'size');
+		$this->assertSame(strlen($this->sent['mail']), (int) $row['size'], 'size');
 
 		$data = self::query('SELECT headers, symbols FROM mail_log_data WHERE mail_log_id = ?', [(int) $row['id']]);
 		$this->assertCount(1, $data, 'mail_log_data row');
@@ -127,12 +205,52 @@ final class ImportTest extends TestCase
 	}
 
 	/** @param array<string, mixed> $row */
-	private function assertQuarantined(array $row, string $mail): void {
+	private function assertQuarantined(array $row): void {
 		$this->assertSame(1, (int) $row['mail_stored']);
 		$location = (string) $row['mail_location'];
 		$this->assertStringStartsWith(self::quarantineDir() . '/', $location);
 		$this->assertFileExists($location);
-		$this->assertSame($mail, file_get_contents($location), 'stored mail differs from the mail scanned');
+		$this->assertSame($this->sent['mail'], file_get_contents($location), 'stored mail differs from the mail scanned');
+	}
+
+	/** @param array<string, mixed> $row */
+	private function assertNotQuarantined(array $row, string $qid): void {
+		$this->assertSame(0, (int) $row['mail_stored']);
+		$this->assertNull($row['mail_location']);
+		$this->assertDirectoryDoesNotExist(self::quarantineDir() . '/' . date('Y-m-d') . "/{$qid}");
+	}
+
+	/** @param array<string, mixed> $row */
+	private function assertVirus(array $row): void {
+		$this->assertSame(1, (int) $row['has_virus']);
+		$this->assertSame(
+			[['av' => 'CLAM_VIRUS', 'name' => 'Eicar-Test-Signature']],
+			self::query('SELECT av, name FROM mail_log_viruses WHERE mail_log_id = ?', [(int) $row['id']])
+		);
+	}
+
+	/** @param array<string, mixed> $row */
+	private function assertMapHit(array $row, string $symbol, string $map): void {
+		$entries = self::query('SELECT id FROM maps_combined WHERE map_name = ?', [$map]);
+		$this->assertCount(1, $entries, "fixture: one {$map} entry");
+		$this->assertHit((int) $row['id'], $symbol, self::ENTRY_COMBINED, (int) $entries[0]['id']);
+	}
+
+	private function assertHit(int $mailLogId, string $symbol, int $model, int $entryId, ?float $score = null): void {
+		$hits = self::query(
+			'SELECT h.entry_model, h.entry_id, h.score FROM mail_log_symbol_hits h
+				JOIN symbol_names s ON s.id = h.symbol_id
+				WHERE h.mail_log_id = ? AND s.name = ?',
+			[$mailLogId, $symbol]
+		);
+		$this->assertSame(
+			[[$model, $entryId]],
+			array_map(fn($h) => [(int) $h['entry_model'], (int) $h['entry_id']], $hits),
+			"map hit for {$symbol}"
+		);
+		if ($score !== null) {
+			$this->assertEqualsWithDelta($score, (float) $hits[0]['score'], 0.001);
+		}
 	}
 
 	private static function quarantineDir(): string {
@@ -143,10 +261,10 @@ final class ImportTest extends TestCase
 		return 'IMP' . strtoupper(bin2hex(random_bytes(6)));
 	}
 
-	private static function message(string $qid, string $subject, string $test): string {
+	private static function message(string $qid, string $subject, string $test, string $mimeFrom): string {
 		return implode("\r\n", [
-			'From: Sender <sender@sender.test>',
-			'To: alice@rqwatch.test',
+			"From: {$mimeFrom}",
+			'To: ' . self::RCPT,
 			"Subject: {$subject}",
 			'Date: ' . date(DATE_RFC2822),
 			"Message-ID: <{$qid}@sender.test>",
@@ -160,23 +278,26 @@ final class ImportTest extends TestCase
 	}
 
 	/**
-	 * Scans the mail through rspamd's normal worker, as the MTA would. As an
-	 * authenticated user, so DNS-based sender checks add no score and stock
-	 * thresholds (with contrib's discard) give stable verdicts.
+	 * Scan headers as the MTA would send them. As an authenticated user, so
+	 * DNS-based sender checks add no score and stock thresholds (with
+	 * contrib's discard) give stable verdicts.
 	 * @param list<string> $rcpts
-	 * @return array<string, mixed> rspamd's reply
+	 * @return list<string>
 	 */
-	private static function scan(string $qid, string $mail, array $rcpts): array {
-		$headers = [
-			"Queue-Id: {$qid}",
-			'IP: ' . self::IP,
-			'From: ' . self::MAIL_FROM,
-			'User: import-test',
-		];
+	private static function scanHeaders(string $qid, string $ip, string $from, array $rcpts): array {
+		$headers = ["Queue-Id: {$qid}", "IP: {$ip}", "From: {$from}", 'User: import-test'];
 		foreach ($rcpts as $rcpt) {
 			$headers[] = "Rcpt: {$rcpt}";
 		}
+		return $headers;
+	}
 
+	/**
+	 * Scans the mail through rspamd's normal worker.
+	 * @param list<string> $headers
+	 * @return array<string, mixed> rspamd's reply
+	 */
+	private static function scan(string $mail, array $headers): array {
 		$ch = curl_init(rtrim((string) getenv('IMPORT_RSPAMD_URL'), '/') . '/checkv2');
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
@@ -187,14 +308,44 @@ final class ImportTest extends TestCase
 		$body = curl_exec($ch);
 		$status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
 		if (!is_string($body) || $status !== 200) {
-			throw new RuntimeException("rspamd scan of {$qid} failed (HTTP {$status}): " . curl_error($ch));
+			throw new RuntimeException("rspamd scan failed (HTTP {$status}): " . curl_error($ch));
 		}
 
 		$reply = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
 		if (!is_array($reply) || !isset($reply['action'], $reply['score'], $reply['symbols'])) {
-			throw new RuntimeException("Unexpected rspamd reply for {$qid}: {$body}");
+			throw new RuntimeException("Unexpected rspamd reply: {$body}");
 		}
 		return $reply;
+	}
+
+	/**
+	 * Rspamd fetches the map files after it starts: probe each map until its
+	 * symbol fires. Probes are not exported, so nothing is imported.
+	 */
+	private static function waitForMaps(): void {
+		$probes = [
+			'RQWATCH_IP_BLACKLIST' => ['198.51.100.7', self::MAIL_FROM, self::MIME_FROM, [self::RCPT]],
+			'RQWATCH_SMTP_FROM_BLACKLIST' => [self::IP, 'smtp-bl@sender.test', self::MIME_FROM, [self::RCPT]],
+			'RQWATCH_MIME_FROM_BLACKLIST' => [self::IP, self::MAIL_FROM, 'Listed <mime-bl@sender.test>', [self::RCPT]],
+			'RQWATCH_SMTP_FROM_WHITELIST' => [self::IP, 'smtp-wl@sender.test', self::MIME_FROM, [self::RCPT]],
+			'RQWATCH_SMTP_FROM_RCPT_TO_BLACKLIST' => [self::IP, 'pair-bl@sender.test', self::MIME_FROM, ['bob@rqwatch.test']],
+		];
+		$deadline = microtime(true) + 60;
+		while ($probes !== []) {
+			foreach ($probes as $symbol => [$ip, $from, $mimeFrom, $rcpts]) {
+				$qid = 'PROBE' . strtoupper(bin2hex(random_bytes(4)));
+				$headers = self::scanHeaders($qid, $ip, $from, $rcpts);
+				$headers[] = 'Settings: {symbols_disabled = ["EXPORT_METADATA_RQWATCH"]}';
+				$reply = self::scan(self::message($qid, 'Probe', 'clean', $mimeFrom), $headers);
+				if (isset($reply['symbols'][$symbol])) {
+					unset($probes[$symbol]);
+				}
+			}
+			if ($probes !== [] && microtime(true) > $deadline) {
+				throw new RuntimeException('rspamd did not load the maps for: ' . implode(', ', array_keys($probes)));
+			}
+			usleep(500000);
+		}
 	}
 
 	/**

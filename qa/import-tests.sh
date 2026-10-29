@@ -8,9 +8,11 @@
 # Rspamd import tests: a real rspamd ($RSPAMD_IMAGE) scans test mails and its
 # metadata_exporter, contrib's rule pointed at a copy of this checkout served
 # by php -S, posts them to the importer; tests/Import compares what was stored
-# with rspamd's own verdict. MariaDB and rspamd run as rootless Podman
-# containers, rspamd on the host network so it reaches php -S on loopback.
-# Local only. Extra arguments go to phpunit. Run from the project root.
+# with rspamd's own verdict. Rspamd also runs contrib's maps, reading the map
+# files this copy generates from tests/Import/fixtures.sql. MariaDB and rspamd
+# run as rootless Podman containers, rspamd on the host network so it reaches
+# php -S on loopback. Local only. Extra arguments go to phpunit. Run from the
+# project root.
 set -euo pipefail
 
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
@@ -70,9 +72,20 @@ sed -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 
 $DB_EXEC < contrib/db-init.sql
 
+# map entries (owned by an admin) and the map files rspamd reads
+php bin/cli.php user:add -a -p "$(php -r 'echo bin2hex(random_bytes(16));')" admin admin@rqwatch.test >/dev/null
+$DB_EXEC rqwatch < tests/Import/fixtures.sql
+mkdir -p web/maps
+php bin/cli.php cron:updatemapfiles
+for map in ip_blacklist mail_from_blacklist mime_from_blacklist mail_from_whitelist mail_from_rcpt_to_blacklist; do
+	[ "$(grep -vc '^#' "web/maps/${map}.txt" 2>/dev/null)" = 1 ] \
+		|| { echo "web/maps/${map}.txt: expected one entry" >&2; exit 1; }
+done
+
 # rspamd configuration: contrib's exporter rule pointed at this copy,
-# contrib's force_actions and actions, and the test's rules
-mkdir -p rspamd/local.d
+# contrib's maps reading this copy's map files, contrib's force_actions,
+# actions and groups, and the test's rules
+mkdir -p rspamd/local.d rspamd/lua.local.d
 sed -e "s#^\([[:space:]]*url = \).*#\1\"http://127.0.0.1:${WEB_PORT}/api/metadata_importer_multipart.php?server=mx1\";#" \
 	-e "s#^\([[:space:]]*password = \).*#\1\"${API_PASS}\";#" \
 	contrib/rspamd/local.d/metadata_exporter.conf > rspamd/local.d/metadata_exporter.conf
@@ -81,7 +94,13 @@ if ! grep -q "127.0.0.1:${WEB_PORT}/" rspamd/local.d/metadata_exporter.conf \
 	echo "contrib/rspamd/local.d/metadata_exporter.conf: url or password line not found" >&2
 	exit 1
 fi
-cp contrib/rspamd/local.d/force_actions.conf contrib/rspamd/local.d/actions.conf rspamd/local.d/
+for f in contrib/rspamd/local.d/multimap.conf contrib/rspamd/lua.local.d/rqwatch_*.lua; do
+	dest="rspamd/${f#contrib/rspamd/}"
+	sed "s#http://127.0.0.1/maps/#http://127.0.0.1:${WEB_PORT}/maps/#" "$f" > "$dest"
+	grep -q "127.0.0.1:${WEB_PORT}/maps/" "$dest" || { echo "${f}: map URL not found" >&2; exit 1; }
+done
+cp contrib/rspamd/local.d/force_actions.conf contrib/rspamd/local.d/actions.conf \
+	contrib/rspamd/local.d/groups.conf rspamd/local.d/
 cp tests/Import/rspamd/rspamd.local.lua rspamd/
 chmod -R a+rX rspamd
 
@@ -110,13 +129,16 @@ for i in $(seq 60); do
 	sleep 1
 done
 
+echo "rspamd $(curl -s "http://127.0.0.1:${CONTROLLER_PORT}/stat" | php -r 'echo json_decode(stream_get_contents(STDIN), true)["version"] ?? "?";')," \
+	"MariaDB $($DB_EXEC -N -e 'SELECT VERSION()')"
+
 status=0
 IMPORT_RSPAMD_URL="http://127.0.0.1:${NORMAL_PORT}" \
 IMPORT_QUARANTINE_DIR="${WORK}/q" \
 IMPORT_DB_DSN="mysql:host=127.0.0.1;port=${DB_PORT};dbname=rqwatch;charset=utf8mb4" \
 IMPORT_DB_USER=root \
 IMPORT_DB_PASS="$DB_PASS" \
-	vendor/bin/phpunit -c qa/phpunit-import.xml "$@" || status=$?
+	vendor/bin/phpunit -c qa/phpunit-import.xml --testdox "$@" || status=$?
 
 if [ "$status" != 0 ]; then
 	if [ -s logs/rqwatch.log ]; then

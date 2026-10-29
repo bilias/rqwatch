@@ -17,6 +17,17 @@ rspamd_config.LOCAL_IMPORT_TEST_SPAM = {
 	description = 'Import test: spam',
 }
 
+-- between contrib's discard (12) and rspamd's reject (15)
+rspamd_config.LOCAL_IMPORT_TEST_DISCARD = {
+	callback = function(task)
+		if import_test(task, 'discard') then
+			return true, 'discard'
+		end
+	end,
+	score = 12.5,
+	description = 'Import test: discard by score',
+}
+
 -- an antivirus hit: contrib's force_actions.conf discards on CLAM_VIRUS
 rspamd_config.CLAM_VIRUS = {
 	callback = function(task)
