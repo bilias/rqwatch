@@ -1230,7 +1230,7 @@ class MapService
 				$query = $query->where('user_id', $this->user_id);
 			}
 
-		} elseif ($model === 'MapCustom') {
+		} elseif ($model === 'MapCustom' && $this->is_admin) {
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('id', $id);
 		} else {
@@ -1284,7 +1284,7 @@ class MapService
 				$query = $query->where('user_id', $this->user_id);
 			}
 
-		} elseif ($model === 'MapCustom') {
+		} elseif ($model === 'MapCustom' && $this->is_admin) {
 			$query = $this->getMapCustomQuery($map_name);
 		} else {
 			return false;
@@ -1332,7 +1332,7 @@ class MapService
 				$query = $query->where('user_id', $this->user_id);
 			}
 
-		} elseif ($model === 'MapCustom') {
+		} elseif ($model === 'MapCustom' && $this->is_admin) {
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('id', $id);
 		} else {
