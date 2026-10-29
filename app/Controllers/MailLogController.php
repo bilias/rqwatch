@@ -1050,7 +1050,7 @@ class MailLogController extends ViewController
 			$mailobject = $service->getMailObject($id);
 		} catch (Exception $e) {
 			$this->fileLogger->warning("showMail() problem: " . $e->getMessage());
-			$this->flashbag->add('error', $e->getMessage());
+			$this->flashbag->add('error', $this->is_admin ? $e->getMessage() : "Mail is not available");
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -1096,7 +1096,7 @@ class MailLogController extends ViewController
 			$mailobject = $service->getMailObject($id);
 		} catch (Exception $e) {
 			$this->fileLogger->warning("saveAttachment() problem: " . $e->getMessage());
-			$this->flashbag->add('error', $e->getMessage());
+			$this->flashbag->add('error', $this->is_admin ? $e->getMessage() : "Mail is not available");
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
@@ -1139,7 +1139,7 @@ class MailLogController extends ViewController
 			$mailobject = $service->getMailObject($id);
 		} catch (Exception $e) {
 			$this->fileLogger->warning("openAttachment() problem: " . $e->getMessage());
-			$this->flashbag->add('error', $e->getMessage());
+			$this->flashbag->add('error', $this->is_admin ? $e->getMessage() : "Mail is not available");
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
