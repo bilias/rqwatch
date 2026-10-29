@@ -152,6 +152,17 @@ Rspamd's `local.d/force_actions.conf`, adjusting the symbol to your antivirus se
 cat contrib/rspamd/local.d/force_actions.conf >> /etc/rspamd/local.d/force_actions.conf
 ```
 
+Blacklist maps and `force_actions.conf` use the `discard` action, which Rspamd
+does not define by default: without it they fail with `unknown action discard` in
+Rspamd's log, so a blacklisted sender is rejected instead and a virus from a
+whitelisted sender is delivered. Declare it by appending
+[actions.conf](/contrib/rspamd/local.d/actions.conf) to Rspamd's `local.d/actions.conf`.
+It sets a `discard` threshold of 12, so mail scoring between 12 and `reject` is
+also discarded (and quarantined):
+```
+cat contrib/rspamd/local.d/actions.conf >> /etc/rspamd/local.d/actions.conf
+```
+
 Using predefined Basic Maps or choosing to use Custom Maps (see bellow) is up to you.
 
 ### Custom Maps
