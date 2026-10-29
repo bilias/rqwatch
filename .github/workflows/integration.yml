@@ -9,7 +9,7 @@ on:
     branches: [master]
   pull_request:
   schedule:
-    # rspamd:4 and mariadb:10.11 are moving tags: catch upstream changes between pushes
+    # rspamd:4, mariadb:10.11 and redis:7 are moving tags: catch upstream changes between pushes
     - cron: '41 4 * * 1'
   workflow_dispatch:
 

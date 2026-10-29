@@ -9,21 +9,25 @@
 # metadata_exporter, contrib's rule pointed at a copy of this checkout served
 # by php -S, posts them to the importer; tests/Import compares what was stored
 # with rspamd's own verdict. Rspamd also runs contrib's maps, reading the map
-# files this copy generates from tests/Import/fixtures.sql. MariaDB and rspamd
-# run as rootless Podman containers, rspamd on the host network so it reaches
-# php -S on loopback. Extra arguments go to phpunit. Run from the project root.
+# files this copy generates from tests/Import/fixtures.sql. Redis holds the
+# failed-import spool. MariaDB, Redis and rspamd run as rootless Podman
+# containers, rspamd on the host network so it reaches php -S on loopback.
+# Extra arguments go to phpunit. Run from the project root.
 set -euo pipefail
 
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 RSPAMD_IMAGE="${RSPAMD_IMAGE:-docker.io/rspamd/rspamd:4}"
+REDIS_IMAGE="${REDIS_IMAGE:-docker.io/library/redis:7}"
 WORK=$(mktemp -d)
 DB_CID=
+REDIS_CID=
 RSPAMD_CID=
 WEB_PID=
 
 cleanup() {
 	[ -n "$WEB_PID" ] && kill "$WEB_PID" 2>/dev/null || true
 	[ -n "$RSPAMD_CID" ] && podman rm -f "$RSPAMD_CID" >/dev/null 2>&1 || true
+	[ -n "$REDIS_CID" ] && podman rm -f "$REDIS_CID" >/dev/null 2>&1 || true
 	[ -n "$DB_CID" ] && podman rm -f "$DB_CID" >/dev/null 2>&1 || true
 	rm -rf "$WORK"
 }
@@ -36,12 +40,24 @@ free_port() {
 # database
 DB_PORT=$(free_port)
 DB_PASS=import-test
+# a clock unlike PHP's (unless PHP runs at UTC+5), so the tests see any
+# mix of PHP and database time
 DB_CID=$(podman run -d --rm --pull=newer -e MARIADB_ROOT_PASSWORD="$DB_PASS" \
-	-p "127.0.0.1:${DB_PORT}:3306" --tmpfs /var/lib/mysql "$MARIADB_IMAGE")
+	-p "127.0.0.1:${DB_PORT}:3306" --tmpfs /var/lib/mysql "$MARIADB_IMAGE" \
+	--default-time-zone=+05:00)
 DB_EXEC="podman exec -i $DB_CID mariadb -uroot -p$DB_PASS"
 for i in $(seq 60); do
 	podman exec "$DB_CID" healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1 && break
 	[ "$i" = 60 ] && { echo "MariaDB did not start" >&2; exit 1; }
+	sleep 1
+done
+
+# redis
+REDIS_PORT=$(free_port)
+REDIS_CID=$(podman run -d --rm --pull=newer -p "127.0.0.1:${REDIS_PORT}:6379" "$REDIS_IMAGE")
+for i in $(seq 30); do
+	[ "$(podman exec "$REDIS_CID" redis-cli ping 2>/dev/null)" = PONG ] && break
+	[ "$i" = 30 ] && { echo "Redis did not start" >&2; exit 1; }
 	sleep 1
 done
 
@@ -53,23 +69,28 @@ mkdir -p logs q
 
 WEB_PORT=$(free_port)
 API_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
+APP_DB_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
 sed -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	-e "s#^QUARANTINE_DIR=.*#QUARANTINE_DIR=${WORK}/q#" \
 	-e "s#^DB_HOST=.*#DB_HOST=127.0.0.1#" \
 	-e "s#^DB_PORT=.*#DB_PORT=${DB_PORT}#" \
 	-e "s#^DB_NAME=.*#DB_NAME=rqwatch#" \
-	-e "s#^DB_USER=.*#DB_USER=root#" \
-	-e "s#^DB_PASS=.*#DB_PASS=${DB_PASS}#" \
+	-e "s#^DB_USER=.*#DB_USER=rqwatch#" \
+	-e "s#^DB_PASS=.*#DB_PASS=${APP_DB_PASS}#" \
 	-e "s#^API_ENABLE=.*#API_ENABLE=true#" \
 	-e "s#^RSPAMD_API_PASS=.*#RSPAMD_API_PASS=${API_PASS}#" \
 	-e "s#^RSPAMD_API_ACL=.*#RSPAMD_API_ACL=\"127.0.0.1\"#" \
 	-e "s#^MAILER_DSN=.*#MAILER_DSN=\"null://null\"#" \
-	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=false#" \
+	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=true#" \
+	-e "s#^REDIS_DSN=.*#REDIS_DSN=\"redis://127.0.0.1:${REDIS_PORT}\"#" \
 	-e "s#^LDAP_AUTH_ENABLED=.*#LDAP_AUTH_ENABLED=false#" \
 	-e "s#^OPENIDC_AUTH_ENABLED=.*#OPENIDC_AUTH_ENABLED=false#" \
 	.env-example > .env
 
 $DB_EXEC < contrib/db-init.sql
+# rqwatch's own account: without SUPER, so the tests can refuse its writes
+# with read_only (root, used by the tests themselves, is exempt)
+$DB_EXEC -e "CREATE USER 'rqwatch'@'%' IDENTIFIED BY '${APP_DB_PASS}'; GRANT ALL ON rqwatch.* TO 'rqwatch'@'%'"
 
 # map entries (owned by an admin) and the map files rspamd reads
 php bin/cli.php user:add -a -p "$(php -r 'echo bin2hex(random_bytes(16));')" admin admin@rqwatch.test >/dev/null
@@ -129,10 +150,12 @@ for i in $(seq 60); do
 done
 
 echo "rspamd $(curl -s "http://127.0.0.1:${CONTROLLER_PORT}/stat" | php -r 'echo json_decode(stream_get_contents(STDIN), true)["version"] ?? "?";')," \
-	"MariaDB $($DB_EXEC -N -e 'SELECT VERSION()')"
+	"MariaDB $($DB_EXEC -N -e 'SELECT VERSION()')," \
+	"Redis $(podman exec "$REDIS_CID" redis-cli INFO server | sed -n 's/^redis_version:\([^\r]*\).*/\1/p')"
 
 status=0
 IMPORT_RSPAMD_URL="http://127.0.0.1:${NORMAL_PORT}" \
+IMPORT_ROOT="$WORK" \
 IMPORT_QUARANTINE_DIR="${WORK}/q" \
 IMPORT_DB_DSN="mysql:host=127.0.0.1;port=${DB_PORT};dbname=rqwatch;charset=utf8mb4" \
 IMPORT_DB_USER=root \

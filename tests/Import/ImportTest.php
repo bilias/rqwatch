@@ -188,11 +188,43 @@ final class ImportTest extends TestCase
 		$this->assertSame($rcpts, self::recipients((int) $row['id']));
 	}
 
+	#[TestDox('Database refuses writes: spooled to Redis, imported later by cron:import_spool, arrival time kept')]
+	public function testSpooledWhenDatabaseRefusesWrites(): void {
+		// created_at of mails imported directly, before and after, brackets the spooled one
+		[, , $before] = $this->import('clean');
+
+		self::db()->exec('SET GLOBAL read_only = 1');
+		try {
+			[, $reply] = $this->import('spam', wait: false);
+			self::waitForSpool();
+			$this->assertSame([], self::query('SELECT id FROM mail_logs WHERE message_id = ?',
+				["<{$this->sent['id']}@sender.test>"]), 'imported despite read_only');
+		} finally {
+			self::db()->exec('SET GLOBAL read_only = 0');
+		}
+		sleep(2);
+
+		self::cli('cron:import_spool', '-i', '-l');
+		$row = self::row("<{$this->sent['id']}@sender.test>");
+		$this->assertImported($reply, $row);
+		$this->assertQuarantined($row);
+		$this->assertStringContainsString('No spooled entries found', self::cli('cron:import_spool', '-l', '-v'));
+
+		[, , $after] = $this->import('clean');
+		$created = strtotime((string) $row['created_at']);
+		$this->assertGreaterThanOrEqual(strtotime((string) $before['created_at']), $created,
+			'spooled created_at earlier than a mail imported before it (PHP and database clocks differ?)');
+		$this->assertLessThan(strtotime((string) $after['created_at']), $created,
+			'spooled created_at is the replay time, or PHP and database clocks differ');
+	}
+
 	/**
 	 * Scans a test mail and returns its qid, rspamd's reply and the imported
-	 * row, after checking what every import must satisfy.
+	 * row, after checking what every import must satisfy. With $wait false it
+	 * returns after the scan, without a row.
 	 * @param list<string> $rcpts
-	 * @return array{0: string, 1: array<string, mixed>, 2: array<string, mixed>}
+	 * @param list<string> $to
+	 * @return array{0: string, 1: array<string, mixed>, 2: ?array<string, mixed>}
 	 */
 	private function import(
 		string $test,
@@ -204,6 +236,7 @@ final class ImportTest extends TestCase
 		string $qid = self::QID_PROTOCOL,
 		array $to = [self::RCPT],
 		string $charset = 'utf-8',
+		bool $wait = true,
 	): array {
 		$id = self::qid();
 		$extra = $qid === self::QID_HEADER ? ["X-Rspamd-Queue-Id: {$id}"] : [];
@@ -214,6 +247,9 @@ final class ImportTest extends TestCase
 		];
 
 		$reply = self::scan($mail, self::scanHeaders($qid === self::QID_PROTOCOL ? $id : null, $ip, $from, $rcpts));
+		if (!$wait) {
+			return [$this->sent['qid'], $reply, null];
+		}
 		$row = self::row("<{$id}@sender.test>");
 		$this->assertImported($reply, $row);
 		return [$this->sent['qid'], $reply, $row];
@@ -433,6 +469,31 @@ final class ImportTest extends TestCase
 		throw new RuntimeException("{$messageId} was not imported within " . self::WAIT_SECONDS . 's');
 	}
 
+	/** Runs bin/cli.php in the instance's copy and returns its output; fails on a non-zero exit. */
+	private static function cli(string ...$args): string {
+		$cmd = 'cd ' . escapeshellarg((string) getenv('IMPORT_ROOT')) . ' && '
+			. escapeshellarg(PHP_BINARY) . ' bin/cli.php ' . implode(' ', array_map('escapeshellarg', $args)) . ' 2>&1';
+		exec($cmd, $out, $status);
+		$output = implode("\n", $out);
+		if ($status !== 0) {
+			throw new RuntimeException('bin/cli.php ' . implode(' ', $args) . " exited {$status}: {$output}");
+		}
+		return $output;
+	}
+
+	/** Waits until cron:import_spool reports one pending entry for this server. */
+	private static function waitForSpool(): void {
+		$deadline = microtime(true) + self::WAIT_SECONDS;
+		do {
+			if (str_contains(self::cli('cron:import_spool', '-l', '-v'), '1 spooled entries found')) {
+				return;
+			}
+			usleep(200000);
+		} while (microtime(true) < $deadline);
+
+		throw new RuntimeException('Nothing was spooled within ' . self::WAIT_SECONDS . 's');
+	}
+
 	/** @return list<string> */
 	private static function recipients(int $id): array {
 		return array_column(self::query(
@@ -441,18 +502,21 @@ final class ImportTest extends TestCase
 		), 'recipient_email');
 	}
 
-	/**
-	 * @param list<int|string> $params
-	 * @return list<array<string, mixed>>
-	 */
-	private static function query(string $sql, array $params): array {
-		self::$db ??= new PDO(
+	private static function db(): PDO {
+		return self::$db ??= new PDO(
 			(string) getenv('IMPORT_DB_DSN'),
 			(string) getenv('IMPORT_DB_USER'),
 			(string) getenv('IMPORT_DB_PASS'),
 			[PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC],
 		);
-		$stmt = self::$db->prepare($sql);
+	}
+
+	/**
+	 * @param list<int|string> $params
+	 * @return list<array<string, mixed>>
+	 */
+	private static function query(string $sql, array $params): array {
+		$stmt = self::db()->prepare($sql);
 		$stmt->execute($params);
 		return array_values($stmt->fetchAll());
 	}
