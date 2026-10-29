@@ -621,6 +621,9 @@ class UserController extends ViewController
 			$old_username = $this->session->get('username');
 			$old_auth_provider = $this->session->get('auth_provider');
 
+			// new session id for the new identity
+			$this->session->migrate(true);
+
 			// only clears $this->vars from base Controller
 			$this->unsetSessionVars();
 
