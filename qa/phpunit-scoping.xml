@@ -2,6 +2,7 @@
 <!-- Run through qa/scoping-tests.sh, which provides the database and web server -->
 <phpunit bootstrap="../vendor/autoload.php"
 	colors="true"
+	testdox="true"
 	failOnWarning="true"
 	failOnRisky="true"
 	executionOrder="default">

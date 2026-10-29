@@ -2,6 +2,7 @@
 <!-- paths are relative to this file (qa/) -->
 <phpunit bootstrap="../vendor/autoload.php"
 	colors="true"
+	testdox="true"
 	failOnWarning="true"
 	failOnRisky="true">
 	<testsuites>

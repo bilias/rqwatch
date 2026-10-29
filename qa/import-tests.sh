@@ -138,7 +138,7 @@ IMPORT_QUARANTINE_DIR="${WORK}/q" \
 IMPORT_DB_DSN="mysql:host=127.0.0.1;port=${DB_PORT};dbname=rqwatch;charset=utf8mb4" \
 IMPORT_DB_USER=root \
 IMPORT_DB_PASS="$DB_PASS" \
-	vendor/bin/phpunit -c qa/phpunit-import.xml --testdox "$@" || status=$?
+	vendor/bin/phpunit -c qa/phpunit-import.xml "$@" || status=$?
 
 if [ "$status" != 0 ]; then
 	if [ -s logs/rqwatch.log ]; then
