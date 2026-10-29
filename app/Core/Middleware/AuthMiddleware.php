@@ -14,6 +14,8 @@ use App\Core\App;
 use App\Core\Routing\RouteName;
 use App\Models\User;
 
+use App\Utils\Helper;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -74,7 +76,7 @@ class AuthMiddleware
 			$current = User::whereKey((int) $session->get('user_id', 0))->value('session_version');
 		} catch (Throwable $e) {
 			$this->logger->error("[AuthMiddleware] session check failed: " . $e->getMessage());
-			return true;
+			Helper::failRequest('Service temporarily unavailable', Response::HTTP_SERVICE_UNAVAILABLE);
 		}
 
 		if ($current === null) {
