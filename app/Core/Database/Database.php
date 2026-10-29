@@ -50,6 +50,9 @@ class Database {
 			'port'     => $_ENV['DB_PORT'],
 			'charset'  => AppConfig::DB_CHARSET,
 			'collation'=> AppConfig::DB_COLLATION,
+			// the session clock follows PHP's, which writes date() values
+			'timezone' => date('P'),
+			'driver'   => 'mysql',
 			'driver'   => 'mysql',
 			'fetch'    => 'FETCH_ASSOC',
 		//	'prefix'   => 'my_',
