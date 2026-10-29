@@ -31,12 +31,16 @@ final class ImportTest extends TestCase
 	private const MIME_FROM = 'Sender <sender@sender.test>';
 	private const RCPT = 'alice@rqwatch.test';
 	private const WAIT_SECONDS = 15;
+	// how a test mail carries its queue id
+	private const QID_PROTOCOL = 'protocol';  // Queue-Id scan header (the MTA's)
+	private const QID_HEADER = 'header';      // only X-Rspamd-Queue-Id in the mail
+	private const QID_NONE = 'none';
 	// MapHitService::ENTRY_COMBINED
 	private const ENTRY_COMBINED = 1;
 
 	private static ?PDO $db = null;
 
-	/** @var array{mail: string, ip: string, from: string, mime_from: string} */
+	/** @var array{mail: string, id: string, qid: string, ip: string, from: string, mime_from: string, to: list<string>} */
 	private array $sent;
 
 	public static function setUpBeforeClass(): void {
@@ -54,7 +58,7 @@ final class ImportTest extends TestCase
 	#[TestDox('Clean mail: logged with UTF-8 subject and every recipient, not quarantined')]
 	public function testCleanMailIsLoggedNotStored(): void {
 		$subject = 'Καλημέρα κόσμε';
-		[$qid, $reply, $row] = $this->import('clean', '=?UTF-8?B?' . base64_encode($subject) . '?=',
+		[, $reply, $row] = $this->import('clean', '=?UTF-8?B?' . base64_encode($subject) . '?=',
 			rcpts: [self::RCPT, 'Bob@RQWATCH.test']);
 		$this->assertSame('no action', $reply['action'], 'fixture: rspamd verdict');
 
@@ -62,7 +66,7 @@ final class ImportTest extends TestCase
 		$this->assertSame('alice@rqwatch.test, bob@rqwatch.test', $row['rcpt_to']);
 		$this->assertSame(['alice@rqwatch.test', 'bob@rqwatch.test'], self::recipients((int) $row['id']));
 		$this->assertSame(0, (int) $row['has_virus']);
-		$this->assertNotQuarantined($row, $qid);
+		$this->assertNotQuarantined($row);
 	}
 
 	#[TestDox('Reject by score: quarantined byte for byte, LOCAL_* symbol recorded as a hit')]
@@ -130,10 +134,10 @@ final class ImportTest extends TestCase
 
 	#[TestDox('SMTP From whitelist: spam accepted, not quarantined, hit credited')]
 	public function testWhitelistAcceptsSpam(): void {
-		[$qid, $reply, $row] = $this->import('spam', from: 'smtp-wl@sender.test');
+		[, $reply, $row] = $this->import('spam', from: 'smtp-wl@sender.test');
 		$this->assertSame('no action', $reply['action'], 'fixture: contrib multimap.conf');
 
-		$this->assertNotQuarantined($row, $qid);
+		$this->assertNotQuarantined($row);
 		$this->assertMapHit($row, 'RQWATCH_SMTP_FROM_WHITELIST', 'mail_from_whitelist');
 	}
 
@@ -145,6 +149,43 @@ final class ImportTest extends TestCase
 		$this->assertQuarantined($row);
 		$this->assertVirus($row);
 		$this->assertMapHit($row, 'RQWATCH_SMTP_FROM_WHITELIST', 'mail_from_whitelist');
+	}
+
+	#[TestDox('No Queue-Id: the qid comes from the X-Rspamd-Queue-Id header')]
+	public function testQidFromHeader(): void {
+		[, , $row] = $this->import('spam', qid: self::QID_HEADER);
+
+		$this->assertQuarantined($row);
+		$this->assertStringContainsString("/{$row['qid']}/mail.eml", (string) $row['mail_location']);
+	}
+
+	#[TestDox('No qid at all: logged as unknown, quarantined under unknown/')]
+	public function testUnknownQid(): void {
+		[, , $row] = $this->import('spam', qid: self::QID_NONE);
+
+		$this->assertQuarantined($row);
+		$this->assertMatchesRegularExpression('#/\d{4}-\d{2}-\d{2}/unknown/[^/]+/mail\.eml$#', (string) $row['mail_location']);
+	}
+
+	#[TestDox('Unencoded 8-bit Windows-1253 subject: imported as valid UTF-8, not refused by strict mode')]
+	public function testEightBitSubject(): void {
+		$subject = (string) iconv('UTF-8', 'CP1253', 'Καλημέρα κόσμε');
+		[, , $row] = $this->import('clean', $subject, charset: 'windows-1253');
+
+		$this->assertTrue(mb_check_encoding((string) $row['subject'], 'UTF-8'), 'subject is valid UTF-8');
+		$this->assertNotSame('', (string) $row['subject']);
+	}
+
+	#[TestDox('60 recipients: rcpt_to and mime_to truncated, every recipient listed')]
+	public function testRecipientOverflow(): void {
+		$rcpts = [];
+		for ($i = 1; $i <= 60; $i++) {
+			$rcpts[] = sprintf('recipient-%02d-with-a-long-local-part@rqwatch.test', $i);
+		}
+		[, , $row] = $this->import('clean', rcpts: $rcpts, to: array_slice($rcpts, 0, 10));
+
+		$this->assertSame(mb_substr(implode(', ', $rcpts), 0, 1024), $row['rcpt_to']);
+		$this->assertSame($rcpts, self::recipients((int) $row['id']));
 	}
 
 	/**
@@ -160,15 +201,22 @@ final class ImportTest extends TestCase
 		string $from = self::MAIL_FROM,
 		string $mimeFrom = self::MIME_FROM,
 		string $ip = self::IP,
+		string $qid = self::QID_PROTOCOL,
+		array $to = [self::RCPT],
+		string $charset = 'utf-8',
 	): array {
-		$qid = self::qid();
-		$mail = self::message($qid, $subject ?? ucfirst($test) . " {$qid}", $test, $mimeFrom);
-		$this->sent = ['mail' => $mail, 'ip' => $ip, 'from' => $from, 'mime_from' => $mimeFrom];
+		$id = self::qid();
+		$extra = $qid === self::QID_HEADER ? ["X-Rspamd-Queue-Id: {$id}"] : [];
+		$mail = self::message($id, $subject ?? ucfirst($test) . " {$id}", $test, $mimeFrom, $to, $charset, $extra);
+		$this->sent = [
+			'mail' => $mail, 'id' => $id, 'qid' => $qid === self::QID_NONE ? 'unknown' : $id,
+			'ip' => $ip, 'from' => $from, 'mime_from' => $mimeFrom, 'to' => $to,
+		];
 
-		$reply = self::scan($mail, self::scanHeaders($qid, $ip, $from, $rcpts));
-		$row = self::row($qid);
+		$reply = self::scan($mail, self::scanHeaders($qid === self::QID_PROTOCOL ? $id : null, $ip, $from, $rcpts));
+		$row = self::row("<{$id}@sender.test>");
 		$this->assertImported($reply, $row);
-		return [$qid, $reply, $row];
+		return [$this->sent['qid'], $reply, $row];
 	}
 
 	/**
@@ -177,19 +225,20 @@ final class ImportTest extends TestCase
 	 * @param array<string, mixed> $row
 	 */
 	private function assertImported(array $reply, array $row): void {
+		$this->assertSame($this->sent['qid'], $row['qid']);
 		$this->assertSame(self::SERVER, $row['server']);
 		$this->assertSame($reply['action'], $row['action']);
 		$this->assertEqualsWithDelta((float) $reply['score'], (float) $row['score'], 0.005, 'score');
 		$this->assertSame($this->sent['ip'], $row['ip']);
 		$this->assertSame(strtolower($this->sent['from']), $row['mail_from']);
 		$this->assertSame($this->sent['mime_from'], $row['mime_from']);
-		$this->assertSame(self::RCPT, $row['mime_to']);
-		$this->assertSame("<{$row['qid']}@sender.test>", $row['message_id']);
+		$this->assertSame(mb_strimwidth(implode(', ', $this->sent['to']), 0, 250, '!!'), $row['mime_to']);
+		$this->assertSame("<{$this->sent['id']}@sender.test>", $row['message_id']);
 		$this->assertSame(strlen($this->sent['mail']), (int) $row['size'], 'size');
 
 		$data = self::query('SELECT headers, symbols FROM mail_log_data WHERE mail_log_id = ?', [(int) $row['id']]);
 		$this->assertCount(1, $data, 'mail_log_data row');
-		$this->assertStringContainsString("Message-ID: <{$row['qid']}@sender.test>", (string) $data[0]['headers']);
+		$this->assertStringContainsString("Message-ID: <{$this->sent['id']}@sender.test>", (string) $data[0]['headers']);
 
 		$expected = [];
 		foreach ($reply['symbols'] as $name => $symbol) {
@@ -214,10 +263,10 @@ final class ImportTest extends TestCase
 	}
 
 	/** @param array<string, mixed> $row */
-	private function assertNotQuarantined(array $row, string $qid): void {
+	private function assertNotQuarantined(array $row): void {
 		$this->assertSame(0, (int) $row['mail_stored']);
 		$this->assertNull($row['mail_location']);
-		$this->assertDirectoryDoesNotExist(self::quarantineDir() . '/' . date('Y-m-d') . "/{$qid}");
+		$this->assertDirectoryDoesNotExist(self::quarantineDir() . '/' . date('Y-m-d') . "/{$this->sent['qid']}");
 	}
 
 	/** @param array<string, mixed> $row */
@@ -261,18 +310,31 @@ final class ImportTest extends TestCase
 		return 'IMP' . strtoupper(bin2hex(random_bytes(6)));
 	}
 
-	private static function message(string $qid, string $subject, string $test, string $mimeFrom): string {
+	/**
+	 * @param list<string> $to
+	 * @param list<string> $extra more header lines
+	 */
+	private static function message(
+		string $id,
+		string $subject,
+		string $test,
+		string $mimeFrom,
+		array $to = [self::RCPT],
+		string $charset = 'utf-8',
+		array $extra = [],
+	): string {
 		return implode("\r\n", [
 			"From: {$mimeFrom}",
-			'To: ' . self::RCPT,
+			'To: ' . implode(', ', $to),
 			"Subject: {$subject}",
 			'Date: ' . date(DATE_RFC2822),
-			"Message-ID: <{$qid}@sender.test>",
+			"Message-ID: <{$id}@sender.test>",
+			...$extra,
 			'MIME-Version: 1.0',
-			'Content-Type: text/plain; charset=utf-8',
+			"Content-Type: text/plain; charset={$charset}",
 			"X-Import-Test: {$test}",
 			'',
-			"Body of {$qid}.",
+			"Body of {$id}.",
 			'',
 		]);
 	}
@@ -284,8 +346,11 @@ final class ImportTest extends TestCase
 	 * @param list<string> $rcpts
 	 * @return list<string>
 	 */
-	private static function scanHeaders(string $qid, string $ip, string $from, array $rcpts): array {
-		$headers = ["Queue-Id: {$qid}", "IP: {$ip}", "From: {$from}", 'User: import-test'];
+	private static function scanHeaders(?string $qid, string $ip, string $from, array $rcpts): array {
+		$headers = ["IP: {$ip}", "From: {$from}", 'User: import-test'];
+		if ($qid !== null) {
+			$headers[] = "Queue-Id: {$qid}";
+		}
 		foreach ($rcpts as $rcpt) {
 			$headers[] = "Rcpt: {$rcpt}";
 		}
@@ -350,21 +415,22 @@ final class ImportTest extends TestCase
 	}
 
 	/**
-	 * The mail_logs row of $qid, once the exporter's post has been imported.
+	 * The mail_logs row of a test mail, by its unique Message-ID, once the
+	 * exporter's post has been imported.
 	 * @return array<string, mixed>
 	 */
-	private static function row(string $qid): array {
+	private static function row(string $messageId): array {
 		$deadline = microtime(true) + self::WAIT_SECONDS;
 		do {
-			$rows = self::query('SELECT * FROM mail_logs WHERE qid = ?', [$qid]);
+			$rows = self::query('SELECT * FROM mail_logs WHERE message_id = ?', [$messageId]);
 			if ($rows !== []) {
-				self::assertCount(1, $rows, "rows for {$qid}");
+				self::assertCount(1, $rows, "rows for {$messageId}");
 				return $rows[0];
 			}
 			usleep(200000);
 		} while (microtime(true) < $deadline);
 
-		throw new RuntimeException("{$qid} was not imported within " . self::WAIT_SECONDS . 's');
+		throw new RuntimeException("{$messageId} was not imported within " . self::WAIT_SECONDS . 's');
 	}
 
 	/** @return list<string> */
