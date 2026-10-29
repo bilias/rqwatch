@@ -90,10 +90,9 @@ class AuthMiddleware
 			return false;
 		}
 
-		// session from before this check existed: adopt the current version
+		// sessions from before 2.1.2 carry no version: log in again
 		if (!$session->has('session_version')) {
-			$session->set('session_version', (int) $current);
-			return true;
+			return false;
 		}
 
 		return (int) $session->get('session_version') === (int) $current;
