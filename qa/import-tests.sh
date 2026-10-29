@@ -11,8 +11,7 @@
 # with rspamd's own verdict. Rspamd also runs contrib's maps, reading the map
 # files this copy generates from tests/Import/fixtures.sql. MariaDB and rspamd
 # run as rootless Podman containers, rspamd on the host network so it reaches
-# php -S on loopback. Local only. Extra arguments go to phpunit. Run from the
-# project root.
+# php -S on loopback. Extra arguments go to phpunit. Run from the project root.
 set -euo pipefail
 
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"

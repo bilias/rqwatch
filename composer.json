@@ -77,10 +77,16 @@
       "psalm-taint": "sh qa/psalm-taint.sh",
       "test-access": "phpunit -c qa/phpunit-access.xml",
       "test-scoping": "bash qa/scoping-tests.sh",
-      "test-import": "bash qa/import-tests.sh",
+      "test-import": [
+         "Composer\\Config::disableProcessTimeout",
+         "bash qa/import-tests.sh"
+      ],
       "test": [
+         "@composer validate --no-check-publish",
+         "@composer audit --locked --abandoned=report",
          "@test-access",
-         "@test-scoping"
+         "@test-scoping",
+         "@test-import"
       ],
       "opengrep": "sh qa/opengrep.sh",
       "taint-stubs": "sh qa/taint-stubs.sh",
@@ -97,7 +103,8 @@
          "@analyse",
          "@psalm-taint",
          "@opengrep",
-         "@test-scoping"
+         "@test-scoping",
+         "@test-import"
       ]
    },
    "scripts-descriptions": {
@@ -106,7 +113,7 @@
       "psalm-taint": "Psalm taint analysis; regenerates the vendor taint stub first",
       "test-access": "Access control: route access levels and middleware (no database)",
       "test-scoping": "Data scoping: users reach only their own data (throwaway MariaDB via Podman)",
-      "test-import": "Rspamd metadata export into Rqwatch importer, end to end (MariaDB and rspamd via Podman; local only)",
+      "test-import": "Rspamd metadata export into Rqwatch importer, end to end (MariaDB and rspamd via Podman)",
       "test": "Both security test suites: test-access, then test-scoping",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",
