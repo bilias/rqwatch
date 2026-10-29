@@ -320,7 +320,8 @@ final class ImportTest extends TestCase
 
 	/**
 	 * Rspamd fetches the map files after it starts: probe each map until its
-	 * symbol fires. Probes are not exported, so nothing is imported.
+	 * symbol fires. qa/import-tests.sh runs one normal worker, so the worker
+	 * probed is the one the tests reach. Probes are not exported.
 	 */
 	private static function waitForMaps(): void {
 		$probes = [

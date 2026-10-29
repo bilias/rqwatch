@@ -84,7 +84,7 @@ done
 
 # rspamd configuration: contrib's exporter rule pointed at this copy,
 # contrib's maps reading this copy's map files, contrib's force_actions,
-# actions and groups, and the test's rules
+# actions and groups, and the test's rules and single normal worker
 mkdir -p rspamd/local.d rspamd/lua.local.d
 sed -e "s#^\([[:space:]]*url = \).*#\1\"http://127.0.0.1:${WEB_PORT}/api/metadata_importer_multipart.php?server=mx1\";#" \
 	-e "s#^\([[:space:]]*password = \).*#\1\"${API_PASS}\";#" \
@@ -100,7 +100,7 @@ for f in contrib/rspamd/local.d/multimap.conf contrib/rspamd/lua.local.d/rqwatch
 	grep -q "127.0.0.1:${WEB_PORT}/maps/" "$dest" || { echo "${f}: map URL not found" >&2; exit 1; }
 done
 cp contrib/rspamd/local.d/force_actions.conf contrib/rspamd/local.d/actions.conf \
-	contrib/rspamd/local.d/groups.conf rspamd/local.d/
+	contrib/rspamd/local.d/groups.conf tests/Import/rspamd/local.d/worker-normal.inc rspamd/local.d/
 cp tests/Import/rspamd/rspamd.local.lua rspamd/
 chmod -R a+rX rspamd
 
@@ -147,5 +147,7 @@ if [ "$status" != 0 ]; then
 	fi
 	echo "--- rspamd (exporter, force_actions and task lines) ---" >&2
 	podman logs "$RSPAMD_CID" 2>&1 | grep -E 'metadata_exporter|force_actions|task_write_log' | tail -30 >&2 || true
+	echo "--- rspamd (map fetches) ---" >&2
+	podman logs "$RSPAMD_CID" 2>&1 | grep -F '/maps/' | grep -v rspamd_map_add | tail -40 >&2 || true
 fi
 exit "$status"
