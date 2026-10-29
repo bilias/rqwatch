@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-10-29
+- Login throttle: a successful login no longer resets the failure counter
+
 ### 2026-10-28
 - CI: Add data-scoping tests against MariaDB
 - CI: Add route access and middleware security tests

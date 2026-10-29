@@ -208,8 +208,9 @@ class LoginController extends ViewController
 				$this->flashbag->add('error', "Wrong username or password");
 				$statusCode = Response::HTTP_UNAUTHORIZED;
 			} else {
-				// user is authenticated
-				$throttle->clear();
+				// user is authenticated; failures are not reset,
+				// so a known account cannot clear them				
+				// $throttle->clear();
 
 				// User does not exist is DB after auth
 				if (!$this->finalizeAuthenticatedUser($auth)) {

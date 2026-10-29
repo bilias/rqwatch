@@ -136,6 +136,7 @@ final class LoginThrottle
 	 * Clear counter and block after a successful login, so that earlier typos
 	 * do not count against a legitimate user.
 	 */
+/*
 	public function clear(): void {
 		if (!$this->active()) {
 			return;
@@ -144,6 +145,7 @@ final class LoginThrottle
 		$this->cache->delete($this->countKey());
 		$this->cache->delete($this->blockKey());
 	}
+*/
 
 	/*
 	 * Seconds until the block lifts, or null when not blocked.
