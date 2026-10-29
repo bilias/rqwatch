@@ -98,7 +98,11 @@ class MailerService
 				->subject($subject)
 				->text($body);
 
-			if ($attachmentPath && file_exists($attachmentPath)) {
+			if ($attachmentPath) {
+				$attachmentPath = $this->quarantinedFile($attachmentPath);
+				if ($attachmentPath === null) {
+					return false;
+				}
 				$email->addPart(
 					new DataPart(
 						// fopen($attachmentPath, 'r'),
