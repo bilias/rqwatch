@@ -22,6 +22,7 @@ use App\Core\Auth\LoginThrottle;
 use App\Utils\Helper;
 use App\Forms\LoginForm;
 use App\Models\User;
+use App\Services\UserService;
 
 use Illuminate\Database\Capsule\Manager as DB;
 
@@ -485,6 +486,12 @@ class LoginController extends ViewController
 		if (!$user->update($update)) {
 			$this->fileLogger->error("Failed to update user '$username' in DB");
 			return false;
+		}
+
+		// email or provider changed at the IdP: end the user's other sessions
+		if ($user->wasChanged(['email', 'auth_provider']) && App::migrationStatus()->sessionVersionCompleted()) {
+			UserService::endSessions((int) $user->id);
+			$user->session_version = User::whereKey($user->id)->value('session_version');
 		}
 
 		// Rotate session id on privilege change (prevents session fixation).
