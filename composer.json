@@ -77,6 +77,7 @@
       "psalm-taint": "sh qa/psalm-taint.sh",
       "test-access": "phpunit -c qa/phpunit-access.xml",
       "test-scoping": "bash qa/scoping-tests.sh",
+      "test-import": "bash qa/import-tests.sh",
       "test": [
          "@test-access",
          "@test-scoping"
@@ -105,6 +106,7 @@
       "psalm-taint": "Psalm taint analysis; regenerates the vendor taint stub first",
       "test-access": "Access control: route access levels and middleware (no database)",
       "test-scoping": "Data scoping: users reach only their own data (throwaway MariaDB via Podman)",
+      "test-import": "Rspamd metadata export into the importer, end to end (MariaDB and rspamd via Podman; local only)",
       "test": "Both security test suites: test-access, then test-scoping",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",

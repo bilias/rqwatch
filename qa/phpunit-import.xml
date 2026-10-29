@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Run through qa/import-tests.sh, which provides the database, rspamd and the importer -->
+<phpunit bootstrap="../vendor/autoload.php"
+	colors="true"
+	failOnWarning="true"
+	failOnRisky="true"
+	executionOrder="default">
+	<testsuites>
+		<testsuite name="import">
+			<directory>../tests/Import</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>
