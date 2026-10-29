@@ -63,7 +63,8 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
   set which symbols are shown as `[map]`, whitelisted and blacklisted.
 
 # Behaviour changes
-- Login throttle: a successful login no longer resets the failure counter
+- Login throttle: a successful login no longer resets the failure counter.\
+  Busy shared NAT addresses may need `LOGIN_IPS_WHITELIST`
 - Whitelist and blacklist symbols must now end in `_WL`/`_WHITELIST` or `_BL`/`_BLACKLIST`
   (patterns `RQWATCH_*_WL` etc.). Before, the suffix could be followed by more text
   (`RQWATCH_X_BLOCK` counted as blacklisted). This also applies to the notification
