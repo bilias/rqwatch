@@ -209,7 +209,7 @@ class LoginController extends ViewController
 				$statusCode = Response::HTTP_UNAUTHORIZED;
 			} else {
 				// user is authenticated; failures are not reset,
-				// so a known account cannot clear them				
+				// so a known account cannot clear them
 				// $throttle->clear();
 
 				// User does not exist is DB after auth
