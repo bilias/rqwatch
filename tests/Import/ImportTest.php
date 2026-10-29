@@ -81,7 +81,7 @@ final class ImportTest extends TestCase
 		$qid = self::qid();
 		$mail = self::message($qid, "Virus {$qid}", 'virus');
 		$reply = self::scan($qid, $mail, ['alice@rqwatch.test']);
-		$this->assertSame('discard', $reply['action'], 'fixture: contrib force_actions.conf');
+				$this->assertSame('discard', $reply['action'], 'fixture: contrib force_actions.conf and actions.conf');
 
 		$row = self::row($qid);
 		$this->assertImported($reply, $row, $mail);
@@ -160,7 +160,9 @@ final class ImportTest extends TestCase
 	}
 
 	/**
-	 * Scans the mail through rspamd's normal worker, as the MTA would.
+	 * Scans the mail through rspamd's normal worker, as the MTA would. As an
+	 * authenticated user, so DNS-based sender checks add no score and stock
+	 * thresholds (with contrib's discard) give stable verdicts.
 	 * @param list<string> $rcpts
 	 * @return array<string, mixed> rspamd's reply
 	 */
@@ -169,6 +171,7 @@ final class ImportTest extends TestCase
 			"Queue-Id: {$qid}",
 			'IP: ' . self::IP,
 			'From: ' . self::MAIL_FROM,
+			'User: import-test',
 		];
 		foreach ($rcpts as $rcpt) {
 			$headers[] = "Rcpt: {$rcpt}";

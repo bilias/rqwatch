@@ -71,7 +71,7 @@ sed -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 $DB_EXEC < contrib/db-init.sql
 
 # rspamd configuration: contrib's exporter rule pointed at this copy,
-# contrib's force_actions, and the test's actions and rules
+# contrib's force_actions and actions, and the test's rules
 mkdir -p rspamd/local.d
 sed -e "s#^\([[:space:]]*url = \).*#\1\"http://127.0.0.1:${WEB_PORT}/api/metadata_importer_multipart.php?server=mx1\";#" \
 	-e "s#^\([[:space:]]*password = \).*#\1\"${API_PASS}\";#" \
@@ -81,7 +81,7 @@ if ! grep -q "127.0.0.1:${WEB_PORT}/" rspamd/local.d/metadata_exporter.conf \
 	echo "contrib/rspamd/local.d/metadata_exporter.conf: url or password line not found" >&2
 	exit 1
 fi
-cp contrib/rspamd/local.d/force_actions.conf tests/Import/rspamd/local.d/actions.conf rspamd/local.d/
+cp contrib/rspamd/local.d/force_actions.conf contrib/rspamd/local.d/actions.conf rspamd/local.d/
 cp tests/Import/rspamd/rspamd.local.lua rspamd/
 chmod -R a+rX rspamd
 
