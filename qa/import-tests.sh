@@ -96,9 +96,10 @@ sed -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	.env-example > .env
 
 # fuzzy learning through this server's own rspamd controller (a secure_ip,
-# so no password)
+# so no password); a fallback charset unlike the default, for 8-bit headers
 cat > config/config.local.php <<PHP
 <?php
+\$mail_fallback_charset = 'Windows-1253';
 \$fuzzy_learn_enable = true;
 \$API_SERVERS = ['mx1' => [
 	'url' => 'http://127.0.0.1:${WEB_PORT}',

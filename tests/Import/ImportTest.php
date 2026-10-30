@@ -167,13 +167,39 @@ final class ImportTest extends TestCase
 		$this->assertMatchesRegularExpression('#/\d{4}-\d{2}-\d{2}/unknown/[^/]+/mail\.eml$#', (string) $row['mail_location']);
 	}
 
-	#[TestDox('Unencoded 8-bit Windows-1253 subject: imported as valid UTF-8, not refused by strict mode')]
-	public function testEightBitSubject(): void {
-		$subject = (string) iconv('UTF-8', 'CP1253', 'Καλημέρα κόσμε');
-		[, , $row] = $this->import('clean', $subject, charset: 'windows-1253');
+	#[TestDox('Unencoded 8-bit KOI8-R Subject and From name, charset declared: decoded with it')]
+	public function testEightBitHeadersDeclared(): void {
+		$this->assertEightBitHeaders('KOI8-R', 'koi8-r', 'Привет мир', 'Иван <sender@sender.test>');
+	}
 
-		$this->assertTrue(mb_check_encoding((string) $row['subject'], 'UTF-8'), 'subject is valid UTF-8');
-		$this->assertNotSame('', (string) $row['subject']);
+	#[TestDox('Unencoded 8-bit Windows-1253 Subject and From name, no charset: decoded with $mail_fallback_charset')]
+	public function testEightBitHeadersFallback(): void {
+		$this->assertEightBitHeaders('CP1253', '', 'Καλημέρα κόσμε', 'Γιάννης <sender@sender.test>');
+	}
+
+	#[TestDox('Declared UTF-7 charset: not used to decode 8-bit headers, no control characters injected')]
+	public function testEightBitHeadersDeclaredUtf7(): void {
+		// one 8-bit byte forces decoding; in UTF-7, +AA0ACg- is CR LF
+		$subject = "Caf\xE9 +AA0ACg-Bcc: victim@rqwatch.test";
+		[, , $row] = $this->import('clean', $subject, charset: 'utf-7');
+
+		$this->assertSame((string) iconv('Windows-1253', 'UTF-8', $subject), $row['subject'],
+			'decoded with the harness fallback (Windows-1253), not UTF-7');
+	}
+
+	/**
+	 * Subject and the From display name sent unencoded in $encoding, with
+	 * $charset declared on the body ('' = none; the harness sets
+	 * $mail_fallback_charset to Windows-1253).
+	 */
+	private function assertEightBitHeaders(string $encoding, string $charset, string $subject, string $from): void {
+		[, , $row] = $this->import('clean', (string) iconv('UTF-8', $encoding, $subject), charset: $charset,
+			mimeFrom: (string) iconv('UTF-8', $encoding, $from), storedMimeFrom: $from);
+
+		$this->assertSame($subject, $row['subject']);
+		$headers = (string) self::query('SELECT headers FROM mail_log_data WHERE mail_log_id = ?', [(int) $row['id']])[0]['headers'];
+		$this->assertStringContainsString("Subject: {$subject}", $headers);
+		$this->assertStringContainsString("From: {$from}", $headers);
 	}
 
 	#[TestDox('60 recipients: rcpt_to and mime_to truncated, every recipient listed')]
@@ -283,13 +309,14 @@ final class ImportTest extends TestCase
 		string $charset = 'utf-8',
 		bool $wait = true,
 		string $body = '',
+		?string $storedMimeFrom = null,
 	): array {
 		$id = self::qid();
 		$extra = $qid === self::QID_HEADER ? ["X-Rspamd-Queue-Id: {$id}"] : [];
 		$mail = self::message($id, $subject ?? ucfirst($test) . " {$id}", $test, $mimeFrom, $to, $charset, $extra, $body);
 		$this->sent = [
 			'mail' => $mail, 'id' => $id, 'qid' => $qid === self::QID_NONE ? 'unknown' : $id,
-			'ip' => $ip, 'from' => $from, 'mime_from' => $mimeFrom, 'to' => $to,
+			'ip' => $ip, 'from' => $from, 'mime_from' => $storedMimeFrom ?? $mimeFrom, 'to' => $to,
 		];
 
 		$reply = self::scan($mail, self::scanHeaders($qid === self::QID_PROTOCOL ? $id : null, $ip, $from, $rcpts));
@@ -414,7 +441,7 @@ final class ImportTest extends TestCase
 			"Message-ID: <{$id}@sender.test>",
 			...$extra,
 			'MIME-Version: 1.0',
-			"Content-Type: text/plain; charset={$charset}",
+			'Content-Type: text/plain' . ($charset !== '' ? "; charset={$charset}" : ''),
 			"X-Import-Test: {$test}",
 			'',
 			$body !== '' ? $body : "Body of {$id}.",

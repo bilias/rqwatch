@@ -54,6 +54,31 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		return [$_ENV['RSPAMD_API_USER'], $_ENV['RSPAMD_API_PASS']];
 	}
 
+	/**
+	 * Charsets the message's MIME parts declare, in part order: what
+	 * unencoded 8-bit headers are most likely in. Only names
+	 * Helper::mailCharset() accepts; the sender chooses them.
+	 * @return list<string>
+	 */
+	private static function declaredCharsets(Parser $parser): array {
+		$charsets = [];
+		foreach ($parser->getParts() as $part) {
+			$charset = Helper::mailCharset((string) ($part['charset'] ?? ''));
+			if ($charset !== null && !in_array($charset, $charsets, true)) {
+				$charsets[] = $charset;
+			}
+		}
+		return $charsets;
+	}
+
+	/**
+	 * A header value as UTF-8; the parser's false (header absent) as is.
+	 * @param list<string> $charsets
+	 */
+	private static function headerToUtf8(string|false $value, array $charsets): string|false {
+		return $value === false ? false : Helper::toUtf8($value, $charsets);
+	}
+
 	#[\Override]
 	public function handle(): void {
 
@@ -175,9 +200,12 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		// return all headers as a string, no charset conversion
 		$stringHeaders = trim($parser->getHeadersRaw());
 		
-		$mime_from = $parser->getHeader('from');
-		$mime_to = $parser->getHeader('to');
-		$mime_subject = $parser->getHeader('subject');
+		// unencoded 8-bit headers arrive as raw bytes: decode them with the
+		// charset a MIME part declares, else $mail_fallback_charset
+		$charsets = self::declaredCharsets($parser);
+		$mime_from = self::headerToUtf8($parser->getHeader('from'), $charsets);
+		$mime_to = self::headerToUtf8($parser->getHeader('to'), $charsets);
+		$mime_subject = self::headerToUtf8($parser->getHeader('subject'), $charsets);
 		$message_id = $parser->getHeader('message-id');
 		
 		// return all headers as an array, with charset conversion
@@ -278,36 +306,11 @@ class MetadataImporterMultipartApi extends RqwatchApi
 			}
 		}
 
-		// Try to detect the most likely encoding
-		$enc = mb_detect_encoding(
-			$stringHeaders,
-				[
-					'UTF-8',
-					'ISO-8859-1',
-					'ISO-8859-7',
-					'Windows-1251',
-					'Windows-1252',
-					'KOI8-R',
-					'ASCII'
-				],
-				true
-		);
-
-		if (!$enc) {
-			// unknown or mixed encodings: clean non-UTF-8 bytes
-			$data['headers'] = iconv('UTF-8', 'UTF-8//IGNORE', $stringHeaders);
-			$detected = 'unknown';
-		} elseif ($enc !== 'UTF-8') {
-			// Convert to UTF-8
-			$data['headers'] = mb_convert_encoding($stringHeaders, 'UTF-8', $enc);
-			$detected = $enc;
-		} else {
-			// Already UTF-8
-			$data['headers'] = $stringHeaders;
-			$detected = 'UTF-8';
+		$data['headers'] = Helper::toUtf8($stringHeaders, $charsets);
+		if ($data['headers'] !== $stringHeaders) {
+			$this->fileLogger->debug("{$qid}: 8-bit headers decoded, declared charsets: "
+				. ($charsets === [] ? 'none' : implode(', ', $charsets)));
 		}
-		
-		$this->fileLogger->debug("{$qid}: Header encoding detected: {$detected}");
 
 		/* get headers from array with char convertion
 		$headersText = '';

@@ -22,6 +22,8 @@ use App\Services\MapService;
 use PhpIP\IP;
 use MaxMind\Db\Reader as MaxMindDbReader;
 
+use PhpMimeMailParser\Charset as MimeCharset;
+
 use NetDNS2\Resolver;
 use NetDNS2\RR\A as DnsA;
 use NetDNS2\RR\PTR as DnsPtr;
@@ -1112,26 +1114,37 @@ Mail details:
 		return $parse[0]['address'] ? $parse[0]['address'] : '';
 	}
 
-	public static function normalizeToUtf8(?string $input): string {
-		if ($input === null || $input === '') {
-			return '';
+	/**
+	 * A charset name a mail declares, if it may decode 8-bit text: one the
+	 * MIME parser knows (its alias table; anything else is us-ascii), and
+	 * ASCII-compatible. Never 7-bit escape encodings (UTF-7, ISO-2022-*,
+	 * HZ) or UTF-16, which turn plain ASCII into other characters, control
+	 * characters included; never ASCII or UTF-8, which need no decoding.
+	 * The name is the sender's, so this also keeps unlisted iconv decoders
+	 * out of reach.
+	 */
+	public static function mailCharset(string $declared): ?string {
+		$charset = (new MimeCharset())->getCharsetAlias(trim($declared));
+		if (in_array($charset, ['us-ascii', 'utf-8'], true)
+			|| preg_match('/^(utf-7|utf-16|x-imap4-modified-utf7|iso-2022-|hz-)/', $charset)) {
+			return null;
 		}
+		return $charset;
+	}
 
-		if (mb_check_encoding($input, 'UTF-8')) {
+	/**
+	 * $input as UTF-8: unchanged when valid, else decoded with the first of
+	 * $charsets, then $mail_fallback_charset, that iconv accepts, else with
+	 * invalid bytes replaced. Any byte string decodes as a single-byte
+	 * charset, so the fallback is a guess the admin chooses.
+	 * @param list<string> $charsets
+	 */
+	public static function toUtf8(string $input, array $charsets = []): string {
+		if ($input === '' || mb_check_encoding($input, 'UTF-8')) {
 			return $input;
 		}
 
-		// Not UTF-8: the MIME part declared no charset (the parser passes it
-		// through unchanged) or a wrong one. Try the HTML's own <meta> charset,
-		// then the configured fallback. Any byte string decodes as a
-		// single-byte charset, so the fallback is a guess the admin chooses.
-		$charsets = [];
-		if (preg_match('/<meta\b[^>]*\bcharset\s*=\s*["\']?\s*([\w.:-]+)/i', $input, $m)
-			&& !in_array(strtolower($m[1]), ['utf-8', 'utf8'], true)) {
-			$charsets[] = $m[1];
-		}
 		$charsets[] = (string) (Config::get('mail_fallback_charset') ?: 'Windows-1252');
-
 		foreach ($charsets as $enc) {
 			$converted = @iconv($enc, 'UTF-8//IGNORE', $input);
 			if ($converted !== false && mb_check_encoding($converted, 'UTF-8')) {
@@ -1140,6 +1153,23 @@ Mail details:
 		}
 
 		return mb_scrub($input, 'UTF-8');
+	}
+
+	public static function normalizeToUtf8(?string $input): string {
+		if ($input === null || $input === '' || mb_check_encoding($input, 'UTF-8')) {
+			return (string) $input;
+		}
+
+		// Not UTF-8: the MIME part declared no charset (the parser passes it
+		// through unchanged) or a wrong one. Try the HTML's own <meta> charset
+		// before the configured fallback.
+		$charsets = [];
+		if (preg_match('/<meta\b[^>]*\bcharset\s*=\s*["\']?\s*([\w.:-]+)/i', $input, $m)
+			&& ($charset = self::mailCharset($m[1])) !== null) {
+			$charsets[] = $charset;
+		}
+
+		return self::toUtf8($input, $charsets);
 	}
 
 	public static function debug_exception_err(?string $input): string {
