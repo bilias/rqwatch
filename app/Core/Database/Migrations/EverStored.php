@@ -12,6 +12,7 @@ namespace App\Core\Database\Migrations;
 
 use App\Configuration\AppConfig;
 use App\Inventory\Migrations;
+use App\Models\MailLogData;
 
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -42,6 +43,13 @@ class EverStored extends AbstractMigration {
 		if ($this->verifySchema()) {
 			$output->writeln("<comment>Migration $details exists, recording status\n</comment>");
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
+			return true;
+		}
+
+		// the index would block the instant drop of the mail_log_data columns
+		if ($this->dataColumnsPresent()) {
+			$this->fileLogger->info("Migration $name waits for " . Migrations::DROP_MAIL_LOG_COLUMNS);
+			$output->writeln("<comment>Migration $details waits for db:migrate_drop_mail_log_columns, skipped\n</comment>");
 			return true;
 		}
 
@@ -100,6 +108,15 @@ class EverStored extends AbstractMigration {
 		if (!$this->verifySchema()) {
 			throw new RuntimeException("Failed to add {$column} column and index to {$table}");
 		}
+	}
+
+	private function dataColumnsPresent(): bool {
+		foreach (MailLogData::DATA_COLUMNS as $column) {
+			if ($this->hasColumn(AppConfig::MAIL_LOGS_TABLE, $column)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected function verifySchema(): bool {
