@@ -75,7 +75,7 @@
       "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M",
       "psalm": "psalm -c qa/psalm.xml --no-progress",
       "psalm-taint": "sh qa/psalm-taint.sh",
-      "test-unit": "bash qa/unit-tests.sh -v",
+      "test-unit": "bash qa/unit-tests.sh",
       "test-access": "bash qa/access-tests.sh -v",
       "test-scoping": "bash qa/scoping-tests.sh -v",
       "test-import": [
