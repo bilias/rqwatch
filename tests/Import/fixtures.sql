@@ -10,3 +10,6 @@ FROM users u, (
 	UNION ALL SELECT 'mail_from_rcpt_to_blacklist', NULL, 'pair-bl@sender.test', 'bob@rqwatch.test', NULL
 ) m
 WHERE u.username = 'admin';
+
+-- the virus skip map (seeded by db-init.sql): no notification for these names
+INSERT INTO maps_custom (map_name, pattern) VALUES ('rqwatch_virus_no_notify', 'Import-Skip-*');

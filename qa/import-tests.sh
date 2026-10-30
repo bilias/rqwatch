@@ -11,8 +11,10 @@
 # with rspamd's own verdict. Rspamd also runs contrib's maps, reading the map
 # files this copy generates from tests/Import/fixtures.sql. Redis holds the
 # failed-import spool and rspamd's fuzzy storage, which this copy learns into
-# through its fuzzy API. MariaDB, Redis and rspamd run as rootless Podman
-# containers, rspamd on the host network so it reaches php -S on loopback.
+# through its fuzzy API. Mailpit captures the mail this copy sends (releases,
+# notifications), read back through its HTTP API. MariaDB, Redis, Mailpit and
+# rspamd run as rootless Podman containers, rspamd on the host network so it
+# reaches php -S on loopback.
 # -v prints one line per test (local runs); other arguments go to phpunit.
 # Run from the project root.
 set -euo pipefail
@@ -22,6 +24,8 @@ phpunit_args "$@"
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 RSPAMD_IMAGE="${RSPAMD_IMAGE:-docker.io/rspamd/rspamd:4}"
 REDIS_IMAGE="${REDIS_IMAGE:-docker.io/library/redis:7}"
+MAILPIT_IMAGE="${MAILPIT_IMAGE:-docker.io/axllent/mailpit:latest}"
+ADMIN_RCPT=admin-notify@rqwatch.test
 make_workdir
 
 # database, with a clock unlike PHP's (unless PHP runs at UTC+5), so the
@@ -35,6 +39,17 @@ start_container REDIS_CID -p "127.0.0.1:${REDIS_PORT}:6379" "$REDIS_IMAGE"
 for i in $(seq 30); do
 	[ "$(podman exec "$REDIS_CID" redis-cli ping 2>/dev/null)" = PONG ] && break
 	[ "$i" = 30 ] && { echo "Redis did not start" >&2; exit 1; }
+	sleep 1
+done
+
+# mail capture
+MAILPIT_SMTP_PORT=$(free_port)
+MAILPIT_HTTP_PORT=$(free_port)
+start_container MAILPIT_CID -p "127.0.0.1:${MAILPIT_SMTP_PORT}:1025" \
+	-p "127.0.0.1:${MAILPIT_HTTP_PORT}:8025" "$MAILPIT_IMAGE"
+for i in $(seq 30); do
+	curl -fs -o /dev/null "http://127.0.0.1:${MAILPIT_HTTP_PORT}/readyz" && break
+	[ "$i" = 30 ] && { echo "Mailpit did not start" >&2; exit 1; }
 	sleep 1
 done
 
@@ -60,13 +75,16 @@ write_env -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	-e "s#^MAIL_API_PASS=.*#MAIL_API_PASS=${MAIL_API_PASS}#" \
 	-e "s#^MAIL_API_ACL=.*#MAIL_API_ACL=\"127.0.0.1\"#" \
 	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=true#" \
-	-e "s#^REDIS_DSN=.*#REDIS_DSN=\"redis://127.0.0.1:${REDIS_PORT}\"#"
+	-e "s#^REDIS_DSN=.*#REDIS_DSN=\"redis://127.0.0.1:${REDIS_PORT}\"#" \
+	-e "s#^MAILER_DSN=.*#MAILER_DSN=\"smtp://127.0.0.1:${MAILPIT_SMTP_PORT}\"#"
 
 # fuzzy learning through this server's own rspamd controller (a secure_ip,
-# so no password); a fallback charset unlike the default, for 8-bit headers
+# so no password); a fallback charset unlike the default, for 8-bit headers;
+# admin notifications on from the start (the importer enrolls mail only while set)
 cat > config/config.local.php <<PHP
 <?php
 \$mail_fallback_charset = 'Windows-1253';
+\$admin_notification_rcpt = '${ADMIN_RCPT}';
 \$fuzzy_learn_enable = true;
 \$API_SERVERS = ['mx1' => [
 	'url' => 'http://127.0.0.1:${WEB_PORT}',
@@ -139,7 +157,8 @@ done
 
 echo "rspamd $(curl -s "http://127.0.0.1:${CONTROLLER_PORT}/stat" | php -r 'echo json_decode(stream_get_contents(STDIN), true)["version"] ?? "?";')," \
 	"MariaDB $($DB_EXEC -N -e 'SELECT VERSION()')," \
-	"Redis $(podman exec "$REDIS_CID" redis-cli INFO server | sed -n 's/^redis_version:\([^\r]*\).*/\1/p')"
+	"Redis $(podman exec "$REDIS_CID" redis-cli INFO server | sed -n 's/^redis_version:\([^\r]*\).*/\1/p')," \
+	"Mailpit $(curl -s "http://127.0.0.1:${MAILPIT_HTTP_PORT}/api/v1/info" | php -r 'echo json_decode(stream_get_contents(STDIN), true)["Version"] ?? "?";')"
 
 status=0
 IMPORT_RSPAMD_URL="http://127.0.0.1:${NORMAL_PORT}" \
@@ -152,6 +171,8 @@ IMPORT_QUARANTINE_DIR="${WORK}/q" \
 IMPORT_DB_DSN="mysql:host=127.0.0.1;port=${DB_PORT};dbname=rqwatch;charset=utf8mb4" \
 IMPORT_DB_USER=root \
 IMPORT_DB_PASS="$DB_PASS" \
+IMPORT_MAILPIT_URL="http://127.0.0.1:${MAILPIT_HTTP_PORT}" \
+IMPORT_ADMIN_RCPT="$ADMIN_RCPT" \
 	vendor/bin/phpunit -c qa/phpunit-import.xml "${PHPUNIT_ARGS[@]}" || status=$?
 
 if [ "$status" != 0 ]; then

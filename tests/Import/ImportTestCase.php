@@ -13,10 +13,11 @@
  metadata_exporter (contrib's rule) posts it to the importer, then compares
  the stored rows with rspamd's own verdict for that scan. The X-Import-Test
  header picks a rule from tests/Import/rspamd/rspamd.local.lua; the map
- entries come from tests/Import/fixtures.sql.
+ entries come from tests/Import/fixtures.sql. Mail the instance sends is
+ captured by Mailpit.
 
- This class holds the scan, import and assertion helpers; the tests are in
- the *Test classes beside it.
+ This class holds the scan, import, assertion, CLI and Mailpit helpers; the
+ tests are in the *Test classes beside it.
 */
 
 namespace Tests\Import;
@@ -64,6 +65,7 @@ abstract class ImportTestCase extends TestCase
 	 * returns after the scan, without a row.
 	 * @param list<string> $rcpts
 	 * @param list<string> $to
+	 * @param list<string> $headers more header lines in the mail
 	 * @return array{0: string, 1: array<string, mixed>, 2: ?array<string, mixed>}
 	 */
 	protected function import(
@@ -79,9 +81,10 @@ abstract class ImportTestCase extends TestCase
 		bool $wait = true,
 		string $body = '',
 		?string $storedMimeFrom = null,
+		array $headers = [],
 	): array {
 		$id = self::qid();
-		$extra = $qid === self::QID_HEADER ? ["X-Rspamd-Queue-Id: {$id}"] : [];
+		$extra = $qid === self::QID_HEADER ? ["X-Rspamd-Queue-Id: {$id}", ...$headers] : $headers;
 		$mail = self::message($id, $subject ?? ucfirst($test) . " {$id}", $test, $mimeFrom, $to, $charset, $extra, $body);
 		$this->sent = [
 			'mail' => $mail, 'id' => $id, 'qid' => $qid === self::QID_NONE ? 'unknown' : $id,
@@ -311,6 +314,82 @@ abstract class ImportTestCase extends TestCase
 			'SELECT recipient_email FROM mail_log_recipients WHERE mail_log_id = ? ORDER BY recipient_email',
 			[$id]
 		), 'recipient_email');
+	}
+
+	/** Runs bin/cli.php in the instance's copy and returns its output; fails on a non-zero exit. */
+	protected static function cli(string ...$args): string {
+		$cmd = 'cd ' . escapeshellarg((string) getenv('IMPORT_ROOT')) . ' && '
+			. escapeshellarg(PHP_BINARY) . ' bin/cli.php ' . implode(' ', array_map('escapeshellarg', $args)) . ' 2>&1';
+		exec($cmd, $out, $status);
+		$output = implode("\n", $out);
+		if ($status !== 0) {
+			throw new RuntimeException('bin/cli.php ' . implode(' ', $args) . " exited {$status}: {$output}");
+		}
+		return $output;
+	}
+
+	/** An address no other test uses, so the mail it receives is this test's. */
+	protected static function address(string $prefix): string {
+		return $prefix . '-' . bin2hex(random_bytes(4)) . '@rqwatch.test';
+	}
+
+	/**
+	 * GET from Mailpit's API.
+	 * @return array<string, mixed>
+	 */
+	protected static function mailpit(string $path): array {
+		$ch = curl_init(rtrim((string) getenv('IMPORT_MAILPIT_URL'), '/') . $path);
+		curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
+		$body = curl_exec($ch);
+		$status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+		if (!is_string($body) || $status !== 200) {
+			throw new RuntimeException("Mailpit {$path} answered {$status}");
+		}
+		return json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+	}
+
+	/** Messages Mailpit has received in this run. */
+	protected static function mailCount(): int {
+		return (int) self::mailpit('/api/v1/messages?limit=1')['total'];
+	}
+
+	/**
+	 * Messages delivered to $address (To, Cc or envelope-only Bcc), optionally
+	 * only those matching a Mailpit search for $text.
+	 * @return list<array<string, mixed>> Mailpit message summaries
+	 */
+	protected static function mailsFor(string $address, ?string $text = null): array {
+		$found = [];
+		for ($start = 0; ; $start += 500) {
+			$page = $text === null
+				? self::mailpit("/api/v1/messages?limit=500&start={$start}")
+				: self::mailpit('/api/v1/search?limit=500&start=' . $start . '&query=' . rawurlencode($text));
+			foreach ($page['messages'] as $message) {
+				if (in_array(strtolower($address), self::recipientsOf($message), true)) {
+					$found[] = $message;
+				}
+			}
+			if ($start + 500 >= (int) $page['messages_count']) {
+				return $found;
+			}
+		}
+	}
+
+	/**
+	 * Every address a captured message was delivered to, sorted.
+	 * @param array<string, mixed> $message Mailpit message summary
+	 * @return list<string>
+	 */
+	protected static function recipientsOf(array $message): array {
+		$addresses = [];
+		foreach (['To', 'Cc', 'Bcc'] as $field) {
+			foreach ($message[$field] ?? [] as $entry) {
+				$addresses[] = strtolower((string) $entry['Address']);
+			}
+		}
+		$addresses = array_values(array_unique($addresses));
+		sort($addresses);
+		return $addresses;
 	}
 
 	protected static function db(): PDO {

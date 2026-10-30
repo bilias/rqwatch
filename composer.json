@@ -117,7 +117,7 @@
       "test-unit": "Unit tests of helpers: addresses, relays, charsets, import data, symbols, quarantine files (no database)",
       "test-access": "Access control: route access levels and middleware (no database)",
       "test-scoping": "Data scoping: users reach only their own data (throwaway MariaDB via Podman)",
-      "test-import": "Rspamd metadata export into Rqwatch importer, end to end (MariaDB and rspamd via Podman)",
+      "test-import": "Rspamd metadata export into Rqwatch importer, release and notifications, end to end (MariaDB, Redis, Mailpit and rspamd via Podman)",
       "test": "Validate, audit and all test suites: test-unit, test-access, test-scoping, test-import (one line per test; CI runs the scripts without -v)",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",

@@ -135,18 +135,6 @@ final class SpoolTest extends ImportTestCase
 		return $redis;
 	}
 
-	/** Runs bin/cli.php in the instance's copy and returns its output; fails on a non-zero exit. */
-	private static function cli(string ...$args): string {
-		$cmd = 'cd ' . escapeshellarg((string) getenv('IMPORT_ROOT')) . ' && '
-			. escapeshellarg(PHP_BINARY) . ' bin/cli.php ' . implode(' ', array_map('escapeshellarg', $args)) . ' 2>&1';
-		exec($cmd, $out, $status);
-		$output = implode("\n", $out);
-		if ($status !== 0) {
-			throw new RuntimeException('bin/cli.php ' . implode(' ', $args) . " exited {$status}: {$output}");
-		}
-		return $output;
-	}
-
 	/** Waits until cron:import_spool reports one pending entry for this server. */
 	private static function waitForSpool(): void {
 		$deadline = microtime(true) + self::WAIT_SECONDS;
