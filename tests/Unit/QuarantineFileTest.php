@@ -74,6 +74,11 @@ final class QuarantineFileTest extends UnitTestCase
 		$this->assertLogged('QID invalid format: ../../escaped');
 	}
 
+	public function testTrailingNewlineQidIsInvalid(): void {
+		$file = Helper::store_raw_mail($this->q, "ABC\n", 'raw');
+		$this->assertMatchesRegularExpression('#^' . $this->dayDir() . '/invalid/\w+/mail\.eml$#', (string) $file);
+	}
+
 	public function testUnknownQid(): void {
 		foreach (['unknown', ''] as $qid) {
 			$file = Helper::store_raw_mail($this->q, $qid, 'raw');

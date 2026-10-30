@@ -61,7 +61,7 @@ class Helper {
 	// Rspamd queue id as a path component: alphanumeric, else a unique placeholder
 	/** @psalm-taint-escape file */
 	private static function fileSafeQid(string $qid): string {
-		if (preg_match('/^[a-zA-Z0-9]+$/', $qid)) {
+		if (preg_match('/^[a-zA-Z0-9]+$/D', $qid)) {
 			return $qid;
 		}
 		self::logger()->warning("QID invalid format: {$qid}");
@@ -681,7 +681,7 @@ class Helper {
             $id = (int) $strValue;
          }
       } elseif ($type === 'qid') {
-         if (!preg_match('/^[a-zA-Z0-9]+$/', $strValue)) {
+         if (!preg_match('/^[a-zA-Z0-9]+$/D', $strValue)) {
             $error = "QID wrong format";
          } else {
             $qid = $strValue;

@@ -210,7 +210,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 		
 		// return all headers as an array, with charset conversion
 		$arrayHeaders = $parser->getHeaders();
-		if (empty($qid) || $qid === "unknown" || !preg_match('/^[a-zA-Z0-9]+$/', (string) $qid)) {
+		if (empty($qid) || $qid === "unknown" || !preg_match('/^[a-zA-Z0-9]+$/D', (string) $qid)) {
 			if (isset($arrayHeaders['x-rspamd-queue-id'])) {
 				$qid = $arrayHeaders['x-rspamd-queue-id'];
 
@@ -220,7 +220,7 @@ class MetadataImporterMultipartApi extends RqwatchApi
 					$qid = end($qid);
 				}
 
-				if (!is_string($qid) || !preg_match('/^[a-zA-Z0-9]+$/', $qid)) {
+				if (!is_string($qid) || !preg_match('/^[a-zA-Z0-9]+$/D', $qid)) {
 					$qid = "unknown";
 				}
 			} else {

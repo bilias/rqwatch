@@ -78,6 +78,7 @@ final class ImportDataTest extends UnitTestCase
 			'qid' => ['qid', '4C1012A4C8D', ['error' => false, 'id' => false, 'qid' => '4C1012A4C8D']],
 			'qid traversal' => ['qid', '../x', ['error' => 'QID wrong format', 'id' => false, 'qid' => false]],
 			'qid with space' => ['qid', 'a b', ['error' => 'QID wrong format', 'id' => false, 'qid' => false]],
+			'qid with trailing newline' => ['qid', "abc\n", ['error' => 'QID wrong format', 'id' => false, 'qid' => false]],
 			'unknown type' => ['other', 'x', ['error' => 'Unknown error', 'id' => false, 'qid' => false]],
 		];
 	}
