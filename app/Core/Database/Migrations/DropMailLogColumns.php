@@ -85,9 +85,11 @@ class DropMailLogColumns extends AbstractMigration {
 			. "blocked until that finishes.</question>"
 		);
 
+		$everStoredIndexDropped = false;
 		try {
 			$this->recordMigrationStatus(Migrations::STATUS_RUNNING);
 
+			$everStoredIndexDropped = $this->dropEverStoredIndex($output);
 			$this->runMigration($output);
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 		} catch (Throwable $e) {
@@ -106,6 +108,26 @@ class DropMailLogColumns extends AbstractMigration {
 
 		$this->fileLogger->info("Migration $name completed");
 		$output->writeln("<comment>Migration $details completed\n</comment>");
+
+		// re-add the index dropped above, through its own migration
+		if ($everStoredIndexDropped) {
+			return (new EverStored())->run(0, 0, false, $output);
+		}
+		return true;
+	}
+
+	// an index on a virtual column blocks the instant drop
+	private function dropEverStoredIndex(OutputInterface $output): bool {
+		if (!$this->hasIndex(AppConfig::MAIL_LOGS_TABLE, EverStored::INDEX)) {
+			return false;
+		}
+
+		$this->capsule->getConnection()->statement(
+			"ALTER TABLE `" . AppConfig::MAIL_LOGS_TABLE . "` DROP INDEX `"
+			. EverStored::INDEX . "`, ALGORITHM=NOCOPY"
+		);
+		$output->writeln("<info>Dropped index " . EverStored::INDEX . ", re-added after the drop</info>");
+
 		return true;
 	}
 

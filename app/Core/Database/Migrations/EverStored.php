@@ -24,7 +24,7 @@ class EverStored extends AbstractMigration {
 	protected const string MIGRATION_NAME = Migrations::EVER_STORED;
 
 	private const string COLUMN = 'ever_stored';
-	private const string INDEX = 'ever_stored_created_day_index';
+	public const string INDEX = 'ever_stored_created_day_index';
 
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
