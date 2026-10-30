@@ -15,58 +15,28 @@
 # containers, rspamd on the host network so it reaches php -S on loopback.
 # Extra arguments go to phpunit. Run from the project root.
 set -euo pipefail
+. qa/lib.sh
 
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 RSPAMD_IMAGE="${RSPAMD_IMAGE:-docker.io/rspamd/rspamd:4}"
 REDIS_IMAGE="${REDIS_IMAGE:-docker.io/library/redis:7}"
-WORK=$(mktemp -d)
-DB_CID=
-REDIS_CID=
-RSPAMD_CID=
-WEB_PID=
+make_workdir
 
-cleanup() {
-	[ -n "$WEB_PID" ] && kill "$WEB_PID" 2>/dev/null || true
-	[ -n "$RSPAMD_CID" ] && podman rm -f "$RSPAMD_CID" >/dev/null 2>&1 || true
-	[ -n "$REDIS_CID" ] && podman rm -f "$REDIS_CID" >/dev/null 2>&1 || true
-	[ -n "$DB_CID" ] && podman rm -f "$DB_CID" >/dev/null 2>&1 || true
-	rm -rf "$WORK"
-}
-trap cleanup EXIT
-
-free_port() {
-	php -r '$s = stream_socket_server("tcp://127.0.0.1:0"); echo explode(":", stream_socket_get_name($s, false))[1];'
-}
-
-# database
-DB_PORT=$(free_port)
+# database, with a clock unlike PHP's (unless PHP runs at UTC+5), so the
+# tests see any mix of PHP and database time
 DB_PASS=import-test
-# a clock unlike PHP's (unless PHP runs at UTC+5), so the tests see any
-# mix of PHP and database time
-DB_CID=$(podman run -d --rm --pull=newer -e MARIADB_ROOT_PASSWORD="$DB_PASS" \
-	-p "127.0.0.1:${DB_PORT}:3306" --tmpfs /var/lib/mysql "$MARIADB_IMAGE" \
-	--default-time-zone=+05:00)
-DB_EXEC="podman exec -i $DB_CID mariadb -uroot -p$DB_PASS"
-for i in $(seq 60); do
-	podman exec "$DB_CID" healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1 && break
-	[ "$i" = 60 ] && { echo "MariaDB did not start" >&2; exit 1; }
-	sleep 1
-done
+start_mariadb "$MARIADB_IMAGE" "$DB_PASS" --default-time-zone=+05:00
 
 # redis
 REDIS_PORT=$(free_port)
-REDIS_CID=$(podman run -d --rm --pull=newer -p "127.0.0.1:${REDIS_PORT}:6379" "$REDIS_IMAGE")
+start_container REDIS_CID -p "127.0.0.1:${REDIS_PORT}:6379" "$REDIS_IMAGE"
 for i in $(seq 30); do
 	[ "$(podman exec "$REDIS_CID" redis-cli ping 2>/dev/null)" = PONG ] && break
 	[ "$i" = 30 ] && { echo "Redis did not start" >&2; exit 1; }
 	sleep 1
 done
 
-# a copy of the working tree (including uncommitted changes) and vendor/
-git ls-files -co --exclude-standard -z | tar --null -T - -cf - | tar -xf - -C "$WORK"
-cp -a vendor "$WORK/"
-cd "$WORK"
-mkdir -p logs q
+copy_tree
 
 WEB_PORT=$(free_port)
 NORMAL_PORT=$(free_port)
@@ -76,8 +46,7 @@ FUZZY_PORT=$(free_port)
 API_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
 MAIL_API_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
 APP_DB_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
-sed -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
-	-e "s#^QUARANTINE_DIR=.*#QUARANTINE_DIR=${WORK}/q#" \
+write_env -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	-e "s#^DB_HOST=.*#DB_HOST=127.0.0.1#" \
 	-e "s#^DB_PORT=.*#DB_PORT=${DB_PORT}#" \
 	-e "s#^DB_NAME=.*#DB_NAME=rqwatch#" \
@@ -88,12 +57,8 @@ sed -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	-e "s#^RSPAMD_API_ACL=.*#RSPAMD_API_ACL=\"127.0.0.1\"#" \
 	-e "s#^MAIL_API_PASS=.*#MAIL_API_PASS=${MAIL_API_PASS}#" \
 	-e "s#^MAIL_API_ACL=.*#MAIL_API_ACL=\"127.0.0.1\"#" \
-	-e "s#^MAILER_DSN=.*#MAILER_DSN=\"null://null\"#" \
 	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=true#" \
-	-e "s#^REDIS_DSN=.*#REDIS_DSN=\"redis://127.0.0.1:${REDIS_PORT}\"#" \
-	-e "s#^LDAP_AUTH_ENABLED=.*#LDAP_AUTH_ENABLED=false#" \
-	-e "s#^OPENIDC_AUTH_ENABLED=.*#OPENIDC_AUTH_ENABLED=false#" \
-	.env-example > .env
+	-e "s#^REDIS_DSN=.*#REDIS_DSN=\"redis://127.0.0.1:${REDIS_PORT}\"#"
 
 # fuzzy learning through this server's own rspamd controller (a secure_ip,
 # so no password); a fallback charset unlike the default, for 8-bit headers
@@ -154,22 +119,16 @@ cp tests/Import/rspamd/rspamd.local.lua rspamd/
 chmod -R a+rX rspamd
 
 # web server: only the API is needed, so no router
-php -S "127.0.0.1:${WEB_PORT}" -t web >logs/php-server.log 2>&1 &
-WEB_PID=$!
-for i in $(seq 30); do
-	curl -fs -o /dev/null "http://127.0.0.1:${WEB_PORT}/css/style.css" && break
-	[ "$i" = 30 ] && { echo "Web server did not start" >&2; cat logs/php-server.log >&2; exit 1; }
-	sleep 1
-done
+start_web "$WEB_PORT" /css/style.css
 
 # rspamd
-RSPAMD_CID=$(podman run -d --rm --pull=newer --network host \
+start_container RSPAMD_CID --network host \
 	-e RSPAMD_LOCAL_ADDR=127.0.0.1 \
 	-e RSPAMD_PORT_NORMAL="$NORMAL_PORT" \
 	-e RSPAMD_PORT_CONTROLLER="$CONTROLLER_PORT" \
 	-e RSPAMD_PORT_PROXY="$PROXY_PORT" \
 	-e RSPAMD_PORT_FUZZY="$FUZZY_PORT" \
-	-v "${WORK}/rspamd:/etc/rspamd:ro,Z" "$RSPAMD_IMAGE")
+	-v "${WORK}/rspamd:/etc/rspamd:ro,Z" "$RSPAMD_IMAGE"
 for i in $(seq 60); do
 	curl -fs -o /dev/null "http://127.0.0.1:${NORMAL_PORT}/ping" && break
 	[ "$i" = 60 ] && { echo "rspamd did not start" >&2; podman logs --tail 50 "$RSPAMD_CID" >&2; exit 1; }
