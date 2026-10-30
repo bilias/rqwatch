@@ -75,6 +75,7 @@
       "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M",
       "psalm": "psalm -c qa/psalm.xml --no-progress",
       "psalm-taint": "sh qa/psalm-taint.sh",
+      "test-unit": "bash qa/unit-tests.sh -v",
       "test-access": "bash qa/access-tests.sh -v",
       "test-scoping": "bash qa/scoping-tests.sh -v",
       "test-import": [
@@ -84,6 +85,7 @@
       "test": [
          "@composer validate --no-check-publish",
          "@composer audit --locked --abandoned=report",
+         "@test-unit",
          "@test-access",
          "@test-scoping",
          "@test-import"
@@ -99,6 +101,7 @@
       "check": [
          "@composer validate --no-check-publish",
          "@composer audit --locked --abandoned=report",
+         "@test-unit",
          "@test-access",
          "@analyse",
          "@psalm-taint",
@@ -111,10 +114,11 @@
       "phpstan": "PHPStan with Larastan (qa/phpstan.neon)",
       "psalm": "Psalm type checks (qa/psalm.xml)",
       "psalm-taint": "Psalm taint analysis; regenerates the vendor taint stub first",
+      "test-unit": "Unit tests of helpers: addresses, relays, charsets, import data, symbols, quarantine files (no database)",
       "test-access": "Access control: route access levels and middleware (no database)",
       "test-scoping": "Data scoping: users reach only their own data (throwaway MariaDB via Podman)",
       "test-import": "Rspamd metadata export into Rqwatch importer, end to end (MariaDB and rspamd via Podman)",
-      "test": "Validate, audit and all test suites: test-access, test-scoping, test-import (one line per test; CI runs the scripts without -v)",
+      "test": "Validate, audit and all test suites: test-unit, test-access, test-scoping, test-import (one line per test; CI runs the scripts without -v)",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",
       "analyse": "PHPStan and Psalm",
