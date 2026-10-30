@@ -183,6 +183,7 @@ echo "rspamd $(curl -s "http://127.0.0.1:${CONTROLLER_PORT}/stat" | php -r 'echo
 status=0
 IMPORT_RSPAMD_URL="http://127.0.0.1:${NORMAL_PORT}" \
 IMPORT_ROOT="$WORK" \
+IMPORT_REDIS_PORT="$REDIS_PORT" \
 IMPORT_WEB_URL="http://127.0.0.1:${WEB_PORT}" \
 IMPORT_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \
 IMPORT_MAIL_API_PASS="$MAIL_API_PASS" \
