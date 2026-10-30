@@ -13,9 +13,11 @@
 # failed-import spool and rspamd's fuzzy storage, which this copy learns into
 # through its fuzzy API. MariaDB, Redis and rspamd run as rootless Podman
 # containers, rspamd on the host network so it reaches php -S on loopback.
-# Extra arguments go to phpunit. Run from the project root.
+# -v prints one line per test (local runs); other arguments go to phpunit.
+# Run from the project root.
 set -euo pipefail
 . qa/lib.sh
+phpunit_args "$@"
 
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 RSPAMD_IMAGE="${RSPAMD_IMAGE:-docker.io/rspamd/rspamd:4}"
@@ -150,7 +152,7 @@ IMPORT_QUARANTINE_DIR="${WORK}/q" \
 IMPORT_DB_DSN="mysql:host=127.0.0.1;port=${DB_PORT};dbname=rqwatch;charset=utf8mb4" \
 IMPORT_DB_USER=root \
 IMPORT_DB_PASS="$DB_PASS" \
-	vendor/bin/phpunit -c qa/phpunit-import.xml "$@" || status=$?
+	vendor/bin/phpunit -c qa/phpunit-import.xml "${PHPUNIT_ARGS[@]}" || status=$?
 
 if [ "$status" != 0 ]; then
 	if [ -s logs/rqwatch.log ]; then

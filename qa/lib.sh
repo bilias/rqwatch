@@ -96,3 +96,18 @@ start_web() {
 	cat logs/php-server.log >&2
 	exit 1
 }
+
+# phpunit_args HARNESS_ARGS...: -v becomes --testdox (one line per test, for
+# local runs; CI leaves it out), anything else goes to phpunit as is; sets
+# PHPUNIT_ARGS
+phpunit_args() {
+	local arg
+	PHPUNIT_ARGS=()
+	for arg in "$@"; do
+		if [ "$arg" = -v ]; then
+			PHPUNIT_ARGS+=(--testdox)
+		else
+			PHPUNIT_ARGS+=("$arg")
+		fi
+	done
+}

@@ -12,10 +12,11 @@
 #
 # Locally it starts a rootless Podman container ($MARIADB_IMAGE). In CI set
 # SCOPING_DB_EXEC (a mariadb client command), SCOPING_DB_HOST, SCOPING_DB_PORT
-# and SCOPING_DB_PASS for an existing server instead. Extra arguments go to
-# phpunit. Run from the project root.
+# and SCOPING_DB_PASS for an existing server instead. -v prints one line per
+# test (local runs); other arguments go to phpunit. Run from the project root.
 set -euo pipefail
 . qa/lib.sh
+phpunit_args "$@"
 
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 make_workdir
@@ -87,7 +88,7 @@ SCOPING_BASE_URL="http://127.0.0.1:${WEB_PORT}" \
 SCOPING_DB_DSN="mysql:host=${DB_HOST};port=${DB_PORT};dbname=rqwatch" \
 SCOPING_DB_USER=root \
 SCOPING_DB_PASS="$DB_PASS" \
-	vendor/bin/phpunit -c qa/phpunit-scoping.xml "$@" || status=$?
+	vendor/bin/phpunit -c qa/phpunit-scoping.xml "${PHPUNIT_ARGS[@]}" || status=$?
 
 if [ "$status" != 0 ] && [ -s logs/rqwatch.log ]; then
 	echo "--- logs/rqwatch.log ---" >&2

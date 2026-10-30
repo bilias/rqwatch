@@ -2,7 +2,6 @@
 <!-- Run through qa/import-tests.sh, which provides the database, rspamd and the importer -->
 <phpunit bootstrap="../vendor/autoload.php"
 	colors="true"
-	testdox="true"
 	failOnWarning="true"
 	failOnRisky="true"
 	executionOrder="default">

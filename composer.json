@@ -75,11 +75,11 @@
       "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M",
       "psalm": "psalm -c qa/psalm.xml --no-progress",
       "psalm-taint": "sh qa/psalm-taint.sh",
-      "test-access": "phpunit -c qa/phpunit-access.xml",
-      "test-scoping": "bash qa/scoping-tests.sh",
+      "test-access": "bash qa/access-tests.sh -v",
+      "test-scoping": "bash qa/scoping-tests.sh -v",
       "test-import": [
          "Composer\\Config::disableProcessTimeout",
-         "bash qa/import-tests.sh"
+         "bash qa/import-tests.sh -v"
       ],
       "test": [
          "@composer validate --no-check-publish",
@@ -114,7 +114,7 @@
       "test-access": "Access control: route access levels and middleware (no database)",
       "test-scoping": "Data scoping: users reach only their own data (throwaway MariaDB via Podman)",
       "test-import": "Rspamd metadata export into Rqwatch importer, end to end (MariaDB and rspamd via Podman)",
-      "test": "Validate, audit and all test suites: test-access, test-scoping, test-import",
+      "test": "Validate, audit and all test suites: test-access, test-scoping, test-import (one line per test; CI runs the scripts without -v)",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",
       "analyse": "PHPStan and Psalm",
