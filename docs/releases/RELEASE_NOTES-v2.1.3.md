@@ -75,6 +75,7 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 - The Top Actions report links each action to its mails.
 
 # Fixes
+- Upgrades from <=2.0 to 2.1.2 whose `db:migrate_drop_mail_log_columns` failed with error 1846 can now re-run it
 - Long values without spaces (e.g. a regexp) wrap inside Active Filters
 - SQL update files: `18-db-update-2026-10-12` now creates the virus notification skip map
   (`rqwatch_virus_no_notify`), which only `db:migrate` created in 2.1.2
