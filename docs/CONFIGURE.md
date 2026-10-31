@@ -144,10 +144,13 @@ cat contrib/rspamd/local.d/multimap.conf >> /etc/rspamd/local.d/multimap.conf
 via http from Rqwatch API running locally on same host as Rspamd.
 
 Whitelist maps define a score of `-1000`, while Blacklist maps define a score of `1000`.\
-Whitelist maps also set `prefilter = true; action = "accept";`, which decides the
-final action even when an antivirus symbol fires. Force an action on viruses by
-appending [force_actions.conf](/contrib/rspamd/local.d/force_actions.conf) to
-Rspamd's `local.d/force_actions.conf`, adjusting the symbol to your antivirus setup:
+The SMTP and MIME From maps also set an `action` (`accept` for whitelists,
+`discard` for blacklists): a hit forces that action, and checks that have not
+started yet are skipped. The IP and From/To maps only add their score. A forced
+`accept` decides the final action even when an antivirus symbol fires. Force an
+action on viruses by appending [force_actions.conf](/contrib/rspamd/local.d/force_actions.conf) to
+Rspamd's `local.d/force_actions.conf`, adjusting the symbol to your antivirus setup.
+Its `priority = "high"` outranks the whitelists' `accept` on Rspamd 4.2.3 and later:
 ```
 cat contrib/rspamd/local.d/force_actions.conf >> /etc/rspamd/local.d/force_actions.conf
 ```

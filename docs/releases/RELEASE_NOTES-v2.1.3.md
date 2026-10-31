@@ -32,6 +32,7 @@ Rqwatch 2.x+ contains updates to the database schema.
 - Apache: replace the `<Location /api>` and `<Location /maps>` blocks with the `<Directory>`
   blocks from [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
   They match the directories rather than the URL, so they also apply under a subdirectory (`WEB_BASE`).
+- multimap.conf: drop `prefilter` (ignored since rspamd 3.3)
 
 ## From 1.8.x
 Follow **From 1.8.x** in the
