@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Run through qa/integration-tests.sh, which provides the database, the web servers and bin/cli.php -->
+<phpunit bootstrap="../vendor/autoload.php"
+	colors="true"
+	failOnWarning="true"
+	failOnRisky="true"
+	executionOrder="default">
+	<testsuites>
+		<!-- in this order: Scoping/ last, it releases mail 101 and deletes map
+		     entry 201, which the others use as sample parameters -->
+		<testsuite name="integration">
+			<directory>../tests/Integration/Access</directory>
+			<directory>../tests/Integration/Smoke</directory>
+			<directory>../tests/Integration/Cron</directory>
+			<directory>../tests/Integration/Scoping</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

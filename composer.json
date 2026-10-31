@@ -76,19 +76,17 @@
       "psalm": "psalm -c qa/psalm.xml --no-progress",
       "psalm-taint": "sh qa/psalm-taint.sh",
       "test-unit": "bash qa/unit-tests.sh",
-      "test-access": "bash qa/access-tests.sh -v",
-      "test-scoping": "bash qa/scoping-tests.sh -v",
-      "test-import": [
+      "test-integration": "bash qa/integration-tests.sh -v",
+      "test-e2e": [
          "Composer\\Config::disableProcessTimeout",
-         "bash qa/import-tests.sh -v"
+         "bash qa/e2e-tests.sh -v"
       ],
       "test": [
          "@composer validate --no-check-publish",
          "@composer audit --locked --abandoned=report",
          "@test-unit",
-         "@test-access",
-         "@test-scoping",
-         "@test-import"
+         "@test-integration",
+         "@test-e2e"
       ],
       "opengrep": "sh qa/opengrep.sh",
       "taint-stubs": "sh qa/taint-stubs.sh",
@@ -102,23 +100,21 @@
          "@composer validate --no-check-publish",
          "@composer audit --locked --abandoned=report",
          "@test-unit",
-         "@test-access",
          "@analyse",
          "@psalm-taint",
          "@opengrep",
-         "@test-scoping",
-         "@test-import"
+         "@test-integration",
+         "@test-e2e"
       ]
    },
    "scripts-descriptions": {
       "phpstan": "PHPStan with Larastan (qa/phpstan.neon)",
       "psalm": "Psalm type checks (qa/psalm.xml)",
       "psalm-taint": "Psalm taint analysis; regenerates the vendor taint stub first",
-      "test-unit": "Unit tests of helpers: addresses, relays, charsets, import data, symbols, quarantine files (no database)",
-      "test-access": "Access control: route access levels and middleware (no database)",
-      "test-scoping": "Web tests: data scoping, route protection, a smoke pass over every route, API access (throwaway MariaDB via Podman)",
-      "test-import": "Rspamd metadata export into Rqwatch importer, release and notifications, end to end (MariaDB, Redis, Mailpit and rspamd via Podman)",
-      "test": "Validate, audit and all test suites: test-unit, test-access, test-scoping, test-import (one line per test; CI runs the scripts without -v)",
+      "test-unit": "Unit tests, no database: helpers, and route access levels and middleware",
+      "test-integration": "Integration tests against a throwaway MariaDB via Podman: route protection, API access, a smoke pass over every route, retention crons, data scoping",
+      "test-e2e": "End-to-end tests with rspamd, Redis, MariaDB and Mailpit via Podman: import, maps, encoding, spool, fuzzy learning, release and notifications",
+      "test": "Validate, audit and all test suites: test-unit, test-integration, test-e2e (one line per test, except test-unit; CI runs the scripts without -v)",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",
       "analyse": "PHPStan and Psalm",

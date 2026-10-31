@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Run through qa/e2e-tests.sh, which provides the database, Redis, rspamd, Mailpit and the importer -->
+<phpunit bootstrap="../vendor/autoload.php"
+	colors="true"
+	failOnWarning="true"
+	failOnRisky="true"
+	executionOrder="default">
+	<testsuites>
+		<testsuite name="e2e">
+			<directory>../tests/EndToEnd</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

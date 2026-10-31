@@ -1,0 +1,50 @@
+name: Integration tests
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Integration
+    runs-on: ubuntu-24.04
+    services:
+      mariadb:
+        # production's major version; keep in sync with MARIADB_IMAGE in qa/integration-tests.sh
+        image: docker.io/library/mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: integration-test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 5s --health-timeout 5s --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.3'
+          extensions: ldap, redis, mailparse, mbstring, iconv, pdo_mysql, gmp, curl
+          coverage: none
+
+      - name: Composer install
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Access, smoke, retention and scoping tests
+        env:
+          INTEGRATION_DB_EXEC: docker exec -i ${{ job.services.mariadb.id }} mariadb -uroot -pintegration-test
+          INTEGRATION_DB_HOST: 127.0.0.1
+          INTEGRATION_DB_PORT: '3306'
+          INTEGRATION_DB_PASS: integration-test
+        run: bash qa/integration-tests.sh
