@@ -24,7 +24,7 @@ phpunit_args "$@"
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 RSPAMD_IMAGE="${RSPAMD_IMAGE:-docker.io/rspamd/rspamd:4}"
 REDIS_IMAGE="${REDIS_IMAGE:-docker.io/library/redis:7}"
-MAILPIT_IMAGE="${MAILPIT_IMAGE:-docker.io/axllent/mailpit:latest}"
+MAILPIT_IMAGE="${MAILPIT_IMAGE:-docker.io/axllent/mailpit:v1}"
 ADMIN_RCPT=admin-notify@rqwatch.test
 make_workdir
 
@@ -76,7 +76,8 @@ write_env -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	-e "s#^MAIL_API_ACL=.*#MAIL_API_ACL=\"127.0.0.1\"#" \
 	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=true#" \
 	-e "s#^REDIS_DSN=.*#REDIS_DSN=\"redis://127.0.0.1:${REDIS_PORT}\"#" \
-	-e "s#^MAILER_DSN=.*#MAILER_DSN=\"smtp://127.0.0.1:${MAILPIT_SMTP_PORT}\"#"
+	-e "s#^MAILER_DSN=.*#MAILER_DSN=\"smtp://127.0.0.1:${MAILPIT_SMTP_PORT}\"#" \
+	-e "s#^MAILER_FROM=.*#MAILER_FROM=rqwatch@rqwatch.test#"
 
 # fuzzy learning through this server's own rspamd controller (a secure_ip,
 # so no password); a fallback charset unlike the default, for 8-bit headers;

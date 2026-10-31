@@ -65,6 +65,26 @@ final class NotificationTest extends ImportTestCase
 		$this->assertAdminNotified($row);
 	}
 
+	#[TestDox('One recipient opted out among others: only the others notified, the mail keeps every recipient')]
+	public function testOptedOutRecipientAmongOthers(): void {
+		$rcpt = self::address('notify');
+		$optout = self::address('optout');
+		self::cli('user:add', '--no-notifications', '-p', bin2hex(random_bytes(16)), strstr($optout, '@', true), $optout);
+		[, , $row] = $this->import('discard', rcpts: [$rcpt, $optout], to: [$rcpt, $optout]);
+		$id = (int) $row['id'];
+		$rcptTo = self::query('SELECT rcpt_to FROM mail_logs WHERE id = ?', [$id])[0]['rcpt_to'];
+		$recipients = self::recipients($id);
+		$this->assertCount(2, $recipients, 'fixture: two recipients');
+
+		self::cli('cron:notifications', '-m');
+
+		$this->assertUserNotified($row, [$rcpt]);
+		$this->assertSame([], self::mailsFor($optout), "notifications to {$optout}");
+		$this->assertSame($rcptTo, self::query('SELECT rcpt_to FROM mail_logs WHERE id = ?', [$id])[0]['rcpt_to'], 'rcpt_to');
+		$this->assertSame($recipients, self::recipients($id), 'recipient rows');
+		$this->assertAdminNotified($row);
+	}
+
 	#[TestDox('Blacklisted: skipped as notified = NULL without -b, and with -b (its score is above notification_score)')]
 	public function testBlacklistedSkippedWithAndWithoutB(): void {
 		foreach ([[], ['-b']] as $flags) {
