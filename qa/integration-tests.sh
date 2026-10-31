@@ -10,12 +10,15 @@
 # it with php -S (the UI through the router, the mail APIs from a second
 # server without it) and runs tests/Integration: route protection and API
 # access (Access/), a smoke pass over every route (Smoke/), the retention
-# crons through bin/cli.php (Cron/) and data scoping (Scoping/). Your .env,
-# config.local.php and databases are never touched.
+# crons through bin/cli.php (Cron/), data scoping (Scoping/) and web release
+# into Mailpit (Delivery/). Your .env, config.local.php and databases are
+# never touched.
 #
-# Locally it starts a rootless Podman container ($MARIADB_IMAGE). In CI set
-# INTEGRATION_DB_EXEC (a mariadb client command), INTEGRATION_DB_HOST,
-# INTEGRATION_DB_PORT and INTEGRATION_DB_PASS for an existing server instead.
+# Locally it starts rootless Podman containers ($MARIADB_IMAGE, $MAILPIT_IMAGE).
+# In CI set INTEGRATION_DB_EXEC (a mariadb client command), INTEGRATION_DB_HOST,
+# INTEGRATION_DB_PORT and INTEGRATION_DB_PASS for an existing server, and
+# INTEGRATION_MAILPIT_SMTP_PORT and INTEGRATION_MAILPIT_HTTP_PORT for an
+# existing Mailpit on 127.0.0.1, instead.
 # -v prints one line per test (local runs); other arguments go to phpunit.
 # Run from the project root.
 set -euo pipefail
@@ -23,6 +26,7 @@ set -euo pipefail
 phpunit_args "$@"
 
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
+MAILPIT_IMAGE="${MAILPIT_IMAGE:-docker.io/axllent/mailpit:v1}"
 make_workdir
 
 # database
@@ -35,6 +39,15 @@ else
 	DB_PORT="$INTEGRATION_DB_PORT"
 	DB_PASS="$INTEGRATION_DB_PASS"
 	DB_EXEC="$INTEGRATION_DB_EXEC"
+fi
+
+# mail capture
+if [ -z "${INTEGRATION_MAILPIT_SMTP_PORT:-}" ]; then
+	start_mailpit "$MAILPIT_IMAGE"
+else
+	MAILPIT_SMTP_PORT="$INTEGRATION_MAILPIT_SMTP_PORT"
+	MAILPIT_HTTP_PORT="$INTEGRATION_MAILPIT_HTTP_PORT"
+	wait_mailpit
 fi
 
 copy_tree
@@ -58,7 +71,21 @@ write_env -e "s#^WEB_HOST=.*#WEB_HOST=127.0.0.1:${WEB_PORT}#" \
 	-e "s#^RSPAMD_API_PASS=.*#RSPAMD_API_PASS=${RSPAMD_API_PASS}#" \
 	-e "s#^RSPAMD_API_ACL=.*#RSPAMD_API_ACL=\"127.0.0.1\"#" \
 	-e "s#^MAIL_API_PASS=.*#MAIL_API_PASS=${MAIL_API_PASS}#" \
-	-e "s#^MAIL_API_ACL=.*#MAIL_API_ACL=\"127.0.0.1\"#"
+	-e "s#^MAIL_API_ACL=.*#MAIL_API_ACL=\"127.0.0.1\"#" \
+	-e "s#^MAILER_DSN=.*#MAILER_DSN=\"smtp://127.0.0.1:${MAILPIT_SMTP_PORT}\"#" \
+	-e "s#^MAILER_FROM=.*#MAILER_FROM=rqwatch@example.org#"
+
+# mx2 is a second storing node: its API is this instance's own API server, so
+# a web release of an mx2 mail goes through release_mail.php like a remote one;
+# no rspamd runs, so its stat_url fails fast, as the smoke test expects
+cat > config/config.local.php <<PHP
+<?php
+\$API_SERVERS = ['mx2' => [
+	'url' => 'http://127.0.0.1:${API_PORT}',
+	'stat_url' => 'http://127.0.0.1:9/stat',
+	'options' => [],
+]];
+PHP
 
 # schema, users, test data, quarantined mails
 $DB_EXEC < contrib/db-init.sql
@@ -100,6 +127,7 @@ start_web "$API_PORT" /css/style.css
 status=0
 INTEGRATION_BASE_URL="http://127.0.0.1:${WEB_PORT}" \
 INTEGRATION_API_URL="http://127.0.0.1:${API_PORT}" \
+INTEGRATION_MAILPIT_URL="http://127.0.0.1:${MAILPIT_HTTP_PORT}" \
 INTEGRATION_ROOT="$WORK" \
 INTEGRATION_WEB_LOG="${WORK}/logs/php-server-${WEB_PORT}.log" \
 INTEGRATION_RSPAMD_API_USER="$(sed -n 's/^RSPAMD_API_USER=//p' .env)" \

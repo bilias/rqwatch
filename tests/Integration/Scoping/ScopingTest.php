@@ -114,8 +114,10 @@ final class ScopingTest extends IntegrationTestCase
 			'mail_release_form[release]' => '1',
 		];
 
+		$count = self::mailCount();
 		$this->assertRefused($alice->post('/release/102', $fields), 'release 102');
 		$this->assertSame(0, (int) self::value('SELECT released FROM mail_logs WHERE id = ?', 102));
+		$this->assertSame($count, self::mailCount(), 'mail sent');
 
 		// the same token and form release her own mail
 		$alice->post('/release/101', $fields);

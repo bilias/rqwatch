@@ -10,9 +10,9 @@
 
 /*
  Base for the tests qa/integration-tests.sh runs against its instance: logged-in
- clients, the database, and every route with sample parameters. Route access
- levels come from the routes' own _middleware, which tests/Unit/Routing pins to the
- reviewed lists.
+ clients, the database, every route with sample parameters, and the mail the
+ instance sends (Mailpit). Route access levels come from the routes' own
+ _middleware, which tests/Unit/Routing pins to the reviewed lists.
 */
 
 namespace Tests\Integration;
@@ -23,6 +23,7 @@ use App\Core\Routing\Routes;
 use App\Models\MailLog;
 use PDO;
 use PHPUnit\Framework\TestCase;
+use Tests\Mailpit;
 use RuntimeException;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\RequestContext;
@@ -30,6 +31,8 @@ use Symfony\Component\Routing\Route;
 
 abstract class IntegrationTestCase extends TestCase
 {
+	use Mailpit;
+
 	protected const ADMIN = 'admin';
 	protected const USER = 'user';
 	protected const PUBLIC = 'public';
@@ -47,6 +50,10 @@ abstract class IntegrationTestCase extends TestCase
 		$client = new WebClient((string) getenv('INTEGRATION_BASE_URL'));
 		$client->login($user, "pw-{$user}");
 		return $client;
+	}
+
+	protected static function mailpitUrl(): string {
+		return (string) getenv('INTEGRATION_MAILPIT_URL');
 	}
 
 	protected static function anonymous(): WebClient {

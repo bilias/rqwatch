@@ -43,15 +43,7 @@ for i in $(seq 30); do
 done
 
 # mail capture
-MAILPIT_SMTP_PORT=$(free_port)
-MAILPIT_HTTP_PORT=$(free_port)
-start_container MAILPIT_CID -p "127.0.0.1:${MAILPIT_SMTP_PORT}:1025" \
-	-p "127.0.0.1:${MAILPIT_HTTP_PORT}:8025" "$MAILPIT_IMAGE"
-for i in $(seq 30); do
-	curl -fs -o /dev/null "http://127.0.0.1:${MAILPIT_HTTP_PORT}/readyz" && break
-	[ "$i" = 30 ] && { echo "Mailpit did not start" >&2; exit 1; }
-	sleep 1
-done
+start_mailpit "$MAILPIT_IMAGE"
 
 copy_tree
 

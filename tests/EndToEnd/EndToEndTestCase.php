@@ -24,10 +24,13 @@ namespace Tests\EndToEnd;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
+use Tests\Mailpit;
 use RuntimeException;
 
 abstract class EndToEndTestCase extends TestCase
 {
+	use Mailpit;
+
 	protected const SERVER = 'mx1';
 	protected const IP = '192.0.2.10';
 	protected const MAIL_FROM = 'Sender@Sender.TEST';
@@ -328,68 +331,8 @@ abstract class EndToEndTestCase extends TestCase
 		return $output;
 	}
 
-	/** An address no other test uses, so the mail it receives is this test's. */
-	protected static function address(string $prefix): string {
-		return $prefix . '-' . bin2hex(random_bytes(4)) . '@rqwatch.test';
-	}
-
-	/**
-	 * GET from Mailpit's API.
-	 * @return array<string, mixed>
-	 */
-	protected static function mailpit(string $path): array {
-		$ch = curl_init(rtrim((string) getenv('E2E_MAILPIT_URL'), '/') . $path);
-		curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
-		$body = curl_exec($ch);
-		$status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-		if (!is_string($body) || $status !== 200) {
-			throw new RuntimeException("Mailpit {$path} answered {$status}");
-		}
-		return json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-	}
-
-	/** Messages Mailpit has received in this run. */
-	protected static function mailCount(): int {
-		return (int) self::mailpit('/api/v1/messages?limit=1')['total'];
-	}
-
-	/**
-	 * Messages delivered to $address (To, Cc or envelope-only Bcc), optionally
-	 * only those matching a Mailpit search for $text.
-	 * @return list<array<string, mixed>> Mailpit message summaries
-	 */
-	protected static function mailsFor(string $address, ?string $text = null): array {
-		$found = [];
-		for ($start = 0; ; $start += 500) {
-			$page = $text === null
-				? self::mailpit("/api/v1/messages?limit=500&start={$start}")
-				: self::mailpit('/api/v1/search?limit=500&start=' . $start . '&query=' . rawurlencode($text));
-			foreach ($page['messages'] as $message) {
-				if (in_array(strtolower($address), self::recipientsOf($message), true)) {
-					$found[] = $message;
-				}
-			}
-			if ($start + 500 >= (int) $page['messages_count']) {
-				return $found;
-			}
-		}
-	}
-
-	/**
-	 * Every address a captured message was delivered to, sorted.
-	 * @param array<string, mixed> $message Mailpit message summary
-	 * @return list<string>
-	 */
-	protected static function recipientsOf(array $message): array {
-		$addresses = [];
-		foreach (['To', 'Cc', 'Bcc'] as $field) {
-			foreach ($message[$field] ?? [] as $entry) {
-				$addresses[] = strtolower((string) $entry['Address']);
-			}
-		}
-		$addresses = array_values(array_unique($addresses));
-		sort($addresses);
-		return $addresses;
+	protected static function mailpitUrl(): string {
+		return (string) getenv('E2E_MAILPIT_URL');
 	}
 
 	protected static function db(): PDO {

@@ -44,6 +44,27 @@ start_container() {
 	printf -v "$var" '%s' "$cid"
 }
 
+# start_mailpit IMAGE: a throwaway Mailpit on free loopback ports; sets
+# MAILPIT_CID, MAILPIT_SMTP_PORT and MAILPIT_HTTP_PORT and waits until it answers
+start_mailpit() {
+	MAILPIT_SMTP_PORT=$(free_port)
+	MAILPIT_HTTP_PORT=$(free_port)
+	start_container MAILPIT_CID -p "127.0.0.1:${MAILPIT_SMTP_PORT}:1025" \
+		-p "127.0.0.1:${MAILPIT_HTTP_PORT}:8025" "$1"
+	wait_mailpit
+}
+
+# wait_mailpit: until the Mailpit API on MAILPIT_HTTP_PORT answers
+wait_mailpit() {
+	local i
+	for i in $(seq 30); do
+		curl -fs -o /dev/null "http://127.0.0.1:${MAILPIT_HTTP_PORT}/readyz" && return 0
+		sleep 1
+	done
+	echo "Mailpit did not start" >&2
+	exit 1
+}
+
 # start_mariadb IMAGE ROOT_PASSWORD [SERVER_ARGS...]: a throwaway MariaDB on
 # a free loopback port; sets DB_CID, DB_PORT and DB_EXEC (a root client)
 start_mariadb() {

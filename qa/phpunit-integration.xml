@@ -13,6 +13,7 @@
 			<directory>../tests/Integration/Smoke</directory>
 			<directory>../tests/Integration/Cron</directory>
 			<directory>../tests/Integration/Scoping</directory>
+			<directory>../tests/Integration/Delivery</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

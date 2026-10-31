@@ -115,22 +115,4 @@ final class ReleaseTest extends EndToEndTestCase
 		}
 		return [(int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE), $body];
 	}
-
-	/** The raw bytes of the one message/rfc822 attachment of a captured message. */
-	private static function attachedMail(string $id): string {
-		$parts = array_values(array_filter(
-			self::mailpit("/api/v1/message/{$id}")['Attachments'] ?? [],
-			fn($part) => $part['ContentType'] === 'message/rfc822'
-		));
-		if (count($parts) !== 1) {
-			throw new RuntimeException("message {$id}: expected one message/rfc822 attachment, found " . count($parts));
-		}
-		$ch = curl_init(rtrim((string) getenv('E2E_MAILPIT_URL'), '/') . "/api/v1/message/{$id}/part/{$parts[0]['PartID']}");
-		curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
-		$body = curl_exec($ch);
-		if (!is_string($body) || (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE) !== 200) {
-			throw new RuntimeException("message {$id}: attachment not readable");
-		}
-		return $body;
-	}
 }
