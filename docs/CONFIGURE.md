@@ -397,7 +397,16 @@ cp .env-example .env
 
 ### Quarantine Settings
 - `QUARANTINE_DIR` - Local Quarantine directory\
-  rqwatch user must have read/write access in this directory.
+  rqwatch user must have read/write access in this directory.\
+  Each stored mail's database row holds the mail's absolute path, and Rqwatch
+  reads, releases or deletes a stored mail only when that path resolves to a file
+  under `QUARANTINE_DIR`. To move the quarantine, either keep its path (mount the
+  new filesystem there, or leave a symlink from the old path to the new one), or
+  change `QUARANTINE_DIR` and rewrite the stored paths in the same step:
+  ```
+  UPDATE mail_logs SET mail_location = CONCAT('/new/quarantine', SUBSTRING(mail_location, LENGTH('/old/quarantine') + 1))
+    WHERE mail_location LIKE '/old/quarantine/%';
+  ```
 
 - `QUARANTINE_DAYS` - Number of days to keep emails in quarantine.\
   Default is `180`

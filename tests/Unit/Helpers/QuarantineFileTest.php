@@ -9,8 +9,9 @@
 */
 
 /*
- Quarantine files: where store_raw_mail() writes, and what
- deleteDirectory() refuses to remove. Runs in a temporary directory.
+ Quarantine files: where store_raw_mail() writes, what deleteDirectory()
+ refuses to remove, and which paths quarantinedFile() accepts. Runs in a
+ temporary directory.
 */
 
 namespace Tests\Unit\Helpers;
@@ -159,5 +160,53 @@ final class QuarantineFileTest extends UnitTestCase
 
 	public function testMissingDirectory(): void {
 		$this->assertFalse(Helper::deleteDirectory($this->q . '/nope'));
+	}
+
+	public function testQuarantinedFileInside(): void {
+		$file = Helper::store_raw_mail($this->q, 'ABC', 'raw');
+		$this->assertSame(realpath((string) $file), Helper::quarantinedFile((string) $file));
+	}
+
+	public function testQuarantinedFileRefusals(): void {
+		file_put_contents($this->root . '/secret', 'x');
+		mkdir($this->root . '/q-backup', 0750);
+		file_put_contents($this->root . '/q-backup/mail.eml', 'x');
+		symlink($this->root . '/secret', $this->q . '/link.eml');
+		mkdir($this->q . '/day', 0750);
+		$refused = [
+			'outside' => $this->root . '/secret',
+			'traversal' => $this->q . '/../secret',
+			'sibling prefix' => $this->root . '/q-backup/mail.eml',
+			'symlink out' => $this->q . '/link.eml',
+			'directory' => $this->q . '/day',
+			'missing' => $this->q . '/nope.eml',
+			'empty' => '',
+		];
+		foreach ($refused as $what => $path) {
+			$this->assertNull(Helper::quarantinedFile($path), $what);
+		}
+		$this->assertLogged('Not a file under QUARANTINE_DIR: ' . $this->root . '/secret');
+	}
+
+	public function testQuarantinedFileUnsafeQuarantineDir(): void {
+		$file = (string) Helper::store_raw_mail($this->q, 'ABC', 'raw');
+		foreach (['', '/', '  '] as $env) {
+			$_ENV['QUARANTINE_DIR'] = $env;
+			$this->assertNull(Helper::quarantinedFile($file), "QUARANTINE_DIR '{$env}'");
+		}
+		unset($_ENV['QUARANTINE_DIR']);
+		$this->assertNull(Helper::quarantinedFile($file), 'QUARANTINE_DIR unset');
+	}
+
+	// a quarantine moved and reached through a symlink: rows under either path pass
+	public function testQuarantinedFileThroughSymlinkedQuarantineDir(): void {
+		$file = (string) Helper::store_raw_mail($this->q, 'ABC', 'raw');
+		symlink($this->q, $this->root . '/old-q');
+		$viaLink = str_replace($this->q, $this->root . '/old-q', $file);
+		$_ENV['QUARANTINE_DIR'] = $this->root . '/old-q';
+		$this->assertSame(realpath($file), Helper::quarantinedFile($file));
+		$this->assertSame(realpath($file), Helper::quarantinedFile($viaLink));
+		$_ENV['QUARANTINE_DIR'] = $this->q;
+		$this->assertSame(realpath($file), Helper::quarantinedFile($viaLink));
 	}
 }

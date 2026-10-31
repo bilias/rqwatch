@@ -11,6 +11,7 @@
 namespace App\Services;
 
 use App\Controllers\ViewController;
+use App\Utils\Helper;
 
 use Psr\Log\LoggerInterface;
 
@@ -57,19 +58,6 @@ class MailerService
 		$this->twig = $twig;
 	}
 
-	// attachments are quarantined mails: only a regular file under QUARANTINE_DIR
-	private function quarantinedFile(string $path): ?string {
-		$dir = rtrim(trim((string) ($_ENV['QUARANTINE_DIR'] ?? '')), DIRECTORY_SEPARATOR);
-		$base = $dir === '' ? false : realpath($dir);
-		$real = realpath($path);
-		if ($base !== false && $base !== DIRECTORY_SEPARATOR && $real !== false && is_file($real)
-			&& str_starts_with($real, $base . DIRECTORY_SEPARATOR)) {
-			return $real;
-		}
-		$this->logger->error("[MailerService] attachment refused, not a file under QUARANTINE_DIR: {$path}");
-		return null;
-	}
-
 	/**
 	 * Send an email to multiple recipients with optional attachment.
 	 *
@@ -99,7 +87,7 @@ class MailerService
 				->text($body);
 
 			if ($attachmentPath) {
-				$attachmentPath = $this->quarantinedFile($attachmentPath);
+				$attachmentPath = Helper::quarantinedFile($attachmentPath);
 				if ($attachmentPath === null) {
 					return false;
 				}
@@ -157,7 +145,7 @@ class MailerService
 				->context($context);
 
 			if ($attachmentPath) {
-				$attachmentPath = $this->quarantinedFile($attachmentPath);
+				$attachmentPath = Helper::quarantinedFile($attachmentPath);
 				if ($attachmentPath === null) {
 					return false;
 				}

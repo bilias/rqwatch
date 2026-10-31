@@ -1440,9 +1440,10 @@ class MailLogService
 			throw new Exception($err);
 		}
 
-		$location = $mailobject->getMailLocation();
-		if (!file_exists($location)) {
-			$err = "{$lf} File '$location' not found";
+		// only a regular file under QUARANTINE_DIR, whatever the row says
+		$location = Helper::quarantinedFile((string) $mailobject->getMailLocation());
+		if ($location === null) {
+			$err = "{$lf} File '{$mailobject->getMailLocation()}' not found";
 			Helper::debug_exception_err($err);
 			throw new Exception($err);
 		}

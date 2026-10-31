@@ -11,6 +11,7 @@
 namespace App\Api;
 
 use App\Services\MailLogService;
+use App\Utils\Helper;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -67,8 +68,10 @@ class GetMailApi extends RqwatchApi
 				$err_msg, 'warning');
 		}
 
-		if (!file_exists($log->mail_location)) {
-			$err_msg = "{$remote_user} via {$this->clientIp} requested mail {$log->qid} where local file '{$log->mail_location}' not found";
+		// only a regular file under QUARANTINE_DIR, whatever the row says
+		$location = Helper::quarantinedFile((string) $log->mail_location);
+		if ($location === null) {
+			$err_msg = "{$remote_user} via {$this->clientIp} requested mail {$log->qid} where local file '{$log->mail_location}' is not a file under QUARANTINE_DIR";
 			$response_msg = "File not found";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,
@@ -76,7 +79,7 @@ class GetMailApi extends RqwatchApi
 		}
 
 		// serve static file 
-		$response = new BinaryFileResponse($log->mail_location);
+		$response = new BinaryFileResponse($location);
 		$response->setStatusCode(Response::HTTP_OK);
 
 		$this->fileLogger->info("[{$this->logPrefix}] '{$remote_user}' via '{$this->clientIp}' requested mail {$log->qid}");

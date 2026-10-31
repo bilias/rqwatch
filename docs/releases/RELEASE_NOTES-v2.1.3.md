@@ -74,6 +74,9 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 - A search stopped by `DB_WEB_MAX_STATEMENT_TIME` returns to the search page with a message
   instead of a "Query error" page.
 - The Top Actions report links each action to its mails.
+- A stored mail is read (mail page, `get_mail` API, fuzzy learn) only when its path is a file
+  under `QUARANTINE_DIR`, as release and quarantine cleanup already required. If you moved the
+  quarantine, see [QUARANTINE_DIR](https://github.com/bilias/rqwatch/blob/master/docs/CONFIGURE.md#quarantine-settings).
 
 # Fixes
 - Upgrades from <=2.0 to 2.1.2 whose `db:migrate_drop_mail_log_columns` failed with error 1846 can now re-run it

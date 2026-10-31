@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-10-31
+- Read a stored mail only from a file under QUARANTINE_DIR (get_mail, mail view, fuzzy learn, as release)
+
 ### 2026-10-29
 - CI: rspamd import integration tests
 - QA: rspamd metadata export -> importer end-to-end test (rspamd:4 + MariaDB via Podman)

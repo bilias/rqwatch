@@ -19,6 +19,8 @@ use App\Models\MailLog;
 use App\Models\MailLogFuzzy;
 use App\Models\MailLogData;
 
+use App\Utils\Helper;
+
 use Psr\Log\LoggerInterface;
 
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -710,7 +712,8 @@ class FuzzyService
 	private function fuzzyAdd(MailLog $maillog, int $flag, int $weight, string $lf): array {
 		$qid = (string) $maillog->qid;
 		$location = (string) $maillog->mail_location;
-		$raw = is_file($location) ? file_get_contents($location) : false;
+		$file = Helper::quarantinedFile($location);
+		$raw = $file === null ? false : file_get_contents($file);
 
 		if ($raw === false || $raw === '') {
 			$this->logger->error("{$lf} {$qid} file '{$location}' not readable");

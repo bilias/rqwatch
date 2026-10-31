@@ -979,6 +979,23 @@ Mail details:
 		return AuthManager::getAuthProviderById($id);
 	}
 
+	/*
+	 * A quarantined mail file: its real path when it is a regular file under
+	 * QUARANTINE_DIR (realpath on both sides, so ../ and symlinks resolve
+	 * before the check), null otherwise. Every reader of mail_location uses it.
+	 */
+	public static function quarantinedFile(string $path): ?string {
+		$dir = rtrim(trim((string) ($_ENV['QUARANTINE_DIR'] ?? '')), DIRECTORY_SEPARATOR);
+		$base = $dir === '' ? false : realpath($dir);
+		$real = $path === '' ? false : realpath($path);
+		if ($base !== false && $base !== DIRECTORY_SEPARATOR && $real !== false && is_file($real)
+			&& str_starts_with($real, $base . DIRECTORY_SEPARATOR)) {
+			return $real;
+		}
+		self::logger()->warning("Not a file under QUARANTINE_DIR: {$path}");
+		return null;
+	}
+
 	public static function deleteDirectory(string $dir): bool {
 		$quarantineEnv = trim((string)($_ENV['QUARANTINE_DIR'] ?? ''));
 		if ($quarantineEnv === '' || $quarantineEnv === DIRECTORY_SEPARATOR) {
