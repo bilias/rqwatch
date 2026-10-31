@@ -116,7 +116,7 @@
       "psalm-taint": "Psalm taint analysis; regenerates the vendor taint stub first",
       "test-unit": "Unit tests of helpers: addresses, relays, charsets, import data, symbols, quarantine files (no database)",
       "test-access": "Access control: route access levels and middleware (no database)",
-      "test-scoping": "Data scoping: users reach only their own data (throwaway MariaDB via Podman)",
+      "test-scoping": "Web tests: data scoping, route protection, a smoke pass over every route, API access (throwaway MariaDB via Podman)",
       "test-import": "Rspamd metadata export into Rqwatch importer, release and notifications, end to end (MariaDB, Redis, Mailpit and rspamd via Podman)",
       "test": "Validate, audit and all test suites: test-unit, test-access, test-scoping, test-import (one line per test; CI runs the scripts without -v)",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",

@@ -82,18 +82,18 @@ write_env() {
 }
 
 # start_web PORT PROBE_PATH [ROUTER]: php -S on the copy's web/, waiting
-# until PROBE_PATH answers
+# until PROBE_PATH answers; its output goes to logs/php-server-PORT.log
 start_web() {
 	local port=$1 probe=$2 i
 	shift 2
-	php -S "127.0.0.1:${port}" -t web "$@" >logs/php-server.log 2>&1 &
+	php -S "127.0.0.1:${port}" -t web "$@" >"logs/php-server-${port}.log" 2>&1 &
 	LIB_PIDS+=("$!")
 	for i in $(seq 30); do
 		curl -fs -o /dev/null "http://127.0.0.1:${port}${probe}" && return 0
 		sleep 1
 	done
 	echo "Web server did not start" >&2
-	cat logs/php-server.log >&2
+	cat "logs/php-server-${port}.log" >&2
 	exit 1
 }
 

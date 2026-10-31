@@ -5,9 +5,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Data-scoping tests: runs a copy of this checkout against a throwaway
-# MariaDB loaded with contrib/db-init.sql and tests/Scoping/fixtures.sql,
-# serves it with php -S and runs tests/Scoping over HTTP. Your .env,
+# Web tests: runs a copy of this checkout against a throwaway MariaDB loaded
+# with contrib/db-init.sql and tests/Scoping/fixtures.sql, serves it with
+# php -S (the UI through the router, the mail APIs from a second server
+# without it) and runs tests/Scoping over HTTP: data scoping, route
+# protection, a smoke pass over every route, and API access. Your .env,
 # config.local.php and databases are never touched.
 #
 # Locally it starts a rootless Podman container ($MARIADB_IMAGE). In CI set
@@ -36,6 +38,9 @@ fi
 copy_tree
 
 WEB_PORT=$(free_port)
+API_PORT=$(free_port)
+RSPAMD_API_PASS="scoping-rspamd-$(head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+MAIL_API_PASS="scoping-mail-$(head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n')"
 write_env -e "s#^WEB_HOST=.*#WEB_HOST=127.0.0.1:${WEB_PORT}#" \
 	-e "s#^WEB_HOST_NOTIFICATIONS=.*#WEB_HOST_NOTIFICATIONS=127.0.0.1:${WEB_PORT}#" \
 	-e "s#^WEB_SCHEME=.*#WEB_SCHEME=http#" \
@@ -46,7 +51,12 @@ write_env -e "s#^WEB_HOST=.*#WEB_HOST=127.0.0.1:${WEB_PORT}#" \
 	-e "s#^DB_NAME=.*#DB_NAME=rqwatch#" \
 	-e "s#^DB_USER=.*#DB_USER=root#" \
 	-e "s#^DB_PASS=.*#DB_PASS=${DB_PASS}#" \
-	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=false#"
+	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=false#" \
+	-e "s#^API_ENABLE=.*#API_ENABLE=true#" \
+	-e "s#^RSPAMD_API_PASS=.*#RSPAMD_API_PASS=${RSPAMD_API_PASS}#" \
+	-e "s#^RSPAMD_API_ACL=.*#RSPAMD_API_ACL=\"127.0.0.1\"#" \
+	-e "s#^MAIL_API_PASS=.*#MAIL_API_PASS=${MAIL_API_PASS}#" \
+	-e "s#^MAIL_API_ACL=.*#MAIL_API_ACL=\"127.0.0.1\"#"
 
 # schema, users, test data, quarantined mails
 $DB_EXEC < contrib/db-init.sql
@@ -82,9 +92,18 @@ eml 103 SUBJ-ALIAS-103 alias-alice@example.org
 
 # web server, through the router
 start_web "$WEB_PORT" /login web/index.php
+# the API scripts are files under web/api/: served without the router
+start_web "$API_PORT" /css/style.css
 
 status=0
 SCOPING_BASE_URL="http://127.0.0.1:${WEB_PORT}" \
+SCOPING_API_URL="http://127.0.0.1:${API_PORT}" \
+SCOPING_ROOT="$WORK" \
+SCOPING_WEB_LOG="${WORK}/logs/php-server-${WEB_PORT}.log" \
+SCOPING_RSPAMD_API_USER="$(sed -n 's/^RSPAMD_API_USER=//p' .env)" \
+SCOPING_RSPAMD_API_PASS="$RSPAMD_API_PASS" \
+SCOPING_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \
+SCOPING_MAIL_API_PASS="$MAIL_API_PASS" \
 SCOPING_DB_DSN="mysql:host=${DB_HOST};port=${DB_PORT};dbname=rqwatch" \
 SCOPING_DB_USER=root \
 SCOPING_DB_PASS="$DB_PASS" \

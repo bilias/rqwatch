@@ -18,41 +18,9 @@
 
 namespace Tests\Scoping;
 
-use PDO;
-use PHPUnit\Framework\TestCase;
-
-final class ScopingTest extends TestCase
+final class ScopingTest extends WebTestCase
 {
 	private const MAP = '/user/map/mail_from_rcpt_to_whitelist';
-
-	private static ?PDO $db = null;
-
-	private static function client(string $user): WebClient {
-		$client = new WebClient((string) getenv('SCOPING_BASE_URL'));
-		$client->login($user, "pw-{$user}");
-		return $client;
-	}
-
-	private static function db(): PDO {
-		return self::$db ??= new PDO(
-			(string) getenv('SCOPING_DB_DSN'),
-			(string) getenv('SCOPING_DB_USER'),
-			(string) getenv('SCOPING_DB_PASS'),
-			[PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION],
-		);
-	}
-
-	private static function value(string $sql, int $id): mixed {
-		$stmt = self::db()->prepare($sql);
-		$stmt->execute([$id]);
-		return $stmt->fetchColumn();
-	}
-
-	protected function setUp(): void {
-		if (getenv('SCOPING_BASE_URL') === false) {
-			$this->markTestSkipped('Run through qa/scoping-tests.sh');
-		}
-	}
 
 	/** @param array{status: int, location: string, body: string} $response */
 	private function assertRefused(array $response, string $what): void {
