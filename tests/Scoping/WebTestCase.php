@@ -137,6 +137,41 @@ abstract class WebTestCase extends TestCase
 		};
 	}
 
+	/**
+	 * Runs $test with .env settings replaced (php -S rereads .env per request),
+	 * then puts the file back.
+	 * @param array<string, string> $settings
+	 */
+	protected static function withEnv(array $settings, callable $test): void {
+		$env = getenv('SCOPING_ROOT') . '/.env';
+		$original = (string) file_get_contents($env);
+		$changed = $original;
+		foreach ($settings as $key => $value) {
+			$changed = (string) preg_replace('/^' . preg_quote($key, '/') . '=.*$/m', "{$key}={$value}", $changed, -1, $count);
+			if ($count !== 1) {
+				throw new RuntimeException(".env has no single {$key} line");
+			}
+		}
+		file_put_contents($env, $changed);
+		try {
+			$test();
+		} finally {
+			file_put_contents($env, $original);
+		}
+	}
+
+	/** Runs bin/cli.php in the instance's copy; fails on a non-zero exit. */
+	protected static function cli(string ...$args): string {
+		$cmd = 'cd ' . escapeshellarg((string) getenv('SCOPING_ROOT')) . ' && '
+			. escapeshellarg(PHP_BINARY) . ' bin/cli.php ' . implode(' ', array_map('escapeshellarg', $args)) . ' 2>&1';
+		exec($cmd, $out, $status);
+		$output = implode("\n", $out);
+		if ($status !== 0) {
+			throw new RuntimeException('bin/cli.php ' . implode(' ', $args) . " exited {$status}: {$output}");
+		}
+		return $output;
+	}
+
 	/** The path of a redirect target, or '' for none. */
 	protected static function target(array $response): string {
 		return (string) parse_url($response['location'], PHP_URL_PATH);

@@ -110,27 +110,4 @@ final class ApiAccessTest extends WebTestCase
 		}
 		return [(int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE), $body];
 	}
-
-	/**
-	 * Runs $test with .env settings replaced (php -S rereads .env per request),
-	 * then puts the file back.
-	 * @param array<string, string> $settings
-	 */
-	private static function withEnv(array $settings, callable $test): void {
-		$env = getenv('SCOPING_ROOT') . '/.env';
-		$original = (string) file_get_contents($env);
-		$changed = $original;
-		foreach ($settings as $key => $value) {
-			$changed = (string) preg_replace('/^' . preg_quote($key, '/') . '=.*$/m', "{$key}={$value}", $changed, -1, $count);
-			if ($count !== 1) {
-				throw new RuntimeException(".env has no single {$key} line");
-			}
-		}
-		file_put_contents($env, $changed);
-		try {
-			$test();
-		} finally {
-			file_put_contents($env, $original);
-		}
-	}
 }
