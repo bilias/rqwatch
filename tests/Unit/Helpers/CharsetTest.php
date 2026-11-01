@@ -79,7 +79,7 @@ final class CharsetTest extends UnitTestCase
 	public function testUtf7DeclarationCannotInjectLineBreaks(): void {
 		// as UTF-7, "+AA0ACg-" is CR LF; the 8-bit byte forces a decode
 		$subject = "Hi \xE9 +AA0ACg-Bcc: x@example.org";
-		$charsets = array_values(array_filter([Helper::mailCharset('utf-7')]));
+		$charsets = array_filter([Helper::mailCharset('utf-7')]);
 		$out = Helper::toUtf8($subject, $charsets);
 		$this->assertTrue(mb_check_encoding($out, 'UTF-8'));
 		$this->assertStringNotContainsString("\n", $out);

@@ -84,7 +84,9 @@ final class MiddlewareTest extends TestCase
 		$request = $this->request('/admin/users', ['username' => 'alice', 'is_admin' => false]);
 		$response = (new Authorization($this->urls, new NullLogger()))->handle($request, $this->next());
 		$this->assertRedirectsTo('homepage', $response);
-		$this->assertSame(['Permission denied'], $request->getSession()->getFlashBag()->get('error'));
+		$session = $request->getSession();
+		$this->assertInstanceOf(Session::class, $session);
+		$this->assertSame(['Permission denied'], $session->getFlashBag()->get('error'));
 	}
 
 	public function testAdminPasses(): void {

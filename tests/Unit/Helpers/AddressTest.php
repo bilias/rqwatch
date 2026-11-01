@@ -80,8 +80,11 @@ final class AddressTest extends UnitTestCase
 	}
 
 	public function testAdminNotificationRcptUnset(): void {
-		$this->assertSame([], Helper::adminNotificationRcpt());
+		// one variable per call: PHPStan would carry the first result over to the second
+		$unset = Helper::adminNotificationRcpt();
+		$this->assertSame([], $unset);
 		Config::set('admin_notification_rcpt', '');
-		$this->assertSame([], Helper::adminNotificationRcpt());
+		$empty = Helper::adminNotificationRcpt();
+		$this->assertSame([], $empty);
 	}
 }
