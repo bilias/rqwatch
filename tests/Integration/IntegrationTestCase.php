@@ -39,10 +39,28 @@ abstract class IntegrationTestCase extends TestCase
 
 	private static ?PDO $db = null;
 
+	/** @var list<int> mails quarantined() created in this test */
+	private array $quarantinedIds = [];
+
 	protected function setUp(): void {
 		if (getenv('INTEGRATION_BASE_URL') === false) {
 			$this->markTestSkipped('Run through qa/integration-tests.sh');
 		}
+	}
+
+	// removes what quarantined() created; tokens go with their recipient rows
+	protected function tearDown(): void {
+		if ($this->quarantinedIds !== []) {
+			$ids = implode(',', $this->quarantinedIds);
+			self::db()->exec("DELETE FROM mail_log_data WHERE mail_log_id IN ({$ids})");
+			self::db()->exec("DELETE FROM mail_log_recipients WHERE mail_log_id IN ({$ids})");
+			self::db()->exec("DELETE FROM mail_logs WHERE id IN ({$ids})");
+			foreach ($this->quarantinedIds as $id) {
+				@unlink(self::quarantineFile($id));
+			}
+			$this->quarantinedIds = [];
+		}
+		parent::tearDown();
 	}
 
 	/** A client logged in as $user (password pw-$user, from the harness). */
@@ -165,6 +183,55 @@ abstract class IntegrationTestCase extends TestCase
 		} finally {
 			file_put_contents($env, $original);
 		}
+	}
+
+	/**
+	 * A quarantined mail stored on $server for $recipients, its file under
+	 * QUARANTINE_DIR, removed after the test with its tokens. Returns its qid.
+	 * @param list<string> $recipients
+	 */
+	protected function quarantined(int $id, string $server, array $recipients = ['alice@example.org']): string {
+		$qid = "QIDQ{$id}";
+		$rcpt = implode(', ', $recipients);
+		file_put_contents(self::quarantineFile($id), "From: sender@example.net\r\nTo: {$rcpt}\r\n"
+			. "Subject: SUBJ-Q-{$id}\r\nMessage-ID: <q-{$id}@example.net>\r\n\r\nBody of SUBJ-Q-{$id}\r\n");
+		self::db()->prepare("INSERT INTO mail_logs (id, qid, server, subject, score, action, ip, mail_from, mime_from, rcpt_to, mime_to, size, mail_stored, mail_location)
+			VALUES (?, ?, ?, ?, 15, 'reject', '192.0.2.30', 'sender@example.net', 'sender@example.net', ?, ?, 1000, 1, ?)")
+			->execute([$id, $qid, $server, "SUBJ-Q-{$id}", $rcpt, $rcpt, self::quarantineFile($id)]);
+		foreach ($recipients as $recipient) {
+			self::db()->prepare('INSERT INTO mail_log_recipients (mail_log_id, recipient_email) VALUES (?, ?)')
+				->execute([$id, $recipient]);
+		}
+		self::db()->prepare("INSERT INTO mail_log_data (mail_log_id, headers, symbols) VALUES (?, ?, '{\"TEST_SYMBOL\": {\"name\": \"TEST_SYMBOL\", \"score\": 15}}')")
+			->execute([$id, "Subject: SUBJ-Q-{$id}"]);
+		$this->quarantinedIds[] = $id;
+		return $qid;
+	}
+
+	protected static function quarantineFile(int $id): string {
+		return getenv('INTEGRATION_ROOT') . "/q/{$id}.eml";
+	}
+
+	/**
+	 * Exactly one release message for the mail $qid, delivered to exactly
+	 * $recipients, with mail $id's quarantined file attached byte for byte.
+	 * @param list<string> $recipients
+	 * @return array<string, mixed> its Mailpit summary
+	 */
+	protected function assertReleaseDelivered(string $qid, array $recipients, int $id): array {
+		$mails = array_values(array_filter(self::mailsFor($recipients[0], $qid),
+			fn($mail) => $mail['Subject'] === 'Message released from quarantine'));
+		$this->assertCount(1, $mails, "release messages for {$qid}");
+		sort($recipients);
+		$this->assertSame($recipients, self::recipientsOf($mails[0]));
+		$this->assertSame((string) file_get_contents(self::quarantineFile($id)), self::attachedMail((string) $mails[0]['ID']),
+			'attached mail differs from the quarantined one');
+		return $mails[0];
+	}
+
+	protected function assertReleased(int $id): void {
+		$this->assertSame(1, (int) self::value('SELECT released FROM mail_logs WHERE id = ?', $id), 'released');
+		$this->assertNotNull(self::value('SELECT release_date FROM mail_logs WHERE id = ?', $id), 'release_date');
 	}
 
 	/** Runs bin/cli.php in the instance's copy; fails on a non-zero exit. */

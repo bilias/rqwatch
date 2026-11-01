@@ -10,9 +10,9 @@
 # it with php -S (the UI through the router, the mail APIs from a second
 # server without it) and runs tests/Integration: route protection and API
 # access (Access/), a smoke pass over every route (Smoke/), the retention
-# crons through bin/cli.php (Cron/), data scoping (Scoping/) and web release
-# into Mailpit (Delivery/). Your .env, config.local.php and databases are
-# never touched.
+# crons through bin/cli.php (Cron/), data scoping (Scoping/), and web release
+# and notification links into Mailpit (Delivery/). Your .env, config.local.php
+# and databases are never touched.
 #
 # Locally it starts rootless Podman containers ($MARIADB_IMAGE, $MAILPIT_IMAGE).
 # In CI set INTEGRATION_DB_EXEC (a mariadb client command), INTEGRATION_DB_HOST,

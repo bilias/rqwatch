@@ -197,7 +197,7 @@ jobs:
       - name: Unit tests
         run: bash qa/unit-tests.sh
 
-      - name: Integration tests (access, smoke, retention, scoping, web release)
+      - name: Integration tests (access, smoke, retention, scoping, web release, notification links)
         env:
           INTEGRATION_DB_EXEC: docker exec -i ${{ job.services.mariadb.id }} mariadb -uroot -pintegration-test
           INTEGRATION_DB_HOST: 127.0.0.1

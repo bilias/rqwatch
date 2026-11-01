@@ -25,13 +25,13 @@ final class WebClient
 		@unlink($this->jar);
 	}
 
-	/** @return array{status: int, location: string, body: string} */
+	/** @return array{status: int, location: string, body: string, headers: array<string, string>} */
 	public function get(string $path): array {
 		return $this->request($path, null);
 	}
 
 	/** @param array<string, string> $fields
-	 *  @return array{status: int, location: string, body: string} */
+	 *  @return array{status: int, location: string, body: string, headers: array<string, string>} */
 	public function post(string $path, array $fields): array {
 		return $this->request($path, $fields);
 	}
@@ -56,12 +56,21 @@ final class WebClient
 	}
 
 	/** @param array<string, string>|null $fields
-	 *  @return array{status: int, location: string, body: string} */
+	 *  @return array{status: int, location: string, body: string, headers: array<string, string>} */
 	private function request(string $path, ?array $fields): array {
 		$ch = curl_init($this->baseUrl . $path);
+		$headers = [];
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_FOLLOWLOCATION => false,
+			// response headers, names lower-cased
+			CURLOPT_HEADERFUNCTION => function ($ch, string $line) use (&$headers): int {
+				$parts = explode(':', $line, 2);
+				if (count($parts) === 2) {
+					$headers[strtolower(trim($parts[0]))] = trim($parts[1]);
+				}
+				return strlen($line);
+			},
 			CURLOPT_COOKIEJAR => $this->jar,
 			CURLOPT_COOKIEFILE => $this->jar,
 			CURLOPT_TIMEOUT => 30,
@@ -77,6 +86,7 @@ final class WebClient
 			'status' => (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE),
 			'location' => (string) curl_getinfo($ch, CURLINFO_REDIRECT_URL),
 			'body' => (string) $body,
+			'headers' => $headers,
 		];
 		curl_close($ch);
 		return $result;

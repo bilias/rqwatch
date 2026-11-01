@@ -27,22 +27,6 @@ final class WebReleaseTest extends IntegrationTestCase
 {
 	private const ALICE = 'alice@example.org';
 
-	/** @var list<int> mails created by this test */
-	private array $ids = [];
-
-	protected function tearDown(): void {
-		if ($this->ids !== []) {
-			$ids = implode(',', $this->ids);
-			self::db()->exec("DELETE FROM mail_log_data WHERE mail_log_id IN ({$ids})");
-			self::db()->exec("DELETE FROM mail_log_recipients WHERE mail_log_id IN ({$ids})");
-			self::db()->exec("DELETE FROM mail_logs WHERE id IN ({$ids})");
-			foreach ($this->ids as $id) {
-				@unlink(self::file($id));
-			}
-		}
-		parent::tearDown();
-	}
-
 	#[TestDox('Local mail (mx1): one delivery to alice, the quarantined file attached byte for byte, released set')]
 	public function testLocalRelease(): void {
 		$qid = $this->quarantined(9101, 'mx1');
@@ -50,7 +34,7 @@ final class WebReleaseTest extends IntegrationTestCase
 
 		$this->release(9101, ['release' => '1']);
 
-		$mail = $this->assertDelivered($qid, [self::ALICE], 9101);
+		$mail = $this->assertReleaseDelivered($qid, [self::ALICE], 9101);
 		$this->assertSame('Message released from quarantine', $mail['Subject']);
 		$this->assertSame($count + 1, self::mailCount(), 'messages sent');
 		$this->assertReleased(9101);
@@ -63,7 +47,7 @@ final class WebReleaseTest extends IntegrationTestCase
 
 		$this->release(9102, ['release' => '1', 'release_alt' => '1', 'email_alt' => $alternate]);
 
-		$this->assertDelivered($qid, [self::ALICE, $alternate], 9102);
+		$this->assertReleaseDelivered($qid, [self::ALICE, $alternate], 9102);
 		$this->assertReleased(9102);
 	}
 
@@ -75,7 +59,7 @@ final class WebReleaseTest extends IntegrationTestCase
 
 		$this->release(9103, ['release' => '1', 'email' => $intruder]);
 
-		$this->assertDelivered($qid, [self::ALICE], 9103);
+		$this->assertReleaseDelivered($qid, [self::ALICE], 9103);
 		$this->assertSame([], self::mailsFor($intruder), "mail to {$intruder}");
 		$this->assertSame($count + 1, self::mailCount(), 'messages sent');
 	}
@@ -88,7 +72,7 @@ final class WebReleaseTest extends IntegrationTestCase
 
 		$this->release(9104, ['release' => '1', 'release_alt' => '1', 'email_alt' => $alternate]);
 
-		$this->assertDelivered($qid, [self::ALICE, $alternate], 9104);
+		$this->assertReleaseDelivered($qid, [self::ALICE, $alternate], 9104);
 		$this->assertSame($count + 1, self::mailCount(), 'messages sent');
 		$this->assertReleased(9104);
 	}
@@ -101,7 +85,7 @@ final class WebReleaseTest extends IntegrationTestCase
 
 		$this->release(9108, ['release_alt' => '1', 'email_alt' => $alternate]);
 
-		$this->assertDelivered($qid, [$alternate], 9108);
+		$this->assertReleaseDelivered($qid, [$alternate], 9108);
 		$this->assertSame([], self::mailsFor(self::ALICE, $qid), 'mail to the original recipient');
 		$this->assertSame($count + 1, self::mailCount(), 'messages sent');
 		$this->assertReleased(9108);
@@ -115,7 +99,7 @@ final class WebReleaseTest extends IntegrationTestCase
 
 		$this->release(9109, ['release_alt' => '1', 'email_alt' => $alternate]);
 
-		$this->assertDelivered($qid, [$alternate], 9109);
+		$this->assertReleaseDelivered($qid, [$alternate], 9109);
 		$this->assertSame([], self::mailsFor(self::ALICE, $qid), 'mail to the original recipient');
 		$this->assertSame($count + 1, self::mailCount(), 'messages sent');
 		$this->assertReleased(9109);
@@ -129,7 +113,7 @@ final class WebReleaseTest extends IntegrationTestCase
 
 		$this->release(9105, ['release' => '1', 'release_alt' => '1', 'email_alt' => $alternate], 'admin');
 
-		$this->assertDelivered($qid, [self::ALICE, $alternate], 9105);
+		$this->assertReleaseDelivered($qid, [self::ALICE, $alternate], 9105);
 		$this->assertSame($count + 1, self::mailCount(), 'messages sent');
 		$this->assertReleased(9105);
 	}
@@ -142,7 +126,7 @@ final class WebReleaseTest extends IntegrationTestCase
 
 		$this->release(9106, ['release_alt' => '1', 'email_alt' => $alternate], 'admin');
 
-		$this->assertDelivered($qid, [$alternate], 9106);
+		$this->assertReleaseDelivered($qid, [$alternate], 9106);
 		$this->assertSame([], self::mailsFor(self::ALICE, $qid), 'mail to the original recipient');
 		$this->assertSame($count + 1, self::mailCount(), 'messages sent');
 		$this->assertReleased(9106);
@@ -156,7 +140,7 @@ final class WebReleaseTest extends IntegrationTestCase
 
 		$this->release(9107, ['release_alt' => '1', 'email_alt' => $alternate], 'admin');
 
-		$this->assertDelivered($qid, [$alternate], 9107);
+		$this->assertReleaseDelivered($qid, [$alternate], 9107);
 		$this->assertSame([], self::mailsFor(self::ALICE, $qid), 'mail to the original recipient');
 		$this->assertSame($count + 1, self::mailCount(), 'messages sent');
 		$this->assertReleased(9107);
@@ -180,46 +164,5 @@ final class WebReleaseTest extends IntegrationTestCase
 		}
 		$response = $client->post("{$prefix}/release/{$id}", $post);
 		$this->assertSame(302, $response['status'], "release {$id}");
-	}
-
-	/**
-	 * Exactly one release message for this mail, delivered to exactly
-	 * $recipients, with the quarantined file attached byte for byte.
-	 * @param list<string> $recipients
-	 * @return array<string, mixed> its Mailpit summary
-	 */
-	private function assertDelivered(string $qid, array $recipients, int $id): array {
-		$mails = self::mailsFor($recipients[0], $qid);
-		$this->assertCount(1, $mails, "release messages for {$qid}");
-		sort($recipients);
-		$this->assertSame($recipients, self::recipientsOf($mails[0]));
-		$this->assertSame((string) file_get_contents(self::file($id)), self::attachedMail((string) $mails[0]['ID']),
-			'attached mail differs from the quarantined one');
-		return $mails[0];
-	}
-
-	private function assertReleased(int $id): void {
-		$this->assertSame(1, (int) self::value('SELECT released FROM mail_logs WHERE id = ?', $id), 'released');
-		$this->assertNotNull(self::value('SELECT release_date FROM mail_logs WHERE id = ?', $id), 'release_date');
-	}
-
-	/** A quarantined mail to alice stored on $server; returns its qid. */
-	private function quarantined(int $id, string $server): string {
-		$qid = "QIDWEB{$id}";
-		file_put_contents(self::file($id), "From: sender@example.net\r\nTo: " . self::ALICE . "\r\n"
-			. "Subject: SUBJ-WEB-{$id}\r\nMessage-ID: <web-{$id}@example.net>\r\n\r\nBody of SUBJ-WEB-{$id}\r\n");
-		self::db()->prepare("INSERT INTO mail_logs (id, qid, server, subject, score, action, ip, mail_from, mime_from, rcpt_to, mime_to, size, mail_stored, mail_location)
-			VALUES (?, ?, ?, ?, 15, 'reject', '192.0.2.30', 'sender@example.net', 'sender@example.net', ?, ?, 1000, 1, ?)")
-			->execute([$id, $qid, $server, "SUBJ-WEB-{$id}", self::ALICE, self::ALICE, self::file($id)]);
-		self::db()->prepare("INSERT INTO mail_log_recipients (mail_log_id, recipient_email) VALUES (?, ?)")
-			->execute([$id, self::ALICE]);
-		self::db()->prepare("INSERT INTO mail_log_data (mail_log_id, headers, symbols) VALUES (?, ?, '{\"TEST_SYMBOL\": {\"name\": \"TEST_SYMBOL\", \"score\": 15}}')")
-			->execute([$id, "Subject: SUBJ-WEB-{$id}"]);
-		$this->ids[] = $id;
-		return $qid;
-	}
-
-	private static function file(int $id): string {
-		return getenv('INTEGRATION_ROOT') . "/q/{$id}.eml";
 	}
 }
