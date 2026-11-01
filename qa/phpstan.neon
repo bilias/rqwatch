@@ -8,6 +8,7 @@ parameters:
 		- ../bin
 		- ../web
 		- ../config
+		- ../tests
 	dynamicConstantNames:
 		- CLI_MODE
 		- API_MODE
