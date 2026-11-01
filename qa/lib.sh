@@ -77,8 +77,9 @@ start_redis() {
 wait_redis() {
 	local i reply
 	for i in $(seq 30); do
-		reply=$(exec 3<>"/dev/tcp/127.0.0.1/${REDIS_PORT}" && printf 'PING\r\n' >&3 \
-			&& timeout 2 head -c 5 <&3) 2>/dev/null || reply=
+		# a port forwarder may accept before Redis listens: resets are retried quietly
+		reply=$({ exec 3<>"/dev/tcp/127.0.0.1/${REDIS_PORT}" && printf 'PING\r\n' >&3 \
+			&& timeout 2 head -c 5 <&3; } 2>/dev/null) || reply=
 		[ "$reply" = "+PONG" ] && return 0
 		sleep 1
 	done
