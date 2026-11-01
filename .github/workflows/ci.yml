@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   audit:
-    name: Composer audit
+    name: Composer validate + audit
     if: github.event_name != 'schedule' || github.event.schedule == '23 5 * * *'
     runs-on: ubuntu-24.04
     steps:
@@ -37,6 +37,10 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
+
+      # composer.json well formed, composer.lock in sync with it
+      - name: Composer validate
+        run: composer validate --no-check-publish
 
       - name: Composer audit
         run: composer audit --locked --abandoned=report
@@ -149,16 +153,21 @@ jobs:
           category: opengrep
 
   tests:
-    # integration runs twice, without and with Redis (sessions, config and
-    # migration caches, login throttle); unit tests need neither, so run once
-    name: ${{ matrix.redis == 'off' && 'Unit + Integration' || 'Integration' }} (Redis ${{ matrix.redis }})
+    # integration without and with Redis (sessions, config and migration
+    # caches, login throttle) on PHP 8.3, the minimum; plus PHP 8.4 with Redis.
+    # Unit tests need neither service: once per PHP version
+    name: Tests (PHP ${{ matrix.php }}, Redis ${{ matrix.redis }})
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        # quoted: bare off/on are booleans in YAML 1.1
+        # quoted: bare off/on are booleans in YAML 1.1, 8.3 a number
         redis: ['off', 'on']
+        php: ['8.3']
+        include:
+          - redis: 'on'
+            php: '8.4'
     services:
       mariadb:
         # production's major version; keep in sync with MARIADB_IMAGE in qa/integration-tests.sh
@@ -188,7 +197,7 @@ jobs:
 
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.3'
+          php-version: ${{ matrix.php }}
           extensions: ldap, redis, mailparse, mbstring, iconv, pdo_mysql, gmp, curl
           coverage: none
 
@@ -207,7 +216,7 @@ jobs:
 
       # seconds, no database: a failure here stops the job before Integration
       - name: Unit tests
-        if: matrix.redis == 'off'
+        if: matrix.redis == 'off' || matrix.php != '8.3'
         run: bash qa/unit-tests.sh
 
       - name: Integration tests (access, smoke, retention, scoping, web release, notification links)
