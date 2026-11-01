@@ -188,24 +188,57 @@ abstract class IntegrationTestCase extends TestCase
 	/**
 	 * A quarantined mail stored on $server for $recipients, its file under
 	 * QUARANTINE_DIR, removed after the test with its tokens. Returns its qid.
+	 * $columns overrides mail_logs columns (action, score, mail_stored,
+	 * admin_notified...); $symbols is the stored rspamd symbols report, by name.
 	 * @param list<string> $recipients
+	 * @param array<string, int|float|string|null> $columns
+	 * @param array<string, array<string, mixed>> $symbols
 	 */
-	protected function quarantined(int $id, string $server, array $recipients = ['alice@example.org']): string {
+	protected function quarantined(int $id, string $server, array $recipients = ['alice@example.org'],
+			array $columns = [], array $symbols = []): string {
 		$qid = "QIDQ{$id}";
 		$rcpt = implode(', ', $recipients);
 		file_put_contents(self::quarantineFile($id), "From: sender@example.net\r\nTo: {$rcpt}\r\n"
 			. "Subject: SUBJ-Q-{$id}\r\nMessage-ID: <q-{$id}@example.net>\r\n\r\nBody of SUBJ-Q-{$id}\r\n");
-		self::db()->prepare("INSERT INTO mail_logs (id, qid, server, subject, score, action, ip, mail_from, mime_from, rcpt_to, mime_to, size, mail_stored, mail_location)
-			VALUES (?, ?, ?, ?, 15, 'reject', '192.0.2.30', 'sender@example.net', 'sender@example.net', ?, ?, 1000, 1, ?)")
-			->execute([$id, $qid, $server, "SUBJ-Q-{$id}", $rcpt, $rcpt, self::quarantineFile($id)]);
+		$row = array_merge([
+			'id' => $id, 'qid' => $qid, 'server' => $server, 'subject' => "SUBJ-Q-{$id}",
+			'score' => 15, 'action' => 'reject', 'ip' => '192.0.2.30',
+			'mail_from' => 'sender@example.net', 'mime_from' => 'sender@example.net',
+			'rcpt_to' => $rcpt, 'mime_to' => $rcpt, 'size' => 1000,
+			'mail_stored' => 1, 'mail_location' => self::quarantineFile($id),
+		], $columns);
+		self::db()->prepare('INSERT INTO mail_logs (' . implode(', ', array_keys($row)) . ') VALUES ('
+			. implode(', ', array_fill(0, count($row), '?')) . ')')->execute(array_values($row));
 		foreach ($recipients as $recipient) {
 			self::db()->prepare('INSERT INTO mail_log_recipients (mail_log_id, recipient_email) VALUES (?, ?)')
 				->execute([$id, $recipient]);
 		}
-		self::db()->prepare("INSERT INTO mail_log_data (mail_log_id, headers, symbols) VALUES (?, ?, '{\"TEST_SYMBOL\": {\"name\": \"TEST_SYMBOL\", \"score\": 15}}')")
-			->execute([$id, "Subject: SUBJ-Q-{$id}"]);
+		$symbols = $symbols ?: ['TEST_SYMBOL' => ['name' => 'TEST_SYMBOL', 'score' => 15]];
+		self::db()->prepare('INSERT INTO mail_log_data (mail_log_id, headers, symbols) VALUES (?, ?, ?)')
+			->execute([$id, "Subject: SUBJ-Q-{$id}", json_encode($symbols, JSON_THROW_ON_ERROR)]);
 		$this->quarantinedIds[] = $id;
 		return $qid;
+	}
+
+	/**
+	 * POSTs $fields to web/api/$script on the API server, authenticated as
+	 * the mail API user a web node uses.
+	 * @param array<string, mixed> $fields
+	 * @return array{0: int, 1: string} status and body
+	 */
+	protected static function mailApi(string $script, array $fields): array {
+		$ch = curl_init(rtrim((string) getenv('INTEGRATION_API_URL'), '/') . "/api/{$script}");
+		curl_setopt_array($ch, [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POSTFIELDS => http_build_query($fields),
+			CURLOPT_USERPWD => getenv('INTEGRATION_MAIL_API_USER') . ':' . getenv('INTEGRATION_MAIL_API_PASS'),
+			CURLOPT_TIMEOUT => 30,
+		]);
+		$body = curl_exec($ch);
+		if (!is_string($body)) {
+			throw new RuntimeException("{$script}: " . curl_error($ch));
+		}
+		return [(int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE), $body];
 	}
 
 	protected static function quarantineFile(int $id): string {

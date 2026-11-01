@@ -104,17 +104,6 @@ final class QuarantinePathTest extends IntegrationTestCase
 
 	/** @return array{0: int, 1: string} status and body */
 	private static function getMail(int $id): array {
-		$ch = curl_init(rtrim((string) getenv('INTEGRATION_API_URL'), '/') . '/api/get_mail.php');
-		curl_setopt_array($ch, [
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_POSTFIELDS => http_build_query(['id' => (string) $id, 'remote_user' => 'integration-test']),
-			CURLOPT_USERPWD => getenv('INTEGRATION_MAIL_API_USER') . ':' . self::secret(),
-			CURLOPT_TIMEOUT => 30,
-		]);
-		$body = curl_exec($ch);
-		if (!is_string($body)) {
-			throw new RuntimeException('get_mail.php: ' . curl_error($ch));
-		}
-		return [(int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE), $body];
+		return self::mailApi('get_mail.php', ['id' => (string) $id, 'remote_user' => 'integration-test']);
 	}
 }

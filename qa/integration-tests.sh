@@ -10,9 +10,9 @@
 # it with php -S (the UI through the router, the mail APIs from a second
 # server without it) and runs tests/Integration: route protection and API
 # access (Access/), a smoke pass over every route (Smoke/), the retention
-# crons through bin/cli.php (Cron/), data scoping (Scoping/), and web release
-# and notification links into Mailpit (Delivery/). Your .env, config.local.php
-# and databases are never touched.
+# crons through bin/cli.php (Cron/), data scoping (Scoping/), and release (web
+# and API), notifications and password-less links into Mailpit (Delivery/).
+# Your .env, config.local.php and databases are never touched.
 #
 # Redis is off (REDIS_ENABLE=false) unless INTEGRATION_REDIS=1 or
 # INTEGRATION_REDIS_PORT is set: then sessions, the config and migration
@@ -96,9 +96,12 @@ write_env -e "s#^WEB_HOST=.*#WEB_HOST=127.0.0.1:${WEB_PORT}#" \
 
 # mx2 is a second storing node: its API is this instance's own API server, so
 # a web release of an mx2 mail goes through release_mail.php like a remote one;
-# no rspamd runs, so its stat_url fails fast, as the smoke test expects
+# no rspamd runs, so its stat_url fails fast, as the smoke test expects. Admin
+# notifications go to ADMIN_RCPT, for rows a test enrolls (admin_notified = 0)
+ADMIN_RCPT=admin-notify@example.org
 cat > config/config.local.php <<PHP
 <?php
+\$admin_notification_rcpt = '${ADMIN_RCPT}';
 \$API_SERVERS = ['mx2' => [
 	'url' => 'http://127.0.0.1:${API_PORT}',
 	'stat_url' => 'http://127.0.0.1:9/stat',
@@ -149,6 +152,7 @@ INTEGRATION_API_URL="http://127.0.0.1:${API_PORT}" \
 INTEGRATION_MAILPIT_URL="http://127.0.0.1:${MAILPIT_HTTP_PORT}" \
 INTEGRATION_ROOT="$WORK" \
 INTEGRATION_REDIS_ENABLED="$REDIS_ENABLE" \
+INTEGRATION_ADMIN_RCPT="$ADMIN_RCPT" \
 INTEGRATION_REDIS_PORT="${REDIS_PORT:-}" \
 INTEGRATION_WEB_LOG="${WORK}/logs/php-server-${WEB_PORT}.log" \
 INTEGRATION_RSPAMD_API_USER="$(sed -n 's/^RSPAMD_API_USER=//p' .env)" \

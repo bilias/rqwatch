@@ -219,7 +219,7 @@ jobs:
         if: matrix.redis == 'off' || matrix.php != '8.3'
         run: bash qa/unit-tests.sh
 
-      - name: Integration tests (access, smoke, retention, scoping, web release, notification links)
+      - name: Integration tests (access, smoke, retention, scoping, release, notifications)
         env:
           INTEGRATION_DB_EXEC: docker exec -i ${{ job.services.mariadb.id }} mariadb -uroot -pintegration-test
           INTEGRATION_DB_HOST: 127.0.0.1
@@ -260,5 +260,5 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Rspamd, importer, release and notifications
+      - name: Rspamd and importer
         run: bash qa/e2e-tests.sh
