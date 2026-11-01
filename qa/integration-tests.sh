@@ -111,9 +111,9 @@ PHP
 
 # schema, users, test data, quarantined mails
 $DB_EXEC < contrib/db-init.sql
-php bin/cli.php user:add -a -p pw-admin admin admin@example.org >/dev/null
-php bin/cli.php user:add -p pw-alice alice alice@example.org >/dev/null
-php bin/cli.php user:add -p pw-bob bob bob@example.org >/dev/null
+"$PHP" bin/cli.php user:add -a -p pw-admin admin admin@example.org >/dev/null
+"$PHP" bin/cli.php user:add -p pw-alice alice alice@example.org >/dev/null
+"$PHP" bin/cli.php user:add -p pw-bob bob bob@example.org >/dev/null
 sed "s#@Q@#${WORK}/q#g" tests/Integration/fixtures.sql | $DB_EXEC rqwatch
 
 eml() { # id subject recipient
@@ -162,7 +162,7 @@ INTEGRATION_MAIL_API_PASS="$MAIL_API_PASS" \
 INTEGRATION_DB_DSN="mysql:host=${DB_HOST};port=${DB_PORT};dbname=rqwatch" \
 INTEGRATION_DB_USER=root \
 INTEGRATION_DB_PASS="$DB_PASS" \
-	vendor/bin/phpunit -c qa/phpunit-integration.xml "${PHPUNIT_ARGS[@]}" || status=$?
+	"$PHP" vendor/bin/phpunit -c qa/phpunit-integration.xml "${PHPUNIT_ARGS[@]}" || status=$?
 
 if [ "$status" != 0 ] && [ -s logs/rqwatch.log ]; then
 	echo "--- logs/rqwatch.log ---" >&2

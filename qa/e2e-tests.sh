@@ -44,9 +44,9 @@ NORMAL_PORT=$(free_port)
 CONTROLLER_PORT=$(free_port)
 PROXY_PORT=$(free_port)
 FUZZY_PORT=$(free_port)
-API_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
-MAIL_API_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
-APP_DB_PASS=$(php -r 'echo bin2hex(random_bytes(16));')
+API_PASS=$("$PHP" -r 'echo bin2hex(random_bytes(16));')
+MAIL_API_PASS=$("$PHP" -r 'echo bin2hex(random_bytes(16));')
+APP_DB_PASS=$("$PHP" -r 'echo bin2hex(random_bytes(16));')
 write_env -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	-e "s#^DB_HOST=.*#DB_HOST=127.0.0.1#" \
 	-e "s#^DB_PORT=.*#DB_PORT=${DB_PORT}#" \
@@ -83,10 +83,10 @@ $DB_EXEC < contrib/db-init.sql
 $DB_EXEC -e "CREATE USER 'rqwatch'@'%' IDENTIFIED BY '${APP_DB_PASS}'; GRANT ALL ON rqwatch.* TO 'rqwatch'@'%'"
 
 # map entries (owned by an admin) and the map files rspamd reads
-php bin/cli.php user:add -a -p "$(php -r 'echo bin2hex(random_bytes(16));')" admin admin@rqwatch.test >/dev/null
+"$PHP" bin/cli.php user:add -a -p "$("$PHP" -r 'echo bin2hex(random_bytes(16));')" admin admin@rqwatch.test >/dev/null
 $DB_EXEC rqwatch < tests/EndToEnd/fixtures.sql
 mkdir -p web/maps
-php bin/cli.php cron:updatemapfiles
+"$PHP" bin/cli.php cron:updatemapfiles
 for map in ip_blacklist mail_from_blacklist mime_from_blacklist mail_from_whitelist mail_from_rcpt_to_blacklist; do
 	[ "$(grep -vc '^#' "web/maps/${map}.txt" 2>/dev/null)" = 1 ] \
 		|| { echo "web/maps/${map}.txt: expected one entry" >&2; exit 1; }
@@ -139,7 +139,7 @@ for i in $(seq 60); do
 	sleep 1
 done
 
-echo "rspamd $(curl -s "http://127.0.0.1:${CONTROLLER_PORT}/stat" | php -r 'echo json_decode(stream_get_contents(STDIN), true)["version"] ?? "?";')," \
+echo "rspamd $(curl -s "http://127.0.0.1:${CONTROLLER_PORT}/stat" | "$PHP" -r 'echo json_decode(stream_get_contents(STDIN), true)["version"] ?? "?";')," \
 	"MariaDB $($DB_EXEC -N -e 'SELECT VERSION()')," \
 	"Redis $(podman exec "$REDIS_CID" redis-cli INFO server | sed -n 's/^redis_version:\([^\r]*\).*/\1/p')"
 echo "REDIS_ENABLE=${REDIS_ENABLE}"
@@ -156,7 +156,7 @@ E2E_QUARANTINE_DIR="${WORK}/q" \
 E2E_DB_DSN="mysql:host=127.0.0.1;port=${DB_PORT};dbname=rqwatch;charset=utf8mb4" \
 E2E_DB_USER=root \
 E2E_DB_PASS="$DB_PASS" \
-	vendor/bin/phpunit -c qa/phpunit-e2e.xml "${PHPUNIT_ARGS[@]}" || status=$?
+	"$PHP" vendor/bin/phpunit -c qa/phpunit-e2e.xml "${PHPUNIT_ARGS[@]}" || status=$?
 
 if [ "$status" != 0 ]; then
 	if [ -s logs/rqwatch.log ]; then

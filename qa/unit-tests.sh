@@ -14,4 +14,4 @@ set -euo pipefail
 . qa/lib.sh
 phpunit_args "$@"
 
-exec vendor/bin/phpunit -c qa/phpunit-unit.xml "${PHPUNIT_ARGS[@]}"
+exec "$PHP" vendor/bin/phpunit -c qa/phpunit-unit.xml "${PHPUNIT_ARGS[@]}"

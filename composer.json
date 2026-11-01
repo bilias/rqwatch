@@ -75,16 +75,16 @@
       "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M",
       "psalm": "psalm -c qa/psalm.xml --no-progress",
       "psalm-taint": "sh qa/psalm-taint.sh",
-      "test-unit": "bash qa/unit-tests.sh",
+      "test-unit": "sh qa/each-php.sh bash qa/unit-tests.sh",
       "test-integration": [
          "Composer\\Config::disableProcessTimeout",
-         "bash qa/integration-tests.sh -v",
-         "INTEGRATION_REDIS=1 bash qa/integration-tests.sh -v"
+         "sh qa/each-php.sh bash qa/integration-tests.sh -v",
+         "INTEGRATION_REDIS=1 sh qa/each-php.sh bash qa/integration-tests.sh -v"
       ],
       "test-e2e": [
          "Composer\\Config::disableProcessTimeout",
-         "bash qa/e2e-tests.sh -v",
-         "E2E_REDIS=0 bash qa/e2e-tests.sh -v"
+         "sh qa/each-php.sh bash qa/e2e-tests.sh -v",
+         "E2E_REDIS=0 sh qa/each-php.sh bash qa/e2e-tests.sh -v"
       ],
       "test": [
          "@composer validate --no-check-publish",
@@ -116,9 +116,9 @@
       "phpstan": "PHPStan with Larastan (qa/phpstan.neon)",
       "psalm": "Psalm type checks (qa/psalm.xml)",
       "psalm-taint": "Psalm taint analysis; regenerates the vendor taint stub first",
-      "test-unit": "Unit tests, no database: helpers, and route access levels and middleware",
-      "test-integration": "Integration tests against a throwaway MariaDB and Mailpit via Podman, without and with Redis: route protection, API access, a smoke pass over every route, retention crons, data scoping, release (web and API), notifications and password-less links",
-      "test-e2e": "End-to-end tests with rspamd, Redis and MariaDB via Podman, with and without the app's Redis: import, maps, encoding, spool, fuzzy learning",
+      "test-unit": "Unit tests, no database: helpers, and route access levels and middleware; on PHP 8.3 and 8.4 (QA_PHP)",
+      "test-integration": "Integration tests against a throwaway MariaDB and Mailpit via Podman, without and with Redis: route protection, API access, a smoke pass over every route, retention crons, data scoping, release (web and API), notifications and password-less links; on PHP 8.3 and 8.4 (QA_PHP)",
+      "test-e2e": "End-to-end tests with rspamd, Redis and MariaDB via Podman, with and without the app's Redis: import, maps, encoding, spool, fuzzy learning; on PHP 8.3 and 8.4 (QA_PHP)",
       "test": "Validate, audit and all test suites: test-unit, test-integration, test-e2e (one line per test, except test-unit; CI runs the scripts without -v)",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",

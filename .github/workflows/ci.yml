@@ -154,8 +154,8 @@ jobs:
 
   tests:
     # integration without and with Redis (sessions, config and migration
-    # caches, login throttle) on PHP 8.3, the minimum; plus PHP 8.4 with Redis.
-    # Unit tests need neither service: once per PHP version
+    # caches, login throttle), on each supported PHP version (qa/each-php.sh
+    # locally). Unit tests need neither service: once per PHP version
     name: Tests (PHP ${{ matrix.php }}, Redis ${{ matrix.redis }})
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
@@ -164,10 +164,7 @@ jobs:
       matrix:
         # quoted: bare off/on are booleans in YAML 1.1, 8.3 a number
         redis: ['off', 'on']
-        php: ['8.3']
-        include:
-          - redis: 'on'
-            php: '8.4'
+        php: ['8.3', '8.4']
     services:
       mariadb:
         # production's major version; keep in sync with MARIADB_IMAGE in qa/integration-tests.sh
@@ -216,7 +213,7 @@ jobs:
 
       # seconds, no database: a failure here stops the job before Integration
       - name: Unit tests
-        if: matrix.redis == 'off' || matrix.php != '8.3'
+        if: matrix.redis == 'off'
         run: bash qa/unit-tests.sh
 
       - name: Integration tests (access, smoke, retention, scoping, release, notifications)
@@ -232,17 +229,18 @@ jobs:
         run: bash qa/integration-tests.sh
 
   e2e:
-    # the importer with and without this instance's Redis (caches, the spool);
-    # rspamd's fuzzy storage uses Redis either way
-    name: End to end (Redis ${{ matrix.redis }})
+    # the importer with and without this instance's Redis (caches, the spool),
+    # on each supported PHP version; rspamd's fuzzy storage uses Redis either way
+    name: End to end (PHP ${{ matrix.php }}, Redis ${{ matrix.redis }})
     if: github.event_name != 'schedule' || github.event.schedule == '41 4 * * 1'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        # quoted: bare off/on are booleans in YAML 1.1
+        # quoted: bare off/on are booleans in YAML 1.1, 8.3 a number
         redis: ['off', 'on']
+        php: ['8.3', '8.4']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -250,7 +248,7 @@ jobs:
 
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.3'
+          php-version: ${{ matrix.php }}
           extensions: ldap, redis, mailparse, mbstring, iconv, pdo_mysql, gmp, curl
           coverage: none
 

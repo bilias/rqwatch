@@ -6,8 +6,11 @@
 #
 # Shared steps of the test harnesses (qa/*-tests.sh); sourced, not run, from
 # the project root. make_workdir creates $WORK; whatever is started through
-# start_container or start_web is stopped, and $WORK removed, on exit.
+# start_container or start_web is stopped, and $WORK removed, on exit. $PHP is
+# the PHP every step runs (phpunit, php -S, bin/cli.php); qa/each-php.sh sets
+# it per version, otherwise the php on PATH.
 
+PHP="${PHP:-php}"
 LIB_CIDS=()
 LIB_PIDS=()
 WORK=
@@ -30,7 +33,7 @@ make_workdir() {
 }
 
 free_port() {
-	php -r '$s = stream_socket_server("tcp://127.0.0.1:0"); echo explode(":", stream_socket_get_name($s, false))[1];'
+	"$PHP" -r '$s = stream_socket_server("tcp://127.0.0.1:0"); echo explode(":", stream_socket_get_name($s, false))[1];'
 }
 
 # start_container VAR PODMAN_RUN_ARGS...: podman run -d --rm --pull=newer,
@@ -129,7 +132,7 @@ write_env() {
 start_web() {
 	local port=$1 probe=$2 i
 	shift 2
-	php -S "127.0.0.1:${port}" -t web "$@" >"logs/php-server-${port}.log" 2>&1 &
+	"$PHP" -S "127.0.0.1:${port}" -t web "$@" >"logs/php-server-${port}.log" 2>&1 &
 	LIB_PIDS+=("$!")
 	for i in $(seq 30); do
 		curl -fs -o /dev/null "http://127.0.0.1:${port}${probe}" && return 0
