@@ -34,13 +34,7 @@ DB_PASS=import-test
 start_mariadb "$MARIADB_IMAGE" "$DB_PASS" --default-time-zone=+05:00
 
 # redis
-REDIS_PORT=$(free_port)
-start_container REDIS_CID -p "127.0.0.1:${REDIS_PORT}:6379" "$REDIS_IMAGE"
-for i in $(seq 30); do
-	[ "$(podman exec "$REDIS_CID" redis-cli ping 2>/dev/null)" = PONG ] && break
-	[ "$i" = 30 ] && { echo "Redis did not start" >&2; exit 1; }
-	sleep 1
-done
+start_redis "$REDIS_IMAGE"
 
 # mail capture
 start_mailpit "$MAILPIT_IMAGE"

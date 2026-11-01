@@ -149,9 +149,16 @@ jobs:
           category: opengrep
 
   tests:
-    name: Unit + Integration
+    # integration runs twice, without and with Redis (sessions, config and
+    # migration caches, login throttle); unit tests need neither, so run once
+    name: ${{ matrix.redis == 'off' && 'Unit + Integration' || 'Integration' }} (Redis ${{ matrix.redis }})
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # quoted: bare off/on are booleans in YAML 1.1
+        redis: ['off', 'on']
     services:
       mariadb:
         # production's major version; keep in sync with MARIADB_IMAGE in qa/integration-tests.sh
@@ -169,6 +176,11 @@ jobs:
         ports:
           - 1025:1025
           - 8025:8025
+      redis:
+        # used only by the Redis leg; keep in sync with REDIS_IMAGE in qa/integration-tests.sh
+        image: docker.io/library/redis:7
+        ports:
+          - 6379:6379
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -195,6 +207,7 @@ jobs:
 
       # seconds, no database: a failure here stops the job before Integration
       - name: Unit tests
+        if: matrix.redis == 'off'
         run: bash qa/unit-tests.sh
 
       - name: Integration tests (access, smoke, retention, scoping, web release, notification links)
@@ -205,6 +218,8 @@ jobs:
           INTEGRATION_DB_PASS: integration-test
           INTEGRATION_MAILPIT_SMTP_PORT: '1025'
           INTEGRATION_MAILPIT_HTTP_PORT: '8025'
+          # empty in the off leg: the harness leaves REDIS_ENABLE=false
+          INTEGRATION_REDIS_PORT: ${{ matrix.redis == 'on' && '6379' || '' }}
         run: bash qa/integration-tests.sh
 
   e2e:

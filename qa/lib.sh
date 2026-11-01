@@ -65,6 +65,27 @@ wait_mailpit() {
 	exit 1
 }
 
+# start_redis IMAGE: a throwaway Redis on a free loopback port; sets REDIS_CID
+# and REDIS_PORT and waits until it answers
+start_redis() {
+	REDIS_PORT=$(free_port)
+	start_container REDIS_CID -p "127.0.0.1:${REDIS_PORT}:6379" "$1"
+	wait_redis
+}
+
+# wait_redis: until Redis on REDIS_PORT answers PING (plain TCP, no client needed)
+wait_redis() {
+	local i reply
+	for i in $(seq 30); do
+		reply=$(exec 3<>"/dev/tcp/127.0.0.1/${REDIS_PORT}" && printf 'PING\r\n' >&3 \
+			&& timeout 2 head -c 5 <&3) 2>/dev/null || reply=
+		[ "$reply" = "+PONG" ] && return 0
+		sleep 1
+	done
+	echo "Redis did not start" >&2
+	exit 1
+}
+
 # start_mariadb IMAGE ROOT_PASSWORD [SERVER_ARGS...]: a throwaway MariaDB on
 # a free loopback port; sets DB_CID, DB_PORT and DB_EXEC (a root client)
 start_mariadb() {

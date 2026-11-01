@@ -14,11 +14,16 @@
 # and notification links into Mailpit (Delivery/). Your .env, config.local.php
 # and databases are never touched.
 #
-# Locally it starts rootless Podman containers ($MARIADB_IMAGE, $MAILPIT_IMAGE).
-# In CI set INTEGRATION_DB_EXEC (a mariadb client command), INTEGRATION_DB_HOST,
-# INTEGRATION_DB_PORT and INTEGRATION_DB_PASS for an existing server, and
-# INTEGRATION_MAILPIT_SMTP_PORT and INTEGRATION_MAILPIT_HTTP_PORT for an
-# existing Mailpit on 127.0.0.1, instead.
+# Redis is off (REDIS_ENABLE=false) unless INTEGRATION_REDIS=1 or
+# INTEGRATION_REDIS_PORT is set: then sessions, the config and migration
+# caches and the rest of the Redis paths are in use. Run it both ways.
+#
+# Locally it starts rootless Podman containers ($MARIADB_IMAGE, $MAILPIT_IMAGE,
+# and $REDIS_IMAGE with INTEGRATION_REDIS=1). In CI set INTEGRATION_DB_EXEC (a
+# mariadb client command), INTEGRATION_DB_HOST, INTEGRATION_DB_PORT and
+# INTEGRATION_DB_PASS for an existing server, INTEGRATION_MAILPIT_SMTP_PORT and
+# INTEGRATION_MAILPIT_HTTP_PORT for an existing Mailpit, and
+# INTEGRATION_REDIS_PORT for an existing Redis, all on 127.0.0.1, instead.
 # -v prints one line per test (local runs); other arguments go to phpunit.
 # Run from the project root.
 set -euo pipefail
@@ -27,6 +32,7 @@ phpunit_args "$@"
 
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 MAILPIT_IMAGE="${MAILPIT_IMAGE:-docker.io/axllent/mailpit:v1}"
+REDIS_IMAGE="${REDIS_IMAGE:-docker.io/library/redis:7}"
 make_workdir
 
 # database
@@ -50,6 +56,18 @@ else
 	wait_mailpit
 fi
 
+# Redis, when asked for
+REDIS_ENABLE=false
+if [ -n "${INTEGRATION_REDIS_PORT:-}" ]; then
+	REDIS_PORT="$INTEGRATION_REDIS_PORT"
+	wait_redis
+	REDIS_ENABLE=true
+elif [ "${INTEGRATION_REDIS:-0}" = 1 ]; then
+	start_redis "$REDIS_IMAGE"
+	REDIS_ENABLE=true
+fi
+echo "Redis: ${REDIS_ENABLE}${REDIS_PORT:+ (127.0.0.1:${REDIS_PORT})}"
+
 copy_tree
 
 WEB_PORT=$(free_port)
@@ -66,7 +84,8 @@ write_env -e "s#^WEB_HOST=.*#WEB_HOST=127.0.0.1:${WEB_PORT}#" \
 	-e "s#^DB_NAME=.*#DB_NAME=rqwatch#" \
 	-e "s#^DB_USER=.*#DB_USER=root#" \
 	-e "s#^DB_PASS=.*#DB_PASS=${DB_PASS}#" \
-	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=false#" \
+	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=${REDIS_ENABLE}#" \
+	-e "s#^REDIS_DSN=.*#REDIS_DSN=\"redis://127.0.0.1:${REDIS_PORT:-6379}\"#" \
 	-e "s#^API_ENABLE=.*#API_ENABLE=true#" \
 	-e "s#^RSPAMD_API_PASS=.*#RSPAMD_API_PASS=${RSPAMD_API_PASS}#" \
 	-e "s#^RSPAMD_API_ACL=.*#RSPAMD_API_ACL=\"127.0.0.1\"#" \
@@ -129,6 +148,8 @@ INTEGRATION_BASE_URL="http://127.0.0.1:${WEB_PORT}" \
 INTEGRATION_API_URL="http://127.0.0.1:${API_PORT}" \
 INTEGRATION_MAILPIT_URL="http://127.0.0.1:${MAILPIT_HTTP_PORT}" \
 INTEGRATION_ROOT="$WORK" \
+INTEGRATION_REDIS_ENABLED="$REDIS_ENABLE" \
+INTEGRATION_REDIS_PORT="${REDIS_PORT:-}" \
 INTEGRATION_WEB_LOG="${WORK}/logs/php-server-${WEB_PORT}.log" \
 INTEGRATION_RSPAMD_API_USER="$(sed -n 's/^RSPAMD_API_USER=//p' .env)" \
 INTEGRATION_RSPAMD_API_PASS="$RSPAMD_API_PASS" \
