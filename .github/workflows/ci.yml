@@ -15,8 +15,8 @@ on:
   schedule:
     # audit, daily: new advisories appear without code changes
     - cron: '23 5 * * *'
-    # e2e, weekly: rspamd:4, mariadb:10.11, redis:7 and mailpit:v1 are moving
-    # tags, catch upstream changes between pushes
+    # e2e, weekly: rspamd:4, mariadb:10.11 and redis:7 are moving tags, catch
+    # upstream changes between pushes
     - cron: '41 4 * * 1'
   workflow_dispatch:
 
@@ -232,10 +232,17 @@ jobs:
         run: bash qa/integration-tests.sh
 
   e2e:
-    name: End to end
+    # the importer with and without this instance's Redis (caches, the spool);
+    # rspamd's fuzzy storage uses Redis either way
+    name: End to end (Redis ${{ matrix.redis }})
     if: github.event_name != 'schedule' || github.event.schedule == '41 4 * * 1'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # quoted: bare off/on are booleans in YAML 1.1
+        redis: ['off', 'on']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -261,4 +268,6 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Rspamd and importer
+        env:
+          E2E_REDIS: ${{ matrix.redis == 'on' && '1' || '0' }}
         run: bash qa/e2e-tests.sh

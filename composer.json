@@ -83,7 +83,8 @@
       ],
       "test-e2e": [
          "Composer\\Config::disableProcessTimeout",
-         "bash qa/e2e-tests.sh -v"
+         "bash qa/e2e-tests.sh -v",
+         "E2E_REDIS=0 bash qa/e2e-tests.sh -v"
       ],
       "test": [
          "@composer validate --no-check-publish",
@@ -117,7 +118,7 @@
       "psalm-taint": "Psalm taint analysis; regenerates the vendor taint stub first",
       "test-unit": "Unit tests, no database: helpers, and route access levels and middleware",
       "test-integration": "Integration tests against a throwaway MariaDB and Mailpit via Podman, without and with Redis: route protection, API access, a smoke pass over every route, retention crons, data scoping, release (web and API), notifications and password-less links",
-      "test-e2e": "End-to-end tests with rspamd, Redis, MariaDB and Mailpit via Podman: import, maps, encoding, spool, fuzzy learning",
+      "test-e2e": "End-to-end tests with rspamd, Redis and MariaDB via Podman, with and without the app's Redis: import, maps, encoding, spool, fuzzy learning",
       "test": "Validate, audit and all test suites: test-unit, test-integration, test-e2e (one line per test, except test-unit; CI runs the scripts without -v)",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",

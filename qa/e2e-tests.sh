@@ -9,12 +9,12 @@
 # metadata_exporter, contrib's rule pointed at a copy of this checkout served
 # by php -S, posts them to the importer; tests/EndToEnd compares what was stored
 # with rspamd's own verdict. Rspamd also runs contrib's maps, reading the map
-# files this copy generates from tests/EndToEnd/fixtures.sql. Redis holds the
-# failed-import spool and rspamd's fuzzy storage, which this copy learns into
-# through its fuzzy API. Mailpit captures the mail this copy sends (releases,
-# notifications), read back through its HTTP API. MariaDB, Redis, Mailpit and
-# rspamd run as rootless Podman containers, rspamd on the host network so it
-# reaches php -S on loopback.
+# files this copy generates from tests/EndToEnd/fixtures.sql. Redis holds
+# rspamd's fuzzy storage, which this copy learns into through its fuzzy API,
+# and, with E2E_REDIS=1 (the default), this copy's caches and its failed-import
+# spool; E2E_REDIS=0 runs the importer with REDIS_ENABLE=false (the spool tests
+# skip). Run it both ways. MariaDB, Redis and rspamd run as rootless Podman
+# containers, rspamd on the host network so it reaches php -S on loopback.
 # -v prints one line per test (local runs); other arguments go to phpunit.
 # Run from the project root.
 set -euo pipefail
@@ -24,8 +24,9 @@ phpunit_args "$@"
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 RSPAMD_IMAGE="${RSPAMD_IMAGE:-docker.io/rspamd/rspamd:4}"
 REDIS_IMAGE="${REDIS_IMAGE:-docker.io/library/redis:7}"
-MAILPIT_IMAGE="${MAILPIT_IMAGE:-docker.io/axllent/mailpit:v1}"
 ADMIN_RCPT=admin-notify@rqwatch.test
+# this copy's REDIS_ENABLE; rspamd's fuzzy storage uses Redis either way
+[ "${E2E_REDIS:-1}" = 0 ] && REDIS_ENABLE=false || REDIS_ENABLE=true
 make_workdir
 
 # database, with a clock unlike PHP's (unless PHP runs at UTC+5), so the
@@ -35,9 +36,6 @@ start_mariadb "$MARIADB_IMAGE" "$DB_PASS" --default-time-zone=+05:00
 
 # redis
 start_redis "$REDIS_IMAGE"
-
-# mail capture
-start_mailpit "$MAILPIT_IMAGE"
 
 copy_tree
 
@@ -60,14 +58,13 @@ write_env -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	-e "s#^RSPAMD_API_ACL=.*#RSPAMD_API_ACL=\"127.0.0.1\"#" \
 	-e "s#^MAIL_API_PASS=.*#MAIL_API_PASS=${MAIL_API_PASS}#" \
 	-e "s#^MAIL_API_ACL=.*#MAIL_API_ACL=\"127.0.0.1\"#" \
-	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=true#" \
-	-e "s#^REDIS_DSN=.*#REDIS_DSN=\"redis://127.0.0.1:${REDIS_PORT}\"#" \
-	-e "s#^MAILER_DSN=.*#MAILER_DSN=\"smtp://127.0.0.1:${MAILPIT_SMTP_PORT}\"#" \
-	-e "s#^MAILER_FROM=.*#MAILER_FROM=rqwatch@rqwatch.test#"
+	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=${REDIS_ENABLE}#" \
+	-e "s#^REDIS_DSN=.*#REDIS_DSN=\"redis://127.0.0.1:${REDIS_PORT}\"#"
 
 # fuzzy learning through this server's own rspamd controller (a secure_ip,
 # so no password); a fallback charset unlike the default, for 8-bit headers;
-# admin notifications on from the start (the importer enrolls mail only while set)
+# an admin recipient from the start: the importer enrolls stored discard and
+# reject mail in the admin feed only while one is set (assertQuarantined checks)
 cat > config/config.local.php <<PHP
 <?php
 \$mail_fallback_charset = 'Windows-1253';
@@ -144,13 +141,14 @@ done
 
 echo "rspamd $(curl -s "http://127.0.0.1:${CONTROLLER_PORT}/stat" | php -r 'echo json_decode(stream_get_contents(STDIN), true)["version"] ?? "?";')," \
 	"MariaDB $($DB_EXEC -N -e 'SELECT VERSION()')," \
-	"Redis $(podman exec "$REDIS_CID" redis-cli INFO server | sed -n 's/^redis_version:\([^\r]*\).*/\1/p')," \
-	"Mailpit $(curl -s "http://127.0.0.1:${MAILPIT_HTTP_PORT}/api/v1/info" | php -r 'echo json_decode(stream_get_contents(STDIN), true)["Version"] ?? "?";')"
+	"Redis $(podman exec "$REDIS_CID" redis-cli INFO server | sed -n 's/^redis_version:\([^\r]*\).*/\1/p')"
+echo "REDIS_ENABLE=${REDIS_ENABLE}"
 
 status=0
 E2E_RSPAMD_URL="http://127.0.0.1:${NORMAL_PORT}" \
 E2E_ROOT="$WORK" \
 E2E_REDIS_PORT="$REDIS_PORT" \
+E2E_REDIS_ENABLED="$REDIS_ENABLE" \
 E2E_WEB_URL="http://127.0.0.1:${WEB_PORT}" \
 E2E_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \
 E2E_MAIL_API_PASS="$MAIL_API_PASS" \
@@ -158,8 +156,6 @@ E2E_QUARANTINE_DIR="${WORK}/q" \
 E2E_DB_DSN="mysql:host=127.0.0.1;port=${DB_PORT};dbname=rqwatch;charset=utf8mb4" \
 E2E_DB_USER=root \
 E2E_DB_PASS="$DB_PASS" \
-E2E_MAILPIT_URL="http://127.0.0.1:${MAILPIT_HTTP_PORT}" \
-E2E_ADMIN_RCPT="$ADMIN_RCPT" \
 	vendor/bin/phpunit -c qa/phpunit-e2e.xml "${PHPUNIT_ARGS[@]}" || status=$?
 
 if [ "$status" != 0 ]; then

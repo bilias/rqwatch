@@ -13,24 +13,21 @@
  metadata_exporter (contrib's rule) posts it to the importer, then compares
  the stored rows with rspamd's own verdict for that scan. The X-Import-Test
  header picks a rule from tests/EndToEnd/rspamd/rspamd.local.lua; the map
- entries come from tests/EndToEnd/fixtures.sql. Mail the instance sends is
- captured by Mailpit.
+ entries come from tests/EndToEnd/fixtures.sql. Release and notifications are
+ in tests/Integration, which needs no rspamd.
 
- This class holds the scan, import, assertion, CLI and Mailpit helpers; the
- tests are in the subdirectories: Import/, Fuzzy/ and Delivery/.
+ This class holds the scan, import, assertion and CLI helpers; the tests are
+ in the subdirectories: Import/ and Fuzzy/.
 */
 
 namespace Tests\EndToEnd;
 
 use PDO;
 use PHPUnit\Framework\TestCase;
-use Tests\Mailpit;
 use RuntimeException;
 
 abstract class EndToEndTestCase extends TestCase
 {
-	use Mailpit;
-
 	protected const SERVER = 'mx1';
 	protected const IP = '192.0.2.10';
 	protected const MAIL_FROM = 'Sender@Sender.TEST';
@@ -140,6 +137,7 @@ abstract class EndToEndTestCase extends TestCase
 	/** @param array<string, mixed> $row */
 	protected function assertQuarantined(array $row): void {
 		$this->assertSame(1, (int) $row['mail_stored']);
+		$this->assertAdminFeed($row);
 		$location = (string) $row['mail_location'];
 		$this->assertStringStartsWith(self::quarantineDir() . '/', $location);
 		$this->assertFileExists($location);
@@ -149,8 +147,21 @@ abstract class EndToEndTestCase extends TestCase
 	/** @param array<string, mixed> $row */
 	protected function assertNotQuarantined(array $row): void {
 		$this->assertSame(0, (int) $row['mail_stored']);
+		$this->assertAdminFeed($row);
 		$this->assertNull($row['mail_location']);
 		$this->assertDirectoryDoesNotExist(self::quarantineDir() . '/' . date('Y-m-d') . "/{$this->sent['qid']}");
+	}
+
+	/**
+	 * The importer enrolls stored discard and reject mail in the admin feed
+	 * (admin_notified = 0) while an admin recipient is set, as the harness
+	 * does; anything else stays out (NULL).
+	 * @param array<string, mixed> $row
+	 */
+	private function assertAdminFeed(array $row): void {
+		$enrolled = (int) $row['mail_stored'] === 1 && in_array($row['action'], ['discard', 'reject'], true);
+		$this->assertSame($enrolled ? 0 : null, $row['admin_notified'] === null ? null : (int) $row['admin_notified'],
+			'admin_notified (' . ($enrolled ? 'enrolled' : 'not enrolled') . ')');
 	}
 
 	/** @param array<string, mixed> $row */
@@ -329,10 +340,6 @@ abstract class EndToEndTestCase extends TestCase
 			throw new RuntimeException('bin/cli.php ' . implode(' ', $args) . " exited {$status}: {$output}");
 		}
 		return $output;
-	}
-
-	protected static function mailpitUrl(): string {
-		return (string) getenv('E2E_MAILPIT_URL');
 	}
 
 	protected static function db(): PDO {

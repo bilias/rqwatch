@@ -9,6 +9,7 @@
 
 /*
  The failed-import spool: refused writes, degraded boot, and its refusal.
+ The spool is in Redis, so these skip when the run has REDIS_ENABLE=false.
 */
 
 namespace Tests\EndToEnd\Import;
@@ -19,6 +20,13 @@ use Tests\EndToEnd\EndToEndTestCase;
 
 final class SpoolTest extends EndToEndTestCase
 {
+	protected function setUp(): void {
+		parent::setUp();
+		if (getenv('E2E_REDIS_ENABLED') !== 'true') {
+			$this->markTestSkipped('The spool needs REDIS_ENABLE=true');
+		}
+	}
+
 	#[TestDox('Database refuses writes: spooled to Redis, imported later by cron:import_spool, arrival time kept')]
 	public function testSpooledWhenDatabaseRefusesWrites(): void {
 		// created_at of mails imported directly, before and after, brackets the spooled one
