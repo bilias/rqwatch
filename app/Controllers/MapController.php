@@ -142,14 +142,14 @@ class MapController extends ViewController
 				$this->flashbag->add('info', 'No map entries exist');
 				return new RedirectResponse($this->getMapsUrl());
 			}
-			foreach ($map_custom_entries as $key => $map_entry) {
+			foreach ($map_custom_entries as $map_entry) {
 				// add map description
 				$field = $configs[$map_entry->map_name]['fields'][0];
 				$map_name = $map_entry->map_name;
 				$field_description = MapService::getCustomField($map_name)['field_label'];
-				$map_custom_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
-				$map_custom_entries[$key]->field = $field;
-				$map_custom_entries[$key]->field_description = $field_description;
+				$map_entry->map_description = $configs[$map_entry->map_name]['description'];
+				$map_entry->field = $field;
+				$map_entry->field_description = $field_description;
 			}
 		} else {
 			$model = 'MapCombined';
@@ -167,11 +167,11 @@ class MapController extends ViewController
 				return new RedirectResponse($this->getMapsUrl());
 			}
 
-			foreach ($map_comb_entries as $key => $map_entry) {
+			foreach ($map_comb_entries as $map_entry) {
 				// add map description
-				$map_comb_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
-				$map_comb_entries[$key]->map_username = $this->getMapUser($map_entry->user);
-				$map_comb_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_comb_entries[$key]->map_username);
+				$map_entry->map_description = $configs[$map_entry->map_name]['description'];
+				$map_entry->map_username = $this->getMapUser($map_entry->user);
+				$map_entry->user_can_delete = $this->getUserCanDelete($this->username, $map_entry->map_username);
 			}
 			$map_comb_total = $map_comb_entries->total();
 		}
@@ -526,9 +526,9 @@ class MapController extends ViewController
 			// has applyUserRcptToScope
 			$map_entries = $service->getPaginatedMapCombined($map, $fields, $page, $this->getMapShowUrl($map), $idle, $entry_filter);
 
-			foreach ($map_entries as $key => $map_entry) {
-				$map_entries[$key]->map_username = $this->getMapUser($map_entry->user);
-				$map_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_entries[$key]->map_username);
+			foreach ($map_entries as $map_entry) {
+				$map_entry->map_username = $this->getMapUser($map_entry->user);
+				$map_entry->user_can_delete = $this->getUserCanDelete($this->username, $map_entry->map_username);
 			}
 		} elseif($this->is_admin && $config['model'] === 'MapCustom') {
 			$model = 'MapCustom';
@@ -1140,14 +1140,14 @@ class MapController extends ViewController
 				$this->flashbag->add('info', 'No map entries exist');
 				return new RedirectResponse($this->getMapsUrl());
 			}
-			foreach ($map_custom_entries as $key => $map_entry) {
+			foreach ($map_custom_entries as $map_entry) {
 				// add map description
 				$field = $configs[$map_entry->map_name]['fields'][0];
 				$map_name = $map_entry->map_name;
 				$field_description = MapService::getCustomField($map_name)['field_label'];
-				$map_custom_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
-				$map_custom_entries[$key]->field = $field;
-				$map_custom_entries[$key]->field_description = $field_description;
+				$map_entry->map_description = $configs[$map_entry->map_name]['description'];
+				$map_entry->field = $field;
+				$map_entry->field_description = $field_description;
 			}
 		} else {
 			$map_gen_entries = null;
@@ -1165,11 +1165,11 @@ class MapController extends ViewController
 				return new RedirectResponse($this->getMapsUrl());
 			}
 
-			foreach ($map_comb_entries as $key => $map_entry) {
+			foreach ($map_comb_entries as $map_entry) {
 				// add map description
-				$map_comb_entries[$key]->map_description = $configs[$map_entry->map_name]['description'];
-				$map_comb_entries[$key]->map_username = $this->getMapUser($map_entry->user);
-				$map_comb_entries[$key]->user_can_delete = $this->getUserCanDelete($this->username, $map_comb_entries[$key]->map_username);
+				$map_entry->map_description = $configs[$map_entry->map_name]['description'];
+				$map_entry->map_username = $this->getMapUser($map_entry->user);
+				$map_entry->user_can_delete = $this->getUserCanDelete($this->username, $map_entry->map_username);
 			}
 			$map_comb_total = $map_comb_entries->total();
 		}
