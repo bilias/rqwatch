@@ -32,11 +32,6 @@ parameters:
 
 	ignoreErrors:
 		-
-			identifier: argument.type
-			message: '#expects App\\Models\\MailLog, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			path: ../app/Console/CronNotifications.php
-			count: 2
-		-
 			identifier: return.type
 			message: '#^Method App\\Services\\MapService::findMapEntry\(\) should return App\\Models\\MapCombined\|App\\Models\\MapCustom\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
 			path: ../app/Services/MapService.php
@@ -64,11 +59,6 @@ parameters:
 			paths:
 				- ../app/Core/Middleware/Authorization.php
 				- ../app/Core/Middleware/AuthMiddleware.php
-		-
-			message: '#^Method App\\Services\\MailLogService::\w+\(\) should return App\\Models\\MailLog but returns Illuminate\\Database\\Eloquent\\Model\.$#'
-			identifier: return.type
-			path: ../app/Services/MailLogService.php
-			count: 4
 		-
 			message: '#^Property App\\Controllers\\Controller::\$(session|flashbag) \(.+\) does not accept Symfony\\Component\\HttpFoundation\\Session\\(SessionInterface|Flash\\FlashBagInterface)\.$#'
 			identifier: assign.propertyType

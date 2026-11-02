@@ -6,11 +6,6 @@
       <code><![CDATA[reverse]]></code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="app/Console/CronQuarantine.php">
-    <InvalidArgument>
-      <code><![CDATA[$logs]]></code>
-    </InvalidArgument>
-  </file>
   <file src="app/Console/CronUpdateMapFiles.php">
     <InvalidArrayOffset>
       <code><![CDATA[[ $map => $map_config ]]]></code>

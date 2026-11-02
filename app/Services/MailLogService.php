@@ -507,6 +507,7 @@ class MailLogService
 		}
 	}
 
+	/** @param Builder<MailLog> $query */
 	public function cleanDb(Builder $query, int $batch): int {
 		if ($batch < 1) {
 			$batch = self::CLEANDB_CHUNK;
@@ -538,6 +539,7 @@ class MailLogService
 		return $deleted;
 	}
 
+	/** @return Builder<MailLog> */
 	public function getCleanUpDb(
 		?OutputInterface $cli_output = null,
 		?string $server = null
@@ -1612,6 +1614,11 @@ class MailLogService
 		return new MailAttachment($attached[$id]);
 	}
 
+	/**
+	 * @template TModel of \Illuminate\Database\Eloquent\Model
+	 * @param Builder<TModel> $query
+	 * @return Builder<TModel>
+	 */
 	protected function applyUserScope(Builder $query): Builder {
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
@@ -2031,6 +2038,7 @@ class MailLogService
 	}
 
 	// returns mail_logs with notification pending
+	/** @return Collection<int, MailLog> */
 	public function getUnnotified(
 		?OutputInterface $cli_output = null,
 		?string $server = null
@@ -2101,6 +2109,7 @@ class MailLogService
 	 admin_notification_days days. admin_notified has no index, so the
 	 day limit is what keeps this an index range scan on created_day.
 	*/
+	/** @return Collection<int, MailLog> */
 	public function getAdminUnnotified(?string $server = null): Collection {
 		$query = MailLog::select(MailLog::SELECT_FIELDS)
 			->with($this->getMailLogSymbolsRelations())
@@ -2114,6 +2123,7 @@ class MailLogService
 		return $this->applyUserScope($query)->orderBy('id')->get();
 	}
 
+	/** @param Collection<int, MailLog> $logs */
 	public function filterDisabledRecipients(Collection $logs, UserService $userService): void {
 	 $logs->each(function ($log) use ($userService) {
 
@@ -2150,6 +2160,7 @@ class MailLogService
 	}
 
 	// returns mail_logs in quarantine before QUARANTINE_DAYS
+	/** @return Collection<int, MailLog> */
 	public function getQuarantine(
 		?OutputInterface $cli_output = null,
 		?string $server = null
@@ -2187,6 +2198,7 @@ class MailLogService
 	}
 
 	// cleans quarantine
+	/** @param Collection<int, MailLog> $mailLogs */
 	public function cleanQuarantine(
 		Collection $mailLogs,
 		?OutputInterface $cli_output = null
