@@ -52,6 +52,7 @@ class Helper {
 	];
 
 	// patterns read from config, per process
+	/** @var array<string, list<string>> config name => trimmed patterns */
 	private static array $symbolPatterns = [];
 
 	private static function logger(): LoggerInterface {
@@ -172,9 +173,13 @@ class Helper {
 		return str_ends_with($name, '_WHITE') ? 'rqwatch_fuzzy_white' : 'rqwatch_fuzzy';
 	}
 
-	/*
+	/**
 	 * Our fuzzy symbols in a mail's symbols, as [['label' => ..., 'class' => ...]].
 	 * $labels maps symbol name to list label.
+	 *
+	 * @param array<array-key, array<string, mixed>> $symbols
+	 * @param array<string, string> $labels
+	 * @return list<array{label: string, class: string}>
 	 */
 	public static function getFuzzyHits(array $symbols, array $labels): array {
 		$hits = [];
@@ -215,6 +220,7 @@ class Helper {
 		return false;
 	}
 
+	/** @param array<array-key, array<string, mixed>> $symbols */
 	public static function checkForMap(array $symbols): bool {
 		foreach ($symbols as $symbol) {
 			if (isset($symbol['name']) && !self::isFuzzySymbol((string) $symbol['name'])
@@ -226,6 +232,7 @@ class Helper {
 		return false;
 	}
 
+	/** @param array<array-key, array<string, mixed>> $symbols */
 	public static function checkForWhitelist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
 			if (isset($symbol['name'])
@@ -237,6 +244,7 @@ class Helper {
 	}
 
 	// comma-separated addresses, trimmed, lowercased and deduplicated; null if empty or any is invalid
+	/** @return list<string>|null */
 	public static function parseEmailList(string $list): ?array {
 		$emails = array_filter(
 			array_map(fn ($e) => strtolower(trim($e)), explode(',', $list)),
@@ -251,6 +259,7 @@ class Helper {
 	}
 
 	// $admin_notification_rcpt as a list; invalid addresses are dropped
+	/** @return list<string> */
 	public static function adminNotificationRcpt(): array {
 		$rcpt = array_map('trim', explode(',', (string) Config::get('admin_notification_rcpt')));
 		$rcpt = array_filter($rcpt, fn ($a) => filter_var($a, FILTER_VALIDATE_EMAIL) !== false);
@@ -258,6 +267,7 @@ class Helper {
 		return array_values(array_unique($rcpt));
 	}
 
+	/** @param array<array-key, array<string, mixed>> $symbols */
 	public static function checkForBlacklist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
 			if (isset($symbol['name'])
@@ -364,6 +374,10 @@ class Helper {
 	}
 
 	// Converts rspamd JSON symbols into an array, sorted by score
+	/**
+	 * @param array<array-key, array<string, mixed>> $symbols_ar
+	 * @return array<array-key, array<string, mixed>>
+	 */
 	public static function get_scores(array $symbols_ar, float $score): array {
 		//$symbols_ar = json_decode($symbols, true);
 
@@ -490,6 +504,10 @@ class Helper {
 	}
 
 	// first pattern (fnmatch, case-insensitive) matching an antivirus symbol name or one of its options
+	/**
+	 * @param array<array-key, mixed> $symbols decoded rspamd symbols, entries checked here
+	 * @param array<array-key, string> $patterns
+	 */
 	public static function virusSkipMatch(array $symbols, array $patterns): ?string {
 		foreach ($symbols as $symbol) {
 			if (!is_array($symbol) || ($symbol['group'] ?? null) !== 'antivirus' || !isset($symbol['name'])) {
@@ -513,6 +531,7 @@ class Helper {
 	}
 
 	// repair only Rspamd symbol shapes that would crash the formatter; log each repair
+	/** @return array<array-key, array<string, mixed>> */
 	public static function sanitizeSymbols(mixed $symbols, string $qid = ''): array {
 		if (!is_array($symbols)) {
 			self::logger()->warning("{$qid}: symbols is not a list, stored as empty");
@@ -644,6 +663,10 @@ class Helper {
 	}
 
 	// $score is null when Rspamd sent none (the importer still stores the mail)
+	/**
+	 * @param array<array-key, array<string, mixed>> $symbols_ar
+	 * @return array{symbols: list<string>, virus_found: string|null}
+	 */
 	public static function format_symbols(array $symbols_ar, ?float $score, bool $has_virus): array {
 		$sorted_symbols = self::get_scores($symbols_ar, $score ?? 0.0);
 
@@ -671,6 +694,7 @@ class Helper {
 		);
 	}
 
+	/** @return array{error: string|false, id: int|false, qid: string|false} */
 	public static function check_id_qid(string $type, string|int $value): array {
 		$error = false;
 		$id = false;
@@ -865,6 +889,7 @@ Mail details:
 		return filter_var($_ENV[$key] ?? $default, FILTER_VALIDATE_BOOLEAN);
 	}
 
+	/** @return list<array{ip: string, host: string|null}> */
 	public static function extract_mail_relays(string $headers): array {
 		// unfold continuation lines so each header is one line
 		$lines = preg_split('/\r\n|\r|\n/', preg_replace('/(?:\r\n|\r|\n)[ \t]+/', ' ', $headers));
@@ -1108,6 +1133,11 @@ Mail details:
 		return null;
 	}
 
+	/**
+	 * @param array<string, mixed> $data
+	 * @param array<string, int> $limits field => max characters
+	 * @return array{array<string, mixed>, list<string>} the data and a message per truncated field
+	 */
 	public static function trimDataToDbLimits(array $data, array $limits): array {
 		$debug = [];
 		foreach ($limits as $field => $max) {
