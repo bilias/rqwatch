@@ -21,6 +21,7 @@ class ApiClient
 {
 	private HttpClientInterface $client;
 
+	/** @param array<string, mixed> $options Symfony HttpClient options */
 	public function __construct(array $options = []) {
 		// Set default options for secure communication
 		$defaultOptions = [
@@ -34,6 +35,7 @@ class ApiClient
 		//$this->client = new CurlHttpClient($mergedOptions);
 	}
 
+	/** @param array<string, mixed> $data form fields */
 	public function postWithAuth(string $url, array $data, string $username, string $password): ResponseInterface {
 		return $this->client->request('POST', $url, [
 			'headers' => [
@@ -52,6 +54,7 @@ class ApiClient
 	}
 
 
+	/** @param array<string, string> $headers */
 	public function postToRspamd(string $url, string $body, array $headers, float $timeout): ResponseInterface
 	{
 		return $this->client->request('POST', $url, [

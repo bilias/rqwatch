@@ -54,7 +54,9 @@ abstract class RqwatchApi
 
 	// Force child classes to implement these
 	abstract public function handle(): void;
+	/** @return list<string> */
 	abstract protected function getAllowedIps(): array;
+	/** @return array{?string, ?string} username, password from .env */
 	abstract protected function getAuthCredentials(): array;
 
 	protected function checkApiEnabled(): void {
@@ -68,6 +70,7 @@ abstract class RqwatchApi
 		}
 	}
 
+	/** @param list<string> $allowedIps */
 	protected function checkIpAcl(array $allowedIps): void {
 		if (empty($allowedIps)) {
 			$msg = "getAllowedIps() returned empty IP ACL in " . static::class;
