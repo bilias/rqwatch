@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-11-02
+- Require Symfony 7.4 (LTS) for all components
+
 ### 2026-10-31
 - Read a stored mail only from a file under QUARANTINE_DIR (get_mail, mail view, fuzzy learn, as release)
 

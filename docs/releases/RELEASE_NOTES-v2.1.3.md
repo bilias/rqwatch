@@ -32,7 +32,6 @@ Rqwatch 2.x+ contains updates to the database schema.
 - Apache: replace the `<Location /api>` and `<Location /maps>` blocks with the `<Directory>`
   blocks from [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
   They match the directories rather than the URL, so they also apply under a subdirectory (`WEB_BASE`).
-- multimap.conf: drop `prefilter` (ignored since rspamd 3.3)
 
 ## From 1.8.x
 Follow **From 1.8.x** in the
@@ -83,5 +82,9 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 - Long values without spaces (e.g. a regexp) wrap inside Active Filters
 - SQL update files: `18-db-update-2026-10-12` now creates the virus notification skip map
   (`rqwatch_virus_no_notify`), which only `db:migrate` created in 2.1.2
+
+# Changes
+- multimap.conf: drop `prefilter` (ignored since rspamd 3.3)
+- Require Symfony 7.4 (LTS) for all components
 
 **Full Changelog**: https://github.com/bilias/rqwatch/compare/v2.1.2...v2.1.3
