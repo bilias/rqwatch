@@ -37,11 +37,6 @@ parameters:
 			path: ../app/Services/MapService.php
 			count: 1
 		-
-			message: '#^Call to an undefined method Twig\\Loader\\LoaderInterface::addPath\(\)\.$#'
-			identifier: method.notFound
-			path: ../app/Controllers/ViewController.php
-			count: 1
-		-
 			message: '#^Call to an undefined method Symfony\\Component\\HttpFoundation\\Session\\SessionInterface::getFlashBag\(\)\.$#'
 			identifier: method.notFound
 			path: ../app/Core/Middleware/Authorization.php

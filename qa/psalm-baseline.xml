@@ -25,11 +25,6 @@
       <code><![CDATA[$this->is_admin && $model === 'MapCustom']]></code>
     </RedundantCondition>
   </file>
-  <file src="app/Controllers/ViewController.php">
-    <UndefinedInterfaceMethod>
-      <code><![CDATA[addPath]]></code>
-    </UndefinedInterfaceMethod>
-  </file>
   <file src="app/Core/Auth/BasicAuth.php">
     <RedundantCondition>
       <code><![CDATA[API_MODE]]></code>

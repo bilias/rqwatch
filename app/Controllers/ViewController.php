@@ -284,7 +284,11 @@ class ViewController extends Controller
       $appVariableReflection = new ReflectionClass('\Symfony\Bridge\Twig\AppVariable');
       $vendorTwigBridgeDirectory = dirname($appVariableReflection->getFileName());
 
-		$this->twig->getLoader()->addPath($vendorTwigBridgeDirectory . '/Resources/views/Form');
+		$loader = $this->twig->getLoader();
+		if (!$loader instanceof FilesystemLoader) {
+			throw new RuntimeException('Twig loader is not a FilesystemLoader');
+		}
+		$loader->addPath($vendorTwigBridgeDirectory . '/Resources/views/Form');
 
 		$formEngine = new TwigRendererEngine([$defaultFormTheme], $this->twig);
 
