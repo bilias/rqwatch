@@ -257,10 +257,13 @@ final class LoginThrottle
 			&& Helper::env_bool('LOGIN_THROTTLE_ENABLE', false);
 	}
 
-	/*
+	/**
 	 * 'UNKNOWN' is the sentinel used when REMOTE_ADDR is missing; sharing a
 	 * single counter between all such requests would let them block each other.
 	 * IPs in LOGIN_IPS_WHITELIST are never throttled.
+	 *
+	 * @phpstan-assert-if-true !null $this->cache
+	 * @psalm-assert-if-true !null $this->cache
 	 */
 	private function active(): bool {
 		return $this->enabled

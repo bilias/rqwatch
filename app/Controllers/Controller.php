@@ -208,13 +208,14 @@ class Controller
 			return [];
 		}
 
-		if (Helper::env_bool('REDIS_ENABLE')) {
+		$cache = App::cache();
+		if ($cache !== null) {
 			$redisKey = Config::get('rspamd_stat_redis_key');
 			$ttl = (int) Config::get('rspamd_stat_redis_cache_ttl') ?: 300;
 
 			// Try fetching from redis cache first
 			try {
-				$cached = App::cache()->get($redisKey);
+				$cached = $cache->get($redisKey);
 				if ($cached !== false) {
 					$stats = json_decode($cached, true);
 					if (is_array($stats) && !empty($stats)) {
@@ -269,13 +270,13 @@ class Controller
 			}
 		}
 
-		if (Helper::env_bool('REDIS_ENABLE')) {
+		if ($cache !== null) {
 			// Store in Redis for future use; a total failure for a shorter time
 			if ($stats === []) {
 				$ttl = min($ttl, (int) Config::get('rspamd_stat_redis_failure_ttl') ?: 60);
 			}
 			try {
-				App::cache()->set($redisKey, json_encode($stats), $ttl);
+				$cache->set($redisKey, json_encode($stats), $ttl);
 				$this->fileLogger->debug("Rspamd stats cached in Redis for {$ttl} seconds");
 			} catch (Throwable $e) {
 				$this->fileLogger->error("Redis error when writing Rspamd stats: " . $e->getMessage());

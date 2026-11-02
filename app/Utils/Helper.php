@@ -1296,13 +1296,14 @@ Mail details:
 			return $ip;
 		}
 
-		if (Helper::env_bool('REDIS_ENABLE')) {
+		$cache = App::cache();
+		if ($cache !== null) {
 			$redisKey = Config::get('dns_resolv_redis_key') . ":ptr:{$ip}";
 			$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
 			$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
 			$failTtl  = (int) Config::get('dns_resolv_redis_fail_cache_ttl') ?: 60;
 			try {
-				$cached = App::cache()->get($redisKey);
+				$cached = $cache->get($redisKey);
 				if ($cached !== false) {
 					return $cached;
 				}
@@ -1340,9 +1341,9 @@ Mail details:
 			$transient = self::dnsTransientFailure($e);
 		}
 
-		if (Helper::env_bool('REDIS_ENABLE')) {
+		if ($cache !== null) {
 			try {
-				App::cache()->set($redisKey, $host, $host === $ip ? ($transient ? $failTtl : $negTtl) : $ttl);
+				$cache->set($redisKey, $host, $host === $ip ? ($transient ? $failTtl : $negTtl) : $ttl);
 			} catch (Throwable $e) {
 				// ignore cache write failure
 			}
@@ -1356,13 +1357,14 @@ Mail details:
 			return $host;
 		}
 
-		if (Helper::env_bool('REDIS_ENABLE')) {
+		$cache = App::cache();
+		if ($cache !== null) {
 			$redisKey = Config::get('dns_resolv_redis_key') . ':fwd:' . $host;
 			$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
 			$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
 			$failTtl  = (int) Config::get('dns_resolv_redis_fail_cache_ttl') ?: 60;
 			try {
-				$cached = App::cache()->get($redisKey);
+				$cached = $cache->get($redisKey);
 				if ($cached !== false) {
                 return $cached;
 				}
@@ -1391,9 +1393,9 @@ Mail details:
 			$transient = self::dnsTransientFailure($e);
 		}
 
-		if (Helper::env_bool('REDIS_ENABLE')) {
+		if ($cache !== null) {
 			try {
-				App::cache()->set($redisKey, $ip, $ip === $host ? ($transient ? $failTtl : $negTtl) : $ttl);
+				$cache->set($redisKey, $ip, $ip === $host ? ($transient ? $failTtl : $negTtl) : $ttl);
 			} catch (Throwable $e) {
 				// ignore cache write failure
 			}
