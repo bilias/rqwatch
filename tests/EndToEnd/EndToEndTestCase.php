@@ -66,7 +66,7 @@ abstract class EndToEndTestCase extends TestCase
 	 * @param list<string> $rcpts
 	 * @param list<string> $to
 	 * @param list<string> $headers more header lines in the mail
-	 * @return array{0: string, 1: array<string, mixed>, 2: ?array<string, mixed>}
+	 * @return ($wait is true ? array{0: string, 1: array<string, mixed>, 2: array<string, mixed>} : array{0: string, 1: array<string, mixed>, 2: null})
 	 */
 	protected function import(
 		string $test,
