@@ -452,6 +452,7 @@ class Helper {
 	}
 
 	// Snippet from PHP Share: http://www.phpshare.org
+	/** @param int|float|numeric-string|null $bytes strings are SUM() results */
 	public static function formatSizeUnits(int|float|string|null $bytes): string {
 	if ($bytes >= 1073741824) {
 	    $bytes = number_format($bytes / 1073741824, 1, ',', '.') . 'G';
@@ -1317,6 +1318,7 @@ Mail details:
 				'retry'   => 0,
 			]);
 			if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+				/** @var string $expanded validated as IPv6 above, so inet_pton() cannot fail */
 				$expanded = inet_pton($ip);
 				$hex = bin2hex($expanded);
 				$ptr = implode('.', array_reverse(str_split($hex))) . '.ip6.arpa';
