@@ -163,6 +163,7 @@ class MapInventory
 		$requiredFields = ['model', 'fields', 'map_form', 'access'];
 		foreach ($configs as $key => $config) {
 			foreach ($requiredFields as $field) {
+				// @phpstan-ignore identical.alwaysFalse (defensive: custom map configs come from the DB)
 				if (!array_key_exists($field, $config) || $config[$field] === null) {
 					throw new RuntimeException("Missing or null required field '$field' in map config '$key'");
 				}
