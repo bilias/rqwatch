@@ -55,6 +55,7 @@ class BasicAuth implements AuthInterface {
 
 		if (!hash_equals($this->username, $providedUser) ||
 			!hash_equals($this->password, $providedPass)) {
+			/** @psalm-suppress RedundantCondition API_MODE is defined per entry point */
 			if (API_MODE) {
 				$mode = " API ";
 			} else {

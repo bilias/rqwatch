@@ -261,7 +261,10 @@ class MailLog extends Model
 		}
 	}
 
-	/** @return HasMany<MailLogRecipient, $this> */
+	/**
+	 * @phpstan-return HasMany<MailLogRecipient, $this>
+	 * @psalm-return HasMany<MailLogRecipient, self>
+	 */
 	public function recipients(): HasMany {
 		return $this->hasMany(
 			MailLogRecipient::class,
@@ -329,7 +332,10 @@ class MailLog extends Model
 		}
 	}
 
-	/** @return HasOne<MailLogData, $this> */
+	/**
+	 * @phpstan-return HasOne<MailLogData, $this>
+	 * @psalm-return HasOne<MailLogData, self>
+	 */
 	public function mailLogData(): HasOne {
 		return $this->hasOne(
 			MailLogData::class,

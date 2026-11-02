@@ -184,6 +184,7 @@ final class Kernel
 	 entire purpose of the mode, so no cache means no degraded boot.
 	*/
 	private function degradedDbAllowed(): bool {
+		/** @psalm-suppress RedundantCondition ALLOW_DEGRADED_DB is defined per entry point */
 		return defined('ALLOW_DEGRADED_DB')
 			&& ALLOW_DEGRADED_DB
 			&& $this->cache !== null
