@@ -74,7 +74,7 @@ class MailLogDataMigration extends AbstractMigration {
 		return true;
 	}
 
-	private function runMigration(int $batch, int $sleep, ?OutputInterface $output = null): void {
+		private function runMigration(int $batch, int $sleep, OutputInterface $output): void {
 		$output->write("<info>Pending mails for migration: </info>");
 
 		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
