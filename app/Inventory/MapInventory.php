@@ -163,8 +163,8 @@ class MapInventory
 		$requiredFields = ['model', 'fields', 'map_form', 'access'];
 		foreach ($configs as $key => $config) {
 			foreach ($requiredFields as $field) {
-				// @phpstan-ignore identical.alwaysFalse (defensive: custom map configs come from the DB)
-				if (!array_key_exists($field, $config) || $config[$field] === null) {
+				/** @psalm-suppress TypeDoesNotContainNull defensive: custom map configs come from the DB */
+				if (!array_key_exists($field, $config) || $config[$field] === null) { // @phpstan-ignore identical.alwaysFalse (defensive: custom map configs come from the DB)
 					throw new RuntimeException("Missing or null required field '$field' in map config '$key'");
 				}
 			}
@@ -298,7 +298,7 @@ class MapInventory
 	): array {
 
 		// local map configs
-		$configs = self::getMapConfigs();
+		$configs = self::getMapConfigs() ?? [];
 
 		// map exists in config
 		if ($map !== null) {
@@ -308,11 +308,12 @@ class MapInventory
 
 			// check role 'access' in map config
 			$config = $configs[$map];
+			$isUser = $role === 'user';
 			if (in_array($role, $config['access'] ?? ['admin'], true)) {
 
 				// check for override form class for user forms
 				if (
-					($role === 'user') &&
+					$isUser &&
 					in_array('user', $config['access'] ?? [], true) &&
 					is_a($config['map_form'], MapWithTwoFieldsForm::class, true) &&
 					isset($config['fields'][1]) &&

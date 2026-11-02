@@ -15,20 +15,6 @@
       <code><![CDATA[ALLOW_DEGRADED_DB]]></code>
     </RedundantCondition>
   </file>
-  <file src="app/Inventory/MapInventory.php">
-    <NullableReturnStatement>
-      <code><![CDATA[$config]]></code>
-    </NullableReturnStatement>
-    <TypeDoesNotContainNull>
-      <code><![CDATA[$config[$field] === null]]></code>
-    </TypeDoesNotContainNull>
-    <TypeDoesNotContainType>
-      <code><![CDATA[$role === 'user']]></code>
-      <code><![CDATA[$role === 'user']]></code>
-      <code><![CDATA[($role === 'user') &&
-					in_array('user', $config['access'] ?? [], true)]]></code>
-    </TypeDoesNotContainType>
-  </file>
   <file src="app/Models/MailLog.php">
     <InvalidDocblock>
       <code><![CDATA[public function mailLogData(): HasOne {]]></code>
