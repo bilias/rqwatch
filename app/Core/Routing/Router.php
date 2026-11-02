@@ -131,7 +131,7 @@ class Router
 						$middlewareClass,
 						$next,
 						$urlGenerator
-					) {
+					): Response {
 						//$middleware = new $middlewareClass($urlGenerator);
 						// add logger in middleware
 						/** @var AuthMiddleware|Authorization $middleware the only classes in Routes::load()'s middleware lists */

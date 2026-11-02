@@ -359,7 +359,7 @@ class MailLogService
 
 		// non-admins match only their own addresses: no probing for co-recipients
 		$own = ($this->adminFieldsAllowed() || $this->is_admin === null) ? null : $this->getUserRecipientEmails();
-		$constrain = function ($q) use ($op, $email, $own) {
+		$constrain = function ($q) use ($op, $email, $own): void {
 			$q->where('recipient_email', $op, $email);
 			if ($own !== null) {
 				$q->whereIn('recipient_email', $own);

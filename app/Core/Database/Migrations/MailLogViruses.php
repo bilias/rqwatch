@@ -11,6 +11,7 @@
 namespace App\Core\Database\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Query\Builder;
 
 use App\Configuration\AppConfig;
 use App\Inventory\Migrations;
@@ -87,7 +88,7 @@ class MailLogViruses extends AbstractMigration {
 		$output->write("<info>Pending virus mails for migration: </info>");
 
 		// virus mails without rows; the loop uses the same predicate as $total
-		$pending = fn () => $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
+		$pending = fn (): Builder => $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
 			->where('ml.has_virus', 1)
 			->whereNotExists(function ($query) {
 				$query->selectRaw('1')
