@@ -238,6 +238,7 @@ class MapController extends ViewController
 
 		foreach ($map_configs as $key => $map_config) {
 			$map_configs[$key]['map_entries'] = $map_config->MapsCustom->count();
+			/** @psalm-suppress InvalidArgument nested write: $map_configs[$key] is the model, whose offsetSet() takes it, not the paginator's */
 			$map_configs[$key]['protected'] = MapService::isProtectedMap($map_config->map_name);
 		}
 

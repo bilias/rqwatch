@@ -15,6 +15,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * Runtime-only attributes, set by MapController for the views (not columns):
+ * @phpstan-property string $map_description
+ * @phpstan-property string $map_username
+ * @phpstan-property bool $user_can_delete
+ */
 class MapCombined extends Model
 {
 	protected $table = 'maps_combined';

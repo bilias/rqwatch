@@ -37,6 +37,7 @@ use RuntimeException;
 
 class MapService
 {
+	/** @var array<string, true>|null */
 	private static ?array $mappedSymbolSet = null;
 
 	private LoggerInterface $logger;
@@ -44,10 +45,12 @@ class MapService
 	private ?string $username = null;
 	private ?int $user_id = null;
 	private ?string $email = null;
+	/** @var array<int, string>|null */
 	private ?array $user_aliases = null;
 
 	private int $items_per_page;
 
+	/** @param array{is_admin?: bool|null, username?: string|null, user_id?: int|null, email?: string|null, user_aliases?: array<int, string>}|null $userContect */
 	public function __construct(?array $userContect = null) {
 		$this->logger = App::fileLogger();
 
@@ -101,10 +104,15 @@ class MapService
 		return $query->whereIn('rcpt_to', $emails);
 	}
 
+	/** @param Builder<MapCombined>|Builder<MapCustom>|Builder<CustomMapConfig> $query */
 	public static function getSqlFromQuery(Builder $query): string {
 		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 	}
 
+	/**
+	 * @param list<string> $map_fields
+	 * @return Builder<MapCombined>
+	 */
 	public function getMapCombinedBasicQuery(string $map_name, array $map_fields = []): Builder {
 		$select_fields = array_merge(MapCombined::SELECT_FIELDS, $map_fields);
 
@@ -119,6 +127,10 @@ class MapService
 		return $query;
 	}
 
+	/**
+	 * @param list<string> $map_fields
+	 * @return Builder<MapCombined>
+	 */
 	public function getMapCombinedQuery(string $map_name, array $map_fields): Builder {
 		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 
@@ -134,6 +146,7 @@ class MapService
 		return $query;
 	}
 
+	/** @return Builder<MapCustom> */
 	public function getMapCustomQuery(string $map_name): Builder {
 		// query
 		return MapCustom::select(MapCustom::SELECT_FIELDS)
@@ -190,6 +203,7 @@ class MapService
 		return $maps;
 	}
 
+	/** @return array<string, mixed> field_name and field_label */
 	public static function getCustomField(string $map_name): array {
 		$query = CustomMapConfig::select('field_name', 'field_label')
 								  ->where('map_name', $map_name);
@@ -234,6 +248,7 @@ class MapService
 	 * $map_symbols for the built-in maps, the map definition for custom maps.
 	 * Invalid config entries are logged and skipped.
 	 */
+	/** @return array<string, list<string>> */
 	public static function mapSymbols(): array {
 		$maps = [];
 
@@ -262,6 +277,7 @@ class MapService
 	}
 
 	// names of all symbols a map names, read once per process; [] on a query error
+	/** @return array<string, true> */
 	public static function mappedSymbolSet(): array {
 		if (self::$mappedSymbolSet === null) {
 			$set = [];
@@ -285,6 +301,10 @@ class MapService
 	}
 
 	// a custom map's symbols are stored only once the migration has added the column
+	/**
+	 * @param array<string, mixed> $data
+	 * @return array<string, mixed>
+	 */
 	private static function prepareSymbols(array $data): array {
 		if (!array_key_exists('symbols', $data)) {
 			return $data;
@@ -304,6 +324,7 @@ class MapService
 	}
 
 	// enabled patterns of the active virus skip map; [] when inactive, null on a query error
+	/** @return list<string>|null */
 	public static function getVirusSkipPatterns(): ?array {
 		$map = self::activeVirusSkipMap();
 		if ($map === null) {
@@ -321,12 +342,16 @@ class MapService
 		}
 	}
 
+	/**
+	 * @param list<string> $filter_maps
+	 * @return LengthAwarePaginator<int, MapCombined>
+	 */
 	public function searchPaginatedMapCombined(
 		int $page,
 		string $url,
 		array $filter_maps,
-		$search,
-		$map_name
+		string $search,
+		?string $map_name
 	): LengthAwarePaginator {
 
 		$query = MapCombined::select('*')
@@ -371,6 +396,10 @@ class MapService
 		return $map_entries;
 	}
 
+	/**
+	 * @param list<string> $filter_maps
+	 * @return LengthAwarePaginator<int, MapCombined>
+	 */
 	public function getPaginatedAllMapCombined(int $page, string $url, array $filter_maps): LengthAwarePaginator {
 		$query = MapCombined::select('*')
 								  ->with(['user' => function ($query) {
@@ -401,6 +430,7 @@ class MapService
 		return $map_entries;
 	}
 
+	/** @return LengthAwarePaginator<int, MapCustom> */
 	public function searchPaginatedMapCustom(
 		int $page,
 		string $url,
@@ -436,6 +466,7 @@ class MapService
 		return $map_entries;
 	}
 
+	/** @return LengthAwarePaginator<int, MapCustom> */
 	public function getPaginatedAllMapCustom(int $page, string $url): LengthAwarePaginator {
 		$query = MapCustom::select('*')
 								  ->orderBy('updated_at', 'DESC');
@@ -456,6 +487,7 @@ class MapService
 		return $map_entries;
 	}
 
+	/** @return LengthAwarePaginator<int, CustomMapConfig> */
 	public function getPaginatedCustomMapConfigs(int $page, string $url): LengthAwarePaginator {
 		$query = CustomMapConfig::select('*')
 								  //->orderBy('map_name', 'ASC')
@@ -477,6 +509,7 @@ class MapService
 		return $map_configs;
 	}
 
+	/** @return LengthAwarePaginator<int, MapCustom> */
 	public function getPaginatedMapCustom(string $map_name, int $page, string $url, bool $idle = false, ?int $entryId = null): LengthAwarePaginator {
 		$query = $this->getMapCustomQuery($map_name);
 		if ($entryId !== null) {
@@ -503,6 +536,10 @@ class MapService
 		return $map;
 	}
 
+	/**
+	 * @param list<string> $map_fields
+	 * @return LengthAwarePaginator<int, MapCombined>
+	 */
 	public function getPaginatedMapCombined(string $map_name, array $map_fields, int $page, string $url, bool $idle = false, ?int $entryId = null): LengthAwarePaginator {
 		$query = $this->getMapCombinedQuery($map_name, $map_fields);
 		if ($entryId !== null) {
@@ -525,6 +562,10 @@ class MapService
 		return $map;
 	}
 
+	/**
+	 * @param list<string> $map_fields
+	 * @param array<string, mixed> $data form data
+	 */
 	public function mapEntryExists(string $model, string $map_name, array $map_fields, array $data): bool {
 		if ($model === 'MapCombined') {
 			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
@@ -545,7 +586,12 @@ class MapService
 		// XXX strtolower might break some maps???
 		//$data = self::trimLower($data);
 
-		$query = $this->applyUserRcptToScope($query);
+		/**
+		 * A MapCombined or a MapCustom builder: neither tool binds TModel to that union.
+		 * @var Builder<MapCombined>|Builder<MapCustom> $query
+		 * @psalm-suppress InvalidArgument
+		 */
+		$query = $this->applyUserRcptToScope($query); // @phpstan-ignore argument.type (TModel cannot bind to a union of builders)
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -634,6 +680,7 @@ class MapService
 	 maps_combined rows directly must do this: cron:updatemapfiles only
 	 rewrites a file whose Last-Modified header is older than last_changed_at.
 	*/
+	/** @param list<string> $map_names */
 	public function updateMapActivityLogs(array $map_names): void {
 		$last_update = date('Y-m-d H:i:s');
 
@@ -652,6 +699,7 @@ class MapService
 		return preg_match('/^[a-z0-9_\-]+$/', $map_name) ? $map_name : null;
 	}
 
+	/** @param list<string>|null $map_fields */
 	public function updateMapFile(
 		string $model,
 		string $map_name,
@@ -784,6 +832,10 @@ class MapService
 		return true;
 	}
 
+	/**
+	 * @param array<string, mixed> $data
+	 * @return array<string, mixed>
+	 */
 	private static function trimLower(array $data): array {
 		// trim and strtolower entries
 		return array_map(function ($value) {
@@ -791,6 +843,10 @@ class MapService
 		}, $data);
 	}
 
+	/**
+	 * @param list<string> $map_fields
+	 * @param array<string, mixed> $data form data
+	 */
 	public function addMapCombinedEntry(string $map_name, array $map_fields, array $data): bool {
 		if (empty($data)) {
 			$this->logger->error("Empty map data");
@@ -857,6 +913,10 @@ class MapService
 		return true;
 	}
 
+	/**
+	 * @param list<string> $map_fields
+	 * @param array<string, mixed> $data form data
+	 */
 	public function updateMapCombinedEntry(string $map_name, array $map_fields, array $data): bool {
 		if (empty($data) || empty($data['map_name']) || $map_name !== $data['map_name']) {
 			$this->logger->error("Empty or invalid map data");
@@ -1020,6 +1080,7 @@ class MapService
 		return true;
 	}
 
+	/** @param array<string, mixed> $data form data */
 	public function updateMapCustomEntry(string $map_name, array $data): bool {
 		if (empty($data) || empty($data['map_name']) || $map_name !== $data['map_name']) {
 			$this->logger->error("Empty or invalid map data");
@@ -1079,6 +1140,7 @@ class MapService
 		return true;
 	}
 
+	/** @param array<string, mixed> $data form data */
 	public function addCustomMapConfig(array $data): bool {
 		if (empty($data)) {
 			$this->logger->error("Empty map data in addCustomMapConfig");
@@ -1116,6 +1178,7 @@ class MapService
 		return true;
 	}
 
+	/** @param array<string, mixed> $data form data */
 	public function updateCustomMapConfig(array $data): bool {
 		if (empty($data)) {
 			$this->logger->error("Empty map data in updateCustomMapConfig");
@@ -1220,6 +1283,7 @@ class MapService
 		return true;
 	}
 
+	/** @param list<string> $map_fields */
 	public function delMapEntry(string $model, string $map_name, array $map_fields, int $id): bool {
 		if ($model === 'MapCombined') {
 			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
@@ -1274,6 +1338,7 @@ class MapService
 		return true;
 	}
 
+	/** @param list<string> $map_fields */
 	public function delMapAllEntries(string $model, string $map_name, array $map_fields): bool {
 
 		if ($model === 'MapCombined') {
@@ -1322,6 +1387,7 @@ class MapService
 		return true;
 	}
 
+	/** @param list<string> $map_fields */
 	public function toggleMapEntry(string $model, string $map_name, array $map_fields, int $id): bool {
 		if ($model === 'MapCombined') {
 			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);

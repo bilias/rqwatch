@@ -14,6 +14,12 @@ use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * Runtime-only attributes, set by MapController for the views (not columns):
+ * @phpstan-property string $map_description
+ * @phpstan-property string $field
+ * @phpstan-property string $field_description
+ */
 class MapCustom extends Model
 {
 	protected $table = 'maps_custom';
