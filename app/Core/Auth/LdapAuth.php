@@ -27,6 +27,7 @@ class LdapAuth implements AuthInterface {
 
 	private bool $is_admin = false;
 	private ?string $email = null;
+	/** @var list<string> */
 	private array $mail_aliases = [];
 	private ?string $authenticatedUser = null;
 	private ?string $firstname = null;
@@ -273,6 +274,7 @@ class LdapAuth implements AuthInterface {
 		return $this->email;
 	}
 
+	/** @return list<string> */
 	public function getEmailAliases(): array {
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
@@ -294,6 +296,7 @@ class LdapAuth implements AuthInterface {
 		return $this->lastname;
 	}
 
+	/** @param array<array-key, mixed> $attrs ldap_get_attributes() result */
 	public function getValue(array $attrs, ?string $field): ?string {
 		if (empty($field)) {
 			return null;
@@ -307,6 +310,10 @@ class LdapAuth implements AuthInterface {
 		return null;
 	}
 
+	/**
+	 * @param array<array-key, mixed> $attrs ldap_get_attributes() result
+	 * @return list<string>
+	 */
 	public function getValues(array $attrs, ?string $field): array {
 		if (empty($field)) {
 			return [];

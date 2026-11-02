@@ -28,6 +28,7 @@ class AuthManager
 	private ?UrlGeneratorInterface $urlGenerator = null;
 	private ?string $redirectUrl = null;
 
+	/** @var array<int, string> */
 	public static array $authProviders = [
 		0 => 'DB',
 		1 => 'LDAP',
@@ -140,6 +141,7 @@ class AuthManager
 		return $this->providerId;
 	}
 
+	/** @return array<int, string> */
 	public static function getAuthProviders(): array {
 		return self::$authProviders;
 	}
@@ -218,6 +220,7 @@ class AuthManager
 		return null;
 	}
 
+	/** @return list<string> */
 	public function getUserEmailAliases(): array {
 		if ($this->provider && method_exists($this->provider, 'getEmailAliases')) {
 			return $this->provider->getEmailAliases();

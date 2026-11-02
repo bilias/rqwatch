@@ -52,6 +52,7 @@ final class LoginThrottle
 	private readonly int $window;
 	private readonly int $blockDuration;
 	private readonly bool $enabled;
+	/** @var list<string> */
 	private readonly array $whitelist;
 	private readonly string $key;
 
@@ -166,7 +167,7 @@ final class LoginThrottle
 		return $this->blockDuration;
 	}
 
-	/*
+	/**
 	 * Currently blocked IPs with the seconds remaining on each block.
 	 * Admin view helper: keeps the Redis key layout private to this class.
 	 *
@@ -196,7 +197,7 @@ final class LoginThrottle
 		return $blocked;
 	}
 
-	/*
+	/**
 	 * Failure counters that have not (yet) tripped a block.
 	 *
 	 * @return array<string,array{count:int,ttl:int}> ip => attempts + window seconds left

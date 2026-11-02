@@ -134,7 +134,7 @@ final class RedisCache implements CacheInterface
 		return $deleted;
 	}
 
-	/*
+	/**
 	 * Return all keys matching a prefix with their remaining TTL.
 	 * Uses SCAN, not KEYS, so it does not block the Redis instance.
 	 *
