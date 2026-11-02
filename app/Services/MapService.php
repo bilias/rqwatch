@@ -334,6 +334,7 @@ class MapService
 		}
 
 		try {
+			/** @var list<string> pattern is a NOT NULL text column */
 			return MapCustom::where('map_name', $map)
 				->where('disabled', 0)
 				->pluck('pattern')
@@ -742,6 +743,7 @@ class MapService
 			return false;
 		}
 
+		/** @var int $lastModified $last_update is date('Y-m-d H:i:s') or a NOT NULL datetime column, so strtotime() cannot fail */
 		$lastModified = strtotime($last_update);
 		$header = '# Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModified) . " GMT";
 		$lines = [];
@@ -1193,6 +1195,7 @@ class MapService
 		}
 		$map_name = $data['map_name'];
 
+		/** @var CustomMapConfig|null $customMapConfig $data['id'] is the model's own id, carried from toArray() through the form */
 		$customMapConfig = CustomMapConfig::find($data['id']);
 
 		if (!$customMapConfig) {
