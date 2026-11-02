@@ -235,7 +235,11 @@ class FuzzyService
 	}
 
 	// 'hit': latest hit first, never hit last; otherwise newest learned first
-	private static function sortLearned($query, string $sort) {
+	/**
+	 * @param Builder<MailLogFuzzy> $query
+	 * @return Builder<MailLogFuzzy>
+	 */
+	private static function sortLearned(Builder $query, string $sort): Builder {
 		if ($sort === 'hit') {
 			$query->orderByRaw('last_hit_at IS NULL')->orderByDesc('last_hit_at');
 		}
