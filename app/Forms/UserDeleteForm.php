@@ -39,6 +39,7 @@ class UserDeleteForm extends AbstractType
             ]);
 	}
 
+	/** @param array<string, mixed> $data */
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,

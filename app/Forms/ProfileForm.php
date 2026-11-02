@@ -101,6 +101,10 @@ class ProfileForm extends AbstractType
 			FormHelper::addNotificationsField($builder, $options['notifications_default']);
 	}
 
+	/**
+	 * @param array<string, mixed>|null $data
+	 * @param array<string, mixed> $options
+	 */
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,

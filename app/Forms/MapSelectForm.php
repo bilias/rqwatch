@@ -73,6 +73,7 @@ class MapSelectForm extends AbstractType
 			]);
 	}
 
+	/** @param array<string, mixed> $options */
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,

@@ -73,6 +73,10 @@ class MailReleaseForm extends AbstractType
             ]);
 	}
 
+	/**
+	 * @param array<string, mixed>|null $data
+	 * @param array<string, mixed> $options
+	 */
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,

@@ -71,6 +71,7 @@ class SearchForm extends AbstractType
 			]);
 	}
 
+	/** @param array<string, mixed>|null $data */
 	public static function create(
 		FormFactoryInterface $formFactory,
 		Request $request,
