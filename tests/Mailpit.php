@@ -80,8 +80,10 @@ trait Mailpit
 
 	/** The raw bytes of the one message/rfc822 attachment of a captured message. */
 	protected static function attachedMail(string $id): string {
+		/** @var list<array<string, mixed>> $attachments */
+		$attachments = self::mailpit("/api/v1/message/{$id}")['Attachments'] ?? [];
 		$parts = array_values(array_filter(
-			self::mailpit("/api/v1/message/{$id}")['Attachments'] ?? [],
+			$attachments,
 			fn($part) => $part['ContentType'] === 'message/rfc822'
 		));
 		if (count($parts) !== 1) {

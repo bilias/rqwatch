@@ -206,6 +206,8 @@ final class NotificationTest extends IntegrationTestCase
 	private static function state(int $id): array {
 		$stmt = self::db()->prepare('SELECT notified, notify_date, admin_notified, admin_notify_date FROM mail_logs WHERE id = ?');
 		$stmt->execute([$id]);
-		return $stmt->fetch(PDO::FETCH_ASSOC);
+		$row = $stmt->fetch(PDO::FETCH_ASSOC);
+		self::assertIsArray($row, "mail_logs row {$id} not found");
+		return $row;
 	}
 }

@@ -42,7 +42,7 @@ abstract class UnitTestCase extends TestCase
 	protected function assertLogged(string $needle): void {
 		foreach ($this->log->lines as $line) {
 			if (str_contains($line, $needle)) {
-				$this->addToAssertionCount(1);
+				$this->assertStringContainsString($needle, $line);
 				return;
 			}
 		}

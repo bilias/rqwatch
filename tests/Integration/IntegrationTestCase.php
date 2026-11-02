@@ -111,7 +111,7 @@ abstract class IntegrationTestCase extends TestCase
 	/**
 	 * Requests a route with sample parameters: GET when allowed, else POST
 	 * without fields (so without a CSRF token).
-	 * @return array{status: int, location: string, body: string}
+	 * @return array{status: int, location: string, body: string, headers: array<string, string>}
 	 */
 	protected static function call(WebClient $client, string $name, Route $route): array {
 		$path = self::path($name, $route);
@@ -282,7 +282,7 @@ abstract class IntegrationTestCase extends TestCase
 	/**
 	 * The path of a redirect target, or '' for none.
 	 *
-	 * @param array{status: int, location: string, body: string} $response
+	 * @param array{status: int, location: string, body: string, headers: array<string, string>} $response
 	 */
 	protected static function target(array $response): string {
 		return (string) parse_url($response['location'], PHP_URL_PATH);

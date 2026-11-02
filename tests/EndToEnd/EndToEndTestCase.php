@@ -278,6 +278,8 @@ abstract class EndToEndTestCase extends TestCase
 	 * probed is the one the tests reach. Probes are not exported.
 	 */
 	private static function waitForMaps(): void {
+		// not a literal to the checkers: the loop unsets probes as their symbols appear
+		/** @var array<string, array{string, string, string, list<string>}> $probes */
 		$probes = [
 			'RQWATCH_IP_BLACKLIST' => ['198.51.100.7', self::MAIL_FROM, self::MIME_FROM, [self::RCPT]],
 			'RQWATCH_SMTP_FROM_BLACKLIST' => [self::IP, 'smtp-bl@sender.test', self::MIME_FROM, [self::RCPT]],

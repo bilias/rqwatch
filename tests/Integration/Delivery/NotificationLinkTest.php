@@ -230,7 +230,7 @@ final class NotificationLinkTest extends IntegrationTestCase
 
 	/**
 	 * The view page's release button, plus any $extra fields a client might add.
-	 * @param array{body: string} $view
+	 * @param array{status: int, location: string, body: string, headers: array<string, string>} $view
 	 * @param array<string, string> $extra
 	 * @return array{status: int, location: string, body: string, headers: array<string, string>}
 	 */
@@ -239,13 +239,13 @@ final class NotificationLinkTest extends IntegrationTestCase
 		return $browser->post($action, $extra);
 	}
 
-	/** @param array{status: int, body: string, headers: array<string, string>} $page */
+	/** @param array{status: int, location: string, body: string, headers: array<string, string>} $page */
 	private function assertTokenPage(array $page, string $what): void {
 		$this->assertStringContainsString('no-store', $page['headers']['cache-control'] ?? '', "{$what}: Cache-Control");
 		$this->assertSame('no-referrer', $page['headers']['referrer-policy'] ?? '', "{$what}: Referrer-Policy");
 	}
 
-	/** @param array{status: int, body: string} $page */
+	/** @param array{status: int, location: string, body: string, headers: array<string, string>} $page */
 	private function assertInvalid(array $page, string $what): void {
 		$this->assertSame(200, $page['status'], $what);
 		$this->assertStringContainsString(self::INVALID, $page['body'], $what);

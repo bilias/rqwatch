@@ -25,7 +25,7 @@ final class ScopingTest extends IntegrationTestCase
 {
 	private const MAP = '/user/map/mail_from_rcpt_to_whitelist';
 
-	/** @param array{status: int, location: string, body: string} $response */
+	/** @param array{status: int, location: string, body: string, headers: array<string, string>} $response */
 	private function assertRefused(array $response, string $what): void {
 		$this->assertSame(302, $response['status'], "{$what}: expected a redirect");
 		$this->assertStringNotContainsString('BOB-102', $response['body'], "{$what}: leaked bob's mail");

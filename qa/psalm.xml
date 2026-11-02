@@ -13,6 +13,7 @@
 	<projectFiles>
 		<directory name="app" />
 		<directory name="qa" />
+		<directory name="tests" />
 		<ignoreFiles>
 			<directory name="vendor" />
 		</ignoreFiles>
