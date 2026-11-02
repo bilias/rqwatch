@@ -21,6 +21,12 @@ use App\Utils\Helper;
 
 use Throwable;
 
+/**
+ * Runtime-only attributes, set in memory and never saved (not columns):
+ * @phpstan-property string|null $virus_name
+ * @phpstan-property string|null $disabled_rcpt_to
+ * @phpstan-property string|null $mime_from_normalized
+ */
 class MailLog extends Model
 {
 
@@ -255,6 +261,7 @@ class MailLog extends Model
 		}
 	}
 
+	/** @return HasMany<MailLogRecipient, $this> */
 	public function recipients(): HasMany {
 		return $this->hasMany(
 			MailLogRecipient::class,
@@ -322,6 +329,7 @@ class MailLog extends Model
 		}
 	}
 
+	/** @return HasOne<MailLogData, $this> */
 	public function mailLogData(): HasOne {
 		return $this->hasOne(
 			MailLogData::class,

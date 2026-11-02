@@ -36,12 +36,6 @@ parameters:
 			message: '#^Method App\\Services\\MapService::findMapEntry\(\) should return App\\Models\\MapCombined\|App\\Models\\MapCustom\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
 			path: ../app/Services/MapService.php
 		-
-			message: '#^Access to an undefined property App\\Models\\\w+::\$\w+\.$#'
-			identifier: property.notFound
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model::\$\w+\.$#'
-			identifier: property.notFound
-		-
 			message: '#^Call to an undefined method Traversable<mixed, mixed>::reverse\(\)\.$#'
 			identifier: method.notFound
 			path: ../app/Charts/ChartBuilder.php
