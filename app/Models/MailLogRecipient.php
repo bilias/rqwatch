@@ -42,7 +42,7 @@ class MailLogRecipient extends Model
 
 	protected $fillable = self::COLUMNS;
 
-	public function mailLog(): BelongsTo{
+	public function mailLog(): BelongsTo {
 		return $this->belongsTo(
 			MailLog::class,
 			'mail_log_id',
