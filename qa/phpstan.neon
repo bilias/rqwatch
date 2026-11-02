@@ -41,9 +41,6 @@ parameters:
 			message: '#^Method App\\Services\\MapService::findMapEntry\(\) should return App\\Models\\MapCombined\|App\\Models\\MapCustom\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
 			path: ../app/Services/MapService.php
 		-
-			message: '#^Call to an undefined static method Illuminate\\Database\\Capsule\\Manager::\w+\(\)\.$#'
-			identifier: staticMethod.notFound
-		-
 			message: '#^Access to an undefined property App\\Models\\\w+::\$\w+\.$#'
 			identifier: property.notFound
 		-

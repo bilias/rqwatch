@@ -382,7 +382,7 @@ class MailLogService
 			$val = "%{$val}%";
 		}
 
-		$col = DB::raw(
+		$col = DB::connection()->raw(
 			// nosemgrep: rqwatch-raw-sql -- $f is 'headers' or 'symbols' (getQueryByFilters)
 			'`' . AppConfig::MAIL_LOG_DATA_TABLE . '`.`' . $f . '`'
 			. ' COLLATE ' . AppConfig::DB_COLLATION
@@ -426,9 +426,9 @@ class MailLogService
 
 		$collate = $op === '=' ? '' : ' COLLATE ' . AppConfig::DB_COLLATION;
 		// nosemgrep: rqwatch-raw-sql -- $collate is '' or the DB_COLLATION constant
-		$name = DB::raw('`vf`.`name`' . $collate);
+		$name = DB::connection()->raw('`vf`.`name`' . $collate);
 		// nosemgrep: rqwatch-raw-sql -- $collate is '' or the DB_COLLATION constant
-		$av = DB::raw('`vf`.`av`' . $collate);
+		$av = DB::connection()->raw('`vf`.`av`' . $collate);
 		$id = $query->qualifyColumn('id');
 
 		$query->whereExists(function ($q) use ($name, $av, $op, $val, $id, $days) {
@@ -471,7 +471,7 @@ class MailLogService
 		$ids = $query->getQuery()->newQuery()
 			->from(AppConfig::SYMBOL_NAMES_TABLE)
 			// nosemgrep: rqwatch-raw-sql -- $collate is '' or the DB_COLLATION constant
-			->where(DB::raw('`name`' . $collate), $op, $val)
+			->where(DB::connection()->raw('`name`' . $collate), $op, $val)
 			->pluck('id')
 			->all();
 
@@ -1002,7 +1002,7 @@ class MailLogService
 				}
 				break;
 			default:
-				//$fields = [ $field, DB::raw('count(*) as total') ];
+				//$fields = [ $field, DB::connection()->raw('count(*) as total') ];
 				//$query = MailLog::select($fields);
 				// nosemgrep: rqwatch-raw-sql -- $field checked against MailLog::REPORT_FIELDS above
 				$query = MailLog::selectRaw("{$field} AS {$field}, COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored")
@@ -1096,7 +1096,7 @@ class MailLogService
 
 		// Count and boundary ids in one pass; first/last are read by PK.
 		$agg = (clone $query)->toBase()
-			->select(DB::raw('COUNT(*) AS cnt, MIN(id) AS first_id, MAX(id) AS last_id'))
+			->select(DB::connection()->raw('COUNT(*) AS cnt, MIN(id) AS first_id, MAX(id) AS last_id'))
 			->first();
 		$stats['count'] = (int) $agg->cnt;
 
