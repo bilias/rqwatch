@@ -11,6 +11,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 //use App\Configuration\AppConfig;
 
@@ -41,7 +42,7 @@ class MailLogRecipient extends Model
 
 	protected $fillable = self::COLUMNS;
 
-	public function mailLog() {
+	public function mailLog(): BelongsTo{
 		return $this->belongsTo(
 			MailLog::class,
 			'mail_log_id',

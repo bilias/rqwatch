@@ -11,6 +11,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 use App\Core\App;
 //use App\Configuration\AppConfig;
@@ -253,7 +255,7 @@ class MailLog extends Model
 		}
 	}
 
-	public function recipients() {
+	public function recipients(): HasMany {
 		return $this->hasMany(
 			MailLogRecipient::class,
 			'mail_log_id',
@@ -320,7 +322,7 @@ class MailLog extends Model
 		}
 	}
 
-	public function mailLogData() {
+	public function mailLogData(): HasOne {
 		return $this->hasOne(
 			MailLogData::class,
 			'mail_log_id',
