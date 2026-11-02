@@ -150,7 +150,7 @@ class Helper {
 		return self::deleteDirectory(dirname($file));
 	}
 
-	public static function get_today() {
+	public static function get_today(): string {
 		return date("Y-m-d");
 	}
 
@@ -289,7 +289,8 @@ class Helper {
 		return '';
 	}
 
-	public static function get_action_details($symbols = null) {
+	/** @param array<array-key, mixed>|null $symbols a mail's decoded symbols */
+	public static function get_action_details(?array $symbols = null): string {
 		if (!empty($symbols)) {
 			if (self::checkForWhitelist($symbols)) {
 				return 'whitelist';
@@ -305,7 +306,8 @@ class Helper {
 	}
 
 	// change row class depending on action
-	public static function get_row_class(string $action, $symbols = null) {
+	/** @param array<array-key, mixed>|null $symbols a mail's decoded symbols */
+	public static function get_row_class(string $action, ?array $symbols = null): string {
 		if (!empty($symbols)) {
 			// green only if the whitelist won; a forced reject/discard keeps its colour
 			if (!in_array($action, ['reject', 'discard'], true) && self::checkForWhitelist($symbols)) {
@@ -389,7 +391,7 @@ class Helper {
 		);
 	}
 
-	public static function convertSRSAddress($srsAddress) {
+	public static function convertSRSAddress(?string $srsAddress): string {
 	    // Normalize case
 	    $srsAddress = strtolower($srsAddress);
 
@@ -416,7 +418,7 @@ class Helper {
 	    return $srsAddress;
 	}
 
-	public static function convertPRVSAddress($email) {
+	public static function convertPRVSAddress(string $email): string {
 		// Match PRVS format
 		if (preg_match('/^prvs=[^=]+=(.+)@(.+)$/i', $email, $matches)) {
 			$local = $matches[1];
@@ -427,7 +429,7 @@ class Helper {
 		return $email;
 	}
 
-	public static function decodeEmail($email) {
+	public static function decodeEmail(?string $email): string {
 		// Step 1: Decode SRS if applicable
 		$decoded = self::convertSRSAddress($email);
 
@@ -436,7 +438,7 @@ class Helper {
 	}
 
 	// Snippet from PHP Share: http://www.phpshare.org
-	public static function formatSizeUnits($bytes) {
+	public static function formatSizeUnits(int|float|string|null $bytes): string {
 	if ($bytes >= 1073741824) {
 	    $bytes = number_format($bytes / 1073741824, 1, ',', '.') . 'G';
 	} elseif ($bytes >= 1048576) {
@@ -455,7 +457,7 @@ class Helper {
 	}
 
 	// expects json decoded array with one symbol
-	public static function check_virus($symbol): string|false {
+	public static function check_virus(mixed $symbol): string|false {
 
 		if (!is_array($symbol) || count($symbol) == 0) {
 			return false;
@@ -474,7 +476,7 @@ class Helper {
 
 	// expects json decoded array with all symbols. Untyped on purpose:
 	// MailLog's accessor passes null when mailLogData was not eager loaded
-	public static function check_virus_from_all($symbols): string|false {
+	public static function check_virus_from_all(mixed $symbols): string|false {
 		if (!is_array($symbols) || count($symbols) == 0) {
 			return false;
 		}
@@ -538,7 +540,7 @@ class Helper {
 	}
 
 	// checks date for correct format YYYY-MM-DD
-	public static function check_date($day) {
+	public static function check_date(?string $day): bool {
 		if (!$day) {
 			return false;
 		}
@@ -555,15 +557,20 @@ class Helper {
 		return false;
 	}
 
-	public static function sanitize_mail($mail) {
+	public static function sanitize_mail(string $mail): ?string {
 		return preg_replace('/[^a-zA-Z0-9 .\-<>@]/', '', $mail);
 	}
 
-	public static function sanitize_string($mail) {
+	public static function sanitize_string(string $mail): ?string {
 		return preg_replace('/[^a-zA-Z0-9.\-]/', '', $mail);
 	}
 
-	public static function log_to_files(string $dir, $symbols, $web_headers, $stringHeaders, $arrayHeaders): bool {
+	/**
+	 * @param string|false $symbols json_encode() of the mail's symbols
+	 * @param array<string, string> $web_headers getallheaders()
+	 * @param array<string, string|array<array-key, string>> $arrayHeaders Parser::getHeaders()
+	 */
+	public static function log_to_files(string $dir, string|false $symbols, array $web_headers, string $stringHeaders, array $arrayHeaders): bool {
 		if (!is_dir($dir)) {
 			self::logger()->warning("$dir does not exist");
 			if (!mkdir($dir, 0750, true)) {
@@ -767,7 +774,8 @@ class Helper {
 		return [];
 	}
 
-	public static function getReleaseText($ar): string {
+	/** @param array<string, mixed> $ar */
+	public static function getReleaseText(array $ar): string {
 		$ret = "The following mail has been released from quarantine storage
 and attached to this mail.
 
@@ -793,7 +801,8 @@ Action: {$ar['action']}
 		return $ret;
 	}
 
-	public static function getNotifyText($ar): string {
+	/** @param array<string, mixed> $ar */
+	public static function getNotifyText(array $ar): string {
 		$ret = "The following mail has been saved in our quarantine storage
 because our system has detected it as being high scored spam or that it contains a virus.
 
@@ -823,7 +832,8 @@ You can view mail details and optionally release it from quarantine by clicking 
 		return $ret;
 	}
 
-	public static function getAdminNotifyText($ar): string {
+	/** @param array<string, mixed> $ar */
+	public static function getAdminNotifyText(array $ar): string {
 		$ret = "Admin notification: the following mail has been saved in quarantine.
 
 Date: {$ar['created_at']}
