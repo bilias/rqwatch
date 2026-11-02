@@ -32,11 +32,6 @@ parameters:
 
 	ignoreErrors:
 		-
-			identifier: return.type
-			message: '#^Method App\\Services\\MapService::findMapEntry\(\) should return App\\Models\\MapCombined\|App\\Models\\MapCustom\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			path: ../app/Services/MapService.php
-			count: 1
-		-
 			identifier: deadCode.unreachable
 			path: ../app/Core/Database/Migrations/IdActionIndex.php
 			count: 2

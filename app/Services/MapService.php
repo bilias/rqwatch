@@ -62,7 +62,12 @@ class MapService
 		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
 	}
 
-	protected function applyUserRcptToScope($query): Builder {
+	/**
+	 * @template TModel of \Illuminate\Database\Eloquent\Model
+	 * @param Builder<TModel> $query
+	 * @return Builder<TModel>
+	 */
+	protected function applyUserRcptToScope(Builder $query): Builder {
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
 		}
@@ -78,7 +83,7 @@ class MapService
 
 		// own entries, plus entries created by an admin if USER_CAN_SEE_ADMIN_MAP_ENTRIES
 		if (Config::get('USER_CAN_SEE_ADMIN_MAP_ENTRIES')) {
-			$query = $query->where(function ($q) {
+			$query = $query->where(function (Builder $q) {
 				$q->where('user_id', $this->user_id)
 					->orWhereIn('user_id', User::where('is_admin', 1)->select('id'));
 			});
