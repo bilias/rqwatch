@@ -168,6 +168,7 @@ class MapService
 		}
 	}
 
+	/** @return Collection<int, CustomMapConfig> */
 	public static function getCustomMapConfigs(): Collection {
 		$query = CustomMapConfig::select(CustomMapConfig::SELECT_FIELDS)
 								  ->orderBy('map_name', 'ASC')
@@ -1343,6 +1344,7 @@ class MapService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
+		/** @var MapCombined|MapCustom|null $map_entry */
 		$map_entry = $query->first();
 
 		// entry not found
