@@ -21,7 +21,7 @@ use Throwable;
 class Config {
 	/** @var array<string, mixed> */
 	private static array $vars = [];
-	private static ?LoggerInterface $logger = null;
+	private static LoggerInterface $logger;
 
 	public static function setLogger(LoggerInterface $logger): void {
 		self::$logger = $logger;
