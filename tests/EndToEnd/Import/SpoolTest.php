@@ -108,6 +108,7 @@ final class SpoolTest extends EndToEndTestCase
 	private static function withDatabaseUnreachable(callable $fn): void {
 		$env = (string) getenv('E2E_ROOT') . '/.env';
 		$original = (string) file_get_contents($env);
+		/** @var resource $probe a free loopback port: binding port 0 does not fail */
 		$probe = stream_socket_server('tcp://127.0.0.1:0');
 		$closed = (int) explode(':', (string) stream_socket_get_name($probe, false))[1];
 		fclose($probe);

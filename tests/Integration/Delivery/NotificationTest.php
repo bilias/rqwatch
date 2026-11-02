@@ -199,6 +199,7 @@ final class NotificationTest extends IntegrationTestCase
 	private static function recipients(int $id): array {
 		$stmt = self::db()->prepare('SELECT recipient_email FROM mail_log_recipients WHERE mail_log_id = ? ORDER BY recipient_email');
 		$stmt->execute([$id]);
+		/** @var list<string> */
 		return $stmt->fetchAll(PDO::FETCH_COLUMN);
 	}
 

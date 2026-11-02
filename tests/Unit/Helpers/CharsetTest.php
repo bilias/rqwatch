@@ -57,19 +57,19 @@ final class CharsetTest extends UnitTestCase
 	}
 
 	public function testDeclaredCharsetFirst(): void {
-		$koi8 = iconv('UTF-8', 'KOI8-R', 'Привет');
+		$koi8 = (string) iconv('UTF-8', 'KOI8-R', 'Привет');
 		Config::set('mail_fallback_charset', 'Windows-1253');
 		$this->assertSame('Привет', Helper::toUtf8($koi8, ['koi8-r']));
 	}
 
 	public function testConfiguredFallback(): void {
-		$cp1253 = iconv('UTF-8', 'Windows-1253', 'Γειά');
+		$cp1253 = (string) iconv('UTF-8', 'Windows-1253', 'Γειά');
 		Config::set('mail_fallback_charset', 'Windows-1253');
 		$this->assertSame('Γειά', Helper::toUtf8($cp1253));
 	}
 
 	public function testDefaultFallbackIsWindows1252(): void {
-		$this->assertSame('Café', Helper::toUtf8(iconv('UTF-8', 'Windows-1252', 'Café')));
+		$this->assertSame('Café', Helper::toUtf8((string) iconv('UTF-8', 'Windows-1252', 'Café')));
 	}
 
 	public function testUnusableCharsetsEndInScrub(): void {

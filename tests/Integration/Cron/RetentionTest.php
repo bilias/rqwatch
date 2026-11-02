@@ -71,9 +71,9 @@ final class RetentionTest extends IntegrationTestCase
 	public function testQuarantinePrune(): void {
 		$q = getenv('INTEGRATION_ROOT') . '/q';
 		$days = self::quarantineDays() + 50;
-		$day = date('Y-m-d', strtotime("-{$days} days"));
+		$day = date('Y-m-d', (int) strtotime("-{$days} days"));
 		$group = self::mail($days, location: "{$q}/{$day}/unknown/" . bin2hex(random_bytes(6)) . '/mail.eml');
-		$keepDay = date('Y-m-d', strtotime('-' . ($days + 1) . ' days'));
+		$keepDay = date('Y-m-d', (int) strtotime('-' . ($days + 1) . ' days'));
 		mkdir("{$q}/{$keepDay}", 0750, true);
 		file_put_contents("{$q}/{$keepDay}/stray.txt", 'not in the database');
 
@@ -173,7 +173,7 @@ final class RetentionTest extends IntegrationTestCase
 	 */
 	private static function mail(int $days, string $server = 'mx1', ?string $location = null): array {
 		$qid = 'RET' . strtoupper(bin2hex(random_bytes(5)));
-		$day = date('Y-m-d', strtotime("-{$days} days"));
+		$day = date('Y-m-d', (int) strtotime("-{$days} days"));
 		$location ??= getenv('INTEGRATION_ROOT') . "/q/{$day}/{$qid}/mail.eml";
 		if (!is_dir(dirname($location))) {
 			mkdir(dirname($location), 0750, true);
@@ -190,7 +190,7 @@ final class RetentionTest extends IntegrationTestCase
 
 	private static function insert(string $qid, int $days, string $server, ?string $location): int {
 		$db = self::db();
-		$created = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+		$created = date('Y-m-d H:i:s', (int) strtotime("-{$days} days"));
 		$db->prepare('INSERT INTO mail_logs (qid, server, subject, score, action, ip, mail_from, mime_from, rcpt_to, mime_to, size, mail_stored, mail_location, created_at)
 			VALUES (?, ?, ?, 15, \'reject\', \'192.0.2.20\', \'old@example.net\', \'old@example.net\', \'carol@example.org\', \'carol@example.org\', 100, ?, ?, ?)')
 			->execute([$qid, $server, $qid, $location !== null ? 1 : 0, $location, $created]);
@@ -205,7 +205,7 @@ final class RetentionTest extends IntegrationTestCase
 	/** A fuzzy record unchanged for $days, with one hit on scoping mail 101. */
 	private static function fuzzy(int $days, string $server = 'mx1', ?int $mailLogId = null): int {
 		$db = self::db();
-		$at = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+		$at = date('Y-m-d H:i:s', (int) strtotime("-{$days} days"));
 		$db->prepare('INSERT INTO mail_log_fuzzy (mail_log_id, qid, api_server, flag, weight, hashes, learned_by, created_at, updated_at)
 			VALUES (?, ?, ?, 1, 1, \'[]\', \'retention-test\', ?, ?)')
 			->execute([$mailLogId, 'RETFUZZY', $server, $at, $at]);
