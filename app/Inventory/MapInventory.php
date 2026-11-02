@@ -310,6 +310,7 @@ class MapInventory
 			}
 
 			// check role 'access' in map config
+			/** @var array{map_form: class-string, fields?: list<string>, access?: list<string>} $config map_form is a ::class constant in every config */
 			$config = $configs[$map];
 			$isUser = $role === 'user';
 			if (in_array($role, $config['access'] ?? ['admin'], true)) {

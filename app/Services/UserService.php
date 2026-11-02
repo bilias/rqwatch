@@ -320,6 +320,7 @@ class UserService
 				->whereIn('rcpt_to', $addresses);
 
 			// map names while the rows still exist
+			/** @var list<string> $affected distinct map_name values */
 			$affected = (clone $query)->distinct()->pluck('map_name')->all();
 
 			$deleted = $query->delete();

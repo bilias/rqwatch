@@ -267,7 +267,7 @@ class MapHitController extends ViewController
 	 * The outcome filters of a map's mails list (?action=, ?released=1,
 	 * ?notified=1), as [service filters, Active Filters lines, query params]
 	 *
-	 * @return array{array<string, string|bool>, list<array{filter: string, choice: string, value: string}>, array<string, string|int>}
+	 * @return array{array{action?: string, released?: bool, notified?: bool}, list<array{filter: string, choice: string, value: string}>, array<string, string|int>}
 	 */
 	private function outcomeQuery(): array {
 		$outcome = [];

@@ -695,6 +695,7 @@ class MailLogService
 	public function getPaginatedByIds(array $ids, string $url, int $page = 1): LengthAwarePaginator {
 		try {
 			if (!$this->is_admin && $ids !== []) {
+				/** @var list<int> $ids */
 				$ids = $this->applyUserScope(MailLog::select('id')->whereIn('id', $ids))
 					->orderBy('id', 'DESC')->pluck('id')->all();
 			}
@@ -881,6 +882,7 @@ class MailLogService
 			foreach (array_keys(VirusService::WINDOWS) as $window) {
 				$counts[$window] = (int) $r->{$window};
 			}
+			/** @var array{today: int, yesterday: int, week: int, month: int} $counts every WINDOWS key, filled above */
 			if ((int) $r->fail === 1) {
 				$failures[] = $row + ['windows' => $counts];
 				continue;
@@ -927,6 +929,7 @@ class MailLogService
 
 		$this->scopeVirusQuery($query, $filters);
 
+		/** @var list<int> pluck() is 0-indexed and map() keeps the keys */
 		return $query->orderBy('v.mail_log_id', 'DESC')
 			->limit($this->max_items)
 			->pluck('mail_log_id')
@@ -985,6 +988,7 @@ class MailLogService
 
 		try {
 			// pluck() goes through toBase(), so no eager loads fire here
+			/** @var list<int> $ids */
 			$ids = $idQuery->pluck('id')->all();
 
 			$logs = $this->paginateIds($ids, $url, $page);

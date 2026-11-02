@@ -243,6 +243,7 @@ class MapHitService
 			}
 			$ids = $query->pluck('id')->all();
 			if ($ids !== []) {
+				/** @var list<array{int, int}> pluck() is 0-indexed and array_map() keeps the keys */
 				return array_map(fn ($id) => [self::ENTRY_COMBINED, (int) $id], $ids);
 			}
 		}
@@ -521,6 +522,7 @@ class MapHitService
 			->where('entry_id', $entryId);
 		self::dayWindow($query, $days);
 
+		/** @var list<int> pluck() is 0-indexed and map() keeps the keys */
 		return $query
 			->orderBy('mail_log_id', 'DESC')
 			->distinct()
@@ -770,6 +772,7 @@ class MapHitService
 			->where('entry_model', self::ENTRY_NONE);
 		self::dayWindow($query, $days);
 
+		/** @var list<int> pluck() is 0-indexed and map() keeps the keys */
 		return $query
 			->orderBy('mail_log_id', 'DESC')
 			->distinct()

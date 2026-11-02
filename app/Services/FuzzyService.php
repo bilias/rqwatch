@@ -152,6 +152,7 @@ class FuzzyService
 			// not its own learn
 			->where(fn (Builder $q) => $q->whereNull('mail_log_id')->orWhere('mail_log_id', '<>', $mailLogId));
 
+		/** @var list<array{id: int, mail_log_id: int|null, qid: string, flag: int}> get() is 0-indexed and map() keeps the keys */
 		return $query->orderBy('id')->get(['id', 'mail_log_id', 'qid', 'flag'])->toBase()
 			->map(fn ($r) => [
 				'id' => (int) $r->id,
@@ -482,6 +483,7 @@ class FuzzyService
 	// the mails that hit learned mail $fuzzyId, newest first
 	/** @return list<int> */
 	public function getHitMailIds(int $fuzzyId, int $limit): array {
+		/** @var list<int> pluck() is 0-indexed and map() keeps the keys */
 		return App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)
 			->where('fuzzy_id', $fuzzyId)
 			->orderBy('mail_log_id', 'DESC')
