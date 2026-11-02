@@ -49,6 +49,7 @@ class MapInventory
 	// also need to create child form class in app/Forms
 	// and add the Form use at top
 	// $withCustom = false: the built-in maps only, without a query
+	/** @return ($map is null ? array<string, array<string, mixed>> : array<string, mixed>|null) all configs by map name, or one map's config */
 	public static function getMapConfigs(?string $map = null, bool $withCustom = true): ?array {
 		$configs = [
 			'mail_from_rcpt_to_whitelist' => [
@@ -182,6 +183,7 @@ class MapInventory
 	}
 
 	// Reusable field definitions
+	/** @return ($field is null ? array<string, array<string, mixed>> : array<string, mixed>) all definitions by field, or one ([] if unknown) */
 	public static function getFieldDefinitions(?string $field = null): array {
 		$definitions = [
 			'mail_from' => [
@@ -292,13 +294,14 @@ class MapInventory
 		return $definitions;
 	}
 
+	/** @return ($map is null ? array<string, array<string, mixed>> : array<string, mixed>) the role's configs by map name, or one map's config ([] if not available) */
 	public static function getAvailableMapConfigs(
 		string $role = 'admin',
 		?string $map = null
 	): array {
 
 		// local map configs
-		$configs = self::getMapConfigs() ?? [];
+		$configs = self::getMapConfigs();
 
 		// map exists in config
 		if ($map !== null) {
@@ -335,6 +338,10 @@ class MapInventory
 		});
 	}
 
+	/**
+	 * @param array<string, array<string, mixed>> $configs
+	 * @return list<string> map names
+	 */
 	public static function getMapsByModel(string $model, array $configs): array {
 		if (!$model) {
 			return [];
@@ -350,6 +357,7 @@ class MapInventory
 	}
 
 	// map names of one model that the given role may manage
+	/** @return list<string> map names */
 	public static function getRoleMapsByModel(string $model, string $role): array {
 		return self::getMapsByModel($model, self::getAvailableMapConfigs($role));
 	}

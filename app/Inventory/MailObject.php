@@ -17,15 +17,18 @@ use PhpMimeMailParser\Parser;
 class MailObject
 {
 	private ?string $virus_found;
+	/** @var list<string> */
 	private array $symbols;
 	private bool $mail_stored;
 	private ?string $mail_location;
 	private string $htmlBody;
 	private string $textBody;
+	/** @var array<int, array{filename: string, filetype: string}> */
 	private array $attached = [];
 	private MailLog $maillog;
 	private Parser $parser;
 
+	/** @param array{log: MailLog, symbols: list<string>, virus_found: string|null, received: array<array-key, mixed>|null} $ar MailLogService::detail() */
 	public function __construct(array $ar) {
 		$this->virus_found = $ar['virus_found'];
 		$this->symbols = $ar['symbols'];
@@ -76,6 +79,7 @@ class MailObject
 		}
 	}
 
+	/** @return array<int, \PhpMimeMailParser\Attachment> */
 	public function getAttachments(): array {
 		return $this->parser->getAttachments();
 	}
@@ -88,6 +92,7 @@ class MailObject
 		return $this->htmlBody;
 	}
 
+	/** @return array<int, array{filename: string, filetype: string}> */
 	public function getAttached(): array {
 		return $this->attached;
 	}
@@ -100,6 +105,7 @@ class MailObject
 		return $this->virus_found;
 	}
 
+	/** @return list<string>|null */
 	public function getSymbols(): ?array {
 		return $this->symbols;
 	}
