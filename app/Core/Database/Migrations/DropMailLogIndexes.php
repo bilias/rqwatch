@@ -105,6 +105,7 @@ class DropMailLogIndexes extends AbstractMigration {
 	 TOI windows on Galera instead of one. DROP INDEX is metadata-only and
 	 near-instant: no rebuild, and reversible with CREATE INDEX.
 	*/
+	/** @param list<string> $indexes */
 	private function dropIndexes(array $indexes, OutputInterface $output): void {
 		$drops = array_map(
 			fn (string $index) => "DROP INDEX `{$index}`",
@@ -124,6 +125,7 @@ class DropMailLogIndexes extends AbstractMigration {
 
 	// only the indexes actually present, so a partially applied table does
 	// not fail on a missing one
+	/** @return list<string> */
 	private function presentIndexes(): array {
 		$present = [];
 

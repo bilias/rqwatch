@@ -130,6 +130,7 @@ class MailLogFuzzyHitsMails extends AbstractMigration {
 	}
 
 	// links one learned mail in windows of $batch days; returns the rows inserted
+	/** @param list<string> $hashes */
 	private function linkRecord(object $row, array $hashes, int $batch, int $sleep): int {
 		$db = $this->capsule->getConnection();
 

@@ -29,6 +29,7 @@ use Throwable;
 final class MigrationStatus
 {
 	// migration status/state cache
+	/** @var array<string, string|null> migration => status */
 	private array $stateCache = [];
 
 	private bool $cacheLoaded = false;
@@ -309,6 +310,7 @@ final class MigrationStatus
 		);
 	}
 
+	/** @return array<string, string|null> migration => status, null if not recorded */
 	public function getAllMigrationStates(): array {
 		$states = [];
 

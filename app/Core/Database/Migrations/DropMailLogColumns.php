@@ -166,6 +166,7 @@ class DropMailLogColumns extends AbstractMigration {
 	 stay in the existing pages until the table is rebuilt, which is what
 	 db:optimize_table is for.
 	*/
+	/** @param list<string> $columns */
 	private function dropColumnsInstant(array $columns, OutputInterface $output): bool {
 		try {
 			$this->alterTable(
@@ -199,6 +200,7 @@ class DropMailLogColumns extends AbstractMigration {
 	 but on a Galera cluster the DDL replicates under TOI and blocks writes
 	 cluster-wide for the duration regardless.
 	*/
+	/** @param list<string> $columns */
 	private function dropColumnsInplace(array $columns, OutputInterface $output): void {
 		$output->writeln(
 			"<question>Rebuilding " . AppConfig::MAIL_LOGS_TABLE
@@ -222,6 +224,7 @@ class DropMailLogColumns extends AbstractMigration {
 	 Only the columns actually present, so a partially dropped table does
 	 not fail on a missing one.
 	*/
+	/** @return list<string> */
 	private function presentColumns(): array {
 		$present = [];
 

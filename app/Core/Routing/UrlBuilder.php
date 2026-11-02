@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class UrlBuilder
 {
+	/** @param array<string, mixed> $parameters route parameters */
 	public static function generate(
 		UrlGeneratorInterface $urlGenerator,
 		RouteName $route,

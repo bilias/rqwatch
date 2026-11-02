@@ -139,6 +139,7 @@ class OptimizeTable extends RqwatchCliCommand
 		return $bytes . $unit;
 	}
 
+	/** @return list<string> */
 	private static function tables(): array {
 		return [
 			AppConfig::MAIL_LOGS_TABLE,

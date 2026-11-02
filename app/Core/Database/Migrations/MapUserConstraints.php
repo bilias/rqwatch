@@ -192,6 +192,7 @@ class MapUserConstraints extends AbstractMigration {
 	 live in the generated file. Raw SQL rather than MapService: no migration
 	 in this tree touches a model or a service.
 	*/
+	/** @param array<array-key, mixed> $map_names empty and duplicate names are dropped */
 	private function bumpMapActivity(array $map_names): void {
 		$map_names = array_values(array_unique(array_filter($map_names)));
 

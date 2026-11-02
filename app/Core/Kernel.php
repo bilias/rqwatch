@@ -142,6 +142,7 @@ final class Kernel
 		}
 	}
 
+	/** @param array<string, mixed> $extra_cached_data */
 	private function bootConfig(array $extra_cached_data): void {
 		// load (and cache) configuration
 		Config::loadConfig(

@@ -42,6 +42,7 @@ use Throwable;
 class Router
 {
 
+	/** @param list<class-string> $defaultMiddlewareClasses */
 	public function dispatch(
 			RouteCollection $routes,
 			// array $middlewareMap,
@@ -236,6 +237,7 @@ class Router
 			Helper::failRequest("Routes misconfigured.");
 		}
 
+		// @phpstan-ignore booleanOr.alwaysFalse, isset.variable, isset.variable (defensive: Routes::load() is typed now, guard kept against a broken edit)
 		if (!isset($routes) || !isset($defaultMiddlewareClasses)) {
 			$fileLogger->error("Routes loading failed: routes or middleware missing from Routes::load()");
 

@@ -26,6 +26,7 @@ use RuntimeException;
 
 class Database {
 
+	/** @var array<string, list<string>> table => columns */
 	private static array $schema = [];
 	private static bool $schemaLoaded = false;
 
@@ -201,6 +202,7 @@ class Database {
 		self::getDbSchema($capsule);
 	}
 
+	/** @return array<string, list<string>> table => columns */
 	private static function getDbSchema(
 		Capsule $capsule
 	): array {

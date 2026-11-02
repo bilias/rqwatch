@@ -58,6 +58,7 @@ class Authorization
 		return new RedirectResponse($homeUrl);
 	}
 
+	/** @return array<string, mixed> */
 	private function getLogContext(Request $request): array {
 		return array(
 			'method' => $request->getMethod(),

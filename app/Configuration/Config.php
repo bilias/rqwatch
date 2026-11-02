@@ -19,6 +19,7 @@ use Throwable;
 
 // Store selected config vars in a static array
 class Config {
+	/** @var array<string, mixed> */
 	private static array $vars = [];
 	private static ?LoggerInterface $logger = null;
 
@@ -26,6 +27,7 @@ class Config {
 		self::$logger = $logger;
 	}
 
+	/** @param array<string, mixed> $vars */
 	public static function init(array $vars): void {
 		self::$vars = $vars;
 	}
@@ -38,11 +40,13 @@ class Config {
 		self::$vars[$key] = $value;
 	}
 
+	/** @return array<string, mixed> */
 	public static function getAll(): array {
 		return self::$vars;
 	}
 
 	// Loads variables from a config file and returns only new vars defined inside it
+	/** @return array<string, mixed> variable name => value */
 	public static function loadConfigFile(string $path): array {
 		if (!file_exists($path)) {
 			return [];
@@ -68,6 +72,7 @@ class Config {
 	}
 
 	// Load and merge default + local config files, then init Config
+	/** @param array<string, mixed> $extras */
 	public static function loadAndInit(
 		string $defaultConfigPath,
 		?string $localConfigPath = null,
@@ -82,6 +87,7 @@ class Config {
 		self::init($merged);
 	}
 
+	/** @param array<string, mixed> $extras */
 	public static function loadAndInitWithRedisCache(
 		RedisCache $redis,
 		string $defaultConfigPath,
@@ -131,6 +137,7 @@ class Config {
 		}
 	}
 
+	/** @param array<string, mixed> $extras */
 	public static function loadConfig(
 		LoggerInterface $fileLogger,
 		?RedisCache $cache,

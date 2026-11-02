@@ -18,6 +18,7 @@ use App\Core\Middleware\Authorization;
 
 class Routes
 {
+	/** @return array{routes: RouteCollection, defaultMiddlewareClasses: list<class-string>} */
 	public static function load(): array {
 		// Routes system
 		$routes = new RouteCollection();
