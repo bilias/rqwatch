@@ -77,7 +77,7 @@ class MapSelectForm extends AbstractType
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,
-			$data = null,
+			?array $data = null,
 			array $options = []): FormInterface {
 
 		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
