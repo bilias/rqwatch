@@ -37,11 +37,6 @@ parameters:
 			path: ../app/Services/MapService.php
 			count: 1
 		-
-			message: '#^Call to an undefined method Traversable<mixed, mixed>::reverse\(\)\.$#'
-			identifier: method.notFound
-			path: ../app/Charts/ChartBuilder.php
-			count: 2
-		-
 			message: '#^Call to an undefined method Twig\\Loader\\LoaderInterface::addPath\(\)\.$#'
 			identifier: method.notFound
 			path: ../app/Controllers/ViewController.php
