@@ -129,7 +129,11 @@ class AuthManager
 
 	public function getOpenIdConnectLogoutUrl(): ?string {
 		$provider = new OpenIDConnectAuth($this->logger);
-		$provider->setUrlGenerator($this->urlGenerator);
+		if ($this->urlGenerator) {
+			$provider->setUrlGenerator($this->urlGenerator);
+		} else {
+			throw new RuntimeException("Logging interface problem");
+		}
 
 		return $provider->getLogoutUrl();
 	}
