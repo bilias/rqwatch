@@ -175,6 +175,11 @@ class CronNotifications extends RqwatchCliCommand
 
 		if (!empty($virusPatterns)) {
 			$matched = [];
+			/**
+			 * partition() always returns two collections: the matches, then the rest
+			 * @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\MailLog> $removedLogs
+			 * @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\MailLog> $logs
+			 */
 			[$removedLogs, $logs] = $logs->partition(function ($log) use ($virusPatterns, &$matched) {
 				$pattern = Helper::virusSkipMatch($log->symbols ?? [], $virusPatterns);
 				if ($pattern === null) {
@@ -394,6 +399,11 @@ class CronNotifications extends RqwatchCliCommand
 			return 1;
 		}
 
+		/**
+		 * partition() always returns two collections: the matches, then the rest
+		 * @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\MailLog> $skipped
+		 * @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\MailLog> $logs
+		 */
 		[$skipped, $logs] = $logs->partition(fn ($log) =>
 			(!$send_blacklisted && Helper::checkForBlacklist($log->symbols ?? []))
 			|| ($log->score > $notification_score
