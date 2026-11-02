@@ -54,7 +54,7 @@ class ApiClient
 	}
 
 
-	/** @param array<string, string> $headers */
+	/** @param array<string, string|list<string>> $headers a list repeats the header */
 	public function postToRspamd(string $url, string $body, array $headers, float $timeout): ResponseInterface
 	{
 		return $this->client->request('POST', $url, [

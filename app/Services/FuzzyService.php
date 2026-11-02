@@ -81,10 +81,12 @@ class FuzzyService
 			&& !empty($api_servers[$server]['fuzzy_url']);
 	}
 
-	/*
+	/**
 	 * The fuzzy lists of $fuzzy_learn_flags, keyed by flag:
 	 * [flag => ['label' => ..., 'symbol' => ..., 'weight' => ...]].
 	 * Invalid entries are logged and left out.
+	 *
+	 * @return array<int, array{label: string, symbol: string, weight: int}>
 	 */
 	public static function flags(): array {
 		$flags = [];
@@ -113,6 +115,7 @@ class FuzzyService
 	}
 
 	// list labels by rspamd symbol name (upper case), for showing hits in listings
+	/** @return array<string, string> */
 	public static function symbolLabels(): array {
 		$labels = [];
 		foreach (self::flags() as $entry) {
@@ -123,9 +126,11 @@ class FuzzyService
 		return $labels;
 	}
 
-	/*
+	/**
 	 * Learned records the stored mail $mailLogId hit on arrival: those holding
 	 * a digest from its fuzzy_hashes. As [['id', 'mail_log_id', 'qid', 'flag']].
+	 *
+	 * @return list<array{id: int, mail_log_id: int|null, qid: string, flag: int}>
 	 */
 	public function matchedBy(int $mailLogId): array {
 		$hashes = MailLogData::where('mail_log_id', $mailLogId)->value('fuzzy_hashes');
@@ -186,10 +191,12 @@ class FuzzyService
 		return $deleted;
 	}
 
-	/*
+	/**
 	 * Newest first, or by last hit ($sort 'hit'): $search in the QID, learned by
 	 * or server, or a hash prefix. Also the records sharing a digest with a QID
 	 * match (its "Shared with").
+	 *
+	 * @return LengthAwarePaginator<int, MailLogFuzzy>
 	 */
 	public function searchLearnedPaginated(string $search, string $url, int $page, int $perPage, string $sort = 'learned'): LengthAwarePaginator {
 		$like = '%' . addcslashes($search, '%_\\') . '%';
@@ -219,6 +226,7 @@ class FuzzyService
 	}
 
 	// newest first, or by last hit ($sort 'hit'); rows outlive their mail_logs row
+	/** @return LengthAwarePaginator<int, MailLogFuzzy> */
 	public function getLearnedPaginated(string $url, int $page, int $perPage, string $sort = 'learned'): LengthAwarePaginator {
 		return self::sortLearned(MailLogFuzzy::query(), $sort)
 			->paginate($perPage, ['*'], 'page', $page)
@@ -359,11 +367,16 @@ class FuzzyService
 	}
 
 	// digests of $row that other learned mails also have
+	/** @return list<string> */
 	public function sharedHashes(MailLogFuzzy $row): array {
 		return $this->hashesHeldByOthers((array) $row->hashes, (int) $row->getKey());
 	}
 
 	// per row id: the other learned mails sharing any of its hashes, oldest first
+	/**
+	 * @param iterable<MailLogFuzzy> $rows
+	 * @return array<int, list<array{id: int, qid: string, mail_log_id: int|null, flag: int}>> row id => others
+	 */
 	public function sharedWith(iterable $rows): array {
 		$hashes = [];
 		foreach ($rows as $row) {
@@ -409,10 +422,12 @@ class FuzzyService
 		return $shared;
 	}
 
-	/*
+	/**
 	 * Count a hit on every learned mail holding one of $hashes, once per
 	 * incoming mail $mailLogId, and link the two. $at is the incoming mail's
 	 * created_at (null: now). Never throws: a failure here must not cost the import.
+	 *
+	 * @param array<array-key, mixed> $hashes the mail's fuzzy_hashes; non-digests are dropped
 	 */
 	public function recordHits(int $mailLogId, array $hashes, ?string $at, string $qid): void {
 		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT,
@@ -461,6 +476,7 @@ class FuzzyService
 	}
 
 	// the mails that hit learned mail $fuzzyId, newest first
+	/** @return list<int> */
 	public function getHitMailIds(int $fuzzyId, int $limit): array {
 		return App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)
 			->where('fuzzy_id', $fuzzyId)
@@ -472,6 +488,10 @@ class FuzzyService
 	}
 
 	// the subset of $hashes held by learned mails other than $exceptId
+	/**
+	 * @param array<array-key, string> $hashes
+	 * @return list<string>
+	 */
 	private function hashesHeldByOthers(array $hashes, ?int $exceptId = null): array {
 		return array_values(array_filter($hashes, function ($hash) use ($exceptId): bool {
 			$query = MailLogFuzzy::whereRaw('JSON_CONTAINS(hashes, JSON_QUOTE(?))', [(string) $hash]);
@@ -482,10 +502,12 @@ class FuzzyService
 		}));
 	}
 
-	/*
+	/**
 	 * Holders of $row's digests when none of them is in $row's list: rspamd
 	 * keeps such a digest on unlearn, and with it $row's list slot, which only
 	 * deleting the whole digest removes. As [['qid', 'flag']], empty if none.
+	 *
+	 * @return list<array{qid: string, flag: int}>
 	 */
 	public function orphanedSlotHolders(MailLogFuzzy $row): array {
 		$hashes = array_values(array_unique(array_filter((array) $row->hashes, 'is_string')));
@@ -662,6 +684,7 @@ class FuzzyService
 		throw new FuzzyException($body, FuzzyError::Upstream);
 	}
 
+	/** @param array<array-key, string> $hashes */
 	private function deleteHashes(string $server, array $hashes, int $flag, string $qid): void {
 		$this->call($server, '/fuzzydelhash', '', [
 			'Flag' => (string) $flag,
@@ -669,9 +692,12 @@ class FuzzyService
 		], $qid);
 	}
 
-	/*
+	/**
 	 * POST to the local rspamd controller. Returns the decoded JSON reply,
 	 * throws on transport errors and non-200 replies.
+	 *
+	 * @param array<string, string|list<string>> $headers a list repeats the header (Hash)
+	 * @return array<array-key, mixed>
 	 */
 	private function call(string $server, string $path, string $body, array $headers, string $qid): array {
 		$lf = "[FuzzyService_call]";
@@ -711,6 +737,7 @@ class FuzzyService
 	}
 
 	// /fuzzyadd the stored mail; returns the hashes rspamd reports
+	/** @return array<array-key, string> */
 	private function fuzzyAdd(MailLog $maillog, int $flag, int $weight, string $lf): array {
 		$qid = (string) $maillog->qid;
 		$location = (string) $maillog->mail_location;
@@ -745,6 +772,7 @@ class FuzzyService
 	}
 
 	// the configured list for $flag; refuses flags not in $fuzzy_learn_flags
+	/** @return array{label: string, symbol: string, weight: int} */
 	private function flagEntry(int $flag, string $qid): array {
 		$flags = self::flags();
 

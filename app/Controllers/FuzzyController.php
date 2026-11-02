@@ -314,6 +314,7 @@ class FuzzyController extends ViewController
 		return null;
 	}
 
+	/** @param LengthAwarePaginator<int, MailLogFuzzy> $learned */
 	private function renderList(FuzzyService $fuzzy, LengthAwarePaginator $learned, FormInterface $qidform, ?string $search, string $sort = 'learned'): Response {
 		$searchForm = FuzzySearchForm::create($this->formFactory, $this->request, $this->urlGenerator,
 			$search !== null ? ['search' => $search] : null);
