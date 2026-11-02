@@ -217,7 +217,7 @@ class QuarantineController extends ViewController
 		$recipient = $tokenRow->recipient_email;
 
 		if ($_ENV['MY_API_SERVER_ALIAS'] === $maillog->server) {
-			$released = $service->releaseHtmlMail([$recipient], $maillog, $this->twig);
+			$released = $service->releaseHtmlMail([$recipient], $maillog);
 		} else {
 			$released = $service->releaseMailViaApi([$recipient], $maillog->id, $maillog->server, $recipient);
 		}

@@ -45,8 +45,8 @@ use RuntimeException;
 
 class ViewController extends Controller
 {
-	protected ?Environment $twig = null;
-	protected ?FormFactoryInterface $formFactory = null;
+	protected Environment $twig;
+	protected FormFactoryInterface $formFactory;
 
 	protected int $refresh_rate;
 	protected int $items_per_page;
@@ -61,7 +61,8 @@ class ViewController extends Controller
 	}
 
 	final public function twigView(): Environment {
-		if (!$this->twig ) {
+		/** @psalm-suppress RedundantPropertyInitializationCheck $twig is built lazily here, not in the constructor */
+		if (!isset($this->twig)) {
 			$cache = AppConfig::TWIG_CACHE_PATH;
 
 			/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
@@ -248,7 +249,8 @@ class ViewController extends Controller
 	}
 
 	public function twigFormView(Request $request): Environment {
-		if (!$this->twig ) {
+		/** @psalm-suppress RedundantPropertyInitializationCheck $twig is built lazily here, not in the constructor */
+		if (!isset($this->twig)) {
 			$this->twigView();
 		}
 			

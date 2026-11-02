@@ -57,7 +57,7 @@ class Controller
 	//private RouteCollection $routes;     // $this->route to access it
 
 	protected Request $request;
-	protected ?Session $session = null;
+	protected Session $session;
 	protected FlashBagInterface $flashbag;
 	protected UrlGeneratorInterface $urlGenerator;
 
@@ -146,7 +146,7 @@ class Controller
 		$this->session->invalidate();
 		session_unset();
 		session_destroy();
-		$this->session = null;
+		unset($this->session);
 		$this->unsetSessionVars();
 	}
 
