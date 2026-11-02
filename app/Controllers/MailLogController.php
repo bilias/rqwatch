@@ -951,7 +951,7 @@ class MailLogController extends ViewController
 			}
 
 			// get all emails from user (primary + aliases)
-			$emails = array_unique(array_filter(array_map('strtolower', array_merge([$this->email], $this->user_aliases))));
+			$emails = array_unique(array_filter(array_map('strtolower', array_merge([(string) $this->email], $this->user_aliases))));
 			// split DB recipients into array
 			$rcptToList = array_map(fn($e) => strtolower(trim($e)), explode(',', $maillog->mail_recipients));
 			// split form's original recipients
