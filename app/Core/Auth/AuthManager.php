@@ -22,13 +22,14 @@ use RuntimeException;
 class AuthManager
 {
 	private ?AuthInterface $provider = null;
+	/** @var int<0, 2> key of $authProviders */
 	private int $providerId = 0;
 	private ?string $providerDescr = null;
 	private LoggerInterface $logger;
 	private ?UrlGeneratorInterface $urlGenerator = null;
 	private ?string $redirectUrl = null;
 
-	/** @var array<int, string> */
+	/** @var array{0: 'DB', 1: 'LDAP', 2: 'OPENIDC'} */
 	public static array $authProviders = [
 		0 => 'DB',
 		1 => 'LDAP',
@@ -137,6 +138,7 @@ class AuthManager
 		return $this->providerDescr;
 	}
 
+	/** @return int<0, 2> */
 	public function getAuthProviderId(): int {
 		return $this->providerId;
 	}
