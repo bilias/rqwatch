@@ -68,6 +68,7 @@ class Controller
 	protected ?string $username = null;
 	protected ?int $user_id = null;
 	protected ?string $email = null;
+	/** @var array<int, string> */
 	protected array $user_aliases = [];
 
 	public function __construct() {
@@ -153,6 +154,7 @@ class Controller
 		$this->urlGenerator = $urlGenerator;
 	}
 
+	/** @param array<string, mixed> $parameters route parameters */
 	protected function url(RouteName $route, array $parameters = []): string {
 		return UrlBuilder::generate($this->urlGenerator, $route, $parameters);
 	}
@@ -164,6 +166,7 @@ class Controller
 		return 'user';
 	}
 
+	/** @return array<int, string> the user's email and aliases, deduplicated (keys kept) */
 	public function getUserEmailAddresses(): array {
 		return array_unique(array_filter(array_merge([$this->email], $this->user_aliases)));
 	}
@@ -199,6 +202,7 @@ class Controller
 	}
 	*/
 
+	/** @return array<string, mixed> API server => its decoded rspamd stat reply */
 	public function getRspamdStat(): array {
 		if (!$this->is_admin || Config::get('rspamd_stat_disable')) {
 			return [];
@@ -289,6 +293,7 @@ class Controller
 		return null;
 	}
 
+	/** @return array{ttl: int|string|null, ttl_human: string|null, expires_at: string|null} */
 	protected function getRedisConfigTTLData(): array {
 		$ttl = $this->getRedisConfigTTL();
 		if ($ttl === null || $ttl < 0) {
@@ -307,6 +312,7 @@ class Controller
 		];
 	}
 
+	/** @return array{is_admin: bool, username: string|null, user_id: int|null, email: string|null, user_aliases: array<int, string>} */
 	protected function getUserContext(): array {
 		return [
 			'is_admin' => $this->is_admin,
@@ -353,6 +359,7 @@ class Controller
 	}
 
 	// flashes for a rendered page, admin warnings included
+	/** @return array<string, list<mixed>> type => messages */
 	protected function getFlashes(): array {
 		$this->getAdminWarnings();
 		return $this->flashbag->all();

@@ -567,6 +567,7 @@ class UserController extends ViewController
 		]));
 	}
 
+	/** @return list<string> */
 	private function getMailAliases(User $user): array {
 		/*
 		$mail_aliases = [];

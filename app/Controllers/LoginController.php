@@ -356,6 +356,10 @@ class LoginController extends ViewController
 		return new RedirectResponse($url);
 	}
 
+	/**
+	 * @param array<array-key, mixed> $externalAliases from the auth provider; non-strings are dropped
+	 * @return list<string>
+	 */
 	private static function getMailAliases(
 		User $user,
 		array $externalAliases = []

@@ -263,9 +263,11 @@ class MapHitController extends ViewController
 		]));
 	}
 
-	/*
+	/**
 	 * The outcome filters of a map's mails list (?action=, ?released=1,
 	 * ?notified=1), as [service filters, Active Filters lines, query params]
+	 *
+	 * @return array{array<string, string|bool>, list<array{filter: string, choice: string, value: string}>, array<string, string|int>}
 	 */
 	private function outcomeQuery(): array {
 		$outcome = [];
@@ -306,6 +308,7 @@ class MapHitController extends ViewController
 	}
 
 	// every map, as map name => [model, symbols]
+	/** @return array<string, array{mixed, list<string>}> map name => [model, symbols] */
 	private function maps(): array {
 		$symbols = MapService::mapSymbols();
 

@@ -1462,7 +1462,8 @@ class MailLogController extends ViewController
 		return $totals;
 	}
 
-	private function mailReportsEnabled($filters): bool {
+	/** @param array<array-key, array<string, mixed>> $filters */
+	private function mailReportsEnabled(array $filters): bool {
 		if (!Config::get('show_mail_reports')) {
 			return false;
 		}
@@ -1486,7 +1487,8 @@ class MailLogController extends ViewController
 		return true;
 	}
 
-	private function mailStatsEnabled($filters): bool {
+	/** @param array<array-key, array<string, mixed>> $filters */
+	private function mailStatsEnabled(array $filters): bool {
 		if (!Config::get('show_mail_stats')) {
 			return false;
 		}

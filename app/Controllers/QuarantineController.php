@@ -135,7 +135,8 @@ class QuarantineController extends ViewController
 		[$tokenRow, $error] = $this->resolveToken($handle, 'token_view');
 
 		if ($tokenRow === null) {
-			return $error;
+			// never null here; ?? only because Psalm loses the pairing on destructuring
+			return $error ?? $this->tokenError();
 		}
 
 		$service = $this->getScopedService($tokenRow);
@@ -175,7 +176,8 @@ class QuarantineController extends ViewController
 		[$tokenRow, $error] = $this->resolveToken($handle, 'token_release');
 
 		if ($tokenRow === null) {
-			return $error;
+			// never null here; ?? only because Psalm loses the pairing on destructuring
+			return $error ?? $this->tokenError();
 		}
 
 		$service = $this->getScopedService($tokenRow);
@@ -248,12 +250,14 @@ class QuarantineController extends ViewController
 		);
 	}
 
-	/*
+	/**
 	 * Shared validation for the two POST actions.
 	 *
 	 * Returns [MailLogToken, null] on success or [null, Response] to return.
 	 * Every failure renders the same page, so a caller cannot tell whether a
 	 * token was unknown, expired, or the CSRF check failed.
+	 *
+	 * @return array{MailLogToken, null}|array{null, Response}
 	 */
 	private function resolveToken(string $handle, string $csrfId): array {
 		if (!MailTokenService::isEnabled()) {

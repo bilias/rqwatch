@@ -13,6 +13,8 @@ namespace App\Controllers;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+
 use App\Core\Routing\RouteName;
 use App\Configuration\Config;
 
@@ -1201,11 +1203,14 @@ class MapController extends ViewController
 		]));
 	}
 
-	/*
+	/**
 	 * Per entry on a page of map entries: distinct mails in the longest hits
 	 * window and the last hit; null before the map hits migration.
+	 *
+	 * @param LengthAwarePaginator<int, \App\Models\MapCombined>|LengthAwarePaginator<int, \App\Models\MapCustom>|null $entries
+	 * @return array<int, array{hits: int, last: string|null}>|null
 	 */
-	private function pageEntryHits(string $model, $entries): ?array {
+	private function pageEntryHits(string $model, ?LengthAwarePaginator $entries): ?array {
 		if ($entries === null || !MapService::mapHitsEnabled()) {
 			return null;
 		}
@@ -1321,6 +1326,7 @@ class MapController extends ViewController
 		return 'Deleted user';
 	}
 
+	/** @return array{\Symfony\Component\Form\FormInterface, RedirectResponse|null} */
 	private function handleMapSelectForm(string $model): array {
 		if ($model === 'MapCombined') {
 			$form_name = 'map_combined_form';
