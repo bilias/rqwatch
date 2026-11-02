@@ -57,11 +57,6 @@ parameters:
 			path: ../app/Controllers/Controller.php
 			count: 2
 		-
-			identifier: assign.propertyType
-			message: '#^Property App\\Models\\MailLog::\$release_date \(Carbon\\Carbon\|null\) does not accept string\.$#'
-			path: ../app/Services/MailLogService.php
-			count: 1
-		-
 			identifier: deadCode.unreachable
 			path: ../app/Core/Database/Migrations/IdActionIndex.php
 			count: 2

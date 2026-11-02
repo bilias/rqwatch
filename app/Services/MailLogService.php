@@ -1720,7 +1720,7 @@ class MailLogService
 
 		if ($send_mail) {
 			$maillog->released = 1;
-			$maillog->release_date = date("Y-m-d H:i:s");
+			$maillog->setAttribute('release_date', date("Y-m-d H:i:s"));
 			$maillog->save();
 			return true;
 		}
