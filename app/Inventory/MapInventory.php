@@ -365,6 +365,11 @@ class MapInventory
 
 	// canonical text form of an IP or CIDR network; anything unparseable is returned unchanged
 	public static function canonicalIpOrCidr(string $value): string {
+		/**
+		 * explode() returns at least one string; only the second element is padding
+		 * @var string $ip
+		 * @var string|null $prefix
+		 */
 		[$ip, $prefix] = array_pad(explode('/', $value, 2), 2, null);
 		if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
 			return $value;
@@ -384,6 +389,11 @@ class MapInventory
 			return;
 		}
 
+		/**
+		 * explode() returns at least one string; only the second element is padding
+		 * @var string $ip
+		 * @var string|null $prefix
+		 */
 		[$ip, $prefix] = array_pad(explode('/', $value, 2), 2, null);
 		$bin = filter_var($ip, FILTER_VALIDATE_IP) !== false ? inet_pton($ip) : false;
 

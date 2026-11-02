@@ -330,6 +330,11 @@ class MapHitService
 		$ids = [];
 
 		foreach ($networks as $id => $network) {
+			/**
+			 * explode() returns at least one string; only the second element is padding
+			 * @var string $net
+			 * @var string|null $len
+			 */
 			[$net, $len] = array_pad(explode('/', (string) $network, 2), 2, null);
 			$bin = filter_var($net, FILTER_VALIDATE_IP) !== false ? inet_pton($net) : false;
 			if ($bin === false || $addr === false || strlen($bin) !== strlen($addr)
