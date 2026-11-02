@@ -835,6 +835,9 @@ class MapController extends ViewController
 
 			$service = $this->getMapService();
 
+			// defence in depth: editMapEntry() already rejects non-admin MapCustom
+			$adminMapCustom = $this->is_admin && $model === 'MapCustom';
+
 			// add entry
 			if ($model === 'MapCombined') {
 				// has applyUseScope
@@ -845,8 +848,7 @@ class MapController extends ViewController
 					$this->flashbag->add('error', "Entry '{$entry_str}' update in Map {$mapdescr} failed");
 					return new RedirectResponse($this->getMapEditEntryUrl($map, $id));
 				}
-			// @phpstan-ignore booleanAnd.leftAlwaysTrue, identical.alwaysTrue (defence in depth: editMapEntry() already rejects non-admin MapCustom)
-			} elseif ($this->is_admin && $model === 'MapCustom') {
+			} elseif ($adminMapCustom) {
 				//if($service->updateMapCustomEntry($map, $data[$fields[0]])) {
 				if($service->updateMapCustomEntry($map, $data)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' updated in Map '{$mapdescr}'");
