@@ -8,10 +8,11 @@
 # Integration tests: runs a copy of this checkout against a throwaway MariaDB
 # loaded with contrib/db-init.sql and tests/Integration/fixtures.sql, serves
 # it with php -S (the UI through the router, the mail APIs from a second
-# server without it) and runs tests/Integration: route protection and API
-# access (Access/), a smoke pass over every route (Smoke/), the retention
-# crons through bin/cli.php (Cron/), data scoping (Scoping/), and release (web
-# and API), notifications and password-less links into Mailpit (Delivery/).
+# server without it) and runs tests/Integration: route protection, API
+# access and the login throttle (Access/), a smoke pass over every route
+# (Smoke/), the retention crons through bin/cli.php (Cron/), data scoping
+# (Scoping/), and release (web and API), notifications and password-less
+# links into Mailpit (Delivery/).
 # Your .env, config.local.php and databases are never touched.
 #
 # Redis is off (REDIS_ENABLE=false) unless INTEGRATION_REDIS=1 or
@@ -79,6 +80,7 @@ write_env -e "s#^WEB_HOST=.*#WEB_HOST=127.0.0.1:${WEB_PORT}#" \
 	-e "s#^WEB_SCHEME=.*#WEB_SCHEME=http#" \
 	-e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
 	-e "s#^FAILED_LOGIN_TIMEOUT=.*#FAILED_LOGIN_TIMEOUT=0#" \
+	-e "s/^#LOGIN_IPS_WHITELIST=$/LOGIN_IPS_WHITELIST=/" \
 	-e "s#^DB_HOST=.*#DB_HOST=${DB_HOST}#" \
 	-e "s#^DB_PORT=.*#DB_PORT=${DB_PORT}#" \
 	-e "s#^DB_NAME=.*#DB_NAME=rqwatch#" \
