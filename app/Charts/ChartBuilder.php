@@ -68,9 +68,11 @@ class ChartBuilder {
 	public static function createQuarantineChart(iterable $days, ?callable $dayUrl = null, array $totals = []): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
-		$days = is_array($days)
-			? array_reverse($days)
-			: $days->reverse();
+		$days = array_reverse(
+			is_array($days)
+			? $days
+			: iterator_to_array($days, false)
+		);
 
 		$labels = [];
 		$data = [];
@@ -117,9 +119,11 @@ class ChartBuilder {
 	public static function createQuarantinePerMonthChart(iterable $months, ?callable $monthUrl = null, array $totals = []): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
-		$months = is_array($months)
-			? array_reverse($months)
-			: $months->reverse();
+		$months = array_reverse(
+			is_array($months)
+			? $months
+			: iterator_to_array($months, false)
+		);
 
 		$labels = [];
 		$data = [];
