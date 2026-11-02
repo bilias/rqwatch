@@ -46,9 +46,11 @@ class IdActionIndex extends AbstractMigration {
 		 Deliberately ignores $force -- a forced run would otherwise rebuild
 		 it under TOI every time.
 		*/
+		// @phpstan-ignore isset.offset (superseded: always set while Migrations::SUPERSEDED lists this migration)
 		if (isset(Migrations::SUPERSEDED[self::MIGRATION_NAME])) {
 			$superseded_by = Migrations::SUPERSEDED[self::MIGRATION_NAME];
 
+			// @phpstan-ignore booleanNot.alwaysTrue (isApplied() already returned at the top of run())
 			if (!$this->isApplied()) {
 				$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
 			}
@@ -62,6 +64,7 @@ class IdActionIndex extends AbstractMigration {
 			return true;
 		}
 
+		// @phpstan-ignore deadCode.unreachable (superseded: run() returns above while Migrations::SUPERSEDED lists this migration)
 		if ($this->verifySchema()) {
 			$output->writeln("<comment>Migration $details exists, recording status\n</comment>");
 			$this->recordMigrationStatus(Migrations::STATUS_COMPLETED);
@@ -97,6 +100,7 @@ class IdActionIndex extends AbstractMigration {
 		return true;
 	}
 
+	// @phpstan-ignore method.unused (superseded: only called from run()'s unreachable tail)
 	private function runMigration(): void {
 		$this->createIdActionIndex();
 
@@ -108,10 +112,12 @@ class IdActionIndex extends AbstractMigration {
 	}
 
 	protected function verifySchema(): bool {
+		// @phpstan-ignore isset.offset (superseded: always set while Migrations::SUPERSEDED lists this migration)
 		if (isset(Migrations::SUPERSEDED[self::MIGRATION_NAME])) {
 			return true;
 		}
 
+		// @phpstan-ignore deadCode.unreachable (superseded: verifySchema() returns true above)
 		return $this->hasIndex(
 			AppConfig::MAIL_LOGS_TABLE,
 			self::INDEX_ID_ACTION

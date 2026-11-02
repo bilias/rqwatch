@@ -29,21 +29,3 @@ parameters:
 	disableMigrationScan: true
 	squashedMigrationsPath:
 		- %currentWorkingDirectory%/contrib
-
-	ignoreErrors:
-		-
-			identifier: deadCode.unreachable
-			path: ../app/Core/Database/Migrations/IdActionIndex.php
-			count: 2
-		-
-			identifier: isset.offset
-			path: ../app/Core/Database/Migrations/IdActionIndex.php
-			count: 2
-		-
-			identifier: booleanNot.alwaysTrue
-			path: ../app/Core/Database/Migrations/IdActionIndex.php
-			count: 1
-		-
-			identifier: method.unused
-			path: ../app/Core/Database/Migrations/IdActionIndex.php
-			count: 1
