@@ -33,8 +33,8 @@ use App\Utils\FormHelper;
 class QidForm extends AbstractType
 {
 	#[\Override]
-	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
-        $formFactory
+	public function buildForm(FormBuilderInterface $builder, array $options): void {
+        $builder
             ->add('qid', TextType::class, [
                 'required' => true,
                 'label' => 'Go to message: ',

@@ -31,8 +31,8 @@ use App\Utils\FormHelper;
 class MailReleaseForm extends AbstractType
 {
 	#[\Override]
-	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
-        $formFactory
+	public function buildForm(FormBuilderInterface $builder, array $options): void {
+        $builder
             ->add('email', EmailType::class, [
                 'required' => false,
                 'disabled' => true,

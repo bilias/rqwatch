@@ -32,8 +32,8 @@ use App\Utils\FormHelper;
 class ProfileForm extends AbstractType
 {
 	#[\Override]
-	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
-		$formFactory
+	public function buildForm(FormBuilderInterface $builder, array $options): void {
+		$builder
 			->add('firstname', TextType::class, [
 				'required' => false,
 				'label' => 'First Name: ',
@@ -98,7 +98,7 @@ class ProfileForm extends AbstractType
 				'label' => 'Update',
 			]);
 
-			FormHelper::addNotificationsField($formFactory, $options['notifications_default']);
+			FormHelper::addNotificationsField($builder, $options['notifications_default']);
 	}
 
 	public static function create(

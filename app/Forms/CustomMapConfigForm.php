@@ -35,8 +35,8 @@ use App\Utils\FormHelper;
 class CustomMapConfigForm extends AbstractType
 {
 	#[\Override]
-	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
-        $formFactory
+	public function buildForm(FormBuilderInterface $builder, array $options): void {
+        $builder
             ->add('map_name', TextType::class, [
                 'required' => true,
                 'label' => 'Map Name: ',
@@ -118,7 +118,7 @@ class CustomMapConfigForm extends AbstractType
 
 		// only once the map hits migration has added the column
 		if ($options['map_symbols']) {
-			$formFactory->add('symbols', TextType::class, [
+			$builder->add('symbols', TextType::class, [
 				'required' => false,
 				'label' => 'Rspamd Symbols: ',
 				'help' => 'Symbols of the rspamd rules that read this map, comma-separated. Used for map hits.',
@@ -136,7 +136,7 @@ class CustomMapConfigForm extends AbstractType
 			]);
 		}
 
-		$formFactory->add('submit', SubmitType::class, [
+		$builder->add('submit', SubmitType::class, [
 			'label' => 'Submit',
 		]);
 	}

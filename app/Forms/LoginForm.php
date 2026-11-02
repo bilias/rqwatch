@@ -32,8 +32,8 @@ use App\Utils\FormHelper;
 class LoginForm extends AbstractType
 {
 	#[\Override]
-	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
-        $formFactory
+	public function buildForm(FormBuilderInterface $builder, array $options): void {
+        $builder
             ->add('username', TextType::class, [
                 'required' => true,
                 'label' => (Config::get('login_username_label') ?? 'E-mail') . ':',

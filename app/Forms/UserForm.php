@@ -39,8 +39,8 @@ use App\Utils\FormHelper;
 class UserForm extends AbstractType
 {
 	#[\Override]
-	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
-		$formFactory
+	public function buildForm(FormBuilderInterface $builder, array $options): void {
+		$builder
 			->add('username', TextType::class, [
 				'required' => true,
 				'label' => 'Username: ',
@@ -147,7 +147,7 @@ class UserForm extends AbstractType
 				'label' => $options['is_edit'] ? 'Update User' : 'Add User',
 			]);
 
-			FormHelper::addNotificationsField($formFactory, $options['notifications_default']);
+			FormHelper::addNotificationsField($builder, $options['notifications_default']);
 	}
 
 	public static function create(

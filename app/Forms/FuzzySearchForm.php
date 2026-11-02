@@ -35,8 +35,8 @@ class FuzzySearchForm extends AbstractType
 	public const string PATTERN = '/^[a-zA-Z0-9._+@-]+$/';
 
 	#[\Override]
-	public function buildForm(FormBuilderInterface $formFactory, array $options): void {
-		$formFactory
+	public function buildForm(FormBuilderInterface $builder, array $options): void {
+		$builder
 			->add('search', TextType::class, [
 				'required' => true,
 				'label' => 'Fuzzy search: ',

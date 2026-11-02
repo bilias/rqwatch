@@ -23,7 +23,6 @@
 	</stubs>
 
 	<issueHandlers>
-		<ParamNameMismatch errorLevel="suppress"/>
 		<RedundantCast errorLevel="suppress"/>
 
 		<!-- Laravel schema/query builder magic methods are poorly stubbed -->
