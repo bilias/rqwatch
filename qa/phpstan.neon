@@ -37,21 +37,6 @@ parameters:
 			path: ../app/Services/MapService.php
 			count: 1
 		-
-			message: '#^Call to an undefined method Symfony\\Component\\HttpFoundation\\Session\\SessionInterface::getFlashBag\(\)\.$#'
-			identifier: method.notFound
-			path: ../app/Core/Middleware/Authorization.php
-			count: 1
-		-
-			message: '#^Call to an undefined method Symfony\\Component\\HttpFoundation\\Session\\SessionInterface::getFlashBag\(\)\.$#'
-			identifier: method.notFound
-			path: ../app/Core/Middleware/AuthMiddleware.php
-			count: 1
-		-
-			message: '#^Property App\\Controllers\\Controller::\$(session|flashbag) \(.+\) does not accept Symfony\\Component\\HttpFoundation\\Session\\(SessionInterface|Flash\\FlashBagInterface)\.$#'
-			identifier: assign.propertyType
-			path: ../app/Controllers/Controller.php
-			count: 2
-		-
 			identifier: deadCode.unreachable
 			path: ../app/Core/Database/Migrations/IdActionIndex.php
 			count: 2

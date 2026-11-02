@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 use Psr\Log\LoggerInterface;
@@ -45,7 +46,9 @@ class AuthMiddleware
 			if (!$this->sessionStillValid($session)) {
 				$this->logger->info("Session of '" . $session->get('username') . "' ended: account changed");
 				$session->invalidate();
-				$session->getFlashBag()->add('error', 'Your account was changed, please log in again');
+				if ($session instanceof FlashBagAwareSessionInterface) {
+					$session->getFlashBag()->add('error', 'Your account was changed, please log in again');
+				}
 				return new RedirectResponse($this->urlGenerator->generate(RouteName::LOGIN->value));
 			}
 

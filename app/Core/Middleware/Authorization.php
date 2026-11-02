@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 
 use Psr\Log\LoggerInterface;
 
@@ -50,7 +51,10 @@ class Authorization
 		$requestPath = $request->getPathInfo();
 		$this->logger->warning("User '$username' tried to access '$requestPath' without admin authorization",
 			$this->getLogContext($request));
-		$request->getSession()->getFlashBag()->add('error', 'Permission denied');
+		$session = $request->getSession();
+		if ($session instanceof FlashBagAwareSessionInterface) {
+			$session->getFlashBag()->add('error', 'Permission denied');
+		}
 		return new RedirectResponse($homeUrl);
 	}
 

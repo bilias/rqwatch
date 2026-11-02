@@ -14,7 +14,7 @@ namespace App\Controllers;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
+use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -58,7 +58,7 @@ class Controller
 
 	protected Request $request;
 	protected ?Session $session = null;
-	protected FlashBag $flashbag;
+	protected FlashBagInterface $flashbag;
 	protected UrlGeneratorInterface $urlGenerator;
 
 	private ?string $homepageUrl = null;
@@ -103,8 +103,12 @@ class Controller
 			throw new RuntimeException("Session not initialized on request.");
 		}
 
-		$this->session = $request->getSession();
-		$this->flashbag = $this->session->getFlashBag();
+		$session = $request->getSession();
+		if (!$session instanceof Session) {
+			throw new RuntimeException("Session on request is not a Session.");
+		}
+		$this->session = $session;
+		$this->flashbag = $session->getFlashBag();
 
 		$this->setSessionVars($this->session);
 	}

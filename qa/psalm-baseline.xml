@@ -10,11 +10,6 @@
       <code><![CDATA[$units[$i]]]></code>
     </InvalidArrayOffset>
   </file>
-  <file src="app/Controllers/Controller.php">
-    <UndefinedInterfaceMethod>
-      <code><![CDATA[getFlashBag]]></code>
-    </UndefinedInterfaceMethod>
-  </file>
   <file src="app/Controllers/MailLogController.php">
     <RedundantCondition>
       <code><![CDATA[!empty($data['email_alt'])]]></code>
@@ -66,16 +61,6 @@
     <RedundantCondition>
       <code><![CDATA[ALLOW_DEGRADED_DB]]></code>
     </RedundantCondition>
-  </file>
-  <file src="app/Core/Middleware/AuthMiddleware.php">
-    <UndefinedInterfaceMethod>
-      <code><![CDATA[getFlashBag]]></code>
-    </UndefinedInterfaceMethod>
-  </file>
-  <file src="app/Core/Middleware/Authorization.php">
-    <UndefinedInterfaceMethod>
-      <code><![CDATA[getFlashBag]]></code>
-    </UndefinedInterfaceMethod>
   </file>
   <file src="app/Core/SessionManager.php">
     <InvalidNullableReturnType>
