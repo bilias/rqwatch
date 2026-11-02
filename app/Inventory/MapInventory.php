@@ -360,7 +360,11 @@ class MapInventory
 			return $value;
 		}
 
-		$ip = inet_ntop(inet_pton($ip));
+		$packed = inet_pton($ip);
+		$ip = $packed === false ? false : inet_ntop($packed);
+		if ($ip === false) {
+			return $value;
+		}
 		return $prefix === null ? $ip : "{$ip}/{$prefix}";
 	}
 

@@ -40,9 +40,6 @@
     </RedundantCondition>
   </file>
   <file src="app/Inventory/MapInventory.php">
-    <FalsableReturnStatement>
-      <code><![CDATA[$prefix === null ? $ip : "{$ip}/{$prefix}"]]></code>
-    </FalsableReturnStatement>
     <NullableReturnStatement>
       <code><![CDATA[$config]]></code>
     </NullableReturnStatement>
