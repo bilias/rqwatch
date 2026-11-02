@@ -37,7 +37,7 @@ final class Kernel
 	private LoggerInterface $fileLogger;
 	private LoggerInterface $syslogLogger;
 	private ?Capsule $capsule = null;
-	private ?MigrationStatus $migrationStatus = null;
+	private MigrationStatus $migrationStatus;
 	private bool $dbAvailable = false;
 	private ?RedisCache $cache = null;
 
@@ -195,10 +195,10 @@ final class Kernel
 	private function verifyDatabaseSchema(): void {
 		try {
 			// Unreachable: this is only called inside the dbAvailable
-			// branch, which implies both are set.
+			// branch, which implies the capsule is set.
 			// Only present because verifySchema() does not take nulls
 			// and fails static analysis
-			if ($this->capsule === null || $this->migrationStatus === null) {
+			if ($this->capsule === null) {
 				throw new RuntimeException(
 					"Schema verification reached without a database connection"
 				);
