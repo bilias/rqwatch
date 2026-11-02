@@ -42,6 +42,10 @@ class MailAlias extends Model
 		'alias',
 	];
 
+	/**
+	 * @phpstan-return BelongsTo<User, $this>
+	 * @psalm-return BelongsTo<User, self>
+	 */
 	public function user(): BelongsTo {
 		return $this->belongsTo(User::class);
 	}

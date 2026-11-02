@@ -65,19 +65,36 @@ class MapCombined extends Model
 		'ip',
 	];
 
+	/**
+	 * @phpstan-return BelongsTo<User, $this>
+	 * @psalm-return BelongsTo<User, self>
+	 */
 	public function user(): BelongsTo {
 		return $this->belongsTo(User::class);
 	}
 
 	// scopes
+	/**
+	 * @param Builder<self> $query
+	 * @param string $map
+	 * @return Builder<self>
+	 */
 	public function scopeForMap($query, $map): Builder {
 		return $query->where('map_name', $map);
 	}
 
+	/**
+	 * @param Builder<self> $query
+	 * @return Builder<self>
+	 */
 	public function scopeMailFromRcptTo($query): Builder {
 		return $query->whereNotNull('mail_from')->whereNotNull('rcpt_to');
 	}
 
+	/**
+	 * @param Builder<self> $query
+	 * @return Builder<self>
+	 */
 	public function scopeMailFrom($query): Builder {
 		return $query->whereNotNull('mail_from');
 	}

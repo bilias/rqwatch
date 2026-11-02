@@ -52,6 +52,11 @@ class MapCustom extends Model
 	];
 
 	// scopes
+	/**
+	 * @param Builder<self> $query
+	 * @param string $map
+	 * @return Builder<self>
+	 */
 	public function scopeForMap($query, $map): Builder {
 		return $query->where('map_name', $map);
 	}

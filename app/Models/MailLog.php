@@ -236,7 +236,7 @@ class MailLog extends Model
 		return $this->mimeFromDecoded = $this->getMailFrom();
 	}
 
-	private function getMailFrom() {
+	private function getMailFrom(): string {
 		return empty($this->mail_from) ? '' : (string) $this->mail_from;
 	}
 
@@ -284,6 +284,7 @@ class MailLog extends Model
 	 the attribute array, so the aliased value would be discarded. No key
 	 means no single mail to have recipients for, so return the alias.
 	*/
+	/** @param string|null $value raw attribute */
 	public function getMailRecipientsAttribute($value): string {
 		if ($this->getKey() === null) {
 			return (string) $value;
@@ -310,6 +311,7 @@ class MailLog extends Model
 	 parent key - HasMany::getResults() returns an empty collection
 	 without querying, which would blank rcpt_to on every report row.
 	*/
+	/** @param string|null $value raw attribute */
 	public function getRcptToAttribute($value): string {
 		if ($this->getKey() === null) {
 			return (string) $value;
@@ -395,14 +397,23 @@ class MailLog extends Model
 		}
 	}
 
+	/** @param string|null $value raw attribute */
 	public function getHeadersAttribute($value): ?string {
 		return $this->mailLogDataValue('headers');
 	}
 
+	/**
+	 * @param string|null $value raw attribute
+	 * @return array<array-key, mixed>|null decoded JSON (mail_log_data cast)
+	 */
 	public function getSymbolsAttribute($value): ?array {
 		return $this->mailLogDataValue('symbols');
 	}
 
+	/**
+	 * @param string|null $value raw attribute
+	 * @return array<array-key, mixed>|null decoded JSON (mail_log_data cast)
+	 */
 	public function getFuzzyHashesAttribute($value): ?array {
 		return $this->mailLogDataValue('fuzzy_hashes');
 	}

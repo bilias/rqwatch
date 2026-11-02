@@ -50,6 +50,10 @@ class CustomMapConfig extends Model
 		'created_at',
 	];
 
+	/**
+	 * @phpstan-return HasMany<MapCustom, $this>
+	 * @psalm-return HasMany<MapCustom, self>
+	 */
 	public function MapsCustom(): HasMany {
 		// map_name: foreign_key, local_key
 		return $this->hasMany(MapCustom::class, 'map_name', 'map_name')->orderBy('map_name', 'ASC');

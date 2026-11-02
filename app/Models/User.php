@@ -69,6 +69,7 @@ class User extends Model
 
 	// NULL follows user_notifications_default. Until its migration is
 	// completed the column is NOT NULL, and 0 means the same thing.
+	/** @param bool|null $value from the profile/user forms and user:add */
 	public function setDisableNotificationsAttribute($value): void {
 		if ($value === null
 			&& !App::migrationStatus()->userNotificationsDefaultCompleted()) {
@@ -83,6 +84,10 @@ class User extends Model
 		$this->attributes['disable_notifications'] = $value ? 1 : 0;
 	}
 
+	/**
+	 * @phpstan-return HasMany<MailAlias, $this>
+	 * @psalm-return HasMany<MailAlias, self>
+	 */
 	public function mailAliases(): HasMany {
 		return $this->hasMany(MailAlias::class)->orderBy('alias', 'ASC');
 	}
