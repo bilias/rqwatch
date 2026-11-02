@@ -21,6 +21,7 @@ use App\Inventory\MapInventory;
 use Psr\Log\LoggerInterface;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 use Throwable;
 
@@ -120,6 +121,7 @@ class MapHitService
 	 * antivirus symbols, by Helper::virusSkipMatch() as cron:notifications
 	 * applies them, as [[entry_model, id], ...]
 	 */
+	/** @return list<array{int, int}> */
 	private function virusSkipEntries(string $symbols): array {
 		$list = json_decode($symbols, true);
 		if (!is_array($list)) {
@@ -149,6 +151,10 @@ class MapHitService
 	}
 
 	// symbol name => [score, options] for the local rule symbols and those a map names
+	/**
+	 * @param array<string, list<string>> $symbolMaps symbol => maps naming it
+	 * @return array<string, array{score: float|null, options: list<scalar>}>
+	 */
 	private function wantedSymbols(string $symbols, array $symbolMaps): array {
 		$list = json_decode($symbols, true);
 		if (!is_array($list) || $list === []) {
@@ -185,6 +191,11 @@ class MapHitService
 	 * module "key:<check>:<+|->". An IP option also matches the longest
 	 * CIDR entry, as rspamd's radix maps do. Enabled entries only.
 	 */
+	/**
+	 * @param list<string> $maps
+	 * @param list<scalar> $options
+	 * @return list<array{int, int}>
+	 */
 	private function optionEntries(array $maps, array $options): array {
 		$builtin = MapInventory::getMapConfigs(null, false);
 
@@ -213,6 +224,11 @@ class MapHitService
 		return array_values($entries);
 	}
 
+	/**
+	 * @param list<string> $fields
+	 * @param list<string> $keys
+	 * @return list<array{int, int}>
+	 */
 	private function combinedEntries(string $map, array $fields, array $keys): array {
 		$table = App::capsule()->getConnection()->table(AppConfig::MAPS_COMBINED_TABLE);
 
@@ -241,6 +257,10 @@ class MapHitService
 	}
 
 	// a custom entry's key is its pattern up to the first whitespace
+	/**
+	 * @param list<string> $keys
+	 * @return list<array{int, int}>
+	 */
 	private function customEntries(string $map, array $keys): array {
 		$table = App::capsule()->getConnection()->table(AppConfig::MAPS_CUSTOM_TABLE);
 
@@ -277,6 +297,7 @@ class MapHitService
 	}
 
 	// custom entries carrying $name as their own symbol
+	/** @return list<array{int, int}> */
 	private function ownSymbolEntries(string $name): array {
 		$like = self::escapeLike($name);
 		$rows = App::capsule()->getConnection()->table(AppConfig::MAPS_CUSTOM_TABLE)
@@ -298,6 +319,10 @@ class MapHitService
 	}
 
 	// the entries of $networks (id => CIDR) with the longest prefix holding $ip
+	/**
+	 * @param array<int, string> $networks
+	 * @return list<array{int, int}>
+	 */
 	private function longestPrefix(string $ip, array $networks, int $model): array {
 		$addr = inet_pton($ip);
 		$best = -1;
@@ -343,6 +368,7 @@ class MapHitService
 	 * whitespace; the value after it reads "SYMBOL", "SYMBOL:score" or
 	 * "SYMBOL:score:options", or is a score.
 	 */
+	/** @return array{string, string|null} */
 	public static function customIdentity(string $pattern): array {
 		$pattern = trim($pattern);
 		$re = str_starts_with($pattern, '/') ? '~^(/.*/[A-Za-z]*)(?:\s+(\S+))?~s' : '~^(\S+)(?:\s+(\S+))?~';
@@ -410,7 +436,7 @@ class MapHitService
 	}
 
 	// the last $days days including today; null: no limit
-	private static function dayWindow($query, ?int $days, string $column = 'created_day'): void {
+	private static function dayWindow(QueryBuilder $query, ?int $days, string $column = 'created_day'): void {
 		if ($days !== null) {
 			// nosemgrep: rqwatch-raw-sql -- $column is a literal from the callers; days bound
 			$query->whereRaw("{$column} >= CURDATE() - INTERVAL ? DAY", [$days - 1]);
@@ -422,6 +448,7 @@ class MapHitService
 	 * the rows they have, so the result reflects the current maps and symbols.
 	 * Returns [last mail id, mails], last id null when no mail is left.
 	 */
+	/** @return array{int|null, int} */
 	public function backfillBatch(int $afterId, int $batch, ?int $days): array {
 		$db = App::capsule()->getConnection();
 
@@ -457,6 +484,10 @@ class MapHitService
 	 * Per entry of $ids: distinct mails in the last $days days and the day of
 	 * its last hit ever, as id => ['hits' => n, 'last' => day or null].
 	 */
+	/**
+	 * @param array<array-key, int|string> $ids
+	 * @return array<int, array{hits: int, last: string|null}>
+	 */
 	public function entryHits(int $model, array $ids, int $days): array {
 		$ids = array_values(array_unique(array_map('intval', $ids)));
 		$result = array_fill_keys($ids, ['hits' => 0, 'last' => null]);
@@ -483,6 +514,7 @@ class MapHitService
 	}
 
 	// mail ids credited to an entry in the last $days days (null: any day), newest first
+	/** @return list<int> */
 	public function entryHitMailIds(int $model, int $entryId, ?int $days, int $limit): array {
 		$query = App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE)
 			->where('entry_model', $model)
@@ -499,6 +531,10 @@ class MapHitService
 	}
 
 	// limit an entry query on $table to entries with no hit in the last $days days
+	/**
+	 * @template TModel of \Illuminate\Database\Eloquent\Model
+	 * @param Builder<TModel> $query
+	 */
 	public static function whereIdle(Builder $query, int $model, string $table, int $days): void {
 		$query->whereNotExists(function ($q) use ($model, $table, $days) {
 			$q->selectRaw('1')
@@ -510,6 +546,7 @@ class MapHitService
 	}
 
 	// one mail's recorded hits, as symbol name => [[entry_model, entry_id], ...]
+	/** @return array<string, list<array{int, int}>> */
 	public function mailHits(int $mailLogId): array {
 		$rows = App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE . ' as h')
 			->join(AppConfig::SYMBOL_NAMES_TABLE . ' as sn', 'sn.id', '=', 'h.symbol_id')
@@ -527,6 +564,10 @@ class MapHitService
 	}
 
 	// map name of each existing entry, as "model:id" => map name
+	/**
+	 * @param list<array{int, int}> $entries
+	 * @return array<string, string>
+	 */
 	public function entryMaps(array $entries): array {
 		$ids = [self::ENTRY_COMBINED => [], self::ENTRY_CUSTOM => []];
 		foreach ($entries as [$model, $id]) {
@@ -556,6 +597,10 @@ class MapHitService
 	 * ever. A map's hits are those of its symbols and those credited to its
 	 * entries (entries carrying their own symbol). $maps is map name =>
 	 * [model, symbols].
+	 */
+	/**
+	 * @param array<string, array{string, list<string>}> $maps
+	 * @return array<string, array{windows: array<int, int>, last: string|null}>
 	 */
 	public function mapHits(array $maps): array {
 		$ids = $this->existingSymbolIds(array_merge([], ...array_column($maps, 1)));
@@ -590,6 +635,10 @@ class MapHitService
 	 * ['windows' => [days => mails], 'last' => day], those hit in the longest
 	 * window only.
 	 */
+	/**
+	 * @param list<string> $mappedSymbols
+	 * @return array<string, array{windows: array<int, int>, last: string|null}>
+	 */
 	public function unmappedHits(array $mappedSymbols): array {
 		$mappedIds = array_values($this->existingSymbolIds($mappedSymbols));
 		$days = max(self::WINDOWS);
@@ -617,6 +666,11 @@ class MapHitService
 	 * Mail ids hit by a map in the last $days days (null: any day) or on
 	 * $day, newest first; $outcome limits them as mapOutcome() counts them:
 	 * 'action', 'released' => true, 'notified' => true.
+	 */
+	/**
+	 * @param list<string> $symbols
+	 * @param array{action?: string, released?: bool, notified?: bool} $outcome
+	 * @return list<int>
 	 */
 	public function mapHitMailIds(string $map, string $model, array $symbols, ?int $days, int $limit, array $outcome = [], ?string $day = null): array {
 		$symbolIds = array_values($this->existingSymbolIds($symbols));
@@ -646,6 +700,10 @@ class MapHitService
 	 * A map's distinct mails per day over the last $days days, oldest first,
 	 * days without hits included: day (Y-m-d) => mails
 	 */
+	/**
+	 * @param list<string> $symbols
+	 * @return array<string, int>
+	 */
 	public function mapDailyHits(string $map, string $model, array $symbols, int $days): array {
 		$db = App::capsule()->getConnection();
 		$symbolIds = array_values($this->existingSymbolIds($symbols));
@@ -670,6 +728,10 @@ class MapHitService
 	/*
 	 * How a map's mails of the last $days days ended up, per action: action
 	 * => ['mails' => n, 'released' => n, 'notified' => n], most mails first.
+	 */
+	/**
+	 * @param list<string> $symbols
+	 * @return array<string, array{mails: int, released: int, notified: int}>
 	 */
 	public function mapOutcome(string $map, string $model, array $symbols, int $days): array {
 		$symbolIds = array_values($this->existingSymbolIds($symbols));
@@ -696,6 +758,7 @@ class MapHitService
 	}
 
 	// mail ids with an uncredited hit of $symbol in the last $days days (null: any day), newest first
+	/** @return list<int> */
 	public function symbolHitMailIds(string $symbol, ?int $days, int $limit): array {
 		$id = $this->existingSymbolIds([$symbol])[$symbol] ?? null;
 		if ($id === null) {
@@ -720,6 +783,10 @@ class MapHitService
 	 * SQL selecting (created_day, mail_log_id) of a map's hits, as [sql,
 	 * bindings]: hits of its symbols, and hits credited to its entries.
 	 * $days null: no window; $day (Y-m-d): that day only, instead of $days.
+	 */
+	/**
+	 * @param list<int> $symbolIds
+	 * @return array{string, list<int|string>}
 	 */
 	private function mapHitsSource(string $map, string $model, array $symbolIds, ?int $days, ?string $day = null): array {
 		$hits = AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE;
@@ -756,6 +823,7 @@ class MapHitService
 			" DAY THEN {$alias}.mail_log_id END) AS d{$d}", self::WINDOWS));
 	}
 
+	/** @return array<int, int> window days => mails */
 	private static function windowValues(?object $row): array {
 		$values = [];
 		foreach (self::WINDOWS as $d) {
@@ -765,6 +833,10 @@ class MapHitService
 	}
 
 	// symbol name => symbol_names.id, for the names recorded so far
+	/**
+	 * @param array<array-key, string> $names
+	 * @return array<string, int>
+	 */
 	private function existingSymbolIds(array $names): array {
 		$names = array_values(array_unique($names));
 		if ($names === []) {
@@ -775,6 +847,10 @@ class MapHitService
 	}
 
 	// symbol name => symbol_names.id, adding the names not seen before
+	/**
+	 * @param list<string> $names
+	 * @return array<string, int>
+	 */
 	private function symbolIds(array $names): array {
 		$table = App::capsule()->getConnection()->table(AppConfig::SYMBOL_NAMES_TABLE);
 
