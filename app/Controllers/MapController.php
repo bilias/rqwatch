@@ -389,6 +389,7 @@ class MapController extends ViewController
 			return $response;
 		}
 
+		/** @var array<string, mixed> $customMapConfig */
 		$customMapConfig = $customMap->toArray();
 
 		$mapform = CustomMapConfigForm::create($this->formFactory, $this->request, $customMapConfig,
@@ -662,6 +663,7 @@ class MapController extends ViewController
 			// generate entry string for logs/flashbag
 			$pairs = [];
 			if ($config['model'] === 'MapCustom') {
+				/** @var array{role: string, map: string} $options MapCustom maps are admin-only (getAvailableMapConfigs) */
 				$field_db = MapService::getCustomField($options['map']);
 				$pairs[] = $field_db['field_label'] . ": " . $data[$field_db['field_name']];
 			} else {
@@ -825,6 +827,7 @@ class MapController extends ViewController
 			// generate entry string for logs/flashbag
 			$pairs = [];
 			if ($model === 'MapCustom') {
+				/** @var array{role: string, map: string, is_edit: true} $options MapCustom maps are admin-only (getAvailableMapConfigs) */
 				$field_db = MapService::getCustomField($options['map']);
 				$data['pattern'] = trim($data[$field_db['field_name']]);
 				//unset($data[$field_db['field_name']]);
@@ -956,6 +959,7 @@ class MapController extends ViewController
 			if ($fields) {
 				foreach ($fields as $field) {
 					if ($model === 'MapCustom') {
+						/** @var \App\Models\MapCustom $map_entry findMapEntry() returns the \$model it was asked for */
 						$field_db = MapService::getCustomField($map_entry->map_name);
 						$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
 					} else {
@@ -1261,6 +1265,7 @@ class MapController extends ViewController
 			if ($fields) {
 				foreach ($fields as $field) {
 					if ($model === 'MapCustom') {
+						/** @var \App\Models\MapCustom $map_entry findMapEntry() returns the \$model it was asked for */
 						$field_db = MapService::getCustomField($map_entry->map_name);
 						$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
 					} else {
