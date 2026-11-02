@@ -71,6 +71,7 @@ class MapService
 	 * @return Builder<TModel>
 	 */
 	protected function applyUserRcptToScope(Builder $query): Builder {
+		/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
 		}
@@ -172,6 +173,7 @@ class MapService
 	// USER_MAP_MAX_ENTRIES (0 = unlimited)
 	public function userMapQuotaReached(string $map_name): bool {
 		$max = (int) Config::get('USER_MAP_MAX_ENTRIES');
+		/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 		if ($max <= 0 || $this->is_admin || (defined('CLI_MODE') && CLI_MODE)) {
 			return false;
 		}

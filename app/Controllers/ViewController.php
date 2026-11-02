@@ -64,6 +64,7 @@ class ViewController extends Controller
 		if (!$this->twig ) {
 			$cache = AppConfig::TWIG_CACHE_PATH;
 
+			/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 			if (defined('CLI_MODE') && CLI_MODE) {
 				// crons run as root: never create root-owned dirs in the shared web cache
 				$cache = false;

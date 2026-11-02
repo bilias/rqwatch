@@ -235,6 +235,7 @@ final class Kernel
 	 no-argument case, where Symfony prints the list.
 	*/
 	private function migrationCommandRequested(): bool {
+		/** @psalm-suppress TypeDoesNotContainType CLI_MODE is defined per entry point */
 		if (!defined('CLI_MODE') || !CLI_MODE) {
 			return false;
 		}
@@ -306,6 +307,7 @@ final class Kernel
 		string $message,
 		int $status = Response::HTTP_SERVICE_UNAVAILABLE
 	): never {
+		/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 		if (defined('CLI_MODE') && CLI_MODE) {
 			fwrite(STDERR, $message . PHP_EOL);
 			exit(1);

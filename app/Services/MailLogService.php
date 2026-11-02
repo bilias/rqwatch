@@ -108,6 +108,7 @@ class MailLogService
 	 service built with no user context, which is every cron.
 	*/
 	private function adminFieldsAllowed(): bool {
+		/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return true;
 		}
@@ -1696,6 +1697,7 @@ class MailLogService
 	 * @return Builder<TModel>
 	 */
 	protected function applyUserScope(Builder $query): Builder {
+		/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
 		}
@@ -1727,6 +1729,7 @@ class MailLogService
 	 * @return Builder<MailLog>
 	 */
 	protected function applyRecipientScope(Builder $query): Builder {
+		/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
 		}

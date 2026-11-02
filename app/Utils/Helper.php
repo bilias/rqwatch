@@ -1436,6 +1436,7 @@ Mail details:
 		string $message,
 		int $status = Response::HTTP_INTERNAL_SERVER_ERROR
 	): never {
+		/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 		if (defined('CLI_MODE') && CLI_MODE) {
 			fwrite(STDERR, $message . PHP_EOL);
 			exit(1);
