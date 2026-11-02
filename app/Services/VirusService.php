@@ -46,6 +46,10 @@ class VirusService
 	}
 
 	// the search filters the report applies
+	/**
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return list<array<string, mixed>>
+	 */
 	public static function reportFilters(array $filters): array {
 		return array_values(array_filter(
 			$filters,
@@ -54,6 +58,10 @@ class VirusService
 	}
 
 	// the filters for display, the ignored ones marked
+	/**
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return array<array-key, array<string, mixed>>
+	 */
 	public static function markIgnoredFilters(array $filters): array {
 		return array_map(
 			fn ($f) => $f + ['ignored' => in_array($f['filter'] ?? null, self::IGNORED_FILTERS, true)],
@@ -106,9 +114,11 @@ class VirusService
 		}
 	}
 
-	/*
+	/**
 	 * One ['av', 'name'] per antivirus symbol and option, name '' when the
 	 * symbol has none; the same rows the MAIL_LOG_VIRUSES backfill extracts.
+	 *
+	 * @return list<array{av: string, name: string}>
 	 */
 	public static function extractViruses(mixed $symbols): array {
 		if (!is_array($symbols)) {

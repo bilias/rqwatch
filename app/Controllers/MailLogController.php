@@ -1523,6 +1523,7 @@ class MailLogController extends ViewController
 		return [];
 	}
 
+	/** @return array<array-key, array<string, mixed>> the search filters saved by saveFiltersToSession() */
 	private function getFiltersFromSession(): array {
 		$filters = $this->session->get('filters');
 		if (empty($filters)) {
@@ -1533,6 +1534,7 @@ class MailLogController extends ViewController
 		return is_array($decoded) ? $decoded : [];
 	}
 
+	/** @param array<array-key, array<string, mixed>> $filters */
 	private function saveFiltersToSession(array $filters): void {
 		$this->session->set('filters', json_encode(array_values($filters)));
 	}
