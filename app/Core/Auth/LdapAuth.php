@@ -111,6 +111,7 @@ class LdapAuth implements AuthInterface {
 		// mail by default
 		$filter = "({$ldap_login_attr}=".ldap_escape($this->username, "", LDAP_ESCAPE_FILTER).")";
 
+		/** @var \LDAP\Result|false $res one connection, so never the parallel-search array */
 		$res = ldap_search($ldap, $ldap_base, $filter, $ldap_attrs);
 
 		if ($res === false) {
