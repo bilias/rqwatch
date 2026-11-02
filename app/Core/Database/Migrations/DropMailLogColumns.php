@@ -172,7 +172,7 @@ class DropMailLogColumns extends AbstractMigration {
 				AppConfig::MAIL_LOGS_TABLE,
 				function (Blueprint $table) use ($columns) {
 					// one dropColumn() -> one comma-joined ALTER
-					$table->dropColumn($columns)->instant();
+					$table->dropColumn($columns)->set('instant', true);
 				}
 			);
 		} catch (QueryException $e) {

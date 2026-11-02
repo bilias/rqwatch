@@ -42,11 +42,6 @@ parameters:
 			path: ../app/Charts/ChartBuilder.php
 			count: 2
 		-
-			message: '#^Call to an undefined method Illuminate\\Support\\Fluent::instant\(\)\.$#'
-			identifier: method.notFound
-			path: ../app/Core/Database/Migrations/DropMailLogColumns.php
-			count: 1
-		-
 			message: '#^Call to an undefined method Twig\\Loader\\LoaderInterface::addPath\(\)\.$#'
 			identifier: method.notFound
 			path: ../app/Controllers/ViewController.php
