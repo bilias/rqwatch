@@ -70,12 +70,14 @@ class MailLogService
 	private ?bool $is_admin = null;
 	private ?string $username = null;
 	private ?string $email = null;
+	/** @var array<int, string>|null */
 	private ?array $user_aliases = null;
 
-	protected $items_per_page;
-	protected $q_items_per_page;
-	protected $max_items;
+	protected int $items_per_page;
+	protected int $q_items_per_page;
+	protected int $max_items;
 
+	/** @param array{is_admin?: bool|null, username?: string|null, user_id?: int|null, email?: string|null, user_aliases?: array<int, string>}|null $userContext */
 	public function __construct(?array $userContext = null) {
 		$this->logger = App::fileLogger();
 		$this->migrationStatus = App::migrationStatus();
@@ -113,6 +115,11 @@ class MailLogService
 		return (bool) $this->is_admin;
 	}
 
+	/**
+	 * @param Builder<MailLog> $query
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return Builder<MailLog>
+	 */
 	public function getQueryByFilters(Builder $query, array $filters): Builder {
 		if (!empty($filters)) {
 			$filters = FormHelper::getFilterByName($filters, $this->adminFieldsAllowed());
@@ -203,6 +210,10 @@ class MailLogService
 	}
 
 	// mail that is or was in quarantine (expired keeps mail_location)
+	/**
+	 * @param Builder<MailLog> $query
+	 * @return Builder<MailLog>
+	 */
 	private function whereEverStored(Builder $query): Builder {
 		// indexed generated column of the same expression, once migrated
 		if ($this->migrationStatus->everStoredCompleted()) {
@@ -223,6 +234,7 @@ class MailLogService
 	 0/1 use notified_index; any other operator compares the 0/1 expression.
 	 $c is always a FormHelper::getChoices() value.
 	*/
+	/** @param Builder<MailLog> $query */
 	private function filterByNotificationSkipped(Builder $query, string $c, mixed $v): void {
 		if (in_array($c, ['=', '<>'], true) && in_array((string) $v, ['0', '1'], true)) {
 			if (($c === '=') === ((string) $v === '1')) {
@@ -243,6 +255,7 @@ class MailLogService
 	 operator compares the EXISTS as 0/1. $c is always a
 	 FormHelper::getChoices() value.
 	*/
+	/** @param Builder<MailLog> $query */
 	private function filterByFuzzyHit(Builder $query, string $c, mixed $v): void {
 		$id = $query->qualifyColumn('id');
 		$exists = fn (QueryBuilder $q): QueryBuilder => $q->selectRaw('1')
@@ -269,6 +282,10 @@ class MailLogService
 	 Any other operator compares the EXISTS as 0/1. $c is always a
 	 FormHelper::getChoices() value.
 	*/
+	/**
+	 * @param Builder<MailLog> $query
+	 * @param list<array{mixed, mixed}> $days
+	 */
 	private function filterByMapHit(Builder $query, string $c, mixed $v, array $days): void {
 		$ids = [];
 		$names = array_keys(MapService::mappedSymbolSet());
@@ -323,6 +340,7 @@ class MailLogService
 	 MailRecipientsMigration is in Migrations::REQUIRED, so the relation is
 	 guaranteed populated at boot.
 	*/
+	/** @param Builder<MailLog> $query */
 	private function filterByRecipient(Builder $query, string $c, mixed $v): void {
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
 
@@ -371,6 +389,7 @@ class MailLogService
 	 break searching on those. On headers, which already takes the table
 	 default, the override is a no-op.
 	*/
+	/** @param Builder<MailLog> $query */
 	private function filterByMailLogData(Builder $query, string $f, string $c, mixed $v): void {
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
 
@@ -412,6 +431,10 @@ class MailLogService
 	 * $days are the search's Date filters, repeated on vf.created_day (the
 	 * mail's own day, so the result is the same): without them a contains
 	 * plus Date search walked mail_logs PRIMARY, 712 ms vs 3 ms measured.
+	 */
+	/**
+	 * @param Builder<MailLog> $query
+	 * @param list<array{mixed, mixed}> $days
 	 */
 	private function filterByVirus(Builder $query, string $c, mixed $v, array $days): void {
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
@@ -455,6 +478,10 @@ class MailLogService
 	 * mail_logs PRIMARY (contains + Date 567 ms; the ids 22 ms). = stays
 	 * utf8mb4_bin, exact like rspamd's names; the other operators compare
 	 * case-insensitively. $days as in filterByVirus().
+	 */
+	/**
+	 * @param Builder<MailLog> $query
+	 * @param list<array{mixed, mixed}> $days
 	 */
 	private function filterByLocalSymbol(Builder $query, string $c, mixed $v, array $days): void {
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
@@ -502,6 +529,7 @@ class MailLogService
 	 * which is the mail's own day: the result is the same, the plan a
 	 * range on the child's index.
 	 */
+	/** @param list<array{mixed, mixed}> $days choice and value of each Date filter */
 	private function whereDays(QueryBuilder $q, string $column, array $days): void {
 		foreach ($days as [$dc, $dv]) {
 			if ($dc === 'LIKE' || $dc === 'NOT LIKE') {
@@ -659,6 +687,10 @@ class MailLogService
 	 * max_items), fetched by primary key. For lists resolved elsewhere, such
 	 * as map hits; a non-admin keeps only the mails in their scope.
 	 */
+	/**
+	 * @param list<int> $ids
+	 * @return LengthAwarePaginator<int, MailLog>
+	 */
 	public function getPaginatedByIds(array $ids, string $url, int $page = 1): LengthAwarePaginator {
 		try {
 			if (!$this->is_admin && $ids !== []) {
@@ -672,6 +704,10 @@ class MailLogService
 		}
 	}
 
+	/**
+	 * @param list<int> $ids
+	 * @return LengthAwarePaginator<int, MailLog>
+	 */
 	private function paginateIds(array $ids, string $url, int $page): LengthAwarePaginator {
 		// already capped by the caller's limit
 		$total = count($ids);
@@ -725,6 +761,10 @@ class MailLogService
 	 * $informational keeps symbols that scored 0 in every mail; $sort is
 	 * 'mails' or 'score' (absolute average). Reads mail_log_data.symbols of
 	 * each mail, so the max_items cap bounds the cost.
+	 */
+	/**
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return array{int, list<string>, list<array<string, mixed>>, string|null}
 	 */
 	public function getSymbolsReport(array $filters, bool $informational, string $sort, int $limit, bool $local = false): array {
 		$idQuery = $this->applyUserScope(
@@ -810,6 +850,10 @@ class MailLogService
 	 * VirusService::WINDOWS: the top $limit names of each window, and the
 	 * scan failures (symbols ending in _FAIL, rspamd's default name)
 	 */
+	/**
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return array{array<string, list<array{virus: string, engines: string, mails: int}>>, list<array{virus: string, engines: string, windows: array<string, int>}>}
+	 */
 	public function getVirusReport(array $filters, int $limit): array {
 		$counts = [];
 		foreach (VirusService::WINDOW_SQL as $window => $condition) {
@@ -862,6 +906,10 @@ class MailLogService
 	 * max_items: $virus is the report's key (the name, or the antivirus symbol
 	 * when the name is empty), $fail the failures table
 	 */
+	/**
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return list<int>
+	 */
 	public function getVirusMailIds(array $filters, string $virus, string $window, bool $fail): array {
 		$query = App::capsule()->getConnection()
 			->table(AppConfig::MAIL_LOG_VIRUSES_TABLE . ' as v')
@@ -890,6 +938,7 @@ class MailLogService
 	 * query, unless an admin has no filters; nothing more in the subquery, or
 	 * the optimizer drives from mail_logs
 	 */
+	/** @param array<array-key, array<string, mixed>> $filters */
 	private function scopeVirusQuery(QueryBuilder $query, array $filters): void {
 		$filters = VirusService::reportFilters($filters);
 		if ($filters !== [] || !$this->is_admin) {
@@ -903,6 +952,10 @@ class MailLogService
 		return (int) ($e->errorInfo[1] ?? 0) === 1969;
 	}
 
+	/**
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return LengthAwarePaginator<int, MailLog>
+	 */
 	public function getPaginatedAll(
 		array $filters,
 		string $url,
@@ -949,6 +1002,10 @@ class MailLogService
 		return $logs;
 	}
 
+	/**
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return Collection<int, MailLog> aggregate rows
+	 */
 	public function getReports(
 		array $filters,
 		string $field,
@@ -1070,6 +1127,10 @@ class MailLogService
 	 later visit. The stats are the sole query on that route, so degrading
 	 them renders the filter list and its Remove links instead.
 	*/
+	/**
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return array<string, mixed>|null
+	 */
 	public function getStats(array $filters): ?array {
 		$lf = "MailLogService_getStats";
 
@@ -1089,6 +1150,10 @@ class MailLogService
 		}
 	}
 
+	/**
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return array<string, mixed>
+	 */
 	private function collectStats(array $filters): array {
 		$fields = ['id'];
 
@@ -1156,6 +1221,7 @@ class MailLogService
 		);
 	}
 
+	/** @return LengthAwarePaginator<int, MailLog> */
 	public function getPaginatedDay(?string $date, string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
 
@@ -1183,6 +1249,7 @@ class MailLogService
 			->withPath($url);
 	}
 
+	/** @return LengthAwarePaginator<int, MailLog> */
 	public function getPaginatedQuarantineDay(?string $date, string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
 
@@ -1210,6 +1277,7 @@ class MailLogService
 			->withPath($url);
 	}
 
+	/** @return LengthAwarePaginator<int, MailLog> */
 	public function getPaginatedQuarantineMonth(?string $month, string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
 
@@ -1248,6 +1316,7 @@ class MailLogService
 			->withPath($url);
 	}
 
+	/** @return LengthAwarePaginator<int, MailLog> rows of day and cnt */
 	public function getPaginatedQuarantine(string $url, int $page = 1): LengthAwarePaginator {
 		$query = MailLog::selectRaw('created_day as day, COUNT(*) as cnt');
 
@@ -1269,6 +1338,7 @@ class MailLogService
 			->withPath($url);
 	}
 
+	/** @return LengthAwarePaginator<int, MailLog> rows of month and cnt */
 	public function getPaginatedQuarantinePerMonth(string $url, int $page = 1): LengthAwarePaginator {
 		$query = MailLog::selectRaw("DATE_FORMAT(created_day, '%Y-%m') AS month, COUNT(*) as cnt");
 
@@ -1364,6 +1434,7 @@ class MailLogService
 		return $log;
 	}
 
+	/** @return array{log: MailLog, symbols: list<string>, virus_found: string|null, received: array<array-key, mixed>|null} */
 	public function detail(string $type, string|int $value): array {
 		$lf = "MailLogService_detail";
 
@@ -1606,6 +1677,7 @@ class MailLogService
 		return $mailobject;
 	}
 
+	/** @param array<int, \PhpMimeMailParser\Attachment> $attached */
 	public function getAttachment(array $attached, int $id): MailAttachment {
 		$lf = "MailLogService_getAttachment";
 
@@ -1650,6 +1722,10 @@ class MailLogService
 	 addresses only, not for co-recipients of mails addressed to them.
 	 Requires the mlr join, so the caller gates it on $field.
 	*/
+	/**
+	 * @param Builder<MailLog> $query
+	 * @return Builder<MailLog>
+	 */
 	protected function applyRecipientScope(Builder $query): Builder {
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
@@ -1665,6 +1741,7 @@ class MailLogService
 	}
 
 	// twig can be null, it will be created
+	/** @param array<array-key, string> $release_to */
 	public function releaseHtmlMail(array $release_to, MailLog $maillog, ?Environment $twig = null): bool {
 		if (!MailerService::isConfigured()) {
 			$this->logger->error("[releaseHtmlMail] {$maillog->qid}: MAILER_DSN or MAILER_FROM is not set in .env");
@@ -1731,6 +1808,7 @@ class MailLogService
 		return false;
 	}
 
+	/** @param array<array-key, string> $release_to */
 	public function releaseMailViaApi(array $release_to, int $id, string $api_server, string $remote_user): bool {
 		$lf = "[releaseMailViaApi]";
 
@@ -1939,6 +2017,7 @@ class MailLogService
 	}
 
 	// one mail per admin address; admin_notified = 1 once any is sent
+	/** @param list<string> $admins */
 	public function notifyAdminHtmlMail(
 		MailLog $maillog,
 		UrlGeneratorInterface $urlGenerator,
@@ -2015,6 +2094,7 @@ class MailLogService
 	 notification_pending. Chunked to keep Galera write-sets small. A failure
 	 leaves them pending, so the next run retries.
 	*/
+	/** @param array<array-key, int|string> $ids */
 	public function markNotificationsSkipped(array $ids, string $column = 'notified'): int {
 		if (!in_array($column, ['notified', 'admin_notified'], true)) {
 			throw new InvalidArgumentException("Not a notification column: {$column}");
@@ -2259,19 +2339,23 @@ class MailLogService
 	 cannot match the row back to its parent, and silently resolves the
 	 relation to null on every row.
 	*/
+	/** @return list<string> */
 	private function getMailLogRecipientsRelation(): array {
 		return ['recipients'];
 	}
 
+	/** @return array<int|string, string|\Closure> */
 	public function getMailLogSymbolsRelations(): array {
 		return [...$this->recipientsRelation(), 'mailLogData:mail_log_id,symbols'];
 	}
 
+	/** @return array<int|string, string|\Closure> */
 	public function getMailLogRelations(): array {
 		return [...$this->recipientsRelation(), 'mailLogData'];
 	}
 
 	// non-admins see only their own envelope recipients, as in their mailbox
+	/** @return array<int|string, string|\Closure> */
 	private function recipientsRelation(): array {
 		// admins, CLI and system callers without user context (mail APIs) see all recipients
 		if ($this->adminFieldsAllowed() || $this->is_admin === null) {
@@ -2282,6 +2366,7 @@ class MailLogService
 		return ['recipients' => fn ($q) => $q->whereIn('recipient_email', $emails)];
 	}
 
+	/** @return array<int, string> */
 	private function getUserRecipientEmails(): array {
 			return array_filter(array_map(
 				fn ($e) => strtolower(trim((string) $e)),

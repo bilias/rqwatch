@@ -26,6 +26,10 @@ use Throwable;
  * @phpstan-property string|null $virus_name
  * @phpstan-property string|null $disabled_rcpt_to
  * @phpstan-property string|null $mime_from_normalized
+ * Aggregate aliases on the quarantine day and month rows (not columns):
+ * @phpstan-property-read int $cnt
+ * @phpstan-property-read string $day
+ * @phpstan-property-read string $month
  */
 class MailLog extends Model
 {
