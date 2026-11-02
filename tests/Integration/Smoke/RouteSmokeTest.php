@@ -78,7 +78,7 @@ final class RouteSmokeTest extends IntegrationTestCase
 	/** @return array<string, string> table => CHECKSUM TABLE result */
 	private static function checksums(): array {
 		$sums = [];
-		foreach (self::db()->query('CHECKSUM TABLE ' . implode(', ', self::TABLES))->fetchAll() as $row) {
+		foreach (self::db()->query('CHECKSUM TABLE ' . implode(', ', self::TABLES))->fetchAll() as $row) { // @phpstan-ignore method.nonObject (db() sets ERRMODE_EXCEPTION, so query() throws rather than returning false)
 			$sums[(string) $row['Table']] = (string) $row['Checksum'];
 		}
 		return $sums;

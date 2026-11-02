@@ -60,7 +60,7 @@ final class WebClient
 	private function request(string $path, ?array $fields): array {
 		$ch = curl_init($this->baseUrl . $path);
 		$headers = [];
-		curl_setopt_array($ch, [
+		curl_setopt_array($ch, [ // @phpstan-ignore argument.type ($this->jar is the constructor's tempnam() path; empty only if tempnam() failed)
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_FOLLOWLOCATION => false,
 			// response headers, names lower-cased

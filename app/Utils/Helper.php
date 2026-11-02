@@ -920,7 +920,7 @@ Mail details:
 		$budget = AppConfig::DNS_MAX_RELAYS; // max DNS lookups per message
 		$relays = [];
 
-		foreach ($lines as $line) {
+		foreach ($lines as $line) { // @phpstan-ignore foreach.nonIterable (preg_split() is false only on a PCRE failure; foreach then warns and yields no relays)
 			if (stripos($line, 'Received:') !== 0) {
 				continue;
 			}

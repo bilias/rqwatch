@@ -137,7 +137,7 @@ class FuzzyService
 		if (is_string($hashes)) {
 			$hashes = json_decode($hashes, true);
 		}
-		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT,
+		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT, // @phpstan-ignore argument.type (preg_grep() is false only on a PCRE failure)
 			array_filter((array) $hashes, 'is_string'))));
 		if ($hashes === []) {
 			return [];
@@ -435,7 +435,7 @@ class FuzzyService
 	 * @param array<array-key, mixed> $hashes the mail's fuzzy_hashes; non-digests are dropped
 	 */
 	public function recordHits(int $mailLogId, array $hashes, ?string $at, string $qid): void {
-		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT,
+		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT, // @phpstan-ignore argument.type (preg_grep() is false only on a PCRE failure)
 			array_filter($hashes, 'is_string'))));
 		if ($hashes === []) {
 			return;
@@ -763,7 +763,7 @@ class FuzzyService
 		$hashes = $reply['hashes'] ?? null;
 
 		if (!is_array($hashes) || $hashes === [] ||
-			count(preg_grep(self::HASH_FORMAT, $hashes)) !== count($hashes)) {
+			count(preg_grep(self::HASH_FORMAT, $hashes)) !== count($hashes)) { // @phpstan-ignore argument.type (preg_grep() is false only on a PCRE failure)
 			$this->logger->error("{$lf} {$qid} unexpected fuzzyadd reply: " . json_encode($reply));
 			throw new FuzzyException("Unexpected reply from rspamd", FuzzyError::Upstream);
 		}

@@ -176,7 +176,7 @@ class ViewController extends Controller
 			$target = $newTab ? ' target="_blank" rel="noopener noreferrer"' : '';
 			$parts = preg_split('~(https?://[^\s<>"\']+)~i', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
 			$out = '';
-			foreach ($parts as $i => $part) {
+			foreach ($parts as $i => $part) { // @phpstan-ignore foreach.nonIterable (preg_split() is false only on a PCRE failure)
 				// even indexes: plain text, odd indexes: captured URLs
 				if ($i % 2 === 0) {
 					$out .= htmlspecialchars($part, ENT_QUOTES);
@@ -283,7 +283,7 @@ class ViewController extends Controller
 		// the path to TwigBridge library so Twig can locate the
 		// form_div_layout.html.twig file
       $appVariableReflection = new ReflectionClass('\Symfony\Bridge\Twig\AppVariable');
-      $vendorTwigBridgeDirectory = dirname($appVariableReflection->getFileName());
+      $vendorTwigBridgeDirectory = dirname($appVariableReflection->getFileName()); // @phpstan-ignore argument.type (AppVariable is a userland class, so getFileName() is a path)
 
 		$loader = $this->twig->getLoader();
 		if (!$loader instanceof FilesystemLoader) {

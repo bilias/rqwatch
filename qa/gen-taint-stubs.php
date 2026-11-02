@@ -195,7 +195,7 @@ function classHeader(ReflectionClass $c): string {
  */
 function imports(ReflectionClass $c): array {
 	$src = (string) file_get_contents((string) $c->getFileName());
-	$head = preg_split('/^\s*(?:final\s+|abstract\s+)?(?:class|interface|trait)\s/m', $src, 2)[0];
+	$head = preg_split('/^\s*(?:final\s+|abstract\s+)?(?:class|interface|trait)\s/m', $src, 2)[0]; // @phpstan-ignore offsetAccess.nonOffsetAccessible (preg_split() is false only on a PCRE failure)
 	preg_match_all('/^use\s+([^;(]+);/m', $head, $m);
 	return array_map('trim', $m[1]);
 }

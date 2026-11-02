@@ -580,7 +580,7 @@ class MapService
 			//$query = $query->where('pattern', $data[$map_fields[0]]);
 			// handle multi line entries
 			$lines = preg_split('/\r\n|\r|\n/', trim($data[$map_fields[0]]));
-			$values = array_unique(array_filter(array_map('trim', $lines)));
+			$values = array_unique(array_filter(array_map('trim', $lines))); // @phpstan-ignore argument.type (preg_split() is false only on a PCRE failure)
 			$query = $query->whereIn('pattern', $values);
 		} else {
 			throw new RuntimeException("Unknown map model");
@@ -660,7 +660,7 @@ class MapService
 		}
 
 		$files = glob($mapDir . DIRECTORY_SEPARATOR . '*.txt');
-		foreach ($files as $filePath) {
+		foreach ($files as $filePath) { // @phpstan-ignore foreach.nonIterable (glob() is false only on a filesystem error; foreach then warns and skips)
 			$fileName = pathinfo($filePath, PATHINFO_FILENAME); // map name
 			if (!in_array($fileName, $validMapNames, true)) {
 				unlink($filePath);
@@ -1029,7 +1029,7 @@ class MapService
 		$lines = preg_split('/\r\n|\r|\n/', trim($pattern));
 
 		// Remove empty lines and trim whitespace from each
-		$values = array_filter(array_map('trim', $lines));
+		$values = array_filter(array_map('trim', $lines)); // @phpstan-ignore argument.type (preg_split() is false only on a PCRE failure)
 
 		if (count($values) === 0) {
 			return false;

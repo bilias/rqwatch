@@ -210,7 +210,7 @@ class MailLogController extends ViewController
 			$filters[] = [
 				'filter' => 'Date',
 				'choice' => 'is less than or equal',
-				'value' => date('Y-m-t', strtotime("{$month}-01"))
+				'value' => date('Y-m-t', strtotime("{$month}-01")) // @phpstan-ignore argument.type ($month matched ^\d{4}-\d{2}$ and checkdate(), so strtotime() cannot fail)
 			];
 			$queryParams['month'] = $month;
 		}
@@ -1451,7 +1451,7 @@ class MailLogController extends ViewController
 		}
 
 		$from = min($keys) . '-01';
-		$to = date('Y-m-t', strtotime(max($keys) . '-01'));
+		$to = date('Y-m-t', strtotime(max($keys) . '-01')); // @phpstan-ignore argument.type (month keys are DATE_FORMAT() months, so strtotime() cannot fail)
 
 		$totals = [];
 		foreach ($service->getDailyTotals($from, $to) as $day => $total) {
