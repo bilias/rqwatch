@@ -70,6 +70,7 @@ class Router
 			$request->attributes->add($matcher->match($request->getPathInfo()));
 
 			$controllerResolver = new ControllerResolver();
+			/** @var callable $controller every route in Routes::load() sets _controller, so never false */
 			$controller = $controllerResolver->getController($request);
 
 			$argumentResolver = new ArgumentResolver();
@@ -133,6 +134,7 @@ class Router
 					) {
 						//$middleware = new $middlewareClass($urlGenerator);
 						// add logger in middleware
+						/** @var AuthMiddleware|Authorization $middleware the only classes in Routes::load()'s middleware lists */
 						$middleware = $this->resolveMiddleware($middlewareClass, $urlGenerator);
 						return $middleware->handle($request, $next);
 					};
