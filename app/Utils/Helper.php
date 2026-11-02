@@ -606,13 +606,14 @@ class Helper {
 		}
 
 		// symbols_array is string: pretty JSON (Psalm treats print_r() as an HTML sink)
-		$symbols_array = (string) json_encode(json_decode($symbols, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+		$symbols_array = (string) json_encode(json_decode((string) $symbols, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
 		// no credentials on disk: Basic Auth and the .env secrets Dotenv puts in $_SERVER
 		$redact = fn(string $key, $value) => preg_match('/_PW$|PASS|SECRET|DSN|AUTHORIZATION/i', $key) ? '[redacted]' : $value;
 
 		if (!$fp_web_headers = fopen("{$dir}/web_headers", "w")) {
 			self::logger()->error("Cannot open file ({$dir}/web_headers)");
+			return false;
 		}
 
 		foreach ($web_headers as $key => $value) {
@@ -622,6 +623,7 @@ class Helper {
 
 		if (!$fp_server = fopen("{$dir}/server", "w")) {
 			self::logger()->error("Cannot open file ({$dir}/server)");
+			return false;
 		}
 
 		foreach ($_SERVER as $key => $value) {
@@ -631,6 +633,7 @@ class Helper {
 
 		if (!$fp_symbols = fopen("{$dir}/symbols", "w")) {
 			self::logger()->error("Cannot open file ({$dir}/symbols)");
+			return false;
 		}
 
 		fwrite($fp_symbols, $symbols_array);
@@ -638,6 +641,7 @@ class Helper {
 
 		if (!$fp_headers = fopen("{$dir}/headers", "w")) {
 			self::logger()->error("Cannot open file ({$dir}/headers)");
+			return false;
 		}
 
 		fwrite($fp_headers, $stringHeaders);
@@ -645,6 +649,7 @@ class Helper {
 
 		if (!$fp_headers_ar = fopen("{$dir}/headers_ar", "w")) {
 			self::logger()->error("Cannot open file ({$dir}/headers_ar)");
+			return false;
 		}
 
 		foreach ($arrayHeaders as $key => $value) {
