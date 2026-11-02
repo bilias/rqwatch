@@ -25,12 +25,15 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class FormHelper
 {
-	/** @param array<string, mixed> $options */
+	/**
+	 * @param array<string, mixed>|null $data
+	 * @param array<string, mixed> $options
+	 */
 	public static function formCreator(
 		FormFactoryInterface $formFactory, 
 		Request $request, 
 		string $formTypeClass,
-		$data = null,
+		?array $data = null,
 		array $options = []
 	): FormInterface {
 
