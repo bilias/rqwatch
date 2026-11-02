@@ -62,7 +62,7 @@ class MailerService
 	 * Send an email to multiple recipients with optional attachment.
 	 *
 	 * @param string   $from        Sender email address
-	 * @param array    $recipients  Array of recipient email addresses
+	 * @param array<array-key, string> $recipients  Array of recipient email addresses
 	 * @param string   $subject     Subject line
 	 * @param string   $body        Plain text body
 	 * @param string|null $attachmentPath Optional file path to attach
@@ -114,11 +114,11 @@ class MailerService
 	 * Send an email to multiple recipients with optional attachment.
 	 *
 	 * @param string   $from        Sender email address
-	 * @param array    $recipients  Array of recipient email addresses
+	 * @param array<array-key, string> $recipients  Array of recipient email addresses
 	 * @param string   $subject     Subject line
 	 * @param string   $template    HTML Twig Template
 	 * @param string|null   $text        Text Part
-	 * @param array    $context     pass variables (name => value) to the template
+	 * @param array<string, mixed> $context     pass variables (name => value) to the template
 	 * @param string|null $attachmentPath Optional file path to attach
 	 * @param string|null $attachmentName Optional name for attachement
 	 *

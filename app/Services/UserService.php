@@ -46,6 +46,7 @@ class UserService
 	 * 494 distinct addresses). Instance-scoped, so it dies with the
 	 * service and cannot go stale between runs.
 	 */
+	/** @var array<string, bool> lowercased email => disabled */
 	private array $notificationsDisabledCache = [];
 
 	// memo for userNotificationsDefault()
@@ -57,10 +58,18 @@ class UserService
 		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
 	}
 
+	/**
+	 * @template TModel of \Illuminate\Database\Eloquent\Model
+	 * @param Builder<TModel> $query
+	 */
 	public static function getSqlFromQuery(Builder $query): string {
 		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 	}
 
+	/**
+	 * @param list<string> $fields
+	 * @return Builder<User>
+	 */
 	public function getSearchQuery(array $fields, int $limit=null): Builder {
 		if ($limit) {
 			$query = User::select($fields)
@@ -121,6 +130,7 @@ class UserService
 		return $query->first();
 	}
 
+	/** @return LengthAwarePaginator<int, User> */
 	public function getPaginatedAll(string $url, int $page = 1): LengthAwarePaginator {
 		$fields = User::SELECT_FIELDS;
 
@@ -142,6 +152,7 @@ class UserService
 		return $logs;
 	}
 
+	/** @return LengthAwarePaginator<int, User> */
 	public function searchPaginatedAll(int $page, string $url, string $search): LengthAwarePaginator {
 		$fields = User::SELECT_FIELDS;
 
@@ -192,6 +203,7 @@ class UserService
 	}
 
 	// true when none of $emails would be notified
+	/** @param array<array-key, mixed> $emails recipient addresses, cast to string here */
 	public function notificationsDisabledForAll(array $emails): bool {
 		$emails = array_filter(array_map(fn ($e) => trim((string) $e), $emails));
 
@@ -258,6 +270,7 @@ class UserService
 		]);
 	}
 
+	/** @param array<string, mixed> $data the user form's data */
 	public function userAdd(array $data): bool {
 		if (empty($data) || empty($data['username'])) {
 			return false;
@@ -367,6 +380,7 @@ class UserService
 		}
    }
 
+	/** @return array{blocked: array<string, int>, counters: array<string, array{count: int, ttl: int}>} */
 	public function getLoginThrottles(): array {
 		$cache = App::cache();
 		$cache = $cache instanceof RedisCache ? $cache : null;

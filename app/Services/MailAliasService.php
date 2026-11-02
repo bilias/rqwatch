@@ -40,10 +40,15 @@ class MailAliasService
 		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
 	}
 
+	/**
+	 * @template TModel of \Illuminate\Database\Eloquent\Model
+	 * @param Builder<TModel> $query
+	 */
 	public static function getSqlFromQuery(Builder $query): string {
 		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 	}
 
+	/** @return Builder<MailAlias> */
 	public function getSearchQuery(int $limit=null): Builder {
 		if ($limit) {
 			$query = MailAlias::with('user')
@@ -137,6 +142,7 @@ class MailAliasService
 		}
 	}
 
+	/** @return LengthAwarePaginator<int, MailAlias> */
 	public function getPaginatedAll(string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailAlias::SELECT_FIELDS;
 
@@ -158,6 +164,7 @@ class MailAliasService
 		return $aliases;
 	}
 
+	/** @return LengthAwarePaginator<int, MailAlias> */
 	public function searchPaginatedAll(string $url, string $search, int $page = 1): LengthAwarePaginator {
 		$fields = MailAlias::SELECT_FIELDS;
 

@@ -195,9 +195,11 @@ class MailTokenService
 		}
 	}
 
-	/*
+	/**
 	 * Remove every token for the given messages.
 	 * Called from CronQuarantine once the quarantined files are deleted.
+	 *
+	 * @param array<array-key, int> $mailLogIds
 	 */
 	public function deleteTokensForMails(array $mailLogIds): int {
 		if (empty($mailLogIds)) {
