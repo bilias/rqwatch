@@ -837,10 +837,12 @@ class MailLogController extends ViewController
 		]));
 	}
 
-	/*
+	/**
 	 * Per symbol name, links to the maps a mail's recorded hit belongs to
 	 * (maps naming the symbol, maps of the entries it was credited to) and to
 	 * the credited entries; only maps and entries the viewer can see.
+	 *
+	 * @return array<string, list<array{label: string, url: string}>>
 	 */
 	private function symbolLinks(int $mailLogId): array {
 		if (!MapService::mapHitsEnabled()) {
@@ -1349,6 +1351,7 @@ class MailLogController extends ViewController
 		}
 	}
 
+	/** @return array<string, array<string, mixed>> map name => config, plus its add_url */
 	private function getMapConfigsWithAddUrls(MailLog $log, ?string $map = null): array {
 		$configs = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
@@ -1400,6 +1403,7 @@ class MailLogController extends ViewController
 		return true;
 	}
 
+	/** @param iterable<array-key, mixed> $stats what $builder takes */
 	private function createChart(callable $builder, iterable $stats): ?Chart {
 		if (!$this->chartsEnabled()) {
 			return null;
@@ -1409,6 +1413,10 @@ class MailLogController extends ViewController
 	}
 
 	// totals for the stored/total bar; 31 days, cheap whatever the table size
+	/**
+	 * @param iterable<MailLog> $days rows of day and cnt
+	 * @return array<string, int> 'Y-m-d' => total
+	 */
 	private function getQuarantineDayTotals(MailLogService $service, iterable $days): array {
 		$keys = [];
 		foreach ($days as $day) {
@@ -1424,6 +1432,10 @@ class MailLogController extends ViewController
 
 	// totals for the stored/total bar; reads the whole history,
 	// same cost class as unfiltered stats, so gated the same way
+	/**
+	 * @param iterable<MailLog> $months rows of month and cnt
+	 * @return array<string, int> 'Y-m' => total
+	 */
 	private function getQuarantineMonthTotals(MailLogService $service, iterable $months): array {
 		if (!$this->mailStatsEnabled([])) {
 			return [];
@@ -1498,6 +1510,10 @@ class MailLogController extends ViewController
 		return true;
 	}
 
+	/**
+	 * @param array<array-key, array<string, mixed>> $filters
+	 * @return array<string, mixed>
+	 */
 	private function getMailStats(MailLogService $service, array $filters): array {
 		if ($this->mailStatsEnabled($filters)) {
 			// has applyUserScope
@@ -1540,6 +1556,7 @@ class MailLogController extends ViewController
 	}
 
 	// name for filename* (path separators replaced) and an ASCII-only fallback
+	/** @return array{string, string} */
 	private function attachmentNames(?string $name): array {
 		$filename = str_replace(['/', '\\'], '_', (string) $name);
 		$ext = pathinfo($filename, PATHINFO_EXTENSION);
@@ -1550,6 +1567,7 @@ class MailLogController extends ViewController
 
 	// release form of a quarantined mail for the detail and mail pages: [view or null, disabled]
 	// it posts to releaseMail(), which re-checks access and recipients
+	/** @return array{\Symfony\Component\Form\FormView|null, bool} */
 	private function releaseFormView(MailLog $log): array {
 		$view = null;
 		if ($log->mail_stored && !empty($log->mail_location)) {
