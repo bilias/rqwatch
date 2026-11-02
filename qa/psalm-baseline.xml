@@ -1,20 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="6.5.0@38fc8444edf0cebc9205296ee6e30e906ade783b">
-  <file src="app/Console/CronUpdateMapFiles.php">
-    <InvalidArrayOffset>
-      <code><![CDATA[[ $map => $map_config ]]]></code>
-    </InvalidArrayOffset>
-  </file>
-  <file src="app/Console/OptimizeTable.php">
-    <InvalidArrayOffset>
-      <code><![CDATA[$units[$i]]]></code>
-    </InvalidArrayOffset>
-  </file>
-  <file src="app/Controllers/MailLogController.php">
-    <RedundantCondition>
-      <code><![CDATA[!empty($data['email_alt'])]]></code>
-    </RedundantCondition>
-  </file>
   <file src="app/Controllers/MapController.php">
     <RedundantCondition>
       <code><![CDATA[$this->is_admin && $model === 'MapCustom']]></code>
@@ -24,14 +9,6 @@
     <RedundantCondition>
       <code><![CDATA[API_MODE]]></code>
     </RedundantCondition>
-  </file>
-  <file src="app/Core/Auth/RqwatchOpenIDConnectClient.php">
-    <InvalidReturnStatement>
-      <code><![CDATA[$this->getProviderConfigValue('end_session_endpoint')]]></code>
-    </InvalidReturnStatement>
-    <InvalidReturnType>
-      <code><![CDATA[string]]></code>
-    </InvalidReturnType>
   </file>
   <file src="app/Core/Cache/RedisCache.php">
     <InvalidCast>
@@ -97,16 +74,5 @@
     <InvalidDocblock>
       <code><![CDATA[public function mailLog(): BelongsTo {]]></code>
     </InvalidDocblock>
-  </file>
-  <file src="app/Services/FuzzyService.php">
-    <InvalidTemplateParam>
-      <code><![CDATA[$query->orderBy('id')->get(['id', 'mail_log_id', 'qid', 'flag'])
-			->map(fn ($r) => [
-				'id' => (int) $r->id,
-				'mail_log_id' => $r->mail_log_id,
-				'qid' => (string) $r->qid,
-				'flag' => (int) $r->flag,
-			])]]></code>
-    </InvalidTemplateParam>
   </file>
 </files>

@@ -147,7 +147,7 @@ class FuzzyService
 			// not its own learn
 			->where(fn (Builder $q) => $q->whereNull('mail_log_id')->orWhere('mail_log_id', '<>', $mailLogId));
 
-		return $query->orderBy('id')->get(['id', 'mail_log_id', 'qid', 'flag'])
+		return $query->orderBy('id')->get(['id', 'mail_log_id', 'qid', 'flag'])->toBase()
 			->map(fn ($r) => [
 				'id' => (int) $r->id,
 				'mail_log_id' => $r->mail_log_id,

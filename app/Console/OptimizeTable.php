@@ -126,15 +126,17 @@ class OptimizeTable extends RqwatchCliCommand
 	}
 
 	private function humanBytes(int $bytes): string {
-		$units = ['B', 'K', 'M', 'G', 'T'];
-		$i = 0;
+		$unit = 'B';
 
-		while ($bytes >= 1024 && $i < count($units) - 1) {
+		foreach (['K', 'M', 'G', 'T'] as $next) {
+			if ($bytes < 1024) {
+				break;
+			}
 			$bytes = intdiv($bytes, 1024);
-			$i++;
+			$unit = $next;
 		}
 
-		return $bytes . $units[$i];
+		return $bytes . $unit;
 	}
 
 	private static function tables(): array {

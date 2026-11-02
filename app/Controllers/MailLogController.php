@@ -992,7 +992,7 @@ class MailLogController extends ViewController
 				$this->flashbag->add('error', "Alternate recipient checkbox not ticked");
 				return $this->getDetailIdResponse($maillog->id);
 			}
-			if (!empty($data['release_alt']) && !empty($data['email_alt'])) {
+			if (!empty($data['release_alt'])) {
 				$alt = Helper::parseEmailList($data['email_alt']);
 				if ($alt === null) {
 					$this->flashbag->add('error', "Invalid alternate recipient address");
