@@ -12,6 +12,7 @@
 	<!-- Paths are relative to the project root: run from there (composer scripts do) -->
 	<projectFiles>
 		<directory name="app" />
+		<directory name="bin" />
 		<directory name="web" />
 		<directory name="config" />
 		<directory name="tests" />
