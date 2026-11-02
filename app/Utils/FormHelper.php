@@ -25,6 +25,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class FormHelper
 {
+	/** @param array<string, mixed> $options */
 	public static function formCreator(
 		FormFactoryInterface $formFactory, 
 		Request $request, 
@@ -78,6 +79,7 @@ class FormHelper
 		));
 	}
 
+	/** @return array<string, string> label => column or pseudo-column */
 	public static function getFilters(bool $is_admin): array {
 		$filters = array(
 			'Date' => 'created_day',
@@ -137,6 +139,7 @@ class FormHelper
 		);
 	}
 
+	/** @return array<string, string> label => SQL operator */
 	public static function getChoices(): array {
 		return array(
 			'is equal to' => '=',
@@ -156,6 +159,10 @@ class FormHelper
 		);
 	}
 
+	/**
+	 * @param array<array-key, array<string, mixed>> $active_filters
+	 * @return array<array-key, array<string, mixed>>
+	 */
 	public static function getFilterByName(array $active_filters, bool $is_admin): array {
 
 		$filters = self::getFilters($is_admin);
@@ -175,14 +182,20 @@ class FormHelper
 		return $ar;
 	}
 
+	/**
+	 * @param array<string, mixed> $ar
+	 * @return array<string, string>
+	 */
 	public static function getKeysToArr(array $ar): array {
 		return array_combine(array_keys($ar), array_keys($ar));
 	}
 
+	/** @return array<string, string> */
 	public static function getSearchFilters(bool $is_admin): array {
 		return self::getKeysToArr(self::getFilters($is_admin));
 	}
 
+	/** @return array<string, string> */
 	public static function getSearchChoices(): array {
 		return self::getKeysToArr(self::getChoices());
 	}
