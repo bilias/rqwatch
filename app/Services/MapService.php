@@ -348,7 +348,7 @@ class MapService
 
 		$search = trim($search);
 		if (!empty($search)) {
-			$query->where(function($q) use ($search) {
+			$query->where(function (Builder $q) use ($search) {
 				foreach (MapCombined::SEARCH_FIELDS as $field) {
 					$q->orWhere($field, 'LIKE', "%{$search}%");
 				}

@@ -92,6 +92,10 @@ class MailLogService
 		$this->max_items = (int) Config::get('max_items') ?: 10000;
 	}
 
+	/**
+	 * @template TModel of \Illuminate\Database\Eloquent\Model
+	 * @param Builder<TModel> $query
+	 */
 	public static function getSqlFromQuery(Builder $query): string {
 		//return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
 		return vsprintf(str_replace(['%', '?'], ['%%', '"%s"'], $query->toSql()), $query->getBindings());
@@ -205,9 +209,9 @@ class MailLogService
 			return $query->where('ever_stored', 1);
 		}
 
-		return $query->where(function ($q) {
+		return $query->where(function (Builder $q) {
 			$q->where('mail_stored', 1)
-				->orWhere(function ($q) {
+				->orWhere(function (Builder $q) {
 					$q->whereNotNull('mail_location')
 						->where('mail_location', '<>', '0');
 				});

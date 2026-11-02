@@ -139,13 +139,13 @@ class FuzzyService
 		}
 
 		$query = MailLogFuzzy::query()
-			->where(function ($q) use ($hashes) {
+			->where(function (Builder $q) use ($hashes) {
 				foreach ($hashes as $hash) {
 					$q->orWhereRaw('JSON_CONTAINS(hashes, JSON_QUOTE(?))', [$hash]);
 				}
 			})
 			// not its own learn
-			->where(fn ($q) => $q->whereNull('mail_log_id')->orWhere('mail_log_id', '<>', $mailLogId));
+			->where(fn (Builder $q) => $q->whereNull('mail_log_id')->orWhere('mail_log_id', '<>', $mailLogId));
 
 		return $query->orderBy('id')->get(['id', 'mail_log_id', 'qid', 'flag'])
 			->map(fn ($r) => [
