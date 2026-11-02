@@ -35,24 +35,32 @@ parameters:
 			identifier: return.type
 			message: '#^Method App\\Services\\MapService::findMapEntry\(\) should return App\\Models\\MapCombined\|App\\Models\\MapCustom\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
 			path: ../app/Services/MapService.php
+			count: 1
 		-
 			message: '#^Call to an undefined method Traversable<mixed, mixed>::reverse\(\)\.$#'
 			identifier: method.notFound
 			path: ../app/Charts/ChartBuilder.php
+			count: 2
 		-
 			message: '#^Call to an undefined method Illuminate\\Support\\Fluent::instant\(\)\.$#'
 			identifier: method.notFound
 			path: ../app/Core/Database/Migrations/DropMailLogColumns.php
+			count: 1
 		-
 			message: '#^Call to an undefined method Twig\\Loader\\LoaderInterface::addPath\(\)\.$#'
 			identifier: method.notFound
 			path: ../app/Controllers/ViewController.php
+			count: 1
 		-
 			message: '#^Call to an undefined method Symfony\\Component\\HttpFoundation\\Session\\SessionInterface::getFlashBag\(\)\.$#'
 			identifier: method.notFound
-			paths:
-				- ../app/Core/Middleware/Authorization.php
-				- ../app/Core/Middleware/AuthMiddleware.php
+			path: ../app/Core/Middleware/Authorization.php
+			count: 1
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\HttpFoundation\\Session\\SessionInterface::getFlashBag\(\)\.$#'
+			identifier: method.notFound
+			path: ../app/Core/Middleware/AuthMiddleware.php
+			count: 1
 		-
 			message: '#^Property App\\Controllers\\Controller::\$(session|flashbag) \(.+\) does not accept Symfony\\Component\\HttpFoundation\\Session\\(SessionInterface|Flash\\FlashBagInterface)\.$#'
 			identifier: assign.propertyType
@@ -62,6 +70,7 @@ parameters:
 			identifier: assign.propertyType
 			message: '#^Property App\\Models\\MailLog::\$release_date \(Carbon\\Carbon\|null\) does not accept string\.$#'
 			path: ../app/Services/MailLogService.php
+			count: 1
 		-
 			identifier: deadCode.unreachable
 			path: ../app/Core/Database/Migrations/IdActionIndex.php
@@ -73,9 +82,11 @@ parameters:
 		-
 			identifier: booleanNot.alwaysTrue
 			path: ../app/Core/Database/Migrations/IdActionIndex.php
+			count: 1
 		-
 			identifier: method.unused
 			path: ../app/Core/Database/Migrations/IdActionIndex.php
+			count: 1
 		# defensive re-checks: editMapEntry() already rejects non-admin MapCustom
 		-
 			identifier: booleanAnd.leftAlwaysTrue
