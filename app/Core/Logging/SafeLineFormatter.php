@@ -12,12 +12,14 @@ namespace App\Core\Logging;
 
 use Monolog\Formatter\LineFormatter;
 
-// LineFormatter that always turns CR/LF in logged values into spaces (no log forging),
-// whatever allowInlineLineBreaks() or includeStacktraces() are set to
+// LineFormatter that always turns CR/LF and the other C0 controls and DEL (tab kept) in
+// logged values into spaces (no log forging, no terminal escapes), whatever
+// allowInlineLineBreaks() or includeStacktraces() are set to. CRLF is one space, as before.
+// Byte-wise (no /u): invalid UTF-8 passes unchanged instead of failing the match.
 final class SafeLineFormatter extends LineFormatter
 {
 	#[\Override]
 	protected function replaceNewlines(string $str): string {
-		return str_replace(["\r\n", "\r", "\n"], ' ', $str);
+		return preg_replace('/\r\n|[\x00-\x08\x0A-\x1F\x7F]/', ' ', $str) ?? '';
 	}
 }
