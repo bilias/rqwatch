@@ -35,14 +35,15 @@ class SessionManager
 			self::newSession();
 		}
 
-		if (self::checkSessionExpired()) {
-			if (self::$session) {
-				self::$session->getFlashBag()->add('error', 'Session expired');
-			} else { // redis not connectable
-				exit('Session creation problem. Contact admin');
-			}
+		$session = self::$session;
+		if ($session === null) { // redis not connectable
+			exit('Session creation problem. Contact admin');
 		}
-		return self::$session;
+
+		if (self::checkSessionExpired()) {
+			$session->getFlashBag()->add('error', 'Session expired');
+		}
+		return $session;
 	}
 
 	private static function setSessionTimeout(int $timeout): void {

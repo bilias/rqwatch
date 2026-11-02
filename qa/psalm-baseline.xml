@@ -39,14 +39,6 @@
       <code><![CDATA[ALLOW_DEGRADED_DB]]></code>
     </RedundantCondition>
   </file>
-  <file src="app/Core/SessionManager.php">
-    <InvalidNullableReturnType>
-      <code><![CDATA[Session]]></code>
-    </InvalidNullableReturnType>
-    <NullableReturnStatement>
-      <code><![CDATA[self::$session]]></code>
-    </NullableReturnStatement>
-  </file>
   <file src="app/Inventory/MapInventory.php">
     <FalsableReturnStatement>
       <code><![CDATA[$prefix === null ? $ip : "{$ip}/{$prefix}"]]></code>
