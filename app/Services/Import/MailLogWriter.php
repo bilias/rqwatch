@@ -55,6 +55,10 @@ final class MailLogWriter
 
 	 See ManagesTransactions.php in illuminate/database.
 	*/
+	/**
+	 * @param array<string, mixed> $mailData mail_logs + mail_log_data columns => values
+	 * @param array<array-key, string> $recipients
+	 */
 	public function insert(array $mailData, array $recipients): int {
 		$id = $this->capsule
 			->connection()
@@ -78,6 +82,7 @@ final class MailLogWriter
 	}
 
 	// credit learned fuzzy mails whose hashes this mail matched
+	/** @param array<string, mixed> $mailData */
 	private function recordFuzzyHits(int $mailLogId, array $mailData): void {
 		$hashes = json_decode((string) ($mailData['fuzzy_hashes'] ?? ''), true);
 		if (!is_array($hashes) || $hashes === []) {
@@ -93,6 +98,7 @@ final class MailLogWriter
 	}
 
 	// record the map and local rule symbols this mail carries
+	/** @param array<string, mixed> $mailData */
 	private function recordMapHits(int $mailLogId, array $mailData): void {
 		$qid = (string) ($mailData['qid'] ?? '');
 		try {
@@ -103,6 +109,7 @@ final class MailLogWriter
 	}
 
 	// record the antivirus symbols and names of a virus mail
+	/** @param array<string, mixed> $mailData */
 	private function recordViruses(int $mailLogId, array $mailData): void {
 		if (empty($mailData['has_virus'])) {
 			return;
@@ -121,6 +128,7 @@ final class MailLogWriter
 	 MAIL_LOG_DATA is a required migration, enforced by
 	 Kernel::verifyRequiredMigrations()
 	*/
+	/** @param array<string, mixed> $mailData */
 	private function insertMailLog(array $mailData): int {
 		[$mailLog, $mailLogData] = $this->splitMailData($mailData);
 
@@ -137,6 +145,7 @@ final class MailLogWriter
 	}
 
 	// Insert into mail_logs_data.
+	/** @param array<string, mixed> $mailData mail_log_data columns */
 	private function insertMailLogData(int $mailLogId, array $mailData): void {
 		$mailData['mail_log_id'] = $mailLogId;
 
@@ -146,6 +155,7 @@ final class MailLogWriter
 	}
 
 	// Insert recipients.
+	/** @param array<array-key, string> $recipients */
 	private function insertMailRecipients(int $mailLogId, array $recipients): void {
 		if (empty($recipients)) {
 			return;
@@ -175,6 +185,10 @@ final class MailLogWriter
 			->insert($rows);
 	}
 
+	/**
+	 * @param array<string, mixed> $mailData
+	 * @return array{array<string, mixed>, array<string, mixed>} mail_logs columns, mail_log_data columns
+	 */
 	private function splitMailData(array $mailData): array {
 		$main = $mailData;
 		$extra = [];
