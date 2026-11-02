@@ -728,45 +728,45 @@ class Helper {
 		);
 	}
 
-	/**
-	 * @template T
-	 * @param array<array-key, T> $array
-	 * @return array<array-key, T> reindexed when $value was found
-	 */
-	public static function removeValFromArr(array $array, string $value): array {
-		$key = array_search($value, $array);
-		if ($key !== false) {
-			unset($array[$key]);
-			return array_values($array);
-		}
-		return $array;
-	}
+	// /**
+	//  * @template T
+	//  * @param array<array-key, T> $array
+	//  * @return array<array-key, T> reindexed when $value was found
+	//  */
+	// public static function removeValFromArr(array $array, string $value): array {
+	// 	$key = array_search($value, $array);
+	// 	if ($key !== false) {
+	// 		unset($array[$key]);
+	// 		return array_values($array);
+	// 	}
+	// 	return $array;
+	// }
 
-	/**
-	 * @template T
-	 * @param array<array-key, T> $array
-	 * @param array<array-key, mixed> $values
-	 * @return list<T>
-	 */
-	public static function removeArrFromArr(array $array, array $values): array {
-		$array = array_diff($array, $values);
-		return array_values($array);
-	}
+	// /**
+	//  * @template T
+	//  * @param array<array-key, T> $array
+	//  * @param array<array-key, mixed> $values
+	//  * @return list<T>
+	//  */
+	// public static function removeArrFromArr(array $array, array $values): array {
+	// 	$array = array_diff($array, $values);
+	// 	return array_values($array);
+	// }
 
-	/**
-	 * @template T
-	 * @param array<array-key, T> $array
-	 * @param array<array-key, T> $values
-	 * @return array<array-key, T>
-	 */
-	public static function addArrToArr(array $array, array $values): array {
-		foreach ($values as $val) {
-			if (!in_array($val, $array, true)) {
-				$array[] = $val;
-			}
-		}
-		return $array;
-	}
+	// /**
+	//  * @template T
+	//  * @param array<array-key, T> $array
+	//  * @param array<array-key, T> $values
+	//  * @return array<array-key, T>
+	//  */
+	// public static function addArrToArr(array $array, array $values): array {
+	// 	foreach ($values as $val) {
+	// 		if (!in_array($val, $array, true)) {
+	// 			$array[] = $val;
+	// 		}
+	// 	}
+	// 	return $array;
+	// }
 
 	public static function passwordHash(string $clear_pass): ?string {
 		if (!empty($clear_pass)) {
@@ -801,20 +801,20 @@ class Helper {
 		return $path;
 	}
 
-	/** @return array<int, string> trimmed, lowercased, empty entries dropped (keys kept) */
-	public static function cleanEmailList(string $input): array {
-		$emails = explode(',', $input);
-		$emails = array_map(function($email) {
-			return strtolower(trim($email));
-		}, $emails);
+	// /** @return array<int, string> trimmed, lowercased, empty entries dropped (keys kept) */
+	// public static function cleanEmailList(string $input): array {
+	// 	$emails = explode(',', $input);
+	// 	$emails = array_map(function($email) {
+	// 		return strtolower(trim($email));
+	// 	}, $emails);
 
-		$emails = array_filter($emails);
+	// 	$emails = array_filter($emails);
 
-		if (!empty($emails)) {
-			return $emails;
-		}
-		return [];
-	}
+	// 	if (!empty($emails)) {
+	// 		return $emails;
+	// 	}
+	// 	return [];
+	// }
 
 	/** @param array<string, mixed> $ar */
 	public static function getReleaseText(array $ar): string {
