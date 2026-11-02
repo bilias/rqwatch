@@ -137,7 +137,7 @@ function typeString(?ReflectionType $t): string {
 		$builtin = ['int', 'float', 'string', 'bool', 'array', 'callable', 'iterable', 'object',
 			'mixed', 'void', 'null', 'never', 'false', 'true', 'self', 'static', 'parent'];
 		return in_array(strtolower($m[0]), $builtin, true) ? $m[0] : '\\' . ltrim($m[0], '\\');
-	}, (string) $t);
+	}, (string) $t) ?? (string) $t;
 }
 
 function signature(ReflectionMethod $m): string {
@@ -175,6 +175,7 @@ function docblock(ReflectionMethod $m, string $annotation): string {
 	return implode("\n", $out);
 }
 
+/** @param ReflectionClass<object> $c */
 function classHeader(ReflectionClass $c): string {
 	$name = $c->getShortName();
 	$ifaces = array_map(static fn (string $i): string => '\\' . $i, $c->getInterfaceNames());
@@ -188,6 +189,10 @@ function classHeader(ReflectionClass $c): string {
 }
 
 // `use` imports of the file declaring $c, so copied docblocks resolve
+/**
+ * @param ReflectionClass<object> $c
+ * @return list<string>
+ */
 function imports(ReflectionClass $c): array {
 	$src = (string) file_get_contents((string) $c->getFileName());
 	$head = preg_split('/^\s*(?:final\s+|abstract\s+)?(?:class|interface|trait)\s/m', $src, 2)[0];
@@ -210,7 +215,14 @@ function indentDoc(string|false $doc, string $indent): string {
 $byNamespace = [];
 $uses = [];
 
-foreach (TAINTS as $class => $methods) {
+// typed copies: the literal constants would let the checkers resolve the
+// per-class lookups below at analysis time and call them dead or missing
+/** @var array<string, array<string, string>> $taints */
+$taints = TAINTS;
+/** @var array<string, list<string>> $magic */
+$magic = MAGIC;
+
+foreach ($taints as $class => $methods) {
 	if (!class_exists($class) && !interface_exists($class)) {
 		fail("class $class not found");
 	}
@@ -235,14 +247,14 @@ foreach (TAINTS as $class => $methods) {
 		}
 		$body[] = docblock($rm, $annotation) . "\n\t\t" . signature($rm) . ($rc->isInterface() ? ';' : ' {}');
 	}
-	foreach (MAGIC[$class] ?? [] as $extra) {
+	foreach ($magic[$class] ?? [] as $extra) {
 		$body[] = $extra;
 	}
 	$byNamespace[$rc->getNamespaceName()][] = indentDoc($rc->getDocComment(), "\t") . "\t" . classHeader($rc) . " {\n" . implode("\n\n", $body) . "\n\t}";
 }
 
-foreach (MAGIC as $class => $extras) {
-	if (isset(TAINTS[$class])) {
+foreach ($magic as $class => $extras) {
+	if (isset($taints[$class])) {
 		continue;
 	}
 	if (!class_exists($class)) {

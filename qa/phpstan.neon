@@ -9,6 +9,7 @@ parameters:
 		- ../web
 		- ../config
 		- ../tests
+		- ../qa
 	dynamicConstantNames:
 		- CLI_MODE
 		- API_MODE
