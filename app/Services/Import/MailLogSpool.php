@@ -160,6 +160,10 @@ final class MailLogSpool
 	 back to its own failure response, so a false here means "still
 	 lost" and the caller should keep answering 500.
 	*/
+	/**
+	 * @param array<string, mixed> $mailData as for MailLogWriter::insert()
+	 * @param array<array-key, string> $recipients
+	 */
 	public function push(array $mailData, array $recipients): bool {
 		/*
 		 Deliberately here and not in the constructor: pending() and
@@ -247,7 +251,7 @@ final class MailLogSpool
 		}
 	}
 
-	/*
+	/**
 	 Replay spooled entries into the database.
 
 	 $localOnly restricts to this node's own entries, which is the only
@@ -401,6 +405,7 @@ final class MailLogSpool
 	 That counter drifts, so every drain pass rewrites it from the real
 	 remaining count.
 	*/
+	/** @param array<array-key, true> $aliases alias => true */
 	private function resyncCounters(RedisCache $cache, array $aliases): void {
 		$ttl = (int) Config::get('import_spool_ttl');
 
