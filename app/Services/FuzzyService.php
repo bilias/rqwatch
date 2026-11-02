@@ -161,6 +161,7 @@ class FuzzyService
 	}
 
 	// records unchanged for $days: no learn, hit or added weight, so rspamd has let their hashes expire
+	/** @return Builder<MailLogFuzzy> */
 	public function getExpired(int $days, ?string $server = null): Builder {
 		$query = MailLogFuzzy::whereRaw('updated_at < NOW() - INTERVAL ? DAY', [$days]);
 		if ($server !== null) {
@@ -170,6 +171,7 @@ class FuzzyService
 	}
 
 	// deletes the records only: their hashes are already gone from rspamd
+	/** @param Builder<MailLogFuzzy> $query */
 	public function purgeExpired(Builder $query): int {
 		$deleted = 0;
 
