@@ -16,7 +16,7 @@ use Throwable;
 class SessionExpired extends Exception
 {
 	// Redefine the exception so message isn't optional
-	public function __construct($message, $code = 0, ?Throwable $previous = null) {
+	public function __construct(string $message, int $code = 0, ?Throwable $previous = null) {
 		// make sure everything is assigned properly
 		parent::__construct($message, $code, $previous);
 	}

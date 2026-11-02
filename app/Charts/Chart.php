@@ -32,10 +32,13 @@ class Chart
     public const TYPE_BUBBLE = 'bubble';
     public const TYPE_SCATTER = 'scatter';
 
-    private $type;
-    private $data = [];
-    private $options = [];
-    private $attributes = [];
+    private string $type;
+    /** @var array<string, mixed> */
+    private array $data = [];
+    /** @var array<string, mixed> */
+    private array $options = [];
+    /** @var array<string, mixed> */
+    private array $attributes = [];
 
     public function __construct(string $type)
     {

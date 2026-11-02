@@ -47,7 +47,7 @@ class Router
 			RouteCollection $routes,
 			// array $middlewareMap,
 			array $defaultMiddlewareClasses,
-	) {
+	): Response {
 
 		// Request initialization
 		$request = Request::createFromGlobals();
