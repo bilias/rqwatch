@@ -78,13 +78,13 @@ class MailLogDataMigration extends AbstractMigration {
 		$output->write("<info>Pending mails for migration: </info>");
 
 		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
-			->select(
+			->select([
 				'ml.id',
 				'ml.headers',
 				'ml.symbols',
 				'ml.fuzzy_hashes',
-				'md.mail_log_id'
-			)
+				'md.mail_log_id',
+			])
 			->leftJoin(
 				AppConfig::MAIL_LOG_DATA_TABLE . ' as md',
 				'md.mail_log_id',
@@ -184,9 +184,9 @@ class MailLogDataMigration extends AbstractMigration {
 			function (Blueprint $table) {
 				$table->unsignedInteger('mail_log_id');
 
-				$table->longText('headers')->nullable();
-				$table->json('symbols')->nullable();
-				$table->json('fuzzy_hashes')->nullable();
+				$table->longText('headers')->nullable(true);
+				$table->json('symbols')->nullable(true);
+				$table->json('fuzzy_hashes')->nullable(true);
 
 				$table->primary('mail_log_id');
 

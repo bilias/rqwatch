@@ -105,7 +105,7 @@ class MailLogFuzzyHitsMails extends AbstractMigration {
 			->all();
 
 		$rows = $db->table(AppConfig::MAIL_LOG_FUZZY_TABLE)
-			->select('id', 'mail_log_id', 'qid', 'hashes', 'hits', 'created_at', 'last_hit_at')
+			->select(['id', 'mail_log_id', 'qid', 'hashes', 'hits', 'created_at', 'last_hit_at'])
 			->where('hits', '>', 0)
 			->whereNotNull('last_hit_at')
 			->orderBy('id')

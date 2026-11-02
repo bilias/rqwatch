@@ -25,18 +25,6 @@
 	<issueHandlers>
 		<RedundantCast errorLevel="suppress"/>
 
-		<!-- Laravel schema/query builder magic methods are poorly stubbed -->
-		<InvalidArgument>
-			<errorLevel type="suppress">
-				<directory name="app/Core/Database/Migrations"/>
-			</errorLevel>
-		</InvalidArgument>
-		<TooManyArguments>
-			<errorLevel type="suppress">
-				<directory name="app/Core/Database/Migrations"/>
-			</errorLevel>
-		</TooManyArguments>
-
 		<!-- Optional backends in Symfony RedisAdapter's return type; not installed -->
 		<UndefinedClass>
 			<errorLevel type="suppress">

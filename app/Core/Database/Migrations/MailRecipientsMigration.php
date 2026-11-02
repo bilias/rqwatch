@@ -77,7 +77,7 @@ class MailRecipientsMigration extends AbstractMigration {
 		$output->write("<info>Pending mails for migration: </info>");
 
 		$baseQuery = $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
-			->select('ml.id', 'ml.rcpt_to', 'r.mail_log_id')
+			->select(['ml.id', 'ml.rcpt_to', 'r.mail_log_id'])
 			->leftJoin(AppConfig::MAIL_LOG_RECIPIENTS_TABLE . ' as r', 'r.mail_log_id', '=', 'ml.id');
 
 		/*

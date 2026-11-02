@@ -153,7 +153,7 @@ class MapHits extends AbstractMigration {
 			// 0: no entry, 1: maps_combined, 2: maps_custom
 			$table->unsignedTinyInteger('entry_model')->default(0);
 			$table->unsignedInteger('entry_id')->default(0);
-			$table->double('score')->nullable();
+			$table->double('score')->nullable(true);
 
 			$table->primary(['symbol_id', 'created_day', 'mail_log_id', 'entry_model', 'entry_id']);
 			$table->index('mail_log_id', 'mail_log_id_index');

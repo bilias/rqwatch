@@ -93,14 +93,14 @@ class MailLogFuzzyMigration extends AbstractMigration {
 			function (Blueprint $table) {
 				$table->increments('id');
 				// nullable: the learn record outlives the mail_logs row
-				$table->unsignedInteger('mail_log_id')->nullable();
-				$table->string('qid', 30)->nullable();
+				$table->unsignedInteger('mail_log_id')->nullable(true);
+				$table->string('qid', 30)->nullable(true);
 				$table->string('api_server', 10);
 				$table->unsignedTinyInteger('flag');
 				$table->unsignedSmallInteger('weight');
 				$table->json('hashes');
 				$table->string('learned_by', 100);
-				$table->timestamp('created_at')->useCurrent();
+				$table->timestamp('created_at')->set('useCurrent', true);
 
 				$table->unique('mail_log_id', 'mail_log_id_idx');
 

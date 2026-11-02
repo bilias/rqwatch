@@ -134,9 +134,9 @@ abstract class AbstractMigration {
 		$this->createTable(
 			AppConfig::MIGRATIONS_TABLE,
 			function (Blueprint $table) {
-				$table->string('migration', 255)->primary();
+				$table->string('migration', 255)->primary(true);
 				$table->string('status', 32)->default(Migrations::STATUS_PENDING);
-				$table->timestamp('status_at')->useCurrent();
+				$table->timestamp('status_at')->set('useCurrent', true);
 			}
 		);
 	}
