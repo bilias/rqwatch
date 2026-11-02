@@ -43,6 +43,8 @@ class Chart
     }
 
     /**
+     * @param array<string, mixed> $data
+     *
      * @return $this
      */
     public function setData(array $data): self
@@ -67,6 +69,8 @@ class Chart
      *    ]);
      * </code>
      *
+     * @param array<string, mixed> $options
+     *
      * @return $this
      */
     public function setOptions(array $options): self
@@ -77,6 +81,8 @@ class Chart
     }
 
     /**
+     * @param array<string, mixed> $attributes
+     *
      * @return $this
      */
     public function setAttributes(array $attributes): self
@@ -86,6 +92,9 @@ class Chart
         return $this;
     }
 
+    /**
+     * @return array{type: string, data: array<string, mixed>, options: array<string, mixed>}
+     */
     public function createView(): array
     {
         return [
@@ -100,6 +109,9 @@ class Chart
         return $this->attributes['data-controller'] ?? null;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getAttributes(): array
     {
         return $this->attributes;
@@ -110,11 +122,17 @@ class Chart
         return $this->type;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getData(): array
     {
         return $this->data;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getOptions(): array
     {
         return $this->options;

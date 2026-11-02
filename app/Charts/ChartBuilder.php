@@ -16,6 +16,7 @@ class ChartBuilder {
 	private const STORED_RATIO_COLOR = '#76b7b2';
 	private const SIZE_COLOR = '#59a14f';
 
+	/** @param array<string, mixed> $stats MailLogService::getStats() */
 	public static function createSearchChart(array $stats): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
@@ -65,6 +66,10 @@ class ChartBuilder {
 		return $chart;
 	}
 
+	/**
+	 * @param iterable<\App\Models\MailLog> $days rows of day and cnt
+	 * @param array<string, int> $totals 'Y-m-d' => all mail that day
+	 */
 	public static function createQuarantineChart(iterable $days, ?callable $dayUrl = null, array $totals = []): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
@@ -116,6 +121,10 @@ class ChartBuilder {
 		return $chart;
 	}
 
+	/**
+	 * @param iterable<\App\Models\MailLog> $months rows of month and cnt
+	 * @param array<string, int> $totals 'Y-m' => all mail that month
+	 */
 	public static function createQuarantinePerMonthChart(iterable $months, ?callable $monthUrl = null, array $totals = []): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
@@ -169,6 +178,7 @@ class ChartBuilder {
 
 	// percentage of all mail (same day/month, same user scope) that was stored
 	// a map's distinct mails per day (day => mails), a bar per day linking to that day's mails
+	/** @param array<string, int> $days day => mails */
 	public static function createMapHitsChart(array $days, callable $dayUrl): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
@@ -198,6 +208,7 @@ class ChartBuilder {
 
 	// reports by date (rows newest first): mails and stored per day or month ($unit;
 	// month counts ever stored), size (MB) on the right axis
+	/** @param array<array-key, array<string, mixed>> $rows date, total, total_stored, total_size */
 	public static function createReportsDayChart(array $rows, callable $dayUrl, string $unit = 'day'): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
@@ -270,6 +281,10 @@ class ChartBuilder {
 	}
 
 	// second bar per label on a right-hand 0-100 axis
+	/**
+	 * @param list<float|null> $ratios
+	 * @param list<string|null> $links
+	 */
 	private static function addStoredRatio(Chart $chart, array $ratios, array $links): void {
 		$data = $chart->getData();
 		$data['datasets'][] = [
