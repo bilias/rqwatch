@@ -21,6 +21,7 @@ use Tests\Unit\UnitTestCase;
 
 final class RelayTest extends UnitTestCase
 {
+	/** @return list<string> */
 	private function ips(string $headers): array {
 		return array_column(Helper::extract_mail_relays($headers), 'ip');
 	}
@@ -75,6 +76,7 @@ final class RelayTest extends UnitTestCase
 		$this->assertSame([], Helper::extract_mail_relays(''));
 	}
 
+	/** @return array<string, array{string, bool}> */
 	public static function ipCases(): array {
 		return [
 			'public v4' => ['8.8.8.8', false],

@@ -22,6 +22,7 @@ use Tests\Unit\UnitTestCase;
 
 final class CharsetTest extends UnitTestCase
 {
+	/** @return array<string, array{string, string|null}> */
 	public static function charsetCases(): array {
 		return [
 			'KOI8-R' => ['koi8-r', 'koi8-r'],

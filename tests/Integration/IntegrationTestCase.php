@@ -279,7 +279,11 @@ abstract class IntegrationTestCase extends TestCase
 		return $output;
 	}
 
-	/** The path of a redirect target, or '' for none. */
+	/**
+	 * The path of a redirect target, or '' for none.
+	 *
+	 * @param array{status: int, location: string, body: string} $response
+	 */
 	protected static function target(array $response): string {
 		return (string) parse_url($response['location'], PHP_URL_PATH);
 	}

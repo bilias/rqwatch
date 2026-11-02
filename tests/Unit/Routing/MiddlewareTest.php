@@ -38,6 +38,7 @@ final class MiddlewareTest extends TestCase
 		$this->reached = false;
 	}
 
+	/** @param array<string, mixed> $session attributes to set */
 	private function request(string $path, array $session = []): Request {
 		$request = Request::create($path);
 		$s = new Session(new MockArraySessionStorage());

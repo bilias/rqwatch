@@ -69,6 +69,7 @@ final class ImportDataTest extends UnitTestCase
 		$this->assertSame(['A' => ['name' => 'A', 'score' => 0]], Helper::sanitizeSymbols(['A' => ['name' => 'A']], 'Q4'));
 	}
 
+	/** @return array<string, array{string, string, array{error: string|false, id: int|false, qid: string|false}}> */
 	public static function idQidCases(): array {
 		return [
 			'id' => ['id', '42', ['error' => false, 'id' => 42, 'qid' => false]],
@@ -84,6 +85,7 @@ final class ImportDataTest extends UnitTestCase
 		];
 	}
 
+	/** @param array{error: string|false, id: int|false, qid: string|false} $expected */
 	#[DataProvider('idQidCases')]
 	public function testCheckIdQid(string $type, string $value, array $expected): void {
 		$this->assertSame($expected, Helper::check_id_qid($type, $value));

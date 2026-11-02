@@ -22,6 +22,7 @@ use Tests\Unit\UnitTestCase;
 
 final class AddressTest extends UnitTestCase
 {
+	/** @return array<string, array{string, string}> */
 	public static function decodeCases(): array {
 		return [
 			'plain, lowercased' => ['Alice@Example.ORG', 'alice@example.org'],
@@ -44,6 +45,7 @@ final class AddressTest extends UnitTestCase
 		$this->assertSame('bob@example.org', Helper::convertPRVSAddress('bob@example.org'));
 	}
 
+	/** @return array<string, array{string, string|null}> */
 	public static function extractCases(): array {
 		return [
 			'display name' => ['"Bob" <Bob.Smith+tag@Mail.Example.COM>', 'bob.smith+tag@mail.example.com'],
@@ -59,6 +61,7 @@ final class AddressTest extends UnitTestCase
 		$this->assertSame($expected, Helper::extractEmail($in));
 	}
 
+	/** @return array<string, array{string, list<string>|null}> */
 	public static function emailListCases(): array {
 		return [
 			'trimmed, lowercased, deduplicated' => [' A@x.org, b@x.org ,a@X.org,, ', ['a@x.org', 'b@x.org']],
@@ -69,6 +72,7 @@ final class AddressTest extends UnitTestCase
 		];
 	}
 
+	/** @param list<string>|null $expected */
 	#[DataProvider('emailListCases')]
 	public function testParseEmailList(string $in, ?array $expected): void {
 		$this->assertSame($expected, Helper::parseEmailList($in));

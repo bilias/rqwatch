@@ -28,6 +28,7 @@ final class SymbolTest extends UnitTestCase
 		['name' => 'SECURITE_SPAM', 'group' => 'antivirus', 'options' => ['SecuriteInfo.com.Spam-154042.UNOFFICIAL']],
 	];
 
+	/** @return array<string, array{list<string>, string|null}> */
 	public static function virusSkipCases(): array {
 		return [
 			'option, case-insensitive glob' => [['eicar-*'], 'eicar-*'],
@@ -40,6 +41,7 @@ final class SymbolTest extends UnitTestCase
 		];
 	}
 
+	/** @param list<string> $patterns */
 	#[DataProvider('virusSkipCases')]
 	public function testVirusSkipMatch(array $patterns, ?string $expected): void {
 		$this->assertSame($expected, Helper::virusSkipMatch(self::SYMBOLS, $patterns));
@@ -65,6 +67,7 @@ final class SymbolTest extends UnitTestCase
 		$this->assertSame([], $this->log->lines);
 	}
 
+	/** @return array<string, array{mixed}> */
 	public static function invalidPatternConfigs(): array {
 		return [
 			'unset' => [null],
@@ -89,6 +92,7 @@ final class SymbolTest extends UnitTestCase
 		$this->assertFalse(Helper::checkForWhitelist([]));
 	}
 
+	/** @return array<string, array{string, string|null}> */
 	public static function fuzzyCases(): array {
 		return [
 			'spam list' => ['RQWATCH_FUZZY_DENIED', 'rqwatch_fuzzy'],
