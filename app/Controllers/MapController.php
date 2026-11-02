@@ -1303,10 +1303,14 @@ class MapController extends ViewController
 		return new RedirectResponse($url);
 	}
 
-	private function getUserCanDelete(string $username, ?string $map_creator = ''): bool {
+	private function getUserCanDelete(?string $username, ?string $map_creator = ''): bool {
 		// user is admin, allow
 		if ($this->is_admin) {
 			return true;
+		}
+
+		if ($username === null) {
+			return false;
 		}
 
 		// user is the map entry creator, allow
