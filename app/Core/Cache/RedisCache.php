@@ -16,6 +16,7 @@ use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Redis;
 
 use InvalidArgumentException;
+use RuntimeException;
 use Throwable;
 
 final class RedisCache implements CacheInterface
@@ -33,14 +34,14 @@ final class RedisCache implements CacheInterface
 
 	public function set(string $key, mixed $value, ?int $ttl = null): bool {
 		if ($ttl !== null) {
-			return $this->getConnection()->set(
+			return (bool) $this->getConnection()->set(
 				$key,
 				$value,
 				['ex' => $ttl]
 			);
 		}
 
-		return $this->getConnection()->set($key, $value);
+		return (bool) $this->getConnection()->set($key, $value);
 	}
 
 	public function has(string $key): bool {
@@ -55,7 +56,7 @@ final class RedisCache implements CacheInterface
 		try {
 			$ttl = $this->getConnection()->ttl($key);
 
-			if ($ttl >= 0) {
+			if (is_int($ttl) && $ttl >= 0) {
 				return $ttl;
 			}
 
@@ -77,7 +78,8 @@ final class RedisCache implements CacheInterface
 
 	public function incr(string $key): ?int {
 		try {
-			return (int) $this->getConnection()->incr($key);
+			$value = $this->getConnection()->incr($key);
+			return is_int($value) ? $value : 0;
 		} catch (Throwable $e) {
 			$this->logger->error("RedisCache incr: " . $e->getMessage());
 			return null;
@@ -119,7 +121,10 @@ final class RedisCache implements CacheInterface
 			do {
 				$keys = $connection->scan($cursor, $prefix . '*', 100);
 				if ($keys !== false && !empty($keys)) {
-					$deleted += $connection->del($keys);
+					$n = $connection->del($keys);
+					if (is_int($n)) {
+						$deleted += $n;
+					}
 				}
 			} while ($cursor != 0);
 		} catch (Throwable $e) {
@@ -144,7 +149,8 @@ final class RedisCache implements CacheInterface
 				$keys = $connection->scan($cursor, $prefix . '*', 100);
 				if ($keys !== false && !empty($keys)) {
 					foreach ($keys as $key) {
-						$found[$key] = (int) $connection->ttl($key);
+						$ttl = $connection->ttl($key);
+						$found[$key] = is_int($ttl) ? $ttl : 0;
 					}
 				}
 			} while ($cursor != 0);
@@ -159,9 +165,13 @@ final class RedisCache implements CacheInterface
 		if ($this->client === null) {
 		// Redis Sentinel connection via phpredis or predis
 			try {
-				$this->client = RedisAdapter::createConnection(
+				$client = RedisAdapter::createConnection(
 					$_ENV['REDIS_DSN']
 				);
+				if (!$client instanceof Redis) {
+					throw new RuntimeException('REDIS_DSN must give a phpredis Redis connection, got ' . get_debug_type($client));
+				}
+				$this->client = $client;
 				$this->logger->debug('[RedisCache] Redis connection established');
 			} catch (InvalidArgumentException $e) {
 				$this->logger->error('[RedisCache]: ' . $e->getMessage());

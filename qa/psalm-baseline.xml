@@ -10,30 +10,6 @@
       <code><![CDATA[API_MODE]]></code>
     </RedundantCondition>
   </file>
-  <file src="app/Core/Cache/RedisCache.php">
-    <InvalidCast>
-      <code><![CDATA[$connection->ttl($key)]]></code>
-      <code><![CDATA[$this->getConnection()->incr($key)]]></code>
-    </InvalidCast>
-    <InvalidOperand>
-      <code><![CDATA[$connection->del($keys)]]></code>
-    </InvalidOperand>
-    <InvalidReturnStatement>
-      <code><![CDATA[$this->client]]></code>
-      <code><![CDATA[$this->getConnection()->set(
-				$key,
-				$value,
-				['ex' => $ttl]
-			)]]></code>
-      <code><![CDATA[$this->getConnection()->set($key, $value)]]></code>
-      <code><![CDATA[$ttl]]></code>
-    </InvalidReturnStatement>
-    <InvalidReturnType>
-      <code><![CDATA[?int]]></code>
-      <code><![CDATA[Redis]]></code>
-      <code><![CDATA[bool]]></code>
-    </InvalidReturnType>
-  </file>
   <file src="app/Core/Kernel.php">
     <RedundantCondition>
       <code><![CDATA[ALLOW_DEGRADED_DB]]></code>
