@@ -104,6 +104,7 @@ class MailLogFuzzyHitsMails extends AbstractMigration {
 			->pluck('n', 'fuzzy_id')
 			->all();
 
+		/** @var \Illuminate\Support\Collection<int, object{id: int, mail_log_id: int|null, qid: string|null, hashes: string, hits: int, created_at: string, last_hit_at: string}> $rows */
 		$rows = $db->table(AppConfig::MAIL_LOG_FUZZY_TABLE)
 			->select(['id', 'mail_log_id', 'qid', 'hashes', 'hits', 'created_at', 'last_hit_at'])
 			->where('hits', '>', 0)
@@ -130,7 +131,11 @@ class MailLogFuzzyHitsMails extends AbstractMigration {
 	}
 
 	// links one learned mail in windows of $batch days; returns the rows inserted
-	/** @param list<string> $hashes */
+	/**
+	 * @param object{id: int, mail_log_id: int|null, created_at: string, last_hit_at: string} $row
+	 *        a mail_log_fuzzy row; runMigration() selects only rows with last_hit_at set
+	 * @param list<string> $hashes
+	 */
 	private function linkRecord(object $row, array $hashes, int $batch, int $sleep): int {
 		$db = $this->capsule->getConnection();
 
