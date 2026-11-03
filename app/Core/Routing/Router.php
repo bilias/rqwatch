@@ -35,6 +35,7 @@ use App\Core\Middleware\Authorization;
 
 use App\Controllers\Controller;
 
+use RuntimeException;
 use Throwable;
 
 // https://symfony.com/doc/current/create_framework/http_kernel_controller_resolver.html
@@ -134,7 +135,6 @@ final class Router
 					): Response {
 						//$middleware = new $middlewareClass($urlGenerator);
 						// add logger in middleware
-						/** @var AuthMiddleware|Authorization $middleware the only classes in Routes::load()'s middleware lists */
 						$middleware = $this->resolveMiddleware($middlewareClass, $urlGenerator);
 						return $middleware->handle($request, $next);
 					};
@@ -190,13 +190,14 @@ final class Router
 		return $response;
 	}
 
-	private function resolveMiddleware(string $middlewareClass, UrlGenerator $urlGenerator): object {
+	// Routes::load()'s middleware lists hold only these two classes
+	private function resolveMiddleware(string $middlewareClass, UrlGenerator $urlGenerator): AuthMiddleware|Authorization {
 		return match ($middlewareClass) {
 			AuthMiddleware::class,
 			Authorization::class =>
 				new $middlewareClass($urlGenerator, App::fileLogger()),
 			default =>
-				new $middlewareClass($urlGenerator), // fallback for simple middleware
+				throw new RuntimeException('Unknown middleware class in route'),
 		};
 	}
 
