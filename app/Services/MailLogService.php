@@ -734,6 +734,7 @@ final class MailLogService
 		);
 
 		if (empty($pageIds)) {
+			/** @var Collection<int, MailLog> $itemsForPage */
 			$itemsForPage = new Collection();
 		} else {
 			$query = MailLog::select(MailLog::SELECT_FIELDS)
@@ -1323,6 +1324,7 @@ final class MailLogService
 
 		$pageIds = array_slice($ids, ($page - 1) * $this->items_per_page, $this->items_per_page);
 
+		/** @var Collection<int, MailLog> $items */
 		$items = empty($pageIds)
 			? new Collection()
 			: MailLog::select($fields)

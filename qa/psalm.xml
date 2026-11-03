@@ -9,7 +9,6 @@
 	findUnusedCode="false"
 	allConstantsGlobal="true"
 	runTaintAnalysis="false"
-	sealAllMethods="false"
 	sealAllProperties="false"
 >
 	<!-- Paths are relative to the project root: run from there (composer scripts do) -->
@@ -29,7 +28,28 @@
 		<file name="qa/taint-stubs.phpstub"/>
 	</stubs>
 
+	<plugins>
+		<pluginClass class="Qa\PsalmPlugin\Plugin"/>
+	</plugins>
+
 	<issueHandlers>
+		<!-- the plugin works through Psalm's own providers, which Psalm marks @internal -->
+		<InternalClass>
+			<errorLevel type="suppress">
+				<directory name="qa/PsalmPlugin"/>
+			</errorLevel>
+		</InternalClass>
+		<InternalMethod>
+			<errorLevel type="suppress">
+				<directory name="qa/PsalmPlugin"/>
+			</errorLevel>
+		</InternalMethod>
+		<InternalProperty>
+			<errorLevel type="suppress">
+				<directory name="qa/PsalmPlugin"/>
+			</errorLevel>
+		</InternalProperty>
+
 		<RedundantCast errorLevel="suppress"/>
 
 		<!-- Optional backends in Symfony RedisAdapter's return type; not installed -->
