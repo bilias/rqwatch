@@ -176,8 +176,12 @@ class ViewController extends Controller
 		$this->twig->addFilter(new TwigFilter('linkify', function (string $text, bool $newTab = true): string {
 			$target = $newTab ? ' target="_blank" rel="noopener noreferrer"' : '';
 			$parts = preg_split('~(https?://[^\s<>"\']+)~i', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+			// on a PCRE failure show the text without links; still escaped, the filter is is_safe
+			if ($parts === false) {
+				return htmlspecialchars($text, ENT_QUOTES);
+			}
 			$out = '';
-			foreach ($parts as $i => $part) { // @phpstan-ignore foreach.nonIterable (preg_split() is false only on a PCRE failure)
+			foreach ($parts as $i => $part) {
 				// even indexes: plain text, odd indexes: captured URLs
 				if ($i % 2 === 0) {
 					$out .= htmlspecialchars($part, ENT_QUOTES);
