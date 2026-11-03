@@ -142,10 +142,7 @@ abstract class RqwatchApi
 			$this->syslogLogger->$logLevel($fullLogMsg);
 		}
 
-		$response = new Response($responseMsg, $httpCode);
-		$response->headers->set('Content-Type', 'text/plain; charset=utf-8');
-		$response->headers->set('X-Content-Type-Options', 'nosniff');
-		$response->send();
+		Helper::plainTextResponse($responseMsg, $httpCode)->send();
 		exit;
 	}
 

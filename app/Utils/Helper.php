@@ -1440,6 +1440,23 @@ Mail details:
 	}
 
 	/*
+	 An error response sent as text/plain with nosniff: a browser never
+	 renders the body as HTML, so the body is escaped for html, the sink
+	 qa/taint-stubs.phpstub puts on Response::__construct.
+	*/
+	public static function plainTextResponse(string $body, int $status): Response {
+		$response = new Response(self::plainTextBody($body), $status);
+		$response->headers->set('Content-Type', 'text/plain; charset=utf-8');
+		$response->headers->set('X-Content-Type-Options', 'nosniff');
+		return $response;
+	}
+
+	/** @psalm-taint-escape html */
+	private static function plainTextBody(string $body): string {
+		return $body;
+	}
+
+	/*
 	 Abort a web request with a real status code. Services are called from
 	 controllers, and Router::run() only send()s the controller's Response
 	 after dispatch() returns, so nothing has been written yet and headers
@@ -1456,10 +1473,7 @@ Mail details:
 			exit(1);
 		}
 
-		$response = new Response($message, $status);
-		$response->headers->set('Content-Type', 'text/plain; charset=utf-8');
-		$response->headers->set('X-Content-Type-Options', 'nosniff');
-		$response->send();
+		self::plainTextResponse($message, $status)->send();
 
 		exit(1);
 	}
