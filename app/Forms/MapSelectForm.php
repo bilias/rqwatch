@@ -31,6 +31,7 @@ use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 
+/** @extends AbstractType<array<string, mixed>> */
 final class MapSelectForm extends AbstractType
 {
 	#[\Override]

@@ -31,6 +31,7 @@ use App\Inventory\MapInventory;
 
 use RuntimeException;
 
+/** @extends AbstractType<array<string, mixed>> */
 class MapWithOneFieldForm extends AbstractType
 {
 	protected static string $fieldName = '';

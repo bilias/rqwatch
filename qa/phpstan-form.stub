@@ -1,0 +1,24 @@
+<?php
+
+/*
+ The template psalm/plugin-symfony's stubs give Symfony forms, so form
+ types can declare their data type (@extends AbstractType<…>) for both
+ Psalm and PHPStan. Symfony itself declares none.
+*/
+
+namespace Symfony\Component\Form;
+
+/**
+ * @template TData
+ */
+interface FormTypeInterface
+{
+}
+
+/**
+ * @template TData
+ * @implements FormTypeInterface<TData>
+ */
+abstract class AbstractType implements FormTypeInterface
+{
+}

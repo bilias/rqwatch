@@ -143,21 +143,23 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 			}
 
 			// check if file missing or is older
+			$model = $config['model'];
+			$fields = $model === 'MapCombined' ? $config['fields'] : null;
 			if($this->mapFileNeedsUpdate($mapName, $last_activity)) {
-				if (!in_array($config['model'], ['MapCombined', 'MapCustom'], true)) {
-					$output->writeln("<comment>Wrong model '{$config['model']}' for Map file '{$mapName}'</comment>", OutputInterface::VERBOSITY_VERBOSE);
-					$this->fileLogger->warning("{$this->app_name} Wrong model '{$config['model']}' for Map file '{$mapName}'");
+				if (!in_array($model, ['MapCombined', 'MapCustom'], true)) {
+					$output->writeln("<comment>Wrong model '{$model}' for Map file '{$mapName}'</comment>", OutputInterface::VERBOSITY_VERBOSE);
+					$this->fileLogger->warning("{$this->app_name} Wrong model '{$model}' for Map file '{$mapName}'");
 				} elseif ($service->updateMapFile(
-					$config['model'],
+					$model,
 					$mapName,
 					$last_activity,
-					$config['model'] === 'MapCombined' ? $config['fields'] : null
+					$fields
 				)) {
 					$output->writeln("<info>Map file '{$mapName}' updated</info>", OutputInterface::VERBOSITY_VERBOSE);
 					$this->fileLogger->info("{$this->app_name} Map file '{$mapName}' updated");
 				} else {
 					$output->writeln("<error>Map file '{$mapName}' update FAILED - check logs</error>", OutputInterface::VERBOSITY_NORMAL);
-					$this->fileLogger->error("{$this->app_name} Map file '{$mapName}' update FAILED (model '{$config['model']}')");
+					$this->fileLogger->error("{$this->app_name} Map file '{$mapName}' update FAILED (model '{$model}')");
 				}
 			} else {
 					$output->writeln("<comment>Map file '{$mapName}' does not need update</comment>", OutputInterface::VERBOSITY_VERBOSE);

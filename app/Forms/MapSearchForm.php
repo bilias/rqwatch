@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
+/** @extends AbstractType<array<string, mixed>> */
 final class MapSearchForm extends AbstractType
 {
 	#[\Override]

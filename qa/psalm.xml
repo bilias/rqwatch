@@ -29,6 +29,9 @@
 
 	<plugins>
 		<pluginClass class="Qa\PsalmPlugin\Plugin"/>
+		<pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin">
+			<twigRootPath>app/Views</twigRootPath>
+		</pluginClass>
 	</plugins>
 
 	<issueHandlers>

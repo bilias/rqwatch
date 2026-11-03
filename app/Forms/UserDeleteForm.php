@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use App\Utils\FormHelper;
 
+/** @extends AbstractType<array<string, mixed>> */
 final class UserDeleteForm extends AbstractType
 {
 	#[\Override]

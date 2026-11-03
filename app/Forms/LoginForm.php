@@ -29,6 +29,7 @@ use App\Configuration\Config;
 
 use App\Utils\FormHelper;
 
+/** @extends AbstractType<array<string, mixed>> */
 final class LoginForm extends AbstractType
 {
 	#[\Override]

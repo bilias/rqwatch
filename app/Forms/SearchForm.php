@@ -34,6 +34,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
+/** @extends AbstractType<array<string, mixed>> */
 final class SearchForm extends AbstractType
 {
 	#[\Override]

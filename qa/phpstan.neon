@@ -15,6 +15,8 @@ parameters:
 		- API_MODE
 		- WEB_MODE
 		- ALLOW_DEGRADED_DB
+	stubFiles:
+		- phpstan-form.stub
 	bootstrapFiles:
 		- ../app/Configuration/AppConfig.php
 		- phpstan-bootstrap.php

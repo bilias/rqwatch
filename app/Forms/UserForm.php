@@ -36,6 +36,7 @@ use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 //use App\Models\User;
 
+/** @extends AbstractType<array<string, mixed>> */
 final class UserForm extends AbstractType
 {
 	#[\Override]
