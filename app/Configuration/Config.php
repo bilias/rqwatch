@@ -87,6 +87,18 @@ final class Config {
 		self::init($merged);
 	}
 
+	/*
+	 Decode the config cached in Redis. Only this class writes that key,
+	 from the config files. Psalm 7 treats Redis as one keyed store and
+	 the import spool's keys start with a config value, so it cannot tell
+	 them apart: without the escape, the spooled mail data would taint
+	 every Config::get() value read back from the cache.
+	*/
+	/** @psalm-taint-escape input */
+	private static function decodeCachedConfig(string $cached): mixed {
+		return json_decode($cached, true);
+	}
+
 	/** @param array<string, mixed> $extras */
 	public static function loadAndInitWithRedisCache(
 		RedisCache $redis,
@@ -106,7 +118,7 @@ final class Config {
 				$cached = $redisConnection->get($redisKey);
 				if ($cached !== false) {
 					self::$logger->debug("Config [loadAndInitWithRedisCache]: Config is cached in Redis");
-					$data = json_decode($cached, true);
+					$data = self::decodeCachedConfig($cached);
 					// catch app version update
 					if (is_array($data) && (AppConfig::VERSION === $data['APP_VERSION'])) {
 						// Merge extras on top of cached data — overrides if keys overlap
