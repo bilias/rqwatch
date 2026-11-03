@@ -51,8 +51,7 @@ class CustomMapConfig extends Model
 	];
 
 	/**
-	 * @phpstan-return HasMany<MapCustom, $this>
-	 * @psalm-return HasMany<MapCustom, self>
+	 * @return HasMany<MapCustom, $this>
 	 */
 	public function MapsCustom(): HasMany {
 		// map_name: foreign_key, local_key

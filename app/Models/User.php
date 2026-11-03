@@ -88,8 +88,7 @@ class User extends Model
 	}
 
 	/**
-	 * @phpstan-return HasMany<MailAlias, $this>
-	 * @psalm-return HasMany<MailAlias, self>
+	 * @return HasMany<MailAlias, $this>
 	 */
 	public function mailAliases(): HasMany {
 		return $this->hasMany(MailAlias::class)->orderBy('alias', 'ASC');

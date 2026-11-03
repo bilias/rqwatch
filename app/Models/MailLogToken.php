@@ -45,8 +45,7 @@ class MailLogToken extends Model
 	protected $fillable = self::COLUMNS;
 
 	/**
-	 * @phpstan-return BelongsTo<MailLog, $this>
-	 * @psalm-return BelongsTo<MailLog, self>
+	 * @return BelongsTo<MailLog, $this>
 	 */
 	public function mailLog(): BelongsTo {
 		return $this->belongsTo(

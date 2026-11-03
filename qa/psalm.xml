@@ -8,6 +8,11 @@
 	findUnusedPsalmSuppress="true"
 	findUnusedCode="false"
 	allConstantsGlobal="true"
+	runTaintAnalysis="false"
+	sealAllMethods="false"
+	sealAllProperties="false"
+	ensureOverrideAttribute="false"
+	strictBinaryOperands="false"
 >
 	<!-- Paths are relative to the project root: run from there (composer scripts do) -->
 	<projectFiles>
