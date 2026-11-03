@@ -11,7 +11,8 @@
 # server without it) and runs tests/Integration: route protection, API
 # access and the login throttle (Access/), a smoke pass over every route
 # (Smoke/), the retention crons through bin/cli.php (Cron/), data scoping
-# (Scoping/), the add-entry form prefill (Maps/), and release (web and API),
+# (Scoping/), map entries: the add form's prefill and who may show, add,
+# edit, toggle and delete them (Maps/), and release (web and API),
 # notifications and password-less links into Mailpit (Delivery/).
 # Your .env, config.local.php and databases are never touched.
 #
