@@ -19,6 +19,7 @@ final class RecordingLogger extends AbstractLogger
 	/** @var list<string> */
 	public array $lines = [];
 
+	#[\Override]
 	public function log($level, string|Stringable $message, array $context = []): void {
 		$this->lines[] = "{$level} {$message}";
 	}

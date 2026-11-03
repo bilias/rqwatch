@@ -25,6 +25,7 @@ final class MapHits extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAP_HITS;
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -84,6 +85,7 @@ final class MapHits extends AbstractMigration {
 		}
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return $this->hasColumn(AppConfig::CUSTOM_MAP_CONFIG_TABLE, 'symbols')
 			&& $this->hasTable(AppConfig::SYMBOL_NAMES_TABLE)

@@ -26,6 +26,7 @@ abstract class UnitTestCase extends TestCase
 {
 	protected RecordingLogger $log;
 
+	#[\Override]
 	protected function setUp(): void {
 		$this->log = new RecordingLogger();
 		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, null, null, null, false));
@@ -34,6 +35,7 @@ abstract class UnitTestCase extends TestCase
 		(new ReflectionProperty(Helper::class, 'symbolPatterns'))->setValue(null, []);
 	}
 
+	#[\Override]
 	protected function tearDown(): void {
 		App::reset();
 		Config::init([]);

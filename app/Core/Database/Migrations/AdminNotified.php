@@ -28,6 +28,7 @@ final class AdminNotified extends AbstractMigration {
 		'admin_notify_date' => 'DATETIME DEFAULT NULL AFTER `admin_notified`',
 	];
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -98,6 +99,7 @@ final class AdminNotified extends AbstractMigration {
 		}
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		foreach (array_keys(self::COLUMNS) as $column) {
 			if (!$this->hasColumn(AppConfig::MAIL_LOGS_TABLE, $column)) {

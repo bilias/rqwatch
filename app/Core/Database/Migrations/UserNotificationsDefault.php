@@ -24,6 +24,7 @@ final class UserNotificationsDefault extends AbstractMigration {
 
 	private const string COLUMN = 'disable_notifications';
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -91,6 +92,7 @@ final class UserNotificationsDefault extends AbstractMigration {
 		}
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return $this->columnIsNullable(AppConfig::USERS_TABLE, self::COLUMN);
 	}

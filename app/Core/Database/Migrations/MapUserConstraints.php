@@ -25,6 +25,7 @@ final class MapUserConstraints extends AbstractMigration {
 	private const string ALIAS_UNIQUE = 'user_id_alias_idx';
 	private const string MAP_USER_FK  = 'fk_maps_combined_user_id';
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -251,6 +252,7 @@ final class MapUserConstraints extends AbstractMigration {
 		);
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return $this->hasIndex(AppConfig::MAIL_ALIASES_TABLE, self::ALIAS_UNIQUE)
 			&& $this->columnIsUnsigned(AppConfig::MAPS_COMBINED_TABLE, 'user_id')

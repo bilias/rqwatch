@@ -30,6 +30,7 @@ final class MailLogFuzzyHits extends AbstractMigration {
 		'updated_at'  => 'TIMESTAMP NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() AFTER `created_at`',
 	];
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -115,6 +116,7 @@ final class MailLogFuzzyHits extends AbstractMigration {
 		}
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		foreach (array_keys(self::COLUMNS) as $column) {
 			if (!$this->hasColumn(AppConfig::MAIL_LOG_FUZZY_TABLE, $column)) {

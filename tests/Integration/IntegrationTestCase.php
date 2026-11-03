@@ -42,6 +42,7 @@ abstract class IntegrationTestCase extends TestCase
 	/** @var list<int> mails quarantined() created in this test */
 	private array $quarantinedIds = [];
 
+	#[\Override]
 	protected function setUp(): void {
 		if (getenv('INTEGRATION_BASE_URL') === false) {
 			$this->markTestSkipped('Run through qa/integration-tests.sh');
@@ -49,6 +50,7 @@ abstract class IntegrationTestCase extends TestCase
 	}
 
 	// removes what quarantined() created; tokens go with their recipient rows
+	#[\Override]
 	protected function tearDown(): void {
 		if ($this->quarantinedIds !== []) {
 			$ids = implode(',', $this->quarantinedIds);
@@ -70,6 +72,7 @@ abstract class IntegrationTestCase extends TestCase
 		return $client;
 	}
 
+	#[\Override]
 	protected static function mailpitUrl(): string {
 		return (string) getenv('INTEGRATION_MAILPIT_URL');
 	}

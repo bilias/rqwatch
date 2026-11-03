@@ -36,6 +36,7 @@ final class MailLogViruses extends AbstractMigration {
 		)) AS jt
 		SQL;
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -175,6 +176,7 @@ final class MailLogViruses extends AbstractMigration {
 		}
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return $this->hasTable(AppConfig::MAIL_LOG_VIRUSES_TABLE);
 	}

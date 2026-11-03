@@ -24,6 +24,7 @@ final class MailRecipientsMigration extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_RECIPIENTS;
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -269,6 +270,7 @@ final class MailRecipientsMigration extends AbstractMigration {
 		);
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return $this->hasTable(
 			AppConfig::MAIL_LOG_RECIPIENTS_TABLE

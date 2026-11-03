@@ -28,6 +28,7 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 
 	private const int INSERT_CHUNK = 1000;
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -208,6 +209,7 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 		}
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return $this->hasTable(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE);
 	}

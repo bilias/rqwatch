@@ -26,6 +26,7 @@ final class VirusSkipMap extends AbstractMigration {
 	// same rule as CustomMapConfigForm and the {map} route requirement
 	private const string NAME_REGEX = '/^[a-z0-9_\-]{3,64}$/';
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -108,6 +109,7 @@ final class VirusSkipMap extends AbstractMigration {
 			->exists();
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		$map = self::mapName();
 		return $map === '' || $this->mapExists($map);

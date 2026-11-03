@@ -20,6 +20,7 @@ use Tests\EndToEnd\EndToEndTestCase;
 
 final class SpoolTest extends EndToEndTestCase
 {
+	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
 		if (getenv('E2E_REDIS_ENABLED') !== 'true') {

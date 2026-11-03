@@ -45,6 +45,7 @@ abstract class EndToEndTestCase extends TestCase
 	/** @var array{mail: string, id: string, qid: string, ip: string, from: string, mime_from: string, to: list<string>} */
 	protected array $sent;
 
+	#[\Override]
 	public static function setUpBeforeClass(): void {
 		// once per run, not per class
 		if (getenv('E2E_RSPAMD_URL') !== false && !self::$mapsReady) {
@@ -53,6 +54,7 @@ abstract class EndToEndTestCase extends TestCase
 		}
 	}
 
+	#[\Override]
 	protected function setUp(): void {
 		if (getenv('E2E_RSPAMD_URL') === false) {
 			$this->markTestSkipped('Run through qa/e2e-tests.sh');

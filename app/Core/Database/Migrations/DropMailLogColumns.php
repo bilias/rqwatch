@@ -30,6 +30,7 @@ final class DropMailLogColumns extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::DROP_MAIL_LOG_COLUMNS;
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -237,6 +238,7 @@ final class DropMailLogColumns extends AbstractMigration {
 		return $present;
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return empty($this->presentColumns());
 	}

@@ -26,6 +26,7 @@ final class SessionVersion extends AbstractMigration {
 	private const string COLUMN = 'session_version';
 	private const string DEFINITION = 'INT(10) UNSIGNED NOT NULL DEFAULT 0 AFTER `password`';
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -86,6 +87,7 @@ final class SessionVersion extends AbstractMigration {
 		}
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return $this->hasColumn(AppConfig::USERS_TABLE, self::COLUMN);
 	}

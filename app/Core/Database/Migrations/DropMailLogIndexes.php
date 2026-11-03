@@ -28,6 +28,7 @@ final class DropMailLogIndexes extends AbstractMigration {
 		'rcpt_to_index',
 	];
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -138,6 +139,7 @@ final class DropMailLogIndexes extends AbstractMigration {
 		return $present;
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return empty($this->presentIndexes());
 	}

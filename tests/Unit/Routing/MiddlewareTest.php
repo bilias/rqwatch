@@ -33,6 +33,7 @@ final class MiddlewareTest extends TestCase
 	private UrlGenerator $urls;
 	private bool $reached;
 
+	#[\Override]
 	protected function setUp(): void {
 		$this->urls = new UrlGenerator(Routes::load()['routes'], new RequestContext());
 		$this->reached = false;

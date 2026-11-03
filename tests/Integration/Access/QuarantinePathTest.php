@@ -29,6 +29,7 @@ final class QuarantinePathTest extends IntegrationTestCase
 	private const OUTSIDE = [9002 => 'another file', 9003 => '../', 9004 => 'a symlink inside the quarantine'];
 	private const INSIDE_BODY = 'Body of SUBJ-INSIDE-9001';
 
+	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
 		$root = (string) getenv('INTEGRATION_ROOT');
@@ -52,6 +53,7 @@ final class QuarantinePathTest extends IntegrationTestCase
 		}
 	}
 
+	#[\Override]
 	protected function tearDown(): void {
 		if (getenv('INTEGRATION_BASE_URL') !== false) {
 			$ids = implode(',', [self::INSIDE, ...array_keys(self::OUTSIDE)]);

@@ -26,6 +26,7 @@ final class EverStored extends AbstractMigration {
 	private const string COLUMN = 'ever_stored';
 	public const string INDEX = 'ever_stored_created_day_index';
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -119,6 +120,7 @@ final class EverStored extends AbstractMigration {
 		return false;
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return $this->hasColumn(AppConfig::MAIL_LOGS_TABLE, self::COLUMN)
 			&& $this->hasIndex(AppConfig::MAIL_LOGS_TABLE, self::INDEX);

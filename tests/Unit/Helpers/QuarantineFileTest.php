@@ -26,6 +26,7 @@ final class QuarantineFileTest extends UnitTestCase
 	private string $q;
 	private ?string $savedEnv;
 
+	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
 		$this->root = sys_get_temp_dir() . '/rqwatch-unit-' . bin2hex(random_bytes(6));
@@ -35,6 +36,7 @@ final class QuarantineFileTest extends UnitTestCase
 		$_ENV['QUARANTINE_DIR'] = $this->q;
 	}
 
+	#[\Override]
 	protected function tearDown(): void {
 		if ($this->savedEnv === null) {
 			unset($_ENV['QUARANTINE_DIR']);

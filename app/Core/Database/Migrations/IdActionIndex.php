@@ -26,6 +26,7 @@ final class IdActionIndex extends AbstractMigration {
 
 	private const string INDEX_ID_ACTION = 'id_action_index';
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -111,6 +112,7 @@ final class IdActionIndex extends AbstractMigration {
 		}
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		// @phpstan-ignore isset.offset (superseded: always set while Migrations::SUPERSEDED lists this migration)
 		if (isset(Migrations::SUPERSEDED[self::MIGRATION_NAME])) {

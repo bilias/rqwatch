@@ -28,10 +28,12 @@ final class RedisCache implements CacheInterface
 	) { }
 
 
+	#[\Override]
 	public function get(string $key): mixed {
 		return $this->getConnection()->get($key);
 	}
 
+	#[\Override]
 	public function set(string $key, mixed $value, ?int $ttl = null): bool {
 		if ($ttl !== null) {
 			return (bool) $this->getConnection()->set(
@@ -44,14 +46,17 @@ final class RedisCache implements CacheInterface
 		return (bool) $this->getConnection()->set($key, $value);
 	}
 
+	#[\Override]
 	public function has(string $key): bool {
 		return $this->getConnection()->exists($key) > 0;
 	}
 
+	#[\Override]
 	public function delete(string $key): bool {
 		return $this->getConnection()->del($key) > 0;
 	}
 
+	#[\Override]
 	public function ttl(string $key): ?int {
 		try {
 			$ttl = $this->getConnection()->ttl($key);
@@ -76,6 +81,7 @@ final class RedisCache implements CacheInterface
 		}
 	}
 
+	#[\Override]
 	public function incr(string $key): ?int {
 		try {
 			$value = $this->getConnection()->incr($key);
@@ -86,6 +92,7 @@ final class RedisCache implements CacheInterface
 		}
 	}
 
+	#[\Override]
 	public function expire(string $key, int $ttl): bool {
 		try {
 			return (bool) $this->getConnection()->expire($key, $ttl);
@@ -95,6 +102,7 @@ final class RedisCache implements CacheInterface
 		}
 	}
 
+	#[\Override]
 	public function countByPrefix(string $prefix): int {
 		$count = 0;
 		try {
@@ -113,6 +121,7 @@ final class RedisCache implements CacheInterface
 		return $count;
 	}
 
+	#[\Override]
 	public function deleteByPrefix(string $prefix): int {
 		$deleted = 0;
 		try {

@@ -28,6 +28,7 @@ final class IpCreatedDayIndex extends AbstractMigration {
 
 	private const string INDEX_IP_CREATED_DAY = 'ip_created_day_index';
 
+	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {
 		$this->ensureMigrationsTable();
 
@@ -101,6 +102,7 @@ final class IpCreatedDayIndex extends AbstractMigration {
 		}
 	}
 
+	#[\Override]
 	protected function verifySchema(): bool {
 		return $this->hasIndex(
 			AppConfig::MAIL_LOGS_TABLE,
