@@ -11,8 +11,8 @@
 # server without it) and runs tests/Integration: route protection, API
 # access and the login throttle (Access/), a smoke pass over every route
 # (Smoke/), the retention crons through bin/cli.php (Cron/), data scoping
-# (Scoping/), and release (web and API), notifications and password-less
-# links into Mailpit (Delivery/).
+# (Scoping/), the add-entry form prefill (Maps/), and release (web and API),
+# notifications and password-less links into Mailpit (Delivery/).
 # Your .env, config.local.php and databases are never touched.
 #
 # Redis is off (REDIS_ENABLE=false) unless INTEGRATION_REDIS=1 or
