@@ -15,6 +15,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use App\Core\App;
 
+/**
+ * @phpstan-property-read int<0, max> $id AUTO_INCREMENT PRIMARY KEY, so never NULL
+ */
 class User extends Model
 {
 	/*

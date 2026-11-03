@@ -232,7 +232,7 @@ class UserController extends ViewController
 		]));
 	}
 
-	public function showOne(?int $id = null): Response {
+	public function showOne(int $id): Response {
 		if (!$this->is_admin) {
 			$this->fileLogger->warning("'{$this->username}' tried to show one user without admin authorization");
 			$this->flashbag->add('error', "Permission denied");
@@ -285,7 +285,7 @@ class UserController extends ViewController
 		}
 
 		$service = $this->getUserService();
-		$user = $service->profile($this->username);
+		$user = $service->profile((string) $this->username);
 
 		if (!$user) {
 			$this->flashbag->add('error', "User not found");
