@@ -231,6 +231,19 @@ final class MailLogService
 	}
 
 	/*
+	 The operator the three filters below put into raw SQL. $c is a
+	 FormHelper::getChoices() value (getFilterByName() drops any other
+	 choice); the match makes that hold here too, whatever the caller, and
+	 throws on anything else.
+	*/
+	private function rawOperator(string $c): string {
+		return match ($c) {
+			'=', '<>', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'REGEXP', 'NOT REGEXP' => $c,
+			default => throw new InvalidArgumentException('Unknown filter operator'),
+		};
+	}
+
+	/*
 	 The cron marks a skipped notification as notified NULL. = and <> against
 	 0/1 use notified_index; any other operator compares the 0/1 expression.
 	 $c is always a FormHelper::getChoices() value.
@@ -247,7 +260,7 @@ final class MailLogService
 		}
 
 		// nosemgrep: rqwatch-raw-sql -- $c is a FormHelper::getChoices() operator; value bound
-		$query->whereRaw("(`notified` IS NULL) {$c} ?", [$v]);
+		$query->whereRaw("(`notified` IS NULL) {$this->rawOperator($c)} ?", [$v]);
 	}
 
 	/*
@@ -270,7 +283,7 @@ final class MailLogService
 
 		$sub = $exists($query->getQuery()->newQuery());
 		// nosemgrep: rqwatch-raw-sql -- $c is a FormHelper::getChoices() operator; subquery bindings passed
-		$query->whereRaw("(EXISTS ({$sub->toSql()})) {$c} ?", [...$sub->getBindings(), $v]);
+		$query->whereRaw("(EXISTS ({$sub->toSql()})) {$this->rawOperator($c)} ?", [...$sub->getBindings(), $v]);
 	}
 
 	/*
@@ -312,7 +325,7 @@ final class MailLogService
 		if (!in_array($c, ['=', '<>'], true) || !in_array((string) $v, ['0', '1'], true)) {
 			$sub = $hits($query->getQuery()->newQuery());
 			// nosemgrep: rqwatch-raw-sql -- $c is a FormHelper::getChoices() operator; subquery bindings passed
-			$query->whereRaw("(EXISTS ({$sub->toSql()})) {$c} ?", [...$sub->getBindings(), $v]);
+			$query->whereRaw("(EXISTS ({$sub->toSql()})) {$this->rawOperator($c)} ?", [...$sub->getBindings(), $v]);
 			return;
 		}
 
