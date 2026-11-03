@@ -304,6 +304,7 @@ class UserController extends ViewController
 			$data = $profileform->getData();
 			// allow password change only for DB users
 			$pass_changed = false;
+			$newHash = null;
 			if ($user->auth_provider === 0) {
 				$newPassword = $profileform->get('password')->getData();
 				if (!empty($newPassword)) {
@@ -315,15 +316,19 @@ class UserController extends ViewController
 						$this->flashbag->add('error', 'Current password is wrong, password not changed');
 						return new RedirectResponse($this->url(RouteName::PROFILE));
 					}
-					$data['password'] = Helper::passwordHash($newPassword);
+					$newHash = Helper::passwordHash($newPassword);
+					if ($newHash === null) {
+						$this->flashbag->add('error', 'Password not changed');
+						return new RedirectResponse($this->url(RouteName::PROFILE));
+					}
 					$pass_changed = true;
 				}
 			}
 
 			try {
 				$user->fill($data);
-				if ($pass_changed) {
-					$user->password = $data['password'];
+				if ($newHash !== null) {
+					$user->password = $newHash;
 				}
 				$saved = App::capsule()->connection()->transaction(function () use ($user, $pass_changed) {
 					$saved = $user->save();
@@ -407,6 +412,10 @@ class UserController extends ViewController
 						return new RedirectResponse($this->getAdminUsersUrl());
 				}
 				$data['password'] = Helper::passwordHash($newPassword);
+				if ($data['password'] === null) {
+					$this->flashbag->add('error', 'Empty password not allowed.');
+					return new RedirectResponse($this->getAdminUsersUrl());
+				}
 
 				if ($service->userAdd($data)) {
 					$this->fileLogger->info("User '{$data['username']}' created by '{$this->username}'");
@@ -507,19 +516,20 @@ class UserController extends ViewController
 			           ($service->userExists($data['username']))) {
 				$this->flashbag->add('error', "Username '{$data['username']}' already exists.");
 			} else {
-				$pass_changed = false;
+				$newHash = null;
 				$newPassword = $userform->get('password')->getData();
 				if (!empty($newPassword)) {
-					$data['password'] = Helper::passwordHash($newPassword);
-					$pass_changed = true;
+					$newHash = Helper::passwordHash($newPassword);
 				}
+				// a null hash leaves the password as it is ("Password not changed")
+				$pass_changed = $newHash !== null;
 
 				try {
 					//DB::connection()->enableQueryLog();
 					$data['username'] = strtolower(trim($data['username']));
 					$user->fill($data);
-					if ($pass_changed) {
-						$user->password = $data['password'];
+					if ($newHash !== null) {
+						$user->password = $newHash;
 					}
 					$saved = App::capsule()->connection()->transaction(function () use ($user) {
 						$saved = $user->save();

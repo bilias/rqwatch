@@ -138,6 +138,11 @@ class UserAdd extends RqwatchCliCommand
 				}
 			}
 			$password_hash = Helper::passwordHash(trim($password));
+			// a whitespace-only password passes the checks above and trims to ''
+			if ($password_hash === null) {
+				$output->writeln('<error>Empty password given!</error>');
+				return Command::FAILURE;
+			}
 		// we are on external auth
 		} else {
 			$password_hash = 'EXTERNAL_AUTH';
