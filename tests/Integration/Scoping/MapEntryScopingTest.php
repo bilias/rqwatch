@@ -15,17 +15,17 @@
  admin may edit it (MapService::updateMapCombinedEntry()). An admin may do
  all of it. Each test gets its own entries in mail_from_rcpt_to_whitelist:
  A (alice's), B (bob's) and M (made by admin for alice@example.org); the
- fixture entries 201/202 are left to ScopingTest, which deletes them.
+ fixture entries 201/202 are the route smoke test's sample ids.
  Every refusal has a matching allowed action, so a broken login, token or
  fixture cannot make a refusal pass by accident.
 */
 
-namespace Tests\Integration\Maps;
+namespace Tests\Integration\Scoping;
 
 use Tests\Integration\IntegrationTestCase;
 use Tests\Integration\WebClient;
 
-final class EntryAccessTest extends IntegrationTestCase
+final class MapEntryScopingTest extends IntegrationTestCase
 {
 	private const MAP = 'mail_from_rcpt_to_whitelist';
 	private const USER_FORM = 'map_mail_from_rcpt_to_user_form';
@@ -69,7 +69,9 @@ final class EntryAccessTest extends IntegrationTestCase
 		[$toggle, $del] = self::linkTokens($alice, $base, $this->ids['A']);
 
 		// bob's entry and the admin's: no edit form for bob's, nothing changes
-		$this->assertSame(302, $alice->get("{$base}/edit/{$this->ids['B']}")['status'], 'edit page of B');
+		$edit = $alice->get("{$base}/edit/{$this->ids['B']}");
+		$this->assertSame(302, $edit['status'], 'edit page of B');
+		$this->assertStringNotContainsString('acl-bob@example.net', $edit['body'], 'edit page of B leaked it');
 		foreach (['B', 'M'] as $entry) {
 			$id = $this->ids[$entry];
 			self::edit($alice, "{$base}/edit/{$this->ids['A']}", "{$base}/edit/{$id}", self::USER_FORM, "acl-edited-{$entry}@example.net", 'alice@example.org');
@@ -111,7 +113,8 @@ final class EntryAccessTest extends IntegrationTestCase
 		self::add($alice, '/user/map/' . self::MAP . '/add', self::USER_FORM, 'acl-new-alias@example.net', 'alias-alice@example.org');
 		$this->assertSame(1, self::entries("mail_from = 'acl-new-alias@example.net' AND rcpt_to = 'alias-alice@example.org' AND user_id = {$aliceId}"), 'not added for her alias');
 
-		// an admin-only map: refused before any form
+		// an admin-only map: its list and add pages refuse her
+		$this->assertSame(302, $alice->get('/user/map/mail_from_whitelist')['status'], 'admin-only map list');
 		$page = $alice->get('/user/map/mail_from_whitelist/add?mail_from=acl-x@example.net');
 		$this->assertSame(302, $page['status'], 'admin-only map');
 		$this->assertStringNotContainsString('map_mail_from_form', $page['body']);

@@ -10,8 +10,8 @@
 /*
  Data scoping through the whole stack (middleware, controller, service)
  against a running instance seeded by qa/integration-tests.sh with
- tests/Integration/fixtures.sql: alice owns mails 101 and 103 (via her alias)
- and map entry 201, bob owns mail 102 and map entry 202.
+ tests/Integration/fixtures.sql: alice owns mails 101 and 103 (via her alias),
+ bob owns mail 102. Map entries are in MapEntryScopingTest.
  Each refusal has a matching positive check, so a broken login or fixture
  cannot make a refusal pass by accident.
 */
@@ -23,8 +23,6 @@ use Tests\Integration\WebClient;
 
 final class ScopingTest extends IntegrationTestCase
 {
-	private const MAP = '/user/map/mail_from_rcpt_to_whitelist';
-
 	/** @param array{status: int, location: string, body: string, headers: array<string, string>} $response */
 	private function assertRefused(array $response, string $what): void {
 		$this->assertSame(302, $response['status'], "{$what}: expected a redirect");
@@ -122,42 +120,5 @@ final class ScopingTest extends IntegrationTestCase
 		// the same token and form release her own mail
 		$alice->post('/release/101', $fields);
 		$this->assertSame(1, (int) self::value('SELECT released FROM mail_logs WHERE id = ?', 101));
-	}
-
-	public function testMapEntriesAreScoped(): void {
-		$alice = self::client('alice');
-		$page = $alice->get(self::MAP);
-		$this->assertSame(200, $page['status']);
-		$this->assertStringContainsString('map-alice@example.net', $page['body']);
-		$this->assertStringNotContainsString('map-bob@example.net', $page['body']);
-
-		$edit = $alice->get(self::MAP . '/edit/202');
-		$this->assertSame(302, $edit['status'], 'edit 202');
-		$this->assertStringNotContainsString('map-bob@example.net', $edit['body']);
-
-		// her own tokens, used on bob's entry
-		$toggle = WebClient::match('#/toggle/201\?_token=([^"\']+)#', $page['body']);
-		$del = WebClient::match('#/del/201\?_token=([^"\']+)#', $page['body']);
-		$delall = WebClient::match('#/delall\?_token=([^"\']+)#', $page['body']);
-
-		$alice->get(self::MAP . '/toggle/202?_token=' . urlencode($toggle));
-		$alice->get(self::MAP . '/del/202?_token=' . urlencode($del));
-		$this->assertSame(0, (int) self::value('SELECT disabled FROM maps_combined WHERE id = ?', 202), 'bob 202 toggled');
-		$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM maps_combined WHERE id = ?', 202), 'bob 202 deleted');
-
-		// the same tokens work on her own entry
-		$alice->get(self::MAP . '/toggle/201?_token=' . urlencode($toggle));
-		$this->assertSame(1, (int) self::value('SELECT disabled FROM maps_combined WHERE id = ?', 201), 'alice 201 not toggled');
-
-		// delete-all removes only her entries
-		$alice->get(self::MAP . '/delall?_token=' . urlencode($delall));
-		$this->assertSame(0, (int) self::value('SELECT COUNT(*) FROM maps_combined WHERE id = ?', 201), 'alice 201 kept');
-		$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM maps_combined WHERE id = ?', 202), 'bob 202 deleted by delall');
-	}
-
-	public function testAdminOnlyMapIsRefused(): void {
-		$alice = self::client('alice');
-		$response = $alice->get('/user/map/mail_from_whitelist');
-		$this->assertSame(302, $response['status']);
 	}
 }
