@@ -238,10 +238,10 @@ final class MapController extends ViewController
 
 		$map_configs = $service->getPaginatedCustomMapConfigs($page, $this->getShowCustomMapsConfigUrl());
 
-		foreach ($map_configs as $key => $map_config) {
-			$map_configs[$key]['map_entries'] = $map_config->MapsCustom->count();
-			/** @psalm-suppress InvalidArgument nested write: $map_configs[$key] is the model, whose offsetSet() takes it, not the paginator's */
-			$map_configs[$key]['protected'] = MapService::isProtectedMap($map_config->map_name);
+		// the paginator holds the models themselves, so set them directly
+		foreach ($map_configs as $map_config) {
+			$map_config['map_entries'] = $map_config->MapsCustom->count();
+			$map_config['protected'] = MapService::isProtectedMap($map_config->map_name);
 		}
 
 		return new Response($this->twig->render('maps_custom_config.twig', [

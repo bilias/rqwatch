@@ -26,6 +26,8 @@ final class Plugin implements PluginEntryPointInterface
 	public function __invoke(RegistrationInterface $registration, ?SimpleXMLElement $config = null): void {
 		// registerHooksFromClass() does not autoload
 		class_exists(EloquentForwarding::class);
+		class_exists(EloquentProperties::class);
 		$registration->registerHooksFromClass(EloquentForwarding::class);
+		$registration->registerHooksFromClass(EloquentProperties::class);
 	}
 }

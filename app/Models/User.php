@@ -16,7 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Core\App;
 
 /**
- * @phpstan-property-read int<0, max> $id AUTO_INCREMENT PRIMARY KEY, so never NULL
+ * @property-read int<0, max> $id AUTO_INCREMENT PRIMARY KEY, so never NULL
+ * @property int<0, max>|null $session_version NULL until the 20261012_session_version migration adds the column
  */
 final class User extends Model
 {

@@ -23,17 +23,17 @@ use Throwable;
 
 /**
  * Runtime-only attributes, set in memory and never saved (not columns):
- * @phpstan-property string|null $virus_name
- * @phpstan-property string|null $disabled_rcpt_to
- * @phpstan-property string|null $mime_from_normalized
+ * @property string|null $virus_name
+ * @property string|null $disabled_rcpt_to
+ * @property string|null $mime_from_normalized
  * Aggregate aliases on the quarantine day and month rows (not columns):
- * @phpstan-property-read int $cnt
- * @phpstan-property-read string $day
- * @phpstan-property-read string $month
+ * @property-read int $cnt
+ * @property-read string $day
+ * @property-read string $month
  * Columns the schema leaves nullable but the app never writes NULL to:
- * @phpstan-property bool $has_virus importer and spool always write 0 or 1
- * @phpstan-property string $server importer always writes the server query parameter ('' if absent)
- * @phpstan-property-read \Illuminate\Support\Carbon $created_day generated from the NOT NULL created_at (date cast)
+ * @property bool $has_virus importer and spool always write 0 or 1
+ * @property string $server importer always writes the server query parameter ('' if absent)
+ * @property-read \Illuminate\Support\Carbon $created_day generated from the NOT NULL created_at (date cast)
  */
 final class MailLog extends Model
 {

@@ -9,7 +9,6 @@
 	findUnusedCode="false"
 	allConstantsGlobal="true"
 	runTaintAnalysis="false"
-	sealAllProperties="false"
 >
 	<!-- Paths are relative to the project root: run from there (composer scripts do) -->
 	<projectFiles>

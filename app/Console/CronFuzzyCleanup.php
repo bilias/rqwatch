@@ -86,7 +86,7 @@ final class CronFuzzyCleanup extends RqwatchCliCommand
 		if ($input->getOption('show')) {
 			foreach ((clone $query)->get() as $row) {
 				$output->writeln("QID: {$row->qid} server: {$row->api_server} learned: {$row->created_at} " .
-					"updated: {$row->updated_at} last hit: " . ($row->last_hit_at ?? 'never'));
+					"updated: {$row->updated_at} last hit: " . ($row->last_hit_at?->toDateTimeString() ?? 'never'));
 			}
 		}
 

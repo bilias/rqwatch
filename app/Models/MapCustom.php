@@ -16,9 +16,9 @@ use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Runtime-only attributes, set by MapController for the views (not columns):
- * @phpstan-property string $map_description
- * @phpstan-property string $field
- * @phpstan-property string $field_description
+ * @property string $map_description
+ * @property string $field
+ * @property string $field_description
  */
 final class MapCustom extends Model
 {
