@@ -407,7 +407,7 @@ class Helper {
 
 	public static function convertSRSAddress(?string $srsAddress): string {
 	    // Normalize case
-	    $srsAddress = strtolower($srsAddress);
+	    $srsAddress = strtolower((string) $srsAddress);
 
 	    // Match SRS0 format
 	    // if (preg_match('/^srs0=[^=]+=[^=]+=([^=]+)=(.*@.*)$/i', $srsAddress, $matches))

@@ -410,9 +410,16 @@ class LoginController extends ViewController
 	// if user does not exists it is created
 	private function finalizeAuthenticatedUser(AuthManager $auth): bool {
 		$username = $auth->getAuthenticatedUser();
+		$auth_provider = $auth->getAuthProvider();
+		// called only after a successful authenticate(), so a provider has a user
+		if ($username === null) {
+			$this->fileLogger->warning("($auth_provider) authenticated without a username from IP:" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN'));
+			$this->flashbag->add('error', "Authentication problem. Contact admin");
+			return false;
+		}
+
 		$is_admin = $auth->getIsAdmin();
 		$email = $auth->getUserEmail();
-		$auth_provider = $auth->getAuthProvider();
 		$auth_provider_id = $auth->getAuthProviderId();
 
 		$user = User::where('username', $username)->first();
