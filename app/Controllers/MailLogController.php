@@ -531,7 +531,7 @@ class MailLogController extends ViewController
 		]));
 	}
 
-	public function showQuarantineDay(?string $date = null): Response {
+	public function showQuarantineDay(string $date): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
@@ -811,7 +811,7 @@ class MailLogController extends ViewController
 			'fuzzy_enabled' => $fuzzy_enabled,
 			'fuzzy' => $fuzzy,
 			'fuzzy_shared' => $fuzzy_shared,
-			'fuzzy_matched' => $fuzzy_enabled ? $fuzzy_service->matchedBy((int) $ar['log']->id) : [],
+			'fuzzy_matched' => $fuzzy_service !== null ? $fuzzy_service->matchedBy((int) $ar['log']->id) : [],
 			'fuzzy_learnable' => $fuzzy_learnable,
 			'fuzzy_boostable' => $fuzzy_boostable,
 			'fuzzy_flags' => $fuzzy_flags,
