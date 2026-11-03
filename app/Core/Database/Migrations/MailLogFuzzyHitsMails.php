@@ -22,7 +22,7 @@ use DateTimeImmutable;
 use RuntimeException;
 use Throwable;
 
-class MailLogFuzzyHitsMails extends AbstractMigration {
+final class MailLogFuzzyHitsMails extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_LOG_FUZZY_HITS_MAILS;
 

@@ -18,7 +18,7 @@ use Psr\Log\LoggerInterface;
 
 use Throwable;
 
-class VirusService
+final class VirusService
 {
 	// report windows, today included
 	public const array WINDOWS = [

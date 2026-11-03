@@ -35,7 +35,7 @@ use Exception;
 use Throwable;
 use RuntimeException;
 
-class MapService
+final class MapService
 {
 	/** @var array<string, true>|null */
 	private static ?array $mappedSymbolSet = null;

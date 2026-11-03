@@ -10,7 +10,7 @@
 
 namespace App\Forms;
 
-class MapMimeFromForm extends MapWithOneFieldForm
+final class MapMimeFromForm extends MapWithOneFieldForm
 {
 	protected static string $fieldName = 'mime_from';
 }

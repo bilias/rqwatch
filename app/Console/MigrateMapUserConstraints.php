@@ -23,7 +23,7 @@ use App\Inventory\Migrations;
 	description: 'Add user constraints to maps_combined and mail_aliases',
 	help: 'This command adds the maps_combined user foreign key and the mail_aliases unique key',
 )]
-class MigrateMapUserConstraints extends MigrateCliCommand
+final class MigrateMapUserConstraints extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_map_user_constraints";
 	private const string MIGRATION = Migrations::MAP_USER_CONSTRAINTS;

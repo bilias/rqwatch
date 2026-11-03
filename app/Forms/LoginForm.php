@@ -29,7 +29,7 @@ use App\Configuration\Config;
 
 use App\Utils\FormHelper;
 
-class LoginForm extends AbstractType
+final class LoginForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

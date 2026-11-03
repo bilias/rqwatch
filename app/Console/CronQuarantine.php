@@ -33,7 +33,7 @@ use DateInterval;
 	help: 'This command scans the Rqwatch database and cleans the Quarantine.
 ',
 )]
-class CronQuarantine extends RqwatchCliCommand
+final class CronQuarantine extends RqwatchCliCommand
 {
 	private string $app_name = "cron:quarantine";
 

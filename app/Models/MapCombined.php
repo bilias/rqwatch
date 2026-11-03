@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Builder;
  * @phpstan-property string $map_username
  * @phpstan-property bool $user_can_delete
  */
-class MapCombined extends Model
+final class MapCombined extends Model
 {
 	protected $table = 'maps_combined';
 	/*

@@ -22,7 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class IpCreatedDayIndex extends AbstractMigration {
+final class IpCreatedDayIndex extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::IP_CREATED_DAY_INDEX;
 

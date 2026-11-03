@@ -33,7 +33,7 @@ use DateInterval;
 	help: 'This command scans the Rqwatch database and cleans the Database from old records.
 ',
 )]
-class CronCleanupDb extends RqwatchCliCommand
+final class CronCleanupDb extends RqwatchCliCommand
 {
 	private string $app_name = "cron:cleanupdb";
 

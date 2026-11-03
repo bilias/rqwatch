@@ -13,7 +13,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class MailAlias extends Model
+final class MailAlias extends Model
 {
 	/*
 	protected $table = 'mail_aliases';

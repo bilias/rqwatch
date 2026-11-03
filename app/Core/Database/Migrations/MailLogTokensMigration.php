@@ -22,7 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class MailLogTokensMigration extends AbstractMigration {
+final class MailLogTokensMigration extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_LOG_TOKENS;
 

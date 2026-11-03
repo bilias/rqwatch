@@ -32,7 +32,7 @@ use Exception;
 //use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-class UserController extends ViewController
+final class UserController extends ViewController
 {
 	private ?UserService $userService = null;
 

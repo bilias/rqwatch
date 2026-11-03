@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class IdActionIndex extends AbstractMigration {
+final class IdActionIndex extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::ID_ACTION_INDEX;
 

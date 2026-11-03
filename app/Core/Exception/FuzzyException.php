@@ -13,7 +13,7 @@ namespace App\Core\Exception;
 use RuntimeException;
 
 // Thrown by FuzzyService. The message is safe to show to an admin.
-class FuzzyException extends RuntimeException
+final class FuzzyException extends RuntimeException
 {
 	public function __construct(
 		string $message,

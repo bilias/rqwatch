@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use App\Configuration\AppConfig;
 
-class MailLogToken extends Model
+final class MailLogToken extends Model
 {
 	protected $table = AppConfig::MAIL_LOG_TOKENS_TABLE;
 

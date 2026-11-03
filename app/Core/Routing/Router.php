@@ -39,7 +39,7 @@ use Throwable;
 
 // https://symfony.com/doc/current/create_framework/http_kernel_controller_resolver.html
 
-class Router
+final class Router
 {
 
 	/** @param list<class-string> $defaultMiddlewareClasses */

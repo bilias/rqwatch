@@ -26,7 +26,7 @@ use App\Inventory\Migrations;
 	help: 'This command adds id_action_index index to mail_logs table
 ',
 )]
-class MigrateIdActionIndex extends MigrateCliCommand
+final class MigrateIdActionIndex extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_id_action_index";
 	private const string MIGRATION = Migrations::ID_ACTION_INDEX;

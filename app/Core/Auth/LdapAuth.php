@@ -20,7 +20,7 @@ use App\Utils\Helper;
 
 use RuntimeException;
 
-class LdapAuth implements AuthInterface {
+final class LdapAuth implements AuthInterface {
 	private string $username;
 	private string $password;
 	private LoggerInterface $logger;

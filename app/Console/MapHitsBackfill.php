@@ -31,7 +31,7 @@ replaced, so the result reflects the current maps and symbols. Run it after
 the map hits migration, and again after changing map symbols.
 ',
 )]
-class MapHitsBackfill extends RqwatchCliCommand
+final class MapHitsBackfill extends RqwatchCliCommand
 {
 	private string $app_name = "db:map_hits_backfill";
 	private const int DAYS = 31;

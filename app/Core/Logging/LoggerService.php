@@ -13,7 +13,7 @@ namespace App\Core\Logging;
 use Psr\Log\LoggerInterface;
 
 // initialized by Kernel
-class LoggerService
+final class LoggerService
 {
 	private LoggerInterface $fileLogger;
 	private LoggerInterface $syslogLogger;

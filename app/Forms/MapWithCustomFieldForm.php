@@ -32,7 +32,7 @@ use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 use App\Services\MapService;
 
-class MapWithCustomFieldForm extends AbstractType
+final class MapWithCustomFieldForm extends AbstractType
 {
 	protected static string $fieldName = 'custom';
 

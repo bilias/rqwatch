@@ -36,7 +36,7 @@ use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 //use App\Models\User;
 
-class UserForm extends AbstractType
+final class UserForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

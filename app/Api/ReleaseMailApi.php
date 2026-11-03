@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use InvalidArgumentException;
 
-class ReleaseMailApi extends RqwatchApi
+final class ReleaseMailApi extends RqwatchApi
 {
 	protected string $logPrefix = 'ReleaseMailApi';
 

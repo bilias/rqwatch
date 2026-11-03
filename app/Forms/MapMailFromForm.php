@@ -10,7 +10,7 @@
 
 namespace App\Forms;
 
-class MapMailFromForm extends MapWithOneFieldForm
+final class MapMailFromForm extends MapWithOneFieldForm
 {
 	protected static string $fieldName = 'mail_from';
 }

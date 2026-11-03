@@ -42,7 +42,7 @@ use Exception;
  * clients prefetch links in email; they perform no action. link(), view() and
  * release() are POST + CSRF so a prefetch cannot trigger them.
  */
-class QuarantineController extends ViewController
+final class QuarantineController extends ViewController
 {
 	private const string SESSION_KEY = 'notify_tokens';
 

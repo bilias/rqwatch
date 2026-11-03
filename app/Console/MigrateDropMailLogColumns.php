@@ -37,7 +37,7 @@ afterwards for that. The drop is not reversible, so verify mail_log_data
 coverage first, see docs/DB_UPDATE_2_plus.md
 ',
 )]
-class MigrateDropMailLogColumns extends MigrateCliCommand
+final class MigrateDropMailLogColumns extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_drop_mail_log_columns";
 	private const string MIGRATION = Migrations::DROP_MAIL_LOG_COLUMNS;

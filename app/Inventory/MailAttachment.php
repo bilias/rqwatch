@@ -12,7 +12,7 @@ namespace App\Inventory;
 
 use PhpMimeMailParser\Attachment;
 
-class MailAttachment
+final class MailAttachment
 {
 	private string $filename;
 	private string $filetype;

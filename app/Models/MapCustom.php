@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Builder;
  * @phpstan-property string $field
  * @phpstan-property string $field_description
  */
-class MapCustom extends Model
+final class MapCustom extends Model
 {
 	protected $table = 'maps_custom';
 	/*

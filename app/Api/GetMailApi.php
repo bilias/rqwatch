@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 use InvalidArgumentException;
 
-class GetMailApi extends RqwatchApi
+final class GetMailApi extends RqwatchApi
 {
 	protected string $logPrefix = 'GetMailApi';
 

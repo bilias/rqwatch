@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use App\Utils\FormHelper;
 
-class UserDeleteForm extends AbstractType
+final class UserDeleteForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

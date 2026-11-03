@@ -29,7 +29,7 @@ $logger->info()      Info      Logger::INFO (200)
 $logger->debug()     Debug     Logger::DEBUG (100)
 */
 
-class LoggerFactory
+final class LoggerFactory
 {
 	public static function createFileLogger(): LoggerInterface {
 		// Get log file path from config or use fallback

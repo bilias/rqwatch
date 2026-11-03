@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class AdminNotified extends AbstractMigration {
+final class AdminNotified extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::ADMIN_NOTIFIED;
 

@@ -23,7 +23,7 @@ use App\Inventory\Migrations;
 	description: 'Create the custom map of viruses that get no notification',
 	help: 'This command creates the custom map named by $notification_skip_virus_map, and refuses if a map with that name already exists',
 )]
-class MigrateVirusSkipMap extends MigrateCliCommand
+final class MigrateVirusSkipMap extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_virus_skip_map";
 	private const string MIGRATION = Migrations::VIRUS_SKIP_MAP;

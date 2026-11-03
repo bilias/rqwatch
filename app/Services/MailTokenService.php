@@ -37,7 +37,7 @@ use Throwable;
  * file is still on disk (mail_logs.mail_stored = 1). CronQuarantine clears
  * that flag and deletes the token rows when the retention period ends.
  */
-class MailTokenService
+final class MailTokenService
 {
 	private const int TOKEN_BYTES = 32;
 

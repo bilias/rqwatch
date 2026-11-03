@@ -46,7 +46,7 @@ use Exception;
 use InvalidArgumentException;
 use Throwable;
 
-class MailLogController extends ViewController
+final class MailLogController extends ViewController
 {
 	private ?MailLogService $mailLogService = null;
 

@@ -29,7 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
-class UserSearchForm extends AbstractType
+final class UserSearchForm extends AbstractType
 {
 	public const string PATTERN = '/^[a-zA-Z0-9._+@-]+$/';
 

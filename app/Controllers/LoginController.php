@@ -30,7 +30,7 @@ use App\Core\Auth\AuthManager;
 use Jumbojett\OpenIDConnectClientException;
 //use App\Core\Auth\DbAuth;
 
-class LoginController extends ViewController
+final class LoginController extends ViewController
 {
 
 	private ?string $loginUrl = null;

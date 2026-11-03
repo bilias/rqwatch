@@ -10,7 +10,7 @@
 
 namespace App\Charts;
 
-class ChartBuilder {
+final class ChartBuilder {
 
 	// distinct from every MailCategory colour (Tableau 10 teal)
 	private const STORED_RATIO_COLOR = '#76b7b2';

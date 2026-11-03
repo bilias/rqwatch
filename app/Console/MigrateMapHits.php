@@ -23,7 +23,7 @@ use App\Inventory\Migrations;
 	description: 'Create the map hits schema',
 	help: 'This command adds custom_map_config.symbols and creates the symbol_names and mail_log_symbol_hits tables',
 )]
-class MigrateMapHits extends MigrateCliCommand
+final class MigrateMapHits extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_map_hits";
 	private const string MIGRATION = Migrations::MAP_HITS;

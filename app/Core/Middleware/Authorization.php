@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 
 use Psr\Log\LoggerInterface;
 
-class Authorization
+final class Authorization
 {
 	private UrlGeneratorInterface $urlGenerator;
 	private LoggerInterface $logger;

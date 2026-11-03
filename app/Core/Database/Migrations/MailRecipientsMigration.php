@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class MailRecipientsMigration extends AbstractMigration {
+final class MailRecipientsMigration extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_RECIPIENTS;
 

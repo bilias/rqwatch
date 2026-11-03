@@ -23,7 +23,7 @@ use App\Utils\Helper;
 use RuntimeException;
 use Throwable;
 
-class OpenIDConnectAuth implements AuthInterface {
+final class OpenIDConnectAuth implements AuthInterface {
 	private LoggerInterface $logger;
 
 	private bool $is_admin = false;

@@ -23,7 +23,7 @@ use App\Inventory\Migrations;
 	description: 'Add admin notification columns to mail_logs',
 	help: 'This command adds mail_logs.admin_notified and admin_notify_date',
 )]
-class MigrateAdminNotified extends MigrateCliCommand
+final class MigrateAdminNotified extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_admin_notified";
 	private const string MIGRATION = Migrations::ADMIN_NOTIFIED;

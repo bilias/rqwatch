@@ -28,7 +28,7 @@ use App\Inventory\Migrations;
 	help: 'This command migrates mail recipients from mail_logs/rcpt_to to mail_log_recipients
 ',
 )]
-class MigrateMailRecipients extends MigrateCliCommand
+final class MigrateMailRecipients extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_mail_recipients";
 	private const string MIGRATION = Migrations::MAIL_RECIPIENTS;

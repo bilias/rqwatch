@@ -15,7 +15,7 @@ use App\Core\Routing\RouteName;
 // Root path of the project (without trailing slash)
 define('RQWATCH_ROOT', realpath(__DIR__ . '/../..'));
 
-class AppConfig {
+final class AppConfig {
 
 // Application version
 public const string VERSION = '2.1.3-dev4';

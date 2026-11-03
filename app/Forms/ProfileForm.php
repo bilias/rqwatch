@@ -29,7 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use App\Utils\FormHelper;
 
-class ProfileForm extends AbstractType
+final class ProfileForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class DropMailLogIndexes extends AbstractMigration {
+final class DropMailLogIndexes extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::DROP_MAIL_LOG_INDEXES;
 

@@ -33,7 +33,7 @@ use App\Services\UserService;
 	help: 'This command creates a user to Rqwatch.
 ',
 )]
-class UserAdd extends RqwatchCliCommand
+final class UserAdd extends RqwatchCliCommand
 {
 	private string $app_name = "user:add";
 

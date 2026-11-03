@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class MailLogFuzzyMigration extends AbstractMigration {
+final class MailLogFuzzyMigration extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_LOG_FUZZY;
 

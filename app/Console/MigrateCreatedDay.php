@@ -26,7 +26,7 @@ use App\Inventory\Migrations;
 	help: 'This command adds created_day column to mail_logs table
 ',
 )]
-class MigrateCreatedDay extends MigrateCliCommand
+final class MigrateCreatedDay extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_created_day";
 	private const string MIGRATION = Migrations::CREATED_DAY;

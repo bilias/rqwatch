@@ -26,7 +26,7 @@ use App\Inventory\Migrations;
 	help: 'This command adds ip_created_day_index index to mail_logs table
 ',
 )]
-class MigrateIpCreatedDayIndex extends MigrateCliCommand
+final class MigrateIpCreatedDayIndex extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_ip_created_day_index";
 	private const string MIGRATION = Migrations::IP_CREATED_DAY_INDEX;

@@ -30,7 +30,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
-class QidForm extends AbstractType
+final class QidForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

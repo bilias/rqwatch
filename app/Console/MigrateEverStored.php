@@ -23,7 +23,7 @@ use App\Inventory\Migrations;
 	description: 'Add the indexed ever_stored column to mail_logs',
 	help: 'This command adds mail_logs.ever_stored and ever_stored_created_day_index',
 )]
-class MigrateEverStored extends MigrateCliCommand
+final class MigrateEverStored extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_ever_stored";
 	private const string MIGRATION = Migrations::EVER_STORED;

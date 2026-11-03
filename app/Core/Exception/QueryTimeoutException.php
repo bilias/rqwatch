@@ -13,6 +13,6 @@ namespace App\Core\Exception;
 use RuntimeException;
 
 // A query stopped by max_statement_time (DB_WEB_MAX_STATEMENT_TIME on the web)
-class QueryTimeoutException extends RuntimeException
+final class QueryTimeoutException extends RuntimeException
 {
 }

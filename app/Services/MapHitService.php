@@ -25,7 +25,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 use Throwable;
 
-class MapHitService
+final class MapHitService
 {
 	private LoggerInterface $logger;
 

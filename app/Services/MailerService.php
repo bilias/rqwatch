@@ -28,7 +28,7 @@ use Symfony\Bridge\Twig\Mime\BodyRenderer;
 use Throwable;
 use RuntimeException;
 
-class MailerService
+final class MailerService
 {
 	private Mailer $mailer;
 	private Environment $twig;

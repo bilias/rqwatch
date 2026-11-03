@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class UserNotificationsDefault extends AbstractMigration {
+final class UserNotificationsDefault extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::USER_NOTIFICATIONS_DEFAULT;
 

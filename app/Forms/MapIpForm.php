@@ -15,7 +15,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 
 use App\Inventory\MapInventory;
 
-class MapIpForm extends MapWithOneFieldForm
+final class MapIpForm extends MapWithOneFieldForm
 {
 	protected static string $fieldName = 'ip';
 

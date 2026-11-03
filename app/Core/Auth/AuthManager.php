@@ -19,7 +19,7 @@ use SensitiveParameter;
 
 use RuntimeException;
 
-class AuthManager
+final class AuthManager
 {
 	private ?AuthInterface $provider = null;
 	/** @var int<0, 2> key of $authProviders */

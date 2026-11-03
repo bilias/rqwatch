@@ -37,7 +37,7 @@ use Throwable;
 	help: 'This command scans the Rqwatch database and updates map files if needed.
 ',
 )]
-class CronUpdateMapFiles extends RqwatchCliCommand
+final class CronUpdateMapFiles extends RqwatchCliCommand
 {
 	private string $app_name = "cron:updatemapfiles";
 

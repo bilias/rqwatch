@@ -32,7 +32,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
-class CustomMapConfigForm extends AbstractType
+final class CustomMapConfigForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

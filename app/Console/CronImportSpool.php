@@ -28,7 +28,7 @@ imported. Run it with -l on each API server: only the server that
 received a mail can check that its raw file is still on disk.
 ',
 )]
-class CronImportSpool extends RqwatchCliCommand
+final class CronImportSpool extends RqwatchCliCommand
 {
 	private string $app_name = "cron:import_spool";
 

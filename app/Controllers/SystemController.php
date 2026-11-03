@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Throwable;
 
-class SystemController extends Controller
+final class SystemController extends Controller
 {
 	public function redisConfigReload(): Response {
 		if (!$this->is_admin) {

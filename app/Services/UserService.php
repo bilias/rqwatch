@@ -33,7 +33,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 use Exception;
 
-class UserService
+final class UserService
 {
 	private LoggerInterface $logger;
 

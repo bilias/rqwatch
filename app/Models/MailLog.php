@@ -35,7 +35,7 @@ use Throwable;
  * @phpstan-property string $server importer always writes the server query parameter ('' if absent)
  * @phpstan-property-read \Illuminate\Support\Carbon $created_day generated from the NOT NULL created_at (date cast)
  */
-class MailLog extends Model
+final class MailLog extends Model
 {
 
 	/*

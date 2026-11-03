@@ -60,7 +60,7 @@ use DateTimeImmutable;
 use Exception;
 use InvalidArgumentException;
 
-class MailLogService
+final class MailLogService
 {
 	private LoggerInterface $logger;
 	private MigrationStatus $migrationStatus;

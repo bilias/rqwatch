@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use App\Configuration\AppConfig;
 
-class MailLogFuzzy extends Model
+final class MailLogFuzzy extends Model
 {
 	protected $table = AppConfig::MAIL_LOG_FUZZY_TABLE;
 

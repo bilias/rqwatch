@@ -19,7 +19,7 @@ use SensitiveParameter;
 
 use RuntimeException;
 
-class BasicAuth implements AuthInterface {
+final class BasicAuth implements AuthInterface {
 	private string $username;
 	private string $password;
 	private LoggerInterface $logger;

@@ -13,7 +13,7 @@ namespace App\Core\Exception;
 use Exception;
 use Throwable;
 
-class SessionExpired extends Exception
+final class SessionExpired extends Exception
 {
 	// Redefine the exception so message isn't optional
 	public function __construct(string $message, int $code = 0, ?Throwable $previous = null) {

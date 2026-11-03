@@ -25,7 +25,7 @@ use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Validator\Validation;
 
-class FormFactoryProvider
+final class FormFactoryProvider
 {
 	private static ?FormFactoryInterface $formFactory = null;
 

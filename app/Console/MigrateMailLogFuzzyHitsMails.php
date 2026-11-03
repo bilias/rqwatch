@@ -27,7 +27,7 @@ mail with hits to the mails, from its learn to its last hit, that carry one of i
 hashes. Re-running it checks only the learned mails with fewer linked mails than hits.
 ',
 )]
-class MigrateMailLogFuzzyHitsMails extends MigrateCliCommand
+final class MigrateMailLogFuzzyHitsMails extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_mail_log_fuzzy_hits_mails";
 	private const string MIGRATION = Migrations::MAIL_LOG_FUZZY_HITS_MAILS;

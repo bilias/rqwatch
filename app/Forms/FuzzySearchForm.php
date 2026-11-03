@@ -29,7 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
-class FuzzySearchForm extends AbstractType
+final class FuzzySearchForm extends AbstractType
 {
 	// QID, learned by, server or a hash prefix
 	public const string PATTERN = '/^[a-zA-Z0-9._+@-]+$/';

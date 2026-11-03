@@ -28,7 +28,7 @@ use Exception;
 
 //use Illuminate\Database\Capsule\Manager as DB;
 
-class MailAliasController extends ViewController
+final class MailAliasController extends ViewController
 {
 	private ?MailAliasService $mailAliasService = null;
 

@@ -33,7 +33,7 @@ use App\Core\Database\Migrations\MailLogFuzzyHitsMails;
 
 use InvalidArgumentException;
 
-class Migrations
+final class Migrations
 {
 	public const string MAIL_RECIPIENTS = '20260111_mail_recipients';
 	public const string CREATED_DAY = '20260729_created_day';

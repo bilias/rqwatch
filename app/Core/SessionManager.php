@@ -25,7 +25,7 @@ use App\Utils\Helper;
 use Throwable;
 use RuntimeException;
 
-class SessionManager
+final class SessionManager
 {
 	private static ?Session $session = null;
 	private static ?int $session_timeout = null;

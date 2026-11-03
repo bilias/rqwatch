@@ -14,7 +14,7 @@ use App\Models\MailLog;
 
 use PhpMimeMailParser\Parser;
 
-class MailObject
+final class MailObject
 {
 	private ?string $virus_found;
 	/** @var list<string> */

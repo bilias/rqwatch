@@ -21,7 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class MailLogDataMigration extends AbstractMigration {
+final class MailLogDataMigration extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAIL_LOG_DATA;
 

@@ -41,7 +41,7 @@ use Throwable;
  * to the rspamd controller in the mail's API_SERVERS entry ('fuzzy_url').
  * Callers on other nodes go through the owning node's API.
  */
-class FuzzyService
+final class FuzzyService
 {
 	// rspamd returns digests as 64 bytes, hex encoded
 	private const string HASH_FORMAT = '/^[a-f0-9]{128}$/';

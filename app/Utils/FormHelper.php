@@ -23,7 +23,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
-class FormHelper
+final class FormHelper
 {
 	/**
 	 * @param array<string, mixed>|null $data

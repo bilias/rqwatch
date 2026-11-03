@@ -23,7 +23,7 @@ use App\Inventory\Migrations;
 	description: 'Add users.session_version for ending sessions on account changes',
 	help: 'This command adds users.session_version',
 )]
-class MigrateSessionVersion extends MigrateCliCommand
+final class MigrateSessionVersion extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_session_version";
 	private const string MIGRATION = Migrations::SESSION_VERSION;

@@ -21,7 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class MapHits extends AbstractMigration {
+final class MapHits extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAP_HITS;
 

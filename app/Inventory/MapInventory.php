@@ -35,7 +35,7 @@ use App\Services\MapService;
 
 use RuntimeException;
 
-class MapInventory
+final class MapInventory
 {
 	private const array USER_FORM_OVERRIDES = [
 		MapMailFromRcptToForm::class => MapMailFromRcptToUserForm::class,

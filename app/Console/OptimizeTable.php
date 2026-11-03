@@ -36,7 +36,7 @@ An instant column drop (db:migrate_drop_mail_log_columns) does not reclaim
 space on its own -- this is the step that does.
 ',
 )]
-class OptimizeTable extends RqwatchCliCommand
+final class OptimizeTable extends RqwatchCliCommand
 {
 	private string $app_name = "db:optimize_table";
 

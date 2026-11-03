@@ -31,7 +31,7 @@ use Symfony\Component\HttpFoundation\Response;
 use InvalidArgumentException;
 use Throwable;
 
-class FuzzyController extends ViewController
+final class FuzzyController extends ViewController
 {
 	public function showAll(): Response {
 		if ($denied = $this->checkListAccess()) {

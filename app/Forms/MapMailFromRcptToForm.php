@@ -10,7 +10,7 @@
 
 namespace App\Forms;
 
-class MapMailFromRcptToForm extends MapWithTwoFieldsForm
+final class MapMailFromRcptToForm extends MapWithTwoFieldsForm
 {
 	protected static string $firstFieldName = 'mail_from';
 	protected static string $secondFieldName = 'rcpt_to';

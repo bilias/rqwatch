@@ -40,7 +40,7 @@ use Symfony\Component\Routing\Generator\UrlGenerator;
 and then sends notification mails to recipients.
 ',
 )]
-class CronNotifications extends RqwatchCliCommand
+final class CronNotifications extends RqwatchCliCommand
 {
 	private string $app_name = "cron:notifications";
 

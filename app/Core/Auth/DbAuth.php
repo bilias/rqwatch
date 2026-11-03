@@ -17,7 +17,7 @@ use App\Utils\Helper;
 
 use RuntimeException;
 
-class DbAuth implements AuthInterface {
+final class DbAuth implements AuthInterface {
 	private string $username;
 	private string $password;
 

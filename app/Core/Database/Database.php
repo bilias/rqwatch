@@ -24,7 +24,7 @@ use PDO;
 
 use RuntimeException;
 
-class Database {
+final class Database {
 
 	/** @var array<string, list<string>> table => columns */
 	private static array $schema = [];

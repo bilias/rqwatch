@@ -28,7 +28,7 @@ use App\Inventory\Migrations;
 	help: 'This command migrates data from mail_logs to mail_log_Data
 ',
 )]
-class MigrateMailLogData extends MigrateCliCommand
+final class MigrateMailLogData extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_mail_log_data";
 	private const string MIGRATION = Migrations::MAIL_LOG_DATA;

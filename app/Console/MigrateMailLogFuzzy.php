@@ -26,7 +26,7 @@ use App\Inventory\Migrations;
 	help: 'This command creates mail_log_fuzzy table
 ',
 )]
-class MigrateMailLogFuzzy extends MigrateCliCommand
+final class MigrateMailLogFuzzy extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_mail_log_fuzzy";
 	private const string MIGRATION = Migrations::MAIL_LOG_FUZZY;

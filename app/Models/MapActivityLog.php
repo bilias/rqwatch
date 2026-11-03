@@ -12,7 +12,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class MapActivityLog extends Model
+final class MapActivityLog extends Model
 {
 	protected $table = 'map_activity_logs';
 

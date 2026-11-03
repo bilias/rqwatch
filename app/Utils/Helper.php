@@ -42,7 +42,7 @@ use Throwable;
 use RuntimeException;
 use InvalidArgumentException;
 
-class Helper {
+final class Helper {
 
 	// used when a *_symbol_patterns config value is missing or invalid
 	private const array SYMBOL_PATTERNS = [

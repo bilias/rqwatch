@@ -27,7 +27,7 @@ symbols and virus names of every virus mail from mail_log_data. Re-running it
 fills only the mails that have no rows yet.
 ',
 )]
-class MigrateMailLogViruses extends MigrateCliCommand
+final class MigrateMailLogViruses extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_mail_log_viruses";
 	private const string MIGRATION = Migrations::MAIL_LOG_VIRUSES;

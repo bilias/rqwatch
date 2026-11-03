@@ -27,7 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use App\Utils\FormHelper;
 
-class MailAliasForm extends AbstractType
+final class MailAliasForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

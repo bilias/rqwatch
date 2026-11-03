@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class CreatedDayMigration extends AbstractMigration {
+final class CreatedDayMigration extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::CREATED_DAY;
 

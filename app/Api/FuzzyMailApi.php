@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
 use InvalidArgumentException;
 use Throwable;
 
-class FuzzyMailApi extends RqwatchApi
+final class FuzzyMailApi extends RqwatchApi
 {
 	protected string $logPrefix = 'FuzzyMailApi';
 

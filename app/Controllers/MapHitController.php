@@ -26,7 +26,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Throwable;
 
-class MapHitController extends ViewController
+final class MapHitController extends ViewController
 {
 	// per map and per uncredited symbol: distinct mails today, in 7 and in 31 days
 	public function showReport(): Response {

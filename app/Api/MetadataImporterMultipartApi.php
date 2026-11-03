@@ -31,7 +31,7 @@ use PDOException;
 
 use Throwable;
 
-class MetadataImporterMultipartApi extends RqwatchApi
+final class MetadataImporterMultipartApi extends RqwatchApi
 {
 	protected string $logPrefix = 'MetadataImporterMultipartApi';
 

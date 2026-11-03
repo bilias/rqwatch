@@ -34,7 +34,7 @@ use App\Models\User;
 use RuntimeException;
 use Throwable;
 
-class MapController extends ViewController
+final class MapController extends ViewController
 {
 	private ?MapService $mapService = null;
 

@@ -23,7 +23,7 @@ use App\Inventory\Migrations;
 	description: 'Add fuzzy hit and updated_at columns to mail_log_fuzzy',
 	help: 'This command adds mail_log_fuzzy.hits, last_hit_at and updated_at',
 )]
-class MigrateMailLogFuzzyHits extends MigrateCliCommand
+final class MigrateMailLogFuzzyHits extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_mail_log_fuzzy_hits";
 	private const string MIGRATION = Migrations::MAIL_LOG_FUZZY_HITS;

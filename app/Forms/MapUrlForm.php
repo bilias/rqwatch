@@ -10,7 +10,7 @@
 
 namespace App\Forms;
 
-class MapUrlForm extends MapWithOneFieldForm
+final class MapUrlForm extends MapWithOneFieldForm
 {
 	protected static string $fieldName = 'url';
 }

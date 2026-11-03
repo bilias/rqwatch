@@ -29,7 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
-class MapSearchForm extends AbstractType
+final class MapSearchForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

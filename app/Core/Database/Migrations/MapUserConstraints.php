@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class MapUserConstraints extends AbstractMigration {
+final class MapUserConstraints extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::MAP_USER_CONSTRAINTS;
 

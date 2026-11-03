@@ -18,7 +18,7 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 // Store selected config vars in a static array
-class Config {
+final class Config {
 	/** @var array<string, mixed> */
 	private static array $vars = [];
 	private static LoggerInterface $logger;

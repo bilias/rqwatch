@@ -29,7 +29,7 @@ $fuzzy_learn_expire_days. Rspamd has dropped their hashes by then, so only the
 Rqwatch records are deleted.
 ',
 )]
-class CronFuzzyCleanup extends RqwatchCliCommand
+final class CronFuzzyCleanup extends RqwatchCliCommand
 {
 	private string $app_name = "cron:fuzzy_cleanup";
 

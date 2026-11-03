@@ -17,7 +17,7 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-class ApiClient
+final class ApiClient
 {
 	private HttpClientInterface $client;
 

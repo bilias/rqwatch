@@ -10,7 +10,7 @@
 
 namespace App\Forms;
 
-class MapMimeFromRcptToForm extends MapWithTwoFieldsForm
+final class MapMimeFromRcptToForm extends MapWithTwoFieldsForm
 {
 	protected static string $firstFieldName = 'mime_from';
 	protected static string $secondFieldName = 'rcpt_to';

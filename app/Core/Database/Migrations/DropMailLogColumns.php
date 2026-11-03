@@ -26,7 +26,7 @@ use Illuminate\Database\QueryException;
 use RuntimeException;
 use Throwable;
 
-class DropMailLogColumns extends AbstractMigration {
+final class DropMailLogColumns extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::DROP_MAIL_LOG_COLUMNS;
 

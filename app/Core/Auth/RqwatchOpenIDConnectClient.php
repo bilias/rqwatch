@@ -13,7 +13,7 @@ namespace App\Core\Auth;
 use Jumbojett\OpenIDConnectClient;
 use Jumbojett\OpenIDConnectClientException;
 
-class RqwatchOpenIDConnectClient extends OpenIDConnectClient
+final class RqwatchOpenIDConnectClient extends OpenIDConnectClient
 {
 	public function getEndSessionEndpoint(): string {
 		$value = $this->getProviderConfigValue('end_session_endpoint');

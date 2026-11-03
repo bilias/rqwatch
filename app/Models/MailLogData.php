@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use App\Configuration\AppConfig;
 
-class MailLogData extends Model
+final class MailLogData extends Model
 {
 	protected $table = AppConfig::MAIL_LOG_DATA_TABLE;
 	/*

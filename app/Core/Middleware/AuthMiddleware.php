@@ -28,7 +28,7 @@ use Psr\Log\LoggerInterface;
 
 use Throwable;
 
-class AuthMiddleware
+final class AuthMiddleware
 {
 	private UrlGeneratorInterface $urlGenerator;
 	private LoggerInterface $logger;

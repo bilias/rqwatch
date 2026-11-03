@@ -10,7 +10,7 @@
 
 namespace App\Forms;
 
-class MapMimeFromRcptToUserForm extends MapWithTwoFieldsUserOverrideForm
+final class MapMimeFromRcptToUserForm extends MapWithTwoFieldsUserOverrideForm
 {
 	protected static string $firstFieldName = 'mime_from';
 	protected static string $secondFieldName = 'rcpt_to';

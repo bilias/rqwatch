@@ -23,7 +23,7 @@ use App\Inventory\Migrations;
 	description: 'Drop deprecated indexes from mail_logs',
 	help: 'This command drops deprecated indexes from from the mail_logs table',
 )]
-class MigrateDropMailLogIndexes extends MigrateCliCommand
+final class MigrateDropMailLogIndexes extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_drop_mail_log_indexes";
 	private const string MIGRATION = Migrations::DROP_MAIL_LOG_INDEXES;

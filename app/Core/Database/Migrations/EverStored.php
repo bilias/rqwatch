@@ -19,7 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class EverStored extends AbstractMigration {
+final class EverStored extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::EVER_STORED;
 

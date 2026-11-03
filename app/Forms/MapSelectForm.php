@@ -31,7 +31,7 @@ use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 
-class MapSelectForm extends AbstractType
+final class MapSelectForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

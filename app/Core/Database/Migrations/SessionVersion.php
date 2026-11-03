@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class SessionVersion extends AbstractMigration {
+final class SessionVersion extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::SESSION_VERSION;
 

@@ -10,7 +10,7 @@
 
 namespace App\Forms;
 
-class MapMailFromRcptToUserForm extends MapWithTwoFieldsUserOverrideForm
+final class MapMailFromRcptToUserForm extends MapWithTwoFieldsUserOverrideForm
 {
 	protected static string $firstFieldName = 'mail_from';
 	protected static string $secondFieldName = 'rcpt_to';

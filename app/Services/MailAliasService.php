@@ -28,7 +28,7 @@ use Psr\Log\LoggerInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class MailAliasService
+final class MailAliasService
 {
 	private LoggerInterface $logger;
 

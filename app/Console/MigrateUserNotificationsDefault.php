@@ -23,7 +23,7 @@ use App\Inventory\Migrations;
 	description: 'Let users follow the global notifications default',
 	help: 'This command makes users.disable_notifications nullable and sets users without an explicit opt-out to follow $user_notifications_default',
 )]
-class MigrateUserNotificationsDefault extends MigrateCliCommand
+final class MigrateUserNotificationsDefault extends MigrateCliCommand
 {
 	private string $app_name = "db:migrate_user_notifications_default";
 	private const string MIGRATION = Migrations::USER_NOTIFICATIONS_DEFAULT;

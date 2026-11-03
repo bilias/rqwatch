@@ -16,7 +16,7 @@ use Symfony\Component\Routing\RouteCollection;
 use App\Core\Middleware\AuthMiddleware;
 use App\Core\Middleware\Authorization;
 
-class Routes
+final class Routes
 {
 	/** @return array{routes: RouteCollection, defaultMiddlewareClasses: list<class-string>} */
 	public static function load(): array {

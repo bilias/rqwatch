@@ -19,7 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RuntimeException;
 use Throwable;
 
-class VirusSkipMap extends AbstractMigration {
+final class VirusSkipMap extends AbstractMigration {
 
 	protected const string MIGRATION_NAME = Migrations::VIRUS_SKIP_MAP;
 
