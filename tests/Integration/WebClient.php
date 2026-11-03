@@ -55,10 +55,29 @@ final class WebClient
 		return html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5);
 	}
 
+	/*
+	 A path on the app under test, often taken from one of its pages, with
+	 its query string. It must start with '/' so baseUrl keeps the scheme
+	 and host: '@evil/x' would turn the base into userinfo and send the
+	 request elsewhere.
+	*/
+	/**
+	 * @psalm-taint-escape ssrf
+	 * @psalm-taint-escape file
+	 * @psalm-taint-escape url_component
+	 * @psalm-taint-escape url_path
+	 */
+	private static function appPath(string $path): string {
+		if (!str_starts_with($path, '/')) {
+			throw new RuntimeException("Not a path on the app: {$path}");
+		}
+		return $path;
+	}
+
 	/** @param array<string, string>|null $fields
 	 *  @return array{status: int, location: string, body: string, headers: array<string, string>} */
 	private function request(string $path, ?array $fields): array {
-		$ch = curl_init($this->baseUrl . $path);
+		$ch = curl_init($this->baseUrl . self::appPath($path));
 		$headers = [];
 		curl_setopt_array($ch, [ // @phpstan-ignore argument.type ($this->jar is the constructor's tempnam() path; empty only if tempnam() failed)
 			CURLOPT_RETURNTRANSFER => true,

@@ -80,6 +80,7 @@ trait Mailpit
 
 	/** The raw bytes of the one message/rfc822 attachment of a captured message. */
 	protected static function attachedMail(string $id): string {
+		$id = self::pathSegment($id);
 		/** @var list<array<string, mixed>> $attachments */
 		$attachments = self::mailpit("/api/v1/message/{$id}")['Attachments'] ?? [];
 		$parts = array_values(array_filter(
@@ -89,7 +90,20 @@ trait Mailpit
 		if (count($parts) !== 1) {
 			throw new RuntimeException("message {$id}: expected one message/rfc822 attachment, found " . count($parts));
 		}
-		return self::mailpitGet("/api/v1/message/{$id}/part/{$parts[0]['PartID']}");
+		return self::mailpitGet("/api/v1/message/{$id}/part/" . self::pathSegment((string) $parts[0]['PartID']));
+	}
+
+	/*
+	 A Mailpit id for an API path: a message id (base62) or a MIME part id
+	 ("2", "1.2"). Letters and digits, single dots between: safe in the
+	 URL path, or for any other sink.
+	*/
+	/** @psalm-taint-escape input */
+	private static function pathSegment(string $value): string {
+		if (!preg_match('/^[A-Za-z0-9]+(\.[A-Za-z0-9]+)*$/D', $value)) {
+			throw new RuntimeException("Unexpected Mailpit id '{$value}'");
+		}
+		return $value;
 	}
 
 	private static function mailpitGet(string $path): string {
