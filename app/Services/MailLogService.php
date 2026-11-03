@@ -1171,6 +1171,7 @@ class MailLogService
 		}
 
 		// Count and boundary ids in one pass; first/last are read by PK.
+		/** @var \stdClass $agg an aggregate without GROUP BY always returns one row */
 		$agg = (clone $query)->toBase()
 			->select(DB::connection()->raw('COUNT(*) AS cnt, MIN(id) AS first_id, MAX(id) AS last_id'))
 			->first();
