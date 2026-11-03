@@ -53,7 +53,8 @@ class LoginController extends ViewController
 		);
 
 		foreach ($trusted as $name) {
-			if ($host !== '' && strtolower(preg_replace('/:\d+$/', '', trim($name))) === $host) {
+			// on a PCRE failure compare the name unstripped: a name:port then fails closed
+			if ($host !== '' && strtolower(preg_replace('/:\d+$/', '', trim($name)) ?? trim($name)) === $host) {
 				/** @psalm-taint-escape header */
 				$baseUrl = $this->request->getSchemeAndHttpHost();
 				return $baseUrl;

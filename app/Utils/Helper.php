@@ -915,12 +915,16 @@ Mail details:
 
 	/** @return list<array{ip: string, host: string|null}> */
 	public static function extract_mail_relays(string $headers): array {
-		// unfold continuation lines so each header is one line
-		$lines = preg_split('/\r\n|\r|\n/', preg_replace('/(?:\r\n|\r|\n)[ \t]+/', ' ', $headers));
+		// unfold continuation lines so each header is one line; on a PCRE failure
+		// keep them folded (a wrapped Received: is then read from its first line)
+		$lines = preg_split('/\r\n|\r|\n/', preg_replace('/(?:\r\n|\r|\n)[ \t]+/', ' ', $headers) ?? $headers);
+		if ($lines === false) {
+			return [];
+		}
 		$budget = AppConfig::DNS_MAX_RELAYS; // max DNS lookups per message
 		$relays = [];
 
-		foreach ($lines as $line) { // @phpstan-ignore foreach.nonIterable (preg_split() is false only on a PCRE failure; foreach then warns and yields no relays)
+		foreach ($lines as $line) {
 			if (stripos($line, 'Received:') !== 0) {
 				continue;
 			}
