@@ -313,9 +313,7 @@ final class Kernel
 			exit(1);
 		}
 
-		$response = new Response($message, $status);
-		$response->headers->set('Content-Type', 'text/plain; charset=utf-8');
-		$response->send();
+		Helper::plainTextResponse($message, $status)->send();
 
 		exit(1);
 	}
