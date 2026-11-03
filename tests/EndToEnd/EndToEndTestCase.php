@@ -289,7 +289,7 @@ abstract class EndToEndTestCase extends TestCase
 			'RQWATCH_SMTP_FROM_WHITELIST' => [self::IP, 'smtp-wl@sender.test', self::MIME_FROM, [self::RCPT]],
 			'RQWATCH_SMTP_FROM_RCPT_TO_BLACKLIST' => [self::IP, 'pair-bl@sender.test', self::MIME_FROM, ['bob@rqwatch.test']],
 		];
-		$deadline = microtime(true) + 60;
+		$deadline = microtime(true) + 60.0;
 		while ($probes !== []) {
 			foreach ($probes as $symbol => [$ip, $from, $mimeFrom, $rcpts]) {
 				$qid = 'PROBE' . strtoupper(bin2hex(random_bytes(4)));
@@ -313,7 +313,7 @@ abstract class EndToEndTestCase extends TestCase
 	 * @return array<string, mixed>
 	 */
 	protected static function row(string $messageId): array {
-		$deadline = microtime(true) + self::WAIT_SECONDS;
+		$deadline = microtime(true) + (float) self::WAIT_SECONDS;
 		do {
 			$rows = self::query('SELECT * FROM mail_logs WHERE message_id = ?', [$messageId]);
 			if ($rows !== []) {

@@ -222,7 +222,7 @@ final class ChartBuilder {
 			$labels[] = (string) $row['date'];
 			$total[] = (int) $row['total'];
 			$stored[] = (int) $row['total_stored'];
-			$size[] = round((float) $row['total_size'] / 1048576, 1);
+			$size[] = round((float) $row['total_size'] / 1048576.0, 1);
 			$links[] = $dayUrl((string) $row['date']);
 		}
 

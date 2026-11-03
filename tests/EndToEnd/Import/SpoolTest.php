@@ -129,7 +129,7 @@ final class SpoolTest extends EndToEndTestCase
 
 	/** Waits until logs/rqwatch.log holds more than $seen lines with $needle. */
 	private static function waitForLog(string $needle, int $seen = 0): void {
-		$deadline = microtime(true) + self::WAIT_SECONDS;
+		$deadline = microtime(true) + (float) self::WAIT_SECONDS;
 		do {
 			if (self::logCount($needle) > $seen) {
 				return;
@@ -148,7 +148,7 @@ final class SpoolTest extends EndToEndTestCase
 
 	/** Waits until cron:import_spool reports one pending entry for this server. */
 	private static function waitForSpool(): void {
-		$deadline = microtime(true) + self::WAIT_SECONDS;
+		$deadline = microtime(true) + (float) self::WAIT_SECONDS;
 		do {
 			if (str_contains(self::cli('cron:import_spool', '-l', '-v'), '1 spooled entries found')) {
 				return;

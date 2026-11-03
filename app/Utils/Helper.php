@@ -456,11 +456,11 @@ final class Helper {
 	/** @param int|float|numeric-string|null $bytes strings are SUM() results */
 	public static function formatSizeUnits(int|float|string|null $bytes): string {
 	if ($bytes >= 1073741824) {
-	    $bytes = number_format($bytes / 1073741824, 1, ',', '.') . 'G';
+	    $bytes = number_format((float) $bytes / 1073741824.0, 1, ',', '.') . 'G';
 	} elseif ($bytes >= 1048576) {
-	    $bytes = number_format($bytes / 1048576, 1, ',', '.') . 'M';
+	    $bytes = number_format((float) $bytes / 1048576.0, 1, ',', '.') . 'M';
 	} elseif ($bytes >= 1024) {
-	    $bytes = number_format($bytes / 1024, 1, ',', '.') . 'K';
+	    $bytes = number_format((float) $bytes / 1024.0, 1, ',', '.') . 'K';
 	} elseif ($bytes > 1) {
 	    $bytes = $bytes . 'B';
 	} elseif ($bytes == 1) {

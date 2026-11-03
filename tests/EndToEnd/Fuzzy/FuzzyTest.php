@@ -99,7 +99,7 @@ final class FuzzyTest extends EndToEndTestCase
 	 * probe until a copy of $body does, or no longer does, hit the learned hash.
 	 */
 	private static function waitForFuzzy(string $body, bool $hits): void {
-		$deadline = microtime(true) + self::WAIT_SECONDS;
+		$deadline = microtime(true) + (float) self::WAIT_SECONDS;
 		do {
 			$qid = 'PROBE' . strtoupper(bin2hex(random_bytes(4)));
 			$headers = self::scanHeaders($qid, self::IP, self::MAIL_FROM, [self::RCPT]);

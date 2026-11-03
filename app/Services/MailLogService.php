@@ -843,7 +843,7 @@ final class MailLogService
 			$rows = array_filter($rows, fn ($r) => $r['scored'] > 0);
 		}
 		foreach ($rows as &$r) {
-			$r['avg_score'] = $r['score'] / $r['mails'];
+			$r['avg_score'] = $r['score'] / (float) $r['mails'];
 			unset($r['scored'], $r['score']);
 		}
 		unset($r);
