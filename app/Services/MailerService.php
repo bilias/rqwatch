@@ -31,7 +31,7 @@ use RuntimeException;
 class MailerService
 {
 	private Mailer $mailer;
-	private ?Environment $twig = null;
+	private Environment $twig;
 	private LoggerInterface $logger;
 
 	// this node can send mail: both MAILER_DSN and MAILER_FROM are set

@@ -750,6 +750,7 @@ class MapService
 		array_unshift($lines, $header); // Add header at the top
 
 		if ($model === 'MapCombined') {
+			/** @var list<string> $map_fields every MapCombined caller passes its fields (the cron, and the MapCombined/$model callers in this class) */
 			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 			$query = $query->where('disabled', 0);
 			try {
