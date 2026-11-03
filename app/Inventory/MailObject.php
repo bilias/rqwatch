@@ -105,8 +105,8 @@ final class MailObject
 		return $this->virus_found;
 	}
 
-	/** @return list<string>|null */
-	public function getSymbols(): ?array {
+	/** @return list<string> */
+	public function getSymbols(): array {
 		return $this->symbols;
 	}
 
