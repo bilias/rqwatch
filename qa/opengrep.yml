@@ -26,8 +26,6 @@ rules:
       - pattern-either:
           - pattern-regex: '\|\s*raw\b'
           - pattern-regex: '\{%-?\s*autoescape\s+false'
-      # JSON embedded in <script>: json_encode with JSON_HEX_TAG is safe
-      - pattern-not-regex: "json_encode\\(constant\\('JSON_HEX_TAG'\\)\\)\\s*\\|\\s*raw"
 
   - id: rqwatch-raw-sql
     languages: [php]
