@@ -623,7 +623,8 @@ final class MapController extends ViewController
 		$data = [];
 
 		foreach ($fields as $field) {
-			$value = $this->request->get($field); // Supports both GET and POST
+			// the "add to map" links pass the values in the query string
+			$value = $this->request->query->all()[$field] ?? null;
 			if ($value !== null) {
 				$data[$field] = $value;
 			}
