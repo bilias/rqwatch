@@ -27,14 +27,13 @@ use Twig\RuntimeLoader\FactoryRuntimeLoader;
 use Symfony\Component\Form\FormFactoryInterface;
 use App\Core\Form\FormFactoryProvider;
 
-use Twig\TwigFunction;
-use Twig\TwigFilter;
+use App\Twig\RqwatchExtension;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use App\Core\App;
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
-use App\Core\Routing\RouteName;
 use App\Utils\Helper;
 
 use App\Services\FuzzyService;
@@ -87,148 +86,14 @@ class ViewController extends Controller
 					'autoescape' => 'html',
 				]
 			);
+
+			// functions and filters; they read the URL generator and the CSRF
+			// manager only when called (a cron renders mails without them)
+			$this->twig->addExtension(new RqwatchExtension(
+				fn(): UrlGeneratorInterface => $this->urlGenerator,
+				$this->csrfManager(...),
+			));
 		}
-
-		$this->twig->addFunction(new TwigFunction('get_route', fn($name, $params = []) =>
-			$this->urlGenerator->generate($name, $params)
-		));
-
-		$this->twig->addFunction(new TwigFunction('route', function (string $caseName, array $params = []) {
-			$enumClass = RouteName::class;
-			if (!defined("$enumClass::$caseName")) {
-				throw new RuntimeException("Unknown RouteName enum case: $caseName");
-			}
-
-			$enumCase = constant("$enumClass::$caseName"); // gets the enum case object
-			return $this->url($enumCase, $params);
-		}));
-
-		// token for the logout link; checked by LoginController::logout()
-		$this->twig->addFunction(new TwigFunction('logout_token', fn() =>
-			$this->csrfManager()->getToken('logout')->getValue()
-		));
-
-		$this->twig->addFunction(new TwigFunction('get_action_details', function ($symbols) {
-			return Helper::get_action_details($symbols);
-		}));
-
-		// labels read once per request: the listing calls this for every row
-		$fuzzyLabels = null;
-		$this->twig->addFunction(new TwigFunction('get_fuzzy_hits', function ($symbols) use (&$fuzzyLabels) {
-			if (empty($symbols) || !is_array($symbols)) {
-				return [];
-			}
-			$fuzzyLabels ??= FuzzyService::symbolLabels();
-			return Helper::getFuzzyHits($symbols, $fuzzyLabels);
-		}));
-
-		$this->twig->addFunction(new TwigFunction('get_row_class', function ($action, $symbols = null) {
-			return Helper::get_row_class($action, $symbols);
-		}));
-
-		$this->twig->addFunction(new TwigFunction('get_symbol_class', function ($symbol = null) {
-			return Helper::get_symbol_class($symbol);
-		}));
-
-		$this->twig->addFunction(new TwigFunction('decodeEmail', function ($email) {
-			return Helper::decodeEmail($email);
-		}));
-	
-		$this->twig->addFunction(new TwigFunction('formatSizeUnits', function ($bytes) {
-			return Helper::formatSizeUnits($bytes);
-		}));
-	
-		/* unused
-		$this->twig->addFunction(new TwigFunction('check_virus_from_all', function ($symbols) {
-			return Helper::check_virus_from_all($symbols);
-		}));
-	
-		$this->twig->addFunction(new TwigFunction('get_runtime', function ($startTime, $startMemory) {
-			return $this->getRuntime();
-		}));
-		*/
-	
-		$this->twig->addFunction(new TwigFunction('gethostbyaddr', function ($ip) {
-			return Helper::my_gethostbyaddr($ip);
-		}));
-	
-		$this->twig->addFunction(new TwigFunction('truncate', function ($str, $len) {
-			return mb_strimwidth((string) $str, 0, $len, "...");
-		}));
-
-		$this->twig->addFunction(new TwigFunction('getDelivery', function ($action) {
-			return Helper::getDelivery($action);
-		}));
-
-		$this->twig->addFunction(new TwigFunction('getAuthProvider', function ($id) {
-			return Helper::getAuthProvider($id);
-		}));
-
-		$this->twig->addFilter(new TwigFilter('nf', function ($number, $decimals = 0) {
-			return number_format($number, $decimals, ',', '.');
-		}));
-
-
-		// Escape text, turn http(s) URLs into links opening in a new tab.
-		// Output is marked safe; nl2br (pre_escape) won't re-escape it.
-		// {{ message|linkify|nl2br }} opens links in a new tab (the default).
-		// {{ message|linkify(false)|nl2br }} opens them in the same tab.
-		$this->twig->addFilter(new TwigFilter('linkify', function (string $text, bool $newTab = true): string {
-			$target = $newTab ? ' target="_blank" rel="noopener noreferrer"' : '';
-			$parts = preg_split('~(https?://[^\s<>"\']+)~i', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
-			// on a PCRE failure show the text without links; still escaped, the filter is is_safe
-			if ($parts === false) {
-				return htmlspecialchars($text, ENT_QUOTES);
-			}
-			$out = '';
-			foreach ($parts as $i => $part) {
-				// even indexes: plain text, odd indexes: captured URLs
-				if ($i % 2 === 0) {
-					$out .= htmlspecialchars($part, ENT_QUOTES);
-					continue;
-				}
-				$url = rtrim($part, '.,;:!?)');
-				$e = htmlspecialchars($url, ENT_QUOTES);
-				$out .= '<a href="' . $e . '"' . $target . '>' . $e . '</a>'
-					. htmlspecialchars(substr($part, strlen($url)), ENT_QUOTES);
-			}
-			return $out;
-		}, ['is_safe' => ['html']]));
-
-
-		// Escape text; in words mixing Latin with another script (homoglyph
-		// spoofing, e.g. Cyrillic о/а in "Eurоbаnk"), wrap non-Latin letters
-		// and invisible format chars (\p{Cf}) in <mark class="homoglyph">.
-		// Pure Greek / pure Latin words are untouched. Output is marked safe.
-		$this->twig->addFilter(new TwigFilter('mark_homoglyphs', function (?string $text): string {
-			$parts = preg_split('/([\p{L}\p{M}\p{Cf}]+)/u', (string) $text, -1, PREG_SPLIT_DELIM_CAPTURE);
-			if ($parts === false) {
-				return htmlspecialchars((string) $text, ENT_QUOTES | ENT_SUBSTITUTE);
-			}
-			$out = '';
-			foreach ($parts as $i => $part) {
-				// even indexes: separators, odd indexes: words
-				$mixed = $i % 2 === 1 && preg_match('/\p{L}/u', $part)
-					&& (preg_match('/\p{Cf}/u', $part)
-						|| (preg_match('/\p{Latin}/u', $part) && preg_match('/(?!\p{Latin})\p{L}/u', $part)));
-				if (!$mixed) {
-					$out .= htmlspecialchars($part, ENT_QUOTES | ENT_SUBSTITUTE);
-					continue;
-				}
-				foreach (mb_str_split($part) as $ch) {
-					$cp = sprintf('U+%04X', mb_ord($ch));
-					if (preg_match('/\p{Cf}/u', $ch)) {
-						$out .= '<mark class="homoglyph" title="invisible ' . $cp . '">·</mark>';
-					} elseif (preg_match('/(?!\p{Latin})\p{L}/u', $ch)) {
-						$out .= '<mark class="homoglyph" title="' . $cp . '">'
-							. htmlspecialchars($ch, ENT_QUOTES | ENT_SUBSTITUTE) . '</mark>';
-					} else {
-						$out .= htmlspecialchars($ch, ENT_QUOTES | ENT_SUBSTITUTE);
-					}
-				}
-			}
-			return $out;
-		}, ['is_safe' => ['html']]));
 
 		$this->twig->addGlobal('APP_NAME', Config::get('APP_NAME') ?? AppConfig::APP_NAME);
 		$this->twig->addGlobal('APP_INFO', Config::get('APP_INFO') ?? AppConfig::APP_INFO);

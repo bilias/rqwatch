@@ -33,6 +33,7 @@ final class Plugin implements PluginEntryPointInterface
 		// (psalm/plugin-symfony gets them only from a Symfony container XML)
 		\Psalm\SymfonyPsalmPlugin\Twig\TemplateFileAnalyzer::initExtensions([
 			[\Symfony\Bridge\Twig\Extension\FormExtension::class, null],
+			[\App\Twig\RqwatchExtension::class, null],
 		]);
 	}
 }
