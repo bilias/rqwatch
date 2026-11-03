@@ -59,8 +59,9 @@ final class Helper {
 		return App::fileLogger();
 	}
 
-	// Rspamd queue id as a path component: alphanumeric, else a unique placeholder
-	/** @psalm-taint-escape file */
+	// Rspamd queue id as a path component: alphanumeric, else a unique placeholder.
+	// Either result is safe for any sink, so every input taint is escaped.
+	/** @psalm-taint-escape input */
 	private static function fileSafeQid(string $qid): string {
 		if (preg_match('/^[a-zA-Z0-9]+$/D', $qid)) {
 			return $qid;
