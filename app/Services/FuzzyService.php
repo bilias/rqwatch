@@ -734,9 +734,14 @@ final class FuzzyService
 		$reply = json_decode($content, true);
 
 		if ($code !== Response::HTTP_OK || !is_array($reply)) {
-			$err = is_array($reply) ? (string) ($reply['error'] ?? $content) : $content;
-			$this->logger->error("{$lf} {$qid} {$path} for '{$server}' returned {$code}: {$err}");
-			throw new FuzzyException("rspamd for '{$server}' refused the request: {$err}", FuzzyError::Upstream);
+			$err = is_array($reply) && is_string($reply['error'] ?? null) ? $reply['error'] : $content;
+			$this->logger->error("{$lf} {$qid} {$path} for '{$server}' returned {$code}: '" .
+				mb_strimwidth($err, 0, 200, '...') . "'");
+			// rspamd's reply stays in the log: the message goes to an admin and,
+			// through FuzzyMailApi, to the node that asked
+			throw new FuzzyException($code === Response::HTTP_OK
+				? "rspamd for '{$server}' gave an unexpected reply ({$code})"
+				: "rspamd for '{$server}' refused the request ({$code})", FuzzyError::Upstream);
 		}
 
 		return $reply;
