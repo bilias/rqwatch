@@ -27,8 +27,11 @@ final class Plugin implements PluginEntryPointInterface
 		// registerHooksFromClass() does not autoload
 		class_exists(EloquentForwarding::class);
 		class_exists(EloquentProperties::class);
+		class_exists(MailTaintSources::class);
 		$registration->registerHooksFromClass(EloquentForwarding::class);
 		$registration->registerHooksFromClass(EloquentProperties::class);
+		// after EloquentProperties, whose types it uses
+		$registration->registerHooksFromClass(MailTaintSources::class);
 		// the Twig extensions templates are parsed with in the taint analysis
 		// (psalm/plugin-symfony gets them only from a Symfony container XML)
 		\Psalm\SymfonyPsalmPlugin\Twig\TemplateFileAnalyzer::initExtensions([

@@ -105,8 +105,13 @@ final class EloquentProperties implements AfterCodebasePopulatedInterface
 		return $event->isReadMode() ? $types['read'] : $types['write'];
 	}
 
-	/** @return array{read: Union, write: Union}|null */
-	private static function property(string $class, string $name): ?array {
+	/**
+	 * The read and write types of the attribute $name of the model $class, or
+	 * null if not claimed here (see the header). Also used by MailTaintSources.
+	 *
+	 * @return array{read: Union, write: Union}|null
+	 */
+	public static function property(string $class, string $name): ?array {
 		$key = strtolower($class) . '::' . $name;
 		if (array_key_exists($key, self::$properties)) {
 			return self::$properties[$key];
