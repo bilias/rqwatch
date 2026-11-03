@@ -76,6 +76,7 @@ final class RqwatchExtension extends AbstractExtension
 			new TwigFilter('nf', self::nf(...)),
 			new TwigFilter('linkify', self::linkify(...), ['is_safe' => ['html']]),
 			new TwigFilter('mark_homoglyphs', self::markHomoglyphs(...), ['is_safe' => ['html']]),
+			new TwigFilter('js_json', self::jsJson(...), ['is_safe' => ['html', 'js']]),
 		];
 	}
 
@@ -114,6 +115,17 @@ final class RqwatchExtension extends AbstractExtension
 
 	public static function nf(float $number, int $decimals = 0): string {
 		return number_format($number, $decimals, ',', '.');
+	}
+
+	/**
+	 * JSON for a <script> element: JSON_HEX_TAG encodes < and > as \u003C and
+	 * \u003E, so no value can close the element ({{ chart.getData()|js_json }}).
+	 * Not for an HTML attribute, as quotes are not encoded. As Twig's
+	 * json_encode filter, a value JSON can't encode gives an empty string.
+	 * @psalm-taint-escape html
+	 */
+	public static function jsJson(mixed $value): string {
+		return (string) json_encode($value, JSON_HEX_TAG);
 	}
 
 	/**
