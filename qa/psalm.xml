@@ -10,6 +10,11 @@
 	allConstantsGlobal="true"
 	runTaintAnalysis="false"
 >
+	<fileExtensions>
+		<extension name=".php"/>
+		<extension name=".twig" checker="vendor/psalm/plugin-symfony/src/Twig/TemplateFileAnalyzer.php" scanner="vendor/psalm/plugin-symfony/src/Twig/TemplateFileScanner.php"/>
+	</fileExtensions>
+
 	<!-- Paths are relative to the project root: run from there (composer scripts do) -->
 	<projectFiles>
 		<directory name="app" />

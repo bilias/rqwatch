@@ -29,5 +29,10 @@ final class Plugin implements PluginEntryPointInterface
 		class_exists(EloquentProperties::class);
 		$registration->registerHooksFromClass(EloquentForwarding::class);
 		$registration->registerHooksFromClass(EloquentProperties::class);
+		// the Twig extensions templates are parsed with in the taint analysis
+		// (psalm/plugin-symfony gets them only from a Symfony container XML)
+		\Psalm\SymfonyPsalmPlugin\Twig\TemplateFileAnalyzer::initExtensions([
+			[\Symfony\Bridge\Twig\Extension\FormExtension::class, null],
+		]);
 	}
 }
