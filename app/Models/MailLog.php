@@ -32,6 +32,7 @@ use Throwable;
  * @phpstan-property-read string $month
  * Columns the schema leaves nullable but the app never writes NULL to:
  * @phpstan-property bool $has_virus importer and spool always write 0 or 1
+ * @phpstan-property string $server importer always writes the server query parameter ('' if absent)
  */
 class MailLog extends Model
 {
