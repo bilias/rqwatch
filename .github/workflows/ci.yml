@@ -93,7 +93,7 @@ jobs:
 
       - name: Psalm taint
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: composer psalm-taint -- --output-format=github --report=psalm-taint.sarif
+        run: composer psalm-taint -- --output-format=github --report=psalm-taint.sarif --report-show-info=false
 
       - name: Upload taint results to Security tab
         if: ${{ !cancelled() && hashFiles('psalm-taint.sarif') != '' && github.actor != 'dependabot[bot]' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
