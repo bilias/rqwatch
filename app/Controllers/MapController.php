@@ -1423,10 +1423,13 @@ final class MapController extends ViewController
 			: $this->url(RouteName::MAP_SHOW, ['map' => $map]);
 	}
 
-	// the mail's detail page when the add came from it (?return-mail=<id>)
+	// the mail's detail page when the add came from it (?return-mail=<id>).
+	// A malformed value falls back to the caller's default: by now the entry
+	// may be saved, so it must not turn into an error (getInt() would throw)
 	private function getReturnMailUrl(): ?string {
-		$id = $this->request->query->getInt('return-mail');
-		if ($id < 1) {
+		$raw = $this->request->query->all()['return-mail'] ?? null;
+		$id = is_string($raw) ? filter_var($raw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) : false;
+		if ($id === false) {
 			return null;
 		}
 		return $this->is_admin

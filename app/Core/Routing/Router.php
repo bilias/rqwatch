@@ -12,6 +12,7 @@ namespace App\Core\Routing;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Exception\RequestExceptionInterface;
 
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
@@ -165,6 +166,12 @@ final class Router
 
 		} catch (MethodNotAllowedException $e) {
 			$response = new Response('Route Not Allowed', 405);
+		} catch (RequestExceptionInterface $e) {
+			// malformed client input (?page=abc, ?page[]=1): InputBag::getInt()
+			// and the other typed getters throw BadRequestException; a 400, not a 500
+			$fileLogger->warning("Bad request for '" . $request->getPathInfo() . "' from "
+				. ($request->getClientIp() ?? 'UNKNOWN') . ": " . $e->getMessage());
+			$response = new Response('Bad Request', Response::HTTP_BAD_REQUEST);
 		} catch (ResourceNotFoundException $e) {
 			// invalid route
 			// Session initialization
