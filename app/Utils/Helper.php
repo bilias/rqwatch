@@ -462,7 +462,7 @@ final class Helper {
 	} elseif ($bytes >= 1024) {
 		$bytes = number_format((float) $bytes / 1024.0, 1, ',', '.') . 'K';
 	} elseif ($bytes > 1) {
-		$bytes = $bytes . 'B';
+		$bytes = (string) $bytes . 'B';
 	} elseif ($bytes == 1) {
 		$bytes = $bytes . 'B';
 	} else {
@@ -1146,6 +1146,7 @@ Mail details:
 		return true;
 	}
 
+	/** @param non-empty-string|null $fromTz */
 	public static function toUtcTimestamp(string $datetime, ?string $fromTz = null): int {
 		$fromTz = $fromTz ?? date_default_timezone_get();
 		$date = new DateTime($datetime, new DateTimeZone($fromTz));
