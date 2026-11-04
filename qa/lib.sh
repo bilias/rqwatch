@@ -157,3 +157,41 @@ phpunit_args() {
 		fi
 	done
 }
+
+
+# seed_test_data: the schema, users admin/alice/bob (passwords pw-<name>),
+# tests/Integration/fixtures.sql and the quarantined mails it references,
+# through $DB_EXEC; run in the copy, after copy_tree and write_env
+seed_test_data() {
+	$DB_EXEC < contrib/db-init.sql
+	"$PHP" bin/cli.php user:add -a -p pw-admin admin admin@example.org >/dev/null
+	"$PHP" bin/cli.php user:add -p pw-alice alice alice@example.org >/dev/null
+	"$PHP" bin/cli.php user:add -p pw-bob bob bob@example.org >/dev/null
+	sed "s#@Q@#${WORK}/q#g" tests/Integration/fixtures.sql | $DB_EXEC rqwatch
+	seed_mail 101 SUBJ-ALICE-101 alice@example.org
+	seed_mail 102 SUBJ-BOB-102 bob@example.org
+	seed_mail 103 SUBJ-ALIAS-103 alias-alice@example.org
+}
+
+# seed_mail ID SUBJECT RECIPIENT: q/ID.eml, a text body and one attachment
+seed_mail() {
+	cat > "q/$1.eml" <<-MAIL
+	From: sender@example.net
+	To: $3
+	Subject: $2
+	Message-ID: <$2@example.net>
+	MIME-Version: 1.0
+	Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+	--BOUNDARY
+	Content-Type: text/plain; charset=utf-8
+
+	Body of $2
+	--BOUNDARY
+	Content-Type: text/plain; name="attach-$2.txt"
+	Content-Disposition: attachment; filename="attach-$2.txt"
+
+	ATTACHMENT-$2
+	--BOUNDARY--
+	MAIL
+}

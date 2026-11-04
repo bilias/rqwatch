@@ -113,36 +113,7 @@ cat > config/config.local.php <<PHP
 PHP
 
 # schema, users, test data, quarantined mails
-$DB_EXEC < contrib/db-init.sql
-"$PHP" bin/cli.php user:add -a -p pw-admin admin admin@example.org >/dev/null
-"$PHP" bin/cli.php user:add -p pw-alice alice alice@example.org >/dev/null
-"$PHP" bin/cli.php user:add -p pw-bob bob bob@example.org >/dev/null
-sed "s#@Q@#${WORK}/q#g" tests/Integration/fixtures.sql | $DB_EXEC rqwatch
-
-eml() { # id subject recipient
-	cat > "q/$1.eml" <<-MAIL
-	From: sender@example.net
-	To: $3
-	Subject: $2
-	Message-ID: <$2@example.net>
-	MIME-Version: 1.0
-	Content-Type: multipart/mixed; boundary="BOUNDARY"
-
-	--BOUNDARY
-	Content-Type: text/plain; charset=utf-8
-
-	Body of $2
-	--BOUNDARY
-	Content-Type: text/plain; name="attach-$2.txt"
-	Content-Disposition: attachment; filename="attach-$2.txt"
-
-	ATTACHMENT-$2
-	--BOUNDARY--
-	MAIL
-}
-eml 101 SUBJ-ALICE-101 alice@example.org
-eml 102 SUBJ-BOB-102 bob@example.org
-eml 103 SUBJ-ALIAS-103 alias-alice@example.org
+seed_test_data
 
 # web server, through the router
 start_web "$WEB_PORT" /login web/index.php
