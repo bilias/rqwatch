@@ -32,15 +32,21 @@ use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 use App\Services\MapService;
 
+use LogicException;
+
 /** @extends AbstractType<array<string, mixed>> */
 final class MapWithCustomFieldForm extends AbstractType
 {
 	protected static string $fieldName = 'custom';
 
+	/** @psalm-param FormBuilderInterface<array<string, mixed>> $builder */
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
 
 		$field = MapInventory::getFieldDefinitions(static::$fieldName);
+		if (!isset($field['type'])) {
+			throw new LogicException('No field definition for ' . static::$fieldName);
+		}
 
 		// Override defaults with field options from custom_map_config
 		$field_db = MapService::getCustomField($options['map']);
@@ -53,6 +59,10 @@ final class MapWithCustomFieldForm extends AbstractType
 			// Fix mismatches between DB key and expected field name
 			// If 'domain' is expected but data uses 'pattern', remap it.
 			$data = $builder->getData();
+			// editMapEntry() always passes the entry
+			if (!is_array($data)) {
+				throw new LogicException('An edit form needs the entry data');
+			}
 
 			// put # in front if it is disabled
 			if (!empty($data['disabled'])) {
