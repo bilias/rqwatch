@@ -27,7 +27,7 @@ final class RedisModeTest extends IntegrationTestCase
 {
 	#[TestDox('Backend: without Redis, REDIS_ENABLE=false; with Redis, a login\'s session and the cached config are in Redis')]
 	public function testBackend(): void {
-		$env = (string) file_get_contents((string) getenv('INTEGRATION_ROOT') . '/.env');
+		$env = (string) file_get_contents(self::root() . '/.env');
 		if (getenv('INTEGRATION_REDIS_ENABLED') !== 'true') {
 			$this->assertMatchesRegularExpression('/^REDIS_ENABLE=false$/m', $env);
 			return;

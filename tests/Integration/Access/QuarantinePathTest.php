@@ -32,7 +32,7 @@ final class QuarantinePathTest extends IntegrationTestCase
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
-		$root = (string) getenv('INTEGRATION_ROOT');
+		$root = self::root();
 		file_put_contents("{$root}/q/9001.eml", "From: sender@example.net\r\nTo: admin@example.org\r\n"
 			. "Subject: SUBJ-INSIDE-9001\r\nMessage-ID: <inside-9001@example.net>\r\n\r\n" . self::INSIDE_BODY . "\r\n");
 		symlink("{$root}/.env", "{$root}/q/9004.eml");
@@ -60,7 +60,7 @@ final class QuarantinePathTest extends IntegrationTestCase
 			self::db()->exec("DELETE FROM mail_log_data WHERE mail_log_id IN ({$ids})");
 			self::db()->exec("DELETE FROM mail_log_recipients WHERE mail_log_id IN ({$ids})");
 			self::db()->exec("DELETE FROM mail_logs WHERE id IN ({$ids})");
-			$root = (string) getenv('INTEGRATION_ROOT');
+			$root = self::root();
 			foreach (["{$root}/q/9001.eml", "{$root}/q/9004.eml"] as $file) {
 				if (is_link($file) || is_file($file)) {
 					unlink($file);
@@ -72,7 +72,7 @@ final class QuarantinePathTest extends IntegrationTestCase
 
 	#[TestDox('get_mail.php: a file under QUARANTINE_DIR is served byte for byte; outside it (another file, ../, a symlink): 400, nothing served')]
 	public function testGetMail(): void {
-		$root = (string) getenv('INTEGRATION_ROOT');
+		$root = self::root();
 		$this->assertSame([200, (string) file_get_contents("{$root}/q/9001.eml")], self::getMail(self::INSIDE), 'positive control');
 
 		foreach (self::OUTSIDE as $id => $how) {

@@ -40,12 +40,12 @@ final class RetentionTest extends IntegrationTestCase
 		$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM mail_logs WHERE id = ?', $old['id']), 'row kept');
 		$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM mail_log_recipients WHERE mail_log_id = ?', $old['id']), 'recipients kept');
 		$this->assertStored($recent, true);
-		$this->assertFileExists((string) getenv('INTEGRATION_ROOT') . '/q/101.eml', 'scoping fixture');
+		$this->assertFileExists(self::root() . '/q/101.eml', 'scoping fixture');
 	}
 
 	#[TestDox('cron:quarantine -d never deletes outside a mail\'s own directory under QUARANTINE_DIR')]
 	public function testQuarantineStaysInside(): void {
-		$root = (string) getenv('INTEGRATION_ROOT');
+		$root = self::root();
 		$days = self::quarantineDays() + 30;
 		// a location outside the quarantine, and one directly in its root
 		$outside = self::mail($days, location: "{$root}/outside-" . bin2hex(random_bytes(4)) . '/mail.eml');
@@ -69,7 +69,7 @@ final class RetentionTest extends IntegrationTestCase
 
 	#[TestDox('cron:quarantine -d -p prunes date and unknown/ dirs left empty, keeps non-empty ones')]
 	public function testQuarantinePrune(): void {
-		$q = (string) getenv('INTEGRATION_ROOT') . '/q';
+		$q = self::root() . '/q';
 		$days = self::quarantineDays() + 50;
 		$day = date('Y-m-d', (int) strtotime("-{$days} days"));
 		$group = self::mail($days, location: "{$q}/{$day}/unknown/" . bin2hex(random_bytes(6)) . '/mail.eml');
@@ -159,7 +159,7 @@ final class RetentionTest extends IntegrationTestCase
 	}
 
 	private static function envDays(string $key): int {
-		$env = (string) file_get_contents((string) getenv('INTEGRATION_ROOT') . '/.env');
+		$env = (string) file_get_contents(self::root() . '/.env');
 		if (!preg_match('/^' . $key . '=(\d+)/m', $env, $m)) {
 			self::fail("No {$key} in .env");
 		}
@@ -174,7 +174,7 @@ final class RetentionTest extends IntegrationTestCase
 	private static function mail(int $days, string $server = 'mx1', ?string $location = null): array {
 		$qid = 'RET' . strtoupper(bin2hex(random_bytes(5)));
 		$day = date('Y-m-d', (int) strtotime("-{$days} days"));
-		$location ??= (string) getenv('INTEGRATION_ROOT') . "/q/{$day}/{$qid}/mail.eml";
+		$location ??= self::root() . "/q/{$day}/{$qid}/mail.eml";
 		if (!is_dir(dirname($location))) {
 			mkdir(dirname($location), 0750, true);
 		}

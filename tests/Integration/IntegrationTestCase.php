@@ -65,6 +65,19 @@ abstract class IntegrationTestCase extends TestCase
 		parent::tearDown();
 	}
 
+	/*
+	 The instance's copy of the app, which qa/integration-tests.sh sets up.
+	 Never empty: cli() would run bin/cli.php (cron:cleanupdb -d...) in the
+	 current directory, and the file helpers would write under /q.
+	*/
+	protected static function root(): string {
+		$root = getenv('INTEGRATION_ROOT');
+		if ($root === false || $root === '') {
+			throw new RuntimeException('INTEGRATION_ROOT is not set: run through qa/integration-tests.sh');
+		}
+		return $root;
+	}
+
 	/** A client logged in as $user (password pw-$user, from the harness). */
 	protected static function client(string $user): WebClient {
 		$client = new WebClient((string) getenv('INTEGRATION_BASE_URL'));
@@ -171,7 +184,7 @@ abstract class IntegrationTestCase extends TestCase
 	 * @param array<string, string> $settings
 	 */
 	protected static function withEnv(array $settings, callable $test): void {
-		$env = (string) getenv('INTEGRATION_ROOT') . '/.env';
+		$env = self::root() . '/.env';
 		$original = (string) file_get_contents($env);
 		$changed = $original;
 		foreach ($settings as $key => $value) {
@@ -245,7 +258,7 @@ abstract class IntegrationTestCase extends TestCase
 	}
 
 	protected static function quarantineFile(int $id): string {
-		return (string) getenv('INTEGRATION_ROOT') . "/q/{$id}.eml";
+		return self::root() . "/q/{$id}.eml";
 	}
 
 	/**
@@ -272,7 +285,7 @@ abstract class IntegrationTestCase extends TestCase
 
 	/** Runs bin/cli.php in the instance's copy; fails on a non-zero exit. */
 	protected static function cli(string ...$args): string {
-		$cmd = 'cd ' . escapeshellarg((string) getenv('INTEGRATION_ROOT')) . ' && '
+		$cmd = 'cd ' . escapeshellarg(self::root()) . ' && '
 			. escapeshellarg(PHP_BINARY) . ' bin/cli.php ' . implode(' ', array_map('escapeshellarg', $args)) . ' 2>&1';
 		exec($cmd, $out, $status);
 		$output = implode("\n", $out);

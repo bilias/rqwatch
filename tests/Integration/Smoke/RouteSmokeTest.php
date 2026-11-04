@@ -85,7 +85,7 @@ final class RouteSmokeTest extends IntegrationTestCase
 	}
 
 	private static function file(string $path): string {
-		return str_starts_with($path, '/') ? $path : (string) getenv('INTEGRATION_ROOT') . "/{$path}";
+		return str_starts_with($path, '/') ? $path : self::root() . "/{$path}";
 	}
 
 	private static function logSize(string $path): int {
