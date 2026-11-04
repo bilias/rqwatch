@@ -975,26 +975,24 @@ final class MapService
 		try {
 			// the old key, to detach its hits if the edit changes it
 			$old = MapCombined::where('id', $id)->first($map_fields);
-
-			$success = MapCombined::where('id', $id)
-			                      ->update($new_data);
-
-			if (!$success) {
-				// Insert did not throw an error, but still failed
-				$this->logger->error("[addMapCombinedEntry] Query save failed");
+			if ($old === null) {
+				$this->logger->warning("[updateMapCombinedEntry] map entry {$id} not found");
 				return false;
 			}
+
+			// update() counts changed rows, not matched ones: 0 when the values
+			// and the second-resolution updated_at are unchanged (the same form
+			// submitted twice in a second), which is not a failure
+			MapCombined::where('id', $id)->update($new_data);
 		} catch (Throwable $e) {
-			$this->logger->error("[addMapCombinedEntry] Query save error: " . $e->getMessage() . PHP_EOL);
+			$this->logger->error("[updateMapCombinedEntry] Query save error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}
 
-		if ($old !== null) {
-			foreach ($map_fields as $field) {
-				if (strtolower(trim((string) $old->$field)) !== (string) $new_data[$field]) {
-					(new MapHitService())->detachEntry(MapHitService::ENTRY_COMBINED, $id);
-					break;
-				}
+		foreach ($map_fields as $field) {
+			if (strtolower(trim((string) $old->$field)) !== (string) $new_data[$field]) {
+				(new MapHitService())->detachEntry(MapHitService::ENTRY_COMBINED, $id);
+				break;
 			}
 		}
 
