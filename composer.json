@@ -92,7 +92,6 @@
          "@composer validate --no-check-publish",
          "@composer audit --locked --abandoned=report",
          "@test-unit",
-         "@test-unit",
          "@analyse",
          "@psalm-taint",
          "@taint-selftest",
