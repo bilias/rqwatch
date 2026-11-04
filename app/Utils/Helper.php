@@ -913,7 +913,7 @@ Mail details:
 		return filter_var($_ENV[$key] ?? $default, FILTER_VALIDATE_BOOLEAN);
 	}
 
-	/** @return list<array{ip: string, host: string|null}> */
+	/** @return list<array{ip: string, host: string|null, country: string|null}> */
 	public static function extract_mail_relays(string $headers): array {
 		// unfold continuation lines so each header is one line; on a PCRE failure
 		// keep them folded (a wrapped Received: is then read from its first line)
@@ -987,12 +987,9 @@ Mail details:
 		foreach ($relays as $relay) {
 			if (!in_array($relay['ip'], $seen)) {
 				$seen[] = $relay['ip'];
+				$relay['country'] = self::getCountry($relay['ip']);
 				$unique_relay[] = $relay;
 			}
-		}
-
-		foreach ($unique_relay as $key => $relay) {
-			$unique_relay[$key]['country'] = self::getCountry($relay['ip']);
 		}
 
 		return $unique_relay;
