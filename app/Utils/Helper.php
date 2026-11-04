@@ -1301,22 +1301,41 @@ Mail details:
 		}
 
 		$cache = App::cache();
-		if ($cache !== null) {
-			$redisKey = Config::get('dns_resolv_redis_key') . ":ptr:{$ip}";
-			$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
-			$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
-			$failTtl  = (int) Config::get('dns_resolv_redis_fail_cache_ttl') ?: 60;
-			try {
-				$cached = $cache->get($redisKey);
-				if ($cached !== false) {
-					return $cached;
-				}
-			} catch (Throwable $e) {
-				// fallback to live DNS if Redis fails
-			}
+		if ($cache === null) {
+			return self::lookupPtr($ip)[0];
 		}
 
-		$transient = false;
+		$redisKey = Config::get('dns_resolv_redis_key') . ":ptr:{$ip}";
+		try {
+			$cached = $cache->get($redisKey);
+			if ($cached !== false) {
+				return $cached;
+			}
+		} catch (Throwable $e) {
+			// fallback to live DNS if Redis fails
+		}
+
+		[$host, $transient] = self::lookupPtr($ip);
+
+		$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
+		$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
+		$failTtl  = (int) Config::get('dns_resolv_redis_fail_cache_ttl') ?: 60;
+		try {
+			$cache->set($redisKey, $host, $host === $ip ? ($transient ? $failTtl : $negTtl) : $ttl);
+		} catch (Throwable $e) {
+			// ignore cache write failure
+		}
+
+		return $host;
+	}
+
+	/**
+	 * PTR lookup of $ip: the host, or $ip when there is none or the query
+	 * fails, and whether the failure was transient (worth a short cache TTL).
+	 *
+	 * @return array{string, bool}
+	 */
+	private static function lookupPtr(string $ip): array {
 		try {
 			$resolver = new Resolver([
 				'timeout' => Config::get('dns_resolv_timeout'),
@@ -1332,28 +1351,15 @@ Mail details:
 			}
 			$result = $resolver->query($ptr, 'PTR');
 			// the answer may start with a CNAME (RFC 2317)
-			$host = $ip;
 			foreach ($result->answer as $rr) {
 				if ($rr instanceof DnsPtr) {
-					$host = rtrim((string)$rr->ptrdname, '.');
-					break;
+					return [rtrim((string)$rr->ptrdname, '.'), false];
 				}
 			}
-
+			return [$ip, false];
 		} catch (Exception $e) {
-			$host = $ip;
-			$transient = self::dnsTransientFailure($e);
+			return [$ip, self::dnsTransientFailure($e)];
 		}
-
-		if ($cache !== null) {
-			try {
-				$cache->set($redisKey, $host, $host === $ip ? ($transient ? $failTtl : $negTtl) : $ttl);
-			} catch (Throwable $e) {
-				// ignore cache write failure
-			}
-		}
-
-		return $host;
 	}
 
 	public static function my_gethostbyname(string $host): string {
@@ -1362,22 +1368,41 @@ Mail details:
 		}
 
 		$cache = App::cache();
-		if ($cache !== null) {
-			$redisKey = Config::get('dns_resolv_redis_key') . ':fwd:' . $host;
-			$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
-			$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
-			$failTtl  = (int) Config::get('dns_resolv_redis_fail_cache_ttl') ?: 60;
-			try {
-				$cached = $cache->get($redisKey);
-				if ($cached !== false) {
-                return $cached;
-				}
-			} catch (Throwable $e) {
-				// fallback to live DNS if Redis fails
-			}
+		if ($cache === null) {
+			return self::lookupA($host)[0];
 		}
 
-		$transient = false;
+		$redisKey = Config::get('dns_resolv_redis_key') . ':fwd:' . $host;
+		try {
+			$cached = $cache->get($redisKey);
+			if ($cached !== false) {
+				return $cached;
+			}
+		} catch (Throwable $e) {
+			// fallback to live DNS if Redis fails
+		}
+
+		[$ip, $transient] = self::lookupA($host);
+
+		$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
+		$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
+		$failTtl  = (int) Config::get('dns_resolv_redis_fail_cache_ttl') ?: 60;
+		try {
+			$cache->set($redisKey, $ip, $ip === $host ? ($transient ? $failTtl : $negTtl) : $ttl);
+		} catch (Throwable $e) {
+			// ignore cache write failure
+		}
+
+		return $ip;
+	}
+
+	/**
+	 * A lookup of $host: its first address, or $host when there is none or
+	 * the query fails, and whether the failure was transient.
+	 *
+	 * @return array{string, bool}
+	 */
+	private static function lookupA(string $host): array {
 		try {
 			$resolver = new Resolver([
 				'timeout' => Config::get('dns_resolv_timeout'),
@@ -1385,27 +1410,15 @@ Mail details:
 			]);
 			$result = $resolver->query($host, 'A');
 			// the answer may start with a CNAME
-			$ip = $host;
 			foreach ($result->answer as $rr) {
 				if ($rr instanceof DnsA) {
-					$ip = (string)$rr->address;
-					break;
+					return [(string)$rr->address, false];
 				}
 			}
+			return [$host, false];
 		} catch (Exception $e) {
-			$ip = $host;
-			$transient = self::dnsTransientFailure($e);
+			return [$host, self::dnsTransientFailure($e)];
 		}
-
-		if ($cache !== null) {
-			try {
-				$cache->set($redisKey, $ip, $ip === $host ? ($transient ? $failTtl : $negTtl) : $ttl);
-			} catch (Throwable $e) {
-				// ignore cache write failure
-			}
-		}
-
-		return $ip;
 	}
 
 	public static function count_dns_cache(): ?int {
