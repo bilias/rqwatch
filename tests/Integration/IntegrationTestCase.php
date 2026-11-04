@@ -296,6 +296,32 @@ abstract class IntegrationTestCase extends TestCase
 	}
 
 	/**
+	 * Nothing in a quarantined mail's HTML preview can load from another
+	 * origin: the srcdoc iframe inherits the page's CSP, so each fetch
+	 * directive (or default-src, where it is absent) allows only 'self',
+	 * 'none', data: or 'unsafe-inline'.
+	 * @param array{status: int, location: string, body: string, headers: array<string, string>} $response
+	 */
+	protected function assertNoRemoteLoads(array $response, string $what): void {
+		$csp = $response['headers']['content-security-policy'] ?? '';
+		$this->assertNotSame('', $csp, "{$what}: Content-Security-Policy");
+		$directives = [];
+		foreach (explode(';', $csp) as $part) {
+			$tokens = preg_split('/\s+/', trim($part), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+			if ($tokens !== []) {
+				$directives[strtolower(array_shift($tokens))] = $tokens;
+			}
+		}
+		$this->assertArrayHasKey('default-src', $directives, "{$what}: default-src");
+		$default = $directives['default-src'] ?? [];
+		foreach (['default-src', 'img-src', 'style-src', 'font-src', 'media-src', 'frame-src', 'connect-src', 'object-src'] as $name) {
+			foreach ($directives[$name] ?? $default as $source) {
+				$this->assertContains($source, ["'self'", "'none'", "'unsafe-inline'", 'data:'], "{$what}: {$name} allows {$source}");
+			}
+		}
+	}
+
+	/**
 	 * The path of a redirect target, or '' for none.
 	 *
 	 * @param array{status: int, location: string, body: string, headers: array<string, string>} $response

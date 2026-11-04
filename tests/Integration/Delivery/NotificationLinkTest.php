@@ -56,6 +56,7 @@ final class NotificationLinkTest extends IntegrationTestCase
 			$view = $this->view($browser, $handle);
 			$this->assertSame(200, $view['status'], 'view');
 			$this->assertTokenPage($view, 'view');
+			$this->assertNoRemoteLoads($view, 'view');
 			$this->assertStringContainsString('SUBJ-Q-9201', $view['body'], 'view');
 			$this->assertStringContainsString('Body of SUBJ-Q-9201', $view['body'], 'view');
 
