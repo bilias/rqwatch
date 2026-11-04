@@ -1189,6 +1189,7 @@ final class MailLogService
 		$agg = (clone $query)->toBase()
 			->select(DB::connection()->raw('COUNT(*) AS cnt, MIN(id) AS first_id, MAX(id) AS last_id'))
 			->first();
+		$stats = [];
 		$stats['count'] = (int) $agg->cnt;
 
 		if (($stats['count']) > 0) {
