@@ -81,10 +81,13 @@ ZAP_ADMIN_ID=$($DB_EXEC -N rqwatch -e "SELECT id FROM users WHERE username = 'ad
 mkdir zap
 cp qa/zap/rqwatch.yaml zap/
 status=0
-# keep-id: ZAP's uid 1000 writes the reports as the invoking user
+# keep-id: ZAP's uid 1000 writes the reports as the invoking user;
+# ZAP_AUTH_HEADER*: ZAP sets this Cookie header on every request it sends;
+# no pids limit: ZAP's threads outgrow Podman's default
 podman run --rm --pull=newer --network=host --userns=keep-id:uid=1000,gid=1000 \
-	-v "${WORK}/zap:/zap/wrk:Z" \
-	-e ZAP_TARGET="$BASE" -e ZAP_SESSION="$ZAP_SESSION" -e ZAP_ADMIN_ID="$ZAP_ADMIN_ID" \
+	--pids-limit=-1 -v "${WORK}/zap:/zap/wrk:Z" \
+	-e ZAP_TARGET="$BASE" -e ZAP_ADMIN_ID="$ZAP_ADMIN_ID" \
+	-e ZAP_AUTH_HEADER=Cookie -e ZAP_AUTH_HEADER_VALUE="RQWATCHSESSID=${ZAP_SESSION}" \
 	"$ZAP_IMAGE" zap.sh -cmd -host 127.0.0.1 -port "$(free_port)" \
 	-autorun /zap/wrk/rqwatch.yaml || status=$?
 
