@@ -1,0 +1,59 @@
+# Rqwatch: OWASP ZAP Automation Framework plan, run by qa/zap-scan.sh, which
+# sets ZAP_TARGET (base URL), ZAP_SESSION (an admin RQWATCHSESSID) and
+# ZAP_ADMIN_ID.
+env:
+  contexts:
+    - name: rqwatch
+      urls:
+        - "${ZAP_TARGET}/"
+        - "${ZAP_TARGET}/admin"
+      includePaths:
+        - "${ZAP_TARGET}/.*"
+      excludePaths:
+        # the link carries the logout token: it would end the session
+        - "${ZAP_TARGET}/logout.*"
+        # loginAs replaces the admin session with another user's
+        - "${ZAP_TARGET}/admin/user/login/.*"
+        # editing or disabling the scanning user revokes its session
+        - "${ZAP_TARGET}/admin/user/edit/${ZAP_ADMIN_ID}([?#].*)?"
+        - "${ZAP_TARGET}/openidc/.*"
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    progressToStdout: true
+jobs:
+  - type: replacer
+    parameters:
+      deleteAllRules: true
+    rules:
+      - description: rqwatch admin session
+        matchType: req_header
+        matchString: Cookie
+        matchRegex: false
+        replacementString: "RQWATCHSESSID=${ZAP_SESSION}"
+  - type: spider
+    parameters:
+      context: rqwatch
+      maxDuration: 5
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 5
+  - type: activeScan
+    parameters:
+      context: rqwatch
+      maxRuleDurationInMins: 2
+      maxScanDurationInMins: 20
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: /zap/wrk
+      reportFile: rqwatch-zap.html
+      reportTitle: rqwatch ZAP scan
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: /zap/wrk
+      reportFile: rqwatch-zap.json
+  - type: exitStatus
+    parameters:
+      errorLevel: High

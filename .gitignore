@@ -19,3 +19,4 @@ gh-md-toc
 /opengrep.tmp
 /psalm-taint.sarif
 /qa/.phpunit.result.cache
+/zap-report/
