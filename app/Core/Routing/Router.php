@@ -209,6 +209,12 @@ final class Router
 			$response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 		}
 
+		// no script-src yet: templates still use inline scripts and handlers
+		if (!$response->headers->has('Content-Security-Policy')) {
+			$response->headers->set('Content-Security-Policy', "frame-ancestors 'none'; base-uri 'self'; object-src 'none'");
+		}
+		$response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+
 		if ($_ENV['WEB_SCHEME'] === 'https') {
 			$response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 		}
