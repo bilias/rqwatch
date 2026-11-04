@@ -94,13 +94,13 @@ final class CharsetTest extends UnitTestCase
 	}
 
 	public function testNormalizeUsesMetaCharset(): void {
-		$html = '<html><head><meta charset="koi8-r"></head><body>' . iconv('UTF-8', 'KOI8-R', 'Привет') . '</body></html>';
+		$html = '<html><head><meta charset="koi8-r"></head><body>' . (string) iconv('UTF-8', 'KOI8-R', 'Привет') . '</body></html>';
 		$this->assertStringContainsString('<body>Привет</body>', Helper::normalizeToUtf8($html));
 	}
 
 	public function testNormalizeUsesHttpEquivCharset(): void {
 		$html = '<meta http-equiv="Content-Type" content="text/html; charset=windows-1253">'
-			. iconv('UTF-8', 'Windows-1253', 'Γειά');
+			. (string) iconv('UTF-8', 'Windows-1253', 'Γειά');
 		$this->assertStringEndsWith('Γειά', Helper::normalizeToUtf8($html));
 	}
 

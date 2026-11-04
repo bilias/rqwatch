@@ -107,7 +107,7 @@ trait Mailpit
 	}
 
 	private static function mailpitGet(string $path): string {
-		$ch = curl_init(rtrim(static::mailpitUrl(), '/') . $path);
+		$ch = curl_init(rtrim(static::mailpitUrl(), '/') . $path) ?: throw new RuntimeException('curl_init() failed');
 		curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
 		$body = curl_exec($ch);
 		$status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);

@@ -55,7 +55,7 @@ final class QuarantineFileTest extends UnitTestCase
 		if (!is_dir($path)) {
 			return;
 		}
-		foreach (array_diff(scandir($path), ['.', '..']) as $entry) {
+		foreach (array_diff(scandir($path) ?: [], ['.', '..']) as $entry) {
 			self::rmTree("{$path}/{$entry}");
 		}
 		rmdir($path);

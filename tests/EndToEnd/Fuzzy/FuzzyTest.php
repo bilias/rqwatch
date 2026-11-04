@@ -79,11 +79,11 @@ final class FuzzyTest extends EndToEndTestCase
 		if ($flag !== null) {
 			$fields['flag'] = (string) $flag;
 		}
-		$ch = curl_init(rtrim((string) getenv('E2E_WEB_URL'), '/') . '/api/fuzzy_mail.php');
+		$ch = curl_init(rtrim((string) getenv('E2E_WEB_URL'), '/') . '/api/fuzzy_mail.php') ?: throw new RuntimeException('curl_init() failed');
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_POSTFIELDS => http_build_query($fields),
-			CURLOPT_USERPWD => getenv('E2E_MAIL_API_USER') . ':' . getenv('E2E_MAIL_API_PASS'),
+			CURLOPT_USERPWD => (string) getenv('E2E_MAIL_API_USER') . ':' . (string) getenv('E2E_MAIL_API_PASS'),
 			CURLOPT_TIMEOUT => 30,
 		]);
 		$body = (string) curl_exec($ch);

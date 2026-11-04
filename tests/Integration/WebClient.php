@@ -48,6 +48,7 @@ final class WebClient
 		}
 	}
 
+	/** @param non-empty-string $pattern */
 	public static function match(string $pattern, string $subject): string {
 		if (!preg_match($pattern, $subject, $m)) {
 			throw new RuntimeException("Pattern {$pattern} not found in page");
@@ -77,7 +78,7 @@ final class WebClient
 	/** @param array<string, string>|null $fields
 	 *  @return array{status: int, location: string, body: string, headers: array<string, string>} */
 	private function request(string $path, ?array $fields): array {
-		$ch = curl_init($this->baseUrl . self::appPath($path));
+		$ch = curl_init($this->baseUrl . self::appPath($path)) ?: throw new RuntimeException('curl_init() failed');
 		$headers = [];
 		curl_setopt_array($ch, [ // @phpstan-ignore argument.type ($this->jar is the constructor's tempnam() path; empty only if tempnam() failed)
 			CURLOPT_RETURNTRANSFER => true,

@@ -254,7 +254,7 @@ abstract class EndToEndTestCase extends TestCase
 	 * @return array<string, mixed> rspamd's reply
 	 */
 	protected static function scan(string $mail, array $headers): array {
-		$ch = curl_init(rtrim((string) getenv('E2E_RSPAMD_URL'), '/') . '/checkv2');
+		$ch = curl_init(rtrim((string) getenv('E2E_RSPAMD_URL'), '/') . '/checkv2') ?: throw new RuntimeException('curl_init() failed');
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_POSTFIELDS => $mail,

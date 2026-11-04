@@ -85,7 +85,7 @@ final class RouteSmokeTest extends IntegrationTestCase
 	}
 
 	private static function file(string $path): string {
-		return str_starts_with($path, '/') ? $path : getenv('INTEGRATION_ROOT') . "/{$path}";
+		return str_starts_with($path, '/') ? $path : (string) getenv('INTEGRATION_ROOT') . "/{$path}";
 	}
 
 	private static function logSize(string $path): int {
@@ -93,7 +93,10 @@ final class RouteSmokeTest extends IntegrationTestCase
 		return is_file(self::file($path)) ? (int) filesize(self::file($path)) : 0;
 	}
 
-	/** @return list<string> lines matching $pattern written after byte $from */
+	/**
+	 * @param non-empty-string $pattern
+	 * @return list<string> lines matching $pattern written after byte $from
+	 */
 	private static function linesSince(string $path, int $from, string $pattern): array {
 		clearstatcache();
 		if (!is_file(self::file($path))) {

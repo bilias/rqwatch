@@ -20,13 +20,14 @@ namespace Tests\Integration\Smoke;
 
 use PHPUnit\Framework\Attributes\TestDox;
 use Redis;
+use RuntimeException;
 use Tests\Integration\IntegrationTestCase;
 
 final class RedisModeTest extends IntegrationTestCase
 {
 	#[TestDox('Backend: without Redis, REDIS_ENABLE=false; with Redis, a login\'s session and the cached config are in Redis')]
 	public function testBackend(): void {
-		$env = (string) file_get_contents(getenv('INTEGRATION_ROOT') . '/.env');
+		$env = (string) file_get_contents((string) getenv('INTEGRATION_ROOT') . '/.env');
 		if (getenv('INTEGRATION_REDIS_ENABLED') !== 'true') {
 			$this->assertMatchesRegularExpression('/^REDIS_ENABLE=false$/m', $env);
 			return;
@@ -35,9 +36,18 @@ final class RedisModeTest extends IntegrationTestCase
 
 		$redis = new Redis();
 		$redis->connect('127.0.0.1', (int) getenv('INTEGRATION_REDIS_PORT'));
-		$sessions = count($redis->keys('rqwatch_sess:*'));
+		$sessions = count(self::keys($redis, 'rqwatch_sess:*'));
 		self::client('alice');
-		$this->assertGreaterThan($sessions, count($redis->keys('rqwatch_sess:*')), 'sessions in Redis after a login');
-		$this->assertNotSame([], $redis->keys('rqwatch_config_*'), 'cached config in Redis');
+		$this->assertGreaterThan($sessions, count(self::keys($redis, 'rqwatch_sess:*')), 'sessions in Redis after a login');
+		$this->assertNotSame([], self::keys($redis, 'rqwatch_config_*'), 'cached config in Redis');
+	}
+
+	/** @return array<int, string> */
+	private static function keys(Redis $redis, string $pattern): array {
+		$keys = $redis->keys($pattern);
+		if (!is_array($keys)) {
+			throw new RuntimeException("Redis KEYS {$pattern} failed");
+		}
+		return $keys;
 	}
 }

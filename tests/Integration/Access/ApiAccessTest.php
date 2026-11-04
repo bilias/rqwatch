@@ -94,7 +94,7 @@ final class ApiAccessTest extends IntegrationTestCase
 	 * @return array{0: int, 1: string} status and body
 	 */
 	private static function api(string $script, ?array $auth, array $headers = []): array {
-		$ch = curl_init(rtrim((string) getenv('INTEGRATION_API_URL'), '/') . "/api/{$script}");
+		$ch = curl_init(rtrim((string) getenv('INTEGRATION_API_URL'), '/') . "/api/{$script}") ?: throw new RuntimeException('curl_init() failed');
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_POST => true,

@@ -107,7 +107,7 @@ abstract class IntegrationTestCase extends TestCase
 			[AuthMiddleware::class, Authorization::class] => self::ADMIN,
 			[AuthMiddleware::class] => self::USER,
 			['NO_MIDDLEWARE'] => self::PUBLIC,
-			default => throw new RuntimeException('Unknown _middleware: ' . json_encode($route->getDefault('_middleware'))),
+			default => throw new RuntimeException('Unknown _middleware: ' . json_encode($route->getDefault('_middleware'), JSON_THROW_ON_ERROR)),
 		};
 	}
 
@@ -171,7 +171,7 @@ abstract class IntegrationTestCase extends TestCase
 	 * @param array<string, string> $settings
 	 */
 	protected static function withEnv(array $settings, callable $test): void {
-		$env = getenv('INTEGRATION_ROOT') . '/.env';
+		$env = (string) getenv('INTEGRATION_ROOT') . '/.env';
 		$original = (string) file_get_contents($env);
 		$changed = $original;
 		foreach ($settings as $key => $value) {
@@ -230,11 +230,11 @@ abstract class IntegrationTestCase extends TestCase
 	 * @return array{0: int, 1: string} status and body
 	 */
 	protected static function mailApi(string $script, array $fields): array {
-		$ch = curl_init(rtrim((string) getenv('INTEGRATION_API_URL'), '/') . "/api/{$script}");
+		$ch = curl_init(rtrim((string) getenv('INTEGRATION_API_URL'), '/') . "/api/{$script}") ?: throw new RuntimeException('curl_init() failed');
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_POSTFIELDS => http_build_query($fields),
-			CURLOPT_USERPWD => getenv('INTEGRATION_MAIL_API_USER') . ':' . getenv('INTEGRATION_MAIL_API_PASS'),
+			CURLOPT_USERPWD => (string) getenv('INTEGRATION_MAIL_API_USER') . ':' . (string) getenv('INTEGRATION_MAIL_API_PASS'),
 			CURLOPT_TIMEOUT => 30,
 		]);
 		$body = curl_exec($ch);
@@ -245,7 +245,7 @@ abstract class IntegrationTestCase extends TestCase
 	}
 
 	protected static function quarantineFile(int $id): string {
-		return getenv('INTEGRATION_ROOT') . "/q/{$id}.eml";
+		return (string) getenv('INTEGRATION_ROOT') . "/q/{$id}.eml";
 	}
 
 	/**
