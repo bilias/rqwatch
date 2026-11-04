@@ -16,6 +16,11 @@ use PhpMimeMailParser\Parser;
 
 final class MailObject
 {
+	// image parts a cid: reference may inline as a data: URI (no SVG)
+	private const EMBED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+	// raw bytes inlined per mail; past this, cid: references stay as they are
+	private const EMBED_MAX_BYTES = 5 * 1024 * 1024;
+
 	private ?string $virus_found;
 	/** @var list<string> */
 	private array $symbols;
@@ -58,8 +63,42 @@ final class MailObject
 	}
 
 	public function setMessageBody(): void {
-		$this->htmlBody = $this->parser->getMessageBody('html');
+		$this->htmlBody = $this->embedImages($this->parser->getMessageBody('html'));
 		$this->textBody = nl2br(htmlspecialchars($this->parser->getMessageBody('text')));
+	}
+
+	/*
+	 cid: references (RFC 2392: the Content-ID without <>, URL-encoded) to
+	 image parts of this mail become data: URIs, quoted or not, so embedded
+	 images show in the preview, whose CSP allows data: images and nothing
+	 remote. Unknown references and other part types are left as they are,
+	 and the browser blocks them.
+	*/
+	private function embedImages(string $html): string {
+		if (stripos($html, 'cid:') === false) {
+			return $html;
+		}
+		$images = [];
+		$budget = self::EMBED_MAX_BYTES;
+		foreach ($this->parser->getAttachments() as $attachment) {
+			// false, not '', when the part has no Content-ID
+			$cid = (string) $attachment->getContentID();
+			$type = strtolower(trim(explode(';', $attachment->getContentType())[0]));
+			if ($cid === '' || isset($images[$cid]) || !in_array($type, self::EMBED_TYPES, true)) {
+				continue;
+			}
+			$content = $attachment->getContent();
+			if (strlen($content) > $budget) {
+				continue;
+			}
+			$budget -= strlen($content);
+			$images[$cid] = "data:{$type};base64," . base64_encode($content);
+		}
+		if ($images === []) {
+			return $html;
+		}
+		return preg_replace_callback('/\bcid:([^\s"\'<>()]+)/i',
+			fn(array $m): string => $images[rawurldecode($m[1])] ?? $m[0], $html) ?? $html;
 	}
 
 	public function setAttached(): void {
