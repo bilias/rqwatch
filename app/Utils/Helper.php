@@ -286,7 +286,7 @@ final class Helper {
 				return $class;
 			}
 			// a detail line is "NAME:score:options"
-			$check[0]['name'] = explode(':', $symbol, 2)[0];
+			$check = [['name' => explode(':', $symbol, 2)[0]]];
 			if (self::checkForWhitelist($check)) {
 				return 'whitelist';
 			}
