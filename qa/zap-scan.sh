@@ -7,9 +7,10 @@
 #
 # ZAP scan: runs a copy of this checkout against a throwaway MariaDB seeded
 # like the integration suite (seed_test_data), serves it with php -S and runs
-# the OWASP ZAP Automation Framework plan qa/zap/rqwatch.yaml as admin:
-# spider, passive scan, active scan. Exits non-zero on a High alert or a plan
-# error. The HTML and JSON reports and the copy's logs/ go to $ZAP_OUT
+# the OWASP ZAP Automation Framework plan qa/zap/rqwatch.yaml once per user
+# in $ZAP_USERS (default: alice, then admin): spider, passive scan, active
+# scan. Exits non-zero on a High alert or a plan error in any pass. The HTML
+# and JSON reports (rqwatch-zap-USER.*) and the copy's logs/ go to $ZAP_OUT
 # (default zap-report/). The active scan submits every form it finds; only
 # the copy and its database are touched, and mail goes to the null transport.
 #
@@ -61,38 +62,55 @@ seed_test_data
 export PHP_CLI_SERVER_WORKERS=4
 start_web "$WEB_PORT" /login web/index.php
 
-# log in as admin; ZAP sends this session cookie with every request
-jar="${WORK}/cookies"
-token=$(curl -fs -c "$jar" -b "$jar" "${BASE}/login" \
-	| sed -n 's/.*name="login_form\[_token\]"[^>]*value="\([^"]*\)".*/\1/p')
-curl -fs -o /dev/null -c "$jar" -b "$jar" "${BASE}/login" \
-	--data-urlencode "login_form[username]=admin" \
-	--data-urlencode "login_form[password]=pw-admin" \
-	--data-urlencode "login_form[_token]=${token}"
-ZAP_SESSION=$(awk '$6 == "RQWATCHSESSID" { print $7 }' "$jar")
-code=$(curl -s -o /dev/null -w '%{http_code}' -b "RQWATCHSESSID=${ZAP_SESSION}" "${BASE}/admin")
-if [ -z "$ZAP_SESSION" ] || [ "$code" != 200 ]; then
-	echo "Login as admin failed (GET /admin: ${code})" >&2
-	exit 1
-fi
-# the plan keeps the scan off the admin's own edit form
-ZAP_ADMIN_ID=$($DB_EXEC -N rqwatch -e "SELECT id FROM users WHERE username = 'admin'")
 
-mkdir zap
-cp qa/zap/rqwatch.yaml zap/
-status=0
-# keep-id: ZAP's uid 1000 writes the reports as the invoking user;
-# ZAP_AUTH_HEADER*: ZAP sets this Cookie header on every request it sends;
-# no pids limit: ZAP's threads outgrow Podman's default
-podman run --rm --pull=newer --network=host --userns=keep-id:uid=1000,gid=1000 \
-	--pids-limit=-1 -v "${WORK}/zap:/zap/wrk:Z" \
-	-e ZAP_TARGET="$BASE" -e ZAP_ADMIN_ID="$ZAP_ADMIN_ID" \
-	-e ZAP_AUTH_HEADER=Cookie -e ZAP_AUTH_HEADER_VALUE="RQWATCHSESSID=${ZAP_SESSION}" \
-	"$ZAP_IMAGE" zap.sh -cmd -host 127.0.0.1 -port "$(free_port)" \
-	-autorun /zap/wrk/rqwatch.yaml || status=$?
+# zap_login USER: logs USER (password pw-USER, from seed_test_data) in and
+# sets ZAP_SESSION and ZAP_SELF_ID (the user's id, kept off its own edit form)
+zap_login() {
+	local user=$1 jar="${WORK}/cookies-$1" token code
+	token=$(curl -fs -c "$jar" -b "$jar" "${BASE}/login" \
+		| sed -n 's/.*name="login_form\[_token\]"[^>]*value="\([^"]*\)".*/\1/p')
+	curl -fs -o /dev/null -c "$jar" -b "$jar" "${BASE}/login" \
+		--data-urlencode "login_form[username]=${user}" \
+		--data-urlencode "login_form[password]=pw-${user}" \
+		--data-urlencode "login_form[_token]=${token}"
+	ZAP_SESSION=$(awk '$6 == "RQWATCHSESSID" { print $7 }' "$jar")
+	# /profile answers every logged-in user; anyone else is redirected
+	code=$(curl -s -o /dev/null -w '%{http_code}' -b "RQWATCHSESSID=${ZAP_SESSION}" "${BASE}/profile")
+	if [ -z "$ZAP_SESSION" ] || [ "$code" != 200 ]; then
+		echo "Login as ${user} failed (GET /profile: ${code})" >&2
+		exit 1
+	fi
+	ZAP_SELF_ID=$($DB_EXEC -N rqwatch -e "SELECT id FROM users WHERE username = '${user}'")
+}
 
+# One pass per user: a plain user reaches the user routes and the scoped
+# queries, admin the admin routes. The plain user goes first: the admin
+# pass's active scan submits the user edit forms and may change its password.
+ZAP_USERS="${ZAP_USERS:-alice admin}"
 mkdir -p "$OUT"
-cp zap/rqwatch-zap.* "$OUT/" 2>/dev/null || true
+status=0
+for user in $ZAP_USERS; do
+	echo "=== ZAP pass as ${user}"
+	zap_login "$user"
+	rm -rf zap
+	mkdir zap
+	cp qa/zap/rqwatch.yaml zap/
+	# keep-id: ZAP's uid 1000 writes the reports as the invoking user;
+	# ZAP_AUTH_HEADER*: ZAP sets this Cookie header on every request it sends;
+	# no pids limit: ZAP's threads outgrow Podman's default
+	podman run --rm --pull=newer --network=host --userns=keep-id:uid=1000,gid=1000 \
+		--pids-limit=-1 -v "${WORK}/zap:/zap/wrk:Z" \
+		-e ZAP_TARGET="$BASE" -e ZAP_SELF_ID="$ZAP_SELF_ID" \
+		-e ZAP_AUTH_HEADER=Cookie -e ZAP_AUTH_HEADER_VALUE="RQWATCHSESSID=${ZAP_SESSION}" \
+		"$ZAP_IMAGE" zap.sh -cmd -host 127.0.0.1 -port "$(free_port)" \
+		-autorun /zap/wrk/rqwatch.yaml || status=$?
+	for report in zap/rqwatch-zap.*; do
+		if [ -e "$report" ]; then
+			cp "$report" "${OUT}/rqwatch-zap-${user}.${report##*.}"
+		fi
+	done
+done
+
 cp -r logs "$OUT/"
 echo "ZAP reports and logs: ${OUT}"
-exit "$status" 
+exit "$status"

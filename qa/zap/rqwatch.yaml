@@ -1,7 +1,8 @@
 # Rqwatch: OWASP ZAP Automation Framework plan, run by qa/zap-scan.sh, which
-# sets ZAP_TARGET (base URL) and ZAP_ADMIN_ID, and passes the admin session
-# to ZAP as ZAP_AUTH_HEADER_VALUE: ZAP adds it to every request itself (the
-# replacer job would not expand an environment variable in its rules)
+# sets ZAP_TARGET (base URL) and ZAP_SELF_ID (the scanning user's id), and
+# passes that user's session to ZAP as ZAP_AUTH_HEADER_VALUE: ZAP adds it to
+# every request itself (the replacer job would not expand an environment
+# variable in its rules)
 env:
   contexts:
     - name: rqwatch
@@ -16,7 +17,7 @@ env:
         # loginAs replaces the admin session with another user's
         - "${ZAP_TARGET}/admin/user/login/.*"
         # editing or disabling the scanning user revokes its session
-        - "${ZAP_TARGET}/admin/user/edit/${ZAP_ADMIN_ID}([?#].*)?"
+        - "${ZAP_TARGET}/admin/user/edit/${ZAP_SELF_ID}([?#].*)?"
         - "${ZAP_TARGET}/openidc/.*"
   parameters:
     failOnError: true
