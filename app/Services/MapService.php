@@ -258,7 +258,8 @@ final class MapService
 			$list = array_values(array_filter((array) $symbols, fn ($s) => is_string($s) && self::validSymbol($s)));
 			if (!is_string($map) || $list === [] || count($list) !== count((array) $symbols)) {
 				App::fileLogger()->error("[MapService] invalid map_symbols entry " .
-					json_encode([$map => $symbols]) . " in config: map name => list of symbol names");
+					(string) json_encode([$map => $symbols], JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE)
+					. " in config: map name => list of symbol names");
 			}
 			if (is_string($map) && $list !== []) {
 				$maps[$map] = $list;
@@ -579,8 +580,7 @@ final class MapService
 			$query = $this->getMapCustomQuery($map_name);
 			//$query = $query->where('pattern', $data[$map_fields[0]]);
 			// handle multi line entries
-			$lines = preg_split('/\r\n|\r|\n/', trim($data[$map_fields[0]]));
-			$values = array_unique(array_filter(array_map('trim', $lines))); // @phpstan-ignore argument.type (preg_split() is false only on a PCRE failure)
+			$values = array_unique(array_filter(array_map('trim', self::lines(trim($data[$map_fields[0]])))));
 			$query = $query->whereIn('pattern', $values);
 		} else {
 			throw new RuntimeException("Unknown map model");
@@ -660,7 +660,10 @@ final class MapService
 		}
 
 		$files = glob($mapDir . DIRECTORY_SEPARATOR . '*.txt');
-		foreach ($files as $filePath) { // @phpstan-ignore foreach.nonIterable (glob() is false only on a filesystem error; foreach then warns and skips)
+		if ($files === false) {
+			throw new RuntimeException("Cannot list map directory: {$mapDir}");
+		}
+		foreach ($files as $filePath) {
 			$fileName = pathinfo($filePath, PATHINFO_FILENAME); // map name
 			if (!in_array($fileName, $validMapNames, true)) {
 				unlink($filePath);
@@ -837,6 +840,11 @@ final class MapService
 		return true;
 	}
 
+	/** @return non-empty-list<string> the lines of $text, split at CRLF, CR or LF */
+	private static function lines(string $text): array {
+		return explode("\n", str_replace(["\r\n", "\r"], "\n", $text));
+	}
+
 	/**
 	 * @param array<string, mixed> $data
 	 * @return array<string, mixed>
@@ -923,10 +931,11 @@ final class MapService
 	 * @param array<string, mixed> $data form data
 	 */
 	public function updateMapCombinedEntry(string $map_name, array $map_fields, array $data): bool {
-		if (empty($data) || empty($data['map_name']) || $map_name !== $data['map_name']) {
+		if (empty($data) || empty($data['map_name']) || $map_name !== $data['map_name'] || empty($data['id'])) {
 			$this->logger->error("Empty or invalid map data");
 			return false;
 		}
+		$id = (int) $data['id'];
 
 		if (empty($this->user_id)) {
 			$this->logger->warning("[updateMapCombinedEntry] empty user_id");
@@ -950,7 +959,7 @@ final class MapService
 		}
 
 		if (!$this->is_admin && $this->user_id !== $data['user_id']) {
-			$this->logger->warning("[updateMapCombinedEntry] {$this->username} tried to update map entry {$data['id']} for map {$map_name} without permission");
+			$this->logger->warning("[updateMapCombinedEntry] {$this->username} tried to update map entry {$id} for map {$map_name} without permission");
 			return false;
 		}
 
@@ -965,9 +974,9 @@ final class MapService
 
 		try {
 			// the old key, to detach its hits if the edit changes it
-			$old = MapCombined::where('id', $data['id'])->first($map_fields);
+			$old = MapCombined::where('id', $id)->first($map_fields);
 
-			$success = MapCombined::where('id', $data['id'])
+			$success = MapCombined::where('id', $id)
 			                      ->update($new_data);
 
 			if (!$success) {
@@ -983,7 +992,7 @@ final class MapService
 		if ($old !== null) {
 			foreach ($map_fields as $field) {
 				if (strtolower(trim((string) $old->$field)) !== (string) $new_data[$field]) {
-					(new MapHitService())->detachEntry(MapHitService::ENTRY_COMBINED, (int) $data['id']);
+					(new MapHitService())->detachEntry(MapHitService::ENTRY_COMBINED, $id);
 					break;
 				}
 			}
@@ -1027,10 +1036,8 @@ final class MapService
 		*/
 
 		// handle multiple lines
-		$lines = preg_split('/\r\n|\r|\n/', trim($pattern));
-
 		// Remove empty lines and trim whitespace from each
-		$values = array_filter(array_map('trim', $lines)); // @phpstan-ignore argument.type (preg_split() is false only on a PCRE failure)
+		$values = array_filter(array_map('trim', self::lines(trim($pattern))));
 
 		if (count($values) === 0) {
 			return false;
@@ -1087,10 +1094,11 @@ final class MapService
 
 	/** @param array<string, mixed> $data form data */
 	public function updateMapCustomEntry(string $map_name, array $data): bool {
-		if (empty($data) || empty($data['map_name']) || $map_name !== $data['map_name']) {
+		if (empty($data) || empty($data['map_name']) || $map_name !== $data['map_name'] || empty($data['id'])) {
 			$this->logger->error("Empty or invalid map data");
 			return false;
 		}
+		$id = (int) $data['id'];
 
 		$disabled = $data['disabled'];
 
@@ -1107,9 +1115,9 @@ final class MapService
 
 		try {
 			// the old key, to detach its hits if the edit changes it
-			$old = MapCustom::where('id', $data['id'])->value('pattern');
+			$old = MapCustom::where('id', $id)->value('pattern');
 
-			$success = MapCustom::where('id', $data['id'])
+			$success = MapCustom::where('id', $id)
 			                    ->update([
 			                       'pattern' => $value,
 			                       'disabled' => $disabled,
@@ -1127,7 +1135,7 @@ final class MapService
 		}
 
 		if ($old !== null && MapHitService::customIdentity((string) $old) !== MapHitService::customIdentity((string) $value)) {
-			(new MapHitService())->detachEntry(MapHitService::ENTRY_CUSTOM, (int) $data['id']);
+			(new MapHitService())->detachEntry(MapHitService::ENTRY_CUSTOM, $id);
 		}
 
 		$last_update = date("Y-m-d H:i:s");
