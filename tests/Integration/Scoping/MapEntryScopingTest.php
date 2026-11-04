@@ -46,7 +46,9 @@ final class MapEntryScopingTest extends IntegrationTestCase
 
 	#[\Override]
 	protected function tearDown(): void {
-		self::db()->exec("DELETE FROM maps_combined WHERE mail_from LIKE 'acl-%'");
+		if (getenv('INTEGRATION_BASE_URL') !== false) {
+			self::db()->exec("DELETE FROM maps_combined WHERE mail_from LIKE 'acl-%'");
+		}
 		parent::tearDown();
 	}
 
