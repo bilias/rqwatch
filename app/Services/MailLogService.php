@@ -1205,7 +1205,7 @@ final class MailLogService
 
 			$stats['action'] = collect((clone $query)
 				->selectRaw('action, COUNT(*) as cnt')
-			   ->groupBy('action')
+				->groupBy('action')
 				->orderBy('cnt', 'DESC')
 				->orderBy('action')
 				->get()
