@@ -24,7 +24,7 @@ use Tests\Integration\IntegrationTestCase;
 
 final class MailPreviewTest extends IntegrationTestCase
 {
-	private const ID = 9301;
+	private const ID = 9501;
 	private const REMOTE = 'https://tracker.example.net/pixel.gif';
 
 	#[TestDox('HTML mail preview: sandboxed srcdoc iframe, and the page CSP allows no remote loads, for the recipient and an admin')]
