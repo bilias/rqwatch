@@ -33,6 +33,7 @@ use NetDNS2\ENUM\Error as DnsError;
 use Symfony\Component\HttpFoundation\Response;
 
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
 use DateTime;
 use DateTimeZone;
@@ -1271,22 +1272,33 @@ Mail details:
 	}
 
 	public static function debug_exception_err(?string $input): string {
+		return self::debugException(LogLevel::ERROR, $input);
+	}
+
+	// a client's own bad request (an unknown or out-of-scope mail id): logged
+	// with the caller's file and line, but not as an error
+	public static function debug_exception_warn(?string $input): string {
+		return self::debugException(LogLevel::WARNING, $input);
+	}
+
+	private static function debugException(string $level, ?string $input): string {
 		if ($input === null) {
 			$input = '';
 		}
 
+		// frame 0: this function, called from its wrapper in Helper.php;
+		// frame 1: the wrapper, called from the caller's file and line
 		$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
 
-		// Index 0 = current function, 1 = caller
+		// the first frame outside Helper.php is the caller
 		foreach ($trace as $frame) {
 			if (isset($frame['file']) && strpos($frame['file'], 'Helper.php') === false) {
 				$file = $frame['file'];
 				$line = $frame['line'] ?? '?';
 
 				$err_msg = "{$file}:{$line} '{$input}'";
-				self::logger()->error($err_msg);
+				self::logger()->log($level, $err_msg);
 				return $err_msg;
-				//break;
 			}
 		}
 

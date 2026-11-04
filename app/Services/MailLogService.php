@@ -642,7 +642,7 @@ final class MailLogService
 
 		if (!$log) {
 			$err = "Mail with ID '{$id}' not found";
-			Helper::debug_exception_err("{$lf} $err");
+			Helper::debug_exception_warn("{$lf} $err");
 			throw new InvalidArgumentException($err);
 		}
 
@@ -663,7 +663,7 @@ final class MailLogService
 
 		if (!$log) {
 			$err = "Mail with ID '{$id}' not found";
-			Helper::debug_exception_err("{$lf} $err");
+			Helper::debug_exception_warn("{$lf} $err");
 			throw new InvalidArgumentException($err);
 		}
 
@@ -689,7 +689,7 @@ final class MailLogService
 
 		if (!$log) {
 			$err = "Mail with ID '{$id}' not found";
-			Helper::debug_exception_err("{$lf} {$err}");
+			Helper::debug_exception_warn("{$lf} {$err}");
 			throw new InvalidArgumentException($err);
 		}
 
@@ -1428,7 +1428,7 @@ final class MailLogService
 
 		if (!$log) {
 			$err = "Mail with ID '{$id}' not found";
-			Helper::debug_exception_err("{$lf} {$err}");
+			Helper::debug_exception_warn("{$lf} {$err}");
 			throw new InvalidArgumentException($err);
 		}
 
@@ -1450,7 +1450,7 @@ final class MailLogService
 		$log = $query->first();
 		if (!$log) {
 			$err = "Mail with QID '{$qid}' not found";
-			Helper::debug_exception_err("{$lf} {$err} by user: '" . $this->username . "'");
+			Helper::debug_exception_warn("{$lf} {$err} by user: '" . $this->username . "'");
 			throw new InvalidArgumentException($err);
 		}
 		return $log;
@@ -1527,7 +1527,7 @@ final class MailLogService
 			$ar = $this->detail('id', $id);
 		} catch (InvalidArgumentException $e) {
 			$err = "{$lf} Mail with ID '{$id}' not found";
-			Helper::debug_exception_err($err);
+			Helper::debug_exception_warn($err);
 			throw new Exception($err);
 		}
 
@@ -1572,7 +1572,7 @@ final class MailLogService
 			// has applyUserScope
 			$ar = $this->detail('id', $id);
 		} catch (InvalidArgumentException $e) {
-			Helper::debug_exception_err("{$lf} InvalidArgumentException for id {$id}: " . $e->getMessage());
+			Helper::debug_exception_warn("{$lf} InvalidArgumentException for id {$id}: " . $e->getMessage());
 			throw new Exception($e->getMessage());
 		}
 
