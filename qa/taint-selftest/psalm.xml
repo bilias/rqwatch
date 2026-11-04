@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!--
+	Taint self-test (qa/taint-selftest.sh): the plugins and stubs of
+	qa/psalm.xml, with only the probes and the escaping code they test as
+	project files (an escape applies only to analysed code). Paths are
+	relative to the project root.
+-->
+<psalm
+	errorLevel="4"
+	resolveFromConfigFile="false"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="https://getpsalm.org/schema/config"
+	xsi:schemaLocation="https://getpsalm.org/schema/config ../../vendor/vimeo/psalm/config.xsd"
+	allConstantsGlobal="true"
+>
+	<fileExtensions>
+		<extension name=".php"/>
+		<extension name=".twig" checker="vendor/psalm/plugin-symfony/src/Twig/TemplateFileAnalyzer.php" scanner="vendor/psalm/plugin-symfony/src/Twig/TemplateFileScanner.php"/>
+	</fileExtensions>
+
+	<projectFiles>
+		<directory name="qa/taint-selftest" />
+		<file name="app/Twig/RqwatchExtension.php" />
+		<ignoreFiles>
+			<directory name="vendor" />
+		</ignoreFiles>
+	</projectFiles>
+
+	<stubs>
+		<file name="qa/taint-stubs.phpstub"/>
+	</stubs>
+
+	<plugins>
+		<pluginClass class="Qa\PsalmPlugin\Plugin"/>
+		<pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin">
+			<twigRootPath>qa/taint-selftest/templates</twigRootPath>
+		</pluginClass>
+	</plugins>
+</psalm>

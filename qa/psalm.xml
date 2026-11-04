@@ -25,6 +25,8 @@
 		<directory name="qa" />
 		<ignoreFiles>
 			<directory name="vendor" />
+			<!-- planted taint probes: analysed only by qa/taint-selftest.sh -->
+			<directory name="qa/taint-selftest" />
 		</ignoreFiles>
 	</projectFiles>
 
