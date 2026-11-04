@@ -55,6 +55,10 @@ final class Helper {
 	/** @var array<string, list<string>> config name => trimmed patterns */
 	private static array $symbolPatterns = [];
 
+	// the GeoIP database, open for the process (a request or a cron run) once used
+	private static ?MaxMindDbReader $geoipReader = null;
+	private static ?string $geoipReaderDb = null;
+
 	private static function logger(): LoggerInterface {
 		return App::fileLogger();
 	}
@@ -1003,19 +1007,30 @@ Mail details:
 		    ($geoip_db = Config::get('geoip_country_db')) &&
 		    !self::isLocalOrReservedIp($ip)) {
 			try {
-				$geoip_reader = new MaxMindDbReader($geoip_db);
-				$geo = $geoip_reader->get($ip);
-				$geoip_reader->close();
+				$geo = self::geoipReader($geoip_db)->get($ip);
 
 				if (!empty($geo['country']['names']['en'])) {
 					return $geo['country']['names']['en'];
 				}
 			} catch (Exception $e) {
+				// drop it (its handle goes with it) and reopen on the next lookup
+				self::$geoipReader = null;
 				self::logger()->error("GeoIP problem: " . $e->getMessage());
 				return null;
 			}
 		}
 		return null;
+	}
+
+	// the open reader for $db, opened on first use or when the configured file changes;
+	// a dropped reader's file handle is closed with it, so close() is not needed
+	private static function geoipReader(string $db): MaxMindDbReader {
+		if (self::$geoipReader === null || self::$geoipReaderDb !== $db) {
+			self::$geoipReader = null;
+			self::$geoipReader = new MaxMindDbReader($db);
+			self::$geoipReaderDb = $db;
+		}
+		return self::$geoipReader;
 	}
 
 	public static function isLocalOrReservedIp(string $ip): bool {
