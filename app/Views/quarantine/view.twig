@@ -90,7 +90,7 @@ No
  <div class="row">
    <div class='info'>Rspamd Symbols:</div>
    <div class='detail'>
-	 <button onclick="toggleDisplay('symbols', this)">Show</button>
+	 <button data-toggle="symbols">Show</button>
     <div id='symbols' style='display:none;'>
 {% for symbol in symbols %}
 {{ symbol }}<br/>
@@ -107,7 +107,7 @@ No
 <p>This message cannot be released at the moment. Please contact your administrator.</p>
 {% else %}
 <form method='post' action='{{ route('TOKEN_RELEASE', { handle: handle, _token: csrf_token('token_release') }) }}'
-      onsubmit="return confirm('Release this message to your mailbox?')">
+      data-confirm="Release this message to your mailbox?">
   <button type='submit'>Release to my mailbox</button>
 </form>
 {% endif %}
@@ -136,18 +136,6 @@ Please be very carefull before clicking any link bellow.
 {% endif %}
 
 {% if symbols %}
-<script>
-  function toggleDisplay(id, btn = null) {
-    const el = document.getElementById(id);
-    if (!el) return;
-
-    if (el.style.display === 'none' || el.style.display === '') {
-      el.style.display = 'block';
-    } else {
-      el.style.display = 'none';
-    }
-  }
-</script>
 {% endif %}
 
 {% endblock %}

@@ -28,19 +28,16 @@ final class UserDeleteForm extends AbstractType
 {
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
-		// a JS string literal for confirm(); Twig then escapes the attribute
-		$confirm = json_encode(
-			'Are you sure you want to delete user "' . ($options['data']['username'] ?? 'this user') . '"?',
-			JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
-			| JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR
-		);
+		// plain text: web/js/rqwatch.js shows it with confirm() (no inline
+		// handler, which the CSP refuses), and Twig escapes the attribute
+		$confirm = 'Are you sure you want to delete user "' . ($options['data']['username'] ?? 'this user') . '"?';
         $builder
 				->add('id', HiddenType::class)
             ->add('delete', SubmitType::class, [
                 'label' => 'Delete User',
 					 'attr' => [
 						'class' => 'btn btn-danger',
-						'onclick' => "return confirm({$confirm});",
+						'data-confirm' => $confirm,
 					 ],
             ]);
 	}

@@ -187,7 +187,7 @@ No
 {% if fuzzy %}
 {% set f = fuzzy_flags[fuzzy.flag] ?? null %}
 <strong>Learned</strong> as {{ f ? f.label : 'flag ' ~ fuzzy.flag }}{% if f and f.symbol %} ({{ f.symbol }}){% endif %}, weight {{ fuzzy.weight }}: {{ fuzzy.created_at }} by {{ fuzzy.learned_by }}
-<a href="{{ route('ADMIN_FUZZY_UNLEARN', { id: fuzzy.id, _token: csrf_token('fuzzy_unlearn') }) }}" onclick="return confirm('Remove this mail from the fuzzy storage?')"><button>Unlearn</button></a>
+<a href="{{ route('ADMIN_FUZZY_UNLEARN', { id: fuzzy.id, _token: csrf_token('fuzzy_unlearn') }) }}" data-confirm="Remove this mail from the fuzzy storage?"><button>Unlearn</button></a>
 {% if fuzzy_hits %}
 <br>Hits: {% if fuzzy.hits > 0 %}{% if fuzzy_hit_mails %}<a href="{{ route('ADMIN_FUZZY_HITS', { id: fuzzy.id }) }}">{{ fuzzy.hits }}</a>{% else %}{{ fuzzy.hits }}{% endif %}, last {{ fuzzy.last_hit_at }}{% else %}none yet{% endif %}
 {% endif %}
@@ -195,7 +195,7 @@ No
 <br>Shared with: {% for o in fuzzy_shared %}{% if o.mail_log_id %}<a href="{{ route('ADMIN_DETAIL', { type: 'id', value: o.mail_log_id }) }}">{{ o.qid }}</a>{% else %}{{ o.qid }} (purged){% endif %}{% if o.flag != fuzzy.flag %} ({{ fuzzy_flags[o.flag].label ?? ('flag ' ~ o.flag) }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
 {% endif %}
 {% if fuzzy_boostable and f %}
-<form class="fuzzy-learn" method="get" action="{{ route('ADMIN_FUZZY_BOOST', { id: fuzzy.id }) }}" onsubmit="return confirm('Add this weight to the learned mail?')">
+<form class="fuzzy-learn" method="get" action="{{ route('ADMIN_FUZZY_BOOST', { id: fuzzy.id }) }}" data-confirm="Add this weight to the learned mail?">
 <input type="hidden" name="_token" value="{{ csrf_token('fuzzy_boost') }}">
 <label for="fuzzy-boost-weight" class="sr-only">Weight to add</label>
 <input type="number" id="fuzzy-boost-weight" name="weight" value="{{ min(f.weight, 65535 - fuzzy.weight) }}" min="1" max="{{ 65535 - fuzzy.weight }}" required title="Weight to add">
@@ -205,7 +205,7 @@ No
 {% elseif fuzzy_learnable %}
 No
 {% for flag, f in fuzzy_flags %}
-<form class="fuzzy-learn" method="get" action="{{ route('ADMIN_FUZZY_LEARN', { id: log.id, flag: flag }) }}" onsubmit="return confirm('Learn this mail as {{ f.label|e('js') }}?')">
+<form class="fuzzy-learn" method="get" action="{{ route('ADMIN_FUZZY_LEARN', { id: log.id, flag: flag }) }}" data-confirm="Learn this mail as {{ f.label|e('html_attr') }}?">
 <input type="hidden" name="_token" value="{{ csrf_token('fuzzy_learn') }}">
 <label for="fuzzy-learn-weight-{{ flag }}" class="sr-only">Weight</label>
 <input type="number" id="fuzzy-learn-weight-{{ flag }}" name="weight" value="{{ f.weight }}" min="1" max="65535" required title="Weight">
@@ -290,10 +290,10 @@ No
    <div class='info'>Rspamd Symbols:</div>
    <div class='detail'>
 {% if is_admin %}
-	 <button onclick="toggleDisplay('symbols', this)">Hide</button>
+	 <button data-toggle="symbols" data-toggle-label>Hide</button>
 	 <div id='symbols' style='display:block;'>
 {% else %}
-	 <button onclick="toggleDisplay('symbols', this)">Show</button>
+	 <button data-toggle="symbols" data-toggle-label>Show</button>
 	 <div id='symbols' style='display:none;'>
 {% endif %}
 {% for symbol in symbols %}
@@ -307,10 +307,10 @@ No
    <div class='info'>Mail Headers:</div>
    <div class='detail'>
 {% if is_admin %}
-    <button onclick="toggleDisplay('mailheaders', this)">Hide</button>
+    <button data-toggle="mailheaders" data-toggle-label>Hide</button>
 	 <div id='mailheaders' style='display:block;'>
 {% else %}
-    <button onclick="toggleDisplay('mailheaders', this)">Show</button>
+    <button data-toggle="mailheaders" data-toggle-label>Show</button>
 	 <div id='mailheaders' style='display:none;'>
 {% endif %}
 	 <pre>{{ log.headers }}</pre>
@@ -321,19 +321,4 @@ No
 </div>
 {% endif %}
 
-<script>
-  function toggleDisplay(id, btn = null) {
-    const el = document.getElementById(id);
-    if (!el) return;
-
-    if (el.style.display === 'none' || el.style.display === '') {
-      el.style.display = 'block';
-      if (btn) btn.textContent = 'Hide';
-    } else {
-      el.style.display = 'none';
-      if (btn) btn.textContent = 'Show';
-    }
-  }
-
-</script>
 {% endblock %}

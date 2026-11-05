@@ -41,7 +41,7 @@ Blocked IPs: {{ blocked|length }}
     {{ (ttl // 60) }}m {{ (ttl % 60) }}s
   {%- endif -%}
   </td>
-  <td class='center'><a href="{{ route('ADMIN_THROTTLE_CLEAR', { ip: ip, _token: csrf_token('throttle_clear') }) }}" onclick="return confirm('Are you sure you want to clear the login throttle for {{ ip|e('js') }}?')">Clear</a></td>
+  <td class='center'><a href="{{ route('ADMIN_THROTTLE_CLEAR', { ip: ip, _token: csrf_token('throttle_clear') }) }}" data-confirm="Are you sure you want to clear the login throttle for {{ ip|e('html_attr') }}?">Clear</a></td>
   </tr>
 {% endfor %}
 </tbody>
@@ -79,7 +79,7 @@ IPs with failed attempts: {{ counters|length }}
     {{ (entry.ttl // 60) }}m {{ (entry.ttl % 60) }}s
   {%- endif -%}
   </td>
-  <td class='center'><a href="{{ route('ADMIN_THROTTLE_CLEAR', { ip: ip, _token: csrf_token('throttle_clear') }) }}" onclick="return confirm('Are you sure you want to clear the failed login attempts for {{ ip|e('js') }}?')">Clear</a></td>
+  <td class='center'><a href="{{ route('ADMIN_THROTTLE_CLEAR', { ip: ip, _token: csrf_token('throttle_clear') }) }}" data-confirm="Are you sure you want to clear the failed login attempts for {{ ip|e('html_attr') }}?">Clear</a></td>
   </tr>
 {% endfor %}
 </tbody>

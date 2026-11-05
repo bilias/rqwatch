@@ -96,9 +96,9 @@ Total: {{ map_comb_total|nf }} entries
 			{% endfor %}
 
 {% if is_admin %}
-			<td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id, _token: csrf_token('map_del') }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str|trim|e('js') }}\'\nfrom Map:\n\'{{ entry.map_description|e('js') }}\'?')">Delete</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id, _token: csrf_token('map_del') }) }}" data-confirm="Are you sure you want to delete entry:&#10;'{{ entry_str|trim|e('html_attr') }}'&#10;from Map:&#10;'{{ entry.map_description|e('html_attr') }}'?">Delete</a></td>
 {% elseif entry.user_can_delete %}
-			<td class='center'><a href="{{ route('MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id, _token: csrf_token('map_del') }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry_str|trim|e('js') }}\'\nfrom Map:\n\'{{ entry.map_description|e('js') }}\'?')">Delete</a></td>
+			<td class='center'><a href="{{ route('MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id, _token: csrf_token('map_del') }) }}" data-confirm="Are you sure you want to delete entry:&#10;'{{ entry_str|trim|e('html_attr') }}'&#10;from Map:&#10;'{{ entry.map_description|e('html_attr') }}'?">Delete</a></td>
 {% else %}
 			<td class='center'>-</td>
 {% endif %}
@@ -149,7 +149,7 @@ Total: {{ map_gen_total|nf }} entries
 			<td class='center'>{{ entry.field_description }}</td>
 			<td class='center'>{{ entry.pattern }}</td>
 			<td class='center'>{{ entry.updated_at }}</td>
-			<td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id, _token: csrf_token('map_del') }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.field_description|e('js') }} {{ entry.pattern|e('js') }}\'\nfrom Map:\n\'{{ entry.map_description|e('js') }}\'?')">Delete</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id, _token: csrf_token('map_del') }) }}" data-confirm="Are you sure you want to delete entry:&#10;'{{ entry.field_description|e('html_attr') }} {{ entry.pattern|e('html_attr') }}'&#10;from Map:&#10;'{{ entry.map_description|e('html_attr') }}'?">Delete</a></td>
 			<td class='center'><a href="{{ route('ADMIN_MAP_EDIT_ENTRY', { map: entry.map_name, id: entry.id }) }}">Edit</a></td>
       </tr>
     {% endfor %}
@@ -214,7 +214,7 @@ Total: {{ map_custom_total|nf }} entries
 			   <a href="{{ route('ADMIN_MAP_TOGGLE_ENTRY', { map: entry.map_name, id: entry.id, _token: csrf_token('map_toggle') }) }}">
 				{{ entry.disabled ? 'Enable' : 'Disable' }}</a>
 			</td>
-			<td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id, _token: csrf_token('map_del') }) }}" onclick="return confirm('Are you sure you want to delete entry:\n\'{{ entry.field_description|e('js') }} {{ entry.pattern|e('js') }}\'\nfrom Map:\n\'{{ entry.map_description|e('js') }}\'?')">Delete</a></td>
+			<td class='center'><a href="{{ route('ADMIN_MAP_DEL_ENTRY', { map: entry.map_name, id: entry.id, _token: csrf_token('map_del') }) }}" data-confirm="Are you sure you want to delete entry:&#10;'{{ entry.field_description|e('html_attr') }} {{ entry.pattern|e('html_attr') }}'&#10;from Map:&#10;'{{ entry.map_description|e('html_attr') }}'?">Delete</a></td>
 			<td class='center'><a href="{{ route('ADMIN_MAP_EDIT_ENTRY', { map: entry.map_name, id: entry.id }) }}">Edit</a></td>
       </tr>
     {% endfor %}

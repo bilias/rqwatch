@@ -10,9 +10,9 @@
 
 /*
  Every route requested once per role it is open to, with sample parameters:
- no server error, no PHP warning, no ERROR-level log line, the session kept,
- and no data changed (state-changing routes need a form or CSRF token, which
- a plain request does not carry).
+ no server error, no PHP warning, no inline event handler, no ERROR-level log
+ line, the session kept, and no data changed (state-changing routes need a
+ form or CSRF token, which a plain request does not carry).
 */
 
 namespace Tests\Integration\Smoke;
@@ -62,6 +62,9 @@ final class RouteSmokeTest extends IntegrationTestCase
 			$this->assertDoesNotMatchRegularExpression(
 				'/<b>(Warning|Notice|Deprecated|Fatal error)<\/b>:|PHP (Warning|Notice|Deprecated|Fatal error):/',
 				$response['body'], "{$name}: PHP error in the page");
+			// the CSP refuses inline handlers; web/js/rqwatch.js does their work
+			$this->assertDoesNotMatchRegularExpression('/<[a-z][^>]*\son[a-z]+\s*=/i',
+				$response['body'], "{$name}: inline event handler");
 			if ($loggedIn) {
 				$this->assertNotSame('/login', self::target($response), "{$name}: session lost");
 			}

@@ -87,7 +87,7 @@ Fuzzy learned mails{% if search %} matching '{{ search }}'{% endif %}: {{ totalR
 {% endfor %}
   </td>
   <td class='center'>{{ row.learned_by }}</td>
-  <td class='center'><a href="{{ route('ADMIN_FUZZY_UNLEARN', { id: row.id, return: 'list', _token: csrf_token('fuzzy_unlearn') }) }}" onclick="return confirm('Remove {{ row.qid|e('js') }} from the fuzzy storage?')">Unlearn</a></td>
+  <td class='center'><a href="{{ route('ADMIN_FUZZY_UNLEARN', { id: row.id, return: 'list', _token: csrf_token('fuzzy_unlearn') }) }}" data-confirm="Remove {{ row.qid|e('html_attr') }} from the fuzzy storage?">Unlearn</a></td>
   </tr>
 {% endfor %}
 </tbody>

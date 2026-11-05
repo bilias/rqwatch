@@ -105,7 +105,7 @@ No
    <div class='info'>Rspamd Symbols:</div>
    <div class='detail'>
 
-	 <button onclick="toggleDisplay('symbols', this)">Show</button>
+	 <button data-toggle="symbols" data-toggle-label>Show</button>
     <div id='symbols' style='display:none;'>
 {% for symbol in symbols %}
 {{ symbol }}<br/>
@@ -133,7 +133,7 @@ Please be very carefull before opening or saving any of the files bellow.
 </p>
 
 <div id='showbtn'>
-<button onclick="toggleDisplay('attachmentsList', this)">Show</button>
+<button data-toggle="attachmentsList" data-toggle-label>Show</button>
 </div>
 
 <div id="attachmentsList" style="display:none;">
@@ -194,18 +194,4 @@ Please be very carefull before clicking any link bellow.
 {% endif %}
 </div>
 
-<script>
-  function toggleDisplay(id, btn = null) {
-    const el = document.getElementById(id);
-    if (!el) return;
-
-    if (el.style.display === 'none' || el.style.display === '') {
-      el.style.display = 'block';
-      if (btn) btn.textContent = 'Hide';
-    } else {
-      el.style.display = 'none';
-      if (btn) btn.textContent = 'Show';
-    }
-  }
-</script>
 {% endblock %}
