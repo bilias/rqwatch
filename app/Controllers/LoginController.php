@@ -77,7 +77,7 @@ final class LoginController extends ViewController
 			$this->fileLogger->info("User logout: '{$this->username}'", [
 				'is_admin' => $this->is_admin,
 				'email' => $this->email,
-				'ip' => $_SERVER['REMOTE_ADDR'],
+				'ip' => $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN',
 				'session_id' => $this->session->getId(),
 			]);
 		}
@@ -432,7 +432,7 @@ final class LoginController extends ViewController
 		if (($auth_provider !== "DB") && $username === 'admin') {
 			$this->fileLogger->warning(
 				"($auth_provider) login refused for reserved local account 'admin' from IP:" .
-				$_SERVER['REMOTE_ADDR']
+				($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
 			);
 			$this->flashbag->add('error', "Authentication problem. Contact admin");
 			return false;
@@ -471,7 +471,7 @@ final class LoginController extends ViewController
 		$this->fileLogger->info("User login: '{$username}' ($auth_provider)", [
 			'is_admin' => $is_admin,
 			'email' => $email,
-			'ip' => $_SERVER['REMOTE_ADDR'],
+			'ip' => $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN',
 			'session_id' => $this->session->getId(),
 		]);
 

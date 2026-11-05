@@ -247,7 +247,7 @@ final class MailAliasController extends ViewController
 
 		if (!$this->csrfValid('alias_del')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on alias del from " . $_SERVER['REMOTE_ADDR']
+				"CSRF check failed on alias del from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getAdminAliasesUrl());

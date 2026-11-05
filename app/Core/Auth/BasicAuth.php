@@ -61,7 +61,7 @@ final class BasicAuth implements AuthInterface {
 			} else {
 				$mode = "";
 			}
-			$this->logger->warning("Failed" . $mode . "Basic Auth user: '{$providedUser}' from '{$_SERVER['REMOTE_ADDR']}'");
+			$this->logger->warning("Failed" . $mode . "Basic Auth user: '{$providedUser}' from '" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "'");
 			//sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 			$this->doBasicAuth(); // and exit
 		} else {

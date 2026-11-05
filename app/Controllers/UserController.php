@@ -107,7 +107,7 @@ final class UserController extends ViewController
 
 		if (!$this->csrfValid('throttle_clear')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on clearThrottle from " . $_SERVER['REMOTE_ADDR']
+				"CSRF check failed on clearThrottle from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getAdminThrottlesUrl());
@@ -620,7 +620,7 @@ final class UserController extends ViewController
 
 		if (!$this->csrfValid('user_loginas')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on loginAs from " . $_SERVER['REMOTE_ADDR']
+				"CSRF check failed on loginAs from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getHomepageUrl());

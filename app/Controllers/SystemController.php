@@ -33,7 +33,7 @@ final class SystemController extends Controller
 
 		if (!$this->csrfValid('config_reload')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on redisConfigReload from " . $_SERVER['REMOTE_ADDR']
+				"CSRF check failed on redisConfigReload from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getSearchUrl());
@@ -79,7 +79,7 @@ final class SystemController extends Controller
 
 		if (!$this->csrfValid('dns_flush')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on dnsFlush from " . $_SERVER['REMOTE_ADDR']
+				"CSRF check failed on dnsFlush from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getSearchUrl());
