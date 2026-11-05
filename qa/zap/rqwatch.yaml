@@ -24,6 +24,103 @@ env:
     failOnWarning: false
     progressToStdout: true
 jobs:
+  # Baseline: alerts triaged as false positives or accepted become False
+  # Positive, which keeps them out of the reports and the exit status. A rule
+  # that could also fire on a real problem elsewhere is scoped by URL or
+  # header, so a new instance still shows up.
+  - type: alertFilter
+    alertFilters:
+      # Stored XSS: the payload comes back only in a map file (text/plain,
+      # admin-written, fetched by rspamd); the HTML pages listing the entries
+      # escape it
+      - ruleId: 40014
+        newRisk: False Positive
+        url: '.*/maps/[^/]+\.txt'
+        urlRegex: true
+      # CSP and Permissions-Policy: the map files are plain text and the
+      # scripts static files, served by httpd without the app's headers
+      - ruleId: 10038
+        newRisk: False Positive
+        url: '.*/maps/[^/]+\.txt'
+        urlRegex: true
+      - ruleId: 10063
+        newRisk: False Positive
+        url: '.*/(maps/[^/]+\.txt|js/[^/]+\.js(\?.*)?)'
+        urlRegex: true
+      # style-src 'unsafe-inline': only the mail views, for the HTML preview's
+      # inline styles (Router::contentSecurityPolicy). The rule covers every
+      # CSP check, but the mail views use the same policy as all other pages
+      # apart from this, so any other CSP finding still shows up there
+      - ruleId: 10055
+        newRisk: False Positive
+        url: '.*/(admin/)?mail/[0-9]+'
+        urlRegex: true
+      # COEP: not set, rqwatch needs no cross-origin isolation
+      - ruleId: 90004
+        newRisk: False Positive
+        parameter: Cross-Origin-Embedder-Policy
+      # CORP on the public static files; the app's responses set it
+      - ruleId: 90004
+        newRisk: False Positive
+        parameter: Cross-Origin-Resource-Policy
+        url: '.*/(css|js|images)/.*'
+        urlRegex: true
+      # addresses in the add-to-map prefill links; Referrer-Policy keeps them
+      # from other origins
+      - ruleId: 10024
+        newRisk: False Positive
+        url: '.*/(admin|user)/map/[^/]+/add\?.*'
+        urlRegex: true
+      # comments in rqwatch.js
+      - ruleId: 10027
+        newRisk: False Positive
+        url: '.*/js/rqwatch\.js.*'
+        urlRegex: true
+      # Symfony's RedirectResponse body repeats the target URL: the
+      # post-redirect-get forms and the release. Scoped, because a redirect
+      # whose body still carries the page it rendered would be a real leak
+      - ruleId: 10044
+        newRisk: False Positive
+        url: '.*/(admin|user)/(map/.*|maps|aliases/search|user/search|release/[0-9]+)'
+        urlRegex: true
+      # the static files' ?v= version (their mtime), on every page; the
+      # value changes with the files, so it can't be matched as evidence
+      - ruleId: 10096
+        newRisk: False Positive
+      # Cache-Control: non-storable responses anywhere, storable ones only
+      # among the static files, so an app page turning cacheable shows up
+      - ruleId: 10049
+        newRisk: False Positive
+        evidence: private
+      - ruleId: 10049
+        newRisk: False Positive
+        url: '.*/(css|js|images)/.*'
+        urlRegex: true
+      # the password fields of the user forms
+      - ruleId: 10111
+        newRisk: False Positive
+        url: '.*/admin/user/(add|edit/[0-9]+)'
+        urlRegex: true
+      # GET for POST: the QID search box, a Symfony form that only submits
+      # on POST; another form accepting GET would be a real finding
+      - ruleId: 10058
+        newRisk: False Positive
+        evidence: '.*qid_form%5B.*'
+        evidenceRegex: true
+      # a hint to test attribute values by hand: Twig escapes them, and the
+      # active scan's XSS rules test the same parameters
+      - ruleId: 10031
+        newRisk: False Positive
+      # user-agent fuzzing and cookie slack where seen: no user-agent
+      # dependent behavior; the session cookie is the only one that matters
+      - ruleId: 10104
+        newRisk: False Positive
+        url: '.*/(detail/id/[0-9]+)?'
+        urlRegex: true
+      - ruleId: 90027
+        newRisk: False Positive
+        url: '.*/(day)?'
+        urlRegex: true
   - type: spider
     parameters:
       context: rqwatch
