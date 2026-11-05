@@ -27,7 +27,7 @@ RUN dnf -y install dnf-plugins-core epel-release \
 	&& ln -sf /dev/stderr /var/log/httpd/error_log \
 	&& ln -sf /dev/stdout /var/log/httpd/access_log \
 	&& ln -sf /dev/stderr /var/log/php-fpm/error.log
-# start_web_container passes a new UPDATE_STAMP on every run, so this layer, and
-# only this one, is rebuilt: the packages are updated before each scan
+# start_web_container passes the date as UPDATE_STAMP (or the time, with
+# QA_WEB_UPDATE=1), so this layer, and only this one, is rebuilt once a day
 ARG UPDATE_STAMP=none
 RUN echo "dnf update: ${UPDATE_STAMP}" && dnf -y update && dnf clean all
