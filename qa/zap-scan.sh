@@ -148,6 +148,10 @@ for user in $ZAP_USERS; do
 			cp "$report" "${OUT}/rqwatch-zap-${user}.${report##*.}"
 		fi
 	done
+	# the SARIF report, for GitHub's code scanning
+	if [ -e zap/rqwatch-zap-sarif.json ]; then
+		cp zap/rqwatch-zap-sarif.json "${OUT}/rqwatch-zap-${user}.sarif"
+	fi
 	# keep zap.log; the rest of the home (session database, add-ons) is ZAP's scratch
 	if [ -f "${zap_home}/zap.log" ]; then
 		cp "${zap_home}/zap.log" "${OUT}/zap-${user}.log"

@@ -144,6 +144,12 @@ jobs:
       template: traditional-json
       reportDir: /zap/wrk
       reportFile: rqwatch-zap.json
+  # for GitHub's code scanning (the weekly CI run)
+  - type: report
+    parameters:
+      template: sarif-json
+      reportDir: /zap/wrk
+      reportFile: rqwatch-zap-sarif.json
   - type: exitStatus
     parameters:
       errorLevel: High

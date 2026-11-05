@@ -1,7 +1,8 @@
 name: CI
 
-# One workflow for every check. Push and PR run all jobs; each cron runs only
-# its own job (the if: lines below), and a manual run runs everything.
+# One workflow for every check. Push and PR run all jobs but ZAP; each cron
+# runs only its own job (the if: lines below), and a manual run runs
+# everything but ZAP, which only its cron runs.
 
 concurrency:
   # the event keeps a long scheduled run from queueing the checks of a push
@@ -18,6 +19,8 @@ on:
     # e2e, weekly: rspamd:4, mariadb:10.11 and redis:7 are moving tags, catch
     # upstream changes between pushes
     - cron: '41 4 * * 1'
+    # ZAP, weekly: up to an hour against httpd + PHP-FPM
+    - cron: '17 3 * * 0'
   workflow_dispatch:
 
 permissions:
@@ -292,3 +295,70 @@ jobs:
         env:
           E2E_REDIS: ${{ matrix.redis == 'on' && '1' || '0' }}
         run: bash qa/e2e-tests.sh
+
+  zap:
+    # OWASP ZAP (qa/zap-scan.sh, the alert baseline in qa/zap/rqwatch.yaml),
+    # as alice and admin. Findings go to the Security tab only: the harness's
+    # output stays off this public log unless the scan itself breaks (and then
+    # without alert lines), nothing is kept as an artifact, and a finding
+    # doesn't fail the job
+    name: ZAP scan
+    if: github.event_name == 'schedule' && github.event.schedule == '17 3 * * 0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # the host PHP seeds the copy (bin/cli.php); the web server is the
+      # container's, remi-8.4
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.4'
+          extensions: ldap, redis, mailparse, mbstring, iconv, pdo_mysql, gmp, curl
+          coverage: none
+
+      - name: Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Composer install
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      # done when both SARIF reports exist, whatever ZAP found; the log is
+      # shown only when one is missing, and then without alert lines
+      - name: ZAP scan
+        run: |
+          status=0
+          bash qa/zap-scan.sh > "${RUNNER_TEMP}/zap.log" 2>&1 || status=$?
+          if [ -s zap-report/rqwatch-zap-alice.sarif ] && [ -s zap-report/rqwatch-zap-admin.sarif ]; then
+            echo "Scan complete; results in the Security tab"
+            exit 0
+          fi
+          echo "The scan did not finish (exit ${status}); the harness log without alert lines:"
+          grep -vi 'alert' "${RUNNER_TEMP}/zap.log" | tail -n 80
+          exit 1
+
+      - name: Upload ZAP results (alice) to Security tab
+        if: ${{ !cancelled() && hashFiles('zap-report/rqwatch-zap-alice.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        with:
+          sarif_file: zap-report/rqwatch-zap-alice.sarif
+          category: zap-alice
+
+      - name: Upload ZAP results (admin) to Security tab
+        if: ${{ !cancelled() && hashFiles('zap-report/rqwatch-zap-admin.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        with:
+          sarif_file: zap-report/rqwatch-zap-admin.sarif
+          category: zap-admin
