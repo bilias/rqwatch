@@ -32,7 +32,7 @@ final class ReleaseMailApi extends RqwatchApi
 
 	#[\Override]
 	protected function getAuthCredentials(): array {
-		return [$_ENV['MAIL_API_USER'], $_ENV['MAIL_API_PASS']];
+		return [$_ENV['MAIL_API_USER'] ?? null, $_ENV['MAIL_API_PASS'] ?? null];
 	}
 
 	#[\Override]

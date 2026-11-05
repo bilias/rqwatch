@@ -51,7 +51,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 
 	#[\Override]
 	protected function getAuthCredentials(): array {
-		return [$_ENV['RSPAMD_API_USER'], $_ENV['RSPAMD_API_PASS']];
+		return [$_ENV['RSPAMD_API_USER'] ?? null, $_ENV['RSPAMD_API_PASS'] ?? null];
 	}
 
 	/**
