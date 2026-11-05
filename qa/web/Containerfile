@@ -4,15 +4,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Web server image for qa/zap-scan.sh: httpd and PHP-FPM from Remi's
-# repository on Rocky Linux 9, installed as docs/INSTALL.md does. The code
-# is not in the image: qa/zap-scan.sh mounts the copy at /var/www/html/rqwatch
-# and runs qa/zap/web-start.sh from it. httpd's and PHP-FPM's own logs go to
-# the container's output (podman logs).
+# Web server image for the qa/ harnesses (start_web_container in qa/lib.sh):
+# httpd and PHP-FPM from Remi's repository on Rocky Linux 9, installed as
+# docs/INSTALL.md does. The code is not in the image: start_web_container
+# mounts the copy at /var/www/html/rqwatch and runs qa/web/web-start.sh from
+# it. httpd's and PHP-FPM's own logs go to the container's output (podman logs).
 ARG BASE_IMAGE=quay.io/rockylinux/rockylinux:9
 FROM ${BASE_IMAGE}
 ARG PHP_STREAM=remi-8.4
-# qa/zap-scan.sh maps the invoking user to this uid (--userns=keep-id)
+# start_web_container maps the invoking user to this uid (--userns=keep-id)
 ARG RQWATCH_UID=1000
 RUN dnf -y install dnf-plugins-core epel-release \
 	&& dnf config-manager --set-enabled crb \
@@ -27,7 +27,7 @@ RUN dnf -y install dnf-plugins-core epel-release \
 	&& ln -sf /dev/stderr /var/log/httpd/error_log \
 	&& ln -sf /dev/stdout /var/log/httpd/access_log \
 	&& ln -sf /dev/stderr /var/log/php-fpm/error.log
-# qa/zap-scan.sh passes a new UPDATE_STAMP on every run, so this layer, and
+# start_web_container passes a new UPDATE_STAMP on every run, so this layer, and
 # only this one, is rebuilt: the packages are updated before each scan
 ARG UPDATE_STAMP=none
 RUN echo "dnf update: ${UPDATE_STAMP}" && dnf -y update && dnf clean all

@@ -6,11 +6,21 @@
 #
 # Shared steps of the test harnesses (qa/*-tests.sh); sourced, not run, from
 # the project root. make_workdir creates $WORK; whatever is started through
-# start_container or start_web is stopped, and $WORK removed, on exit. $PHP is
-# the PHP every step runs (phpunit, php -S, bin/cli.php); qa/each-php.sh sets
-# it per version, otherwise the php on PATH.
+# start_container, start_web or start_web_container is stopped, and $WORK
+# removed, on exit. $PHP is the PHP every host step runs (phpunit, php -S,
+# bin/cli.php); qa/each-php.sh sets it per version, otherwise the php on PATH.
+# $QA_WEB picks what serves the copy in the integration and e2e harnesses:
+# "container" (httpd and PHP-FPM, start_web_container), the default locally,
+# or "php" (php -S, start_web), the default in CI (GITHUB_ACTIONS=true).
 
 PHP="${PHP:-php}"
+if [ -z "${QA_WEB:-}" ]; then
+	if [ "${GITHUB_ACTIONS:-}" = true ]; then
+		QA_WEB=php
+	else
+		QA_WEB=container
+	fi
+fi
 LIB_CIDS=()
 LIB_PIDS=()
 WORK=
@@ -140,6 +150,55 @@ start_web() {
 	done
 	echo "Web server did not start" >&2
 	cat "logs/php-server-${port}.log" >&2
+	exit 1
+}
+
+# start_web_container PROBE_PATH PORT...: the copy served by httpd and PHP-FPM
+# as docs/INSTALL.md sets them up, in a Rocky 9 container built from
+# qa/web/Containerfile on the host network, on 127.0.0.1 at each PORT; waits
+# until PROBE_PATH answers on the first. PHP is Remi's $PHP_STREAM, by default
+# the version of $PHP (remi-X.Y), so host and web steps match. The container's
+# output (httpd's logs, PHP-FPM's master log) streams to $WEB_SERVER_LOG,
+# default logs/web-server.log; PHP's own errors go to logs/php-error.log.
+# Sets WEB_CID. Run in the copy, after copy_tree.
+start_web_container() {
+	local probe=$1 image old_image i
+	shift
+	PHP_STREAM="${PHP_STREAM:-remi-$("$PHP" -r 'echo PHP_MAJOR_VERSION, ".", PHP_MINOR_VERSION;')}"
+	image="localhost/rqwatch-qa-web:${PHP_STREAM}"
+	echo "=== Building ${image} (base image and packages updated each run)"
+	old_image=$(podman image inspect -f '{{.Id}}' "$image" 2>/dev/null || true)
+	podman build -q --pull=newer -t "$image" --build-arg PHP_STREAM="$PHP_STREAM" \
+		--build-arg UPDATE_STAMP="$(date +%s)" qa/web >/dev/null
+	# the previous build, now untagged; kept if a concurrent run still uses it
+	if [ -n "$old_image" ] && [ "$old_image" != "$(podman image inspect -f '{{.Id}}' "$image")" ]; then
+		podman rmi "$old_image" >/dev/null 2>&1 || true
+	fi
+	# The copy is mounted where contrib/apache-rqwatch.conf expects it, and at
+	# $WORK too, where .env's QUARANTINE_DIR points. keep-id maps the invoking
+	# user to the image's rqwatch user (uid 1000), so PHP writes the copy as the
+	# invoking user and the cleanup can remove it; the logs PHP-FPM's master
+	# opens as root are created here first for the same reason.
+	chmod 755 "$WORK"
+	mkdir -p q/tmp fpm/session
+	chmod 700 fpm
+	touch logs/php-slow.log logs/php-error.log
+	# k8s-file: with journald, Podman's default on systemd hosts, every request
+	# would also land in the system log
+	WEB_CID=$(podman run -d --rm --network=host --user root --log-driver=k8s-file \
+		--userns=keep-id:uid=1000,gid=1000 \
+		-v "${WORK}:/var/www/html/rqwatch:Z" -v "${WORK}:${WORK}:Z" \
+		-e WEB_PORTS="$*" -e UPLOAD_TMP_DIR="${WORK}/q/tmp" \
+		"$image" bash /var/www/html/rqwatch/qa/web/web-start.sh)
+	LIB_CIDS+=("$WEB_CID")
+	podman logs -f "$WEB_CID" > "${WEB_SERVER_LOG:-logs/web-server.log}" 2>&1 &
+	LIB_PIDS+=("$!")
+	for i in $(seq 30); do
+		curl -fs -o /dev/null "http://127.0.0.1:${1}${probe}" && return 0
+		sleep 1
+	done
+	echo "Web server did not start" >&2
+	podman logs "$WEB_CID" >&2
 	exit 1
 }
 

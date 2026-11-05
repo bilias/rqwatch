@@ -99,7 +99,7 @@ final class RouteSmokeTest extends IntegrationTestCase
 		$this->assertGreaterThan(0, $checked);
 		$errors = self::linesSince('logs/rqwatch.log', $appLog, '/\] (ERROR|CRITICAL|ALERT|EMERGENCY): /');
 		$this->assertSame([], $errors, 'rqwatch.log errors');
-		$this->assertSame([], self::linesSince((string) getenv('INTEGRATION_WEB_LOG'), $webLog, '/PHP (Warning|Notice|Deprecated|Fatal error)/'), 'php -S errors');
+		$this->assertSame([], self::linesSince((string) getenv('INTEGRATION_WEB_LOG'), $webLog, '/PHP (Warning|Notice|Deprecated|Fatal error)/'), 'web server PHP errors');
 		$this->assertSame($tables, self::checksums(), 'data changed by a plain request');
 		return $dataBlocks;
 	}

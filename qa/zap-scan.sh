@@ -8,7 +8,7 @@
 # ZAP scan: runs a copy of this checkout against a throwaway MariaDB seeded
 # like the integration suite (seed_test_data), serves it with httpd and
 # PHP-FPM ($PHP_STREAM from Remi, default remi-8.4) as docs/INSTALL.md sets
-# them up, in a Rocky 9 container built from qa/zap/Containerfile, and runs
+# them up, in a Rocky 9 container built from qa/web/Containerfile, and runs
 # the OWASP ZAP Automation Framework plan qa/zap/rqwatch.yaml once per user
 # in $ZAP_USERS (default: alice, then admin): spider, passive scan, active
 # scan. Exits non-zero on a High alert or a plan error in any pass. Into
@@ -36,7 +36,6 @@ set -euo pipefail
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 ZAP_IMAGE="${ZAP_IMAGE:-ghcr.io/zaproxy/zaproxy:stable}"
 PHP_STREAM="${PHP_STREAM:-remi-8.4}"
-WEB_IMAGE="localhost/rqwatch-zap-web:${PHP_STREAM}"
 ZAP_ADDONS="${ZAP_ADDONS-ascanrulesBeta pscanrulesBeta}"
 addon_args=()
 for addon in $ZAP_ADDONS; do
@@ -83,51 +82,14 @@ PHP
 
 seed_test_data
 
-# The web server, in its own container on the host network: the copy is
-# mounted where contrib/apache-rqwatch.conf expects it, and at $WORK too,
-# where .env's QUARANTINE_DIR points. keep-id maps the invoking user to the
-# image's rqwatch user (uid 1000), so PHP writes the copy as the invoking
-# user and the cleanup can remove it; the logs PHP-FPM's master opens as
-# root are created here first for the same reason.
-echo "=== Building ${WEB_IMAGE} (base image and packages updated each run)"
-old_image=$(podman image inspect -f '{{.Id}}' "$WEB_IMAGE" 2>/dev/null || true)
-podman build -q --pull=newer -t "$WEB_IMAGE" --build-arg PHP_STREAM="$PHP_STREAM" \
-	--build-arg UPDATE_STAMP="$(date +%s)" qa/zap >/dev/null
-# the previous build, now untagged; kept if a concurrent run still uses it
-if [ -n "$old_image" ] && [ "$old_image" != "$(podman image inspect -f '{{.Id}}' "$WEB_IMAGE")" ]; then
-	podman rmi "$old_image" >/dev/null 2>&1 || true
-fi
-echo "=== Done building ${WEB_IMAGE} ==="
-chmod 755 "$WORK"
-mkdir -p q/tmp fpm/session
-chmod 700 fpm
-touch logs/php-slow.log logs/php-error.log
-# k8s-file: with journald, Podman's default on systemd hosts, every request
-# would also land in the system log
-WEB_CID=$(podman run -d --rm --network=host --user root --log-driver=k8s-file \
-	--userns=keep-id:uid=1000,gid=1000 \
-	-v "${WORK}:/var/www/html/rqwatch:Z" -v "${WORK}:${WORK}:Z" \
-	-e WEB_PORT="$WEB_PORT" -e UPLOAD_TMP_DIR="${WORK}/q/tmp" \
-	"$WEB_IMAGE" bash /var/www/html/rqwatch/qa/zap/web-start.sh)
-LIB_CIDS+=("$WEB_CID")
-for i in $(seq 30); do
-	curl -fs -o /dev/null "${BASE}/login" && break
-	if [ "$i" = 30 ]; then
-		echo "Web server did not start" >&2
-		podman logs "$WEB_CID" >&2
-		exit 1
-	fi
-	sleep 1
-done
-
 mkdir -p "$OUT"
+# httpd's access and error logs and PHP-FPM's master log go straight to the
+# reports, so a cancelled run keeps them too
+WEB_SERVER_LOG="${OUT}/web-server.log"
+start_web_container /login "$WEB_PORT"
 # what serves the scan: PHP, httpd and the PHP packages with their versions
 podman exec "$WEB_CID" sh -c 'php-fpm -v; echo; httpd -v; echo; rpm -q rocky-release httpd; rpm -qa "php*" | sort' \
 	> "${OUT}/web-versions.txt"
-# httpd's access and error logs and PHP-FPM's master log, as they are written,
-# so a cancelled run keeps them too
-podman logs -f "$WEB_CID" > "${OUT}/web-server.log" 2>&1 &
-LIB_PIDS+=("$!")
 
 # zap_login USER: logs USER (password pw-USER, from seed_test_data) in and
 # sets ZAP_SESSION and ZAP_SELF_ID (the user's id, kept off its own edit form)

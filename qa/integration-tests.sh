@@ -7,14 +7,19 @@
 #
 # Integration tests: runs a copy of this checkout against a throwaway MariaDB
 # loaded with contrib/db-init.sql and tests/Integration/fixtures.sql, serves
-# it with php -S (the UI through the router, the mail APIs from a second
-# server without it) and runs tests/Integration: route protection, API
+# it on two ports (the UI, and the mail APIs as a second storing node) and
+# runs tests/Integration: route protection, API
 # access and the login throttle (Access/), a smoke pass over every route
 # (Smoke/), the retention crons through bin/cli.php (Cron/), data scoping,
 # map entries included (Scoping/), the add-entry form prefill (Maps/), and
 # release (web and API), notifications and password-less links into Mailpit
 # (Delivery/).
 # Your .env, config.local.php and databases are never touched.
+#
+# The web server is $QA_WEB (qa/lib.sh): locally httpd and PHP-FPM in a
+# container, as docs/INSTALL.md sets them up, with PHP the version of $PHP;
+# in CI php -S, the UI through the router and the APIs from a second server
+# without it.
 #
 # Redis is off (REDIS_ENABLE=false) unless INTEGRATION_REDIS=1 or
 # INTEGRATION_REDIS_PORT is set: then sessions, the config and migration
@@ -117,10 +122,17 @@ PHP
 # schema, users, test data, quarantined mails
 seed_test_data
 
-# web server, through the router
-start_web "$WEB_PORT" /login qa/php-router.php
-# the API scripts are files under web/api/: served without the router
-start_web "$API_PORT" /css/style.css
+# web server; WEB_LOG is where PHP's warnings and errors go
+if [ "$QA_WEB" = container ]; then
+	start_web_container /login "$WEB_PORT" "$API_PORT"
+	WEB_LOG="${WORK}/logs/php-error.log"
+else
+	# the UI through the router
+	start_web "$WEB_PORT" /login qa/php-router.php
+	# the API scripts are files under web/api/: served without the router
+	start_web "$API_PORT" /css/style.css
+	WEB_LOG="${WORK}/logs/php-server-${WEB_PORT}.log"
+fi
 
 status=0
 INTEGRATION_BASE_URL="http://127.0.0.1:${WEB_PORT}" \
@@ -130,7 +142,7 @@ INTEGRATION_ROOT="$WORK" \
 INTEGRATION_REDIS_ENABLED="$REDIS_ENABLE" \
 INTEGRATION_ADMIN_RCPT="$ADMIN_RCPT" \
 INTEGRATION_REDIS_PORT="${REDIS_PORT:-}" \
-INTEGRATION_WEB_LOG="${WORK}/logs/php-server-${WEB_PORT}.log" \
+INTEGRATION_WEB_LOG="$WEB_LOG" \
 INTEGRATION_RSPAMD_API_USER="$(sed -n 's/^RSPAMD_API_USER=//p' .env)" \
 INTEGRATION_RSPAMD_API_PASS="$RSPAMD_API_PASS" \
 INTEGRATION_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \

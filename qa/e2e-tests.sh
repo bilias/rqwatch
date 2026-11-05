@@ -7,14 +7,17 @@
 #
 # End-to-end tests: a real rspamd ($RSPAMD_IMAGE) scans test mails and its
 # metadata_exporter, contrib's rule pointed at a copy of this checkout served
-# by php -S, posts them to the importer; tests/EndToEnd compares what was stored
+# by $QA_WEB (qa/lib.sh: locally httpd and PHP-FPM in a container, with PHP
+# the version of $PHP; in CI php -S), posts them to the importer;
+# tests/EndToEnd compares what was stored
 # with rspamd's own verdict. Rspamd also runs contrib's maps, reading the map
 # files this copy generates from tests/EndToEnd/fixtures.sql. Redis holds
 # rspamd's fuzzy storage, which this copy learns into through its fuzzy API,
 # and, with E2E_REDIS=1 (the default), this copy's caches and its failed-import
 # spool; E2E_REDIS=0 runs the importer with REDIS_ENABLE=false (the spool tests
 # skip). Run it both ways. MariaDB, Redis and rspamd run as rootless Podman
-# containers, rspamd on the host network so it reaches php -S on loopback.
+# containers, rspamd on the host network so it reaches the web server on
+# loopback.
 # -v prints one line per test (local runs); other arguments go to phpunit.
 # Run from the project root.
 set -euo pipefail
@@ -122,8 +125,12 @@ cp contrib/rspamd/local.d/force_actions.conf contrib/rspamd/local.d/actions.conf
 cp tests/EndToEnd/rspamd/rspamd.local.lua rspamd/
 chmod -R a+rX rspamd
 
-# web server: only the API is needed, so no router
-start_web "$WEB_PORT" /css/style.css
+# web server: only the API and the map files are needed, so no router for php -S
+if [ "$QA_WEB" = container ]; then
+	start_web_container /css/style.css "$WEB_PORT"
+else
+	start_web "$WEB_PORT" /css/style.css
+fi
 
 # rspamd
 start_container RSPAMD_CID --network host \
