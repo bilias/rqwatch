@@ -61,7 +61,7 @@ abstract class RqwatchApi
 
 	protected function checkApiEnabled(): void {
 		if (!Helper::env_bool('API_ENABLE')) {
-			$logMsg = "{$this->clientIp} requested '" . $_SERVER['REQUEST_URI'] . "' but API is disabled.";
+			$logMsg = "{$this->clientIp} requested '" . ($_SERVER['REQUEST_URI'] ?? 'UNKNOWN') . "' but API is disabled.";
 
 			$responseMsg = "API is disabled";
 			$this->dropLogResponse(

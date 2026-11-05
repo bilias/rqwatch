@@ -259,7 +259,7 @@ final class Router
 
 		if (!Helper::env_bool('WEB_ENABLE')) {
 			$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-			$fileLogger->warning("Client '{$ip}' requested '" . $_SERVER['REQUEST_URI'] . "' but Web is disabled.");
+			$fileLogger->warning("Client '{$ip}' requested '" . ($_SERVER['REQUEST_URI'] ?? 'UNKNOWN') . "' but Web is disabled.");
 			Helper::failRequest("Web is disabled", Response::HTTP_SERVICE_UNAVAILABLE);
 		}
 
