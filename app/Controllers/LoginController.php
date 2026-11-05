@@ -30,6 +30,8 @@ use App\Core\Auth\AuthManager;
 use Jumbojett\OpenIDConnectClientException;
 //use App\Core\Auth\DbAuth;
 
+use RuntimeException;
+
 final class LoginController extends ViewController
 {
 
@@ -63,7 +65,7 @@ final class LoginController extends ViewController
 
 		$this->fileLogger->warning("OPENIDC: untrusted host '{$host}' from "
 			. ($this->request->getClientIp() ?? 'unknown') . ", using WEB_HOST");
-		return $_ENV['WEB_SCHEME'] . '://' . ($_ENV['WEB_HOST'] ?? throw new \RuntimeException('WEB_HOST is not set in .env'));
+		return $_ENV['WEB_SCHEME'] . '://' . ($_ENV['WEB_HOST'] ?? throw new RuntimeException('WEB_HOST is not set in .env'));
 	}
 
 	public function logout(): Response {
