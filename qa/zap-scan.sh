@@ -9,10 +9,14 @@
 # like the integration suite (seed_test_data), serves it with php -S and runs
 # the OWASP ZAP Automation Framework plan qa/zap/rqwatch.yaml once per user
 # in $ZAP_USERS (default: alice, then admin): spider, passive scan, active
-# scan. Exits non-zero on a High alert or a plan error in any pass. The HTML
-# and JSON reports (rqwatch-zap-USER.*) and the copy's logs/ go to $ZAP_OUT
-# (default zap-report/). The active scan submits every form it finds; only
-# the copy and its database are touched, and mail goes to the null transport.
+# scan. Exits non-zero on a High alert or a plan error in any pass. Into
+# $ZAP_OUT (default zap-report/) go, per USER: the HTML and JSON reports
+# (rqwatch-zap-USER.*), ZAP's own log (zap-USER.log) and rqwatch's log lines
+# of that pass (rqwatch-USER.log); and the copy's whole logs/ at the end.
+# While a pass runs, follow ZAP in zap-home-USER/zap.log (each active scan
+# rule as it starts and ends) and rqwatch in logs-live/rqwatch.log. The active
+# scan submits every form it finds; only the copy and its database are
+# touched, and mail goes to the null transport.
 #
 # ZAP runs in rootless Podman ($ZAP_IMAGE) on the host network, with the
 # add-ons in $ZAP_ADDONS installed from the ZAP marketplace at the start of
@@ -105,10 +109,21 @@ zap_login() {
 # pass's active scan submits the user edit forms and may change its password.
 ZAP_USERS="${ZAP_USERS:-alice admin}"
 mkdir -p "$OUT"
+# the copy's logs as they are written; replaced by a copy at the end
+ln -sfn "${WORK}/logs" "${OUT}/logs-live"
 status=0
 for user in $ZAP_USERS; do
-	echo "=== ZAP pass as ${user}"
+	echo "=== ZAP pass as ${user} (follow: ${OUT}/zap-home-${user}/zap.log)"
+	# rqwatch's log lines from here on, the login included, are this pass's
+	log_start=0
+	if [ -f logs/rqwatch.log ]; then
+		log_start=$(wc -l < logs/rqwatch.log)
+	fi
 	zap_login "$user"
+	# ZAP's home on the host, for zap.log while the pass runs
+	zap_home="${OUT}/zap-home-${user}"
+	rm -rf "$zap_home"
+	mkdir -p "$zap_home"
 	rm -rf zap
 	mkdir zap
 	cp qa/zap/rqwatch.yaml zap/
@@ -116,7 +131,7 @@ for user in $ZAP_USERS; do
 	# ZAP_AUTH_HEADER*: ZAP sets this Cookie header on every request it sends;
 	# no pids limit: ZAP's threads outgrow Podman's default
 	podman run --rm --pull=newer --network=host --userns=keep-id:uid=1000,gid=1000 \
-		--pids-limit=-1 -v "${WORK}/zap:/zap/wrk:Z" \
+		--pids-limit=-1 -v "${WORK}/zap:/zap/wrk:Z" -v "${zap_home}:/home/zap/.ZAP:Z" \
 		-e ZAP_TARGET="$BASE" -e ZAP_SELF_ID="$ZAP_SELF_ID" \
 		-e ZAP_AUTH_HEADER=Cookie -e ZAP_AUTH_HEADER_VALUE="RQWATCHSESSID=${ZAP_SESSION}" \
 		"$ZAP_IMAGE" zap.sh -cmd -host 127.0.0.1 -port "$(free_port)" \
@@ -126,8 +141,17 @@ for user in $ZAP_USERS; do
 			cp "$report" "${OUT}/rqwatch-zap-${user}.${report##*.}"
 		fi
 	done
+	# keep zap.log; the rest of the home (session database, add-ons) is ZAP's scratch
+	if [ -f "${zap_home}/zap.log" ]; then
+		cp "${zap_home}/zap.log" "${OUT}/zap-${user}.log"
+	fi
+	rm -rf "$zap_home"
+	if [ -f logs/rqwatch.log ]; then
+		tail -n "+$((log_start + 1))" logs/rqwatch.log > "${OUT}/rqwatch-${user}.log"
+	fi
 done
 
+rm -f "${OUT}/logs-live"
 cp -r logs "$OUT/"
 echo "ZAP reports and logs: ${OUT}"
 exit "$status"
