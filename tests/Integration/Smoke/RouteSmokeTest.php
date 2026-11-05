@@ -74,6 +74,9 @@ final class RouteSmokeTest extends IntegrationTestCase
 				$response['body'], "{$name}: inline event handler");
 			$this->assertDoesNotMatchRegularExpression('/<script\b(?![^>]*\bsrc=)(?![^>]*\btype=["\']application\/json["\'])[^>]*>/i',
 				$response['body'], "{$name}: inline script");
+			// and the policy refuses them: only rqwatch's own script files run
+			$this->assertMatchesRegularExpression('/(^|;)\s*script-src \'self\'\s*(;|$)/',
+				$response['headers']['content-security-policy'] ?? '', "{$name}: CSP script-src");
 			// what rqwatch.js parses, e.g. a chart's config
 			preg_match_all('/<script type="application\/json"[^>]*>(.*?)<\/script>/s', $response['body'], $blocks);
 			foreach ($blocks[1] as $json) {

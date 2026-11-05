@@ -219,12 +219,13 @@ final class Router
 			$response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 		}
 
-		// script-src/style-src keep 'unsafe-inline' until the templates drop
-		// inline scripts, handlers and style attributes. img-src also covers
-		// the srcdoc mail previews, which inherit this policy (the iframe's
-		// csp attribute is Chromium-only)
+		// script-src 'self': no inline script or handler runs (web/js/rqwatch.js
+		// does that work). style-src keeps 'unsafe-inline' until the templates
+		// drop their style attributes. img-src also covers the srcdoc mail
+		// previews, which inherit this policy (the iframe's csp attribute is
+		// Chromium-only)
 		if (!$response->headers->has('Content-Security-Policy')) {
-			$response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'");
+			$response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'");
 		}
 		$response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
 
