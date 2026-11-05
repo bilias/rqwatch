@@ -91,17 +91,23 @@ jobs:
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: composer psalm -- --no-cache --output-format=github
 
+      # findings go only to the SARIF report, for the Security tab (write
+      # access only): nothing in the public log, no PR annotations. With a
+      # report under GitHub Actions, Psalm exits 0 on taint findings, so the
+      # step fails only when the analysis itself does
       - name: Psalm taint
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: composer psalm-taint -- --output-format=github --report=psalm-taint.sarif --report-show-info=false
+        run: composer psalm-taint -- --report=psalm-taint.sarif --report-show-info=false > /dev/null
 
       # the taint setup still finds planted flows and honours its escapes
       - name: Taint self-test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: composer taint-selftest
 
+      # push only: results uploaded for a pull request become annotations on
+      # it, which anyone who can read the repository sees
       - name: Upload taint results to Security tab
-        if: ${{ !cancelled() && hashFiles('psalm-taint.sarif') != '' && github.actor != 'dependabot[bot]' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        if: ${{ !cancelled() && hashFiles('psalm-taint.sarif') != '' && github.actor != 'dependabot[bot]' && github.event_name == 'push' }}
         uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
         with:
           sarif_file: psalm-taint.sarif
