@@ -66,6 +66,13 @@ write_env -e "s#^WEB_HOST=.*#WEB_HOST=127.0.0.1:${WEB_PORT}#" \
 	-e "s#^DB_PASS=.*#DB_PASS=${DB_PASS}#" \
 	-e "s#^REDIS_ENABLE=.*#REDIS_ENABLE=false#"
 
+# no rspamd here: without this, every admin page ZAP requests looks up the
+# example API_SERVERS from config.php and logs an ERROR for each
+cat > config/config.local.php <<'PHP'
+<?php
+$rspamd_stat_disable = true;
+PHP
+
 seed_test_data
 
 # ZAP sends requests in parallel: php -S forks this many workers

@@ -24,9 +24,6 @@ use Tests\Integration\WebClient;
 
 final class RouteSmokeTest extends IntegrationTestCase
 {
-	// the harness runs no rspamd: admin pages that show its stats log this
-	private const EXPECTED_ERRORS = '/\] ERROR: Stat request to \'\w+\' failed: /';
-
 	// pages that preview a quarantined mail's HTML: their CSP allows inline styles
 	private const MAIL_PREVIEW_ROUTES = ['showmail', 'admin_showmail'];
 
@@ -101,7 +98,7 @@ final class RouteSmokeTest extends IntegrationTestCase
 
 		$this->assertGreaterThan(0, $checked);
 		$errors = self::linesSince('logs/rqwatch.log', $appLog, '/\] (ERROR|CRITICAL|ALERT|EMERGENCY): /');
-		$this->assertSame([], array_values(preg_grep(self::EXPECTED_ERRORS, $errors, PREG_GREP_INVERT) ?: []), 'rqwatch.log errors');
+		$this->assertSame([], $errors, 'rqwatch.log errors');
 		$this->assertSame([], self::linesSince((string) getenv('INTEGRATION_WEB_LOG'), $webLog, '/PHP (Warning|Notice|Deprecated|Fatal error)/'), 'php -S errors');
 		$this->assertSame($tables, self::checksums(), 'data changed by a plain request');
 		return $dataBlocks;
