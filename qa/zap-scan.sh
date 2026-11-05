@@ -196,7 +196,5 @@ done
 
 rm -f "${OUT}/logs-live"
 cp -r logs "$OUT/"
-# httpd's access and error logs and PHP-FPM's master log
-podman logs "$WEB_CID" > "${OUT}/web-server.log" 2>&1
 echo "ZAP reports and logs: ${OUT}"
 exit "$status"
