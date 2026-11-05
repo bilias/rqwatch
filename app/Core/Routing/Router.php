@@ -239,6 +239,8 @@ final class Router
 			$response->headers->set('Content-Security-Policy', self::contentSecurityPolicy());
 		}
 		$response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+		$response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
+		$response->headers->set('Cross-Origin-Resource-Policy', 'same-origin');
 
 		if ($_ENV['WEB_SCHEME'] === 'https') {
 			$response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
