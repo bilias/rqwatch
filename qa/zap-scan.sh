@@ -102,7 +102,9 @@ chmod 755 "$WORK"
 mkdir -p q/tmp fpm/session
 chmod 700 fpm
 touch logs/php-slow.log logs/php-error.log
-WEB_CID=$(podman run -d --rm --network=host --user root \
+# k8s-file: with journald, Podman's default on systemd hosts, every request
+# would also land in the system log
+WEB_CID=$(podman run -d --rm --network=host --user root --log-driver=k8s-file \
 	--userns=keep-id:uid=1000,gid=1000 \
 	-v "${WORK}:/var/www/html/rqwatch:Z" -v "${WORK}:${WORK}:Z" \
 	-e WEB_PORT="$WEB_PORT" -e UPLOAD_TMP_DIR="${WORK}/q/tmp" \
