@@ -70,7 +70,7 @@ seed_test_data
 
 # ZAP sends requests in parallel: php -S forks this many workers
 export PHP_CLI_SERVER_WORKERS=4
-start_web "$WEB_PORT" /login web/index.php
+start_web "$WEB_PORT" /login qa/php-router.php
 
 
 # zap_login USER: logs USER (password pw-USER, from seed_test_data) in and

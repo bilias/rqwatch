@@ -116,7 +116,7 @@ PHP
 seed_test_data
 
 # web server, through the router
-start_web "$WEB_PORT" /login web/index.php
+start_web "$WEB_PORT" /login qa/php-router.php
 # the API scripts are files under web/api/: served without the router
 start_web "$API_PORT" /css/style.css
 
