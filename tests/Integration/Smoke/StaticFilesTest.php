@@ -11,7 +11,8 @@
 /*
  The harness serves web/'s static files as they are, like Apache in
  production (qa/php-router.php); before, php -S answered them with the
- homepage. A missing file still reaches rqwatch (no session: the login).
+ homepage. A missing file is a 404 where web/.htaccess doesn't rewrite
+ (css/, images/) and reaches rqwatch elsewhere (no session: the login).
 */
 
 namespace Tests\Integration\Smoke;
@@ -21,7 +22,7 @@ use Tests\Integration\IntegrationTestCase;
 
 final class StaticFilesTest extends IntegrationTestCase
 {
-	#[TestDox('css, js and images are served as files; a missing one goes to rqwatch')]
+	#[TestDox('css, js and images are served as files; a missing one is a 404 or goes to rqwatch, as web/.htaccess has it')]
 	public function testStaticFiles(): void {
 		$client = self::anonymous();
 		$files = [
@@ -37,7 +38,11 @@ final class StaticFilesTest extends IntegrationTestCase
 			$this->assertSame((string) file_get_contents(self::root() . '/web' . $path), $response['body'], "{$path}: the file itself");
 		}
 
+		// web/.htaccess doesn't rewrite css/: a missing file there is the web server's 404
 		$missing = $client->get('/css/missing.css');
-		$this->assertSame('/login', self::target($missing), 'a missing file reaches rqwatch');
+		$this->assertSame(404, $missing['status'], 'a missing file under css/: 404');
+		// js/ is rewritten: a missing file there reaches rqwatch
+		$missing = $client->get('/js/missing.js');
+		$this->assertSame('/login', self::target($missing), 'a missing file under js/ reaches rqwatch');
 	}
 }
