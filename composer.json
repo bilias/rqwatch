@@ -96,7 +96,9 @@
          "@psalm-taint",
          "@taint-selftest",
          "@test-integration",
-         "@test-e2e"
+         "@test-e2e",
+         "QA_WEB=php @test-integration",
+         "QA_WEB=php @test-e2e"
       ],
       "opengrep": "sh qa/opengrep.sh",
       "taint-stubs": "sh qa/taint-stubs.sh",
@@ -124,7 +126,9 @@
          "@taint-selftest",
          "@opengrep",
          "@test-integration",
-         "@test-e2e"
+         "@test-e2e",
+         "QA_WEB=php @test-integration",
+         "QA_WEB=php @test-e2e"
       ]
    },
    "scripts-descriptions": {
