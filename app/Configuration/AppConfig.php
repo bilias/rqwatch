@@ -12,8 +12,9 @@ namespace App\Configuration;
 
 use App\Core\Routing\RouteName;
 
-// Root path of the project (without trailing slash)
-define('RQWATCH_ROOT', realpath(__DIR__ . '/../..'));
+// Root path of the project (without trailing slash); realpath() fails only
+// when a parent directory can't be searched, and every path below needs it
+define('RQWATCH_ROOT', realpath(__DIR__ . '/../..') ?: throw new \RuntimeException('Cannot resolve the rqwatch root from ' . __DIR__));
 
 final class AppConfig {
 

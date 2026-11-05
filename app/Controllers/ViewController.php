@@ -124,7 +124,7 @@ class ViewController extends Controller
 			$this->twigView();
 		}
 			
-		$vendorDirectory = realpath(__DIR__.'/../../vendor');
+		$vendorDirectory = RQWATCH_ROOT . '/vendor';
 		$vendorFormDirectory = $vendorDirectory.'/symfony/form';
 		$vendorValidatorDirectory = $vendorDirectory.'/symfony/validator';
 		
