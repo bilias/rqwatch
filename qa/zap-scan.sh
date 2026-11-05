@@ -90,8 +90,13 @@ seed_test_data
 # user and the cleanup can remove it; the logs PHP-FPM's master opens as
 # root are created here first for the same reason.
 echo "=== Building ${WEB_IMAGE} (base image and packages updated each run)"
+old_image=$(podman image inspect -f '{{.Id}}' "$WEB_IMAGE" 2>/dev/null || true)
 podman build -q --pull=newer -t "$WEB_IMAGE" --build-arg PHP_STREAM="$PHP_STREAM" \
 	--build-arg UPDATE_STAMP="$(date +%s)" qa/zap >/dev/null
+# the previous build, now untagged; kept if a concurrent run still uses it
+if [ -n "$old_image" ] && [ "$old_image" != "$(podman image inspect -f '{{.Id}}' "$WEB_IMAGE")" ]; then
+	podman rmi "$old_image" >/dev/null 2>&1 || true
+fi
 echo "=== Done building ${WEB_IMAGE} ==="
 chmod 755 "$WORK"
 mkdir -p q/tmp fpm/session
