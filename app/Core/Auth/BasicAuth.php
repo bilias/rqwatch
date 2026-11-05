@@ -68,10 +68,11 @@ final class BasicAuth implements AuthInterface {
 			$this->authenticatedUser = $providedUser;
 			return true; // auth OK
 		}
+		// @phpstan-ignore deadCode.unreachable (defensive: doBasicAuth() never returns)
 		return false;
 	}
 
-	private static function doBasicAuth(): void {
+	private static function doBasicAuth(): never {
 		$response = new Response('Authentication required', 401,
 		   ['WWW-Authenticate' => 'Basic']);
 		$response->send();
