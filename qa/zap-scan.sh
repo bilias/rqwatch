@@ -14,7 +14,12 @@
 # (default zap-report/). The active scan submits every form it finds; only
 # the copy and its database are touched, and mail goes to the null transport.
 #
-# ZAP runs in rootless Podman ($ZAP_IMAGE) on the host network. The database
+# ZAP runs in rootless Podman ($ZAP_IMAGE) on the host network, with the
+# add-ons in $ZAP_ADDONS installed from the ZAP marketplace at the start of
+# each pass (default: the beta active and passive scan rules; the image
+# already has the release ones). For a local run with the alpha rules too:
+#   ZAP_ADDONS="ascanrulesBeta pscanrulesBeta ascanrulesAlpha" qa/zap-scan.sh
+# The database
 # is a Podman container ($MARIADB_IMAGE) unless INTEGRATION_DB_EXEC,
 # INTEGRATION_DB_HOST, INTEGRATION_DB_PORT and INTEGRATION_DB_PASS name an
 # existing server, as for qa/integration-tests.sh.
@@ -24,6 +29,11 @@ set -euo pipefail
 
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 ZAP_IMAGE="${ZAP_IMAGE:-ghcr.io/zaproxy/zaproxy:stable}"
+ZAP_ADDONS="${ZAP_ADDONS-ascanrulesBeta pscanrulesBeta}"
+addon_args=()
+for addon in $ZAP_ADDONS; do
+	addon_args+=(-addoninstall "$addon")
+done
 OUT=$(realpath -m "${ZAP_OUT:-zap-report}")
 make_workdir
 
@@ -103,7 +113,7 @@ for user in $ZAP_USERS; do
 		-e ZAP_TARGET="$BASE" -e ZAP_SELF_ID="$ZAP_SELF_ID" \
 		-e ZAP_AUTH_HEADER=Cookie -e ZAP_AUTH_HEADER_VALUE="RQWATCHSESSID=${ZAP_SESSION}" \
 		"$ZAP_IMAGE" zap.sh -cmd -host 127.0.0.1 -port "$(free_port)" \
-		-autorun /zap/wrk/rqwatch.yaml || status=$?
+		"${addon_args[@]}" -autorun /zap/wrk/rqwatch.yaml || status=$?
 	for report in zap/rqwatch-zap.*; do
 		if [ -e "$report" ]; then
 			cp "$report" "${OUT}/rqwatch-zap-${user}.${report##*.}"
