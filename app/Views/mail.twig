@@ -106,7 +106,7 @@ No
    <div class='detail'>
 
 	 <button data-toggle="symbols" data-toggle-label>Show</button>
-    <div id='symbols' style='display:none;'>
+    <div id='symbols' hidden>
 {% for symbol in symbols %}
 {{ symbol }}<br/>
 {% endfor %}
@@ -136,7 +136,7 @@ Please be very carefull before opening or saving any of the files bellow.
 <button data-toggle="attachmentsList" data-toggle-label>Show</button>
 </div>
 
-<div id="attachmentsList" style="display:none;">
+<div id="attachmentsList" hidden>
 <table border="0" align="left" cellpadding="5" cellspacing="1" class="mail attachments">
 <thead>
 <tr>
@@ -188,7 +188,7 @@ Please be very carefull before clicking any link bellow.
  sandbox
  referrerpolicy="no-referrer"
  csp="default-src 'none'; img-src data:; style-src 'unsafe-inline'"
- style="width:100%; height:600px; border:1px solid #ccc;"
+ class="mail-preview"
  title="Quarantined Email">
 </iframe>
 {% endif %}

@@ -42,15 +42,16 @@ document.addEventListener('submit', function (event) {
 	}
 });
 
-// the computed style, so an element shown by default hides on the first click
+// switches the element's hidden attribute (templates set it on what starts
+// hidden; style.css makes [hidden] win over any display rule)
 function toggleDisplay(id, button) {
 	const el = document.getElementById(id);
 	if (!el) {
 		return;
 	}
 
-	const hidden = window.getComputedStyle(el).display === 'none';
-	el.style.display = hidden ? 'block' : 'none';
+	const hidden = el.hidden;
+	el.hidden = !hidden;
 	if (button) {
 		button.textContent = hidden ? 'Hide' : 'Show';
 	}

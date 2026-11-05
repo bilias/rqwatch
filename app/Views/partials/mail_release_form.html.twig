@@ -5,7 +5,7 @@
   <div class='info'>Release mail from quarantine</div>
   <div class='detail'>
 {% if is_admin %}
-<span style="color: red;">Release is disabled on this node: MAILER_DSN or MAILER_FROM is not set in .env</span>
+<span class="release-disabled">Release is disabled on this node: MAILER_DSN or MAILER_FROM is not set in .env</span>
 {% else %}
 Mail cannot be released. Contact administrator
 {% endif %}

@@ -57,6 +57,8 @@ final class NotificationLinkTest extends IntegrationTestCase
 			$this->assertSame(200, $view['status'], 'view');
 			$this->assertTokenPage($view, 'view');
 			$this->assertNoRemoteLoads($view, 'view');
+			// the mail's inline styles are allowed on the preview page
+			$this->assertStringContainsString("style-src 'self' 'unsafe-inline';", $view['headers']['content-security-policy'] ?? '', 'view: CSP style-src');
 			$this->assertStringContainsString('SUBJ-Q-9201', $view['body'], 'view');
 			$this->assertStringContainsString('Body of SUBJ-Q-9201', $view['body'], 'view');
 

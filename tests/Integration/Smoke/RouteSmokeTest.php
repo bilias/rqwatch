@@ -10,9 +10,10 @@
 
 /*
  Every route requested once per role it is open to, with sample parameters:
- no server error, no PHP warning, no inline event handler or script, no
- ERROR-level log line, the session kept, and no data changed (state-changing
- routes need a form or CSRF token, which a plain request does not carry).
+ no server error, no PHP warning, no inline event handler, script or style
+ attribute, the CSP as expected, no ERROR-level log line, the session kept,
+ and no data changed (state-changing routes need a form or CSRF token, which
+ a plain request does not carry).
 */
 
 namespace Tests\Integration\Smoke;
@@ -25,6 +26,9 @@ final class RouteSmokeTest extends IntegrationTestCase
 {
 	// the harness runs no rspamd: admin pages that show its stats log this
 	private const EXPECTED_ERRORS = '/\] ERROR: Stat request to \'\w+\' failed: /';
+
+	// pages that preview a quarantined mail's HTML: their CSP allows inline styles
+	private const MAIL_PREVIEW_ROUTES = ['showmail', 'admin_showmail'];
 
 	private const TABLES = [
 		'users', 'mail_aliases', 'mail_logs', 'mail_log_recipients', 'mail_log_data',
@@ -75,8 +79,14 @@ final class RouteSmokeTest extends IntegrationTestCase
 			$this->assertDoesNotMatchRegularExpression('/<script\b(?![^>]*\bsrc=)(?![^>]*\btype=["\']application\/json["\'])[^>]*>/i',
 				$response['body'], "{$name}: inline script");
 			// and the policy refuses them: only rqwatch's own script files run
-			$this->assertMatchesRegularExpression('/(^|;)\s*script-src \'self\'\s*(;|$)/',
-				$response['headers']['content-security-policy'] ?? '', "{$name}: CSP script-src");
+			$csp = $response['headers']['content-security-policy'] ?? '';
+			$this->assertMatchesRegularExpression('/(^|;)\s*script-src \'self\'\s*(;|$)/', $csp, "{$name}: CSP script-src");
+			// no style attributes either: inline styles are allowed only where a
+			// quarantined mail's HTML is previewed (it is styled inline)
+			$this->assertDoesNotMatchRegularExpression('/<[a-z][^>]*\sstyle\s*=/i',
+				$response['body'], "{$name}: style attribute");
+			$styleSrc = in_array($name, self::MAIL_PREVIEW_ROUTES, true) ? "'self' 'unsafe-inline'" : "'self'";
+			$this->assertMatchesRegularExpression('/(^|;)\s*style-src ' . preg_quote($styleSrc, '/') . '\s*(;|$)/', $csp, "{$name}: CSP style-src");
 			// what rqwatch.js parses, e.g. a chart's config
 			preg_match_all('/<script type="application\/json"[^>]*>(.*?)<\/script>/s', $response['body'], $blocks);
 			foreach ($blocks[1] as $json) {

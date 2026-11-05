@@ -11,6 +11,7 @@
 namespace App\Controllers;
 
 use App\Core\Routing\RouteName;
+use App\Core\Routing\Router;
 
 use App\Models\MailLogToken;
 
@@ -153,7 +154,7 @@ final class QuarantineController extends ViewController
 
 		$this->twigFormView($this->request);
 
-		return $this->tokenResponse($this->twig->render('quarantine/view.twig', [
+		$response = $this->tokenResponse($this->twig->render('quarantine/view.twig', [
 			'handle' => $handle,
 			'recipient' => $tokenRow->recipient_email,
 			'log' => $mailobject->getMailLog(),
@@ -164,6 +165,10 @@ final class QuarantineController extends ViewController
 			//'released' => (bool) $mailobject->getMailLog()->released,
 			//'symbols' => $mailobject->getSymbols(),
 		]));
+		// the HTML preview's srcdoc iframe inherits this page's policy: the
+		// mail's inline styles are allowed here, and only here
+		$response->headers->set('Content-Security-Policy', Router::contentSecurityPolicy(inlineStyles: true));
+		return $response;
 	}
 
 	/*

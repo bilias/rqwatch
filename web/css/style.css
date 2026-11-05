@@ -1515,3 +1515,24 @@ table.attachments .filename {
     margin-left: 0;
   }
 }
+
+/* hidden attribute: wins over any display rule (web/js/rqwatch.js toggles it) */
+[hidden] {
+ display: none !important;
+}
+
+/* HTML preview of a quarantined mail (mail.twig, quarantine/view.twig) */
+iframe.mail-preview {
+ width: 100%;
+ height: 600px;
+ border: 1px solid #ccc;
+}
+
+.release-disabled {
+ color: red;
+}
+
+/* custom map entries, one per line (MapInventory) */
+textarea.map-entries-input {
+ min-height: 120px;
+}

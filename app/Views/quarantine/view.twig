@@ -91,7 +91,7 @@ No
    <div class='info'>Rspamd Symbols:</div>
    <div class='detail'>
 	 <button data-toggle="symbols">Show</button>
-    <div id='symbols' style='display:none;'>
+    <div id='symbols' hidden>
 {% for symbol in symbols %}
 {{ symbol }}<br/>
 {% endfor %}
@@ -130,7 +130,7 @@ Please be very carefull before clicking any link bellow.
  sandbox
  referrerpolicy="no-referrer"
  csp="default-src 'none'; img-src data:; style-src 'unsafe-inline'"
- style="width:100%; height:600px; border:1px solid #ccc;"
+ class="mail-preview"
  title="Quarantined Email">
 </iframe>
 {% endif %}

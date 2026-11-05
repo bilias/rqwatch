@@ -270,9 +270,8 @@ final class MapInventory
 					'label' => 'Custom Field:',   // overriden in custom_map_config/MapWithCustomFieldForm
 					'required' => true,
 					'attr' => [
-						'class' => 'uniform-input',
+						'class' => 'uniform-input map-entries-input',
 						'rows' => 5,
-						'style' => 'min-height: 120px;',
 					],
 					'constraints' => [
 						new NotBlank(),

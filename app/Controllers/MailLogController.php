@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\HeaderUtils;
 use App\Core\App;
 
 use App\Core\Routing\RouteName;
+use App\Core\Routing\Router;
 use App\Configuration\Config;
 use App\Utils\Helper;
 use App\Utils\FormHelper;
@@ -1085,8 +1086,9 @@ final class MailLogController extends ViewController
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
-		// this stopped our javascript for on/off toggle
-		//$response->headers->set('Content-Security-Policy', "sandbox");
+		// the HTML preview's srcdoc iframe inherits this page's policy: the
+		// mail's inline styles are allowed here, and only here
+		$response->headers->set('Content-Security-Policy', Router::contentSecurityPolicy(inlineStyles: true));
 		return $response;
 	}
 

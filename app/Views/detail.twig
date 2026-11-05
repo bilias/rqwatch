@@ -291,10 +291,10 @@ No
    <div class='detail'>
 {% if is_admin %}
 	 <button data-toggle="symbols" data-toggle-label>Hide</button>
-	 <div id='symbols' style='display:block;'>
+	 <div id='symbols'>
 {% else %}
 	 <button data-toggle="symbols" data-toggle-label>Show</button>
-	 <div id='symbols' style='display:none;'>
+	 <div id='symbols' hidden>
 {% endif %}
 {% for symbol in symbols %}
 <span class='{{ get_symbol_class(symbol) }}'>{{ symbol }}</span>
@@ -308,10 +308,10 @@ No
    <div class='detail'>
 {% if is_admin %}
     <button data-toggle="mailheaders" data-toggle-label>Hide</button>
-	 <div id='mailheaders' style='display:block;'>
+	 <div id='mailheaders'>
 {% else %}
     <button data-toggle="mailheaders" data-toggle-label>Show</button>
-	 <div id='mailheaders' style='display:none;'>
+	 <div id='mailheaders' hidden>
 {% endif %}
 	 <pre>{{ log.headers }}</pre>
 	 </div>
