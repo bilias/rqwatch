@@ -175,7 +175,7 @@ start_web_container() {
    fi
    echo "=== Building ${image} (packages updated: ${stamp})"
 	old_image=$(podman image inspect -f '{{.Id}}' "$image" 2>/dev/null || true)
-	podman build -q --pull=newer -t "$image" --build-arg PHP_STREAM="$PHP_STREAM" \
+	podman build -q --pull=newer --force-rm -t "$image" --build-arg PHP_STREAM="$PHP_STREAM" \
        --build-arg UPDATE_STAMP="$stamp" qa/web >/dev/null
 	# the previous build, now untagged; kept if a concurrent run still uses it
 	if [ -n "$old_image" ] && [ "$old_image" != "$(podman image inspect -f '{{.Id}}' "$image")" ]; then
