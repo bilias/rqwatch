@@ -1,0 +1,39 @@
+#!/bin/bash
+# Rqwatch
+# Copyright (C) 2026 Giannis Kapetanakis
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Starts the web server for qa/zap-scan.sh, as root inside the
+# qa/zap/Containerfile image, with the copy at /var/www/html/rqwatch:
+# contrib/apache-rqwatch.conf and qa/zap/php-fpm-rqwatch.conf installed as
+# docs/INSTALL.md installs them, except that httpd listens on
+# 127.0.0.1:$WEB_PORT (the container shares the host's network, where
+# rootless Podman can't bind port 80) and uploads go to $UPLOAD_TMP_DIR.
+set -euo pipefail
+cd /var/www/html/rqwatch
+
+# install_conf SOURCE DEST EXPECTED SED_EXPR: SOURCE through SED_EXPR to DEST,
+# failing if the result lacks the line EXPECTED (the shipped file changed)
+install_conf() {
+	sed -e "$4" "$1" > "$2"
+	if ! grep -qxF "$3" "$2"; then
+		echo "web-start.sh: '$3' not set in $2: has $1 changed?" >&2
+		exit 1
+	fi
+}
+
+install_conf /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.zap \
+	"Listen 127.0.0.1:${WEB_PORT}" "s/^Listen 80$/Listen 127.0.0.1:${WEB_PORT}/"
+mv /etc/httpd/conf/httpd.conf.zap /etc/httpd/conf/httpd.conf
+install_conf contrib/apache-rqwatch.conf /etc/httpd/conf.d/rqwatch.conf \
+	"<VirtualHost *:${WEB_PORT}>" "s/^<VirtualHost \*:80>$/<VirtualHost *:${WEB_PORT}>/"
+install_conf qa/zap/php-fpm-rqwatch.conf /etc/php-fpm.d/rqwatch.conf \
+	"php_admin_value[upload_tmp_dir] = ${UPLOAD_TMP_DIR}" \
+	"s#^php_admin_value\[upload_tmp_dir\] = .*#php_admin_value[upload_tmp_dir] = ${UPLOAD_TMP_DIR}#"
+
+# systemd-tmpfiles creates it on a host; nothing does in a container
+mkdir -p /run/php-fpm
+php-fpm -F &
+exec httpd -DFOREGROUND

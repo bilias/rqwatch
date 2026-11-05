@@ -6,7 +6,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 # ZAP scan: runs a copy of this checkout against a throwaway MariaDB seeded
-# like the integration suite (seed_test_data), serves it with php -S and runs
+# like the integration suite (seed_test_data), serves it with httpd and
+# PHP-FPM ($PHP_STREAM from Remi, default remi-8.4) as docs/INSTALL.md sets
+# them up, in a Rocky 9 container built from qa/zap/Containerfile, and runs
 # the OWASP ZAP Automation Framework plan qa/zap/rqwatch.yaml once per user
 # in $ZAP_USERS (default: alice, then admin): spider, passive scan, active
 # scan. Exits non-zero on a High alert or a plan error in any pass. Into
@@ -33,6 +35,8 @@ set -euo pipefail
 
 MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 ZAP_IMAGE="${ZAP_IMAGE:-ghcr.io/zaproxy/zaproxy:stable}"
+PHP_STREAM="${PHP_STREAM:-remi-8.4}"
+WEB_IMAGE="localhost/rqwatch-zap-web:${PHP_STREAM}"
 ZAP_ADDONS="${ZAP_ADDONS-ascanrulesBeta pscanrulesBeta}"
 addon_args=()
 for addon in $ZAP_ADDONS; do
@@ -79,9 +83,35 @@ PHP
 
 seed_test_data
 
-# ZAP sends requests in parallel: php -S forks this many workers
-export PHP_CLI_SERVER_WORKERS=4
-start_web "$WEB_PORT" /login qa/php-router.php
+# The web server, in its own container on the host network: the copy is
+# mounted where contrib/apache-rqwatch.conf expects it, and at $WORK too,
+# where .env's QUARANTINE_DIR points. keep-id maps the invoking user to the
+# image's rqwatch user (uid 1000), so PHP writes the copy as the invoking
+# user and the cleanup can remove it; the logs PHP-FPM's master opens as
+# root are created here first for the same reason.
+echo "=== Building ${WEB_IMAGE} (base image and packages updated each run)"
+podman build -q --pull=newer -t "$WEB_IMAGE" --build-arg PHP_STREAM="$PHP_STREAM" \
+	--build-arg UPDATE_STAMP="$(date +%s)" qa/zap >/dev/null
+echo "=== Done building ${WEB_IMAGE} ==="
+chmod 755 "$WORK"
+mkdir -p q/tmp fpm/session
+chmod 700 fpm
+touch logs/php-slow.log logs/php-error.log
+WEB_CID=$(podman run -d --rm --network=host --user root \
+	--userns=keep-id:uid=1000,gid=1000 \
+	-v "${WORK}:/var/www/html/rqwatch:Z" -v "${WORK}:${WORK}:Z" \
+	-e WEB_PORT="$WEB_PORT" -e UPLOAD_TMP_DIR="${WORK}/q/tmp" \
+	"$WEB_IMAGE" bash /var/www/html/rqwatch/qa/zap/web-start.sh)
+LIB_CIDS+=("$WEB_CID")
+for i in $(seq 30); do
+	curl -fs -o /dev/null "${BASE}/login" && break
+	if [ "$i" = 30 ]; then
+		echo "Web server did not start" >&2
+		podman logs "$WEB_CID" >&2
+		exit 1
+	fi
+	sleep 1
+done
 
 
 # zap_login USER: logs USER (password pw-USER, from seed_test_data) in and
@@ -153,5 +183,7 @@ done
 
 rm -f "${OUT}/logs-live"
 cp -r logs "$OUT/"
+# httpd's access and error logs and PHP-FPM's master log
+podman logs "$WEB_CID" > "${OUT}/web-server.log" 2>&1
 echo "ZAP reports and logs: ${OUT}"
 exit "$status"
