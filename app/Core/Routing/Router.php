@@ -52,6 +52,10 @@ final class Router
 			array $defaultMiddlewareClasses,
 	): Response {
 
+		$webHost   = $_ENV['WEB_HOST'] ?? throw new RuntimeException('WEB_HOST is not set in .env');
+		$webScheme = $_ENV['WEB_SCHEME'] ?? throw new RuntimeException('WEB_SCHEME is not set in .env');
+		$webBase   = $_ENV['WEB_BASE'] ?? throw new RuntimeException('WEB_BASE is not set in .env');
+
 		// Request initialization
 		$request = Request::createFromGlobals();
 
@@ -60,9 +64,9 @@ final class Router
 		$matcher = new UrlMatcher($routes, $context);
 
 		// support subfolder
-		$context->setHost($_ENV['WEB_HOST']);
-		$context->setScheme($_ENV['WEB_SCHEME']);
-		$context->setBaseUrl($_ENV['WEB_BASE']);
+		$context->setHost($webHost);
+		$context->setScheme($webScheme);
+		$context->setBaseUrl($webBase);
 
 		$urlGenerator = new UrlGenerator($routes, $context);
 		$loginUrl = $urlGenerator->generate(RouteName::LOGIN->value);
