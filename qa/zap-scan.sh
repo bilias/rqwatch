@@ -118,6 +118,14 @@ for i in $(seq 30); do
 	sleep 1
 done
 
+mkdir -p "$OUT"
+# what serves the scan: PHP, httpd and the PHP packages with their versions
+podman exec "$WEB_CID" sh -c 'php-fpm -v; echo; httpd -v; echo; rpm -q rocky-release httpd; rpm -qa "php*" | sort' \
+	> "${OUT}/web-versions.txt"
+# httpd's access and error logs and PHP-FPM's master log, as they are written,
+# so a cancelled run keeps them too
+podman logs -f "$WEB_CID" > "${OUT}/web-server.log" 2>&1 &
+LIB_PIDS+=("$!")
 
 # zap_login USER: logs USER (password pw-USER, from seed_test_data) in and
 # sets ZAP_SESSION and ZAP_SELF_ID (the user's id, kept off its own edit form)
