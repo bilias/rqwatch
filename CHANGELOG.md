@@ -2,6 +2,23 @@
 
 ## Master Dev Branch
 
+### 2026-11-05
+- CSP: script-src 'self', no inline script or event handler runs. Page behaviour (confirm
+  dialogs, Show/Hide toggles, charts, release form, menu, notification-link landing) moved
+  to the new web/js/rqwatch.js; the chart config is a JSON data block
+- CSP: style-src 'self'; inline styles are allowed only on the mail preview pages (mail view,
+  notification-link view), as quarantined HTML is styled inline. Template style attributes
+  moved to style.css
+- Mail preview: a mail's `<link>` and `<meta>` are made inert. CSP does not cover resource
+  hints: a `<link rel="preconnect">` made the browser resolve the sender's hostname as soon
+  as the preview opened (a DNS-level read receipt)
+
+### 2026-11-04
+- Add Content-Security-Policy and Permissions-Policy headers
+- Mail preview: remote images, fonts and stylesheets in quarantined HTML are blocked in every
+  browser (the preview inherits the page's CSP; the iframe's own csp attribute is Chromium-only)
+- Mail preview: embedded (cid:) images are shown
+
 ### 2026-11-03
 - Psalm 7
 

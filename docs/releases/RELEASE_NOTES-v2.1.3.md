@@ -32,6 +32,8 @@ Rqwatch 2.x+ contains updates to the database schema.
 - Apache: replace the `<Location /api>` and `<Location /maps>` blocks with the `<Directory>`
   blocks from [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
   They match the directories rather than the URL, so they also apply under a subdirectory (`WEB_BASE`).
+- Apache: add `Header set X-Content-Type-Options "nosniff"`. See
+  [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
 
 ## From 1.8.x
 Follow **From 1.8.x** in the
@@ -76,6 +78,12 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 - A stored mail is read (mail page, `get_mail` API, fuzzy learn) only when its path is a file
   under `QUARANTINE_DIR`, as release and quarantine cleanup already required. If you moved the
   quarantine, see [QUARANTINE_DIR](https://github.com/bilias/rqwatch/blob/master/docs/CONFIGURE.md#quarantine-settings).
+- Add Content-Security-Policy and Permissions-Policy headers
+- Mail preview: remote images, fonts and stylesheets in quarantined HTML are blocked
+- CSP: script-src 'self', no inline script or event handler runs
+- CSP: style-src 'self'; inline styles are allowed only on the mail preview pages (mail view,
+  notification-link view)
+- Mail preview: a mail's `<link>` and `<meta>` are made inert
 
 # Fixes
 - Upgrades from <=2.0 to 2.1.2 whose `db:migrate_drop_mail_log_columns` failed with error 1846 can now re-run it
