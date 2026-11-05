@@ -23,17 +23,22 @@ final class AuthManager
 {
 	private ?AuthInterface $provider = null;
 	/** @var int<0, 2> key of $authProviders */
-	private int $providerId = 0;
+	private int $providerId = self::PROVIDER_DB;
 	private ?string $providerDescr = null;
 	private LoggerInterface $logger;
 	private ?UrlGeneratorInterface $urlGenerator = null;
 	private ?string $redirectUrl = null;
 
+	// keys of $authProviders, as stored in users.auth_provider
+	private const int PROVIDER_DB = 0;
+	private const int PROVIDER_LDAP = 1;
+	private const int PROVIDER_OPENIDC = 2;
+
 	/** @var array{0: 'DB', 1: 'LDAP', 2: 'OPENIDC'} */
 	public static array $authProviders = [
-		0 => 'DB',
-		1 => 'LDAP',
-		2 => 'OPENIDC',
+		self::PROVIDER_DB => 'DB',
+		self::PROVIDER_LDAP => 'LDAP',
+		self::PROVIDER_OPENIDC => 'OPENIDC',
 	];
 
 	public function __construct(
@@ -85,7 +90,7 @@ final class AuthManager
 
 	public function finishOpenIdConnectAuthentication(): bool {
 		$this->providerDescr = "OPENIDC";
-		$this->providerId = array_search("OPENIDC", self::$authProviders);
+		$this->providerId = self::PROVIDER_OPENIDC;
 
 		$provider = new OpenIDConnectAuth($this->logger);
 
@@ -189,7 +194,7 @@ final class AuthManager
 
 		if (Helper::env_bool('LDAP_AUTH_ENABLED') && str_contains($username, '@')) {
 			$this->providerDescr = "LDAP";
-			$this->providerId = array_search("LDAP", self::$authProviders);
+			$this->providerId = self::PROVIDER_LDAP;
 			return new LdapAuth($username, $password, $logger);
 		}
 
