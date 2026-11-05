@@ -1,27 +1,3 @@
-{#
-<form id="gotoForm" method="get">
-  <p>
-    Go to message (qid):
-    <input type="text" id="qidInput" name="qid" value="" required>
-    <button type="submit">Go</button>
-  </p>
-</form>
-
-<script>
- document.getElementById('gotoForm').addEventListener('submit', function(event) {
-	event.preventDefault(); // prevent default form submission
-	const qid = document.getElementById('qidInput').value.trim();
-	if (qid) {
-		// Redirect to /detail/qid/<value>
-		// value is required that's why we add a dummy value
-		const baseUrl = '{{ route('DETAIL', { type: 'qid', value: '__PLACEHOLDER__' }) }}';
-		const redirectUrl = baseUrl.replace('__PLACEHOLDER__', encodeURIComponent(qid));
-		window.location.href = redirectUrl;
-	}
- });
-</script>
-#}
-
 {% if qidform %}
 <div class="qidform">
     {{ form_start(qidform) }}

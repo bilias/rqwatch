@@ -40,32 +40,5 @@ Mail cannot be released. Contact administrator
 
  {{ form_end(mailreleaseform) }}
  </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const release = document.getElementById('release_checkbox');
-    const releaseAlt = document.getElementById('release_alt_checkbox');
-    const releaseAltValue = document.getElementById('release_alt_value');
-    const submitBtn = document.getElementById('submit_button');
-
-    function toggleSubmit() {
-        const altHasValue = releaseAltValue.value && releaseAltValue.value.trim() !== '';
-
-        if (release.checked || (releaseAlt.checked && altHasValue)) {
-            submitBtn.disabled = false;
-        } else {
-            submitBtn.disabled = true;
-        }
-    }
-
-    // Run once on load
-    toggleSubmit();
-
-    // Watch for changes
-    release.addEventListener('change', toggleSubmit);
-    releaseAlt.addEventListener('change', toggleSubmit);
-    releaseAltValue.addEventListener('input', toggleSubmit);
-});
-</script>
 {% endif %}
  {% endif %}

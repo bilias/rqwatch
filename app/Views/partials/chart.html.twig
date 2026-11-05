@@ -1,22 +1,12 @@
 <div class="header-chart-wrap">
 	<div class="header-chart">
-		<canvas id="{{ id }}"></canvas>
+		<canvas id="{{ id }}" data-chart="{{ id }}-config"></canvas>
 	</div>
 	{% if chart.getAttributes().note is defined %}
 	<span class="center help-text2">{{ chart.getAttributes().note|nl2br }}</span>
 	{% endif %}
 </div>
 
-<script>
-{
-	const cfg = {
-		type: {{ chart.getType()|js_json }},
-		data: {{ chart.getData()|js_json }},
-		options: {{ chart.getOptions()|js_json }}
-	};
-	const linkAt = (els, c) => els.length ? (c.data.datasets[els[0].datasetIndex].links || [])[els[0].index] : null;
-	cfg.options.onClick = (e, els, c) => { const l = linkAt(els, c); if (l) window.location.href = l; };
-	cfg.options.onHover = (e, els, c) => { e.native.target.style.cursor = linkAt(els, c) ? 'pointer' : 'default'; };
-	new Chart(document.getElementById({{ id|js_json }}), cfg);
-}
-</script>
+{# drawn by web/js/rqwatch.js; JSON data, not a script (js_json escapes
+   < and >, so no value can close the element) #}
+<script type="application/json" id="{{ id }}-config">{{ { type: chart.getType(), data: chart.getData(), options: chart.getOptions() }|js_json }}</script>

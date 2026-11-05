@@ -10,9 +10,9 @@
 
 /*
  Every route requested once per role it is open to, with sample parameters:
- no server error, no PHP warning, no inline event handler, no ERROR-level log
- line, the session kept, and no data changed (state-changing routes need a
- form or CSRF token, which a plain request does not carry).
+ no server error, no PHP warning, no inline event handler or script, no
+ ERROR-level log line, the session kept, and no data changed (state-changing
+ routes need a form or CSRF token, which a plain request does not carry).
 */
 
 namespace Tests\Integration\Smoke;
@@ -33,7 +33,9 @@ final class RouteSmokeTest extends IntegrationTestCase
 
 	#[TestDox('Admin: every admin and user route')]
 	public function testAdmin(): void {
-		$this->smoke(self::client('admin'), [self::ADMIN, self::USER], true);
+		$dataBlocks = $this->smoke(self::client('admin'), [self::ADMIN, self::USER], true);
+		// admin pages include charts: the JSON data block check ran
+		$this->assertGreaterThan(0, $dataBlocks, 'JSON data blocks checked');
 	}
 
 	#[TestDox('Plain user: every user route')]
@@ -46,12 +48,16 @@ final class RouteSmokeTest extends IntegrationTestCase
 		$this->smoke(self::anonymous(), [self::PUBLIC], false);
 	}
 
-	/** @param list<string> $levels */
-	private function smoke(WebClient $client, array $levels, bool $loggedIn): void {
+	/**
+	 * @param list<string> $levels
+	 * @return int the JSON data blocks checked
+	 */
+	private function smoke(WebClient $client, array $levels, bool $loggedIn): int {
 		$tables = self::checksums();
 		$appLog = self::logSize('logs/rqwatch.log');
 		$webLog = self::logSize((string) getenv('INTEGRATION_WEB_LOG'));
 		$checked = 0;
+		$dataBlocks = 0;
 
 		foreach (self::routes() as $name => $route) {
 			if (!in_array(self::level($route), $levels, true)) {
@@ -62,9 +68,18 @@ final class RouteSmokeTest extends IntegrationTestCase
 			$this->assertDoesNotMatchRegularExpression(
 				'/<b>(Warning|Notice|Deprecated|Fatal error)<\/b>:|PHP (Warning|Notice|Deprecated|Fatal error):/',
 				$response['body'], "{$name}: PHP error in the page");
-			// the CSP refuses inline handlers; web/js/rqwatch.js does their work
+			// the CSP refuses inline handlers and scripts; web/js/rqwatch.js does
+			// their work (a JSON data block is not executed, so it is allowed)
 			$this->assertDoesNotMatchRegularExpression('/<[a-z][^>]*\son[a-z]+\s*=/i',
 				$response['body'], "{$name}: inline event handler");
+			$this->assertDoesNotMatchRegularExpression('/<script\b(?![^>]*\bsrc=)(?![^>]*\btype=["\']application\/json["\'])[^>]*>/i',
+				$response['body'], "{$name}: inline script");
+			// what rqwatch.js parses, e.g. a chart's config
+			preg_match_all('/<script type="application\/json"[^>]*>(.*?)<\/script>/s', $response['body'], $blocks);
+			foreach ($blocks[1] as $json) {
+				$this->assertIsArray(json_decode($json, true), "{$name}: JSON data block");
+				$dataBlocks++;
+			}
 			if ($loggedIn) {
 				$this->assertNotSame('/login', self::target($response), "{$name}: session lost");
 			}
@@ -76,6 +91,7 @@ final class RouteSmokeTest extends IntegrationTestCase
 		$this->assertSame([], array_values(preg_grep(self::EXPECTED_ERRORS, $errors, PREG_GREP_INVERT) ?: []), 'rqwatch.log errors');
 		$this->assertSame([], self::linesSince((string) getenv('INTEGRATION_WEB_LOG'), $webLog, '/PHP (Warning|Notice|Deprecated|Fatal error)/'), 'php -S errors');
 		$this->assertSame($tables, self::checksums(), 'data changed by a plain request');
+		return $dataBlocks;
 	}
 
 	/** @return array<string, string> table => CHECKSUM TABLE result */
