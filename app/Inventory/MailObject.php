@@ -63,7 +63,7 @@ final class MailObject
 	}
 
 	public function setMessageBody(): void {
-		$this->htmlBody = $this->embedImages($this->parser->getMessageBody('html'));
+		$this->htmlBody = self::inertLinkMeta($this->embedImages($this->parser->getMessageBody('html')));
 		$this->textBody = nl2br(htmlspecialchars($this->parser->getMessageBody('text')));
 	}
 
@@ -74,6 +74,21 @@ final class MailObject
 	 remote. Unknown references and other part types are left as they are,
 	 and the browser blocks them.
 	*/
+	/*
+	 <link> and <meta> made inert for the preview, by renaming them to
+	 elements no browser knows. CSP covers fetches but not resource hints:
+	 a mail's <link rel="preconnect"> made Firefox resolve the sender's
+	 hostname as soon as the preview opened (a DNS-level read receipt), and
+	 a <meta http-equiv> can switch DNS prefetching on. Nothing else a mail's
+	 <link> or <meta> does is wanted in the preview: remote stylesheets are
+	 blocked anyway. A browser starts a tag name right after '<', matches it
+	 case-insensitively and ends it at whitespace, '/' or '>', which is what
+	 this matches; inside a comment or an attribute value it only changes text.
+	*/
+	public static function inertLinkMeta(string $html): string {
+		return preg_replace('/<(link|meta)(?=[\s\/>])/i', '<x-rqwatch-$1', $html) ?? '';
+	}
+
 	private function embedImages(string $html): string {
 		if (stripos($html, 'cid:') === false) {
 			return $html;

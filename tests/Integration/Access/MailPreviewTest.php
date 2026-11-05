@@ -12,9 +12,10 @@
  A quarantined HTML mail on the mail page, for its recipient and for an
  admin, renders in a sandboxed srcdoc iframe, and nothing in it can load
  from another origin: the iframe inherits the page's Content-Security-Policy
- (its own csp attribute is Chromium-only, Firefox ignores it). The mail's
- remote image, stylesheet and background are the positive control that the
- HTML part is rendered at all.
+ (its own csp attribute is Chromium-only, Firefox ignores it), and its
+ <link> elements are made inert (a preconnect hint escapes the CSP). The
+ mail's remote image, stylesheet and background are the positive control
+ that the HTML part is rendered at all.
 */
 
 namespace Tests\Integration\Access;
@@ -42,7 +43,10 @@ final class MailPreviewTest extends IntegrationTestCase
 			if (preg_match('/\bsrcdoc="([^"]*)"/', $iframe[1], $srcdoc) !== 1) {
 				$this->fail("{$user}: no srcdoc");
 			}
-			$this->assertStringContainsString(self::REMOTE, html_entity_decode($srcdoc[1], ENT_QUOTES | ENT_HTML5), "{$user}: HTML part rendered");
+			$preview = html_entity_decode($srcdoc[1], ENT_QUOTES | ENT_HTML5);
+			$this->assertStringContainsString(self::REMOTE, $preview, "{$user}: HTML part rendered");
+			// resource hints escape the CSP: the mail's <link> must be inert
+			$this->assertStringNotContainsString('<link', $preview, "{$user}: no <link> in the preview");
 			$this->assertNoRemoteLoads($page, $user);
 		}
 	}

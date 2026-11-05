@@ -12,7 +12,8 @@
  MailObject's HTML body: cid: references to the mail's own image parts
  become data: URIs, whether quoted, unquoted, URL-encoded or in CSS, so
  embedded images show in the preview. Unknown references, non-image parts,
- SVG and images past the per-mail budget are left as cid:.
+ SVG and images past the per-mail budget are left as cid:. <link> and
+ <meta> are renamed to inert elements (resource hints escape the CSP).
 */
 
 namespace Tests\Unit\Inventory;
@@ -75,6 +76,28 @@ final class MailObjectTest extends UnitTestCase
 		]);
 		$this->assertStringContainsString('data:image/png;base64,' . base64_encode(self::PNG), $html);
 		$this->assertStringContainsString('cid:big@x', $html);
+	}
+
+	#[TestDox('<link> and <meta> become inert elements in any case and layout; look-alikes and text stay')]
+	public function testInertLinkMeta(): void {
+		$cases = [
+			'<link rel="preconnect" href="https://t.example">' => '<x-rqwatch-link rel="preconnect" href="https://t.example">',
+			"<LINK\nrel=dns-prefetch href=//t.example>" => "<x-rqwatch-LINK\nrel=dns-prefetch href=//t.example>",
+			"<link\trel=prefetch href=//t.example>" => "<x-rqwatch-link\trel=prefetch href=//t.example>",
+			'<link/>' => '<x-rqwatch-link/>',
+			'<link>' => '<x-rqwatch-link>',
+			'<Meta http-equiv="x-dns-prefetch-control" content="on">' => '<x-rqwatch-Meta http-equiv="x-dns-prefetch-control" content="on">',
+			'<links><linker><metadata>' => '<links><linker><metadata>',
+			'< link> and 1<link' => '< link> and 1<link',
+		];
+		foreach ($cases as $in => $out) {
+			$this->assertSame($out, MailObject::inertLinkMeta($in), $in);
+		}
+
+		// and on the parsed mail's HTML body
+		$html = self::html(['<link rel="preconnect" href="https://t.example">'], []);
+		$this->assertStringNotContainsString('<link', $html);
+		$this->assertStringContainsString('<x-rqwatch-link rel="preconnect"', $html);
 	}
 
 	/**
