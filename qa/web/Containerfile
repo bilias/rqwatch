@@ -14,13 +14,16 @@ FROM ${BASE_IMAGE}
 ARG PHP_STREAM=remi-8.4
 # start_web_container maps the invoking user to this uid (--userns=keep-id)
 ARG RQWATCH_UID=1000
+# glibc-gconv-extra: iconv's character sets beyond the basic ones (KOI8-R,
+# Windows-125x, ...), which decoding 8-bit mail headers needs; the base
+# image lacks it
 RUN dnf -y install dnf-plugins-core epel-release \
 	&& dnf config-manager --set-enabled crb \
 	&& dnf -y install https://rpms.remirepo.net/enterprise/remi-release-9.rpm \
 	&& dnf -y module enable "php:${PHP_STREAM}" \
 	&& dnf -y install httpd php-fpm php-cli php-mysqlnd php-pdo \
 		php-pecl-mailparse php-mbstring php-xml \
-		php-ldap php-pecl-redis6 php-gmp \
+		php-ldap php-pecl-redis6 php-gmp glibc-gconv-extra \
 	&& dnf clean all \
 	&& groupadd -g "${RQWATCH_UID}" rqwatch \
 	&& useradd -u "${RQWATCH_UID}" -g rqwatch -M -d /var/www/html/rqwatch -s /sbin/nologin rqwatch \

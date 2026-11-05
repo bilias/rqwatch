@@ -47,6 +47,8 @@ However, Rqwatch should run on any system with minor adjustments, as it requires
 
 - php-gmp (required only when GeoIP support is enabled)
 
+- glibc-gconv-extra (EL9: iconv's character sets beyond the basic ones, used to decode 8-bit mail headers in KOI8-R, Windows-125x and others; minimal installs lack it)
+
 - composer
 
 - git
@@ -73,7 +75,7 @@ dnf module enable php:remi-8.3
 
 dnf install php-fpm php-cli php-mysqlnd php-pdo \
 php-pecl-mailparse php-mbstring php-xml \
-php-ldap php-pecl-redis6 php-gmp composer git
+php-ldap php-pecl-redis6 php-gmp composer git glibc-gconv-extra
 ```
 
 For Ubuntu 24.04:
