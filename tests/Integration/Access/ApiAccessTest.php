@@ -39,13 +39,14 @@ final class ApiAccessTest extends IntegrationTestCase
 		}
 	}
 
-	#[TestDox('No credentials, a wrong password, or another API\'s credentials: 401')]
+	#[TestDox('No credentials, a wrong username or password, or another API\'s credentials: 401')]
 	public function testWrongCredentialsAreRefused(): void {
 		foreach (self::SCRIPTS as $script => $kind) {
 			[$user, $pass] = self::credentials($kind);
 			$other = self::credentials($kind === 'MAIL' ? 'RSPAMD' : 'MAIL');
 			$this->assertSame(401, self::api($script, null)[0], "{$script}: no credentials");
 			$this->assertSame(401, self::api($script, [$user, $pass . 'x'])[0], "{$script}: wrong password");
+			$this->assertSame(401, self::api($script, [$user . 'x', $pass])[0], "{$script}: wrong username");
 			$this->assertSame(401, self::api($script, $other)[0], "{$script}: other API's credentials");
 		}
 	}
@@ -80,6 +81,25 @@ final class ApiAccessTest extends IntegrationTestCase
 				$this->assertSame(500, $status, "{$script}: placeholder password");
 			}
 		});
+	}
+
+	#[TestDox('An empty username, password or ACL in .env: refused with 500, valid credentials sent from an allowed IP')]
+	public function testEmptySettingsAreRefused(): void {
+		foreach (self::SCRIPTS as $script => $kind) {
+			$settings = [
+				["{$kind}_API_USER", ''],
+				["{$kind}_API_PASS", ''],
+				["{$kind}_API_ACL", '""'],
+				// only separators and spaces: as empty as a blank one
+				["{$kind}_API_ACL", '" , "'],
+			];
+			foreach ($settings as [$key, $value]) {
+				self::withEnv([$key => $value], function () use ($script, $kind, $key, $value): void {
+					$status = self::api($script, self::credentials($kind))[0];
+					$this->assertSame(500, $status, "{$script}: {$key}={$value}");
+				});
+			}
+		}
 	}
 
 	/** @return array{0: string, 1: string} user and password from the harness */
