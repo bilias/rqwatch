@@ -918,6 +918,17 @@ Mail details:
 		return filter_var($_ENV[$key] ?? $default, FILTER_VALIDATE_BOOLEAN);
 	}
 
+	public static function mailApiCredentialsSet(): bool {
+		$user = $_ENV['MAIL_API_USER'] ?? null;
+		$pass = $_ENV['MAIL_API_PASS'] ?? null;
+
+		return is_string($user)
+			&& $user !== ''
+			&& is_string($pass)
+			&& $pass !== ''
+			&& !str_starts_with($pass, 'CHANGE_ME_');
+	}
+
 	/** @return list<array{ip: string, host: string|null, country: string|null}> */
 	public static function extract_mail_relays(string $headers): array {
 		// unfold continuation lines so each header is one line; on a PCRE failure

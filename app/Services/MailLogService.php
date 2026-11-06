@@ -1676,11 +1676,11 @@ final class MailLogService
 		// Mail stored in remote server. Call their API
 		} else {
 			try {
-				// has applyUserScope
-				if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS']) || str_starts_with($_ENV['MAIL_API_PASS'], 'CHANGE_ME_')) {
+				if (!Helper::mailApiCredentialsSet()) {
 					$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a CHANGE_ME_ placeholder");
 					throw new Exception("Error. Contact admin");
 				}
+				// has applyUserScope
 				$mailobject = $this->getMailObjectViaApi($maillog->id, $maillog->server);
 			} catch (Exception $e) {
 				$err = $e->getMessage();
@@ -1846,7 +1846,7 @@ final class MailLogService
 			return false;
 		}
 
-		if (empty($_ENV['MAIL_API_USER']) || empty($_ENV['MAIL_API_PASS']) || str_starts_with($_ENV['MAIL_API_PASS'], 'CHANGE_ME_')) {
+		if (!Helper::mailApiCredentialsSet()) {
 			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a CHANGE_ME_ placeholder");
 			return false;
 		}
