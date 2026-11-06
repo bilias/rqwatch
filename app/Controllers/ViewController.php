@@ -18,6 +18,7 @@ use Symfony\Component\Translation\Translator;
 
 use Symfony\Bridge\Twig\Extension\FormExtension;
 use Symfony\Bridge\Twig\Form\TwigRendererEngine;
+use Symfony\Bridge\Twig\AppVariable;
 use Symfony\Component\Form\FormRenderer;
 
 use Twig\Environment;
@@ -133,20 +134,20 @@ class ViewController extends Controller
 		$translator->addLoader('xlf', new XliffFileLoader());
 
 		// there are built-in translations for the core error messages
-      $translator->addResource(
-            'xlf',
-            $vendorFormDirectory.'/Resources/translations/validators.en.xlf',
-            'en',
-            'validators'
-      );
-      $translator->addResource(
-            'xlf',
-            $vendorValidatorDirectory.'/Resources/translations/validators.en.xlf',
-            'en',
-            'validators'
-      );
+		$translator->addResource(
+			'xlf',
+			$vendorFormDirectory.'/Resources/translations/validators.en.xlf',
+			'en',
+			'validators'
+		);
+		$translator->addResource(
+			'xlf',
+			$vendorValidatorDirectory.'/Resources/translations/validators.en.xlf',
+			'en',
+			'validators'
+		);
 
-      $csrfManager = $this->csrfManager();
+		$csrfManager = $this->csrfManager();
 
 		// the Twig file that holds all the default markup for rendering forms
 		// this file comes with TwigBridge
@@ -154,8 +155,8 @@ class ViewController extends Controller
 
 		// the path to TwigBridge library so Twig can locate the
 		// form_div_layout.html.twig file
-      $appVariableReflection = new ReflectionClass('\Symfony\Bridge\Twig\AppVariable');
-      $vendorTwigBridgeDirectory = dirname($appVariableReflection->getFileName()); // @phpstan-ignore argument.type (AppVariable is a userland class, so getFileName() is a path)
+		$appVariableReflection = new ReflectionClass(AppVariable::class);
+		$vendorTwigBridgeDirectory = dirname($appVariableReflection->getFileName()); // @phpstan-ignore argument.type (AppVariable is a userland class, so getFileName() is a path)
 
 		$loader = $this->twig->getLoader();
 		if (!$loader instanceof FilesystemLoader) {
@@ -165,14 +166,14 @@ class ViewController extends Controller
 
 		$formEngine = new TwigRendererEngine([$defaultFormTheme], $this->twig);
 
-      $this->twig->addRuntimeLoader(new FactoryRuntimeLoader([
-            FormRenderer::class => function () use ($formEngine, $csrfManager): FormRenderer {
-               return new FormRenderer($formEngine, $csrfManager);
-            },
-      ]));
+		$this->twig->addRuntimeLoader(new FactoryRuntimeLoader([
+			FormRenderer::class => function () use ($formEngine, $csrfManager): FormRenderer {
+				return new FormRenderer($formEngine, $csrfManager);
+			},
+		]));
 
-      // adds the FormExtension to Twig
-      $this->twig
+		// adds the FormExtension to Twig
+		$this->twig
 			->addExtension(new FormExtension());
 
 		// and TranslationExtension (it gives us trans filter)
