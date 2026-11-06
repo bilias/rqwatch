@@ -28,9 +28,6 @@ use App\Inventory\MailAttachment;
 
 use Psr\Log\LoggerInterface;
 
-//use App\Services\MailerService;
-//use App\Services\ApiClient;
-
 use Twig\Environment;
 
 use Symfony\Component\HttpClient\Exception\TransportException;
@@ -51,8 +48,6 @@ use App\Core\Routing\RouteName;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use Symfony\Component\Console\Output\OutputInterface;
-
-use PhpMimeMailParser\Parser;
 
 use DateTime;
 use DateInterval;
@@ -1489,12 +1484,6 @@ final class MailLogService
 		// order symbols by score and show printable information only
 		$ar = Helper::format_symbols($symbols, $log->score, $log->has_virus);
 
-		/*
-		$parser = new Parser();
-		$parser->setText($log->headers);
-		$hdr_ar = $parser->getHeaders();
-		$received = $hdr_ar['received'];
-		*/
 		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no headers */
 		if ($log->headers) {
 			$received = Helper::extract_mail_relays($log->headers);
