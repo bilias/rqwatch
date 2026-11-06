@@ -83,7 +83,7 @@ final class ProfileForm extends AbstractType
 						'autocomplete' => 'new-password',
 					],
 					'constraints' => [
-						// skips '' and null, so the password can be left empty
+						// an empty field is submitted as null, which Length skips
 						new Assert\Length(min: 8, max: 128),
 					],
 				],

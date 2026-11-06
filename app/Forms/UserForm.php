@@ -98,7 +98,7 @@ final class UserForm extends AbstractType
 					],
 					*/
 					'constraints' => [
-						// skips '' and null, so the password can be left empty
+						// an empty field is submitted as null, which Length skips
 						new Assert\Length(min: 8, max: 128),
 					],
 				],
