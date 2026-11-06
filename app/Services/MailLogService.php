@@ -1244,12 +1244,8 @@ final class MailLogService
 	}
 
 	/** @return LengthAwarePaginator<int, MailLog> */
-	public function getPaginatedDay(?string $date, string $url, int $page = 1): LengthAwarePaginator {
+	public function getPaginatedDay(string $date, string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
-
-		if (!$date) {
-			$date = Helper::get_today();
-		}
 
 		$query = MailLog::select($fields)
 			->with($this->getMailLogSymbolsRelations())
@@ -1272,12 +1268,8 @@ final class MailLogService
 	}
 
 	/** @return LengthAwarePaginator<int, MailLog> */
-	public function getPaginatedQuarantineDay(?string $date, string $url, int $page = 1): LengthAwarePaginator {
+	public function getPaginatedQuarantineDay(string $date, string $url, int $page = 1): LengthAwarePaginator {
 		$fields = MailLog::SELECT_FIELDS;
-
-		if (!$date) {
-			$date = Helper::get_today();
-		}
 
 		$query = MailLog::select($fields)
 			->with($this->getMailLogSymbolsRelations());

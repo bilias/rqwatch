@@ -495,6 +495,10 @@ final class MailLogController extends ViewController
 	}
 
 	public function showDay(?string $date = null): Response {
+		if ($date === null) {
+			$date = Helper::get_today();
+		}
+
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
