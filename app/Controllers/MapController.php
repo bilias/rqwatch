@@ -489,7 +489,7 @@ final class MapController extends ViewController
 		// Fetch config for the selected map
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if (!$config || !array_key_exists('fields', $config)) {
+		if (!$config || !array_key_exists('fields', $config) || !array_key_exists('model', $config)) {
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
 		}
@@ -612,13 +612,14 @@ final class MapController extends ViewController
 		//$config = MapInventory::getMapConfigs($map) ?? null;
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if (!$config || !array_key_exists('map_form', $config)) {
+		if (!$config || !array_key_exists('map_form', $config) || !array_key_exists('model', $config)) {
 			$this->fileLogger->warning("User {$this->username} tried to add map entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$mapdescr = $config['description'];
+		/** @var list<string> $fields field names, as every map config lists them */
 		$fields = $config['fields'] ?? [];
 		$data = [];
 
