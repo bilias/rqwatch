@@ -19,8 +19,10 @@
  /css/style.css with the homepage.
 */
 
-$web = realpath(__DIR__ . '/../web');
-if ($web === false) {
+$web = __DIR__ . '/../web';
+// canonical, as the requested file's realpath() below is compared to it
+$root = realpath($web);
+if ($root === false || !is_dir($root)) {
 	http_response_code(500);
 	exit("qa/php-router.php: web/ not found\n");
 }
@@ -29,7 +31,7 @@ $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
 $path = parse_url($requestUri, PHP_URL_PATH);
 $file = is_string($path) ? realpath($web . rawurldecode($path)) : false;
 // inside web/ only (realpath has resolved any ..), and never a PHP file
-if ($file !== false && str_starts_with($file, $web . '/') && is_file($file) && !str_ends_with($file, '.php')) {
+if ($file !== false && str_starts_with($file, $root . '/') && is_file($file) && !str_ends_with($file, '.php')) {
 	return false;
 }
 // as web/.htaccess: these paths are never rewritten to index.php, so a
