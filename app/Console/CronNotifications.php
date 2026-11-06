@@ -29,6 +29,7 @@ use App\Services\MailLogService;
 use App\Services\UserService;
 use App\Services\MapService;
 use App\Services\MailerService;
+use App\Models\MailLog;
 
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Generator\UrlGenerator;
@@ -180,7 +181,7 @@ final class CronNotifications extends RqwatchCliCommand
 			 * @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\MailLog> $removedLogs
 			 * @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\MailLog> $logs
 			 */
-			[$removedLogs, $logs] = $logs->partition(function ($log) use ($virusPatterns, &$matched) {
+			[$removedLogs, $logs] = $logs->partition(function (MailLog $log) use ($virusPatterns, &$matched) {
 				$pattern = Helper::virusSkipMatch($log->symbols ?? [], $virusPatterns);
 				if ($pattern === null) {
 					return false;
@@ -229,7 +230,7 @@ final class CronNotifications extends RqwatchCliCommand
 		unset($removedLogs);
 
 		$notification_score = Config::get('notification_score');
-		$overScore = fn ($log): bool => $log->score > $notification_score
+		$overScore = fn (MailLog $log): bool => $log->score > $notification_score
 			&& !($blacklisted_any_score && Helper::checkForBlacklist($log->symbols ?? []));
 
 		// identify empty score > $notification_score
@@ -404,7 +405,7 @@ final class CronNotifications extends RqwatchCliCommand
 		 * @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\MailLog> $skipped
 		 * @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\MailLog> $logs
 		 */
-		[$skipped, $logs] = $logs->partition(fn ($log) =>
+		[$skipped, $logs] = $logs->partition(fn (MailLog $log) =>
 			(!$send_blacklisted && Helper::checkForBlacklist($log->symbols ?? []))
 			|| ($log->score > $notification_score
 				&& !($blacklisted_any_score && Helper::checkForBlacklist($log->symbols ?? [])))
