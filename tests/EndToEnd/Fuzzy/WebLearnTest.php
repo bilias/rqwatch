@@ -127,6 +127,10 @@ final class WebLearnTest extends EndToEndTestCase
 		$this->assertStringContainsString("The same content is also learned as 'Spam' via {$qidA}", $page);
 		self::waitUntil('both lists hit', fn(): bool =>
 			array_keys(self::fuzzyScores($body)) === ['RQWATCH_FUZZY_DENIED', 'RQWATCH_FUZZY_WHITE']);
+		// contrib's fuzzy_group.conf: Spam scores up, Not spam down
+		$scores = self::fuzzyScores($body);
+		$this->assertGreaterThan(0.0, $scores['RQWATCH_FUZZY_DENIED'] ?? null, 'Spam list score');
+		$this->assertLessThan(0.0, $scores['RQWATCH_FUZZY_WHITE'] ?? null, 'Not spam list score');
 
 		$page = self::unlearn($admin, $a);
 		$this->assertStringContainsString("Mail {$qidA} unlearned from fuzzy 'Spam'", $page);
