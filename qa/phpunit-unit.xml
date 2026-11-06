@@ -23,6 +23,10 @@
 		<testsuite name="twig">
 			<directory>../tests/Unit/Twig</directory>
 		</testsuite>
+		<!-- Kernel boot decisions (which CLI commands run on an unmigrated database) -->
+		<testsuite name="core">
+			<directory>../tests/Unit/Core</directory>
+		</testsuite>
 		<!-- parsed mail objects (MailObject) -->
 		<testsuite name="inventory">
 			<directory>../tests/Unit/Inventory</directory>
