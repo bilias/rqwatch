@@ -75,7 +75,7 @@ final class LoginController extends ViewController
 			);
 			return new RedirectResponse($this->getHomepageUrl());
 		}
-		if ($this->username) {
+		if ($this->username !== null && $this->username !== '') {
 			$this->fileLogger->info("User logout: '{$this->username}'", [
 				'is_admin' => $this->is_admin,
 				'email' => $this->email,
@@ -484,6 +484,7 @@ final class LoginController extends ViewController
 				$user->auth_provider = $auth_provider_id;
 			}
 			// update email in DB
+			/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no email: keep the stored one */
 			if (!empty($email) && $email !== $user->email) {
 				$update['email'] = $email;
 				$user->email = $email;
