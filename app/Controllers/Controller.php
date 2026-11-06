@@ -211,7 +211,6 @@ class Controller
 		$cache = App::cache();
 		if ($cache !== null) {
 			$redisKey = Config::get('rspamd_stat_redis_key');
-			$ttl = (int) Config::get('rspamd_stat_redis_cache_ttl') ?: 300;
 
 			// Try fetching from redis cache first
 			try {
@@ -270,7 +269,8 @@ class Controller
 			}
 		}
 
-		if ($cache !== null) {
+		if ($cache !== null && isset($redisKey)) {
+			$ttl = (int) Config::get('rspamd_stat_redis_cache_ttl') ?: 300;
 			// Store in Redis for future use; a total failure for a shorter time
 			if ($stats === []) {
 				$ttl = min($ttl, (int) Config::get('rspamd_stat_redis_failure_ttl') ?: 60);
