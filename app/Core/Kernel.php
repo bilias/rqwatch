@@ -37,11 +37,13 @@ final class Kernel
 	private LoggerInterface $fileLogger;
 	private LoggerInterface $syslogLogger;
 	private ?Capsule $capsule = null;
+	/** @psalm-suppress PropertyNotSetInConstructor set by createMigrationStatus() in boot(), once the database is up */
 	private MigrationStatus $migrationStatus;
 	private bool $dbAvailable = false;
 	private ?RedisCache $cache = null;
 
-	public function boot(): void {
+	// every entry point boots right after: (new Kernel())->boot()
+	public function __construct() {
 		$this->startTime = microtime(true);
 		$this->startMemory = memory_get_usage();
 
@@ -55,7 +57,9 @@ final class Kernel
 
 		// create fileLogger and syslogLogger
 		$this->createLoggers();
+	}
 
+	public function boot(): void {
 		// load .env
 		$this->loadDotenv();
 
