@@ -280,9 +280,7 @@ final class MailLogController extends ViewController
 		// has applyUserScope
 		$logs = $service->getReports($filters, $field, $mode)->toArray();
 
-		$sum['count'] = 0;
-		$sum['size'] = 0;
-		$sum['stored'] = 0;
+		$sum = ['count' => 0, 'size' => 0, 'stored' => 0];
 		foreach ($logs as $log) {
 			$sum['count'] += $log['total'];
 			$sum['size'] += $log['total_size'];
@@ -788,8 +786,14 @@ final class MailLogController extends ViewController
 		// admin row: fuzzy learning state, and whether Learn is offered
 		$fuzzy_enabled = $this->is_admin && FuzzyService::isEnabled();
 		$fuzzy_service = $fuzzy_enabled ? new FuzzyService() : null;
-		$fuzzy = $fuzzy_service?->getByMailLogId($ar['log']->id);
-		$fuzzy_shared = $fuzzy ? ($fuzzy_service->sharedWith([$fuzzy])[$fuzzy->id] ?? []) : [];
+		$fuzzy = null;
+		$fuzzy_shared = [];
+		if ($fuzzy_service !== null) {
+			$fuzzy = $fuzzy_service->getByMailLogId($ar['log']->id);
+			if ($fuzzy !== null) {
+				$fuzzy_shared = $fuzzy_service->sharedWith([$fuzzy])[$fuzzy->id] ?? [];
+			}
+		}
 		$fuzzy_flags = $fuzzy_enabled ? FuzzyService::flags() : [];
 		$fuzzy_learnable = $fuzzy_enabled && $fuzzy === null && $fuzzy_flags !== []
 			&& $ar['log']->mail_stored
