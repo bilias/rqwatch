@@ -396,7 +396,7 @@ final class FuzzyController extends ViewController
 					$qids($near) . ": its own hashes were added as new entries");
 			}
 
-			if ($others === []) {
+			if ($row === null || $others === []) {
 				return;
 			}
 
