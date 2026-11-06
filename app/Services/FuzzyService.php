@@ -100,7 +100,7 @@ final class FuzzyService
 
 			if (!$valid) {
 				App::fileLogger()->error("[FuzzyService] invalid fuzzy_learn_flags entry " .
-					json_encode([$flag => $entry]) . " in config: flag 1-255, label required, weight 1-65535");
+					(string) json_encode([$flag => $entry], JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE) . " in config: flag 1-255, label required, weight 1-65535");
 				continue;
 			}
 
@@ -769,7 +769,7 @@ final class FuzzyService
 
 		if (!is_array($hashes) || $hashes === [] ||
 			count(preg_grep(self::HASH_FORMAT, $hashes)) !== count($hashes)) { // @phpstan-ignore argument.type (preg_grep() is false only on a PCRE failure)
-			$this->logger->error("{$lf} {$qid} unexpected fuzzyadd reply: " . json_encode($reply));
+			$this->logger->error("{$lf} {$qid} unexpected fuzzyadd reply: " . (string) json_encode($reply, JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE));
 			throw new FuzzyException("Unexpected reply from rspamd", FuzzyError::Upstream);
 		}
 
