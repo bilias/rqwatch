@@ -10,6 +10,7 @@
 
 namespace App\Core\Database\Migrations;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Schema\Blueprint;
 
 use App\Core\App;
@@ -152,7 +153,7 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 				->join(AppConfig::MAIL_LOG_DATA_TABLE . ' as md', 'md.mail_log_id', '=', 'ml.id')
 				->whereBetween('ml.created_day', [$from->format('Y-m-d'), $to->format('Y-m-d')])
 				->where('ml.created_at', '>=', $row->created_at)
-				->where(function ($q) use ($hashes) {
+				->where(function (Builder $q) use ($hashes) {
 					foreach ($hashes as $hash) {
 						$q->orWhereRaw('JSON_CONTAINS(md.fuzzy_hashes, JSON_QUOTE(?))', [$hash]);
 					}

@@ -188,7 +188,7 @@ final class ChartBuilder {
 				[
 					'label' => 'Mails hit',
 					'data' => array_values($days),
-					'links' => array_map(fn ($d) => $dayUrl((string) $d), array_keys($days)),
+					'links' => array_map(fn ($d): string => $dayUrl((string) $d), array_keys($days)),
 					'backgroundColor' => [
 						MailCategory::TOTAL->color(),
 					],

@@ -596,7 +596,7 @@ final class UserController extends ViewController
 			'strtolower',
 			array_filter(
 				$user->mailAliases()->pluck('alias')->toArray(),
-				fn($alias) => !empty(trim($alias))
+				fn(string $alias) => !empty(trim($alias))
 			)
 		);
 
@@ -604,7 +604,7 @@ final class UserController extends ViewController
 			'strtolower',
 			array_filter(
 				$this->session->get('user_aliases', []),
-				fn($alias) => !empty(trim($alias))
+				fn(string $alias) => !empty(trim($alias))
 			)
 		);
 

@@ -267,7 +267,7 @@ final class MapHitService
 
 		foreach ($keys as $key) {
 			$rows = (clone $table)->where('map_name', $map)->where('disabled', 0)
-				->where(function ($q) use ($key) {
+				->where(function (QueryBuilder $q) use ($key) {
 					$q->where('pattern', $key)
 						->orWhere('pattern', 'like', self::escapeLike($key) . ' %');
 				})
@@ -303,7 +303,7 @@ final class MapHitService
 		$like = self::escapeLike($name);
 		$rows = App::capsule()->getConnection()->table(AppConfig::MAPS_CUSTOM_TABLE)
 			->where('disabled', 0)
-			->where(function ($q) use ($like) {
+			->where(function (QueryBuilder $q) use ($like) {
 				$q->where('pattern', 'like', "% {$like}:%")
 					->orWhere('pattern', 'like', "% {$like}");
 			})
@@ -544,7 +544,7 @@ final class MapHitService
 	 * @param Builder<TModel> $query
 	 */
 	public static function whereIdle(Builder $query, int $model, string $table, int $days): void {
-		$query->whereNotExists(function ($q) use ($model, $table, $days) {
+		$query->whereNotExists(function (QueryBuilder $q) use ($model, $table, $days) {
 			$q->selectRaw('1')
 				->from(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE)
 				->where('entry_model', $model)

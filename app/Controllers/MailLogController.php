@@ -291,7 +291,7 @@ final class MailLogController extends ViewController
 
 		$show_host = $field === 'ip' && Config::get('dns_resolv');
 		if ($show_host) {
-			$logs = array_map(fn($log) => $log + ['country' => Helper::getCountry($log['ip'])], $logs);
+			$logs = array_map(fn(array $log): array => $log + ['country' => Helper::getCountry($log['ip'])], $logs);
 		}
 
 		$chart = null;

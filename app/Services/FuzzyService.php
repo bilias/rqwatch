@@ -26,6 +26,7 @@ use Psr\Log\LoggerInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 use Symfony\Component\HttpFoundation\Response;
 
@@ -207,7 +208,7 @@ final class FuzzyService
 				$q->where('qid', 'like', $like)
 					->orWhere('learned_by', 'like', $like)
 					->orWhere('api_server', 'like', $like)
-					->orWhereIn('id', function ($sub) use ($like, $table) {
+					->orWhereIn('id', function (QueryBuilder $sub) use ($like, $table) {
 						$sub->selectRaw('o.id')
 							// nosemgrep: rqwatch-raw-sql -- table name is an AppConfig constant
 							->fromRaw("{$table} o, JSON_TABLE(o.hashes, '$[*]' COLUMNS (h VARCHAR(128) PATH '$')) oj, " .

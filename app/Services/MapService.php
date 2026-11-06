@@ -29,6 +29,7 @@ use Psr\Log\LoggerInterface;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 use Exception;
@@ -135,7 +136,7 @@ final class MapService
 	public function getMapCombinedQuery(string $map_name, array $map_fields): Builder {
 		$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 
-		$query = $query->with(['user' => function ($query) {
+		$query = $query->with(['user' => function (BelongsTo $query) {
 							  $query->select('id', 'username', 'email');
 							}]);
 
@@ -359,7 +360,7 @@ final class MapService
 	): LengthAwarePaginator {
 
 		$query = MapCombined::select('*')
-								  ->with(['user' => function ($query) {
+								  ->with(['user' => function (BelongsTo $query) {
 										$query->select('id', 'username', 'email');
 								    }])
 								  ->orderBy('updated_at', 'DESC');
@@ -406,7 +407,7 @@ final class MapService
 	 */
 	public function getPaginatedAllMapCombined(int $page, string $url, array $filter_maps): LengthAwarePaginator {
 		$query = MapCombined::select('*')
-								  ->with(['user' => function ($query) {
+								  ->with(['user' => function (BelongsTo $query) {
 										$query->select('id', 'username', 'email');
 								    }])
 								  ->orderBy('updated_at', 'DESC');

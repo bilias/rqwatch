@@ -91,7 +91,7 @@ final class MailLogViruses extends AbstractMigration {
 		// virus mails without rows; the loop uses the same predicate as $total
 		$pending = fn (): Builder => $this->capsule::table(AppConfig::MAIL_LOGS_TABLE . ' as ml')
 			->where('ml.has_virus', 1)
-			->whereNotExists(function ($query) {
+			->whereNotExists(function (Builder $query) {
 				$query->selectRaw('1')
 					->from(AppConfig::MAIL_LOG_VIRUSES_TABLE . ' as v')
 					->whereColumn('v.mail_log_id', 'ml.id');

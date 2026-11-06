@@ -130,7 +130,7 @@ final class MapHitController extends ViewController
 				$ids = $service->entryHitMailIds(MapHitService::entryModel($config['model']), $entry, $window, $this->max_items);
 				$key = $config['model'] === 'MapCustom'
 					? (string) $found->getAttribute('pattern')
-					: implode(' | ', array_map(fn ($f) => (string) $found->getAttribute($f), $config['fields']));
+					: implode(' | ', array_map(fn (string $f) => (string) $found->getAttribute($f), $config['fields']));
 				$filter = ['filter' => 'Map entry', 'choice' => 'of ' . $config['description'], 'value' => $key];
 				$params = ['map' => $map, 'entry' => $entry, 'days' => $days];
 			} elseif (!$this->is_admin) {

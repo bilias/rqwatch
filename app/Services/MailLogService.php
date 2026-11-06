@@ -38,6 +38,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -315,7 +316,7 @@ final class MailLogService
 		$hits = fn (QueryBuilder $q): QueryBuilder => $q->selectRaw('1')
 			->from(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE . ' as sh')
 			->whereColumn('sh.mail_log_id', $id)
-			->where(function ($q) use ($ids) {
+			->where(function (QueryBuilder $q) use ($ids) {
 				$q->whereRaw('`sh`.`entry_model` <> 0');
 				if ($ids !== []) {
 					$q->orWhereIntegerInRaw('sh.symbol_id', $ids);
@@ -372,7 +373,7 @@ final class MailLogService
 
 		// non-admins match only their own addresses: no probing for co-recipients
 		$own = ($this->adminFieldsAllowed() || $this->is_admin === null) ? null : $this->getUserRecipientEmails();
-		$constrain = function ($q) use ($op, $email, $own): void {
+		$constrain = function (Builder $q) use ($op, $email, $own): void {
 			$q->where('recipient_email', $op, $email);
 			if ($own !== null) {
 				$q->whereIn('recipient_email', $own);
@@ -472,14 +473,14 @@ final class MailLogService
 		$av = DB::connection()->raw('`vf`.`av`' . $collate);
 		$id = $query->qualifyColumn('id');
 
-		$query->whereExists(function ($q) use ($name, $av, $op, $val, $id, $days) {
+		$query->whereExists(function (QueryBuilder $q) use ($name, $av, $op, $val, $id, $days) {
 			$q->selectRaw('1')
 				->from(AppConfig::MAIL_LOG_VIRUSES_TABLE . ' as vf')
 				->whereColumn('vf.mail_log_id', $id);
 			$this->whereDays($q, 'vf.created_day', $days);
-			$q->where(function ($q) use ($name, $av, $op, $val) {
+			$q->where(function (QueryBuilder $q) use ($name, $av, $op, $val) {
 				$q->where($name, $op, $val)
-					->orWhere(fn ($q) => $q->where('vf.name', '')->where($av, $op, $val));
+					->orWhere(fn (QueryBuilder $q): QueryBuilder => $q->where('vf.name', '')->where($av, $op, $val));
 			});
 		}, 'and', $negate);
 	}
@@ -529,7 +530,7 @@ final class MailLogService
 		}
 
 		$id = $query->qualifyColumn('id');
-		$query->whereExists(function ($q) use ($ids, $id, $days) {
+		$query->whereExists(function (QueryBuilder $q) use ($ids, $id, $days) {
 			$q->selectRaw('1')
 				->from(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE . ' as sh')
 				->whereColumn('sh.mail_log_id', $id)
@@ -850,8 +851,8 @@ final class MailLogService
 		unset($r);
 
 		usort($rows, $sort === 'score'
-			? fn ($a, $b) => [abs($b['avg_score']), $a['name']] <=> [abs($a['avg_score']), $b['name']]
-			: fn ($a, $b) => [$b['mails'], $a['name']] <=> [$a['mails'], $b['name']]);
+			? fn (array $a, array $b) => [abs($b['avg_score']), $a['name']] <=> [abs($a['avg_score']), $b['name']]
+			: fn (array $a, array $b) => [$b['mails'], $a['name']] <=> [$a['mails'], $b['name']]);
 		$rows = array_slice($rows, 0, $limit);
 
 		$extra = array_diff(array_keys($seen), self::SYMBOL_REPORT_ACTIONS);
@@ -933,9 +934,9 @@ final class MailLogService
 			->distinct()
 			->select('v.mail_log_id')
 			// not IF(name = '', av, name) = ?, which cannot use name_day_index
-			->where(function ($q) use ($virus) {
+			->where(function (QueryBuilder $q) use ($virus) {
 				$q->where('v.name', $virus)
-					->orWhere(fn ($q) => $q->where('v.name', '')->where('v.av', $virus));
+					->orWhere(fn (QueryBuilder $q): QueryBuilder => $q->where('v.name', '')->where('v.av', $virus));
 			})
 			// nosemgrep: rqwatch-raw-sql -- $window checked against VirusService::WINDOWS by the caller
 			->whereRaw('v.created_day ' . VirusService::WINDOW_SQL[$window])
@@ -1732,7 +1733,7 @@ final class MailLogService
 		// Build list of allowed recipient emails: primary + aliases
 		$emails = $this->getUserRecipientEmails();
 
-		return $query->whereExists(function ($q) use ($emails) {
+		return $query->whereExists(function (QueryBuilder $q) use ($emails) {
 			$q->selectRaw('1')
 				->from(AppConfig::MAIL_LOG_RECIPIENTS_TABLE . ' as r')
 				->whereColumn('r.mail_log_id', 'mail_logs.id')   // IMPORTANT: table name here
@@ -2387,7 +2388,7 @@ final class MailLogService
 		}
 
 		$emails = $this->getUserRecipientEmails();
-		return ['recipients' => fn ($q) => $q->whereIn('recipient_email', $emails)];
+		return ['recipients' => fn (HasMany $q): HasMany => $q->whereIn('recipient_email', $emails)];
 	}
 
 	/** @return array<int, string> */
