@@ -13,6 +13,7 @@ namespace App\Core\Auth;
 use Jumbojett\OpenIDConnectClient;
 use Jumbojett\OpenIDConnectClientException;
 
+/** @psalm-suppress PropertyNotSetInConstructor $accessToken and $idToken are the library's, set by authenticate() */
 final class RqwatchOpenIDConnectClient extends OpenIDConnectClient
 {
 	public function getEndSessionEndpoint(): string {
