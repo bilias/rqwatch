@@ -1495,6 +1495,7 @@ final class MailLogService
 		$hdr_ar = $parser->getHeaders();
 		$received = $hdr_ar['received'];
 		*/
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no headers */
 		if ($log->headers) {
 			$received = Helper::extract_mail_relays($log->headers);
 		} else {
@@ -2312,6 +2313,7 @@ final class MailLogService
 
 		$ids = [];
 		foreach ($mailLogs as $mailLog) {
+			/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no location; '0' would make dirname() '.' */
 			if ($mailLog->mail_location) {
 				$dirPath = dirname($mailLog->mail_location);
 				if (Helper::deleteDirectory($dirPath)) {
