@@ -84,7 +84,12 @@ final class CronCleanupDb extends RqwatchCliCommand
 		// MailLog Collection
 		$local = '';
 		if ($local_only) {
-			$server = $_ENV['MY_API_SERVER_ALIAS'];
+			$server = (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '');
+			if ($server === '') {
+				$output->writeln('<error>--local needs MY_API_SERVER_ALIAS in .env</error>');
+				$this->fileLogger->error("{$this->app_name} --local needs MY_API_SERVER_ALIAS in .env");
+				return Command::FAILURE;
+			}
 			$query = $service->getCleanUpDb($output, $server);
 			$local = " on server: {$server}";
 		} else {
