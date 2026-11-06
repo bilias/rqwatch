@@ -59,6 +59,7 @@ final class Config {
 		})();
 
 		$after = (function () use ($path) {
+			/** @psalm-suppress UnresolvableInclude the config file is chosen at runtime */
 			require $path;
 			$vars = get_defined_vars();
 			unset($vars['path']); // remove $path from variables
