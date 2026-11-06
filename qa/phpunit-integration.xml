@@ -15,6 +15,7 @@
 			<directory>../tests/Integration/Scoping</directory>
 			<directory>../tests/Integration/Maps</directory>
 			<directory>../tests/Integration/Search</directory>
+			<directory>../tests/Integration/Fuzzy</directory>
 			<directory>../tests/Integration/Delivery</directory>
 		</testsuite>
 	</testsuites>
