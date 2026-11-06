@@ -30,7 +30,7 @@ use Throwable;
 
 abstract class AbstractMigration {
 
-	protected const MIGRATION_NAME = '';
+	protected const string MIGRATION_NAME = '';
 
 	protected Capsule $capsule;
 	protected LoggerInterface $fileLogger;
