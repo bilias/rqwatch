@@ -15,6 +15,10 @@
 		<testsuite name="routing">
 			<directory>../tests/Unit/Routing</directory>
 		</testsuite>
+		<!-- authentication backends without their servers (LdapAuth attribute reading) -->
+		<testsuite name="auth">
+			<directory>../tests/Unit/Auth</directory>
+		</testsuite>
 		<!-- parsed mail objects (MailObject) -->
 		<testsuite name="inventory">
 			<directory>../tests/Unit/Inventory</directory>
