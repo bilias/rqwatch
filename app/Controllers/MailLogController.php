@@ -43,6 +43,7 @@ use App\Inventory\MapInventory;
 
 use App\Core\Exception\QueryTimeoutException;
 
+use DateTimeImmutable;
 use Exception;
 use InvalidArgumentException;
 use Throwable;
@@ -211,7 +212,7 @@ final class MailLogController extends ViewController
 			$filters[] = [
 				'filter' => 'Date',
 				'choice' => 'is less than or equal',
-				'value' => date('Y-m-t', strtotime("{$month}-01")) // @phpstan-ignore argument.type ($month matched ^\d{4}-\d{2}$ and checkdate(), so strtotime() cannot fail)
+				'value' => (new DateTimeImmutable("{$month}-01"))->format('Y-m-t')
 			];
 			$queryParams['month'] = $month;
 		}
@@ -1280,7 +1281,7 @@ final class MailLogController extends ViewController
 	}
 
 	public function search_filter_add_week(): RedirectResponse {
-		$last_7_days = date("Y-m-d", strtotime("-6 days"));
+		$last_7_days = (new DateTimeImmutable('-6 days'))->format('Y-m-d');
 		$last_7_days_filter = array(
 			'filter' => 'Date',
 			'choice' => 'is greater than or equal',
@@ -1296,7 +1297,7 @@ final class MailLogController extends ViewController
 	}
 
 	public function search_filter_add_month(): RedirectResponse {
-		$last_31_days = date("Y-m-d", strtotime("-30 days"));
+		$last_31_days = (new DateTimeImmutable('-30 days'))->format('Y-m-d');
 		$last_31_days_filter = array(
 			'filter' => 'Date',
 			'choice' => 'is greater than or equal',
@@ -1453,7 +1454,7 @@ final class MailLogController extends ViewController
 		}
 
 		$from = min($keys) . '-01';
-		$to = date('Y-m-t', strtotime(max($keys) . '-01')); // @phpstan-ignore argument.type (month keys are DATE_FORMAT() months, so strtotime() cannot fail)
+		$to = (new DateTimeImmutable(max($keys) . '-01'))->format('Y-m-t');
 
 		$totals = [];
 		foreach ($service->getDailyTotals($from, $to) as $day => $total) {
