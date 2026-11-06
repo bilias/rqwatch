@@ -105,6 +105,7 @@ final class AuthManager
 	}
 
 	public function logoutOpenIdConnect(?string $idToken): bool {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no token too: fail closed */
 		if (empty($idToken)) {
 			$this->logger->error("Empty OpenID ID Token");
 			return false;

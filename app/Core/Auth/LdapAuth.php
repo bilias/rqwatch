@@ -256,6 +256,7 @@ final class LdapAuth implements AuthInterface {
 
 	#[\Override]
 	public function getAuthenticatedUser(): string {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
@@ -263,6 +264,7 @@ final class LdapAuth implements AuthInterface {
 	}
 
 	public function getIsAdmin(): bool {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
@@ -270,6 +272,7 @@ final class LdapAuth implements AuthInterface {
 	}
 
 	public function getEmail(): ?string {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
@@ -278,6 +281,7 @@ final class LdapAuth implements AuthInterface {
 
 	/** @return list<string> */
 	public function getEmailAliases(): array {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
@@ -285,6 +289,7 @@ final class LdapAuth implements AuthInterface {
 	}
 
 	public function getFirstName(): ?string {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
@@ -292,6 +297,7 @@ final class LdapAuth implements AuthInterface {
 	}
 
 	public function getLastName(): ?string {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}

@@ -46,6 +46,7 @@ final class BasicAuth implements AuthInterface {
 
 	#[\Override]
 	public function authenticate(): bool {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no credentials too: fail closed */
 		if (empty($_SERVER['PHP_AUTH_USER']) || empty($_SERVER['PHP_AUTH_PW'])) {
 			$this->doBasicAuth(); // and exit
 		}
@@ -81,6 +82,7 @@ final class BasicAuth implements AuthInterface {
 
 	#[\Override]
 	public function getAuthenticatedUser(): string {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}

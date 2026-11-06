@@ -39,6 +39,7 @@ final class GetMailApi extends RqwatchApi
 		$id = $this->request->request->getInt('id');
 		$remote_user = $this->request->request->get('remote_user');
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (empty($remote_user)) {
 			$err_msg = "{$this->clientIp} requested mail without a calling user email";
 			$response_msg = "Missing Required info";

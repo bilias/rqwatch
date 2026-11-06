@@ -82,6 +82,7 @@ final class MapService
 			return $query;
 		}
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison '0' counts as no email too: fail closed */
 		if (empty($this->email)) {
 			return $query->where('id', null);
 		}
@@ -867,6 +868,7 @@ final class MapService
 			return false;
 		}
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison 0 is no user id too: fail closed */
 		if (empty($this->user_id)) {
 			$this->logger->warning("[addMapCombinedEntry] empty user_id");
 			return false;
@@ -938,6 +940,7 @@ final class MapService
 		}
 		$id = (int) $data['id'];
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison 0 is no user id too: fail closed */
 		if (empty($this->user_id)) {
 			$this->logger->warning("[updateMapCombinedEntry] empty user_id");
 			return false;

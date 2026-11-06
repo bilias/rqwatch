@@ -76,6 +76,7 @@ final class DbAuth implements AuthInterface {
 
 	#[\Override]
 	public function getAuthenticatedUser(): string {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
@@ -83,6 +84,7 @@ final class DbAuth implements AuthInterface {
 	}
 
 	public function getIsAdmin(): bool {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
@@ -90,6 +92,7 @@ final class DbAuth implements AuthInterface {
 	}
 
 	public function getEmail(): ?string {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
@@ -97,6 +100,7 @@ final class DbAuth implements AuthInterface {
 	}
 
 	public function getId(): ?int {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
 		if (!$this->authenticatedUser) {
 			throw new RuntimeException("No user authenticated. We should not call this! (" . __METHOD__ . ")");
 		}
