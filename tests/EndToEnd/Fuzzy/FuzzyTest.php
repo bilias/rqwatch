@@ -64,15 +64,6 @@ final class FuzzyTest extends EndToEndTestCase
 		self::waitForFuzzy($body, false);
 	}
 
-	/** Text of over 1 KB, which rspamd needs to hash a mail; distinct per seed. */
-	private static function fuzzyBody(string $seed): string {
-		$words = [];
-		for ($i = 0; count($words) < 300; $i++) {
-			$words[] = substr(sha1("{$seed}-{$i}"), 0, 4 + $i % 5);
-		}
-		return wordwrap(implode(' ', $words), 72, "\r\n");
-	}
-
 	/** Calls this instance's fuzzy API as a web node would; returns the reply body, fails unless 200. */
 	private static function fuzzyApi(string $action, int $id, ?int $flag = null): string {
 		$fields = ['remote_user' => 'import-test', 'action' => $action, 'id' => (string) $id];
@@ -92,25 +83,5 @@ final class FuzzyTest extends EndToEndTestCase
 			throw new RuntimeException("fuzzy API {$action} of {$id} answered {$status}: {$body}");
 		}
 		return $body;
-	}
-
-	/**
-	 * The fuzzy storage applies changes in batches (sync = 1s in the test):
-	 * probe until a copy of $body does, or no longer does, hit the learned hash.
-	 */
-	private static function waitForFuzzy(string $body, bool $hits): void {
-		$deadline = microtime(true) + (float) self::WAIT_SECONDS;
-		do {
-			$qid = 'PROBE' . strtoupper(bin2hex(random_bytes(4)));
-			$headers = self::scanHeaders($qid, self::IP, self::MAIL_FROM, [self::RCPT]);
-			$headers[] = 'Settings: {symbols_disabled = ["EXPORT_METADATA_RQWATCH"]}';
-			$reply = self::scan(self::message($qid, 'Probe', 'clean', self::MIME_FROM, body: $body), $headers);
-			if (isset($reply['symbols']['RQWATCH_FUZZY_DENIED']) === $hits) {
-				return;
-			}
-			usleep(500000);
-		} while (microtime(true) < $deadline);
-
-		throw new RuntimeException('Fuzzy storage did not ' . ($hits ? 'learn' : 'forget') . ' the hash within ' . self::WAIT_SECONDS . 's');
 	}
 }

@@ -23,7 +23,7 @@
 namespace Tests\Integration\Scoping;
 
 use Tests\Integration\IntegrationTestCase;
-use Tests\Integration\WebClient;
+use Tests\WebClient;
 
 final class MapEntryScopingTest extends IntegrationTestCase
 {

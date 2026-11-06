@@ -307,6 +307,44 @@ abstract class EndToEndTestCase extends TestCase
 		}
 	}
 
+	/** Text of over 1 KB, which rspamd needs to hash a mail; distinct per seed. */
+	protected static function fuzzyBody(string $seed): string {
+		$words = [];
+		for ($i = 0; count($words) < 300; $i++) {
+			$words[] = substr(sha1("{$seed}-{$i}"), 0, 4 + $i % 5);
+		}
+		return wordwrap(implode(' ', $words), 72, "\r\n");
+	}
+
+	/**
+	 * The score of RQWATCH_FUZZY_DENIED for a copy of $body, null without
+	 * the symbol. A probe: not exported.
+	 */
+	protected static function fuzzyScore(string $body): ?float {
+		$qid = 'PROBE' . strtoupper(bin2hex(random_bytes(4)));
+		$headers = self::scanHeaders($qid, self::IP, self::MAIL_FROM, [self::RCPT]);
+		$headers[] = 'Settings: {symbols_disabled = ["EXPORT_METADATA_RQWATCH"]}';
+		$reply = self::scan(self::message($qid, 'Probe', 'clean', self::MIME_FROM, body: $body), $headers);
+		$symbol = $reply['symbols']['RQWATCH_FUZZY_DENIED'] ?? null;
+		return is_array($symbol) ? (float) $symbol['score'] : null;
+	}
+
+	/**
+	 * The fuzzy storage applies changes in batches (sync = 1s in the test):
+	 * probe until a copy of $body does, or no longer does, hit the learned hash.
+	 */
+	protected static function waitForFuzzy(string $body, bool $hits): void {
+		$deadline = microtime(true) + (float) self::WAIT_SECONDS;
+		do {
+			if ((self::fuzzyScore($body) !== null) === $hits) {
+				return;
+			}
+			usleep(500000);
+		} while (microtime(true) < $deadline);
+
+		throw new RuntimeException('Fuzzy storage did not ' . ($hits ? 'learn' : 'forget') . ' the hash within ' . self::WAIT_SECONDS . 's');
+	}
+
 	/**
 	 * The mail_logs row of a test mail, by its unique Message-ID, once the
 	 * exporter's post has been imported.

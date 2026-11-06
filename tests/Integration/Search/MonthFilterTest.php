@@ -19,7 +19,7 @@ namespace Tests\Integration\Search;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Integration\IntegrationTestCase;
-use Tests\Integration\WebClient;
+use Tests\WebClient;
 
 final class MonthFilterTest extends IntegrationTestCase
 {

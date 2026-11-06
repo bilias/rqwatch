@@ -21,7 +21,7 @@ namespace Tests\Integration\Maps;
 
 use PHPUnit\Framework\Attributes\TestDox;
 use Tests\Integration\IntegrationTestCase;
-use Tests\Integration\WebClient;
+use Tests\WebClient;
 
 final class EditEntryTest extends IntegrationTestCase
 {

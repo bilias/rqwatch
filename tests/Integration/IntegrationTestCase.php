@@ -24,6 +24,7 @@ use App\Models\MailLog;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use Tests\Mailpit;
+use Tests\WebClient;
 use RuntimeException;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\RequestContext;

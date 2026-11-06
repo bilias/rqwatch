@@ -7,12 +7,13 @@
  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-namespace Tests\Integration;
+namespace Tests;
 
 use RuntimeException;
 
-// Minimal browser for the integration tests: one cookie jar per user, no
-// redirect following, so tests see exactly what each request returns.
+// Minimal browser for the integration and end-to-end tests: one cookie jar
+// per user, no redirect following, so tests see exactly what each request
+// returns.
 final class WebClient
 {
 	private string $jar;

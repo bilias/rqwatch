@@ -17,7 +17,9 @@
 # spool; E2E_REDIS=0 runs the importer with REDIS_ENABLE=false (the spool tests
 # skip). Run it both ways. MariaDB, Redis and rspamd run as rootless Podman
 # containers, rspamd on the host network so it reaches the web server on
-# loopback.
+# loopback. The admin pages are served too, for the web side of fuzzy
+# learning; mx2 is a second storing node whose API is this copy's own, so a
+# learn of an mx2 mail goes through fuzzy_mail.php as on a remote node.
 # -v prints one line per test (local runs); other arguments go to phpunit.
 # Run from the project root.
 set -euo pipefail
@@ -47,10 +49,15 @@ NORMAL_PORT=$(free_port)
 CONTROLLER_PORT=$(free_port)
 PROXY_PORT=$(free_port)
 FUZZY_PORT=$(free_port)
+UI_PORT=$(free_port)
+ADMIN_PASS=$("$PHP" -r 'echo bin2hex(random_bytes(16));')
 API_PASS=$("$PHP" -r 'echo bin2hex(random_bytes(16));')
 MAIL_API_PASS=$("$PHP" -r 'echo bin2hex(random_bytes(16));')
 APP_DB_PASS=$("$PHP" -r 'echo bin2hex(random_bytes(16));')
 write_env -e "s#^MY_API_SERVER_ALIAS=.*#MY_API_SERVER_ALIAS=mx1#" \
+	-e "s#^WEB_HOST=.*#WEB_HOST=127.0.0.1:${UI_PORT}#" \
+	-e "s#^WEB_HOST_NOTIFICATIONS=.*#WEB_HOST_NOTIFICATIONS=127.0.0.1:${UI_PORT}#" \
+	-e "s#^WEB_SCHEME=.*#WEB_SCHEME=http#" \
 	-e "s#^DB_HOST=.*#DB_HOST=127.0.0.1#" \
 	-e "s#^DB_PORT=.*#DB_PORT=${DB_PORT}#" \
 	-e "s#^DB_NAME=.*#DB_NAME=rqwatch#" \
@@ -73,11 +80,20 @@ cat > config/config.local.php <<PHP
 \$mail_fallback_charset = 'Windows-1253';
 \$admin_notification_rcpt = '${ADMIN_RCPT}';
 \$fuzzy_learn_enable = true;
-\$API_SERVERS = ['mx1' => [
-	'url' => 'http://127.0.0.1:${WEB_PORT}',
-	'fuzzy_url' => 'http://127.0.0.1:${CONTROLLER_PORT}',
-	'options' => [],
-]];
+\$API_SERVERS = [
+	'mx1' => [
+		'url' => 'http://127.0.0.1:${WEB_PORT}',
+		'fuzzy_url' => 'http://127.0.0.1:${CONTROLLER_PORT}',
+		'stat_url' => 'http://127.0.0.1:${CONTROLLER_PORT}/stat',
+		'options' => [],
+	],
+	'mx2' => [
+		'url' => 'http://127.0.0.1:${WEB_PORT}',
+		'fuzzy_url' => 'http://127.0.0.1:${CONTROLLER_PORT}',
+		'stat_url' => 'http://127.0.0.1:${CONTROLLER_PORT}/stat',
+		'options' => [],
+	],
+];
 PHP
 
 $DB_EXEC < contrib/db-init.sql
@@ -86,7 +102,7 @@ $DB_EXEC < contrib/db-init.sql
 $DB_EXEC -e "CREATE USER 'rqwatch'@'%' IDENTIFIED BY '${APP_DB_PASS}'; GRANT ALL ON rqwatch.* TO 'rqwatch'@'%'"
 
 # map entries (owned by an admin) and the map files rspamd reads
-"$PHP" bin/cli.php user:add -a -p "$("$PHP" -r 'echo bin2hex(random_bytes(16));')" admin admin@rqwatch.test >/dev/null
+"$PHP" bin/cli.php user:add -a -p "$ADMIN_PASS" admin admin@rqwatch.test >/dev/null
 $DB_EXEC rqwatch < tests/EndToEnd/fixtures.sql
 mkdir -p web/maps
 "$PHP" bin/cli.php cron:updatemapfiles
@@ -125,11 +141,13 @@ cp contrib/rspamd/local.d/force_actions.conf contrib/rspamd/local.d/actions.conf
 cp tests/EndToEnd/rspamd/rspamd.local.lua rspamd/
 chmod -R a+rX rspamd
 
-# web server: only the API and the map files are needed, so no router for php -S
+# web server: the API and the map files on WEB_PORT, the admin pages on
+# UI_PORT (php -S serves web/api/*.php only without the router)
 if [ "$QA_WEB" = container ]; then
-	start_web_container /css/style.css "$WEB_PORT"
+	start_web_container /css/style.css "$WEB_PORT" "$UI_PORT"
 else
 	start_web "$WEB_PORT" /css/style.css
+	start_web "$UI_PORT" /login qa/php-router.php
 fi
 
 # rspamd
@@ -157,6 +175,8 @@ E2E_ROOT="$WORK" \
 E2E_REDIS_PORT="$REDIS_PORT" \
 E2E_REDIS_ENABLED="$REDIS_ENABLE" \
 E2E_WEB_URL="http://127.0.0.1:${WEB_PORT}" \
+E2E_UI_URL="http://127.0.0.1:${UI_PORT}" \
+E2E_ADMIN_PASS="$ADMIN_PASS" \
 E2E_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \
 E2E_MAIL_API_PASS="$MAIL_API_PASS" \
 E2E_QUARANTINE_DIR="${WORK}/q" \

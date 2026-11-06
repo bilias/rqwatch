@@ -20,7 +20,7 @@ namespace Tests\Integration\Fuzzy;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Integration\IntegrationTestCase;
-use Tests\Integration\WebClient;
+use Tests\WebClient;
 
 final class SearchTest extends IntegrationTestCase
 {
