@@ -19,6 +19,10 @@
 		<testsuite name="auth">
 			<directory>../tests/Unit/Auth</directory>
 		</testsuite>
+		<!-- Twig filters and functions (RqwatchExtension) -->
+		<testsuite name="twig">
+			<directory>../tests/Unit/Twig</directory>
+		</testsuite>
 		<!-- parsed mail objects (MailObject) -->
 		<testsuite name="inventory">
 			<directory>../tests/Unit/Inventory</directory>

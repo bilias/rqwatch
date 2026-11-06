@@ -180,7 +180,8 @@ final class RqwatchExtension extends AbstractExtension
 		$out = '';
 		foreach ($parts as $i => $part) {
 			// even indexes: separators, odd indexes: words
-			$mixed = $i % 2 === 1 && preg_match('/\p{L}/u', $part)
+			// a format char is marked even with no letter next to it (U+202E before a space)
+			$mixed = $i % 2 === 1
 				&& (preg_match('/\p{Cf}/u', $part)
 					|| (preg_match('/\p{Latin}/u', $part) && preg_match('/(?!\p{Latin})\p{L}/u', $part)));
 			if (!$mixed) {
