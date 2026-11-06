@@ -26,7 +26,7 @@ if ($web === false) {
 }
 
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-$path = parse_url(is_string($requestUri) ? $requestUri : '/', PHP_URL_PATH);
+$path = parse_url($requestUri, PHP_URL_PATH);
 $file = is_string($path) ? realpath($web . rawurldecode($path)) : false;
 // inside web/ only (realpath has resolved any ..), and never a PHP file
 if ($file !== false && str_starts_with($file, $web . '/') && is_file($file) && !str_ends_with($file, '.php')) {
