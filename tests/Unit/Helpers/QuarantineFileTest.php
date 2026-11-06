@@ -18,6 +18,7 @@ namespace Tests\Unit\Helpers;
 
 use App\Utils\Helper;
 use PHPUnit\Framework\Attributes\RequiresFunction;
+use RuntimeException;
 use Tests\Unit\UnitTestCase;
 
 final class QuarantineFileTest extends UnitTestCase
@@ -55,7 +56,11 @@ final class QuarantineFileTest extends UnitTestCase
 		if (!is_dir($path)) {
 			return;
 		}
-		foreach (array_diff(scandir($path) ?: [], ['.', '..']) as $entry) {
+		$entries = scandir($path);
+		if ($entries === false) {
+			throw new RuntimeException("Cannot read {$path}");
+		}
+		foreach (array_diff($entries, ['.', '..']) as $entry) {
 			self::rmTree("{$path}/{$entry}");
 		}
 		rmdir($path);

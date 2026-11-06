@@ -308,8 +308,8 @@ abstract class IntegrationTestCase extends TestCase
 		$this->assertNotSame('', $csp, "{$what}: Content-Security-Policy");
 		$directives = [];
 		foreach (explode(';', $csp) as $part) {
-			$tokens = preg_split('/\s+/', trim($part), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-			if ($tokens !== []) {
+			$tokens = preg_split('/\s+/', trim($part), -1, PREG_SPLIT_NO_EMPTY);
+			if (is_array($tokens) && $tokens !== []) {
 				$directives[strtolower(array_shift($tokens))] = $tokens;
 			}
 		}
