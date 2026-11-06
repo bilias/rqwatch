@@ -23,7 +23,7 @@
 		<testsuite name="twig">
 			<directory>../tests/Unit/Twig</directory>
 		</testsuite>
-		<!-- Kernel boot decisions (which CLI commands run on an unmigrated database) and RedisCache replies -->
+		<!-- Kernel boot decisions (which CLI commands run on an unmigrated database), RedisCache replies and the config cache -->
 		<testsuite name="core">
 			<directory>../tests/Unit/Core</directory>
 		</testsuite>
