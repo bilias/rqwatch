@@ -107,10 +107,12 @@ write_env -e "s#^WEB_HOST=.*#WEB_HOST=127.0.0.1:${WEB_PORT}#" \
 # no rspamd runs, so its stat_url fails fast, as the smoke test expects. Admin
 # notifications go to ADMIN_RCPT, for rows a test enrolls (admin_notified = 0)
 ADMIN_RCPT=admin-notify@example.org
-# no rspamd here: no statistics fetching, which would log an ERROR per admin page
+# no rspamd here: no statistics fetching, which would log an ERROR per admin page;
+# fuzzy learning on but no fuzzy_url, so fuzzy_mail.php refuses before rspamd
 cat > config/config.local.php <<PHP
 <?php
 \$rspamd_stat_disable = true;
+\$fuzzy_learn_enable = true;
 \$admin_notification_rcpt = '${ADMIN_RCPT}';
 \$API_SERVERS = ['mx2' => [
 	'url' => 'http://127.0.0.1:${API_PORT}',
