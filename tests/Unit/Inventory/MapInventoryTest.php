@@ -11,7 +11,8 @@
 /*
  MapInventory's map config check: every config, built-in or custom from
  the DB, needs model, fields, map_form and access, a known model and a
- non-empty list of field names, or getMapConfigs() throws.
+ non-empty list of field names, or getMapConfigs() throws. And the IP or
+ CIDR check of the ip map fields: host bits clear, with a suggestion.
 */
 
 namespace Tests\Unit\Inventory;
@@ -21,6 +22,8 @@ use App\Inventory\MapInventory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;
 use RuntimeException;
+use Symfony\Component\Validator\Constraints\Callback;
+use Symfony\Component\Validator\Validation;
 use Tests\Unit\UnitTestCase;
 
 final class MapInventoryTest extends UnitTestCase
@@ -72,6 +75,46 @@ final class MapInventoryTest extends UnitTestCase
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage($message);
 		$this->check(['m' => $config]);
+	}
+
+	/** @return array<string, array{mixed, string|null}> */
+	public static function ipOrCidrCases(): array {
+		$invalid = 'Invalid IP address or CIDR network.';
+		return [
+			'IPv4 network' => ['10.0.0.0/8', null],
+			'IPv4 address' => ['10.0.0.1', null],
+			'IPv4 /32' => ['10.0.0.1/32', null],
+			'IPv4 /0' => ['0.0.0.0/0', null],
+			'IPv6 address' => ['::1', null],
+			'IPv6 network' => ['2001:db8::/32', null],
+			'IPv6 /128' => ['2001:db8::1/128', null],
+			'IPv4 host bits' => ['10.1.2.3/8', '10.1.2.3/8 is not a network address; did you mean 10.0.0.0/8?'],
+			'IPv4 host bits, not on a byte' => ['192.168.1.77/26', '192.168.1.77/26 is not a network address; did you mean 192.168.1.64/26?'],
+			'IPv4 /0 with host bits' => ['10.0.0.0/0', '10.0.0.0/0 is not a network address; did you mean 0.0.0.0/0?'],
+			'IPv6 host bits' => ['2001:db8::1/32', '2001:db8::1/32 is not a network address; did you mean 2001:db8::/32?'],
+			'IPv4 prefix too long' => ['10.0.0.0/33', $invalid],
+			'IPv6 prefix too long' => ['2001:db8::/129', $invalid],
+			'prefix with a leading zero' => ['10.0.0.0/08', $invalid],
+			'empty prefix' => ['10.0.0.0/', $invalid],
+			'prefix not a number' => ['10.0.0.0/x', $invalid],
+			'octet out of range' => ['300.1.1.1', $invalid],
+			'not an IP' => ['bad/8', $invalid],
+			// left to NotBlank on the field
+			'empty' => ['', null],
+			'not a string' => [5, null],
+			'null' => [null, null],
+		];
+	}
+
+	#[DataProvider('ipOrCidrCases')]
+	public function testValidateIpOrCidr(mixed $value, ?string $message): void {
+		$violations = Validation::createValidator()
+			->validate($value, new Callback([MapInventory::class, 'validateIpOrCidr']));
+		$messages = [];
+		foreach ($violations as $violation) {
+			$messages[] = (string) $violation->getMessage();
+		}
+		$this->assertSame($message === null ? [] : [$message], $messages);
 	}
 
 	/** @param array<string, array<string, mixed>> $configs */
