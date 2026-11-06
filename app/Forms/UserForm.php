@@ -98,9 +98,8 @@ final class UserForm extends AbstractType
 					],
 					*/
 					'constraints' => [
-						new Assert\When(fn($value) => !empty($value),
-							[new Assert\Length(min: 8, max: 128), ],
-						),
+						// skips '' and null, so the password can be left empty
+						new Assert\Length(min: 8, max: 128),
 					],
 				],
 				'first_options'  => [
