@@ -20,7 +20,6 @@ namespace Tests\Unit\Inventory;
 
 use App\Inventory\MailObject;
 use App\Models\MailLog;
-use PhpMimeMailParser\Parser;
 use PHPUnit\Framework\Attributes\TestDox;
 use Tests\Unit\UnitTestCase;
 
@@ -119,7 +118,6 @@ final class MailObjectTest extends UnitTestCase
 		$mail .= "--B--\r\n";
 
 		$object = new MailObject(['log' => new MailLog(['mail_stored' => true]), 'symbols' => [], 'virus_found' => null, 'received' => null]);
-		$object->setParser(new Parser());
 		$object->setText($mail);
 		$object->setMessageBody();
 		return $object->getHtmlBody();

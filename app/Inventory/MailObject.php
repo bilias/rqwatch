@@ -26,7 +26,9 @@ final class MailObject
 	private array $symbols;
 	private bool $mail_stored;
 	private ?string $mail_location;
+	/** @psalm-suppress PropertyNotSetInConstructor set by setMessageBody() */
 	private string $htmlBody;
+	/** @psalm-suppress PropertyNotSetInConstructor set by setMessageBody() */
 	private string $textBody;
 	/** @var array<int, array{filename: string, filetype: string}> */
 	private array $attached = [];
@@ -40,6 +42,7 @@ final class MailObject
 		$this->maillog = $ar['log'];
 		$this->mail_stored = $this->maillog->mail_stored;
 		$this->mail_location = $this->maillog->mail_location;
+		$this->parser = new Parser();
 	}
 
 	public function isMailStored(): bool {
@@ -48,10 +51,6 @@ final class MailObject
 
 	public function getMailLocation(): ?string {
 		return $this->mail_location;
-	}
-
-	public function setParser(Parser $parser): void {
-		$this->parser = $parser;
 	}
 
 	public function setPath(string $file): void {

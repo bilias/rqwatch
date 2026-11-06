@@ -1544,7 +1544,6 @@ final class MailLogService
 			throw new Exception($err);
 		}
 
-		$mailobject->setParser(new Parser());
 		$mailobject->setPath($location);
 		$mailobject->setMessageBody();
 		$mailobject->setAttached();
@@ -1635,7 +1634,6 @@ final class MailLogService
 			throw new Exception("Error. Contact admin");
 		}
 
-		$mailobject->setParser(new Parser());
 		$mailobject->setText($mail_file);
 		$mailobject->setMessageBody();
 		$mailobject->setAttached();
