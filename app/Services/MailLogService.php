@@ -1771,7 +1771,7 @@ final class MailLogService
 		}
 
 		// release means sending the stored original: refuse rather than send the notice without it
-		if (!$maillog->mail_stored || empty($maillog->mail_location) || !is_file($maillog->mail_location)) {
+		if (!$maillog->mail_stored || $maillog->mail_location === null || !is_file($maillog->mail_location)) {
 			$this->logger->error("[releaseHtmlMail] {$maillog->qid}: not in quarantine or file missing: " . ($maillog->mail_location ?? 'no location'));
 			return false;
 		}
