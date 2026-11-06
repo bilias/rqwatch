@@ -19,8 +19,8 @@
  /css/style.css with the homepage.
 */
 
-$web = __DIR__ . '/../web';
-if (!is_dir($web)) {
+$web = realpath(__DIR__ . '/../web');
+if ($web === false) {
 	http_response_code(500);
 	exit("qa/php-router.php: web/ not found\n");
 }
