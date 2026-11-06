@@ -340,7 +340,7 @@ final class LdapAuth implements AuthInterface {
 
 		return array_values(array_filter(
 			$values,
-			fn($value) => is_string($value) && trim($value) !== ''
+			fn(mixed $value): bool => is_string($value) && trim($value) !== ''
 		));
 	}
 

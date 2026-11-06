@@ -120,7 +120,7 @@ final class Router
 
 			// Final callable that runs the controller
 			$controllerHandler = function (Request $request)
-				use ($controller, $arguments)
+				use ($controller, $arguments): Response
 			{
 				return call_user_func_array($controller, $arguments);
 				//return $controller(...$arguments);

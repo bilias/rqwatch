@@ -75,8 +75,8 @@ final class FormHelper
 		]);
 
 		$builder->get('disable_notifications')->addModelTransformer(new CallbackTransformer(
-			fn ($value) => $value === null ? 'default' : ($value ? 'off' : 'on'),
-			fn ($choice) => match ($choice) {
+			fn (?bool $value): string => $value === null ? 'default' : ($value ? 'off' : 'on'),
+			fn (?string $choice): ?bool => match ($choice) {
 				'on' => false,
 				'off' => true,
 				default => null,

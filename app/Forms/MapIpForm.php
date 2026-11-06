@@ -25,8 +25,8 @@ final class MapIpForm extends MapWithOneFieldForm
 
 		// store IPs in canonical form so duplicates compare equal
 		$builder->get(static::$fieldName)->addModelTransformer(new CallbackTransformer(
-			fn($value) => $value,
-			fn($value) => is_string($value) ? MapInventory::canonicalIpOrCidr($value) : $value,
+			fn(?string $value): ?string => $value,
+			fn(?string $value): ?string => $value === null ? null : MapInventory::canonicalIpOrCidr($value),
 		));
 	}
 

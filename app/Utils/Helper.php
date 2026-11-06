@@ -616,7 +616,7 @@ final class Helper {
 		$symbols_array = (string) json_encode(json_decode((string) $symbols, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
 		// no credentials on disk: Basic Auth and the .env secrets Dotenv puts in $_SERVER
-		$redact = fn(string $key, $value) => preg_match('/_PW$|PASS|SECRET|DSN|AUTHORIZATION/i', $key) ? '[redacted]' : $value;
+		$redact = fn(string $key, mixed $value): mixed => preg_match('/_PW$|PASS|SECRET|DSN|AUTHORIZATION/i', $key) ? '[redacted]' : $value;
 
 		if (!$fp_web_headers = fopen("{$dir}/web_headers", "w")) {
 			self::logger()->error("Cannot open file ({$dir}/web_headers)");
