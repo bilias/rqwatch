@@ -256,7 +256,8 @@ final class Kernel
 	// first non-option argv token, which is what Symfony resolves as the
 	// command name
 	private function cliCommandName(): string {
-		foreach (array_slice($_SERVER['argv'] ?? [], 1) as $arg) {
+		$argv = $_SERVER['argv'] ?? [];
+		foreach (array_slice($argv, 1) as $arg) {
 			if ($arg === '' || $arg[0] === '-') {
 				continue;
 			}
