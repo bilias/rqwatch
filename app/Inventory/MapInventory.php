@@ -417,7 +417,7 @@ final class MapInventory
 		if ($network !== $bin) {
 			$context->buildViolation('{{ value }} is not a network address; did you mean {{ network }}?')
 				->setParameter('{{ value }}', $value)
-				->setParameter('{{ network }}', inet_ntop($network) . '/' . (int) $prefix)
+				->setParameter('{{ network }}', (string) inet_ntop($network) . '/' . (int) $prefix)
 				->addViolation();
 		}
 	}
