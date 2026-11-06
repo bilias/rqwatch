@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -26,6 +27,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 final class FormHelper
 {
 	/**
+	 * @param class-string<FormTypeInterface<array<string, mixed>>> $formTypeClass
 	 * @param array<string, mixed>|null $data
 	 * @param array<string, mixed> $options
 	 */
