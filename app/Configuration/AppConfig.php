@@ -19,7 +19,7 @@ use RuntimeException;
 $root = realpath(__DIR__ . '/../..');
 
 if ($root === false) {
-    throw new RuntimeException('Cannot resolve the rqwatch root from ' . __DIR__);
+	throw new RuntimeException('Cannot resolve the rqwatch root from ' . __DIR__);
 }
 define('RQWATCH_ROOT', $root);
 
