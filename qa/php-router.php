@@ -25,7 +25,8 @@ if ($web === false) {
 	exit("qa/php-router.php: web/ not found\n");
 }
 
-$path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+$requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+$path = parse_url(is_string($requestUri) ? $requestUri : '/', PHP_URL_PATH);
 $file = is_string($path) ? realpath($web . rawurldecode($path)) : false;
 // inside web/ only (realpath has resolved any ..), and never a PHP file
 if ($file !== false && str_starts_with($file, $web . '/') && is_file($file) && !str_ends_with($file, '.php')) {
