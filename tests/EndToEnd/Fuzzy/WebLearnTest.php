@@ -13,7 +13,8 @@
  this node is learned here; one stored on mx2 goes through mx2's fuzzy API
  (qa/e2e-tests.sh points mx2 at this copy's own API). Identical content
  learned from two mails shares its digests: unlearn keeps them in rspamd
- until the last holder is unlearned.
+ until the last holder is unlearned. A mail that only resembles a learned one
+ matched its digest on arrival and is learned with digests of its own.
 */
 
 namespace Tests\EndToEnd\Fuzzy;
@@ -143,6 +144,36 @@ final class WebLearnTest extends EndToEndTestCase
 		$this->assertStringContainsString("Mail {$qidB} unlearned from fuzzy 'Not spam'", $page);
 		$this->assertStringNotContainsString('stays active in rspamd', $page);
 		self::waitUntil('no list hits', fn(): bool => self::fuzzyScores($body) === []);
+	}
+
+	#[TestDox('Fuzzy, near match: a mail that matched a learned one on arrival is learned with its own hashes, and the page says so')]
+	public function testNearMatchLearnsItsOwnHashes(): void {
+		$body = self::fuzzyBody('near-match');
+		[$qidA, , $rowA] = $this->import('spam', body: $body);
+		$a = (int) $rowA['id'];
+		$admin = self::admin();
+		self::learn($admin, $a, self::SPAM, 10);
+		$hashesA = self::hashes($a);
+		self::waitForFuzzy($body, true);
+
+		// three words changed: another digest, nearly the same shingles
+		$words = explode(' ', str_replace("\r\n", ' ', $body));
+		foreach ([50, 150, 250] as $i) {
+			$words[$i] = 'near' . $i;
+		}
+		[$qidB, $reply, $rowB] = $this->import('spam', body: wordwrap(implode(' ', $words), 72, "\r\n"));
+		$b = (int) $rowB['id'];
+		$this->assertArrayHasKey('RQWATCH_FUZZY_DENIED', $reply['symbols'], 'the changed copy matches the learned mail');
+		$matched = json_decode((string) self::query('SELECT fuzzy_hashes FROM mail_log_data WHERE mail_log_id = ?', [$b])[0]['fuzzy_hashes'], true);
+		$this->assertNotEmpty(array_intersect($hashesA, is_array($matched) ? $matched : []), 'stored with the learned digest it matched');
+		$this->assertSame(1, (int) self::query('SELECT hits FROM mail_log_fuzzy WHERE mail_log_id = ?', [$a])[0]['hits'], 'hit on the learned mail');
+
+		$page = self::learn($admin, $b, self::SPAM, 10);
+		$this->assertStringContainsString("Mail {$qidB} learned as fuzzy 'Spam' (weight 10)", $page);
+		$this->assertStringContainsString("This mail had already matched learned mail(s) {$qidA}: its own hashes were added as new entries", $page);
+		$this->assertStringNotContainsString('already learned via', $page);
+		$this->assertSame([], array_values(array_intersect(self::hashes($b), $hashesA)), 'its own digests, none shared');
+		$this->assertStringContainsString("Matched learned: {$qidA} (Spam)", strip_tags($page));
 	}
 
 	private static function admin(): WebClient {
