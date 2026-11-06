@@ -317,16 +317,28 @@ abstract class EndToEndTestCase extends TestCase
 	}
 
 	/**
-	 * The score of RQWATCH_FUZZY_DENIED for a copy of $body, null without
-	 * the symbol. A probe: not exported.
+	 * Our fuzzy symbols (RQWATCH_FUZZY_*) and their scores for a copy of
+	 * $body. A probe: not exported.
+	 * @return array<string, float>
 	 */
-	protected static function fuzzyScore(string $body): ?float {
+	protected static function fuzzyScores(string $body): array {
 		$qid = 'PROBE' . strtoupper(bin2hex(random_bytes(4)));
 		$headers = self::scanHeaders($qid, self::IP, self::MAIL_FROM, [self::RCPT]);
 		$headers[] = 'Settings: {symbols_disabled = ["EXPORT_METADATA_RQWATCH"]}';
 		$reply = self::scan(self::message($qid, 'Probe', 'clean', self::MIME_FROM, body: $body), $headers);
-		$symbol = $reply['symbols']['RQWATCH_FUZZY_DENIED'] ?? null;
-		return is_array($symbol) ? (float) $symbol['score'] : null;
+		$scores = [];
+		foreach ((array) $reply['symbols'] as $name => $symbol) {
+			if (str_starts_with((string) $name, 'RQWATCH_FUZZY_') && is_array($symbol)) {
+				$scores[(string) $name] = (float) $symbol['score'];
+			}
+		}
+		ksort($scores);
+		return $scores;
+	}
+
+	// the score of RQWATCH_FUZZY_DENIED (the Spam list) for a copy of $body, null without it
+	protected static function fuzzyScore(string $body): ?float {
+		return self::fuzzyScores($body)['RQWATCH_FUZZY_DENIED'] ?? null;
 	}
 
 	/**

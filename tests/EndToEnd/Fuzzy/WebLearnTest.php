@@ -11,7 +11,9 @@
  Fuzzy learning from the admin's mail detail page: learn with a weight, Add
  weight, unlearn, each checked in rspamd by scanning a copy. A mail stored on
  this node is learned here; one stored on mx2 goes through mx2's fuzzy API
- (qa/e2e-tests.sh points mx2 at this copy's own API).
+ (qa/e2e-tests.sh points mx2 at this copy's own API). Identical content
+ learned from two mails shares its digests: unlearn keeps them in rspamd
+ until the last holder is unlearned.
 */
 
 namespace Tests\EndToEnd\Fuzzy;
@@ -24,6 +26,12 @@ use Tests\WebClient;
 
 final class WebLearnTest extends EndToEndTestCase
 {
+	// the flags of config.php
+	private const SPAM = 11;
+	private const NOT_SPAM = 13;
+	// fuzzy_storage applies changes every second (sync = 1s in the test)
+	private const SYNC_WAIT = 3;
+
 	/** @return array<string, array{string}> */
 	public static function serverCases(): array {
 		return [
@@ -41,17 +49,13 @@ final class WebLearnTest extends EndToEndTestCase
 		if ($server !== self::SERVER) {
 			self::db()->prepare('UPDATE mail_logs SET server = ? WHERE id = ?')->execute([$server, $id]);
 		}
-		$admin = new WebClient((string) getenv('E2E_UI_URL'));
-		$admin->login('admin', (string) getenv('E2E_ADMIN_PASS'));
-		$detail = "/admin/detail/id/{$id}";
+		$admin = self::admin();
 
-		// learn as Spam (flag 11) with weight 7
-		[$action, $token] = self::form($admin->get($detail)['body'], '/fuzzy/learn/\d+/11');
-		$page = self::follow($admin, $admin->get($action . '?' . http_build_query(['_token' => $token, 'weight' => '7'])), $detail);
+		$page = self::learn($admin, $id, self::SPAM, 7);
 		$this->assertStringContainsString("Mail {$qid} learned as fuzzy 'Spam' (weight 7)", $page);
 		$record = self::query('SELECT id, flag, weight, api_server, learned_by FROM mail_log_fuzzy WHERE mail_log_id = ?', [$id]);
 		$this->assertCount(1, $record, 'mail_log_fuzzy record');
-		$this->assertSame([11, 7, $server, 'admin'],
+		$this->assertSame([self::SPAM, 7, $server, 'admin'],
 			[(int) $record[0]['flag'], (int) $record[0]['weight'], $record[0]['api_server'], $record[0]['learned_by']]);
 		self::waitForFuzzy($body, true);
 		$before = self::fuzzyScore($body);
@@ -59,16 +63,12 @@ final class WebLearnTest extends EndToEndTestCase
 
 		// Add weight 20: rspamd adds it to the learned value, so the score rises
 		[$action, $token] = self::form($page, '/fuzzy/boost/\d+');
-		$page = self::follow($admin, $admin->get($action . '?' . http_build_query(['_token' => $token, 'weight' => '20'])), $detail);
+		$page = self::follow($admin, $admin->get($action . '?' . http_build_query(['_token' => $token, 'weight' => '20'])), self::detail($id));
 		$this->assertStringContainsString("Mail {$qid}: weight +20 added to fuzzy 'Spam', now 27", $page);
 		$this->assertSame(27, (int) self::query('SELECT weight FROM mail_log_fuzzy WHERE mail_log_id = ?', [$id])[0]['weight']);
-		$this->assertGreaterThan($before, self::waitForScoreAbove($body, $before));
+		self::waitUntil('the score rises', fn(): bool => (self::fuzzyScore($body) ?? 0.0) > $before);
 
-		// unlearn
-		if (!preg_match('~href="([^"]*/fuzzy/unlearn/\d+\?_token=[^"]+)"~', $page, $m)) {
-			throw new RuntimeException('Unlearn link not found on the detail page');
-		}
-		$page = self::follow($admin, $admin->get(html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5)), $detail);
+		$page = self::unlearn($admin, $id);
 		$this->assertStringContainsString("Mail {$qid} unlearned from fuzzy 'Spam'", $page);
 		$this->assertSame([], self::query('SELECT id FROM mail_log_fuzzy WHERE mail_log_id = ?', [$id]), 'record deleted');
 		self::waitForFuzzy($body, false);
@@ -83,6 +83,95 @@ final class WebLearnTest extends EndToEndTestCase
 				$this->assertStringContainsString($line, $log);
 			}
 		}
+	}
+
+	#[TestDox('Fuzzy, two mails with the same content in one list: the first unlearn keeps the shared digests, the last removes them')]
+	public function testSharedDigestsInOneList(): void {
+		$body = self::fuzzyBody('shared-one-list');
+		[$qidA, , $rowA] = $this->import('spam', body: $body);
+		[$qidB, , $rowB] = $this->import('spam', body: $body);
+		[$a, $b] = [(int) $rowA['id'], (int) $rowB['id']];
+		$admin = self::admin();
+
+		self::learn($admin, $a, self::SPAM, 10);
+		$page = self::learn($admin, $b, self::SPAM, 10);
+		$this->assertStringContainsString("Mail {$qidB} learned as fuzzy 'Spam' (weight 10)", $page);
+		$this->assertStringContainsString("Its content was already learned via {$qidA}: this learn added its weight to the existing entry", $page);
+		$hashes = self::hashes($a);
+		$this->assertSame($hashes, self::hashes($b), 'the same digests');
+		self::waitForFuzzy($body, true);
+
+		$page = self::unlearn($admin, $a);
+		$this->assertStringContainsString("Mail {$qidA} unlearned from fuzzy 'Spam' (" . count($hashes) . ' hash(es) kept, shared with other learned mails)', $page);
+		$this->assertStringNotContainsString('stays active in rspamd', $page);
+		sleep(self::SYNC_WAIT);
+		$this->assertNotNull(self::fuzzyScore($body), 'kept digests still hit');
+
+		$page = self::unlearn($admin, $b);
+		$this->assertStringContainsString("Mail {$qidB} unlearned from fuzzy 'Spam'", $page);
+		$this->assertStringNotContainsString('kept', $page);
+		self::waitForFuzzy($body, false);
+	}
+
+	#[TestDox('Fuzzy, the same content in two lists: unlearn warns that the list\'s slot stays in rspamd until the other mail is unlearned')]
+	public function testSharedDigestsAcrossLists(): void {
+		$body = self::fuzzyBody('shared-two-lists');
+		[$qidA, , $rowA] = $this->import('spam', body: $body);
+		[$qidB, , $rowB] = $this->import('spam', body: $body);
+		[$a, $b] = [(int) $rowA['id'], (int) $rowB['id']];
+		$admin = self::admin();
+
+		self::learn($admin, $a, self::SPAM, 10);
+		$page = self::learn($admin, $b, self::NOT_SPAM, 10);
+		$this->assertStringContainsString("Mail {$qidB} learned as fuzzy 'Not spam' (weight 10)", $page);
+		$this->assertStringContainsString("The same content is also learned as 'Spam' via {$qidA}", $page);
+		self::waitUntil('both lists hit', fn(): bool =>
+			array_keys(self::fuzzyScores($body)) === ['RQWATCH_FUZZY_DENIED', 'RQWATCH_FUZZY_WHITE']);
+
+		$page = self::unlearn($admin, $a);
+		$this->assertStringContainsString("Mail {$qidA} unlearned from fuzzy 'Spam'", $page);
+		$this->assertStringContainsString("The 'Spam' entry stays active in rspamd: the same content is also learned via {$qidB} ('Not spam')", $page);
+		sleep(self::SYNC_WAIT);
+		$this->assertSame(['RQWATCH_FUZZY_DENIED', 'RQWATCH_FUZZY_WHITE'], array_keys(self::fuzzyScores($body)),
+			'the Spam slot stays with the shared digest');
+
+		$page = self::unlearn($admin, $b);
+		$this->assertStringContainsString("Mail {$qidB} unlearned from fuzzy 'Not spam'", $page);
+		$this->assertStringNotContainsString('stays active in rspamd', $page);
+		self::waitUntil('no list hits', fn(): bool => self::fuzzyScores($body) === []);
+	}
+
+	private static function admin(): WebClient {
+		$admin = new WebClient((string) getenv('E2E_UI_URL'));
+		$admin->login('admin', (string) getenv('E2E_ADMIN_PASS'));
+		return $admin;
+	}
+
+	private static function detail(int $id): string {
+		return "/admin/detail/id/{$id}";
+	}
+
+	// learns mail $id into list $flag from its detail page; returns the page it redirects to
+	private static function learn(WebClient $admin, int $id, int $flag, int $weight): string {
+		[$action, $token] = self::form($admin->get(self::detail($id))['body'], "/fuzzy/learn/\\d+/{$flag}");
+		return self::follow($admin, $admin->get($action . '?' . http_build_query(['_token' => $token, 'weight' => (string) $weight])), self::detail($id));
+	}
+
+	// unlearns mail $id from its detail page; returns the page it redirects to
+	private static function unlearn(WebClient $admin, int $id): string {
+		$page = html_entity_decode($admin->get(self::detail($id))['body'], ENT_QUOTES | ENT_HTML5);
+		if (!preg_match('~href="([^"]*/fuzzy/unlearn/\d+\?_token=[^"]+)"~', $page, $m)) {
+			throw new RuntimeException('Unlearn link not found on the detail page');
+		}
+		return self::follow($admin, $admin->get($m[1]), self::detail($id));
+	}
+
+	/** @return list<string> the learned digests of mail $id, sorted */
+	private static function hashes(int $id): array {
+		$hashes = json_decode((string) self::query('SELECT hashes FROM mail_log_fuzzy WHERE mail_log_id = ?', [$id])[0]['hashes'], true);
+		$hashes = is_array($hashes) ? array_map('strval', array_values($hashes)) : [];
+		sort($hashes);
+		return $hashes;
 	}
 
 	/**
@@ -108,16 +197,15 @@ final class WebLearnTest extends EndToEndTestCase
 		return html_entity_decode($client->get($path)['body'], ENT_QUOTES | ENT_HTML5);
 	}
 
-	// probes until a copy of $body scores above $score; returns the last score
-	private static function waitForScoreAbove(string $body, float $score): float {
+	// probes until $check holds, as the fuzzy storage applies its updates
+	private static function waitUntil(string $what, callable $check): void {
 		$deadline = microtime(true) + (float) self::WAIT_SECONDS;
 		do {
-			$now = self::fuzzyScore($body) ?? 0.0;
-			if ($now > $score) {
-				return $now;
+			if ($check()) {
+				return;
 			}
 			usleep(500000);
 		} while (microtime(true) < $deadline);
-		return $now;
+		throw new RuntimeException("Fuzzy storage: not within " . self::WAIT_SECONDS . "s: {$what}");
 	}
 }
