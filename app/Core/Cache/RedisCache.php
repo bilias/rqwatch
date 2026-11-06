@@ -70,7 +70,7 @@ final class RedisCache implements CacheInterface
 			if ($ttl === -2) {
 				$this->logger->debug("RedisCache ttl got -2 (expired/not found) for key '{$key}'");
 			} else {
-				$this->logger->warning("RedisCache ttl got {$ttl} for key '{$key}'");
+				$this->logger->warning("RedisCache ttl got " . (is_int($ttl) ? $ttl : get_debug_type($ttl)) . " for key '{$key}'");
 			}
 
 			return null;
