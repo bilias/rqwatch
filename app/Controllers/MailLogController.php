@@ -198,7 +198,7 @@ final class MailLogController extends ViewController
 		// ?month=Y-m: that calendar month, from Reports -> Mails by Month;
 		// replaces any Date filter, as ?date= does
 		$month = (string) $this->request->query->get('month', '');
-		if (preg_match('/^(\d{4})-(\d{2})$/', $month, $m) && checkdate((int) $m[2], 1, (int) $m[1])) {
+		if (preg_match('/^(\d{4})-(\d{2})$/D', $month, $m) && checkdate((int) $m[2], 1, (int) $m[1])) {
 			$filters = array_values(array_filter(
 				$filters,
 				static fn(array $filter): bool =>
