@@ -75,12 +75,12 @@ final class Config {
 	/** @param array<string, mixed> $extras */
 	public static function loadAndInit(
 		string $defaultConfigPath,
-		?string $localConfigPath = null,
+		string $localConfigPath,
 		array $extras = []
 	): void {
 		$defaultConfig = self::loadConfigFile($defaultConfigPath);
 
-		$localConfig = $localConfigPath ? self::loadConfigFile($localConfigPath) : [];
+		$localConfig = self::loadConfigFile($localConfigPath);
 
 		$merged = array_merge($defaultConfig, $localConfig, $extras);
 
@@ -103,7 +103,7 @@ final class Config {
 	public static function loadAndInitWithRedisCache(
 		RedisCache $redis,
 		string $defaultConfigPath,
-		?string $localConfigPath = null,
+		string $localConfigPath,
 		array $extras = [],
 		string $redisKey = AppConfig::REDIS_CONFIG_KEY,
 		int $ttlSeconds = AppConfig::REDIS_CONFIG_CACHE_TTL,
@@ -154,7 +154,7 @@ final class Config {
 		LoggerInterface $fileLogger,
 		?RedisCache $cache,
 		string $defaultConfigPath,
-		?string $localConfigPath = null,
+		string $localConfigPath,
 		array $extras = [],
 		string $redisKey = AppConfig::REDIS_CONFIG_KEY,
 		int $ttlSeconds = AppConfig::REDIS_CONFIG_CACHE_TTL
