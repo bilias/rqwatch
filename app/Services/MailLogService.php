@@ -83,7 +83,7 @@ final class MailLogService
 		$this->logger = App::fileLogger();
 		$this->migrationStatus = App::migrationStatus();
 
-		if (!empty($userContext)) {
+		if (is_array($userContext) && !empty($userContext)) {
 			$this->is_admin = $userContext['is_admin'] ?? null;
 			$this->username = $userContext['username'] ?? null;
 			$this->email = $userContext['email'] ?? null;
