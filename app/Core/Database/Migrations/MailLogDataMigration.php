@@ -111,8 +111,9 @@ final class MailLogDataMigration extends AbstractMigration {
 				->limit($batch);
 
 			$logs = $query->get();
+			$last = $logs->last();
 
-			if ($logs->isEmpty()) {
+			if ($last === null) {
 				break;
 			}
 
@@ -143,7 +144,7 @@ final class MailLogDataMigration extends AbstractMigration {
 				$inserted += $this->capsule::table(AppConfig::MAIL_LOG_DATA_TABLE)->insertOrIgnore($batchRows);
 			}
 
-			$lastId = $logs->last()->id;
+			$lastId = $last->id;
 			$scanned += $logs->count();
 			$migrated += $inserted;
 			$remaining = max(0, $total - $scanned);

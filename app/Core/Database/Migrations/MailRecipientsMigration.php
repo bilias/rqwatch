@@ -118,8 +118,9 @@ final class MailRecipientsMigration extends AbstractMigration {
 			$output->writeln("SQL iteration, lastId={$lastId}: {$sql} | Bindings: {$bindings}");
 			*/
 			$logs = $query->get();
+			$last = $logs->last();
 
-			if ($logs->isEmpty()) {
+			if ($last === null) {
 				break;
 			}
 
@@ -201,7 +202,7 @@ final class MailRecipientsMigration extends AbstractMigration {
 			// insert in batches
 			$inserted += $this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)->insertOrIgnore($batchRows);
 
-			$lastId = $logs->last()->id;
+			$lastId = $last->id;
 			$scanned += $candidates;
 			$migrated += $inserted;
 			$remaining = max(0, $total - $scanned);
