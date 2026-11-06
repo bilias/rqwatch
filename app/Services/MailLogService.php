@@ -1718,6 +1718,7 @@ final class MailLogService
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
 		}
+		/** @psalm-suppress RiskyTruthyFalsyComparison '0' counts as no email too: fail closed */
 		if (empty($this->email)) {
 			return $query->where('id', null);
 		}
@@ -1750,6 +1751,7 @@ final class MailLogService
 		if (defined('CLI_MODE') && CLI_MODE) {
 			return $query;
 		}
+		/** @psalm-suppress RiskyTruthyFalsyComparison '0' counts as no email too: fail closed */
 		if (empty($this->email)) {
 			return $query->where('id', null);
 		}
