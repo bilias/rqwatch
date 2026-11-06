@@ -1458,18 +1458,18 @@ final class MailLogService
 
 		$check = Helper::check_id_qid($type, $value);
 
-		if ($check['error']) {
+		if ($check['error'] !== false) {
 			$err = "Error: {$check['error']}";
 			Helper::debug_exception_err("{$lf} {$err}");
 			throw new InvalidArgumentException($err);
 		}
 
-		if($check['id']) {
+		if ($check['id'] !== false) {
 			// has applyUserScope
 			// throws InvalidArgumentException if no mail found
 			$log = $this->detailById($check['id']);
 		}
-		elseif ($check['qid']) {
+		elseif ($check['qid'] !== false) {
 			// has applyUserScope
 			// throws InvalidArgumentException if no mail found
 			$log = $this->detailByQid($check['qid']);
