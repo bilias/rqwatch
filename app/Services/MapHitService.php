@@ -465,8 +465,9 @@ final class MapHitService
 			->limit($batch);
 		self::dayWindow($query, $days, 'ml.created_day');
 		$mails = $query->get(['ml.id', 'ml.qid', 'md.symbols']);
+		$last = $mails->last();
 
-		if ($mails->isEmpty()) {
+		if ($last === null) {
 			return [null, 0];
 		}
 
@@ -478,7 +479,7 @@ final class MapHitService
 			$this->recordHits((int) $mail->id, (string) $mail->symbols, (string) $mail->qid);
 		}
 
-		return [(int) $mails->last()->id, $mails->count()];
+		return [(int) $last->id, $mails->count()];
 	}
 
 	// entry_model of a map model ('MapCombined', 'MapCustom')
