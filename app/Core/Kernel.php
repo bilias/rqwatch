@@ -51,7 +51,7 @@ final class Kernel
 			throw new RuntimeException("RQWATCH_ROOT is not defined. Check AppConfig.");
 		}
 
-		require_once AppConfig::VENDOR_AUTOLOAD;
+		require_once __DIR__ . '/../../vendor/autoload.php';
 
 		// create fileLogger and syslogLogger
 		$this->createLoggers();
