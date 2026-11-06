@@ -250,6 +250,7 @@ final class LdapAuth implements AuthInterface {
 
 		$ldap_diag = '';
 		ldap_get_option($ldap, LDAP_OPT_DIAGNOSTIC_MESSAGE, $ldap_diag);
+		$ldap_diag = is_string($ldap_diag) ? $ldap_diag : '';
 		return trim("error: '{$ldap_error}'. diag: '{$ldap_diag}'");
 	}
 
@@ -303,7 +304,7 @@ final class LdapAuth implements AuthInterface {
 			return null;
 		}
 
-		$baseAttr = strtok($field, ';');
+		$baseAttr = (string) strtok($field, ';');
 		if (array_key_exists($baseAttr, $attrs) && array_key_exists(0, $attrs[$baseAttr])) {
 			return trim($attrs[$baseAttr][0]);
 		}
@@ -320,7 +321,7 @@ final class LdapAuth implements AuthInterface {
 			return [];
 		}
 
-		$baseAttr = strtok($field, ';');
+		$baseAttr = (string) strtok($field, ';');
 
 		if (!array_key_exists($baseAttr, $attrs)) {
 			return [];
