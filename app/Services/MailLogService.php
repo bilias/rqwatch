@@ -605,7 +605,10 @@ final class MailLogService
 		$query = MailLog::select($fields)
 					->where('created_day', '<', $cutoffDate->format('Y-m-d'));
 
-		if ($server !== null && $server !== '') {
+		if ($server === '') {
+			throw new InvalidArgumentException('getCleanUpDb(): server set but is empty');
+		}
+		if ($server !== null) {
 			$query = $query->where('server', $server);
 		}
 
