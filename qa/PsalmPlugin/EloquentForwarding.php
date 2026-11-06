@@ -63,7 +63,7 @@ use ReflectionMethod;
 
 final class EloquentForwarding implements AfterCodebasePopulatedInterface
 {
-	/** @var array<string, ?string> class::method => builder class it is forwarded to */
+	/** @var array<string, ?class-string> class::method => builder class it is forwarded to */
 	private static array $forwarded = [];
 
 	/** @var array<string, bool> class::method => uses func_get_args() */
@@ -221,6 +221,7 @@ final class EloquentForwarding implements AfterCodebasePopulatedInterface
 	 reach Eloquent\Builder, else its Query\Builder; relations only the
 	 Query\Builder, as Psalm follows their mixin to Eloquent\Builder.
 	*/
+	/** @return ?class-string */
 	private static function forwardedTo(Codebase $codebase, string $class, string $method): ?string {
 		$key = strtolower($class) . '::' . $method;
 		if (array_key_exists($key, self::$forwarded)) {
@@ -245,6 +246,7 @@ final class EloquentForwarding implements AfterCodebasePopulatedInterface
 	 friends. Psalm notices that in vendor code only for a bare assignment,
 	 and Query\Builder::select() calls it inside a ternary.
 	*/
+	/** @param class-string $class */
 	private static function readsAllArgs(string $class, string $method): bool {
 		$key = strtolower($class) . '::' . $method;
 		if (!array_key_exists($key, self::$readsAllArgs)) {
