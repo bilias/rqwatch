@@ -20,7 +20,12 @@ if (!is_array($report)) {
 
 // line => expected issue type, or 'clean'
 $expected = [];
-foreach (file($probes) ?: [] as $i => $line) {
+$lines = file($probes);
+if ($lines === false) {
+	fwrite(STDERR, "taint self-test: cannot read {$probes}\n");
+	exit(1);
+}
+foreach ($lines as $i => $line) {
 	if (preg_match('~// expect (\w+)$~D', rtrim($line), $m)) {
 		$expected[$i + 1] = $m[1];
 	}

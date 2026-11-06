@@ -248,7 +248,11 @@ final class EloquentProperties implements AfterCodebasePopulatedInterface
 		}
 		$parser = (new SqlParserFactory(new IamcalSqlParser()))->create();
 		$converter = new MySqlDataTypeToPhpTypeConverter();
-		$files = glob(rtrim(self::codebase()->config->base_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . self::SCHEMA) ?: [];
+		$pattern = rtrim(self::codebase()->config->base_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . self::SCHEMA;
+		$files = glob($pattern);
+		if ($files === false) {
+			throw new RuntimeException("glob() failed for {$pattern}");
+		}
 		sort($files);
 
 		$tables = [];
