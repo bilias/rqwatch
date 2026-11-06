@@ -116,7 +116,7 @@ final class Config {
 			$redisConnection = $redis->getConnection();
 			if (!$forceReload) {
 				$cached = $redisConnection->get($redisKey);
-				if ($cached !== false) {
+				if (is_string($cached)) {
 					self::$logger->debug("Config [loadAndInitWithRedisCache]: Config is cached in Redis");
 					$data = self::decodeCachedConfig($cached);
 					// catch app version update
@@ -141,7 +141,7 @@ final class Config {
 				// Remove all keys that are present in $extras from the cache data
 				$toCache = array_diff_key(self::getAll(), $extras);
 				// cache/save config in Redis
-				$redisConnection->set($redisKey, json_encode($toCache), ['ex' => $ttlSeconds]);
+				$redisConnection->set($redisKey, json_encode($toCache, JSON_THROW_ON_ERROR), ['ex' => $ttlSeconds]);
 				self::$logger->debug("Config [loadAndInitWithRedisCache]: " . "Cached data in Redis");
 			} catch (Throwable $e) {
 				self::$logger->error("Config [loadAndInitWithRedisCache2]: " . $e->getMessage());
