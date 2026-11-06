@@ -34,9 +34,9 @@ abstract class IntegrationTestCase extends TestCase
 {
 	use Mailpit;
 
-	protected const ADMIN = 'admin';
-	protected const USER = 'user';
-	protected const PUBLIC = 'public';
+	protected const string ADMIN = 'admin';
+	protected const string USER = 'user';
+	protected const string PUBLIC = 'public';
 
 	private static ?PDO $db = null;
 

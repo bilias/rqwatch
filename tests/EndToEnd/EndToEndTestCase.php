@@ -28,16 +28,16 @@ use RuntimeException;
 
 abstract class EndToEndTestCase extends TestCase
 {
-	protected const SERVER = 'mx1';
-	protected const IP = '192.0.2.10';
-	protected const MAIL_FROM = 'Sender@Sender.TEST';
-	protected const MIME_FROM = 'Sender <sender@sender.test>';
-	protected const RCPT = 'alice@rqwatch.test';
-	protected const WAIT_SECONDS = 15;
+	protected const string SERVER = 'mx1';
+	protected const string IP = '192.0.2.10';
+	protected const string MAIL_FROM = 'Sender@Sender.TEST';
+	protected const string MIME_FROM = 'Sender <sender@sender.test>';
+	protected const string RCPT = 'alice@rqwatch.test';
+	protected const int WAIT_SECONDS = 15;
 	// how a test mail carries its queue id
-	protected const QID_PROTOCOL = 'protocol';  // Queue-Id scan header (the MTA's)
-	protected const QID_HEADER = 'header';      // only X-Rspamd-Queue-Id in the mail
-	protected const QID_NONE = 'none';
+	protected const string QID_PROTOCOL = 'protocol';  // Queue-Id scan header (the MTA's)
+	protected const string QID_HEADER = 'header';      // only X-Rspamd-Queue-Id in the mail
+	protected const string QID_NONE = 'none';
 
 	private static ?PDO $db = null;
 	private static bool $mapsReady = false;

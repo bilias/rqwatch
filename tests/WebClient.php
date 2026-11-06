@@ -9,6 +9,7 @@
 
 namespace Tests;
 
+use CurlHandle;
 use RuntimeException;
 
 // Minimal browser for the integration and end-to-end tests: one cookie jar
@@ -85,7 +86,7 @@ final class WebClient
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_FOLLOWLOCATION => false,
 			// response headers, names lower-cased
-			CURLOPT_HEADERFUNCTION => function ($ch, string $line) use (&$headers): int {
+			CURLOPT_HEADERFUNCTION => function (CurlHandle $ch, string $line) use (&$headers): int {
 				$parts = explode(':', $line, 2);
 				if (count($parts) === 2) {
 					$headers[strtolower(trim($parts[0]))] = trim($parts[1]);
