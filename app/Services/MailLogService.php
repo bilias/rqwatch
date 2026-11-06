@@ -605,7 +605,7 @@ final class MailLogService
 		$query = MailLog::select($fields)
 					->where('created_day', '<', $cutoffDate->format('Y-m-d'));
 
-		if ($server) {
+		if ($server !== null) {
 			$query = $query->where('server', $server);
 		}
 
@@ -2169,7 +2169,7 @@ final class MailLogService
 			$query->where('created_day', '>=', $cutoffDate);
 		}
 
-		if ($server) {
+		if ($server !== null) {
 			$query = $query->where('server', $server);
 		}
 
@@ -2225,7 +2225,7 @@ final class MailLogService
 			->where('admin_notified', 0)
 			->where('created_day', '>=', self::adminNotificationCutoff());
 
-		if ($server) {
+		if ($server !== null) {
 			$query->where('server', $server);
 		}
 
@@ -2286,7 +2286,7 @@ final class MailLogService
 					->where('mail_stored', 1)
 					->where('created_day', '<', $cutoffDate->format('Y-m-d'));
 
-		if ($server) {
+		if ($server !== null) {
 			$query = $query->where('server', $server);
 		}
 
