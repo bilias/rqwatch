@@ -239,7 +239,7 @@ final class LoginController extends ViewController
 		if (Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
 			$clientId = $_ENV['OPENIDC_CLIENT_ID'] ?? null;
 
-			if ($openidcLogoutUrl && $clientId) {
+			if (is_string($openidcLogoutUrl) && $openidcLogoutUrl !== '' && $clientId !== null && $clientId !== '') {
 				$separator = str_contains($openidcLogoutUrl, '?') ? '&' : '?';
 
 				$fullLoginUrl = $this->oidcBaseUrl() . $this->getLoginUrl();
