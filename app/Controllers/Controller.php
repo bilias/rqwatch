@@ -56,9 +56,18 @@ class Controller
 	private ?CsrfTokenManager $csrfManager = null;
 	//private RouteCollection $routes;     // $this->route to access it
 
+	/*
+	 The Router builds controllers without arguments (Symfony's
+	 ControllerResolver) and then injects these through setRequest() and
+	 setUrlGenerator(); a cron builds a ViewController for twigView() only.
+	*/
+	/** @psalm-suppress PropertyNotSetInConstructor set by setRequest() */
 	protected Request $request;
+	/** @psalm-suppress PropertyNotSetInConstructor set by setRequest() */
 	protected Session $session;
+	/** @psalm-suppress PropertyNotSetInConstructor set by setRequest() */
 	protected FlashBagInterface $flashbag;
+	/** @psalm-suppress PropertyNotSetInConstructor set by setUrlGenerator() */
 	protected UrlGeneratorInterface $urlGenerator;
 
 	private ?string $homepageUrl = null;

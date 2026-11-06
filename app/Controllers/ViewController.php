@@ -45,7 +45,9 @@ use RuntimeException;
 
 class ViewController extends Controller
 {
+	/** @psalm-suppress PropertyNotSetInConstructor built on first use by twigView() */
 	protected Environment $twig;
+	/** @psalm-suppress PropertyNotSetInConstructor built on first use by twigFormView() */
 	protected FormFactoryInterface $formFactory;
 
 	protected int $refresh_rate;
