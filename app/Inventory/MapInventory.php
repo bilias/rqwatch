@@ -46,6 +46,37 @@ final class MapInventory
 		return self::USER_FORM_OVERRIDES[$adminFormClass] ?? $adminFormClass;
 	}
 
+	/*
+	 Every map config, built-in or custom from the DB, must have these keys,
+	 a known model and a non-empty list of field names: callers rely on them.
+	 Typed loosely on purpose, so the checks are not redundant to the analysers.
+	*/
+	/** @param array<string, array<string, mixed>> $configs */
+	private static function checkMapConfigs(array $configs): void {
+		$requiredFields = ['model', 'fields', 'map_form', 'access'];
+		foreach ($configs as $key => $config) {
+			foreach ($requiredFields as $field) {
+				if (!array_key_exists($field, $config) || $config[$field] === null) {
+					throw new RuntimeException("Missing or null required field '$field' in map config '$key'");
+				}
+			}
+
+			if (!in_array($config['model'], ['MapCombined', 'MapCustom'], true)) {
+				throw new RuntimeException("Unknown model in map config '$key'");
+			}
+
+			$fields = $config['fields'];
+			if (!is_array($fields) || $fields === [] || !array_is_list($fields)) {
+				throw new RuntimeException("Map config '$key' needs a non-empty list of fields");
+			}
+			foreach ($fields as $name) {
+				if (!is_string($name) || $name === '') {
+					throw new RuntimeException("Map config '$key' has an invalid field name");
+				}
+			}
+		}
+	}
+
 	// also need to create child form class in app/Forms
 	// and add the Form use at top
 	// $withCustom = false: the built-in maps only, without a query
@@ -160,16 +191,7 @@ final class MapInventory
 			$configs = array_merge($configs, $custom_configs);
 		}
 
-		// Check each config has required non-null fields
-		$requiredFields = ['model', 'fields', 'map_form', 'access'];
-		foreach ($configs as $key => $config) {
-			foreach ($requiredFields as $field) {
-				/** @psalm-suppress TypeDoesNotContainNull defensive: custom map configs come from the DB */
-				if (!array_key_exists($field, $config) || $config[$field] === null) { // @phpstan-ignore identical.alwaysFalse (defensive: custom map configs come from the DB)
-					throw new RuntimeException("Missing or null required field '$field' in map config '$key'");
-				}
-			}
-		}
+		self::checkMapConfigs($configs);
 
 		if ($map) {
 			if (array_key_exists($map, $configs)) {
