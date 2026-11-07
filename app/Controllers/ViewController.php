@@ -115,7 +115,9 @@ class ViewController extends Controller
 		$this->twig->addGlobal('FUZZY_LEARN_ENABLED', FuzzyService::isEnabled());
 
 		// a changed style.css or rqwatch.js gets a new URL, so browsers don't keep the old one
+		/** @psalm-suppress RiskyTruthyFalsyComparison an unreadable file (false) and a 0 mtime both give no version */
 		$this->twig->addGlobal('STYLE_VERSION', (string) (@filemtime(RQWATCH_ROOT . '/web/css/style.css') ?: ''));
+		/** @psalm-suppress RiskyTruthyFalsyComparison an unreadable file (false) and a 0 mtime both give no version */
 		$this->twig->addGlobal('SCRIPT_VERSION', (string) (@filemtime(RQWATCH_ROOT . '/web/js/rqwatch.js') ?: ''));
 
 		return $this->twig;

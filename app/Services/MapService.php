@@ -55,7 +55,7 @@ final class MapService
 	public function __construct(?array $userContect = null) {
 		$this->logger = App::fileLogger();
 
-		if (!empty($userContect)) {
+		if ($userContect !== null) {
 			$this->is_admin = $userContect['is_admin'] ?? null;
 			$this->username = $userContect['username'] ?? null;
 			$this->user_id = $userContect['user_id'] ?? null;
@@ -98,7 +98,7 @@ final class MapService
 		}
 
 		// user has no aliases
-		if (empty($this->user_aliases)) {
+		if ($this->user_aliases === null || $this->user_aliases === []) {
 			return $query->where('rcpt_to', $this->email);
 		}
 
@@ -373,7 +373,7 @@ final class MapService
 
 		$query = $this->applyUserRcptToScope($query);
 
-		if (!empty($map_name)) {
+		if ($map_name !== null && $map_name !== '') {
 			$query = $query->where('map_name', $map_name);
 		}
 
@@ -444,7 +444,7 @@ final class MapService
 		?string $map_name
 	): LengthAwarePaginator {
 
-		if (!empty($map_name)) {
+		if ($map_name !== null && $map_name !== '') {
 			$query = $this->getMapCustomQuery($map_name);
 		} else {
 			$query = MapCustom::select(MapCustom::SELECT_FIELDS);
