@@ -193,7 +193,7 @@ final class MapInventory
 
 		self::checkMapConfigs($configs);
 
-		if ($map) {
+		if ($map !== null && $map !== '') {
 			if (array_key_exists($map, $configs)) {
 				return $configs[$map];
 			} else {

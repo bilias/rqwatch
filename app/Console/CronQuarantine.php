@@ -173,7 +173,7 @@ final class CronQuarantine extends RqwatchCliCommand
 	private function pruneEmptyQuarantineDateDirs(OutputInterface $output): void {
 		$root = $_ENV['QUARANTINE_DIR'] ?? null;
 
-		if (!$root) {
+		if ($root === null || $root === '') {
 			$output->writeln(
 				'<comment>QUARANTINE_DIR not set; skipping prune</comment>',
 				OutputInterface::VERBOSITY_NORMAL
@@ -181,7 +181,8 @@ final class CronQuarantine extends RqwatchCliCommand
 			return;
 		}
 
-		$rootReal = rtrim(realpath($root) ?: $root, DIRECTORY_SEPARATOR);
+		$rootReal = realpath($root);
+		$rootReal = rtrim($rootReal !== false ? $rootReal : $root, DIRECTORY_SEPARATOR);
 
 		if (!is_dir($rootReal)) {
 			$output->writeln(
@@ -191,7 +192,14 @@ final class CronQuarantine extends RqwatchCliCommand
 			return;
 		}
 
-		$entries = @scandir($rootReal) ?: [];
+		$entries = @scandir($rootReal);
+		if ($entries === false) {
+			$output->writeln(
+				"<comment>Quarantine root not readable: {$rootReal}; skipping prune</comment>",
+				OutputInterface::VERBOSITY_NORMAL
+			);
+			return;
+		}
 
 		foreach ($entries as $name) {
 			if ($name === '.' || $name === '..') {
@@ -210,7 +218,8 @@ final class CronQuarantine extends RqwatchCliCommand
 			}
 
 			$dateDir = $rootReal . DIRECTORY_SEPARATOR . $name;
-			$dateDirReal = rtrim(realpath($dateDir) ?: $dateDir, DIRECTORY_SEPARATOR);
+			$dateDirReal = realpath($dateDir);
+			$dateDirReal = rtrim($dateDirReal !== false ? $dateDirReal : $dateDir, DIRECTORY_SEPARATOR);
 
 			// Safety: must be directory and inside root
 			if (!is_dir($dateDirReal) ||
@@ -229,9 +238,9 @@ final class CronQuarantine extends RqwatchCliCommand
 					continue;
 				}
 
-				// Delete group dirs only if empty
-				$groupItems = array_diff(@scandir($groupDir) ?: [], ['.', '..']);
-				if (count($groupItems) > 0) {
+				// Delete group dirs only if empty; an unreadable one is left alone
+				$groupItems = @scandir($groupDir);
+				if ($groupItems === false || count(array_diff($groupItems, ['.', '..'])) > 0) {
 					continue;
 				}
 
@@ -243,9 +252,9 @@ final class CronQuarantine extends RqwatchCliCommand
 				}
 			}
 
-			// Delete date dir only if empty
-			$items = array_diff(@scandir($dateDirReal) ?: [], ['.', '..']);
-			if (count($items) > 0) {
+			// Delete date dir only if empty; an unreadable one is left alone
+			$items = @scandir($dateDirReal);
+			if ($items === false || count(array_diff($items, ['.', '..'])) > 0) {
 				continue;
 			}
 

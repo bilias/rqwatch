@@ -105,6 +105,7 @@ final class UserAdd extends RqwatchCliCommand
 
 		if (!$external_auth) {
 			// pass not given with -p
+			/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no password: ask, as the check after the prompt does */
 			if (!$password) {
 				$output->writeln("<comment>Creating user with</comment>:\n
 <comment>Username</comment>: <info>{$username}</info>

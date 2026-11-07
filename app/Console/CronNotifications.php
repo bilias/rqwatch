@@ -303,7 +303,7 @@ final class CronNotifications extends RqwatchCliCommand
 				$log->has_virus
 			);
 
-			if (!empty($ar[$key]['virus_found'])) {
+			if ($ar[$key]['virus_found'] !== null) {
 				$log->virus_name = $ar[$key]['virus_found'];
 			}
 		}
@@ -450,7 +450,7 @@ final class CronNotifications extends RqwatchCliCommand
 
 		foreach ($logs as $log) {
 			$ar = Helper::format_symbols($log->symbols ?? [], $log->score, $log->has_virus);
-			if (!empty($ar['virus_found'])) {
+			if ($ar['virus_found'] !== null) {
 				$log->virus_name = $ar['virus_found'];
 			}
 
