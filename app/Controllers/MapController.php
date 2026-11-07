@@ -50,6 +50,7 @@ final class MapController extends ViewController
 	public function __construct() {
 		parent::__construct();
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison the canonical HTTPS check: '' and '0' is not https */
 		$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, $_ENV['WEB_HOST']);
 	}
