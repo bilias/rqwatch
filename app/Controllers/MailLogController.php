@@ -747,6 +747,7 @@ final class MailLogController extends ViewController
 
 		$stripped_mail_location = null;
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' not valid: fail closed */
 		if (!empty($ar['log']->mail_location)) {
 			$stripped_mail_location = Helper::stripBasePath($this->quarantine_dir, $ar['log']->mail_location);
 			// base not a prefix: don't expose the absolute path to non-admins
@@ -1370,6 +1371,7 @@ final class MailLogController extends ViewController
 				return [];
 		}
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' not valid: fail closed */
 		if (!empty($log->mime_from)) {
 			$log->mime_from_normalized = Helper::extractEmail($log->mime_from);
 		}
@@ -1583,6 +1585,7 @@ final class MailLogController extends ViewController
 	/** @return array{\Symfony\Component\Form\FormView|null, bool} */
 	private function releaseFormView(MailLog $log): array {
 		$view = null;
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' not valid: fail closed */
 		if ($log->mail_stored && !empty($log->mail_location)) {
 			$form = MailReleaseForm::create(
 				$this->formFactory,

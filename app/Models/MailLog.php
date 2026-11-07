@@ -201,6 +201,7 @@ final class MailLog extends Model
 		}
 
 		// If mime_from is missing or empty, just return mail_from
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' not valid: fail closed */
 		if (empty($this->mime_from)) {
 			return $this->mimeFromDecoded = $this->getMailFrom();
 		}
@@ -245,7 +246,7 @@ final class MailLog extends Model
 	}
 
 	private function getMailFrom(): string {
-		return empty($this->mail_from) ? '' : (string) $this->mail_from;
+		return $this->mail_from ?? '';
 	}
 
 	private function logUnparsableMimeFrom(string $reason): void {
