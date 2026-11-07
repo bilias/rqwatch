@@ -281,14 +281,15 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			'fuzzy_hashes' => $fuzzy,
 			'ip' => $ip,
 			'mail_from' => strtolower((string)$mail_from),
-			'mime_from' => $mime_from,
+			// an absent header is NULL; false would be bound as 0 and stored as '0'
+			'mime_from' => $mime_from !== false ? $mime_from : null,
 			'rcpt_to' => empty($rcptArr) ? 'unknown' : implode(', ', $rcptArr),
 			'mime_to' => $mime_to !== false ? mb_strimwidth($mime_to, 0, 250, "!!") : '',
 			'mail_stored' => $mail_stored,
 			'mail_location' => $mail_location,
 			'size' => $size,
 			//'headers' => $stringHeaders,
-			'message_id' => $message_id,
+			'message_id' => $message_id !== false ? $message_id : null,
 		);
 
 		// admin notification is decided at arrival: only mails imported
