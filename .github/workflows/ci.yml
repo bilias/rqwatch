@@ -178,13 +178,53 @@ jobs:
           sarif_file: opengrep.sarif
           category: opengrep
 
+  web-image:
+    # the web image (qa/web) for tests and e2e, built once per PHP version and
+    # day here rather than by every job that needs it; lookup-only: a hit
+    # downloads nothing, a miss builds, and actions/cache saves at the end
+    name: Web image (PHP ${{ matrix.php }})
+    if: github.event_name != 'schedule' || github.event.schedule == '41 4 * * 1'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # quoted: 8.3 is a number in YAML
+        php: ['8.3', '8.4']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Web image cache key
+        id: web-image
+        run: echo "date=$(date +%F)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: web-cache
+        with:
+          path: ${{ runner.temp }}/qa-web.tar
+          key: qa-web-${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('qa/web/Containerfile') }}-${{ steps.web-image.outputs.date }}
+          lookup-only: true
+
+      - name: Build web image
+        if: steps.web-cache.outputs.cache-hit != 'true'
+        env:
+          PHP_STREAM: remi-${{ matrix.php }}
+        run: |
+          . qa/lib.sh
+          web_image
+          podman save -o "${RUNNER_TEMP}/qa-web.tar" "$WEB_IMAGE"
+
   tests:
     # integration without, then with Redis (sessions, config and migration
     # caches, login throttle), in one run of qa/integration-tests.sh, on each
     # supported PHP version (qa/each-php.sh locally). Unit tests need neither
     # service
     name: Unit + Integration (PHP ${{ matrix.php }})
-    if: github.event_name != 'schedule'
+    needs: web-image
+    # !cancelled(): run even if web-image failed; start_web_container then
+    # builds the image itself
+    if: ${{ !cancelled() && github.event_name != 'schedule' }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -237,13 +277,13 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      # the web image (qa/web), cached per PHP version and day: start_web_container
-      # uses a restored image whose label matches instead of building it
+      # the web image built by web-image: start_web_container uses a restored
+      # image whose label matches instead of building it
       - name: Web image cache key
         id: web-image
         run: echo "date=$(date +%F)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: web-cache
         with:
           path: ${{ runner.temp }}/qa-web.tar
@@ -270,22 +310,14 @@ jobs:
           INTEGRATION_REDIS_PORT: '6379'
         run: bash qa/integration-tests.sh
 
-      # on a cache miss, for actions/cache to store at the end of the job
-      - name: Save web image
-        if: ${{ !cancelled() && steps.web-cache.outputs.cache-hit != 'true' }}
-        env:
-          IMAGE: localhost/rqwatch-qa-web:remi-${{ matrix.php }}
-        run: |
-          if podman image exists "$IMAGE"; then
-            podman save -o "${RUNNER_TEMP}/qa-web.tar" "$IMAGE"
-          fi
-
   e2e:
     # the importer without, then with this instance's Redis (caches, the
     # spool), in one run of qa/e2e-tests.sh, on each supported PHP version;
     # rspamd's fuzzy storage uses Redis either way
     name: End to end (PHP ${{ matrix.php }})
-    if: github.event_name != 'schedule' || github.event.schedule == '41 4 * * 1'
+    needs: web-image
+    # as in tests: run even if web-image failed
+    if: ${{ !cancelled() && (github.event_name != 'schedule' || github.event.schedule == '41 4 * * 1') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -317,13 +349,13 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      # the web image (qa/web), cached per PHP version and day: start_web_container
-      # uses a restored image whose label matches instead of building it
+      # the web image built by web-image: start_web_container uses a restored
+      # image whose label matches instead of building it
       - name: Web image cache key
         id: web-image
         run: echo "date=$(date +%F)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: web-cache
         with:
           path: ${{ runner.temp }}/qa-web.tar
@@ -337,16 +369,6 @@ jobs:
       # does not stop the other
       - name: Rspamd and importer
         run: bash qa/e2e-tests.sh
-
-      # on a cache miss, for actions/cache to store at the end of the job
-      - name: Save web image
-        if: ${{ !cancelled() && steps.web-cache.outputs.cache-hit != 'true' }}
-        env:
-          IMAGE: localhost/rqwatch-qa-web:remi-${{ matrix.php }}
-        run: |
-          if podman image exists "$IMAGE"; then
-            podman save -o "${RUNNER_TEMP}/qa-web.tar" "$IMAGE"
-          fi
 
   zap:
     # OWASP ZAP (qa/zap-scan.sh, the alert baseline in qa/zap/rqwatch.yaml),

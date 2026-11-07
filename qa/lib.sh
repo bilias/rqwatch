@@ -129,42 +129,49 @@ write_env() {
 		"$@" .env-example > .env
 }
 
-# start_web_container PROBE_PATH PORT...: the copy served by httpd and PHP-FPM
-# as docs/INSTALL.md sets them up, in a Rocky 9 container built from
-# qa/web/Containerfile on the host network, on 127.0.0.1 at each PORT; waits
-# until PROBE_PATH answers on the first. PHP is Remi's $PHP_STREAM, by default
-# the version of $PHP (remi-X.Y), so host and web steps match. The container's
-# output (httpd's logs, PHP-FPM's master log) streams to $WEB_SERVER_LOG,
-# default logs/web-server.log; PHP's own errors go to logs/php-error.log.
-# The packages are updated once a day (the first run of the day rebuilds the
-# image's last layer), or on every run with QA_WEB_UPDATE=1. The image is
-# labelled with what it was built from (the Containerfile, $PHP_STREAM, the
-# day); one that matches is used as it is, without a build, so an image
-# restored from a cache (CI: podman load) saves the build.
-# Sets WEB_CID. Run in the copy, after copy_tree.
-start_web_container() {
-	local probe=$1 image old_image stamp key i
-	shift
+# web_image: the image start_web_container runs, localhost/rqwatch-qa-web:
+# $PHP_STREAM, built from qa/web/Containerfile; sets WEB_IMAGE. PHP is Remi's
+# $PHP_STREAM, by default the version of $PHP (remi-X.Y), so host and web
+# steps match. The packages are updated once a day (the first run of the day
+# rebuilds the image's last layer), or on every run with QA_WEB_UPDATE=1. The
+# image is labelled with what it was built from (the Containerfile,
+# $PHP_STREAM, the day); one that matches is used as it is, without a build,
+# so an image restored from a cache (CI: podman load) saves the build. Run
+# from the project root or the copy (needs qa/web).
+web_image() {
+	local old_image stamp key
 	PHP_STREAM="${PHP_STREAM:-remi-$("$PHP" -r 'echo PHP_MAJOR_VERSION, ".", PHP_MINOR_VERSION;')}"
-	image="localhost/rqwatch-qa-web:${PHP_STREAM}"
+	WEB_IMAGE="localhost/rqwatch-qa-web:${PHP_STREAM}"
 	if [ "${QA_WEB_UPDATE:-0}" = 1 ]; then
 		stamp=$(date +%s)
 	else
 		stamp=$(date +%F)
 	fi
 	key="$(sha256sum qa/web/Containerfile | cut -c1-16):${PHP_STREAM}:${stamp}"
-	if [ "$(podman image inspect -f '{{index .Labels "rqwatch.qa-web"}}' "$image" 2>/dev/null || true)" = "$key" ]; then
-		echo "=== Using ${image} (packages updated: ${stamp})"
+	if [ "$(podman image inspect -f '{{index .Labels "rqwatch.qa-web"}}' "$WEB_IMAGE" 2>/dev/null || true)" = "$key" ]; then
+		echo "=== Using ${WEB_IMAGE} (packages updated: ${stamp})"
 	else
-		echo "=== Building ${image} (packages updated: ${stamp})"
-		old_image=$(podman image inspect -f '{{.Id}}' "$image" 2>/dev/null || true)
-		podman build -q --pull=newer --force-rm -t "$image" --build-arg PHP_STREAM="$PHP_STREAM" \
+		echo "=== Building ${WEB_IMAGE} (packages updated: ${stamp})"
+		old_image=$(podman image inspect -f '{{.Id}}' "$WEB_IMAGE" 2>/dev/null || true)
+		podman build -q --pull=newer --force-rm -t "$WEB_IMAGE" --build-arg PHP_STREAM="$PHP_STREAM" \
 			--build-arg UPDATE_STAMP="$stamp" --label "rqwatch.qa-web=${key}" qa/web >/dev/null
 		# the previous build, now untagged; kept if a concurrent run still uses it
-		if [ -n "$old_image" ] && [ "$old_image" != "$(podman image inspect -f '{{.Id}}' "$image")" ]; then
+		if [ -n "$old_image" ] && [ "$old_image" != "$(podman image inspect -f '{{.Id}}' "$WEB_IMAGE")" ]; then
 			podman rmi "$old_image" >/dev/null 2>&1 || true
 		fi
 	fi
+}
+
+# start_web_container PROBE_PATH PORT...: the copy served by httpd and PHP-FPM
+# as docs/INSTALL.md sets them up, in a Rocky 9 container from web_image on
+# the host network, on 127.0.0.1 at each PORT; waits until PROBE_PATH answers
+# on the first. The container's output (httpd's logs, PHP-FPM's master log)
+# streams to $WEB_SERVER_LOG, default logs/web-server.log; PHP's own errors go
+# to logs/php-error.log. Sets WEB_CID. Run in the copy, after copy_tree.
+start_web_container() {
+	local probe=$1 i
+	shift
+	web_image
 	# The copy is mounted where contrib/apache-rqwatch.conf expects it, and at
 	# $WORK too, where .env's QUARANTINE_DIR points. keep-id maps the invoking
 	# user to the image's rqwatch user (uid 1000), so PHP writes the copy as the
@@ -180,7 +187,7 @@ start_web_container() {
 		--userns=keep-id:uid=1000,gid=1000 \
 		-v "${WORK}:/var/www/html/rqwatch:Z" -v "${WORK}:${WORK}:Z" \
 		-e WEB_PORTS="$*" -e UPLOAD_TMP_DIR="${WORK}/q/tmp" \
-		"$image" bash /var/www/html/rqwatch/qa/web/web-start.sh)
+		"$WEB_IMAGE" bash /var/www/html/rqwatch/qa/web/web-start.sh)
 	LIB_CIDS+=("$WEB_CID")
 	podman logs -f "$WEB_CID" > "${WEB_SERVER_LOG:-logs/web-server.log}" 2>&1 &
 	LIB_PIDS+=("$!")
