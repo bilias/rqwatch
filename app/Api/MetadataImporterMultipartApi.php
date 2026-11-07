@@ -237,7 +237,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		// check for antivirus symbol
 		$symbolsArr = Helper::sanitizeSymbols($meta['symbols'] ?? [], $qid);
 		$symbols    = json_encode($symbolsArr);
-		if (Helper::check_virus_from_all($symbolsArr)) {
+		if (Helper::check_virus_from_all($symbolsArr) !== false) {
 			$has_virus = 1;
 		} else {
 			$has_virus = 0;
@@ -248,7 +248,8 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		$store_settings = Config::get('store_settings');
 		
 		if ((!empty($action) && !empty($store_settings[$action])) || $has_virus) {
-			if ($mail_location = Helper::store_raw_mail((string) ($_ENV['QUARANTINE_DIR'] ?? ''), $qid, $rawEmail)) {
+			$mail_location = Helper::store_raw_mail((string) ($_ENV['QUARANTINE_DIR'] ?? ''), $qid, $rawEmail);
+			if ($mail_location !== null) {
 				$this->syslogLogger->info("$qid stored in quarantine: $mail_location");
 				$mail_stored = 1;
 			} else {
@@ -272,7 +273,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			'qid' => $qid,
 			'server' => $server,
 			// prefer subject from mime. then by rspamd
-			'subject' => !empty($mime_subject) ? $mime_subject : $subject,
+			'subject' => $mime_subject !== false && $mime_subject !== '' ? $mime_subject : $subject,
 			'score' => $score,
 			'action' => $action,
 			'symbols' => $symbols,
@@ -282,7 +283,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			'mail_from' => strtolower((string)$mail_from),
 			'mime_from' => $mime_from,
 			'rcpt_to' => empty($rcptArr) ? 'unknown' : implode(', ', $rcptArr),
-			'mime_to' => $mime_to ? mb_strimwidth($mime_to, 0, 250, "!!") : '',
+			'mime_to' => $mime_to !== false ? mb_strimwidth($mime_to, 0, 250, "!!") : '',
 			'mail_stored' => $mail_stored,
 			'mail_location' => $mail_location,
 			'size' => $size,
@@ -399,7 +400,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		}
 		
 		$runtime = $this->getRuntime();
-		if ($db_id) {
+		if ($db_id !== null) {
 			$score = number_format((float)$score, 2);
 			$this->syslogLogger->info("$qid score: {$score} '$action' saved in DB [id: $db_id] by {$this->logPrefix} | $runtime");
 		} elseif ($spooled) {
