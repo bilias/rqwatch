@@ -36,6 +36,7 @@ final class MailerService
 
 	// this node can send mail: both MAILER_DSN and MAILER_FROM are set
 	public static function isConfigured(): bool {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no DSN or address: not configured */
 		return !empty($_ENV['MAILER_DSN']) && !empty($_ENV['MAILER_FROM']);
 	}
 
@@ -44,6 +45,7 @@ final class MailerService
 
 		$dsn = $_ENV['MAILER_DSN'] ?? null;
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no DSN: fail with this message */
 		if (!$dsn) {
 			throw new RuntimeException('MAILER_DSN is not set in .env');
 		}
@@ -86,7 +88,7 @@ final class MailerService
 				->subject($subject)
 				->text($body);
 
-			if ($attachmentPath) {
+			if ($attachmentPath !== null) {
 				$attachmentPath = Helper::quarantinedFile($attachmentPath);
 				if ($attachmentPath === null) {
 					return false;
@@ -144,7 +146,7 @@ final class MailerService
 				->htmlTemplate($template)
 				->context($context);
 
-			if ($attachmentPath) {
+			if ($attachmentPath !== null) {
 				$attachmentPath = Helper::quarantinedFile($attachmentPath);
 				if ($attachmentPath === null) {
 					return false;
