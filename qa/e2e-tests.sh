@@ -7,8 +7,8 @@
 #
 # End-to-end tests: a real rspamd ($RSPAMD_IMAGE) scans test mails and its
 # metadata_exporter, contrib's rule pointed at a copy of this checkout served
-# by $QA_WEB (qa/lib.sh: locally httpd and PHP-FPM in a container, with PHP
-# the version of $PHP; in CI php -S), posts them to the importer;
+# by httpd and PHP-FPM in a container (qa/lib.sh, with PHP the version of
+# $PHP), posts them to the importer;
 # tests/EndToEnd compares what was stored
 # with rspamd's own verdict. Rspamd also runs contrib's maps, reading the map
 # files this copy generates from tests/EndToEnd/fixtures.sql. Redis holds
@@ -159,13 +159,8 @@ cp tests/EndToEnd/rspamd/rspamd.local.lua rspamd/
 chmod -R a+rX rspamd
 
 # web server: the API and the map files on WEB_PORT, the admin pages on
-# UI_PORT (php -S serves web/api/*.php only without the router)
-if [ "$QA_WEB" = container ]; then
-	start_web_container /css/style.css "$WEB_PORT" "$UI_PORT"
-else
-	start_web "$WEB_PORT" /css/style.css
-	start_web "$UI_PORT" /login qa/php-router.php
-fi
+# UI_PORT
+start_web_container /css/style.css "$WEB_PORT" "$UI_PORT"
 
 # rspamd
 start_container RSPAMD_CID --network host \

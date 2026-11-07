@@ -9,9 +9,8 @@
 */
 
 /*
- The harness serves web/'s static files as they are, like Apache in
- production (qa/php-router.php); before, php -S answered them with the
- homepage. A missing file is a 404 where web/.htaccess doesn't rewrite
+ The harness serves web/'s static files as they are, through httpd and
+ contrib/apache-rqwatch.conf as in production. A missing file is a 404 where web/.htaccess doesn't rewrite
  (css/, images/) and reaches rqwatch elsewhere (no session: the login).
 */
 

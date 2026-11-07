@@ -11,7 +11,7 @@
 /*
  The API scripts under web/api/: each answers only its own credentials from
  an address in its ACL, and only while the API is enabled. Served by the
- harness's second php -S (no router). Settings changed through .env are
+ harness's second port (mx2's API server). Settings changed through .env are
  restored after each test.
 */
 

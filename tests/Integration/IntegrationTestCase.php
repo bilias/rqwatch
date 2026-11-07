@@ -180,7 +180,7 @@ abstract class IntegrationTestCase extends TestCase
 	}
 
 	/**
-	 * Runs $test with .env settings replaced (php -S rereads .env per request),
+	 * Runs $test with .env settings replaced (PHP-FPM rereads .env per request),
 	 * then puts the file back.
 	 * @param array<string, string> $settings
 	 */

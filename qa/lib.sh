@@ -6,15 +6,13 @@
 #
 # Shared steps of the test harnesses (qa/*-tests.sh); sourced, not run, from
 # the project root. make_workdir creates $WORK; whatever is started through
-# start_container, start_web or start_web_container is stopped, and $WORK
-# removed, on exit. $PHP is the PHP every host step runs (phpunit, php -S,
-# bin/cli.php); qa/each-php.sh sets it per version, otherwise the php on PATH.
-# $QA_WEB picks what serves the copy in the integration and e2e harnesses:
-# "container" (httpd and PHP-FPM, start_web_container), the default, or
-# "php" (php -S, start_web).
+# start_container or start_web_container is stopped, and $WORK removed, on
+# exit. $PHP is the PHP every host step runs (phpunit, bin/cli.php);
+# qa/each-php.sh sets it per version, otherwise the php on PATH. The copy is
+# served by httpd and PHP-FPM in a container (start_web_container), locally
+# and in CI.
 
 PHP="${PHP:-php}"
-QA_WEB="${QA_WEB:-container}"
 LIB_CIDS=()
 LIB_PIDS=()
 WORK=
@@ -129,22 +127,6 @@ write_env() {
 		-e "s#^LDAP_AUTH_ENABLED=.*#LDAP_AUTH_ENABLED=false#" \
 		-e "s#^OPENIDC_AUTH_ENABLED=.*#OPENIDC_AUTH_ENABLED=false#" \
 		"$@" .env-example > .env
-}
-
-# start_web PORT PROBE_PATH [ROUTER]: php -S on the copy's web/, waiting
-# until PROBE_PATH answers; its output goes to logs/php-server-PORT.log
-start_web() {
-	local port=$1 probe=$2 i
-	shift 2
-	"$PHP" -S "127.0.0.1:${port}" -t web "$@" >"logs/php-server-${port}.log" 2>&1 &
-	LIB_PIDS+=("$!")
-	for i in $(seq 30); do
-		curl -fs -o /dev/null "http://127.0.0.1:${port}${probe}" && return 0
-		sleep 1
-	done
-	echo "Web server did not start" >&2
-	cat "logs/php-server-${port}.log" >&2
-	exit 1
 }
 
 # start_web_container PROBE_PATH PORT...: the copy served by httpd and PHP-FPM

@@ -16,10 +16,9 @@
 # (Delivery/).
 # Your .env, config.local.php and databases are never touched.
 #
-# The web server is $QA_WEB (qa/lib.sh): locally httpd and PHP-FPM in a
-# container, as docs/INSTALL.md sets them up, with PHP the version of $PHP;
-# in CI php -S, the UI through the router and the APIs from a second server
-# without it.
+# The web server is httpd and PHP-FPM in a container (qa/lib.sh), as
+# docs/INSTALL.md sets them up, with PHP the version of $PHP, on two ports:
+# the UI, and the APIs as the second storing node.
 #
 # Two legs on the same servers and copy: Redis off (REDIS_ENABLE=false), then
 # on (sessions, the config and migration caches and the rest of the Redis
@@ -128,16 +127,8 @@ PHP
 # web server; WEB_LOG is where PHP's warnings and errors go. .env is read on
 # every request, so one server serves both legs
 start_web_server() {
-	if [ "$QA_WEB" = container ]; then
-		start_web_container /login "$WEB_PORT" "$API_PORT"
-		WEB_LOG="${WORK}/logs/php-error.log"
-	else
-		# the UI through the router
-		start_web "$WEB_PORT" /login qa/php-router.php
-		# the API scripts are files under web/api/: served without the router
-		start_web "$API_PORT" /css/style.css
-		WEB_LOG="${WORK}/logs/php-server-${WEB_PORT}.log"
-	fi
+	start_web_container /login "$WEB_PORT" "$API_PORT"
+	WEB_LOG="${WORK}/logs/php-error.log"
 }
 
 status=0

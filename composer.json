@@ -86,16 +86,6 @@
          "Composer\\Config::disableProcessTimeout",
          "sh qa/each-php.sh bash qa/e2e-tests.sh -v"
       ],
-      "test-integration-php": [
-         "@putenv QA_WEB=php",
-         "@test-integration",
-         "@putenv QA_WEB="
-      ],
-      "test-e2e-php": [
-         "@putenv QA_WEB=php",
-         "@test-e2e",
-         "@putenv QA_WEB="
-      ],
       "test": [
          "@composer validate --no-check-publish",
          "@composer audit --locked --abandoned=report",
@@ -104,9 +94,7 @@
          "@psalm-taint",
          "@taint-selftest",
          "@test-integration",
-         "@test-e2e",
-         "@test-integration-php",
-         "@test-e2e-php"
+         "@test-e2e"
       ],
       "opengrep": "sh qa/opengrep.sh",
       "taint-stubs": "sh qa/taint-stubs.sh",
@@ -146,8 +134,6 @@
       "test-unit": "Unit tests, no database: helpers, and route access levels and middleware; on PHP 8.3 and 8.4 (QA_PHP)",
       "test-integration": "Integration tests against a throwaway MariaDB and Mailpit via Podman, without and with Redis: route protection, API access, a smoke pass over every route, retention crons, data scoping, release (web and API), notifications and password-less links; on PHP 8.3 and 8.4 (QA_PHP)",
       "test-e2e": "End-to-end tests with rspamd, Redis and MariaDB via Podman, with and without the app's Redis: import, maps, encoding, spool, fuzzy learning; on PHP 8.3 and 8.4 (QA_PHP)",
-      "test-integration-php": "test-integration with php -S as the web server, as CI runs it (QA_WEB=php)",
-      "test-e2e-php": "test-e2e with php -S as the web server, as CI runs it (QA_WEB=php)",
       "test": "Validate, audit and all test suites: test-unit, test-integration, test-e2e (one line per test, except test-unit; CI runs the scripts without -v)",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",

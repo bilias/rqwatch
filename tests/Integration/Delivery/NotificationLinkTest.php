@@ -11,7 +11,7 @@
 /*
  Password-less view and release from notification links
  (NOTIFICATION_RELEASE_LINKS), without logging in. Each test switches links
- on through .env (both php -S and bin/cli.php reread it), creates its own
+ on through .env (both PHP-FPM and bin/cli.php reread it), creates its own
  mail, runs cron:notifications -m and takes the token from that recipient's
  notification in Mailpit. An anonymous client then does what a browser does:
  the landing page's script posts the token to /notify/redeem, which answers
