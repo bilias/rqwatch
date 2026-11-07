@@ -10,17 +10,11 @@
 # removed, on exit. $PHP is the PHP every host step runs (phpunit, php -S,
 # bin/cli.php); qa/each-php.sh sets it per version, otherwise the php on PATH.
 # $QA_WEB picks what serves the copy in the integration and e2e harnesses:
-# "container" (httpd and PHP-FPM, start_web_container), the default locally,
-# or "php" (php -S, start_web), the default in CI (GITHUB_ACTIONS=true).
+# "container" (httpd and PHP-FPM, start_web_container), the default, or
+# "php" (php -S, start_web).
 
 PHP="${PHP:-php}"
-if [ -z "${QA_WEB:-}" ]; then
-	if [ "${GITHUB_ACTIONS:-}" = true ]; then
-		QA_WEB=php
-	else
-		QA_WEB=container
-	fi
-fi
+QA_WEB="${QA_WEB:-container}"
 LIB_CIDS=()
 LIB_PIDS=()
 WORK=
