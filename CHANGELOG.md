@@ -2,6 +2,11 @@
 
 ## Master Dev Branch
 
+### 2026-11-07
+- LDAP: an attribute with options (`LDAP_SN_ATTR="sn;lang-en"`) is read as such. The options
+  were stripped, so the primary setting read the plain attribute (the fallback's value) and the
+  language tag never took effect. Attribute names now match case-insensitively
+
 ### 2026-11-05
 - CSP: script-src 'self', no inline script or event handler runs. Page behaviour (confirm
   dialogs, Show/Hide toggles, charts, release form, menu, notification-link landing) moved

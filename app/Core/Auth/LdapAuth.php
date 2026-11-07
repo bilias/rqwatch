@@ -78,18 +78,15 @@ final class LdapAuth implements AuthInterface {
 			$ldap_givenname_attr,
 		];
 
-		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no attribute name, as in getValue() */
-		if ($ldap_mail_alias_attr) {
+		if ($ldap_mail_alias_attr !== null && $ldap_mail_alias_attr !== '') {
 			$ldap_attrs[] = $ldap_mail_alias_attr;
 		}
 
-		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no attribute name, as in getValue() */
-		if ($ldap_sn_attr_fallback) {
+		if ($ldap_sn_attr_fallback !== null && $ldap_sn_attr_fallback !== '') {
 			$ldap_attrs[] = $ldap_sn_attr_fallback;
 		}
 
-		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no attribute name, as in getValue() */
-		if ($ldap_givenname_attr_fallback) {
+		if ($ldap_givenname_attr_fallback !== null && $ldap_givenname_attr_fallback !== '') {
 			$ldap_attrs[] = $ldap_givenname_attr_fallback;
 		}
 
@@ -307,16 +304,35 @@ final class LdapAuth implements AuthInterface {
 		return $this->lastname;
 	}
 
-	/** @param array<array-key, mixed> $attrs ldap_get_attributes() result */
-	public function getValue(array $attrs, ?string $field): ?string {
-		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no attribute name; '0' would index ldap_get_attributes()' numbered list */
-		if (empty($field)) {
+	/**
+	 * The values of attribute description $field (sn, sn;lang-en) in an
+	 * ldap_get_attributes() result, null if the entry has none. The keys are
+	 * the descriptions as the server returned them, options included and in
+	 * the server's case, so they are matched whole and case-insensitively; a
+	 * tagged description does not fall back to its base type (that is what the
+	 * *_FALLBACK settings are for). Only the name => values entries are arrays,
+	 * not 'count' or the numbered list of names.
+	 *
+	 * @param array<array-key, mixed> $attrs
+	 * @return array<array-key, mixed>|null
+	 */
+	private static function attrValues(array $attrs, ?string $field): ?array {
+		if ($field === null || $field === '') {
 			return null;
 		}
+		foreach ($attrs as $name => $values) {
+			if (is_string($name) && is_array($values) && strcasecmp($name, $field) === 0) {
+				return $values;
+			}
+		}
+		return null;
+	}
 
-		$baseAttr = (string) strtok($field, ';');
-		if (array_key_exists($baseAttr, $attrs) && array_key_exists(0, $attrs[$baseAttr])) {
-			return trim($attrs[$baseAttr][0]);
+	/** @param array<array-key, mixed> $attrs ldap_get_attributes() result */
+	public function getValue(array $attrs, ?string $field): ?string {
+		$values = self::attrValues($attrs, $field);
+		if ($values !== null && array_key_exists(0, $values) && is_string($values[0])) {
+			return trim($values[0]);
 		}
 
 		return null;
@@ -327,18 +343,10 @@ final class LdapAuth implements AuthInterface {
 	 * @return list<string>
 	 */
 	public function getValues(array $attrs, ?string $field): array {
-		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no attribute name; '0' would index ldap_get_attributes()' numbered list */
-		if (empty($field)) {
+		$values = self::attrValues($attrs, $field);
+		if ($values === null) {
 			return [];
 		}
-
-		$baseAttr = (string) strtok($field, ';');
-
-		if (!array_key_exists($baseAttr, $attrs)) {
-			return [];
-		}
-
-		$values = $attrs[$baseAttr];
 
 		// Remove LDAP metadata
 		unset($values['count']);

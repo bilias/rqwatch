@@ -22,16 +22,19 @@ use Tests\Unit\UnitTestCase;
 final class LdapAuthTest extends UnitTestCase
 {
 	// ldap_get_attributes() shape: 'count', the names under numeric keys,
-	// and each attribute's values with their own 'count'
+	// and each attribute's values with their own 'count'; a description with
+	// options (cn;lang-el) is its own entry, named as the server returned it
 	private const array ATTRS = [
-		'count' => 4,
+		'count' => 5,
 		0 => 'cn',
 		'cn' => ['count' => 1, 0 => ' Alice '],
-		1 => 'mail',
+		1 => 'cn;lang-el',
+		'cn;lang-el' => ['count' => 1, 0 => 'Αλίκη'],
+		2 => 'mail',
 		'mail' => ['count' => 2, 0 => 'a@example.org', 1 => 'b@example.org'],
-		2 => 'description',
+		3 => 'description',
 		'description' => ['count' => 3, 0 => '  ', 1 => 'kept', 2 => ''],
-		3 => 'seeAlso',
+		4 => 'seeAlso',
 		'seeAlso' => ['count' => 0],
 	];
 
@@ -39,15 +42,19 @@ final class LdapAuthTest extends UnitTestCase
 	public static function valueCases(): array {
 		return [
 			'first value, trimmed' => ['cn', 'Alice'],
-			'attribute option ignored' => ['cn;lang-en', 'Alice'],
+			'attribute option: its own values' => ['cn;lang-el', 'Αλίκη'],
+			'option not in the entry: no base-type fallback' => ['cn;lang-en', null],
+			'names match case-insensitively' => ['CN;Lang-EL', 'Αλίκη'],
 			'multi-valued: the first' => ['mail', 'a@example.org'],
 			'no values' => ['seeAlso', null],
 			'missing attribute' => ['givenName', null],
 			'empty field' => ['', null],
 			'null field' => [null, null],
-			// strtok() gives false: was array_key_exists(false) -> key 0 -> 'cn', a TypeError
 			'only a separator' => [';', null],
 			'only separators' => [';;', null],
+			// not attribute entries: the numbered names (once a TypeError) and the count
+			'numbered name key' => ['0', null],
+			'count key' => ['count', null],
 		];
 	}
 
@@ -60,7 +67,8 @@ final class LdapAuthTest extends UnitTestCase
 	public static function valuesCases(): array {
 		return [
 			'all values, in order' => ['mail', ['a@example.org', 'b@example.org']],
-			'attribute option ignored' => ['mail;binary', ['a@example.org', 'b@example.org']],
+			'option not in the entry' => ['mail;binary', []],
+			'names match case-insensitively' => ['Mail', ['a@example.org', 'b@example.org']],
 			'blank values dropped, the rest untrimmed' => ['description', ['kept']],
 			'no values' => ['seeAlso', []],
 			'missing attribute' => ['givenName', []],
@@ -68,6 +76,9 @@ final class LdapAuthTest extends UnitTestCase
 			'null field' => [null, []],
 			'only a separator' => [';', []],
 			'only separators' => [';;', []],
+			// not attribute entries: the numbered names (once a fatal error) and the count
+			'numbered name key' => ['0', []],
+			'count key' => ['count', []],
 		];
 	}
 
