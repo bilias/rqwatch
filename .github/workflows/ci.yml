@@ -183,7 +183,7 @@ jobs:
     # caches, login throttle), in one run of qa/integration-tests.sh, on each
     # supported PHP version (qa/each-php.sh locally). Unit tests need neither
     # service
-    name: Integration (PHP ${{ matrix.php }})
+    name: Unit + Integration (PHP ${{ matrix.php }})
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     strategy:
