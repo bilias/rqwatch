@@ -122,9 +122,7 @@
          "@taint-selftest",
          "@opengrep",
          "@test-integration",
-         "@test-e2e",
-         "@test-integration-php",
-         "@test-e2e-php"
+         "@test-e2e"
       ]
    },
    "scripts-descriptions": {
