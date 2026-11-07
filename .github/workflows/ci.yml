@@ -237,6 +237,22 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --no-progress --prefer-dist
 
+      # the web image (qa/web), cached per PHP version and day: start_web_container
+      # uses a restored image whose label matches instead of building it
+      - name: Web image cache key
+        id: web-image
+        run: echo "date=$(date +%F)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: web-cache
+        with:
+          path: ${{ runner.temp }}/qa-web.tar
+          key: qa-web-${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('qa/web/Containerfile') }}-${{ steps.web-image.outputs.date }}
+
+      - name: Load web image
+        if: steps.web-cache.outputs.cache-hit == 'true'
+        run: podman load -q -i "${RUNNER_TEMP}/qa-web.tar"
+
       # seconds, no database: a failure here stops the job before Integration
       - name: Unit tests
         run: bash qa/unit-tests.sh
@@ -253,6 +269,16 @@ jobs:
           # reseeding the database and clearing Mailpit between them
           INTEGRATION_REDIS_PORT: '6379'
         run: bash qa/integration-tests.sh
+
+      # on a cache miss, for actions/cache to store at the end of the job
+      - name: Save web image
+        if: ${{ !cancelled() && steps.web-cache.outputs.cache-hit != 'true' }}
+        env:
+          IMAGE: localhost/rqwatch-qa-web:remi-${{ matrix.php }}
+        run: |
+          if podman image exists "$IMAGE"; then
+            podman save -o "${RUNNER_TEMP}/qa-web.tar" "$IMAGE"
+          fi
 
   e2e:
     # the importer without, then with this instance's Redis (caches, the
@@ -291,10 +317,36 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --no-progress --prefer-dist
 
+      # the web image (qa/web), cached per PHP version and day: start_web_container
+      # uses a restored image whose label matches instead of building it
+      - name: Web image cache key
+        id: web-image
+        run: echo "date=$(date +%F)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: web-cache
+        with:
+          path: ${{ runner.temp }}/qa-web.tar
+          key: qa-web-${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('qa/web/Containerfile') }}-${{ steps.web-image.outputs.date }}
+
+      - name: Load web image
+        if: steps.web-cache.outputs.cache-hit == 'true'
+        run: podman load -q -i "${RUNNER_TEMP}/qa-web.tar"
+
       # both legs, Redis off then on, on the same containers; a failing leg
       # does not stop the other
       - name: Rspamd and importer
         run: bash qa/e2e-tests.sh
+
+      # on a cache miss, for actions/cache to store at the end of the job
+      - name: Save web image
+        if: ${{ !cancelled() && steps.web-cache.outputs.cache-hit != 'true' }}
+        env:
+          IMAGE: localhost/rqwatch-qa-web:remi-${{ matrix.php }}
+        run: |
+          if podman image exists "$IMAGE"; then
+            podman save -o "${RUNNER_TEMP}/qa-web.tar" "$IMAGE"
+          fi
 
   zap:
     # OWASP ZAP (qa/zap-scan.sh, the alert baseline in qa/zap/rqwatch.yaml),
