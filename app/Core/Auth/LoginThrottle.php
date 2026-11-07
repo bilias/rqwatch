@@ -291,7 +291,8 @@ final class LoginThrottle
 			return $ip;
 		}
 
-		return inet_ntop(substr($bin, 0, 8) . str_repeat("\0", 8)) ?: $ip;
+		$net = inet_ntop(substr($bin, 0, 8) . str_repeat("\0", 8));
+		return $net !== false ? $net : $ip;
 	}
 
 	private function countKey(): string {

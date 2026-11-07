@@ -49,8 +49,8 @@ final class MailAliasService
 	}
 
 	/** @return Builder<MailAlias> */
-	public function getSearchQuery(int $limit=null): Builder {
-		if ($limit) {
+	public function getSearchQuery(?int $limit = null): Builder {
+		if ($limit !== null && $limit > 0) {
 			$query = MailAlias::with('user')
 									  ->join('users', 'mail_aliases.user_id', '=', 'users.id')
 									  ->orderBy('mail_aliases.updated_at', 'desc')

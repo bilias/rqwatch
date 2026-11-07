@@ -70,8 +70,8 @@ final class UserService
 	 * @param list<string> $fields
 	 * @return Builder<User>
 	 */
-	public function getSearchQuery(array $fields, int $limit=null): Builder {
-		if ($limit) {
+	public function getSearchQuery(array $fields, ?int $limit = null): Builder {
+		if ($limit !== null && $limit > 0) {
 			$query = User::select($fields)
 				->orderBy('last_login', 'DESC')
 				->limit($limit);
