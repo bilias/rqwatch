@@ -80,11 +80,11 @@
       "test-unit": "sh qa/each-php.sh bash qa/unit-tests.sh",
       "test-integration": [
          "Composer\\Config::disableProcessTimeout",
-         "sh qa/each-php.sh bash qa/integration-tests.sh -v"
+         "sh qa/each-php.sh bash qa/integration-tests.sh"
       ],
       "test-e2e": [
          "Composer\\Config::disableProcessTimeout",
-         "sh qa/each-php.sh bash qa/e2e-tests.sh -v"
+         "sh qa/each-php.sh bash qa/e2e-tests.sh"
       ],
       "test": [
          "@composer validate --no-check-publish",
