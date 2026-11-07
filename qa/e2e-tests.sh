@@ -13,9 +13,11 @@
 # with rspamd's own verdict. Rspamd also runs contrib's maps, reading the map
 # files this copy generates from tests/EndToEnd/fixtures.sql. Redis holds
 # rspamd's fuzzy storage, which this copy learns into through its fuzzy API,
-# and, with E2E_REDIS=1 (the default), this copy's caches and its failed-import
-# spool; E2E_REDIS=0 runs the importer with REDIS_ENABLE=false (the spool tests
-# skip). Run it both ways. MariaDB, Redis and rspamd run as rootless Podman
+# and, in the REDIS_ENABLE=true leg, this copy's caches and its failed-import
+# spool (the spool tests skip in the off leg). Two legs on the same
+# containers, off then on, each from a reseeded database and an empty Redis;
+# E2E_REDIS=0 or 1 runs only that leg, and a failing leg does not stop the
+# other. MariaDB, Redis and rspamd run as rootless Podman
 # containers, rspamd on the host network so it reaches the web server on
 # loopback. The admin pages are served too, for the web side of fuzzy
 # learning; mx2 is a second storing node whose API is this copy's own, so a
@@ -30,8 +32,14 @@ MARIADB_IMAGE="${MARIADB_IMAGE:-docker.io/library/mariadb:10.11}"
 RSPAMD_IMAGE="${RSPAMD_IMAGE:-docker.io/rspamd/rspamd:4}"
 REDIS_IMAGE="${REDIS_IMAGE:-docker.io/library/redis:7}"
 ADMIN_RCPT=admin-notify@rqwatch.test
-# this copy's REDIS_ENABLE; rspamd's fuzzy storage uses Redis either way
-[ "${E2E_REDIS:-1}" = 0 ] && REDIS_ENABLE=false || REDIS_ENABLE=true
+# Redis legs for this copy (REDIS_ENABLE): off, then on; E2E_REDIS=0 or 1
+# runs only that one. rspamd's fuzzy storage uses Redis either way
+LEGS="${E2E_REDIS:-0 1}"
+case $LEGS in
+	0 | 1 | "0 1") ;;
+	*) echo "E2E_REDIS: 0, 1 or unset" >&2; exit 1 ;;
+esac
+REDIS_ENABLE=false
 make_workdir
 
 # database, with a clock unlike PHP's (unless PHP runs at UTC+5), so the
@@ -96,20 +104,29 @@ cat > config/config.local.php <<PHP
 ];
 PHP
 
-$DB_EXEC < contrib/db-init.sql
-# rqwatch's own account: without SUPER, so the tests can refuse its writes
-# with read_only (root, used by the tests themselves, is exempt)
-$DB_EXEC -e "CREATE USER 'rqwatch'@'%' IDENTIFIED BY '${APP_DB_PASS}'; GRANT ALL ON rqwatch.* TO 'rqwatch'@'%'"
+# schema, users and map entries, from scratch: run again for each later leg
+seed_e2e() {
+	# db-init.sql's DROP TABLEs fail on a populated database (foreign keys)
+	$DB_EXEC -e 'DROP DATABASE IF EXISTS rqwatch'
+	$DB_EXEC < contrib/db-init.sql
+	# rqwatch's own account: without SUPER, so the tests can refuse its writes
+	# with read_only (root, used by the tests themselves, is exempt); a server
+	# account, so replaced rather than created on a reseed
+	$DB_EXEC -e "CREATE OR REPLACE USER 'rqwatch'@'%' IDENTIFIED BY '${APP_DB_PASS}'; GRANT ALL ON rqwatch.* TO 'rqwatch'@'%'"
 
-# map entries (owned by an admin) and the map files rspamd reads
-"$PHP" bin/cli.php user:add -a -p "$ADMIN_PASS" admin admin@rqwatch.test >/dev/null
-$DB_EXEC rqwatch < tests/EndToEnd/fixtures.sql
-mkdir -p web/maps
-"$PHP" bin/cli.php cron:updatemapfiles
-for map in ip_blacklist mail_from_blacklist mime_from_blacklist mail_from_whitelist mail_from_rcpt_to_blacklist; do
-	[ "$(grep -vc '^#' "web/maps/${map}.txt" 2>/dev/null)" = 1 ] \
-		|| { echo "web/maps/${map}.txt: expected one entry" >&2; exit 1; }
-done
+	# map entries (owned by an admin) and the map files rspamd reads; fresh
+	# tables give the entries the same ids, so the files come out the same
+	"$PHP" bin/cli.php user:add -a -p "$ADMIN_PASS" admin admin@rqwatch.test >/dev/null
+	$DB_EXEC rqwatch < tests/EndToEnd/fixtures.sql
+	mkdir -p web/maps
+	"$PHP" bin/cli.php cron:updatemapfiles
+	local map
+	for map in ip_blacklist mail_from_blacklist mime_from_blacklist mail_from_whitelist mail_from_rcpt_to_blacklist; do
+		[ "$(grep -vc '^#' "web/maps/${map}.txt" 2>/dev/null)" = 1 ] \
+			|| { echo "web/maps/${map}.txt: expected one entry" >&2; exit 1; }
+	done
+}
+seed_e2e
 
 # rspamd configuration: contrib's exporter rule pointed at this copy,
 # contrib's maps reading this copy's map files, contrib's fuzzy storage on
@@ -167,32 +184,55 @@ done
 echo "rspamd $(curl -s "http://127.0.0.1:${CONTROLLER_PORT}/stat" | "$PHP" -r 'echo json_decode(stream_get_contents(STDIN), true)["version"] ?? "?";')," \
 	"MariaDB $($DB_EXEC -N -e 'SELECT VERSION()')," \
 	"Redis $(podman exec "$REDIS_CID" redis-cli INFO server | sed -n 's/^redis_version:\([^\r]*\).*/\1/p')"
-echo "REDIS_ENABLE=${REDIS_ENABLE}"
 
 status=0
-E2E_RSPAMD_URL="http://127.0.0.1:${NORMAL_PORT}" \
-E2E_ROOT="$WORK" \
-E2E_REDIS_PORT="$REDIS_PORT" \
-E2E_REDIS_ENABLED="$REDIS_ENABLE" \
-E2E_WEB_URL="http://127.0.0.1:${WEB_PORT}" \
-E2E_UI_URL="http://127.0.0.1:${UI_PORT}" \
-E2E_ADMIN_PASS="$ADMIN_PASS" \
-E2E_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \
-E2E_MAIL_API_PASS="$MAIL_API_PASS" \
-E2E_QUARANTINE_DIR="${WORK}/q" \
-E2E_DB_DSN="mysql:host=127.0.0.1;port=${DB_PORT};dbname=rqwatch;charset=utf8mb4" \
-E2E_DB_USER=root \
-E2E_DB_PASS="$DB_PASS" \
-	"$PHP" vendor/bin/phpunit -c qa/phpunit-e2e.xml "${PHPUNIT_ARGS[@]}" || status=$?
-
-if [ "$status" != 0 ]; then
-	if [ -s logs/rqwatch.log ]; then
-		echo "--- logs/rqwatch.log ---" >&2
-		tail -50 logs/rqwatch.log >&2
+first=true
+for leg in $LEGS; do
+	[ "$leg" = 1 ] && REDIS_ENABLE=true || REDIS_ENABLE=false
+	sed -i "s#^REDIS_ENABLE=.*#REDIS_ENABLE=${REDIS_ENABLE}#" .env
+	# a later leg starts from the state the first had: an empty quarantine (but
+	# q/tmp, the web container's upload dir), an empty Redis (rspamd's fuzzy
+	# storage, the spool), this leg's lines only in rqwatch.log, a reseeded
+	# database; rspamd, the web server and the map files stay
+	if [ "$first" = false ]; then
+		find q -mindepth 1 -maxdepth 1 ! -name tmp -exec rm -rf {} +
+		[ -f logs/rqwatch.log ] && : > logs/rqwatch.log
+		# rspamd writes learned hashes in batches every sync (1s, the test's
+		# worker-fuzzy.inc) plus up to half that as jitter: let a learn the
+		# previous leg's last test queued land before the flush, not after it
+		sleep 2
+		podman exec "$REDIS_CID" redis-cli FLUSHALL >/dev/null
+		seed_e2e
 	fi
-	echo "--- rspamd (exporter, force_actions and task lines) ---" >&2
-	podman logs "$RSPAMD_CID" 2>&1 | grep -E 'metadata_exporter|force_actions|task_write_log' | tail -30 >&2 || true
-	echo "--- rspamd (map fetches) ---" >&2
-	podman logs "$RSPAMD_CID" 2>&1 | grep -F '/maps/' | grep -v rspamd_map_add | tail -40 >&2 || true
-fi
+	first=false
+	echo "=== End to end, REDIS_ENABLE=${REDIS_ENABLE}"
+
+	leg_status=0
+	E2E_RSPAMD_URL="http://127.0.0.1:${NORMAL_PORT}" \
+	E2E_ROOT="$WORK" \
+	E2E_REDIS_PORT="$REDIS_PORT" \
+	E2E_REDIS_ENABLED="$REDIS_ENABLE" \
+	E2E_WEB_URL="http://127.0.0.1:${WEB_PORT}" \
+	E2E_UI_URL="http://127.0.0.1:${UI_PORT}" \
+	E2E_ADMIN_PASS="$ADMIN_PASS" \
+	E2E_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \
+	E2E_MAIL_API_PASS="$MAIL_API_PASS" \
+	E2E_QUARANTINE_DIR="${WORK}/q" \
+	E2E_DB_DSN="mysql:host=127.0.0.1;port=${DB_PORT};dbname=rqwatch;charset=utf8mb4" \
+	E2E_DB_USER=root \
+	E2E_DB_PASS="$DB_PASS" \
+		"$PHP" vendor/bin/phpunit -c qa/phpunit-e2e.xml "${PHPUNIT_ARGS[@]}" || leg_status=$?
+
+	if [ "$leg_status" != 0 ]; then
+		status=$leg_status
+		if [ -s logs/rqwatch.log ]; then
+			echo "--- logs/rqwatch.log (REDIS_ENABLE=${REDIS_ENABLE}) ---" >&2
+			tail -50 logs/rqwatch.log >&2
+		fi
+		echo "--- rspamd (exporter, force_actions and task lines) ---" >&2
+		podman logs "$RSPAMD_CID" 2>&1 | grep -E 'metadata_exporter|force_actions|task_write_log' | tail -30 >&2 || true
+		echo "--- rspamd (map fetches) ---" >&2
+		podman logs "$RSPAMD_CID" 2>&1 | grep -F '/maps/' | grep -v rspamd_map_add | tail -40 >&2 || true
+	fi
+done
 exit "$status"

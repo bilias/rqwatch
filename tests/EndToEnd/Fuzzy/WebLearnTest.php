@@ -165,7 +165,9 @@ final class WebLearnTest extends EndToEndTestCase
 		$b = (int) $rowB['id'];
 		$this->assertArrayHasKey('RQWATCH_FUZZY_DENIED', $reply['symbols'], 'the changed copy matches the learned mail');
 		$matched = json_decode((string) self::query('SELECT fuzzy_hashes FROM mail_log_data WHERE mail_log_id = ?', [$b])[0]['fuzzy_hashes'], true);
-		$this->assertNotEmpty(array_intersect($hashesA, is_array($matched) ? $matched : []), 'stored with the learned digest it matched');
+		$this->assertNotEmpty(array_intersect($hashesA, is_array($matched) ? $matched : []),
+			'stored with the learned digest it matched; options ' . json_encode($reply['symbols']['RQWATCH_FUZZY_DENIED']['options'] ?? null, JSON_THROW_ON_ERROR)
+			. ', stored ' . json_encode($matched, JSON_THROW_ON_ERROR) . ', learned ' . json_encode($hashesA, JSON_THROW_ON_ERROR));
 		$this->assertSame(1, (int) self::query('SELECT hits FROM mail_log_fuzzy WHERE mail_log_id = ?', [$a])[0]['hits'], 'hit on the learned mail');
 
 		$page = self::learn($admin, $b, self::SPAM, 10);

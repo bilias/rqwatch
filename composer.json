@@ -84,8 +84,7 @@
       ],
       "test-e2e": [
          "Composer\\Config::disableProcessTimeout",
-         "sh qa/each-php.sh bash qa/e2e-tests.sh -v",
-         "E2E_REDIS=0 sh qa/each-php.sh bash qa/e2e-tests.sh -v"
+         "sh qa/each-php.sh bash qa/e2e-tests.sh -v"
       ],
       "test-integration-php": [
          "@putenv QA_WEB=php",
