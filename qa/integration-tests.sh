@@ -21,12 +21,14 @@
 # in CI php -S, the UI through the router and the APIs from a second server
 # without it.
 #
-# Redis is off (REDIS_ENABLE=false) unless INTEGRATION_REDIS=1 or
-# INTEGRATION_REDIS_PORT is set: then sessions, the config and migration
-# caches and the rest of the Redis paths are in use. Run it both ways.
+# Two legs on the same servers and copy: Redis off (REDIS_ENABLE=false), then
+# on (sessions, the config and migration caches and the rest of the Redis
+# paths in use), each from a freshly seeded database and an empty Mailpit;
+# INTEGRATION_REDIS=0 or 1 runs only that leg. A failing leg does not stop
+# the other; the exit status is non-zero if either failed.
 #
 # Locally it starts rootless Podman containers ($MARIADB_IMAGE, $MAILPIT_IMAGE,
-# and $REDIS_IMAGE with INTEGRATION_REDIS=1). In CI set INTEGRATION_DB_EXEC (a
+# and $REDIS_IMAGE unless INTEGRATION_REDIS=0). In CI set INTEGRATION_DB_EXEC (a
 # mariadb client command), INTEGRATION_DB_HOST, INTEGRATION_DB_PORT and
 # INTEGRATION_DB_PASS for an existing server, INTEGRATION_MAILPIT_SMTP_PORT and
 # INTEGRATION_MAILPIT_HTTP_PORT for an existing Mailpit, and
@@ -63,17 +65,19 @@ else
 	wait_mailpit
 fi
 
-# Redis, when asked for
+# Redis legs: off, then on; INTEGRATION_REDIS=0 or 1 runs only that one
+LEGS="${INTEGRATION_REDIS:-0 1}"
+case $LEGS in
+	0 | 1 | "0 1") ;;
+	*) echo "INTEGRATION_REDIS: 0, 1 or unset" >&2; exit 1 ;;
+esac
 REDIS_ENABLE=false
 if [ -n "${INTEGRATION_REDIS_PORT:-}" ]; then
 	REDIS_PORT="$INTEGRATION_REDIS_PORT"
 	wait_redis
-	REDIS_ENABLE=true
-elif [ "${INTEGRATION_REDIS:-0}" = 1 ]; then
+elif [ "$LEGS" != 0 ]; then
 	start_redis "$REDIS_IMAGE"
-	REDIS_ENABLE=true
 fi
-echo "Redis: ${REDIS_ENABLE}${REDIS_PORT:+ (127.0.0.1:${REDIS_PORT})}"
 
 copy_tree
 
@@ -121,41 +125,60 @@ cat > config/config.local.php <<PHP
 ]];
 PHP
 
-# schema, users, test data, quarantined mails
-seed_test_data
-
-# web server; WEB_LOG is where PHP's warnings and errors go
-if [ "$QA_WEB" = container ]; then
-	start_web_container /login "$WEB_PORT" "$API_PORT"
-	WEB_LOG="${WORK}/logs/php-error.log"
-else
-	# the UI through the router
-	start_web "$WEB_PORT" /login qa/php-router.php
-	# the API scripts are files under web/api/: served without the router
-	start_web "$API_PORT" /css/style.css
-	WEB_LOG="${WORK}/logs/php-server-${WEB_PORT}.log"
-fi
+# web server; WEB_LOG is where PHP's warnings and errors go. .env is read on
+# every request, so one server serves both legs
+start_web_server() {
+	if [ "$QA_WEB" = container ]; then
+		start_web_container /login "$WEB_PORT" "$API_PORT"
+		WEB_LOG="${WORK}/logs/php-error.log"
+	else
+		# the UI through the router
+		start_web "$WEB_PORT" /login qa/php-router.php
+		# the API scripts are files under web/api/: served without the router
+		start_web "$API_PORT" /css/style.css
+		WEB_LOG="${WORK}/logs/php-server-${WEB_PORT}.log"
+	fi
+}
 
 status=0
-INTEGRATION_BASE_URL="http://127.0.0.1:${WEB_PORT}" \
-INTEGRATION_API_URL="http://127.0.0.1:${API_PORT}" \
-INTEGRATION_MAILPIT_URL="http://127.0.0.1:${MAILPIT_HTTP_PORT}" \
-INTEGRATION_ROOT="$WORK" \
-INTEGRATION_REDIS_ENABLED="$REDIS_ENABLE" \
-INTEGRATION_ADMIN_RCPT="$ADMIN_RCPT" \
-INTEGRATION_REDIS_PORT="${REDIS_PORT:-}" \
-INTEGRATION_WEB_LOG="$WEB_LOG" \
-INTEGRATION_RSPAMD_API_USER="$(sed -n 's/^RSPAMD_API_USER=//p' .env)" \
-INTEGRATION_RSPAMD_API_PASS="$RSPAMD_API_PASS" \
-INTEGRATION_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \
-INTEGRATION_MAIL_API_PASS="$MAIL_API_PASS" \
-INTEGRATION_DB_DSN="mysql:host=${DB_HOST};port=${DB_PORT};dbname=rqwatch" \
-INTEGRATION_DB_USER=root \
-INTEGRATION_DB_PASS="$DB_PASS" \
-	"$PHP" vendor/bin/phpunit -c qa/phpunit-integration.xml "${PHPUNIT_ARGS[@]}" || status=$?
+WEB_LOG=
+for leg in $LEGS; do
+	[ "$leg" = 1 ] && REDIS_ENABLE=true || REDIS_ENABLE=false
+	echo "=== Integration, REDIS_ENABLE=${REDIS_ENABLE}${REDIS_PORT:+, Redis at 127.0.0.1:${REDIS_PORT}}"
+	sed -i "s#^REDIS_ENABLE=.*#REDIS_ENABLE=${REDIS_ENABLE}#" .env
+	# each leg starts from the same state: an empty quarantine (but q/tmp, the
+	# web container's upload dir), then schema, users, test data and
+	# quarantined mails, an empty Mailpit, this leg's lines only in rqwatch.log
+	find q -mindepth 1 -maxdepth 1 ! -name tmp -exec rm -rf {} +
+	seed_test_data
+	curl -fsS -o /dev/null -X DELETE "http://127.0.0.1:${MAILPIT_HTTP_PORT}/api/v1/messages"
+	[ -f logs/rqwatch.log ] && : > logs/rqwatch.log
+	[ -n "$WEB_LOG" ] || start_web_server
 
-if [ "$status" != 0 ] && [ -s logs/rqwatch.log ]; then
-	echo "--- logs/rqwatch.log ---" >&2
-	tail -50 logs/rqwatch.log >&2
-fi
+	leg_status=0
+	INTEGRATION_BASE_URL="http://127.0.0.1:${WEB_PORT}" \
+	INTEGRATION_API_URL="http://127.0.0.1:${API_PORT}" \
+	INTEGRATION_MAILPIT_URL="http://127.0.0.1:${MAILPIT_HTTP_PORT}" \
+	INTEGRATION_ROOT="$WORK" \
+	INTEGRATION_REDIS_ENABLED="$REDIS_ENABLE" \
+	INTEGRATION_ADMIN_RCPT="$ADMIN_RCPT" \
+	INTEGRATION_REDIS_PORT="$([ "$REDIS_ENABLE" = true ] && echo "$REDIS_PORT")" \
+	INTEGRATION_WEB_LOG="$WEB_LOG" \
+	INTEGRATION_RSPAMD_API_USER="$(sed -n 's/^RSPAMD_API_USER=//p' .env)" \
+	INTEGRATION_RSPAMD_API_PASS="$RSPAMD_API_PASS" \
+	INTEGRATION_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \
+	INTEGRATION_MAIL_API_PASS="$MAIL_API_PASS" \
+	INTEGRATION_DB_DSN="mysql:host=${DB_HOST};port=${DB_PORT};dbname=rqwatch" \
+	INTEGRATION_DB_USER=root \
+	INTEGRATION_DB_PASS="$DB_PASS" \
+		"$PHP" vendor/bin/phpunit -c qa/phpunit-integration.xml "${PHPUNIT_ARGS[@]}" || leg_status=$?
+
+	if [ "$leg_status" != 0 ]; then
+		status=$leg_status
+		if [ -s logs/rqwatch.log ]; then
+			echo "--- logs/rqwatch.log (REDIS_ENABLE=${REDIS_ENABLE}) ---" >&2
+			tail -50 logs/rqwatch.log >&2
+		fi
+	fi
+done
 exit "$status"

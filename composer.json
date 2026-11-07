@@ -80,8 +80,7 @@
       "test-unit": "sh qa/each-php.sh bash qa/unit-tests.sh",
       "test-integration": [
          "Composer\\Config::disableProcessTimeout",
-         "sh qa/each-php.sh bash qa/integration-tests.sh -v",
-         "INTEGRATION_REDIS=1 sh qa/each-php.sh bash qa/integration-tests.sh -v"
+         "sh qa/each-php.sh bash qa/integration-tests.sh -v"
       ],
       "test-e2e": [
          "Composer\\Config::disableProcessTimeout",

@@ -227,8 +227,11 @@ phpunit_args() {
 
 # seed_test_data: the schema, users admin/alice/bob (passwords pw-<name>),
 # tests/Integration/fixtures.sql and the quarantined mails it references,
-# through $DB_EXEC; run in the copy, after copy_tree and write_env
+# through $DB_EXEC; run in the copy, after copy_tree and write_env. The
+# database is dropped first: db-init.sql's DROP TABLEs fail on a populated
+# one (foreign keys), so this is what lets a harness seed it again
 seed_test_data() {
+	$DB_EXEC -e 'DROP DATABASE IF EXISTS rqwatch'
 	$DB_EXEC < contrib/db-init.sql
 	"$PHP" bin/cli.php user:add -a -p pw-admin admin admin@example.org >/dev/null
 	"$PHP" bin/cli.php user:add -p pw-alice alice alice@example.org >/dev/null
