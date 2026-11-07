@@ -179,17 +179,17 @@ jobs:
           category: opengrep
 
   tests:
-    # integration without and with Redis (sessions, config and migration
-    # caches, login throttle), on each supported PHP version (qa/each-php.sh
-    # locally). Unit tests need neither service: once per PHP version
-    name: Tests (PHP ${{ matrix.php }}, Redis ${{ matrix.redis }})
+    # integration without, then with Redis (sessions, config and migration
+    # caches, login throttle), in one run of qa/integration-tests.sh, on each
+    # supported PHP version (qa/each-php.sh locally). Unit tests need neither
+    # service
+    name: Tests (PHP ${{ matrix.php }})
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        # quoted: bare off/on are booleans in YAML 1.1, 8.3 a number
-        redis: ['off', 'on']
+        # quoted: 8.3 is a number in YAML
         php: ['8.3', '8.4']
     services:
       mariadb:
@@ -209,7 +209,7 @@ jobs:
           - 1025:1025
           - 8025:8025
       redis:
-        # used only by the Redis leg; keep in sync with REDIS_IMAGE in qa/integration-tests.sh
+        # used by the Redis-on leg; keep in sync with REDIS_IMAGE in qa/integration-tests.sh
         image: docker.io/library/redis:7
         ports:
           - 6379:6379
@@ -239,10 +239,9 @@ jobs:
 
       # seconds, no database: a failure here stops the job before Integration
       - name: Unit tests
-        if: matrix.redis == 'off'
         run: bash qa/unit-tests.sh
 
-      - name: Integration tests (access, smoke, retention, scoping, release, notifications)
+      - name: Integration tests, Redis off and on (access, smoke, retention, scoping, release, notifications)
         env:
           INTEGRATION_DB_EXEC: docker exec -i ${{ job.services.mariadb.id }} mariadb -uroot -pintegration-test
           INTEGRATION_DB_HOST: 127.0.0.1
@@ -250,22 +249,23 @@ jobs:
           INTEGRATION_DB_PASS: integration-test
           INTEGRATION_MAILPIT_SMTP_PORT: '1025'
           INTEGRATION_MAILPIT_HTTP_PORT: '8025'
-          # empty in the off leg: the harness leaves REDIS_ENABLE=false
-          INTEGRATION_REDIS_PORT: ${{ matrix.redis == 'on' && '6379' || '' }}
+          # both legs: the harness runs off, then on, against these services,
+          # reseeding the database and clearing Mailpit between them
+          INTEGRATION_REDIS_PORT: '6379'
         run: bash qa/integration-tests.sh
 
   e2e:
-    # the importer with and without this instance's Redis (caches, the spool),
-    # on each supported PHP version; rspamd's fuzzy storage uses Redis either way
-    name: End to end (PHP ${{ matrix.php }}, Redis ${{ matrix.redis }})
+    # the importer without, then with this instance's Redis (caches, the
+    # spool), in one run of qa/e2e-tests.sh, on each supported PHP version;
+    # rspamd's fuzzy storage uses Redis either way
+    name: End to end (PHP ${{ matrix.php }})
     if: github.event_name != 'schedule' || github.event.schedule == '41 4 * * 1'
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        # quoted: bare off/on are booleans in YAML 1.1, 8.3 a number
-        redis: ['off', 'on']
+        # quoted: 8.3 is a number in YAML
         php: ['8.3', '8.4']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -291,9 +291,9 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --no-progress --prefer-dist
 
+      # both legs, Redis off then on, on the same containers; a failing leg
+      # does not stop the other
       - name: Rspamd and importer
-        env:
-          E2E_REDIS: ${{ matrix.redis == 'on' && '1' || '0' }}
         run: bash qa/e2e-tests.sh
 
   zap:
