@@ -74,6 +74,7 @@ final class AuthManager
 			throw new RuntimeException("Logging interface problem");
 		}
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no URL: fail closed */
 		if ($this->redirectUrl) {
 			$provider->setCallbackUrl($this->redirectUrl);
 		} else {
@@ -119,6 +120,7 @@ final class AuthManager
 			throw new RuntimeException("Logging interface problem");
 		}
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no URL: fail closed */
 		if ($this->redirectUrl) {
 			$provider->setPostLogoutRedirectUrl($this->redirectUrl);
 		} else {

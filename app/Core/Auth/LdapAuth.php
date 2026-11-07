@@ -78,14 +78,17 @@ final class LdapAuth implements AuthInterface {
 			$ldap_givenname_attr,
 		];
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no attribute name, as in getValue() */
 		if ($ldap_mail_alias_attr) {
 			$ldap_attrs[] = $ldap_mail_alias_attr;
 		}
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no attribute name, as in getValue() */
 		if ($ldap_sn_attr_fallback) {
 			$ldap_attrs[] = $ldap_sn_attr_fallback;
 		}
 
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no attribute name, as in getValue() */
 		if ($ldap_givenname_attr_fallback) {
 			$ldap_attrs[] = $ldap_givenname_attr_fallback;
 		}
@@ -223,21 +226,21 @@ final class LdapAuth implements AuthInterface {
 		$this->is_admin = AuthManager::isExternalAdmin('LDAP', $this->authenticatedUser) === true;
 
 		$sn = $this->getValue($attrs, $ldap_sn_attr);
-		if (!empty($sn)) {
+		if ($sn !== null && $sn !== '') {
 			$this->lastname = $sn;
 		} else {
 			$sn_fallback = $this->getValue($attrs, $ldap_sn_attr_fallback);
-			if (!empty($sn_fallback)) {
+			if ($sn_fallback !== null && $sn_fallback !== '') {
 				$this->lastname = $sn_fallback;
 			}
 		}
 
 		$givenName = $this->getValue($attrs, $ldap_givenname_attr);
-		if (!empty($givenName)) {
+		if ($givenName !== null && $givenName !== '') {
 			$this->firstname = $givenName;
 		} else {
 			$givenName_fallback = $this->getValue($attrs, $ldap_givenname_attr_fallback);
-			if (!empty($givenName_fallback)) {
+			if ($givenName_fallback !== null && $givenName_fallback !== '') {
 				$this->firstname = $givenName_fallback;
 			}
 		}
@@ -306,6 +309,7 @@ final class LdapAuth implements AuthInterface {
 
 	/** @param array<array-key, mixed> $attrs ldap_get_attributes() result */
 	public function getValue(array $attrs, ?string $field): ?string {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no attribute name; '0' would index ldap_get_attributes()' numbered list */
 		if (empty($field)) {
 			return null;
 		}
@@ -323,6 +327,7 @@ final class LdapAuth implements AuthInterface {
 	 * @return list<string>
 	 */
 	public function getValues(array $attrs, ?string $field): array {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no attribute name; '0' would index ldap_get_attributes()' numbered list */
 		if (empty($field)) {
 			return [];
 		}
