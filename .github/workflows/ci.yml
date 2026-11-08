@@ -2,7 +2,7 @@ name: CI
 
 # One workflow for every check. Push and PR run all jobs but ZAP; each cron
 # runs only its own job (the if: lines below), and a manual run runs
-# everything but ZAP, which only its cron runs.
+# everything but ZAP, unless its zap input is ticked.
 
 concurrency:
   # the event keeps a long scheduled run from queueing the checks of a push
@@ -22,6 +22,11 @@ on:
     # ZAP, weekly: up to an hour against httpd + PHP-FPM
     - cron: '17 3 * * 0'
   workflow_dispatch:
+    inputs:
+      zap:
+        description: Also run the ZAP scan (about an hour)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -377,7 +382,7 @@ jobs:
     # without alert lines), nothing is kept as an artifact, and a finding
     # doesn't fail the job
     name: ZAP scan
-    if: github.event_name == 'schedule' && github.event.schedule == '17 3 * * 0'
+    if: (github.event_name == 'schedule' && github.event.schedule == '17 3 * * 0') || (github.event_name == 'workflow_dispatch' && inputs.zap)
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     permissions:
