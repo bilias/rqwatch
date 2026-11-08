@@ -152,7 +152,7 @@ final class FuzzyController extends ViewController
 				'choice' => "on '{$label}' learned mail",
 				'value' => $row->qid,
 				// by id: a qid can repeat; none once the learned mail is purged
-				'url' => $row->mail_log_id ? $this->url(RouteName::ADMIN_DETAIL, ['type' => 'id', 'value' => $row->mail_log_id]) : null,
+				'url' => $row->mail_log_id !== null ? $this->url(RouteName::ADMIN_DETAIL, ['type' => 'id', 'value' => $row->mail_log_id]) : null,
 			]],
 			'queryParams' => [],
 			'totalRecords' => $logs->total(),

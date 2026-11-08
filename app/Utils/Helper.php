@@ -150,6 +150,7 @@ final class Helper {
 	 spooled mail_location has to keep pointing at a file that exists.
 	*/
 	public static function discard_raw_mail(?string $file): bool {
+		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no location; '0' would make dirname() '.' */
 		if (empty($file)) {
 			return false;
 		}
@@ -286,7 +287,7 @@ final class Helper {
 
 	// change class depending on symbol
 	public static function get_symbol_class(?string $symbol = null): string {
-		if (!empty($symbol)) {
+		if ($symbol !== null && $symbol !== '') {
 			if (($class = self::fuzzySymbolClass($symbol)) !== null) {
 				return $class;
 			}
@@ -307,7 +308,7 @@ final class Helper {
 
 	/** @param array<array-key, mixed>|null $symbols a mail's decoded symbols */
 	public static function get_action_details(?array $symbols = null): string {
-		if (!empty($symbols)) {
+		if ($symbols !== null && $symbols !== []) {
 			if (self::checkForWhitelist($symbols)) {
 				return 'whitelist';
 			}
@@ -324,7 +325,7 @@ final class Helper {
 	// change row class depending on action
 	/** @param array<array-key, mixed>|null $symbols a mail's decoded symbols */
 	public static function get_row_class(string $action, ?array $symbols = null): string {
-		if (!empty($symbols)) {
+		if ($symbols !== null && $symbols !== []) {
 			// green only if the whitelist won; a forced reject/discard keeps its colour
 			if (!in_array($action, ['reject', 'discard'], true) && self::checkForWhitelist($symbols)) {
 				return 'whitelist';
@@ -503,7 +504,7 @@ final class Helper {
 		}
 
 		foreach ($symbols as $symbol) {
-			if ($ret = self::check_virus($symbol)) {
+			if (($ret = self::check_virus($symbol)) !== false) {
 				return $ret;
 			} 
 		}
@@ -567,7 +568,7 @@ final class Helper {
 
 	// checks date for correct format YYYY-MM-DD
 	public static function check_date(?string $day): bool {
-		if (!$day) {
+		if ($day === null) {
 			return false;
 		}
 		
@@ -689,7 +690,7 @@ final class Helper {
 			 $name = $symbol['name'];
 			 $score = $symbol['score'];
 
-			 if ($has_virus && ($virus = Helper::check_virus($symbol))) {
+			 if ($has_virus && ($virus = Helper::check_virus($symbol)) !== false) {
 					$symbols[] = "$name:$score:$virus";
 					$virus_found = $virus;
 			 } elseif (isset($symbol['options'])) {
@@ -961,7 +962,7 @@ Mail details:
 			// Try to extract all IPs in brackets [1.2.3.4]
 			$ips = [];
 			// [1.2.3.4], [IPv6:2001:db8::1] or (1.2.3.4); brackets holding only an address
-			if (preg_match_all('/[\[\(](?:IPv6:)?([0-9a-f:.]+)[\]\)]/i', $line, $ipMatches)) {
+			if ((int) preg_match_all('/[\[\(](?:IPv6:)?([0-9a-f:.]+)[\]\)]/i', $line, $ipMatches) > 0) {
 				foreach ($ipMatches[1] as $rawIp) {
 					if (filter_var($rawIp, FILTER_VALIDATE_IP)) {
 						$ips[] = $rawIp;
@@ -985,7 +986,7 @@ Mail details:
 						'host' => ($resolvedHost !== $ip) ? $resolvedHost : ($host ?? null),
 					];
 				}
-			} elseif ($host) {
+			} elseif ($host !== null) {
 				// No IP found — try resolving IP from hostname
 				$resolvedIp = $budget-- > 0 ? self::my_gethostbyname($host) : $host;
 				if (filter_var($resolvedIp, FILTER_VALIDATE_IP)) {

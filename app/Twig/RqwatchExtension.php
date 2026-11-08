@@ -189,7 +189,7 @@ final class RqwatchExtension extends AbstractExtension
 				continue;
 			}
 			foreach (mb_str_split($part) as $ch) {
-				$cp = sprintf('U+%04X', mb_ord($ch) ?: 0);
+				$cp = sprintf('U+%04X', (int) mb_ord($ch));
 				if (preg_match('/\p{Cf}/u', $ch)) {
 					$out .= '<mark class="homoglyph" title="invisible ' . $cp . '">·</mark>';
 				} elseif (preg_match('/(?!\p{Latin})\p{L}/u', $ch)) {
