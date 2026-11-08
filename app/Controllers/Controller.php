@@ -246,7 +246,7 @@ class Controller
 		$api_servers = Config::get('API_SERVERS');
 
 		$apiClient = new ApiClient();
-		$password = $_ENV['RSPAMD_CONTROLLER_PASS'];
+		$password = (string) ($_ENV['RSPAMD_CONTROLLER_PASS'] ?? '');
 
 		// start every request before reading any: the client runs them concurrently,
 		// so a dead controller costs one timeout, not one per server
@@ -268,7 +268,12 @@ class Controller
 			try {
 				$responseCode = $response->getStatusCode();
 				if ($responseCode === Response::HTTP_OK) {
-					$stats[$api_server] = json_decode($response->getContent(), true);
+					$stat = json_decode($response->getContent(), true);
+					if (is_array($stat)) {
+						$stats[$api_server] = $stat;
+					} else {
+						$this->fileLogger->error("Stat request to '{$api_server}' returned no JSON object");
+					}
 				} else {
 					$this->fileLogger->error("Stat request to '{$api_server}' failed with error code " . $responseCode . ": " . $response->getContent());
 				}
