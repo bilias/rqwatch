@@ -179,7 +179,7 @@ final class AuthManager
 		}
 		$admins = array_map(
 			fn($a) => strtolower(trim($a)),
-			explode(',', (string) ($_ENV[$var] ?? ''))
+			explode(',', Helper::env_string($var) ?? '')
 		);
 		return in_array(strtolower(trim($username)), $admins, true);
 	}

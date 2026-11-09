@@ -20,6 +20,7 @@ use Symfony\Component\Console\Command\LockableTrait;
 use App\Configuration\Config;
 
 use App\Services\FuzzyService;
+use App\Utils\Helper;
 
 #[AsCommand(
 	name: 'cron:fuzzy_cleanup',
@@ -66,7 +67,7 @@ final class CronFuzzyCleanup extends RqwatchCliCommand
 			return Command::SUCCESS;
 		}
 
-		$server = $input->getOption('local') ? (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '') : null;
+		$server = $input->getOption('local') ? (Helper::env_string('MY_API_SERVER_ALIAS') ?? '') : null;
 		$local = $server !== null ? " on server: {$server}" : '';
 
 		$service = new FuzzyService();

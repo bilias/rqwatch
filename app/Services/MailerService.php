@@ -37,13 +37,13 @@ final class MailerService
 	// this node can send mail: both MAILER_DSN and MAILER_FROM are set
 	public static function isConfigured(): bool {
 		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no DSN or address: not configured */
-		return !empty($_ENV['MAILER_DSN']) && !empty($_ENV['MAILER_FROM']);
+		return !empty(Helper::env_string('MAILER_DSN')) && !empty(Helper::env_string('MAILER_FROM'));
 	}
 
 	public function __construct(LoggerInterface $logger, ?Environment $twig = null) {
 		$this->logger = $logger;
 
-		$dsn = $_ENV['MAILER_DSN'] ?? null;
+		$dsn = Helper::env_string('MAILER_DSN');
 
 		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no DSN: fail with this message */
 		if (!$dsn) {

@@ -85,7 +85,7 @@ final class OpenIDConnectAuth implements AuthInterface {
 
 		$userInfo = $oidc->requestUserInfo();
 
-		$usernameAttr = trim($_ENV['OPENIDC_PREFERRED_USERNAME_ATTR'] ?? '') ?: 'preferred_username';
+		$usernameAttr = trim(Helper::env_string('OPENIDC_PREFERRED_USERNAME_ATTR') ?? '') ?: 'preferred_username';
 
 		if (Helper::env_bool('OPENIDC_DEBUG_CLAIMS', false)) {
 			$this->logger->info('OIDC claims', [
@@ -248,14 +248,14 @@ final class OpenIDConnectAuth implements AuthInterface {
 	}
 
 	private function createClient(): RqwatchOpenIDConnectClient {
-		$openidc_url = $_ENV['OPENIDC_URL'];
-		$openidc_client_id = $_ENV['OPENIDC_CLIENT_ID'];
-		$openidc_client_secret = $_ENV['OPENIDC_CLIENT_SECRET'];
+		$openidc_url = Helper::env_required('OPENIDC_URL');
+		$openidc_client_id = Helper::env_required('OPENIDC_CLIENT_ID');
+		$openidc_client_secret = Helper::env_required('OPENIDC_CLIENT_SECRET');
 
 		$oidc = new RqwatchOpenIDConnectClient(
-			$_ENV['OPENIDC_URL'],
-			$_ENV['OPENIDC_CLIENT_ID'],
-			$_ENV['OPENIDC_CLIENT_SECRET']
+			$openidc_url,
+			$openidc_client_id,
+			$openidc_client_secret
 		);
 
 		if (Helper::env_bool('OPENIDC_REQUIRE_PKCE', true)) {

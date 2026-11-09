@@ -924,13 +924,24 @@ Mail details:
 		return $ret;
 	}
 
+	// a .env value, null when unset (Dotenv sets only strings)
+	public static function env_string(string $key): ?string {
+		$value = $_ENV[$key] ?? null;
+		return is_string($value) ? $value : null;
+	}
+
+	// a .env value the caller cannot work without
+	public static function env_required(string $key): string {
+		return self::env_string($key) ?? throw new RuntimeException("{$key} is not set in .env");
+	}
+
 	public static function env_bool(string $key, bool $default = false): bool {
 		return filter_var($_ENV[$key] ?? $default, FILTER_VALIDATE_BOOLEAN);
 	}
 
 	public static function mailApiCredentialsSet(): bool {
-		$user = $_ENV['MAIL_API_USER'] ?? null;
-		$pass = $_ENV['MAIL_API_PASS'] ?? null;
+		$user = self::env_string('MAIL_API_USER');
+		$pass = self::env_string('MAIL_API_PASS');
 
 		return is_string($user)
 			&& $user !== ''
@@ -1084,7 +1095,7 @@ Mail details:
 	 * before the check), null otherwise. Every reader of mail_location uses it.
 	 */
 	public static function quarantinedFile(string $path): ?string {
-		$dir = rtrim(trim((string) ($_ENV['QUARANTINE_DIR'] ?? '')), DIRECTORY_SEPARATOR);
+		$dir = rtrim(trim(self::env_string('QUARANTINE_DIR') ?? ''), DIRECTORY_SEPARATOR);
 		$base = $dir === '' ? false : realpath($dir);
 		$real = $path === '' ? false : realpath($path);
 		if ($base !== false && $base !== DIRECTORY_SEPARATOR && $real !== false && is_file($real)
@@ -1096,7 +1107,7 @@ Mail details:
 	}
 
 	public static function deleteDirectory(string $dir): bool {
-		$quarantineEnv = trim((string)($_ENV['QUARANTINE_DIR'] ?? ''));
+		$quarantineEnv = trim(self::env_string('QUARANTINE_DIR') ?? '');
 		if ($quarantineEnv === '' || $quarantineEnv === DIRECTORY_SEPARATOR) {
 			self::logger()->warning("QUARANTINE_DIR is empty or points to root /");
 			return false;

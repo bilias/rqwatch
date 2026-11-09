@@ -25,13 +25,13 @@ final class GetMailApi extends RqwatchApi
 	#[\Override]
 	protected function getAllowedIps(): array {
 		return array_values(array_filter(
-			array_map('trim', explode(',', (string)($_ENV['MAIL_API_ACL'] ?? '')))
+			array_map('trim', explode(',', Helper::env_string('MAIL_API_ACL') ?? ''))
 		));
 	}
 
 	#[\Override]
 	protected function getAuthCredentials(): array {
-		return [$_ENV['MAIL_API_USER'] ?? null, $_ENV['MAIL_API_PASS'] ?? null];
+		return [Helper::env_string('MAIL_API_USER'), Helper::env_string('MAIL_API_PASS')];
 	}
 
 	#[\Override]

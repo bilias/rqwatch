@@ -65,9 +65,9 @@ final class LoginThrottle
 		private readonly ?CacheInterface $cache,
 		private readonly LoggerInterface $logger,
 	) {
-		$this->maxAttempts   = max(1, (int)($_ENV['LOGIN_MAX_ATTEMPTS_IP'] ?? 10));
-		$this->window        = max(1, (int)($_ENV['LOGIN_WINDOW'] ?? 600));
-		$this->blockDuration = max(1, (int)($_ENV['LOGIN_BLOCK_DURATION'] ?? 900));
+		$this->maxAttempts   = max(1, (int)(Helper::env_string('LOGIN_MAX_ATTEMPTS_IP') ?? 10));
+		$this->window        = max(1, (int)(Helper::env_string('LOGIN_WINDOW') ?? 600));
+		$this->blockDuration = max(1, (int)(Helper::env_string('LOGIN_BLOCK_DURATION') ?? 900));
 
 		$this->enabled = self::isEnabled();
 
@@ -78,7 +78,7 @@ final class LoginThrottle
 		}
 
 		$this->whitelist = array_values(array_filter(
-			array_map('trim', explode(',', (string)($_ENV['LOGIN_IPS_WHITELIST'] ?? ''))),
+			array_map('trim', explode(',', Helper::env_string('LOGIN_IPS_WHITELIST') ?? '')),
 			static fn(string $ip): bool => $ip !== ''
 		));
 

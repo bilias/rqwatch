@@ -18,6 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
 use App\Services\Import\MailLogSpool;
+use App\Utils\Helper;
 
 #[AsCommand(
 	name: 'cron:import_spool',
@@ -73,7 +74,7 @@ final class CronImportSpool extends RqwatchCliCommand
 
 		$local = '';
 		if ($local_only) {
-			$local = " on server: " . ($_ENV['MY_API_SERVER_ALIAS'] ?? 'unknown');
+			$local = " on server: " . (Helper::env_string('MY_API_SERVER_ALIAS') ?? 'unknown');
 		}
 
 		$pending = $spool->pending($local_only);

@@ -186,13 +186,13 @@ final class Config {
 
 	// REDIS_CONFIG_KEY from .env; AppConfig's default when unset or empty
 	public static function redisConfigKey(): string {
-		$key = trim((string) ($_ENV['REDIS_CONFIG_KEY'] ?? ''));
+		$key = trim(Helper::env_string('REDIS_CONFIG_KEY') ?? '');
 		return $key !== '' ? $key : AppConfig::REDIS_CONFIG_KEY;
 	}
 
 	// REDIS_CONFIG_CACHE_TTL from .env; AppConfig's default when unset or not a number
 	public static function redisConfigTtl(): int {
-		$ttl = $_ENV['REDIS_CONFIG_CACHE_TTL'] ?? null;
+		$ttl = Helper::env_string('REDIS_CONFIG_CACHE_TTL');
 		return is_numeric($ttl) ? (int) $ttl : AppConfig::REDIS_CONFIG_CACHE_TTL;
 	}
 

@@ -105,9 +105,9 @@ class ViewController extends Controller
 		$this->twig->addGlobal('FOOTER_NAME', Config::get('FOOTER_NAME') ?? AppConfig::APP_NAME);
 		$this->twig->addGlobal('FOOTER_URL', Config::get('FOOTER_URL') ?? AppConfig::GITHUB);
 		$this->twig->addGlobal('FOOTER_VERSION', Config::get('FOOTER_VERSION') ?? AppConfig::APP_NAME);
-		$this->twig->addGlobal('WEB_BASE', $_ENV['WEB_BASE'] ?? '');
+		$this->twig->addGlobal('WEB_BASE', Helper::env_string('WEB_BASE') ?? '');
 		$this->twig->addGlobal('NOTIFICATION_SCORE', Config::get('notification_score') ?? 1000);
-		$this->twig->addGlobal('OPENIDC_LABEL', $_ENV['OPENIDC_LABEL'] ?? 'Login with OpenID Connect');
+		$this->twig->addGlobal('OPENIDC_LABEL', Helper::env_string('OPENIDC_LABEL') ?? 'Login with OpenID Connect');
 		$this->twig->addGlobal('LOGIN_THROTTLE_ENABLED',
 			Helper::env_bool('REDIS_ENABLE', false) &&
 			Helper::env_bool('LOGIN_THROTTLE_ENABLE', false)

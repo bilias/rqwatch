@@ -23,6 +23,7 @@ use Symfony\Component\Console\Command\LockableTrait;
 use App\Core\App;
 
 use App\Services\MailLogService;
+use App\Utils\Helper;
 
 use DateTime;
 use DateInterval;
@@ -60,8 +61,8 @@ final class CronCleanupDb extends RqwatchCliCommand
 			return Command::FAILURE;
 		}
 
-		$days = (int) ($_ENV['DATABASE_DAYS'] ?? 366);
-		$qdays = (int) ($_ENV['QUARANTINE_DAYS']);
+		$days = (int) (Helper::env_string('DATABASE_DAYS') ?? 366);
+		$qdays = (int) Helper::env_required('QUARANTINE_DAYS');
 
 		if (empty($qdays) || ($days <= $qdays)) {
 			$output->writeln("<comment>DATABASE_DAYS must by higher that QUARANTINE_DAYS</comment>",
@@ -84,7 +85,7 @@ final class CronCleanupDb extends RqwatchCliCommand
 		// MailLog Collection
 		$local = '';
 		if ($local_only) {
-			$server = (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '');
+			$server = Helper::env_string('MY_API_SERVER_ALIAS') ?? '';
 			if ($server === '') {
 				$output->writeln('<error>--local needs MY_API_SERVER_ALIAS in .env</error>');
 				$this->fileLogger->error("{$this->app_name} --local needs MY_API_SERVER_ALIAS in .env");

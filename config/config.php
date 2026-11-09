@@ -381,4 +381,4 @@ $show_user_charts = false;
 # Used for debugging to see what type of information
 # comes from rspamd to rqwatch api
 $log_to_files = false;
-$log_to_files_dir = "{$_ENV['QUARANTINE_DIR']}/file_log_debug";
+$log_to_files_dir = (\App\Utils\Helper::env_string('QUARANTINE_DIR') ?? '') . '/file_log_debug';

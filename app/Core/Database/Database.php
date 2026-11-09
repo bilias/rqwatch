@@ -19,6 +19,7 @@ use App\Inventory\Migrations;
 use App\Models\MailLogData;
 use App\Models\MailLogRecipient;
 use App\Models\MailLogToken;
+use App\Utils\Helper;
 
 use PDO;
 
@@ -44,11 +45,11 @@ final class Database {
 
 	public static function boot(): Capsule {
 		$db_config = [
-			'host'     => $_ENV['DB_HOST'],
-			'username' => $_ENV['DB_USER'],
-			'password' => $_ENV['DB_PASS'],
-			'database' => $_ENV['DB_NAME'],
-			'port'     => $_ENV['DB_PORT'],
+			'host'     => Helper::env_required('DB_HOST'),
+			'username' => Helper::env_required('DB_USER'),
+			'password' => Helper::env_required('DB_PASS'),
+			'database' => Helper::env_required('DB_NAME'),
+			'port'     => Helper::env_required('DB_PORT'),
 			'charset'  => AppConfig::DB_CHARSET,
 			'collation'=> AppConfig::DB_COLLATION,
 			// the session clock follows PHP's, which writes date() values
@@ -59,7 +60,7 @@ final class Database {
 		];
 
 		// Web pages only: cap each statement so a runaway search fails fast.
-		$maxTime = (int) ($_ENV['DB_WEB_MAX_STATEMENT_TIME'] ?? 30);
+		$maxTime = (int) (Helper::env_string('DB_WEB_MAX_STATEMENT_TIME') ?? 30);
 		if (defined('WEB_MODE') && $maxTime > 0) {
 			$db_config['options'] = [
 				PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION max_statement_time = {$maxTime}",
@@ -216,7 +217,7 @@ final class Database {
 			          FROM information_schema.COLUMNS
 			          WHERE TABLE_SCHEMA = ?
 			          ORDER BY TABLE_NAME, ORDINAL_POSITION",
-			          [$_ENV['DB_NAME']]
+			          [Helper::env_required('DB_NAME')]
 			);
 
 		$schema = [];

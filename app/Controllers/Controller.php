@@ -246,7 +246,7 @@ class Controller
 		$api_servers = Config::get('API_SERVERS');
 
 		$apiClient = new ApiClient();
-		$password = (string) ($_ENV['RSPAMD_CONTROLLER_PASS'] ?? '');
+		$password = Helper::env_string('RSPAMD_CONTROLLER_PASS') ?? '';
 
 		// start every request before reading any: the client runs them concurrently,
 		// so a dead controller costs one timeout, not one per server

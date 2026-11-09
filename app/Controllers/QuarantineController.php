@@ -221,7 +221,7 @@ final class QuarantineController extends ViewController
 		// sends it, since it holds the file and records the release
 		$recipient = $tokenRow->recipient_email;
 
-		if ($_ENV['MY_API_SERVER_ALIAS'] === $maillog->server) {
+		if (Helper::env_string('MY_API_SERVER_ALIAS') === $maillog->server) {
 			$released = $service->releaseHtmlMail([$recipient], $maillog);
 		} else {
 			$released = $service->releaseMailViaApi([$recipient], $maillog->id, $maillog->server, $recipient);
@@ -365,7 +365,7 @@ final class QuarantineController extends ViewController
 
 	// a local mail needs this node's mailer; a remote one is sent and checked by its own node
 	private function releaseDisabled(string $server): bool {
-		return $_ENV['MY_API_SERVER_ALIAS'] === $server && !MailerService::isConfigured();
+		return Helper::env_string('MY_API_SERVER_ALIAS') === $server && !MailerService::isConfigured();
 	}
 
 	private function tokenError(): Response {

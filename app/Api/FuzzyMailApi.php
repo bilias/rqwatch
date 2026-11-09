@@ -17,6 +17,7 @@ use App\Models\MailLogFuzzy;
 
 use App\Services\FuzzyService;
 use App\Services\MailLogService;
+use App\Utils\Helper;
 
 use Symfony\Component\HttpFoundation\Response;
 
@@ -30,19 +31,19 @@ final class FuzzyMailApi extends RqwatchApi
 	#[\Override]
 	protected function getAllowedIps(): array {
 		return array_values(array_filter(
-			array_map('trim', explode(',', (string)($_ENV['MAIL_API_ACL'] ?? '')))
+			array_map('trim', explode(',', Helper::env_string('MAIL_API_ACL') ?? ''))
 		));
 	}
 
 	#[\Override]
 	protected function getAuthCredentials(): array {
-		return [$_ENV['MAIL_API_USER'] ?? null, $_ENV['MAIL_API_PASS'] ?? null];
+		return [Helper::env_string('MAIL_API_USER'), Helper::env_string('MAIL_API_PASS')];
 	}
 
 	#[\Override]
 	public function handle(): void {
 		$post = $this->request->request->all();
-		$node = (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '');
+		$node = Helper::env_string('MY_API_SERVER_ALIAS') ?? '';
 
 		$remote_user = (string) ($post['remote_user'] ?? '');
 		$action = (string) ($post['action'] ?? '');
@@ -66,7 +67,7 @@ final class FuzzyMailApi extends RqwatchApi
 			$err_msg = "{$remote_user} via {$this->clientIp} requested fuzzy {$action} of id {$id} on '{$node}' but fuzzy learning is disabled";
 			// not 403: the caller reads 403 as an auth or ACL problem
 			$this->dropLogResponse(
-				Response::HTTP_NOT_IMPLEMENTED, "Fuzzy learning is disabled on " . ($_ENV['MY_API_SERVER_ALIAS'] ?? ''),
+				Response::HTTP_NOT_IMPLEMENTED, "Fuzzy learning is disabled on " . (Helper::env_string('MY_API_SERVER_ALIAS') ?? ''),
 				$err_msg, 'warning');
 		}
 

@@ -52,9 +52,9 @@ final class Router
 			array $defaultMiddlewareClasses,
 	): Response {
 
-		$webHost   = $_ENV['WEB_HOST'] ?? throw new RuntimeException('WEB_HOST is not set in .env');
-		$webScheme = $_ENV['WEB_SCHEME'] ?? throw new RuntimeException('WEB_SCHEME is not set in .env');
-		$webBase   = $_ENV['WEB_BASE'] ?? throw new RuntimeException('WEB_BASE is not set in .env');
+		$webHost   = Helper::env_required('WEB_HOST');
+		$webScheme = Helper::env_required('WEB_SCHEME');
+		$webBase   = Helper::env_required('WEB_BASE');
 
 		// Request initialization
 		$request = Request::createFromGlobals();
@@ -246,7 +246,7 @@ final class Router
 		$response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
 		$response->headers->set('Cross-Origin-Resource-Policy', 'same-origin');
 
-		if ($_ENV['WEB_SCHEME'] === 'https') {
+		if (Helper::env_string('WEB_SCHEME') === 'https') {
 			$response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 		}
 	}

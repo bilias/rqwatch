@@ -51,8 +51,9 @@ final class SessionManager
 	}
 
 	public static function newSession(): void {
-		if (array_key_exists('IDLE_TIMEOUT', $_ENV) && !empty($_ENV['IDLE_TIMEOUT'])) {
-			self::setSessionTimeout((int)$_ENV['IDLE_TIMEOUT']);
+		$idle = Helper::env_string('IDLE_TIMEOUT');
+		if ($idle !== null && $idle !== '' && $idle !== '0') {
+			self::setSessionTimeout((int) $idle);
 		}
 
 		if (Helper::env_bool('REDIS_ENABLE')) {
@@ -139,7 +140,7 @@ final class SessionManager
 	}
 
 	private static function checkSecureCookie(): string {
-		if ($_ENV['WEB_SCHEME'] == 'http') {
+		if (Helper::env_string('WEB_SCHEME') == 'http') {
 			return "auto";
 		}
 		return "1";

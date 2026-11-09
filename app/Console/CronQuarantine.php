@@ -23,6 +23,7 @@ use Symfony\Component\Console\Command\LockableTrait;
 use App\Core\App;
 
 use App\Services\MailLogService;
+use App\Utils\Helper;
 
 use DateTime;
 use DateInterval;
@@ -78,14 +79,14 @@ final class CronQuarantine extends RqwatchCliCommand
 		// MailLog Collection
 		$local = '';
 		if ($show_local_only) {
-			$server = $_ENV['MY_API_SERVER_ALIAS'];
+			$server = Helper::env_required('MY_API_SERVER_ALIAS');
 			$logs = $service->getQuarantine($output, $server);
 			$local = " on server: {$server}";
 		} else {
 			$logs = $service->getQuarantine($output);
 		}
 
-		$days = (int) ($_ENV['QUARANTINE_DAYS'] ?? 366);
+		$days = (int) (Helper::env_string('QUARANTINE_DAYS') ?? 366);
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 		$qtime = $cutoffDate->format('Y-m-d H:i:s');
@@ -171,7 +172,7 @@ final class CronQuarantine extends RqwatchCliCommand
 	}
 
 	private function pruneEmptyQuarantineDateDirs(OutputInterface $output): void {
-		$root = $_ENV['QUARANTINE_DIR'] ?? null;
+		$root = Helper::env_string('QUARANTINE_DIR');
 
 		if ($root === null || $root === '') {
 			$output->writeln(

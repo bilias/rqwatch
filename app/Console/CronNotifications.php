@@ -79,7 +79,7 @@ final class CronNotifications extends RqwatchCliCommand
 		$service = new MailLogService();
 
 		// admin pass first: the user pass below returns early in several places
-		$adminServer = $show_local_only ? $_ENV['MY_API_SERVER_ALIAS'] : null;
+		$adminServer = $show_local_only ? Helper::env_required('MY_API_SERVER_ALIAS') : null;
 		$adminFailed = $this->adminNotifications(
 			$service, $output, $send_mails, $show_mails, $send_blacklisted, $blacklisted_any_score, $adminServer
 		);
@@ -87,7 +87,7 @@ final class CronNotifications extends RqwatchCliCommand
 		// MailLog Collection
 		$local = '';
 		if ($show_local_only) {
-			$server = $_ENV['MY_API_SERVER_ALIAS'];
+			$server = Helper::env_required('MY_API_SERVER_ALIAS');
 			$logs = $service->getUnnotified($output, $server);
 			$local = " on server: {$server}";
 		} else {
@@ -353,9 +353,9 @@ final class CronNotifications extends RqwatchCliCommand
 		$routeConfig = Routes::load();
 
 		$context = new RequestContext();
-		$context->setHost($_ENV['WEB_HOST_NOTIFICATIONS']);
-		$context->setScheme($_ENV['WEB_SCHEME']);
-		$context->setBaseUrl($_ENV['WEB_BASE']);
+		$context->setHost(Helper::env_required('WEB_HOST_NOTIFICATIONS'));
+		$context->setScheme(Helper::env_required('WEB_SCHEME'));
+		$context->setBaseUrl(Helper::env_required('WEB_BASE'));
 
 		return new UrlGenerator($routeConfig['routes'], $context);
 	}

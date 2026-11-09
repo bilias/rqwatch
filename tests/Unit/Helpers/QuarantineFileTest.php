@@ -33,7 +33,7 @@ final class QuarantineFileTest extends UnitTestCase
 		$this->root = sys_get_temp_dir() . '/rqwatch-unit-' . bin2hex(random_bytes(6));
 		$this->q = $this->root . '/q';
 		mkdir($this->q, 0750, true);
-		$this->savedEnv = $_ENV['QUARANTINE_DIR'] ?? null;
+		$this->savedEnv = Helper::env_string('QUARANTINE_DIR');
 		$_ENV['QUARANTINE_DIR'] = $this->q;
 	}
 

@@ -30,6 +30,7 @@ use App\Services\MapHitService;
 use App\Models\CustomMapConfig;
 use App\Models\MapActivityLog;
 use App\Models\User;
+use App\Utils\Helper;
 
 use RuntimeException;
 use Throwable;
@@ -52,7 +53,7 @@ final class MapController extends ViewController
 
 		/** @psalm-suppress RiskyTruthyFalsyComparison the canonical HTTPS check: '' and '0' is not https */
 		$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, $_ENV['WEB_HOST']);
+		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, Helper::env_required('WEB_HOST'));
 	}
 
 	private function getMapService(): MapService {

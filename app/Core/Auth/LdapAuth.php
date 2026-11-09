@@ -61,17 +61,17 @@ final class LdapAuth implements AuthInterface {
 		if (empty($this->username) || empty($this->password)) {
 			return false;
 		}
-		$ldap_uri = $_ENV['LDAP_URI']; 
-		$ldap_base =  $_ENV['LDAP_BASE'];
-		$ldap_bind_dn = $_ENV['LDAP_BIND_DN'] ?? '';
-		$ldap_bind_pass = $_ENV['LDAP_BIND_PASS'] ?? '';
-		$ldap_login_attr = $_ENV['LDAP_LOGIN_ATTR'] ?? 'mail';
-		$ldap_mail_attr = $_ENV['LDAP_MAIL_ATTR'] ?? 'mail';
-		$ldap_mail_alias_attr = $_ENV['LDAP_MAIL_ALIAS_ATTR'] ?? null;
-		$ldap_sn_attr = $_ENV['LDAP_SN_ATTR'] ?? 'sn';
-		$ldap_givenname_attr = $_ENV['LDAP_GIVENNAME_ATTR'] ?? 'givenName';
-		$ldap_sn_attr_fallback = $_ENV['LDAP_SN_ATTR_FALLBACK'] ?? null;
-		$ldap_givenname_attr_fallback = $_ENV['LDAP_GIVENNAME_ATTR_FALLBACK'] ?? null;
+		$ldap_uri = Helper::env_required('LDAP_URI'); 
+		$ldap_base =  Helper::env_required('LDAP_BASE');
+		$ldap_bind_dn = Helper::env_string('LDAP_BIND_DN') ?? '';
+		$ldap_bind_pass = Helper::env_string('LDAP_BIND_PASS') ?? '';
+		$ldap_login_attr = Helper::env_string('LDAP_LOGIN_ATTR') ?? 'mail';
+		$ldap_mail_attr = Helper::env_string('LDAP_MAIL_ATTR') ?? 'mail';
+		$ldap_mail_alias_attr = Helper::env_string('LDAP_MAIL_ALIAS_ATTR');
+		$ldap_sn_attr = Helper::env_string('LDAP_SN_ATTR') ?? 'sn';
+		$ldap_givenname_attr = Helper::env_string('LDAP_GIVENNAME_ATTR') ?? 'givenName';
+		$ldap_sn_attr_fallback = Helper::env_string('LDAP_SN_ATTR_FALLBACK');
+		$ldap_givenname_attr_fallback = Helper::env_string('LDAP_GIVENNAME_ATTR_FALLBACK');
 		$ldap_attrs = [
 			$ldap_mail_attr,
 			$ldap_sn_attr,

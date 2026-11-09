@@ -75,7 +75,7 @@ final class MailLogSpool
 	 the mail server, and one node can serve several of them.
 	*/
 	private function serverAlias(): string {
-		$alias = trim((string) ($_ENV['MY_API_SERVER_ALIAS'] ?? ''));
+		$alias = trim(Helper::env_string('MY_API_SERVER_ALIAS') ?? '');
 
 		if ($alias === '') {
 			// spool anyway: losing a mail over a missing env var would

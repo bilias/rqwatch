@@ -67,7 +67,7 @@ final class MailLogController extends ViewController
 
 		$this->q_items_per_page = (int) Config::get('q_items_per_page') ?: 31;
 		$this->subject_privacy = Config::get('subject_privacy');
-		$this->quarantine_dir = $_ENV['QUARANTINE_DIR'];
+		$this->quarantine_dir = Helper::env_required('QUARANTINE_DIR');
 	}
 
 	private function getMailLogService(): MailLogService {
@@ -668,7 +668,7 @@ final class MailLogController extends ViewController
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
-			'quarantine_days' => (int) $_ENV['QUARANTINE_DAYS'],
+			'quarantine_days' => (int) Helper::env_required('QUARANTINE_DAYS'),
 		]));
 	}
 
@@ -718,7 +718,7 @@ final class MailLogController extends ViewController
 			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
-			'quarantine_days' => (int) $_ENV['QUARANTINE_DAYS'],
+			'quarantine_days' => (int) Helper::env_required('QUARANTINE_DAYS'),
 		]));
 	}
 
@@ -927,7 +927,7 @@ final class MailLogController extends ViewController
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
-		if ($_ENV['MY_API_SERVER_ALIAS'] === $maillog->server && !MailerService::isConfigured()) {
+		if (Helper::env_string('MY_API_SERVER_ALIAS') === $maillog->server && !MailerService::isConfigured()) {
 			$this->fileLogger->error('MAILER_DSN or MAILER_FROM is not set in .env');
 			$this->flashbag->add('error', "Mail cannot be released. Contact administrator");
 			return $this->getDetailIdResponse($maillog->id);
@@ -1016,7 +1016,7 @@ final class MailLogController extends ViewController
 			$release_to = array_values(array_unique($release_to));
 
 			// Mail stored locally
-			if ($_ENV['MY_API_SERVER_ALIAS'] === $maillog->server) {
+			if (Helper::env_string('MY_API_SERVER_ALIAS') === $maillog->server) {
 				$success = $service->releaseHtmlMail($release_to, $maillog, $this->twig);
 			// Mail stored in remote server. Call their API
 			} else {
@@ -1269,7 +1269,7 @@ final class MailLogController extends ViewController
 			'redis_config_ttl' => $configTTLData['ttl_human'],
 			'redis_config_expires_at' => $configTTLData['expires_at'],
 			'dns_cache_count' => $this->is_admin ? Helper::count_dns_cache() : null,
-			'database_cleanup' => $_ENV['DATABASE_DAYS'] ?? null,
+			'database_cleanup' => Helper::env_string('DATABASE_DAYS'),
 		]));
 	}
 
@@ -1601,7 +1601,7 @@ final class MailLogController extends ViewController
 		}
 
 		// a remote mail is sent by its own node, which checks its own settings
-		$disabled = $_ENV['MY_API_SERVER_ALIAS'] === $log->server && !MailerService::isConfigured();
+		$disabled = Helper::env_string('MY_API_SERVER_ALIAS') === $log->server && !MailerService::isConfigured();
 		if ($disabled) {
 			$this->fileLogger->error('MAILER_DSN or MAILER_FROM is not set in .env');
 		}

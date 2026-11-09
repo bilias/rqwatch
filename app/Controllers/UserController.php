@@ -87,7 +87,7 @@ final class UserController extends ViewController
 			'blocked' => $throttles['blocked'],
 			'counters' => $throttles['counters'],
 			'throttle_available' => $service->loginThrottleAvailable(),
-			'max_attempts' => (int)($_ENV['LOGIN_MAX_ATTEMPTS_IP'] ?? 10),
+			'max_attempts' => (int)(Helper::env_string('LOGIN_MAX_ATTEMPTS_IP') ?? 10),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,

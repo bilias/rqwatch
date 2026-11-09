@@ -10,6 +10,8 @@
 
 namespace App\Core\Cache;
 
+use App\Utils\Helper;
+
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 
@@ -177,7 +179,7 @@ final class RedisCache implements CacheInterface
 		// Redis Sentinel connection via phpredis or predis
 			try {
 				$client = RedisAdapter::createConnection(
-					$_ENV['REDIS_DSN']
+					Helper::env_required('REDIS_DSN')
 				);
 				if (!$client instanceof Redis) {
 					throw new RuntimeException('REDIS_DSN must give a phpredis Redis connection, got ' . get_debug_type($client));

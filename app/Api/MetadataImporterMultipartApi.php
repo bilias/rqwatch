@@ -45,13 +45,13 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 	#[\Override]
 	protected function getAllowedIps(): array {
 		return array_values(array_filter(
-			array_map('trim', explode(',', (string)($_ENV['RSPAMD_API_ACL'] ?? '')))
+			array_map('trim', explode(',', Helper::env_string('RSPAMD_API_ACL') ?? ''))
 		));
 	}
 
 	#[\Override]
 	protected function getAuthCredentials(): array {
-		return [$_ENV['RSPAMD_API_USER'] ?? null, $_ENV['RSPAMD_API_PASS'] ?? null];
+		return [Helper::env_string('RSPAMD_API_USER'), Helper::env_string('RSPAMD_API_PASS')];
 	}
 
 	/**
@@ -248,7 +248,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		$store_settings = Config::get('store_settings');
 		
 		if ((!empty($action) && !empty($store_settings[$action])) || $has_virus) {
-			$mail_location = Helper::store_raw_mail((string) ($_ENV['QUARANTINE_DIR'] ?? ''), $qid, $rawEmail);
+			$mail_location = Helper::store_raw_mail(Helper::env_string('QUARANTINE_DIR') ?? '', $qid, $rawEmail);
 			if ($mail_location !== null) {
 				$this->syslogLogger->info("$qid stored in quarantine: $mail_location");
 				$mail_stored = 1;

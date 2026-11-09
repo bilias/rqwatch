@@ -593,7 +593,7 @@ final class MailLogService
 					->orderBy('id', 'DESC');
 		*/
 
-		$days = (int) ($_ENV['DATABASE_DAYS'] ?? 366);
+		$days = (int) (Helper::env_string('DATABASE_DAYS') ?? 366);
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 
@@ -1343,7 +1343,7 @@ final class MailLogService
 			->where('mail_stored', 1)
 			->groupByRaw('day')
 			->orderByDesc('day')
-			->limit((int)$_ENV['QUARANTINE_DAYS']);
+			->limit((int)Helper::env_required('QUARANTINE_DAYS'));
 
 		$query = $this->applyUserScope($query);
 
@@ -1598,8 +1598,8 @@ final class MailLogService
 		$response = $apiClient->postWithAuth(
 			$url,
 			$data,
-			$_ENV['MAIL_API_USER'],
-			$_ENV['MAIL_API_PASS']
+			Helper::env_required('MAIL_API_USER'),
+			Helper::env_required('MAIL_API_PASS')
 		);
 
 		try {
@@ -1661,7 +1661,7 @@ final class MailLogService
 		}
 
 		// Mail stored locally
-		if ($_ENV['MY_API_SERVER_ALIAS'] === $maillog->server) {
+		if (Helper::env_string('MY_API_SERVER_ALIAS') === $maillog->server) {
 			try {
 				// has applyUserScope
 				$mailobject = $this->getMailObjectLocal($id);
@@ -1771,7 +1771,7 @@ final class MailLogService
 		}
 
 		$mailer = new MailerService($this->logger, $twig);
-		$from = $_ENV['MAILER_FROM'];
+		$from = Helper::env_required('MAILER_FROM');
 		$signature = Config::get('mail_signature');
 		$subject = Config::get('release_mail_subject');
 
@@ -1874,8 +1874,8 @@ final class MailLogService
 		$response = $apiClient->postWithAuth(
 			$url,
 			$data,
-			$_ENV['MAIL_API_USER'],
-			$_ENV['MAIL_API_PASS']
+			Helper::env_required('MAIL_API_USER'),
+			Helper::env_required('MAIL_API_PASS')
 		);
 
 		try {
@@ -1919,7 +1919,7 @@ final class MailLogService
 	): bool {
 
 		$mailer = new MailerService($this->logger, $twig);
-		$from = $_ENV['MAILER_FROM'];
+		$from = Helper::env_required('MAILER_FROM');
 		$signature = Config::get('mail_signature');
 		$subject = Config::get('notify_mail_subject');
 
@@ -2042,7 +2042,7 @@ final class MailLogService
 	): bool {
 
 		$mailer = new MailerService($this->logger, $twig);
-		$from = $_ENV['MAILER_FROM'];
+		$from = Helper::env_required('MAILER_FROM');
 		$subject = Config::get('admin_notify_mail_subject');
 
 		$recipients = $maillog->recipients->pluck('recipient_email')->all();
@@ -2268,7 +2268,7 @@ final class MailLogService
 
 		$fields = MailLog::SELECT_FIELDS;
 
-		$days = (int) ($_ENV['QUARANTINE_DAYS'] ?? 366);
+		$days = (int) (Helper::env_string('QUARANTINE_DAYS') ?? 366);
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 

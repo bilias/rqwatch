@@ -30,8 +30,6 @@ use App\Core\Auth\AuthManager;
 use Jumbojett\OpenIDConnectClientException;
 //use App\Core\Auth\DbAuth;
 
-use RuntimeException;
-
 final class LoginController extends ViewController
 {
 
@@ -50,8 +48,8 @@ final class LoginController extends ViewController
 	private function oidcBaseUrl(): string {
 		$host = $this->request->getHost();
 		$trusted = array_merge(
-			[$_ENV['WEB_HOST'] ?? '', $_ENV['WEB_HOST_NOTIFICATIONS'] ?? ''],
-			explode(',', $_ENV['OPENIDC_TRUSTED_HOSTS'] ?? '')
+			[Helper::env_string('WEB_HOST') ?? '', Helper::env_string('WEB_HOST_NOTIFICATIONS') ?? ''],
+			explode(',', Helper::env_string('OPENIDC_TRUSTED_HOSTS') ?? '')
 		);
 
 		foreach ($trusted as $name) {
@@ -65,7 +63,7 @@ final class LoginController extends ViewController
 
 		$this->fileLogger->warning("OPENIDC: untrusted host '{$host}' from "
 			. ($this->request->getClientIp() ?? 'unknown') . ", using WEB_HOST");
-		return $_ENV['WEB_SCHEME'] . '://' . ($_ENV['WEB_HOST'] ?? throw new RuntimeException('WEB_HOST is not set in .env'));
+		return Helper::env_required('WEB_SCHEME') . '://' . Helper::env_required('WEB_HOST');
 	}
 
 	public function logout(): Response {
@@ -138,7 +136,7 @@ final class LoginController extends ViewController
 		if (Helper::env_bool('OPENIDC_AUTH_ENABLED') &&
 			 $this->request->query->get('openidc_session_active') === '1') {
 
-			$this->flashbag->add('warning', "You are logged out, but your '{$_ENV['OPENIDC_LABEL']}' session is still active. Close your browser to delete the session or click the link bellow.");
+			$this->flashbag->add('warning', "You are logged out, but your '" . (Helper::env_string('OPENIDC_LABEL') ?? 'Login with OpenID Connect') . "' session is still active. Close your browser to delete the session or click the link bellow.");
 			$auth = new AuthManager($this->fileLogger, $this->urlGenerator);
 			$this->session->set(
 				'openidc_logout_url',
@@ -207,7 +205,7 @@ final class LoginController extends ViewController
 					);
 				}
 
-				sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
+				sleep((int)Helper::env_required('FAILED_LOGIN_TIMEOUT'));
 				$this->flashbag->add('error', "Wrong username or password");
 				$statusCode = Response::HTTP_UNAUTHORIZED;
 			} else {
@@ -237,7 +235,7 @@ final class LoginController extends ViewController
 
 		$openidcLogoutUrl = $this->session->get('openidc_logout_url');
 		if (Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
-			$clientId = $_ENV['OPENIDC_CLIENT_ID'] ?? null;
+			$clientId = Helper::env_string('OPENIDC_CLIENT_ID');
 
 			if (is_string($openidcLogoutUrl) && $openidcLogoutUrl !== '' && $clientId !== null && $clientId !== '') {
 				$separator = str_contains($openidcLogoutUrl, '?') ? '&' : '?';
@@ -292,7 +290,7 @@ final class LoginController extends ViewController
 			throw new \LogicException('OPENIDC authenticate() returned unexpectedly.');
 		} catch (OpenIDConnectClientException $e) {
 			$this->fileLogger->warning("OPENIDC startOpenIdConnectAuthentication() failed with error: " . $e->getMessage());
-			$this->flashbag->add('error', "The '{$_ENV['OPENIDC_LABEL']}' service is currently unavailable");
+			$this->flashbag->add('error', "The '" . (Helper::env_string('OPENIDC_LABEL') ?? 'Login with OpenID Connect') . "' service is currently unavailable");
 			return new RedirectResponse($this->getLoginUrl());
 		} catch (\Throwable $e) {
 			$this->fileLogger->warning("OPENIDC startOpenIdConnectAuthentication() failed with error: " . $e->getMessage());

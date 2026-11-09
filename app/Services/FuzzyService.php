@@ -260,7 +260,7 @@ final class FuzzyService
 			throw new FuzzyException("Fuzzy learning is not available for server '{$server}'", FuzzyError::Unavailable);
 		}
 
-		if ($server === ($_ENV['MY_API_SERVER_ALIAS'] ?? '')) {
+		if ($server === (Helper::env_string('MY_API_SERVER_ALIAS') ?? '')) {
 			$this->learnLocal($maillog, $flag, $learnedBy, $weight);
 			return;
 		}
@@ -272,7 +272,7 @@ final class FuzzyService
 	public function unlearn(MailLogFuzzy $row, string $unlearnedBy): void {
 		$server = (string) $row->api_server;
 
-		if ($server === ($_ENV['MY_API_SERVER_ALIAS'] ?? '')) {
+		if ($server === (Helper::env_string('MY_API_SERVER_ALIAS') ?? '')) {
 			$this->unlearnLocal($row, $unlearnedBy);
 			return;
 		}
@@ -292,7 +292,7 @@ final class FuzzyService
 			throw new FuzzyException("Fuzzy learning is not available for server '{$server}'", FuzzyError::Unavailable);
 		}
 
-		if ($server === ($_ENV['MY_API_SERVER_ALIAS'] ?? '')) {
+		if ($server === (Helper::env_string('MY_API_SERVER_ALIAS') ?? '')) {
 			$this->addWeightLocal($row, $weight, $addedBy);
 			return;
 		}
@@ -655,8 +655,8 @@ final class FuzzyService
 					'remote_user' => $user,
 				] + ($flag !== null ? ['flag' => $flag] : [])
 				  + ($weight !== null ? ['weight' => $weight] : []),
-				$_ENV['MAIL_API_USER'],
-				$_ENV['MAIL_API_PASS']
+				Helper::env_required('MAIL_API_USER'),
+				Helper::env_required('MAIL_API_PASS')
 			);
 			$code = $response->getStatusCode();
 			$body = trim($response->getContent(false));
@@ -716,7 +716,7 @@ final class FuzzyService
 			throw new FuzzyException("Fuzzy learning is not configured for '{$server}': no fuzzy_url", FuzzyError::Unavailable);
 		}
 
-		$password = (string) ($_ENV['RSPAMD_CONTROLLER_ENABLE_PASS'] ?? '');
+		$password = Helper::env_string('RSPAMD_CONTROLLER_ENABLE_PASS') ?? '';
 		if ($password !== '') {
 			$headers['Password'] = $password;
 		}
@@ -789,7 +789,7 @@ final class FuzzyService
 		$flags = self::flags();
 
 		if (!isset($flags[$flag])) {
-			$alias = (string) ($_ENV['MY_API_SERVER_ALIAS'] ?? '');
+			$alias = Helper::env_string('MY_API_SERVER_ALIAS') ?? '';
 			$this->logger->error("[FuzzyService] {$qid} fuzzy flag {$flag} is not in fuzzy_learn_flags on '{$alias}'. Check config.local.php");
 			throw new FuzzyException("Fuzzy flag {$flag} is not configured on '{$alias}'", FuzzyError::Unavailable);
 		}
