@@ -129,9 +129,9 @@ jobs:
       contents: read
       security-events: write
     env:
-      OPENGREP_VERSION: v1.30.2
+      OPENGREP_VERSION: v1.33.1
       # sha256 of opengrep_manylinux_x86 at that version: bump both together
-      OPENGREP_SHA256: a66aa3278457f02b287b985a45b6762aebcaba5000f2689245fd1ed86d1456c7
+      OPENGREP_SHA256: 46e8133cc490f9f50518061590ce2f6be5a08afaeda034471c0ceda4b3899808
       # some community rule files are UTF-8; Opengrep reads them with the locale's encoding
       LC_ALL: C.UTF-8
     steps:
