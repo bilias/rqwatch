@@ -435,10 +435,10 @@ jobs:
         if: ${{ !cancelled() && hashFiles('zap-report/*.sarif') != '' }}
         run: |
           for f in zap-report/rqwatch-zap-*.sarif; do
-            jq '.runs[].results[] |= (
+            jq '.runs[].results |= map(select(.level != "none") | (
               .message.text += "\n\nURL: " + ([.locations[].physicalLocation.artifactLocation.uri] | join(", "))
               | .locations[].physicalLocation.artifactLocation.uri |= ("zap/" + (sub("^[a-z]+://[^/]*/?"; "") | sub("[?#].*$"; "") | if . == "" then "index" else . end))
-            )' "$f" > "$f.tmp"
+            ))' "$f" > "$f.tmp"
             mv "$f.tmp" "$f"
           done
 
