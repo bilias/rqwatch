@@ -24,6 +24,7 @@ parameters:
 	friendly:
 		lineBefore: 1
 		lineAfter: 1
+		editorUrl: 'vim://%%file%%:%%line%%'
 
 	# PHPStan paths are relative to this file (qa/); Larastan's own path
 	# parameters are plain strings, so anchor them to the working directory.
