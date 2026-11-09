@@ -51,6 +51,10 @@
 		<testsuite name="inventory">
 			<directory>../tests/Unit/Inventory</directory>
 		</testsuite>
+		<!-- form field constraints -->
+		<testsuite name="forms">
+			<directory>../tests/Unit/Forms</directory>
+		</testsuite>
 	</testsuites>
 	<source>
 		<include>
