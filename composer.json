@@ -70,10 +70,11 @@
         "phpstan/phpstan": "^2.3",
         "larastan/larastan": "^3.13",
         "vimeo/psalm": "^7.0",
-        "phpunit/phpunit": "^12"
+        "phpunit/phpunit": "^12",
+        "yamadashy/phpstan-friendly-formatter": "^1.5"
     },
    "scripts": {
-      "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M",
+      "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M --error-format friendly",
       "psalm": "psalm -c qa/psalm.xml --no-progress --no-cache",
       "psalm-taint": "sh qa/psalm-taint.sh",
       "taint-selftest": "sh qa/taint-selftest.sh",

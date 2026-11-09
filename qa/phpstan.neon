@@ -1,5 +1,6 @@
 includes:
 	- ../vendor/larastan/larastan/extension.neon
+	- ../vendor/yamadashy/phpstan-friendly-formatter/extension.neon
 
 parameters:
 	level: 8
@@ -20,6 +21,9 @@ parameters:
 	bootstrapFiles:
 		- ../app/Configuration/AppConfig.php
 		- phpstan-bootstrap.php
+	friendly:
+		lineBefore: 1
+		lineAfter: 1
 
 	# PHPStan paths are relative to this file (qa/); Larastan's own path
 	# parameters are plain strings, so anchor them to the working directory.
