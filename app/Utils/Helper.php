@@ -271,7 +271,7 @@ final class Helper {
 	// $admin_notification_rcpt as a list; invalid addresses are dropped
 	/** @return list<string> */
 	public static function adminNotificationRcpt(): array {
-		$rcpt = array_map('trim', explode(',', (string) Config::get('admin_notification_rcpt')));
+		$rcpt = array_map('trim', explode(',', Config::getString('admin_notification_rcpt') ?? ''));
 		$rcpt = array_filter($rcpt, fn ($a) => filter_var($a, FILTER_VALIDATE_EMAIL) !== false);
 
 		return array_values(array_unique($rcpt));
@@ -791,7 +791,7 @@ final class Helper {
 
 	public static function passwordHash(string $clear_pass): ?string {
 		if (!empty($clear_pass)) {
-			return password_hash($clear_pass, Config::get('password_hash'));
+			return password_hash($clear_pass, Config::getString('password_hash'));
 		}
 		return null;
 	}
@@ -1303,7 +1303,8 @@ Mail details:
 			return $input;
 		}
 
-		$charsets[] = (string) (Config::get('mail_fallback_charset') ?: 'Windows-1252');
+		$fallback = Config::getString('mail_fallback_charset');
+		$charsets[] = ($fallback === null || $fallback === '' || $fallback === '0') ? 'Windows-1252' : $fallback;
 		foreach ($charsets as $enc) {
 			$converted = @iconv($enc, 'UTF-8//IGNORE', $input);
 			if ($converted !== false && mb_check_encoding($converted, 'UTF-8')) {
@@ -1390,7 +1391,7 @@ Mail details:
 			return self::lookupPtr($ip)[0];
 		}
 
-		$redisKey = Config::get('dns_resolv_redis_key') . ":ptr:{$ip}";
+		$redisKey = (Config::getString('dns_resolv_redis_key') ?? '') . ":ptr:{$ip}";
 		try {
 			$cached = $cache->get($redisKey);
 			if ($cached !== false) {
@@ -1402,9 +1403,9 @@ Mail details:
 
 		[$host, $transient] = self::lookupPtr($ip);
 
-		$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
-		$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
-		$failTtl  = (int) Config::get('dns_resolv_redis_fail_cache_ttl') ?: 60;
+		$ttl      = Config::getIntOr('dns_resolv_redis_cache_ttl', 86400);
+		$negTtl   = Config::getIntOr('dns_resolv_redis_neg_cache_ttl', 3600);
+		$failTtl  = Config::getIntOr('dns_resolv_redis_fail_cache_ttl', 60);
 		try {
 			$cache->set($redisKey, $host, $host === $ip ? ($transient ? $failTtl : $negTtl) : $ttl);
 		} catch (Throwable $e) {
@@ -1457,7 +1458,7 @@ Mail details:
 			return self::lookupA($host)[0];
 		}
 
-		$redisKey = Config::get('dns_resolv_redis_key') . ':fwd:' . $host;
+		$redisKey = (Config::getString('dns_resolv_redis_key') ?? '') . ':fwd:' . $host;
 		try {
 			$cached = $cache->get($redisKey);
 			if ($cached !== false) {
@@ -1469,9 +1470,9 @@ Mail details:
 
 		[$ip, $transient] = self::lookupA($host);
 
-		$ttl      = (int) Config::get('dns_resolv_redis_cache_ttl') ?: 86400;
-		$negTtl   = (int) Config::get('dns_resolv_redis_neg_cache_ttl') ?: 3600;
-		$failTtl  = (int) Config::get('dns_resolv_redis_fail_cache_ttl') ?: 60;
+		$ttl      = Config::getIntOr('dns_resolv_redis_cache_ttl', 86400);
+		$negTtl   = Config::getIntOr('dns_resolv_redis_neg_cache_ttl', 3600);
+		$failTtl  = Config::getIntOr('dns_resolv_redis_fail_cache_ttl', 60);
 		try {
 			$cache->set($redisKey, $ip, $ip === $host ? ($transient ? $failTtl : $negTtl) : $ttl);
 		} catch (Throwable $e) {
@@ -1517,10 +1518,19 @@ Mail details:
 		}
 
 		try {
-			return $cache->countByPrefix(Config::get('dns_resolv_redis_key'));
+			return $cache->countByPrefix(self::dnsCacheKeyPrefix());
 		} catch (Throwable $e) {
 			return null;
 		}
+	}
+
+	// never empty: an empty prefix would match every Redis key
+	private static function dnsCacheKeyPrefix(): string {
+		$prefix = Config::getString('dns_resolv_redis_key') ?? '';
+		if (trim($prefix) === '') {
+			throw new RuntimeException('dns_resolv_redis_key is not set in config');
+		}
+		return $prefix;
 	}
 
 	public static function flush_dns_cache(): int {
@@ -1533,7 +1543,7 @@ Mail details:
 			throw new RuntimeException("Redis cache is unavailable, cannot flush DNS cache");
 		}
 
-		return $cache->deleteByPrefix(Config::get('dns_resolv_redis_key'));
+		return $cache->deleteByPrefix(self::dnsCacheKeyPrefix());
 	}
 
 	/*

@@ -15,6 +15,7 @@ use App\Core\Cache\RedisCache;
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
+use RuntimeException;
 use Throwable;
 
 // Store selected config vars in a static array
@@ -34,6 +35,38 @@ final class Config {
 
 	public static function get(string $key): mixed {
 		return self::$vars[$key] ?? null;
+	}
+
+	// an int setting; null when unset, an exception naming the setting when not an int
+	public static function getInt(string $key): ?int {
+		$value = self::typed($key, 'int');
+		return is_int($value) ? $value : null;
+	}
+
+	// as getInt(), but $default when the setting is unset or 0
+	public static function getIntOr(string $key, int $default): int {
+		$value = self::getInt($key);
+		return $value !== null && $value !== 0 ? $value : $default;
+	}
+
+	// a string setting; null when unset, an exception naming the setting when not a string
+	public static function getString(string $key): ?string {
+		$value = self::typed($key, 'string');
+		return is_string($value) ? $value : null;
+	}
+
+	// a flag (bool, or 0/1); null when unset, an exception naming the setting otherwise
+	public static function getBool(string $key): ?bool {
+		$value = self::typed($key, 'bool');
+		return $value === null ? null : (bool) $value;
+	}
+
+	private static function typed(string $key, string $type): mixed {
+		$value = self::get($key);
+		if ($value !== null && !ConfigValidator::matches($value, $type)) {
+			throw new RuntimeException(ConfigValidator::wrongType($key, $type, $value) . ' in config');
+		}
+		return $value;
 	}
 
 	public static function set(string $key, mixed $value): void {

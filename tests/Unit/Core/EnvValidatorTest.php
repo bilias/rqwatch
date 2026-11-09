@@ -16,7 +16,7 @@
 
 namespace Tests\Unit\Core;
 
-use App\Core\EnvValidator;
+use App\Configuration\EnvValidator;
 use Dotenv\Dotenv;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Unit\UnitTestCase;

@@ -63,7 +63,7 @@ final class MapService
 			$this->user_aliases = $userContect['user_aliases'] ?? null;
 		}
 
-		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
+		$this->items_per_page = Config::getIntOr('items_per_page', 50);
 	}
 
 	/**
@@ -174,7 +174,7 @@ final class MapService
 	// non-admins: true once the user's own entries in this map reach
 	// USER_MAP_MAX_ENTRIES (0 = unlimited)
 	public function userMapQuotaReached(string $map_name): bool {
-		$max = (int) Config::get('USER_MAP_MAX_ENTRIES');
+		$max = Config::getInt('USER_MAP_MAX_ENTRIES') ?? 0;
 		/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 		if ($max <= 0 || $this->is_admin || (defined('CLI_MODE') && CLI_MODE)) {
 			return false;
@@ -229,7 +229,7 @@ final class MapService
 
 	// configured virus skip map, or null while disabled or not yet migrated
 	public static function activeVirusSkipMap(): ?string {
-		$map = trim((string) Config::get('notification_skip_virus_map'));
+		$map = trim(Config::getString('notification_skip_virus_map') ?? '');
 		if ($map === '' || !App::migrationStatus()->virusSkipMapCompleted()) {
 			return null;
 		}
@@ -656,7 +656,7 @@ final class MapService
 		}
 
 		// Delete leftovers map files not in config
-		$mapDir = rtrim(Config::get('MAP_DIR'), DIRECTORY_SEPARATOR);
+		$mapDir = rtrim(Config::getString('MAP_DIR') ?? '', DIRECTORY_SEPARATOR);
 		if (!is_dir($mapDir)) {
 			throw new RuntimeException("Map directory not found: {$mapDir}");
 		}
@@ -715,7 +715,7 @@ final class MapService
 		?array $map_fields = null
 	): bool {
 
-		$map_dir = Config::get('MAP_DIR');
+		$map_dir = Config::getString('MAP_DIR') ?? '';
 
 		if (!is_dir($map_dir) || !is_writable($map_dir)) {
 			$this->logger->error("MAP_DIR not writable: {$map_dir}");
@@ -835,7 +835,7 @@ final class MapService
 			return false;
 		}
 
-		chmod($map_file, Config::get('MAP_FILE_PERM'));
+		chmod($map_file, Config::getInt('MAP_FILE_PERM') ?? throw new RuntimeException('MAP_FILE_PERM is not set in config'));
 		// Set mtime
 		touch($map_file, $lastModified);
 

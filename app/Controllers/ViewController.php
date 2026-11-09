@@ -57,9 +57,9 @@ class ViewController extends Controller
 	public function __construct() {
 		parent::__construct();
 
-		$this->refresh_rate   = (int) Config::get('refresh_rate');
-		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
-		$this->max_items      = (int) Config::get('max_items') ?: 10000;
+		$this->refresh_rate   = Config::getInt('refresh_rate') ?? 0;
+		$this->items_per_page = Config::getIntOr('items_per_page', 50);
+		$this->max_items      = Config::getIntOr('max_items', 10000);
 	}
 
 	final public function twigView(): Environment {

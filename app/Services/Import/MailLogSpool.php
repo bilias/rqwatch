@@ -102,7 +102,7 @@ final class MailLogSpool
 	}
 
 	private function baseKey(): string {
-		return (string) Config::get('import_spool_redis_key');
+		return Config::getString('import_spool_redis_key') ?? '';
 	}
 
 	// every server's entries, for an all-servers drain
@@ -180,8 +180,8 @@ final class MailLogSpool
 
 		$cache = $this->cache;
 
-		$max = (int) Config::get('import_spool_max');
-		$ttl = (int) Config::get('import_spool_ttl');
+		$max = Config::getInt('import_spool_max') ?? 0;
+		$ttl = Config::getInt('import_spool_ttl') ?? 0;
 
 		if ($max < 1 || $ttl < 1) {
 			$this->fileLogger->error('[MailLogSpool] import_spool_max/ttl not usable');
@@ -407,7 +407,7 @@ final class MailLogSpool
 	*/
 	/** @param array<array-key, true> $aliases alias => true */
 	private function resyncCounters(RedisCache $cache, array $aliases): void {
-		$ttl = (int) Config::get('import_spool_ttl');
+		$ttl = Config::getInt('import_spool_ttl') ?? 0;
 
 		foreach (array_keys($aliases) as $alias) {
 			$alias = (string) $alias;

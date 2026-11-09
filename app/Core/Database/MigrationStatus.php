@@ -137,7 +137,7 @@ final class MigrationStatus
 	private function stateKey(): string {
 		$alias = rawurlencode(trim(Helper::serverAlias()));
 
-		return (string) Config::get('migration_status_redis_key') . ':' . $alias;
+		return (Config::getString('migration_status_redis_key') ?? '') . ':' . $alias;
 	}
 
 	/*

@@ -12,6 +12,8 @@ namespace App\Core;
 
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
+use App\Configuration\ConfigValidator;
+use App\Configuration\EnvValidator;
 
 use Dotenv\Dotenv;
 
@@ -72,6 +74,7 @@ final class Kernel
 		];
 		// load config
 		$this->bootConfig($extra_cached_data);
+		$this->checkConfig();
 
 		// connect to db
 		$this->bootDatabase();
@@ -147,19 +150,27 @@ final class Kernel
 		$this->checkDotenv();
 	}
 
-	/*
-	 A failing key stops every entry point but the metadata importer, which
-	 logs and carries on: rspamd posts once, so a refusal would lose the
-	 mail's metadata, and the importer has its own fallbacks.
-	*/
 	private function checkDotenv(): void {
 		/** @psalm-suppress RedundantCondition WEB_MODE is defined per entry point */
-		$errors = EnvValidator::errors($_ENV, defined('WEB_MODE') && WEB_MODE);
+		$this->refuseOnErrors('.env', EnvValidator::errors($_ENV, defined('WEB_MODE') && WEB_MODE));
+	}
+
+	private function checkConfig(): void {
+		$this->refuseOnErrors('config', ConfigValidator::errors(Config::getAll()));
+	}
+
+	/**
+	 * A failing setting stops every entry point but the metadata importer,
+	 * which logs and carries on: rspamd posts once, so a refusal would lose
+	 * the mail's metadata, and the importer has its own fallbacks.
+	 * @param list<string> $errors
+	 */
+	private function refuseOnErrors(string $source, array $errors): void {
 		if ($errors === []) {
 			return;
 		}
 
-		$detail = '.env: ' . implode('; ', $errors);
+		$detail = "{$source}: " . implode('; ', $errors);
 		$this->fileLogger->critical($detail);
 
 		/** @psalm-suppress RedundantCondition ALLOW_DEGRADED_DB is defined per entry point */

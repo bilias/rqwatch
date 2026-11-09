@@ -100,7 +100,7 @@ final class VirusSkipMap extends AbstractMigration {
 	}
 
 	private static function mapName(): string {
-		return trim((string) Config::get('notification_skip_virus_map'));
+		return trim(Config::getString('notification_skip_virus_map') ?? '');
 	}
 
 	private function mapExists(string $map): bool {

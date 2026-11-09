@@ -8,7 +8,7 @@
  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-namespace App\Core;
+namespace App\Configuration;
 
 /*
  Checks .env once at boot and reports every failing key at once. Values

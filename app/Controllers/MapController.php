@@ -688,7 +688,7 @@ final class MapController extends ViewController
 			}
 
 			if ($model === 'MapCombined' && $service->userMapQuotaReached($map)) {
-				$max = (int) Config::get('USER_MAP_MAX_ENTRIES');
+				$max = Config::getInt('USER_MAP_MAX_ENTRIES') ?? 0;
 				$this->fileLogger->warning("User {$this->username} reached map entry limit ({$max}) in Map '{$map}'");
 				$this->flashbag->add('error', "Map entry limit reached ({$max}) in Map '{$mapdescr}'");
 				return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapShowUrl($map));

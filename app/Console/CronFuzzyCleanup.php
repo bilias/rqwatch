@@ -60,7 +60,7 @@ final class CronFuzzyCleanup extends RqwatchCliCommand
 			return Command::SUCCESS;
 		}
 
-		$days = (int) Config::get('fuzzy_learn_expire_days');
+		$days = Config::getInt('fuzzy_learn_expire_days') ?? 0;
 		if ($days < 1) {
 			$output->writeln("<comment>\$fuzzy_learn_expire_days is 0, cleanup disabled</comment>",
 				OutputInterface::VERBOSITY_VERBOSE);

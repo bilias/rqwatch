@@ -37,7 +37,7 @@ final class MailAliasService
 	public function __construct() {
 		$this->logger = App::fileLogger();
 
-		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
+		$this->items_per_page = Config::getIntOr('items_per_page', 50);
 	}
 
 	/**

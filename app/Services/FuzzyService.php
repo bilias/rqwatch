@@ -648,7 +648,7 @@ final class FuzzyService
 
 		try {
 			$response = $apiClient->postWithAuth(
-				$base . Config::get('FUZZY_MAIL_API_PATH'),
+				$base . (Config::getString('FUZZY_MAIL_API_PATH') ?? ''),
 				[
 					'action' => $action,
 					'id' => $id,

@@ -107,7 +107,7 @@ final class MapHits extends AbstractMigration {
 
 	// the virus skip map (VIRUS_SKIP_MAP, 2.1.2) gets its symbol, unless one is set
 	private function setVirusSkipMapSymbol(OutputInterface $output): void {
-		$map = trim((string) Config::get('notification_skip_virus_map'));
+		$map = trim(Config::getString('notification_skip_virus_map') ?? '');
 		if ($map === '') {
 			return;
 		}

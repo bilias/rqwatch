@@ -285,10 +285,10 @@ class Controller
 		}
 
 		if ($cache !== null && isset($redisKey)) {
-			$ttl = (int) Config::get('rspamd_stat_redis_cache_ttl') ?: 300;
+			$ttl = Config::getIntOr('rspamd_stat_redis_cache_ttl', 300);
 			// Store in Redis for future use; a total failure for a shorter time
 			if ($stats === []) {
-				$ttl = min($ttl, (int) Config::get('rspamd_stat_redis_failure_ttl') ?: 60);
+				$ttl = min($ttl, Config::getIntOr('rspamd_stat_redis_failure_ttl', 60));
 			}
 			try {
 				$cache->set($redisKey, json_encode($stats), $ttl);

@@ -85,9 +85,9 @@ final class MailLogService
 			$this->user_aliases = $userContext['user_aliases'] ?? null;
 		}
 
-		$this->items_per_page = (int) Config::get('items_per_page') ?: 50;
-		$this->q_items_per_page = (int) Config::get('q_items_per_page') ?: 31;
-		$this->max_items = (int) Config::get('max_items') ?: 10000;
+		$this->items_per_page = Config::getIntOr('items_per_page', 50);
+		$this->q_items_per_page = Config::getIntOr('q_items_per_page', 31);
+		$this->max_items = Config::getIntOr('max_items', 10000);
 	}
 
 	/**
@@ -1114,7 +1114,7 @@ final class MailLogService
 			$query->orderBy('total', 'DESC');
 		}
 
-		$query->limit((int)Config::get('top_reports') ?: 30);
+		$query->limit(Config::getIntOr('top_reports', 30));
 
 		if (Helper::env_bool('DEBUG_SEARCH_SQL')) {
 			$this->logger->info(self::getSqlFromQuery($query));
@@ -1582,7 +1582,7 @@ final class MailLogService
 			throw new Exception("Error. Contact admin");
 		}
 		// XXX have not checked if it works with remote /subfolder in WEB_BASE
-		$url = $api_servers[$api_server]['url'] . Config::get('GET_MAIL_API_PATH');
+		$url = $api_servers[$api_server]['url'] . (Config::getString('GET_MAIL_API_PATH') ?? '');
 
 		// no redirects: a redirect can end on a page that answers 200
 		$apiClient = new ApiClient(array_merge(
@@ -1857,7 +1857,7 @@ final class MailLogService
 			return false;
 		}
 		// XXX have not checked if it works with remote /subfolder in WEB_BASE
-		$url = $api_servers[$api_server]['url'] . Config::get('RELEASE_MAIL_API_PATH');
+		$url = $api_servers[$api_server]['url'] . (Config::getString('RELEASE_MAIL_API_PATH') ?? '');
 
 		// no redirects: a redirect can end on a page that answers 200
 		$apiClient = new ApiClient(array_merge(
@@ -2182,7 +2182,7 @@ final class MailLogService
 
 	// first created_day still inside the notification_days window; null = no limit
 	public static function notificationCutoff(): ?string {
-		$days = (int) Config::get('notification_days');
+		$days = Config::getInt('notification_days') ?? 0;
 		if ($days < 1) {
 			return null;
 		}
@@ -2194,7 +2194,7 @@ final class MailLogService
 
 	// first created_day still inside the admin_notification_days window
 	public static function adminNotificationCutoff(): string {
-		$days = (int) Config::get('admin_notification_days');
+		$days = Config::getInt('admin_notification_days') ?? 0;
 		if ($days < 1) {
 			$days = 3;
 		}

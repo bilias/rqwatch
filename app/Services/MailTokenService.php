@@ -70,7 +70,7 @@ final class MailTokenService
 	 * Seconds a link stays usable in its browser session without a page load.
 	 */
 	public static function idleSeconds(): int {
-		$minutes = (int) (Config::get('notification_links_idle_minutes') ?? self::DEFAULT_IDLE_MINUTES);
+		$minutes = Config::getInt('notification_links_idle_minutes') ?? self::DEFAULT_IDLE_MINUTES;
 		return 60 * ($minutes < 1 ? self::DEFAULT_IDLE_MINUTES : $minutes);
 	}
 

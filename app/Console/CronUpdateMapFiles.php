@@ -52,7 +52,7 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 	}
 
 	protected function mapFileNeedsUpdate(string $map_name, ?string $last_activity = null): bool {
-		$map_dir = Config::get('MAP_DIR');
+		$map_dir = Config::getString('MAP_DIR') ?? '';
 		$map_file = rtrim($map_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $map_name . ".txt";
 
 		if (!file_exists($map_file)) {

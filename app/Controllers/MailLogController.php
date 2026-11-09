@@ -65,8 +65,8 @@ final class MailLogController extends ViewController
 	public function __construct() {
 		parent::__construct();
 
-		$this->q_items_per_page = (int) Config::get('q_items_per_page') ?: 31;
-		$this->subject_privacy = Config::get('subject_privacy');
+		$this->q_items_per_page = Config::getIntOr('q_items_per_page', 31);
+		$this->subject_privacy = Config::getBool('subject_privacy') ?? false;
 		$this->quarantine_dir = Helper::env_required('QUARANTINE_DIR');
 	}
 
@@ -313,7 +313,7 @@ final class MailLogController extends ViewController
 			'sum' => $sum,
 			'filters' => $filters,
 			'items_per_page' => $this->items_per_page,
-			'max_items' => (int) Config::get('top_reports') ?: 30,
+			'max_items' => Config::getIntOr('top_reports', 30),
 			'runtime' => $this->getRuntime(),
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->getFlashes(),
@@ -349,7 +349,7 @@ final class MailLogController extends ViewController
 		$sort = $this->request->query->get('sort') === 'score' ? 'score' : 'mails';
 		$informational = $this->request->query->get('info') === '1';
 		$local = $this->request->query->get('local') === '1';
-		$limit = (int) Config::get('top_reports') ?: 30;
+		$limit = Config::getIntOr('top_reports', 30);
 
 		if ($local && !MapService::mapHitsEnabled()) {
 			$this->flashbag->add('error', "Map hits need the map hits migration (db:migrate_map_hits)");
@@ -408,7 +408,7 @@ final class MailLogController extends ViewController
 			return new RedirectResponse($this->getSearchUrl());
 		}
 
-		$limit = (int) Config::get('top_reports') ?: 30;
+		$limit = Config::getIntOr('top_reports', 30);
 
 		try {
 			[$windows, $failures] = $this->getMailLogService()->getVirusReport($filters, $limit);
