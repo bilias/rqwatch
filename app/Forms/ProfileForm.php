@@ -104,6 +104,8 @@ final class ProfileForm extends AbstractType
 	/**
 	 * @param array<string, mixed>|null $data
 	 * @param array<string, mixed> $options
+	 * @psalm-return FormInterface<array<string, mixed>>
+	 * @phpstan-return FormInterface
 	 */
 	public static function create(
 			FormFactoryInterface $formFactory,

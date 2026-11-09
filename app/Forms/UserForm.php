@@ -153,6 +153,8 @@ final class UserForm extends AbstractType
 	/**
 	 * @param array<string, mixed>|null $data
 	 * @param array<string, mixed> $options
+	 * @psalm-return FormInterface<array<string, mixed>>
+	 * @phpstan-return FormInterface
 	 */
 	public static function create(
 			FormFactoryInterface $formFactory,
@@ -164,10 +166,14 @@ final class UserForm extends AbstractType
 		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
 	}
 
+	/**
+	 * @psalm-param FormInterface<array<string, mixed>> $form
+	 * @phpstan-param FormInterface $form
+	 */
 	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData();
-			$username = $data['username'];
+			$data = $form->getData() ?? [];
+			$username = (string) $data['username'];
 
 			$url = $urlGenerator->generate(RouteName::DETAIL->value, [
 				'type' => 'username',

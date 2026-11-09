@@ -42,7 +42,11 @@ final class UserDeleteForm extends AbstractType
             ]);
 	}
 
-	/** @param array<string, mixed> $data */
+	/**
+	 * @param array<string, mixed> $data
+	 * @psalm-return FormInterface<array<string, mixed>>
+	 * @phpstan-return FormInterface
+	 */
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request,

@@ -301,12 +301,12 @@ final class UserController extends ViewController
 		$profileform_t = $profileform->createView(); // for twig
 
 		if ($profileform->isSubmitted() && $profileform->isValid()) {
-			$data = $profileform->getData();
+			$data = $profileform->getData() ?? [];
 			// allow password change only for DB users
 			$pass_changed = false;
 			$newHash = null;
 			if ($user->auth_provider === 0) {
-				$newPassword = $profileform->get('password')->getData();
+				$newPassword = (string) $profileform->get('password')->getData();
 				if (!empty($newPassword)) {
 					// a new password requires the current one
 					$current = (string) $profileform->get('current_password')->getData();
@@ -398,12 +398,12 @@ final class UserController extends ViewController
 		);
 
 		if ($userform->isSubmitted() && $userform->isValid()) {
-			$data = $userform->getData();
+			$data = $userform->getData() ?? [];
 			$service = $this->getUserService();
 
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
-			} elseif ($service->userExists($data['username'])) {
+			} elseif ($service->userExists((string) $data['username'])) {
 				$this->flashbag->add('error', "User '{$data['username']}' already exists");
 			} else {
 				$newPassword = trim((string) $userform->get('password')->getData());
@@ -507,17 +507,17 @@ final class UserController extends ViewController
 		$error = null;
 		if ($userform->isSubmitted() && $userform->isValid()) {
 			//$data = $userform->getData()->toArray();
-			$data = $userform->getData();
+			$data = $userform->getData() ?? [];
 			$service = $this->getUserService();
 			// username change and new username exists
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
 			} elseif (($data['username'] !== $user->username) &&
-			           ($service->userExists($data['username']))) {
+			           ($service->userExists((string) $data['username']))) {
 				$this->flashbag->add('error', "Username '{$data['username']}' already exists.");
 			} else {
 				$newHash = null;
-				$newPassword = $userform->get('password')->getData();
+				$newPassword = (string) $userform->get('password')->getData();
 				if (!empty($newPassword)) {
 					$newHash = Helper::passwordHash($newPassword);
 				}
@@ -526,7 +526,7 @@ final class UserController extends ViewController
 
 				try {
 					//DB::connection()->enableQueryLog();
-					$data['username'] = strtolower(trim($data['username']));
+					$data['username'] = strtolower(trim((string) $data['username']));
 					$user->fill($data);
 					if ($newHash !== null) {
 						$user->password = $newHash;

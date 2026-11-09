@@ -77,6 +77,8 @@ final class MapSelectForm extends AbstractType
 	/**
 	 * @param array<string, mixed>|null $data
 	 * @param array<string, mixed> $options
+	 * @psalm-return FormInterface<array<string, mixed>>
+	 * @phpstan-return FormInterface
 	 */
 	public static function create(
 			FormFactoryInterface $formFactory,
@@ -87,10 +89,15 @@ final class MapSelectForm extends AbstractType
 		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
 	}
 
+	/**
+	 * @psalm-param FormInterface<array<string, mixed>> $form
+	 * @phpstan-param FormInterface $form
+	 */
 	public static function check_form_show(FormInterface $form, UrlGeneratorInterface $urlGenerator, bool $is_admin): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData();
-			$map = $data['map_name'];
+			$data = $form->getData() ?? [];
+			$map = (string) $data['map_name'];
+			/** @var mixed $model */
 			$model = $data['model'] ?? null;
 
 			if ($is_admin) {

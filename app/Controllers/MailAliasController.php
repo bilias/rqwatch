@@ -174,7 +174,7 @@ final class MailAliasController extends ViewController
 		$url = $this->url(RouteName::ADMIN_ALIASES_ADD);
 
 		if ($mailaliasform->isSubmitted() && $mailaliasform->isValid()) {
-			$data = $mailaliasform->getData();
+			$data = $mailaliasform->getData() ?? [];
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "E-mail empty");
 				return new RedirectResponse($url);
@@ -183,8 +183,8 @@ final class MailAliasController extends ViewController
 				$this->flashbag->add('error', "E-mail alias empty");
 				return new RedirectResponse($url);
 			}
-			$username = strtolower(trim($data['username']));
-			$alias = strtolower(trim($data['alias']));
+			$username = strtolower(trim((string) $data['username']));
+			$alias = strtolower(trim((string) $data['alias']));
 
 			$service = new UserService();
 			$user = $service->getUserByUsername($username);

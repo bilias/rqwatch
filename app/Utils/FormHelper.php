@@ -30,6 +30,8 @@ final class FormHelper
 	 * @param class-string<FormTypeInterface<array<string, mixed>>> $formTypeClass
 	 * @param array<string, mixed>|null $data
 	 * @param array<string, mixed> $options
+	 * @psalm-return FormInterface<array<string, mixed>>
+	 * @phpstan-return FormInterface
 	 */
 	public static function formCreator(
 		FormFactoryInterface $formFactory, 
@@ -48,6 +50,10 @@ final class FormHelper
 			$form = $formFactory->create($formTypeClass, $data, $options);
 		}
 
+		/**
+		 * @psalm-var FormInterface<array<string, mixed>> $form the data type $formTypeClass declares
+		 * @phpstan-var FormInterface $form
+		 */
 		// handle form submit
 		$form->handleRequest($request);
 

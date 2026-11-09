@@ -54,6 +54,8 @@ class MapWithOneFieldForm extends AbstractType
 	/**
 	 * @param array<string, mixed>|null $data
 	 * @param array<string, mixed> $options
+	 * @psalm-return FormInterface<array<string, mixed>>
+	 * @phpstan-return FormInterface
 	 */
 	public static function create(
 			FormFactoryInterface $formFactory,
@@ -66,10 +68,14 @@ class MapWithOneFieldForm extends AbstractType
 		return FormHelper::formCreator($formFactory, $request, static::class, $data, $options);
 	}
 
+	/**
+	 * @psalm-param FormInterface<array<string, mixed>> $form
+	 * @phpstan-param FormInterface $form
+	 */
 	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData();
-			$map = $data['map_name'];
+			$data = $form->getData() ?? [];
+			$map = (string) $data['map_name'];
 
 			$url = $urlGenerator->generate(RouteName::ADMIN_MAP_ADD_ENTRY->value, [
 				'map' => $map,

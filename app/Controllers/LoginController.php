@@ -173,9 +173,9 @@ final class LoginController extends ViewController
 			// get new session if it is expired
 			SessionManager::checkSessionExpired();
 
-			$data = $loginform->getData();
-			$username = strtolower(trim($data['username']));
-			$password = trim($loginform->get('password')->getData());
+			$data = $loginform->getData() ?? [];
+			$username = strtolower(trim((string) $data['username']));
+			$password = trim((string) $loginform->get('password')->getData());
 
 			$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
 			$throttle = new LoginThrottle($client_ip, App::cache(), $this->fileLogger);

@@ -944,7 +944,7 @@ final class MailLogController extends ViewController
 
 		// release form submitted
 		if ($mailreleaseform->isSubmitted() && $mailreleaseform->isValid()) {
-			$data = $mailreleaseform->getData();
+			$data = $mailreleaseform->getData() ?? [];
 
 			if (empty($data['email'])) {
 				$this->flashbag->add('error', "Original recipient address missing from mail");
@@ -966,7 +966,7 @@ final class MailLogController extends ViewController
 			// split DB recipients into array
 			$rcptToList = array_map(fn($e) => strtolower(trim($e)), explode(',', $maillog->mail_recipients));
 			// split form's original recipients
-			$formEmailList = array_map(fn($e) => strtolower(trim($e)), explode(',', $data['email']));
+			$formEmailList = array_map(fn($e) => strtolower(trim($e)), explode(',', (string) $data['email']));
 
 			if (
 				 // none of user's emails match recipients
@@ -1006,7 +1006,7 @@ final class MailLogController extends ViewController
 				return $this->getDetailIdResponse($maillog->id);
 			}
 			if (!empty($data['release_alt'])) {
-				$alt = Helper::parseEmailList($data['email_alt']);
+				$alt = Helper::parseEmailList((string) $data['email_alt']);
 				if ($alt === null) {
 					$this->flashbag->add('error', "Invalid alternate recipient address");
 					return $this->getDetailIdResponse($maillog->id);
@@ -1216,7 +1216,7 @@ final class MailLogController extends ViewController
 		);
 
 		if ($searchform->isSubmitted() && $searchform->isValid()) {
-			$data = $searchform->getData();
+			$data = $searchform->getData() ?? [];
 
 			$filters = $this->getFiltersFromSession();
 			// add new filters

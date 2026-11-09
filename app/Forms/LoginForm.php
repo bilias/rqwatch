@@ -76,6 +76,10 @@ final class LoginForm extends AbstractType
             ]);
 	}
 
+	/**
+	 * @psalm-return FormInterface<array<string, mixed>>
+	 * @phpstan-return FormInterface
+	 */
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request): FormInterface {

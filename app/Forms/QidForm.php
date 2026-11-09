@@ -60,6 +60,10 @@ final class QidForm extends AbstractType
             ]);
 	}
 
+	/**
+	 * @psalm-return FormInterface<array<string, mixed>>
+	 * @phpstan-return FormInterface
+	 */
 	public static function create(
 			FormFactoryInterface $formFactory,
 			Request $request): FormInterface {
@@ -67,14 +71,18 @@ final class QidForm extends AbstractType
 		return FormHelper::formCreator($formFactory, $request, self::class);
 	}
 
+	/**
+	 * @psalm-param FormInterface<array<string, mixed>> $form
+	 * @phpstan-param FormInterface $form
+	 */
 	public static function check_form(
 		FormInterface $form,
 		UrlGeneratorInterface $urlGenerator,
 		bool $is_admin = false
 	): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData();
-			$qid = $data['qid'];
+			$data = $form->getData() ?? [];
+			$qid = (string) $data['qid'];
 
 			if ($is_admin) {
 				$url = $urlGenerator->generate(RouteName::ADMIN_DETAIL->value, [
