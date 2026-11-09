@@ -61,7 +61,7 @@ final class LdapAuth implements AuthInterface {
 		if (empty($this->username) || empty($this->password)) {
 			return false;
 		}
-		$ldap_uri = Helper::env_required('LDAP_URI'); 
+		$ldap_uri = Helper::env_required('LDAP_URI');
 		$ldap_base =  Helper::env_required('LDAP_BASE');
 		$ldap_bind_dn = Helper::env_string('LDAP_BIND_DN') ?? '';
 		$ldap_bind_pass = Helper::env_string('LDAP_BIND_PASS') ?? '';

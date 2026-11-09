@@ -205,7 +205,7 @@ final class LoginController extends ViewController
 					);
 				}
 
-				sleep((int)Helper::env_required('FAILED_LOGIN_TIMEOUT'));
+				sleep((int) (Helper::env_string('FAILED_LOGIN_TIMEOUT') ?? 0));
 				$this->flashbag->add('error', "Wrong username or password");
 				$statusCode = Response::HTTP_UNAUTHORIZED;
 			} else {
