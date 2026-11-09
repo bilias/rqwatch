@@ -246,7 +246,7 @@ final class Router
 		$response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
 		$response->headers->set('Cross-Origin-Resource-Policy', 'same-origin');
 
-		if (Helper::env_string('WEB_SCHEME') === 'https') {
+		if (Helper::env_required('WEB_SCHEME') === 'https') {
 			$response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 		}
 	}

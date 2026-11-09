@@ -140,7 +140,7 @@ final class SessionManager
 	}
 
 	private static function checkSecureCookie(): string {
-		if (Helper::env_string('WEB_SCHEME') == 'http') {
+		if (Helper::env_required('WEB_SCHEME') == 'http') {
 			return "auto";
 		}
 		return "1";
