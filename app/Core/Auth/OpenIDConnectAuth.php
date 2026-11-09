@@ -83,9 +83,22 @@ final class OpenIDConnectAuth implements AuthInterface {
 
 		$this->idToken = $oidc->getIdToken();
 
-		$userInfo = $oidc->requestUserInfo();
-
 		$usernameAttr = trim(Helper::env_string('OPENIDC_PREFERRED_USERNAME_ATTR') ?? '') ?: 'preferred_username';
+
+		return $this->applyUserInfo($oidc->requestUserInfo(), $usernameAttr);
+	}
+
+	/**
+	 * The identity provider's userinfo: the login it allows, with this
+	 * user's name and e-mail. It comes from outside: a claim of the wrong
+	 * type denies the login when it is the username or e-mail, and is left
+	 * out (logged by name, not value) when it is a display name.
+	 */
+	private function applyUserInfo(mixed $userInfo, string $usernameAttr): bool {
+		if (!is_object($userInfo)) {
+			$this->logger->error('OIDC userinfo is ' . get_debug_type($userInfo) . ', not an object');
+			return false;
+		}
 
 		if (Helper::env_bool('OPENIDC_DEBUG_CLAIMS', false)) {
 			$this->logger->info('OIDC claims', [
@@ -98,17 +111,20 @@ final class OpenIDConnectAuth implements AuthInterface {
 			]);
 		}
 
-		if (empty($userInfo) || empty($userInfo->{$usernameAttr})) {
+		/** @var mixed $username */
+		$username = $userInfo->{$usernameAttr} ?? null;
+		if (empty($username)) {
 			$this->logger->error("Empty userinfo or {$usernameAttr} from OIDC. Check OPENIDC_PREFERRED_USERNAME_ATTR in .env");
 			return false;
 		}
 
-		if (!is_scalar($userInfo->{$usernameAttr})) {
-			$this->logger->error("OIDC claim '{$usernameAttr}' is not a scalar value. Check OPENIDC_PREFERRED_USERNAME_ATTR in .env");
+		// a number is a username some providers use; true would read as "1"
+		if (!is_string($username) && !is_int($username)) {
+			$this->logger->error("OIDC claim '{$usernameAttr}' is " . get_debug_type($username) . ", not text. Check OPENIDC_PREFERRED_USERNAME_ATTR in .env");
 			return false;
 		}
 
-		$this->authenticatedUser = strtolower(trim((string) $userInfo->{$usernameAttr}));
+		$this->authenticatedUser = strtolower(trim((string) $username));
 
 		$emailVerified = filter_var(
 			$userInfo->email_verified ?? null,
@@ -116,13 +132,15 @@ final class OpenIDConnectAuth implements AuthInterface {
 			FILTER_NULL_ON_FAILURE
 		);
 
-		if (empty($userInfo->email)) {
+		/** @var mixed $email */
+		$email = $userInfo->email ?? null;
+		if (empty($email)) {
 			$this->logger->error("OIDC user '{$this->authenticatedUser}' has no email claim; login denied");
 			return false;
 		}
 
-		if (!is_scalar($userInfo->email)) {
-			$this->logger->error("OIDC claim 'email' for user '{$this->authenticatedUser}' is not a scalar value; login denied");
+		if (!is_string($email)) {
+			$this->logger->error("OIDC claim 'email' for user '{$this->authenticatedUser}' is " . get_debug_type($email) . ", not text; login denied");
 			return false;
 		}
 
@@ -140,14 +158,25 @@ final class OpenIDConnectAuth implements AuthInterface {
 			);
 		}
 
-		$this->email = strtolower(trim((string) $userInfo->email));
+		$this->email = strtolower(trim($email));
 
-		$this->lastname = $userInfo->family_name ?? null;
-		$this->firstname = $userInfo->given_name ?? null;
+		$this->lastname = $this->nameClaim($userInfo, 'family_name');
+		$this->firstname = $this->nameClaim($userInfo, 'given_name');
 
 		$this->is_admin = AuthManager::isExternalAdmin('OPENIDC', $this->authenticatedUser) === true;
 
 		return true;
+	}
+
+	// a display-name claim: text, else left out and logged (the claim, not its value)
+	private function nameClaim(object $userInfo, string $claim): ?string {
+		/** @var mixed $value */
+		$value = $userInfo->{$claim} ?? null;
+		if ($value === null || is_string($value)) {
+			return $value;
+		}
+		$this->logger->warning("OIDC claim '{$claim}' for user '{$this->authenticatedUser}' is " . get_debug_type($value) . ", not text; ignored");
+		return null;
 	}
 
 	public function logout(?string $idToken): bool {

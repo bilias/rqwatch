@@ -383,12 +383,11 @@ final class LoginController extends ViewController
 		)));
 		*/
 
+		/** @var list<string> $dbAliasList mail_aliases.alias is VARCHAR NOT NULL */
+		$dbAliasList = $user->mailAliases()->pluck('alias')->all();
 		$dbAliases = array_map(
 			'strtolower',
-			array_filter(
-				$user->mailAliases()->pluck('alias')->toArray(),
-				fn($alias) => !empty(trim($alias))
-			)
+			array_filter($dbAliasList, fn (string $alias): bool => trim($alias) !== '')
 		);
 
 		$externalAliases = array_map(
