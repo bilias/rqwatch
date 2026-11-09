@@ -84,6 +84,64 @@ final class RetentionTest extends IntegrationTestCase
 		$this->assertFileExists("{$q}/{$keepDay}/stray.txt", 'non-empty date dir kept');
 	}
 
+	#[TestDox('cron:quarantine -d -p removes old mail directories no row names; keeps named, recent and unexpected ones; -p -s only lists')]
+	public function testQuarantineRemovesUnreferenced(): void {
+		$q = self::root() . '/q';
+		$days = self::quarantineDays() + 60;
+		$day = date('Y-m-d', (int) strtotime("-{$days} days"));
+		$tag = strtoupper(bin2hex(random_bytes(4)));
+		// left by spooled mails never imported: no row names them
+		$orphan = self::rawMailDir("{$q}/{$day}/RETORPHAN{$tag}");
+		$orphanUnknown = self::rawMailDir("{$q}/{$day}/unknown/" . bin2hex(random_bytes(6)));
+		// named by a row, even one no longer claiming it stored
+		$named = self::mail($days);
+		self::db()->prepare('UPDATE mail_logs SET mail_stored = 0 WHERE id = ?')->execute([$named['id']]);
+		// not what store_raw_mail() makes
+		$odd = self::rawMailDir("{$q}/{$day}/RETODD{$tag}");
+		file_put_contents("{$odd}/notes.txt", 'not a mail directory');
+		// within QUARANTINE_DAYS: may still be waiting in the spool
+		$recent = self::rawMailDir($q . '/' . date('Y-m-d', (int) strtotime('-2 days')) . "/RETRECENT{$tag}");
+
+		try {
+			$listed = self::cli('cron:quarantine', '-p', '-s');
+			$orphanReal = realpath($orphan);
+			$this->assertIsString($orphanReal);
+			$this->assertStringContainsString("would remove: {$orphanReal}", $listed);
+			$this->assertDirectoryExists($orphan, 'kept without -d');
+
+			self::cli('cron:quarantine', '-d', '-p');
+
+			$this->assertDirectoryDoesNotExist($orphan);
+			$this->assertDirectoryDoesNotExist($orphanUnknown);
+			$this->assertFileExists($named['file'], 'named by a row');
+			$this->assertDirectoryExists($odd, 'not a mail directory');
+			$this->assertDirectoryExists($recent, 'within QUARANTINE_DAYS');
+		} finally {
+			foreach ([$named['file'], "{$odd}/notes.txt", "{$odd}/mail.eml", "{$recent}/mail.eml"] as $file) {
+				@unlink($file);
+			}
+			foreach ([dirname($named['file']), $odd, $recent] as $dir) {
+				@rmdir($dir);
+			}
+			self::db()->prepare('DELETE FROM mail_logs WHERE id = ?')->execute([$named['id']]);
+		}
+	}
+
+	#[TestDox('cron:quarantine -d -p in one run: old rows\' files, then unreferenced ones, then the emptied date dir')]
+	public function testQuarantineCleansSweepsThenPrunes(): void {
+		$q = self::root() . '/q';
+		$days = self::quarantineDays() + 70;
+		$day = date('Y-m-d', (int) strtotime("-{$days} days"));
+		$stored = self::mail($days);
+		$orphan = self::rawMailDir("{$q}/{$day}/RETORPHAN" . strtoupper(bin2hex(random_bytes(4))));
+
+		self::cli('cron:quarantine', '-d', '-p');
+
+		$this->assertStored($stored, false);
+		$this->assertDirectoryDoesNotExist($orphan);
+		$this->assertDirectoryDoesNotExist("{$q}/{$day}", 'pruned in the same run');
+	}
+
 	#[TestDox('cron:cleanupdb refuses to run when DATABASE_DAYS is not above QUARANTINE_DAYS')]
 	public function testCleanupDbRefusesUnsafeDays(): void {
 		$old = self::row(self::databaseDays() + 20);
@@ -148,6 +206,13 @@ final class RetentionTest extends IntegrationTestCase
 		self::cli('cron:fuzzy_cleanup', '-d');
 		$this->assertSame(0, self::countFuzzy([$otherServer]), 'other server without -l');
 		$this->assertSame(1, self::countFuzzy([$fresh]), 'fresh');
+	}
+
+	// a mail directory as store_raw_mail() makes it, with no row
+	private static function rawMailDir(string $dir): string {
+		mkdir($dir, 0750, true);
+		file_put_contents("{$dir}/mail.eml", "Subject: unreferenced\r\n\r\nbody\r\n");
+		return $dir;
 	}
 
 	private static function quarantineDays(): int {

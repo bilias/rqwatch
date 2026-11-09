@@ -22,11 +22,13 @@ use Symfony\Component\Console\Command\LockableTrait;
 
 use App\Core\App;
 
+use App\Models\MailLog;
 use App\Services\MailLogService;
 use App\Utils\Helper;
 
 use DateTime;
 use DateInterval;
+use Throwable;
 
 #[AsCommand(
 	name: 'cron:quarantine',
@@ -50,7 +52,7 @@ final class CronQuarantine extends RqwatchCliCommand
 			// ->addArgument('param', InputArgument::REQUIRED, 'Parameter for service')
 			->addOption('delete', 'd', InputOption::VALUE_NONE, 'Delete entries from quarantine')
 			->addOption('local', 'l', InputOption::VALUE_NONE, 'Clean quarantine for local server only')
-			->addOption('prune', 'p', InputOption::VALUE_NONE, 'Prune empty directories from quarantine')
+			->addOption('prune', 'p', InputOption::VALUE_NONE, 'Prune empty directories from quarantine, and with -d the old mail directories no row names')
 			->addOption('show', 's', InputOption::VALUE_NONE, 'Show entries in quaranting pending to be deleted')
 		;
 	}
@@ -69,11 +71,23 @@ final class CronQuarantine extends RqwatchCliCommand
 		$prune_quaranatine = $input->getOption('prune');
 		$show_quarantine = $input->getOption('show');
 
-		// check for prune
+		$days = (int) (Helper::env_string('QUARANTINE_DAYS') ?? 366);
+
+		// the rows past QUARANTINE_DAYS, then what no row names, then the
+		// date directories either left empty
+		$this->cleanOldMail($output, $days, $delete_quarantine, $show_local_only, $show_quarantine);
+
 		if ($prune_quaranatine) {
+			$this->removeUnreferencedMailDirs($output, $days, $delete_quarantine, $show_quarantine);
 			$this->pruneEmptyQuarantineDateDirs($output);
 		}
 
+		$this->printRuntime($output);
+		return Command::SUCCESS;
+	}
+
+	// deletes the quarantined files of the rows past QUARANTINE_DAYS (with -d) and clears their mail_stored
+	private function cleanOldMail(OutputInterface $output, int $days, bool $delete_quarantine, bool $show_local_only, bool $show_quarantine): void {
 		$service = new MailLogService();
 
 		// MailLog Collection
@@ -86,7 +100,6 @@ final class CronQuarantine extends RqwatchCliCommand
 			$logs = $service->getQuarantine($output);
 		}
 
-		$days = (int) (Helper::env_string('QUARANTINE_DAYS') ?? 366);
 		$cutoffDate = new DateTime();
 		$cutoffDate->sub(new DateInterval("P{$days}D")); // Subtract days
 		$qtime = $cutoffDate->format('Y-m-d H:i:s');
@@ -95,8 +108,7 @@ final class CronQuarantine extends RqwatchCliCommand
 			$output->writeln("<info>No entries found in quarantine before {$qtime}{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
 			$this->fileLogger->debug("{$this->app_name} No entries found in quarantine before {$qtime} {$local}");
-			$this->printRuntime($output);
-			return Command::SUCCESS;
+			return;
 		} else {
 			$output->writeln("<info>{$count} entries found in quarantine before {$qtime}{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
@@ -130,8 +142,7 @@ final class CronQuarantine extends RqwatchCliCommand
 			$output->writeln("<info>No entries remain with a valid mail_location{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
 			$this->fileLogger->warning("{$this->app_name} No entries remain with a valid mail_location{$local}");
-			$this->printRuntime($output);
-			return Command::SUCCESS;
+			return;
 		}
 
 		$output->writeln("<info>{$count} entries remain with a valid mail_location{$local}</info>",
@@ -153,22 +164,123 @@ final class CronQuarantine extends RqwatchCliCommand
 		if (!$delete_quarantine) {
 			$output->writeln("<info>Use -d to delete entries from quarantine{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
-			$this->printRuntime($output);
-			return Command::SUCCESS;
+			return;
 		}
 
 		// CLEAR QUARANTINE
 		$service->cleanQuarantine($logs, $output);
+		//$logs_ar = $logs->toArray();
+	}
 
-		// prune dirs emptied by the delete above
-		if ($prune_quaranatine) {
-			$this->pruneEmptyQuarantineDateDirs($output);
+	/*
+	 Removes the mail directories past QUARANTINE_DAYS that no mail_logs row
+	 names: what a spooled mail leaves when its entry is never imported (an
+	 unusable payload, a TTL that ran out, a Redis that lost the spool).
+	 cleanQuarantine() deletes by row, so nothing else ever would, and they
+	 keep their date directory from being pruned.
+
+	 Only what store_raw_mail() creates is touched: <date>/<qid>/,
+	 <date>/unknown/<id>/ and <date>/invalid/<id>/ holding just mail.eml,
+	 under a date directory past the cutoff and before today. Any row naming
+	 the directory keeps it, whatever its mail_stored. A spooled mail past
+	 QUARANTINE_DAYS is past retention anyway: drain() imports it with
+	 mail_stored = 0 when its file is gone. Without -d nothing is removed.
+	*/
+	private function removeUnreferencedMailDirs(OutputInterface $output, int $days, bool $delete, bool $show): void {
+		$root = Helper::env_string('QUARANTINE_DIR');
+		$rootReal = $root === null || $root === '' ? false : realpath($root);
+		if ($rootReal === false || !is_dir($rootReal)) {
+			return;
+		}
+		$entries = @scandir($rootReal);
+		if ($entries === false) {
+			return;
 		}
 
-		//$logs_ar = $logs->toArray();
+		$cutoff = min(date('Y-m-d', (int) strtotime("-{$days} days")), date('Y-m-d', (int) strtotime('-1 day')));
 
-		$this->printRuntime($output);
-		return Command::SUCCESS;
+		foreach ($entries as $day) {
+			$dayDir = $rootReal . DIRECTORY_SEPARATOR . $day;
+			if (!preg_match('/^\d{4}-\d{2}-\d{2}$/D', $day) || $day >= $cutoff || is_link($dayDir) || !is_dir($dayDir)) {
+				continue;
+			}
+
+			try {
+				$named = $this->namedMailDirs($day);
+			} catch (Throwable $e) {
+				$this->fileLogger->error("{$this->app_name} cannot read the mail locations of {$day}, not sweeping it: "
+					. $e->getMessage());
+				continue;
+			}
+
+			foreach ($this->mailDirs($dayDir) as $mailDir) {
+				if (isset($named[$mailDir])) {
+					continue;
+				}
+				if (!$delete) {
+					if ($show) {
+						$output->writeln("Unreferenced, would remove: {$mailDir}", OutputInterface::VERBOSITY_NORMAL);
+					}
+					continue;
+				}
+				if (Helper::deleteDirectory($mailDir)) {
+					$output->writeln("<info>Removed unreferenced {$mailDir}</info>", OutputInterface::VERBOSITY_VERBOSE);
+					$this->fileLogger->info("{$this->app_name} removed unreferenced quarantine directory {$mailDir}");
+				}
+			}
+		}
+	}
+
+	/**
+	 * The mail directories store_raw_mail() made under $dayDir: <qid>/ and
+	 * unknown/ or invalid/ <id>/, each holding only mail.eml
+	 * @return list<string>
+	 */
+	private function mailDirs(string $dayDir): array {
+		$dirs = [];
+		// an unreadable directory is not swept
+		$names = @scandir($dayDir);
+		foreach ($names === false ? [] : $names as $name) {
+			$path = $dayDir . DIRECTORY_SEPARATOR . $name;
+			if ($name === 'unknown' || $name === 'invalid') {
+				$ids = @scandir($path);
+				foreach ($ids === false ? [] : $ids as $id) {
+					if (preg_match('/^[a-f0-9]+$/D', $id)) {
+						$dirs[] = $path . DIRECTORY_SEPARATOR . $id;
+					}
+				}
+			} elseif (preg_match('/^[a-zA-Z0-9]+$/D', $name)) {
+				$dirs[] = $path;
+			}
+		}
+		return array_values(array_filter($dirs, function (string $dir): bool {
+			$names = @scandir($dir);
+			return !is_link($dir) && is_dir($dir) && $names !== false
+				&& array_values(array_diff($names, ['.', '..'])) === ['mail.eml']
+				&& is_file($dir . DIRECTORY_SEPARATOR . 'mail.eml') && !is_link($dir . DIRECTORY_SEPARATOR . 'mail.eml');
+		}));
+	}
+
+	/**
+	 * The directories of every mail_logs row whose mail_location is under the
+	 * date directory $day, resolved as on disk
+	 * @return array<string, true>
+	 */
+	private function namedMailDirs(string $day): array {
+		$named = [];
+		$locations = MailLog::query()->toBase()
+			->where('mail_location', 'like', "%/{$day}/%")
+			->pluck('mail_location');
+		foreach ($locations as $location) {
+			if (!is_string($location)) {
+				continue;
+			}
+			$dir = realpath(dirname($location));
+			if ($dir !== false) {
+				$named[$dir] = true;
+			}
+		}
+		return $named;
 	}
 
 	private function pruneEmptyQuarantineDateDirs(OutputInterface $output): void {
