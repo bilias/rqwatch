@@ -1292,20 +1292,29 @@ Mail details:
 		return $charset;
 	}
 
+	// the charset 8-bit mail text is decoded with when $mail_fallback_charset is unset
+	public const string DEFAULT_MAIL_FALLBACK_CHARSET = 'Windows-1252';
+
+	// $mail_fallback_charset, or the default when unset; an exception naming it when not text
+	public static function mailFallbackCharset(): string {
+		$fallback = Config::getString('mail_fallback_charset');
+		return ($fallback === null || $fallback === '' || $fallback === '0') ? self::DEFAULT_MAIL_FALLBACK_CHARSET : $fallback;
+	}
+
 	/**
 	 * $input as UTF-8: unchanged when valid, else decoded with the first of
-	 * $charsets, then $mail_fallback_charset, that iconv accepts, else with
-	 * invalid bytes replaced. Any byte string decodes as a single-byte
-	 * charset, so the fallback is a guess the admin chooses.
+	 * $charsets, then $fallback (by default mailFallbackCharset()), that
+	 * iconv accepts, else with invalid bytes replaced. Any byte string
+	 * decodes as a single-byte charset, so the fallback is a guess the admin
+	 * chooses.
 	 * @param list<string> $charsets
 	 */
-	public static function toUtf8(string $input, array $charsets = []): string {
+	public static function toUtf8(string $input, array $charsets = [], ?string $fallback = null): string {
 		if ($input === '' || mb_check_encoding($input, 'UTF-8')) {
 			return $input;
 		}
 
-		$fallback = Config::getString('mail_fallback_charset');
-		$charsets[] = ($fallback === null || $fallback === '' || $fallback === '0') ? 'Windows-1252' : $fallback;
+		$charsets[] = $fallback ?? self::mailFallbackCharset();
 		foreach ($charsets as $enc) {
 			$converted = @iconv($enc, 'UTF-8//IGNORE', $input);
 			if ($converted !== false && mb_check_encoding($converted, 'UTF-8')) {

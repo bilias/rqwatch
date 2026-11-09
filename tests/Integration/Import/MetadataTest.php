@@ -18,7 +18,9 @@
  - unusable metadata is refused;
  - a mail the database rejects is saved without its free text, and one it
    rejects even so is answered 500 with its raw file removed, so none is
-   left that no row points to.
+   left that no row points to;
+ - a mistyped store_settings, mail_fallback_charset or log_to_files falls
+   back (config.php's defaults, Windows-1252, no dump) and is logged.
  The log names the mail by qid, and a database error in full (SQLSTATE,
  code and the failed SQL): never the metadata itself. A trigger stands in
  for the database rejecting a mail.
@@ -122,6 +124,59 @@ final class MetadataTest extends IntegrationTestCase
 		$this->assertStringContainsString(self::REJECTED_QID . ' import error: SQLSTATE 45000, error 1644:', $log);
 		$this->assertStringContainsString('insert into', $log, 'the failed SQL, to see why');
 		$this->assertStringContainsString(self::REJECTED_QID . ' removed from quarantine', $log);
+	}
+
+	// a mistyped setting: boot reports it but lets the importer run, which falls back and logs
+
+	public function testStoreSettingsNotArrayUsesDefaults(): void {
+		self::withSetting("\$store_settings = 'reject';", function (): void {
+			$from = self::logSize();
+			$response = self::post(self::meta(7, ['action' => 'reject']), 'message');
+			$this->assertSame([200, 'Message saved'], $response);
+			$this->assertSame(1, (int) self::value('SELECT mail_stored FROM mail_logs WHERE qid = ?', self::QID . '7'),
+				"config.php's defaults store a rejected mail");
+			$this->assertStringContainsString(
+				self::QID . "7: store_settings must be an array, not string in config; using config.php's defaults", self::logSince($from));
+		});
+	}
+
+	public function testFallbackCharsetNotTextDecodesWithDefault(): void {
+		self::withSetting('$mail_fallback_charset = 5;', function (): void {
+			$from = self::logSize();
+			$response = self::post(self::meta(8, []), 'message', "Caf\xE9 META");
+			$this->assertSame([200, 'Message saved'], $response);
+			$this->assertSame('Café META', self::value('SELECT subject FROM mail_logs WHERE qid = ?', self::QID . '8'));
+			$this->assertStringContainsString(
+				self::QID . '8: mail_fallback_charset must be a string, not int in config; decoding with Windows-1252', self::logSince($from));
+		});
+	}
+
+	public function testLogToFilesNotBoolSavesTheMail(): void {
+		self::withSetting("\$log_to_files = 'yes';\n\$log_to_files_dir = '/tmp';", function (): void {
+			$from = self::logSize();
+			$response = self::post(self::meta(9, []), 'message');
+			$this->assertSame([200, 'Message saved'], $response);
+			$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM mail_logs WHERE qid = ?', self::QID . '9'));
+			$this->assertStringContainsString(
+				self::QID . '9: log_to_files not written: log_to_files must be true or false, not string in config', self::logSince($from));
+		});
+	}
+
+	// the debug dump fails before the give-up branch: the raw file is still removed
+	public function testLogToFilesNotBoolOnGiveUpRemovesTheFile(): void {
+		self::rejectingTrigger();
+		self::withSetting("\$log_to_files = 'yes';", function (): void {
+			[$status] = self::post(['qid' => self::REJECTED_QID] + self::meta(10, ['action' => 'reject']), 'message');
+			$this->assertSame(500, $status);
+			$this->assertSame([], glob(self::root() . '/q/*/' . self::REJECTED_QID));
+		});
+	}
+
+	// $php appended to config.local.php, under a fresh config cache key for the Redis leg
+	private static function withSetting(string $php, callable $test): void {
+		self::withEnv(['REDIS_CONFIG_KEY' => '"rqwatch_config_meta_' . bin2hex(random_bytes(4)) . '"'], function () use ($php, $test): void {
+			self::withLocalConfig($php, $test);
+		});
 	}
 
 	// rejects a row by its subject, or always for REJECTED_QID

@@ -18,6 +18,7 @@ namespace Tests\Unit\Helpers;
 use App\Configuration\Config;
 use App\Utils\Helper;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Tests\Unit\UnitTestCase;
 
 final class CharsetTest extends UnitTestCase
@@ -107,5 +108,24 @@ final class CharsetTest extends UnitTestCase
 	public function testNormalizeIgnoresUtf7Meta(): void {
 		$html = "<meta charset=\"utf-7\">\xE9 +AA0ACg-x";
 		$this->assertSame('<meta charset="utf-7">é +AA0ACg-x', Helper::normalizeToUtf8($html));
+	}
+
+	public function testFallbackCharsetSetting(): void {
+		$this->assertSame('Windows-1252', Helper::mailFallbackCharset(), 'unset');
+		Config::set('mail_fallback_charset', 'koi8-r');
+		$this->assertSame('koi8-r', Helper::mailFallbackCharset());
+	}
+
+	public function testFallbackCharsetNotTextThrows(): void {
+		Config::set('mail_fallback_charset', 5);
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('mail_fallback_charset must be a string, not int in config');
+		Helper::toUtf8("Caf\xE9");
+	}
+
+	// a fallback the caller passes (the importer reads the setting once): the config is not read
+	public function testExplicitFallback(): void {
+		Config::set('mail_fallback_charset', 5);
+		$this->assertSame('Café', Helper::toUtf8("Caf\xE9", [], 'Windows-1252'));
 	}
 }

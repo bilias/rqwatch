@@ -18,8 +18,10 @@
 namespace Tests\Unit\Api;
 
 use App\Api\MetadataImporterMultipartApi;
+use App\Configuration\Config;
 use App\Api\RqwatchApi;
 use ReflectionClass;
+use ReflectionClassConstant;
 use ReflectionMethod;
 use ReflectionProperty;
 use Tests\Unit\UnitTestCase;
@@ -56,6 +58,13 @@ final class MetadataFieldsTest extends UnitTestCase
 	public function testBoolTextIgnored(): void {
 		$this->assertNull($this->call('metaString', 'subject'));
 		$this->assertSame(["warning [MetadataImporter] metadata field 'subject' is bool, not text; ignoring it"], $this->log->lines);
+	}
+
+	// the fallback for a store_settings that is not an array is config.php's own
+	public function testDefaultStoreSettingsAreConfigPhps(): void {
+		$shipped = Config::loadConfigFile(dirname(__DIR__, 3) . '/config/config.php');
+		$this->assertSame($shipped['store_settings'] ?? null,
+			(new ReflectionClassConstant(MetadataImporterMultipartApi::class, 'DEFAULT_STORE_SETTINGS'))->getValue());
 	}
 
 	private function call(string $method, string $key): mixed {

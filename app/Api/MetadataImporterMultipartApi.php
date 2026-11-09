@@ -29,6 +29,7 @@ use PhpMimeMailParser\Parser;
 
 use Illuminate\Database\QueryException;
 use PDOException;
+use RuntimeException;
 
 use Throwable;
 
@@ -54,6 +55,16 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 	protected function getAuthCredentials(): array {
 		return [Helper::env_string('RSPAMD_API_USER'), Helper::env_string('RSPAMD_API_PASS')];
 	}
+
+	// config.php's $store_settings, for a configured one that is not an array
+	private const array DEFAULT_STORE_SETTINGS = [
+		'no action'       => false,
+		'add header'      => true,
+		'rewrite subject' => true,
+		'greylist'        => false,
+		'discard'         => true,
+		'reject'          => true,
+	];
 
 	// mail_logs and mail_log_data columns holding the sender's free text: left
 	// out when the database rejects a mail, to keep the rest of its record
@@ -192,8 +203,8 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 	 * A header value as UTF-8; the parser's false (header absent) as is.
 	 * @param list<string> $charsets
 	 */
-	private static function headerToUtf8(string|false $value, array $charsets): string|false {
-		return $value === false ? false : Helper::toUtf8($value, $charsets);
+	private static function headerToUtf8(string|false $value, array $charsets, string $fallback): string|false {
+		return $value === false ? false : Helper::toUtf8($value, $charsets, $fallback);
 	}
 
 	#[\Override]
@@ -317,6 +328,20 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		$charsets = [];
 		$mime_from = $mime_to = $mime_subject = $message_id = false;
 		$arrayHeaders = [];
+
+		/*
+		 Settings a mistyped config.local.php would make throw mid-import: boot
+		 reports them but lets the importer run, so each falls back here and is
+		 logged below with the qid.
+		*/
+		$settingErrors = [];
+		try {
+			$fallbackCharset = Helper::mailFallbackCharset();
+		} catch (RuntimeException $e) {
+			$fallbackCharset = Helper::DEFAULT_MAIL_FALLBACK_CHARSET;
+			$settingErrors[] = $e->getMessage() . '; decoding with ' . Helper::DEFAULT_MAIL_FALLBACK_CHARSET;
+		}
+
 		if ($rawEmail !== '') {
 			$parser = new Parser();
 			$parser->setText($rawEmail);
@@ -327,9 +352,9 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			// unencoded 8-bit headers arrive as raw bytes: decode them with the
 			// charset a MIME part declares, else $mail_fallback_charset
 			$charsets = self::declaredCharsets($parser);
-			$mime_from = self::headerToUtf8($parser->getHeader('from'), $charsets);
-			$mime_to = self::headerToUtf8($parser->getHeader('to'), $charsets);
-			$mime_subject = self::headerToUtf8($parser->getHeader('subject'), $charsets);
+			$mime_from = self::headerToUtf8($parser->getHeader('from'), $charsets, $fallbackCharset);
+			$mime_to = self::headerToUtf8($parser->getHeader('to'), $charsets, $fallbackCharset);
+			$mime_subject = self::headerToUtf8($parser->getHeader('subject'), $charsets, $fallbackCharset);
 			$message_id = $parser->getHeader('message-id');
 
 			// return all headers as an array, with charset conversion
@@ -372,8 +397,19 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			$has_virus = 0;
 		}
 
-		$store_settings = Config::getArray('store_settings') ?? [];
+		// unset stores only viruses; not an array is a config error: config.php's defaults
+		try {
+			$store_settings = Config::getArray('store_settings') ?? [];
+		} catch (RuntimeException $e) {
+			$store_settings = self::DEFAULT_STORE_SETTINGS;
+			$settingErrors[] = $e->getMessage() . "; using config.php's defaults";
+		}
 		$store = ($action !== null && $action !== '' && !empty($store_settings[$action])) || $has_virus;
+
+		foreach ($settingErrors as $settingError) {
+			$this->fileLogger->error("[{$this->logPrefix}] {$qid}: {$settingError}");
+			$this->syslogLogger->error("{$qid}: {$settingError}");
+		}
 
 		if ($mail_from === null || $mail_from === '') {
 			$this->fileLogger->warning("Unknown envelope address, using empty-mail-from@localhost", [
@@ -418,7 +454,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			}
 		}
 
-		$data['headers'] = Helper::toUtf8($stringHeaders, $charsets);
+		$data['headers'] = Helper::toUtf8($stringHeaders, $charsets, $fallbackCharset);
 		if ($data['headers'] !== $stringHeaders) {
 			$this->fileLogger->debug("{$qid}: 8-bit headers decoded, declared charsets: "
 				. ($charsets === [] ? 'none' : implode(', ', $charsets)));
@@ -480,11 +516,16 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			$fail_msg = 'Unexpected error';
 		}
 
-		$dir = Config::getString('log_to_files_dir');
-		if (Config::getBool('log_to_files') && $dir !== null && $dir !== '') {
-			/** @var array<string, string> $web_headers name => value: always an array since PHP 7.3 */
-			$web_headers = getallheaders();
-			Helper::log_to_files($dir, $symbols, $web_headers, $stringHeaders, $arrayHeaders);
+		// a debug dump: its failure, a mistyped setting included, must not change the mail's outcome
+		try {
+			$dir = Config::getString('log_to_files_dir');
+			if (Config::getBool('log_to_files') && $dir !== null && $dir !== '') {
+				/** @var array<string, string> $web_headers name => value: always an array since PHP 7.3 */
+				$web_headers = getallheaders();
+				Helper::log_to_files($dir, $symbols, $web_headers, $stringHeaders, $arrayHeaders);
+			}
+		} catch (Throwable $e) {
+			$this->fileLogger->error("[{$this->logPrefix}] {$qid}: log_to_files not written: " . $e->getMessage());
 		}
 		
 		$runtime = $this->getRuntime();
