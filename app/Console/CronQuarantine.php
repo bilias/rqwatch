@@ -179,8 +179,9 @@ final class CronQuarantine extends RqwatchCliCommand
 	 cleanQuarantine() deletes by row, so nothing else ever would, and they
 	 keep their date directory from being pruned.
 
-	 Only what store_raw_mail() creates is touched: <date>/<qid>/,
-	 <date>/unknown/<id>/ and <date>/invalid/<id>/ holding just mail.eml,
+	 Only what store_raw_mail() creates is touched: <date>/<qid>/ (or
+	 <qid>-<uniqid>/ for a reused qid), <date>/unknown/<id>/ and
+	 <date>/invalid/<id>/ holding just mail.eml,
 	 under a date directory past the cutoff and before today. Any row naming
 	 the directory keeps it, whatever its mail_stored. A spooled mail past
 	 QUARANTINE_DAYS is past retention anyway: drain() imports it with
@@ -232,8 +233,8 @@ final class CronQuarantine extends RqwatchCliCommand
 	}
 
 	/**
-	 * The mail directories store_raw_mail() made under $dayDir: <qid>/ and
-	 * unknown/ or invalid/ <id>/, each holding only mail.eml
+	 * The mail directories store_raw_mail() made under $dayDir: <qid>/ (or
+	 * <qid>-<uniqid>/) and unknown/ or invalid/ <id>/, each holding only mail.eml
 	 * @return list<string>
 	 */
 	private function mailDirs(string $dayDir): array {
@@ -249,7 +250,7 @@ final class CronQuarantine extends RqwatchCliCommand
 						$dirs[] = $path . DIRECTORY_SEPARATOR . $id;
 					}
 				}
-			} elseif (preg_match('/^[a-zA-Z0-9]+$/D', $name)) {
+			} elseif (preg_match('/^[a-zA-Z0-9]+(-[a-f0-9]+)?$/D', $name)) {
 				$dirs[] = $path;
 			}
 		}

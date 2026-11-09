@@ -77,6 +77,23 @@ final class QuarantineFileTest extends UnitTestCase
 		$this->assertSame("Subject: x\r\n\r\nbody", file_get_contents($file));
 	}
 
+	// Postfix reuses queue IDs: a later mail must not overwrite an earlier one's file
+	public function testReusedQidGetsItsOwnDirectory(): void {
+		$first = (string) Helper::store_raw_mail($this->q, 'ABC', 'first');
+		$second = (string) Helper::store_raw_mail($this->q, 'ABC', 'second');
+		$third = (string) Helper::store_raw_mail($this->q, 'ABC', 'third');
+
+		$this->assertMatchesRegularExpression('#^' . $this->dayDir() . '/ABC/mail\.eml$#', $first);
+		$this->assertMatchesRegularExpression('#^' . $this->dayDir() . '/ABC-[a-f0-9]+/mail\.eml$#', $second);
+		$this->assertMatchesRegularExpression('#^' . $this->dayDir() . '/ABC-[a-f0-9]+/mail\.eml$#', $third);
+		$this->assertNotSame($second, $third);
+		$this->assertSame(['first', 'second', 'third'], array_map('file_get_contents', [$first, $second, $third]));
+		$this->assertLogged('ABC already exists (queue ID reused)');
+
+		$this->assertTrue(Helper::discard_raw_mail($second));
+		$this->assertSame(['first', 'third'], array_map('file_get_contents', [$first, $third]), 'discarding one keeps the others');
+	}
+
 	public function testTraversalQidStaysInside(): void {
 		$file = Helper::store_raw_mail($this->q, '../../escaped', 'raw');
 		$this->assertMatchesRegularExpression('#^' . $this->dayDir() . '/invalid/\w+/mail\.eml$#', (string) $file);

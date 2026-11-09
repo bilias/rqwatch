@@ -127,18 +127,21 @@ final class RetentionTest extends IntegrationTestCase
 		}
 	}
 
-	#[TestDox('cron:quarantine -d -p in one run: old rows\' files, then unreferenced ones, then the emptied date dir')]
+	#[TestDox('cron:quarantine -d -p in one run: old rows\' files, then unreferenced ones (a reused qid\'s too), then the emptied date dir')]
 	public function testQuarantineCleansSweepsThenPrunes(): void {
 		$q = self::root() . '/q';
 		$days = self::quarantineDays() + 70;
 		$day = date('Y-m-d', (int) strtotime("-{$days} days"));
 		$stored = self::mail($days);
 		$orphan = self::rawMailDir("{$q}/{$day}/RETORPHAN" . strtoupper(bin2hex(random_bytes(4))));
+		// store_raw_mail()'s directory for a reused qid
+		$reused = self::rawMailDir("{$q}/{$day}/RETORPHAN" . strtoupper(bin2hex(random_bytes(4))) . '-' . bin2hex(random_bytes(6)));
 
 		self::cli('cron:quarantine', '-d', '-p');
 
 		$this->assertStored($stored, false);
 		$this->assertDirectoryDoesNotExist($orphan);
+		$this->assertDirectoryDoesNotExist($reused);
 		$this->assertDirectoryDoesNotExist("{$q}/{$day}", 'pruned in the same run');
 	}
 

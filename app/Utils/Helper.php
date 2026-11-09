@@ -109,10 +109,24 @@ final class Helper {
 			$dir_raw .= "unknown/" . uniqid();
 		}
 
-		if (!file_exists($dir_raw) && !@mkdir($dir_raw, 0750, true) && !is_dir($dir_raw)) {
+		$parent = dirname($dir_raw);
+		if (!is_dir($parent) && !@mkdir($parent, 0750, true) && !is_dir($parent)) {
 			$err = error_get_last()['message'] ?? 'unknown error';
-			self::logger()->error("Error creating directory $dir_raw: $err");
+			self::logger()->error("Error creating directory $parent: $err");
 			return null;
+		}
+
+		// always a new directory: Postfix reuses queue IDs, and a second mail
+		// must not overwrite the file the first one's row still names
+		if (!@mkdir($dir_raw, 0750)) {
+			$taken = $dir_raw;
+			$dir_raw .= '-' . uniqid();
+			if (!@mkdir($dir_raw, 0750)) {
+				$err = error_get_last()['message'] ?? 'unknown error';
+				self::logger()->error("Error creating directory $dir_raw: $err");
+				return null;
+			}
+			self::logger()->warning("$taken already exists (queue ID reused), storing in $dir_raw");
 		}
 
 		$file_raw = $dir_raw . "/mail.eml";
