@@ -47,6 +47,7 @@ use App\Core\Exception\QueryTimeoutException;
 use DateTimeImmutable;
 use Exception;
 use InvalidArgumentException;
+use RuntimeException;
 use Throwable;
 
 final class MailLogController extends ViewController
@@ -1559,15 +1560,39 @@ final class MailLogController extends ViewController
 		return [];
 	}
 
-	/** @return array<array-key, array<string, mixed>> the search filters saved by saveFiltersToSession() */
+	/**
+	 * The search filters saveFiltersToSession() saved, each a filter, choice
+	 * and value as text. Only rqwatch writes them, so anything else there is
+	 * a bug or a damaged store, and fails naming the session key rather than
+	 * reading as no filter (a search silently wider than asked).
+	 * @return array<array-key, array<string, mixed>>
+	 */
 	private function getFiltersFromSession(): array {
 		$filters = SessionManager::getString($this->session, 'filters');
 		if ($filters === null || $filters === '') {
 			return [];
 		}
+		/** @var mixed $decoded */
 		$decoded = json_decode($filters, true);
+		if (!is_array($decoded)) {
+			throw new RuntimeException("Session value 'filters' is not a list of search filters");
+		}
 
-		return is_array($decoded) ? $decoded : [];
+		$valid = [];
+		/** @var mixed $filter */
+		foreach ($decoded as $filter) {
+			/** @var mixed $f */
+			$f = is_array($filter) ? ($filter['filter'] ?? null) : null;
+			/** @var mixed $c */
+			$c = is_array($filter) ? ($filter['choice'] ?? null) : null;
+			/** @var mixed $v */
+			$v = is_array($filter) ? ($filter['value'] ?? null) : null;
+			if (!is_string($f) || !is_string($c) || !is_string($v)) {
+				throw new RuntimeException("Session value 'filters' holds a filter that is not a filter, choice and value as text");
+			}
+			$valid[] = ['filter' => $f, 'choice' => $c, 'value' => $v];
+		}
+		return $valid;
 	}
 
 	/** @param array<array-key, array<string, mixed>> $filters */
