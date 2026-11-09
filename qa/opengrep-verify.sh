@@ -1,8 +1,12 @@
 #!/bin/sh
-# usage: opengrep-verify.sh [version]; prints the binary's sha256 for OPENGREP_SHA256
+# usage: opengrep-verify.sh [version]: verifies the release signature, prints
+# the binary's sha256 for OPENGREP_SHA256 and installs it as
+# $OPENGREP_BIN_DIR/opengrep (default ~/.local/bin), where qa/opengrep.sh
+# looks first
 set -eu
 OPENGREP_VERSION=${1:-v1.33.1}
 F=opengrep_manylinux_x86
+BIN=${OPENGREP_BIN_DIR:-$HOME/.local/bin}
 
 D=$(mktemp -d)
 trap 'rm -rf "$D"' EXIT
@@ -22,3 +26,6 @@ cosign verify-blob --cert "$F.cert" --signature "$F.sig" \
 	--certificate-oidc-issuer https://token.actions.githubusercontent.com "$F"
 echo "Opengrep version: ${OPENGREP_VERSION}"
 sha256sum "$F" | cut -d' ' -f1
+
+install -D -m 0755 "$F" "$BIN/opengrep"
+echo "installed: $BIN/opengrep $("$BIN/opengrep" --version)"
