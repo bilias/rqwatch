@@ -47,10 +47,10 @@ final class QidForm extends AbstractType
 						new NotBlank(),
 						new Assert\Length(
 							min: 9,
-							max: 12,
+							max: 30,
 						),
 						new Assert\Regex(
-							pattern: '/^[A-Z0-9]+$/',
+							pattern: '/^[a-zA-Z0-9]+$/D',
 							message: 'The value can only contain capital letters and digits.',
 						),
 					 ],
