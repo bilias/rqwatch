@@ -268,6 +268,7 @@ class Controller
 			try {
 				$responseCode = $response->getStatusCode();
 				if ($responseCode === Response::HTTP_OK) {
+					/** @var mixed $stat */
 					$stat = json_decode($response->getContent(), true);
 					if (is_array($stat)) {
 						$stats[$api_server] = $stat;

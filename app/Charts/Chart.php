@@ -109,7 +109,9 @@ class Chart
 
     public function getDataController(): ?string
     {
-        return $this->attributes['data-controller'] ?? null;
+        /** @var mixed $controller */
+        $controller = $this->attributes['data-controller'] ?? null;
+        return is_string($controller) ? $controller : null;
     }
 
     /**

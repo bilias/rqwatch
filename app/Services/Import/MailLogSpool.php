@@ -194,7 +194,7 @@ final class MailLogSpool
 		$qid = (string) ($mailData['qid'] ?? 'unknown');
 
 		try {
-			$pending = (int) ($cache->get($countKey) ?: 0);
+			$pending = (int) $cache->get($countKey);
 
 			if ($pending >= $max) {
 				$this->fileLogger->critical(

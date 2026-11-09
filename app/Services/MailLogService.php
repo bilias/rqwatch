@@ -96,7 +96,7 @@ final class MailLogService
 	 */
 	public static function getSqlFromQuery(Builder $query): string {
 		//return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
-		return vsprintf(str_replace(['%', '?'], ['%%', '"%s"'], $query->toSql()), $query->getBindings());
+		return Helper::sqlWithBindings($query->toSql(), $query->getBindings());
 	}
 
 	/*

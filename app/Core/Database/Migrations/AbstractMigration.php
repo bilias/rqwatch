@@ -154,10 +154,12 @@ abstract class AbstractMigration {
 	protected function getMigrationStatus(): ?string {
 		$this->ensureMigrationsTable();
 
-		return $this->capsule
+		/** @var mixed $status */
+		$status = $this->capsule
 			->table(AppConfig::MIGRATIONS_TABLE)
 			->where('migration', $this->getName())
 			->value('status');
+		return is_string($status) ? $status : null;
 	}
 
 	public function verifyMigration(): bool {

@@ -109,7 +109,7 @@ final class MapService
 
 	/** @param Builder<MapCombined>|Builder<MapCustom>|Builder<CustomMapConfig> $query */
 	public static function getSqlFromQuery(Builder $query): string {
-		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
+		return Helper::sqlWithBindings($query->toSql(), $query->getBindings());
 	}
 
 	/**
@@ -1117,6 +1117,7 @@ final class MapService
 
 		try {
 			// the old key, to detach its hits if the edit changes it
+			/** @var string|null $old the entry's pattern, null if it is gone */
 			$old = MapCustom::where('id', $id)->value('pattern');
 
 			$success = MapCustom::where('id', $id)

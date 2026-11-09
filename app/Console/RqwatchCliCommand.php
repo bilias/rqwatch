@@ -16,6 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Illuminate\Database\Query\Builder;
 
 use App\Core\App;
+use App\Utils\Helper;
 
 use Psr\Log\LoggerInterface;
 
@@ -42,6 +43,6 @@ class RqwatchCliCommand extends Command
 	}
 
 	public static function getSqlFromQuery(Builder $query): string {
-		return vsprintf(str_replace('?', '"%s"', $query->toSql()), $query->getBindings());
+		return Helper::sqlWithBindings($query->toSql(), $query->getBindings());
 	}
 }

@@ -28,9 +28,11 @@ final class RedisCache implements CacheInterface
 	) { }
 
 
+	/** @return string|false */
 	#[\Override]
 	public function get(string $key): mixed {
-		return $this->getConnection()->get($key);
+		$value = $this->getConnection()->get($key);
+		return is_string($value) ? $value : false;
 	}
 
 	#[\Override]

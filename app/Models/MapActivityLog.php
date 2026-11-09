@@ -37,7 +37,9 @@ final class MapActivityLog extends Model
 	];
 
 	public function getRawLastChangedAt(): ?string {
-		return $this->getAttributes()['last_changed_at'] ?? null;
+		/** @var mixed $raw */
+		$raw = $this->getAttributes()['last_changed_at'] ?? null;
+		return is_string($raw) ? $raw : null;
 	}
 
 }

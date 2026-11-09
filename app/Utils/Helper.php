@@ -36,6 +36,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
 use DateTime;
+use DateTimeInterface;
 use DateTimeZone;
 
 use Exception;
@@ -1020,10 +1021,12 @@ Mail details:
 		    ($geoip_db = Config::get('geoip_country_db')) &&
 		    !self::isLocalOrReservedIp($ip)) {
 			try {
+				/** @var array{country?: array{names?: array{en?: string}}}|null $geo the MaxMind country record */
 				$geo = self::geoipReader($geoip_db)->get($ip);
 
-				if (!empty($geo['country']['names']['en'])) {
-					return $geo['country']['names']['en'];
+				$country = $geo['country']['names']['en'] ?? null;
+				if (is_string($country) && $country !== '') {
+					return $country;
 				}
 			} catch (Exception $e) {
 				// drop it (its handle goes with it) and reopen on the next lookup
@@ -1221,8 +1224,25 @@ Mail details:
 
 	public function getMailFromMime(string $mime_from): string {
 		$parse = mailparse_rfc822_parse_addresses($mime_from);
+		/** @var mixed $address */
+		$address = $parse[0]['address'] ?? '';
 
-		return $parse[0]['address'] ? $parse[0]['address'] : '';
+		return is_string($address) ? $address : '';
+	}
+
+	/**
+	 * SQL with its bindings filled in, for debug logs only (not escaped)
+	 *
+	 * @param array<array-key, mixed> $bindings
+	 */
+	public static function sqlWithBindings(string $sql, array $bindings): string {
+		$values = array_map(fn (mixed $b): string => match (true) {
+			$b instanceof DateTimeInterface => $b->format('Y-m-d H:i:s'),
+			is_scalar($b), $b === null => (string) $b,
+			default => get_debug_type($b),
+		}, array_values($bindings));
+
+		return vsprintf(str_replace(['%', '?'], ['%%', '"%s"'], $sql), $values);
 	}
 
 	/**

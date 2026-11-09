@@ -79,6 +79,7 @@ final class MapHitService
 
 			$db = App::capsule()->getConnection();
 			// the mail's own day, so a spool replay lands on its arrival day
+			/** @var string|null $day the DATE column, null if the mail is gone */
 			$day = $db->table(AppConfig::MAIL_LOGS_TABLE)->where('id', $mailLogId)->value('created_day');
 			if ($day === null) {
 				$this->logger->error("[MapHitService_recordHits] {$qid} mail id {$mailLogId} not found");

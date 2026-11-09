@@ -207,7 +207,7 @@ final class AuthManager
 	}
 
 	public function getIdToken(): ?string {
-		if ($this->provider && method_exists($this->provider, 'getIdToken')) {
+		if ($this->provider instanceof OpenIDConnectAuth) {
 			return $this->provider->getIdToken();
 		}
 		return null;
@@ -221,14 +221,14 @@ final class AuthManager
 	}
 
 	public function getUserId(): ?int {
-		if ($this->provider && method_exists($this->provider, 'getId')) {
+		if ($this->provider instanceof DbAuth) {
 			return $this->provider->getId();
 		}
 		return null;
 	}
 
 	public function getUserEmail(): ?string {
-		if ($this->provider && method_exists($this->provider, 'getEmail')) {
+		if ($this->provider instanceof DbAuth || $this->provider instanceof LdapAuth || $this->provider instanceof OpenIDConnectAuth) {
 			return $this->provider->getEmail();
 		}
 		return null;
@@ -236,28 +236,28 @@ final class AuthManager
 
 	/** @return list<string> */
 	public function getUserEmailAliases(): array {
-		if ($this->provider && method_exists($this->provider, 'getEmailAliases')) {
+		if ($this->provider instanceof LdapAuth || $this->provider instanceof OpenIDConnectAuth) {
 			return $this->provider->getEmailAliases();
 		}
 		return [];
 	}
 
 	public function getUserFirstName(): ?string {
-		if ($this->provider && method_exists($this->provider, 'getFirstName')) {
+		if ($this->provider instanceof LdapAuth || $this->provider instanceof OpenIDConnectAuth) {
 			return $this->provider->getFirstName();
 		}
 		return null;
 	}
 
 	public function getUserLastName(): ?string {
-		if ($this->provider && method_exists($this->provider, 'getLastName')) {
+		if ($this->provider instanceof LdapAuth || $this->provider instanceof OpenIDConnectAuth) {
 			return $this->provider->getLastName();
 		}
 		return null;
 	}
 
 	public function getIsAdmin(): bool {
-		if ($this->provider && method_exists($this->provider, 'getIsAdmin')) {
+		if ($this->provider instanceof DbAuth || $this->provider instanceof LdapAuth || $this->provider instanceof OpenIDConnectAuth) {
 			return $this->provider->getIsAdmin();
 		}
 		return false;

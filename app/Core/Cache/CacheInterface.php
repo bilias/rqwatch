@@ -12,6 +12,7 @@ namespace App\Core\Cache;
 
 interface CacheInterface
 {
+	/** @return string|false the value, false when the key does not exist */
 	public function get(string $key): mixed;
 
 	public function set(

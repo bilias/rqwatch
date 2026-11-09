@@ -84,6 +84,7 @@ final class AuthMiddleware
 		}
 
 		try {
+			/** @var int|null $current the user's session_version, null if the user is gone */
 			$current = User::whereKey((int) $session->get('user_id', 0))->value('session_version');
 		} catch (Throwable $e) {
 			$this->logger->error("[AuthMiddleware] session check failed: " . $e->getMessage());
