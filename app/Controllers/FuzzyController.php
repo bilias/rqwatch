@@ -381,6 +381,7 @@ final class FuzzyController extends ViewController
 			$row = $fuzzy->getByMailLogId($mailLogId);
 			$others = $row ? ($fuzzy->sharedWith([$row])[$row->getKey()] ?? []) : [];
 
+			/** @param array<array{qid: string, ...}> $rows */
 			$qids = function (array $rows): string {
 				$names = array_column($rows, 'qid');
 				$more = count($names) - 3;

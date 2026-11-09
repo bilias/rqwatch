@@ -207,7 +207,7 @@ final class MailTokenService
 		}
 
 		try {
-			return MailLogToken::whereIn('mail_log_id', $mailLogIds)->delete();
+			return (int) MailLogToken::whereIn('mail_log_id', $mailLogIds)->delete();
 		} catch (Throwable $e) {
 			$this->logger->error(
 				"[MailTokenService] failed deleting tokens: " . $e->getMessage()

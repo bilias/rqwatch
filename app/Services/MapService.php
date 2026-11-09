@@ -1382,7 +1382,7 @@ final class MapService
 		}
 
 		// delete all entries matched by the query
-		$deletedRows = $query->delete();
+		$deletedRows = (int) $query->delete();
 
 		if ($deletedRows === 0) {
 			return false;

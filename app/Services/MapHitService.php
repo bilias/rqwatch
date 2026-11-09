@@ -430,6 +430,7 @@ final class MapHitService
 	public function backfillStartId(?int $days): ?int {
 		$query = App::capsule()->getConnection()->table(AppConfig::MAIL_LOGS_TABLE);
 		self::dayWindow($query, $days);
+		/** @var int|string|null $id MIN() of the id column, null without rows */
 		$id = $query->min('id');
 		return $id === null ? null : (int) $id;
 	}

@@ -30,6 +30,7 @@ final class Authorization
 		$this->logger = $logger;
 	}
 
+	/** @param callable(Request): Response $next */
 	public function handle(Request $request, callable $next): Response {
 		$homeUrl = $this->urlGenerator->generate(RouteName::HOMEPAGE->value);
 

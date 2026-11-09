@@ -985,7 +985,7 @@ final class MailLogController extends ViewController
 					'is_admin' => $this->is_admin,
 				]);
 				$this->syslogLogger->error("Mail release of {$maillog->qid} by " .
-					$this->email .
+					(string) $this->email .
 					" failed. Check rqwatch logs for details");
 
 				$this->flashbag->add('error', "Wrong personal recipient address. Contact admin");
@@ -1416,7 +1416,11 @@ final class MailLogController extends ViewController
 		return true;
 	}
 
-	/** @param iterable<array-key, mixed> $stats what $builder takes */
+	/**
+	 * @template T of iterable<array-key, mixed>
+	 * @param callable(T): Chart $builder
+	 * @param T $stats what $builder takes
+	 */
 	private function createChart(callable $builder, iterable $stats): ?Chart {
 		if (!$this->chartsEnabled()) {
 			return null;

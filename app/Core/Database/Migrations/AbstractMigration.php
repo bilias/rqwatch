@@ -30,6 +30,7 @@ use Throwable;
 
 abstract class AbstractMigration {
 
+	/** @var string */
 	protected const string MIGRATION_NAME = '';
 
 	protected Capsule $capsule;

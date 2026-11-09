@@ -68,6 +68,7 @@ final class ChartBuilder {
 
 	/**
 	 * @param iterable<\App\Models\MailLog> $days rows of day and cnt
+	 * @param (callable(string): string)|null $dayUrl 'Y-m-d' => that day's link
 	 * @param array<string, int> $totals 'Y-m-d' => all mail that day
 	 */
 	public static function createQuarantineChart(iterable $days, ?callable $dayUrl = null, array $totals = []): Chart {
@@ -123,6 +124,7 @@ final class ChartBuilder {
 
 	/**
 	 * @param iterable<\App\Models\MailLog> $months rows of month and cnt
+	 * @param (callable(string): string)|null $monthUrl 'Y-m' => that month's link
 	 * @param array<string, int> $totals 'Y-m' => all mail that month
 	 */
 	public static function createQuarantinePerMonthChart(iterable $months, ?callable $monthUrl = null, array $totals = []): Chart {
@@ -178,7 +180,10 @@ final class ChartBuilder {
 
 	// percentage of all mail (same day/month, same user scope) that was stored
 	// a map's distinct mails per day (day => mails), a bar per day linking to that day's mails
-	/** @param array<string, int> $days day => mails */
+	/**
+	 * @param array<string, int> $days day => mails
+	 * @param callable(string): string $dayUrl day => its link
+	 */
 	public static function createMapHitsChart(array $days, callable $dayUrl): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
@@ -208,7 +213,10 @@ final class ChartBuilder {
 
 	// reports by date (rows newest first): mails and stored per day or month ($unit;
 	// month counts ever stored), size (MB) on the right axis
-	/** @param array<array-key, array<string, mixed>> $rows date, total, total_stored, total_size */
+	/**
+	 * @param array<array-key, array<string, mixed>> $rows date, total, total_stored, total_size
+	 * @param callable(string): string $dayUrl date => its link
+	 */
 	public static function createReportsDayChart(array $rows, callable $dayUrl, string $unit = 'day'): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 

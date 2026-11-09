@@ -38,6 +38,7 @@ final class AuthMiddleware
 		$this->logger = $logger;
 	}
 
+	/** @param callable(Request): Response $next */
 	public function handle(Request $request, callable $next): Response {
 
 		// already authed

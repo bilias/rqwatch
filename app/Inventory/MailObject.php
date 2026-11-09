@@ -116,6 +116,7 @@ final class MailObject
 	}
 
 	public function setAttached(): void {
+		/** @var list<\PhpMimeMailParser\Attachment> $attachments in order of appearance */
 		$attachments = $this->parser->getAttachments();
 
 		$attached = [];
@@ -134,7 +135,9 @@ final class MailObject
 
 	/** @return array<int, \PhpMimeMailParser\Attachment> */
 	public function getAttachments(): array {
-		return $this->parser->getAttachments();
+		/** @var list<\PhpMimeMailParser\Attachment> $attachments in order of appearance */
+		$attachments = $this->parser->getAttachments();
+		return $attachments;
 	}
 
 	public function getTextBody(): string {

@@ -568,7 +568,7 @@ final class MailLogService
 				break;
 			}
 
-			$removed = MailLog::whereIn('id', $ids)->delete();
+			$removed = (int) MailLog::whereIn('id', $ids)->delete();
 
 			if ($removed < 1) {
 				// nothing went away; stop rather than spin
@@ -908,7 +908,7 @@ final class MailLogService
 		}
 
 		foreach ($windows as &$rows) {
-			usort($rows, fn ($a, $b) => [$b['mails'], $a['virus']] <=> [$a['mails'], $b['virus']]);
+			usort($rows, fn (array $a, array $b) => [$b['mails'], $a['virus']] <=> [$a['mails'], $b['virus']]);
 			$rows = array_slice($rows, 0, $limit);
 		}
 		unset($rows);
@@ -1441,7 +1441,7 @@ final class MailLogService
 		$log = $query->first();
 		if (!$log) {
 			$err = "Mail with QID '{$qid}' not found";
-			Helper::debug_exception_warn("{$lf} {$err} by user: '" . $this->username . "'");
+			Helper::debug_exception_warn("{$lf} {$err} by user: '" . (string) $this->username . "'");
 			throw new InvalidArgumentException($err);
 		}
 		return $log;

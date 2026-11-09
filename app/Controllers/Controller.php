@@ -377,7 +377,9 @@ class Controller
 	/** @return array<string, list<mixed>> type => messages */
 	protected function getFlashes(): array {
 		$this->getAdminWarnings();
-		return $this->flashbag->all();
+		/** @var array<string, list<mixed>> $flashes type => messages, as add() stores them */
+		$flashes = $this->flashbag->all();
+		return $flashes;
 	}
 
 	protected function getHomepageUrl(): string {

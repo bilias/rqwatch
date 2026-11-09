@@ -323,7 +323,7 @@ final class UserService
 			/** @var list<string> $affected distinct map_name values */
 			$affected = (clone $query)->distinct()->pluck('map_name')->all();
 
-			$deleted = $query->delete();
+			$deleted = (int) $query->delete();
 
 			if ($deleted > 0) {
 				$this->logger->info(

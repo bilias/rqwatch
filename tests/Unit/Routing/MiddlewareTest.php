@@ -50,6 +50,7 @@ final class MiddlewareTest extends TestCase
 		return $request;
 	}
 
+	/** @return callable(Request): Response */
 	private function next(): callable {
 		return function (Request $r): Response {
 			$this->reached = true;

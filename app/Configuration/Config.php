@@ -58,6 +58,7 @@ final class Config {
 			return get_defined_vars();
 		})();
 
+		/** @var array<string, mixed> $after variable names => values */
 		$after = (function () use ($path) {
 			/** @psalm-suppress UnresolvableInclude the config file is chosen at runtime */
 			require $path;
