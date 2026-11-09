@@ -23,6 +23,7 @@ use App\Services\Import\MailLogSpool;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 use PhpMimeMailParser\Parser;
 
@@ -55,6 +56,45 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 	}
 
 	/**
+	 * A metadata field that must be a single value. $meta comes from an
+	 * external JSON body: a non-scalar would corrupt the row or throw on a
+	 * typed parameter (store_raw_mail), so it is logged and treated as
+	 * absent rather than dropping the mail.
+	 * @param array<array-key, mixed> $meta
+	 */
+	private function metaScalar(array $meta, string $key): int|float|string|bool|null {
+		/** @var mixed $value */
+		$value = $meta[$key] ?? null;
+		if ($value === null || is_scalar($value)) {
+			return $value;
+		}
+		$this->fileLogger->warning(
+			"[{$this->logPrefix}] non-scalar value for metadata field '{$key}'; ignoring it"
+		);
+		return null;
+	}
+
+	/**
+	 * A metadata field that is text (qid, action, ip, from, subject): a number
+	 * is taken in its exact string form, as the text columns stored it;
+	 * anything else is logged and treated as absent, as metaScalar() does.
+	 * @param array<array-key, mixed> $meta
+	 */
+	private function metaString(array $meta, string $key): ?string {
+		$value = $this->metaScalar($meta, $key);
+		if ($value === null || is_string($value)) {
+			return $value;
+		}
+		if (is_int($value) || is_float($value)) {
+			return (string) $value;
+		}
+		$this->fileLogger->warning(
+			"[{$this->logPrefix}] metadata field '{$key}' is " . get_debug_type($value) . ", not text; ignoring it"
+		);
+		return null;
+	}
+
+	/**
 	 * Charsets the message's MIME parts declare, in part order: what
 	 * unencoded 8-bit headers are most likely in. Only names
 	 * Helper::mailCharset() accepts; the sender chooses them.
@@ -62,6 +102,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 	 */
 	private static function declaredCharsets(Parser $parser): array {
 		$charsets = [];
+		/** @var array<string, mixed> $part a mailparse part: its header fields by name */
 		foreach ($parser->getParts() as $part) {
 			$charset = Helper::mailCharset((string) ($part['charset'] ?? ''));
 			if ($charset !== null && !in_array($charset, $charsets, true)) {
@@ -104,7 +145,8 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 
 			// 2) message (file upload)
 			$msgFile = $this->request->files->get('message');
-			if (!$msgFile) {
+			// one file: message[] gives an array
+			if (!$msgFile instanceof UploadedFile) {
 				throw new \RuntimeException('Missing multipart file: message');
 			}
 			if ($msgFile->getError() !== UPLOAD_ERR_OK) {
@@ -127,33 +169,21 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			);
 		}
 
-		// $meta comes from an external JSON body. A non-scalar where we expect
-		// a scalar would corrupt the row or throw on a typed parameter
-		// (store_raw_mail). Treat it as absent rather than dropping the mail.
-		foreach (['qid', 'score', 'action', 'ip', 'from', 'subject', 'size'] as $k) {
-			if (isset($meta[$k]) && !is_scalar($meta[$k])) {
-				$this->fileLogger->warning(
-					"[{$this->logPrefix}] non-scalar value for metadata field '{$k}'; ignoring it"
-				);
-				$meta[$k] = null;
-			}
-		}
-
+		// single-value fields: metaScalar() logs and drops anything else
 		mb_internal_encoding('UTF-8');
 		
-		$qid       = $meta['qid'] ?? null;
-		$score     = $meta['score'] ?? null;
-		$action    = $meta['action'] ?? null;
-		$ip        = $meta['ip'] ?? null;
-		$mail_from = $meta['from'] ?? null;
-		$subject   = $meta['subject'] ?? null;
-		$size      = (isset($meta['size']) && is_numeric($meta['size']))
-			? (int)$meta['size']
-			: null;
+		$qid       = $this->metaString($meta, 'qid');
+		$score     = $this->metaScalar($meta, 'score');
+		$action    = $this->metaString($meta, 'action');
+		$ip        = $this->metaString($meta, 'ip');
+		$mail_from = $this->metaString($meta, 'from');
+		$subject   = $this->metaString($meta, 'subject');
+		$size      = $this->metaScalar($meta, 'size');
+		$size      = is_numeric($size) ? (int) $size : null;
 
 		$scoreMissing = !isset($score) || !is_numeric($score);
 
-		if (empty($qid) && $scoreMissing && empty($action)) {
+		if (($qid ?? '') === '' && $scoreMissing && ($action ?? '') === '') {
 			$this->fileLogger->error("qid, score and action missing");
 			$msg = "qid, score and action missing";
 			$this->dropLogResponse(
@@ -162,11 +192,18 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		}
 		
 		$server = $this->request->query->get('server', '');
-		$fuzzy  = $meta['fuzzy'] ?? null;
+		/** @var mixed $fuzzyMeta */
+		$fuzzyMeta = $meta['fuzzy'] ?? null;
 
-		if (is_array($fuzzy)) {
-			$fuzzy = json_encode($fuzzy, JSON_UNESCAPED_UNICODE);
-		} elseif ($fuzzy === 'unknown' || $fuzzy === null || $fuzzy === '') {
+		if (is_array($fuzzyMeta)) {
+			$fuzzy = json_encode($fuzzyMeta, JSON_UNESCAPED_UNICODE);
+		} else {
+			// a list of hashes, or none: anything else is logged and left out
+			if (!($fuzzyMeta === 'unknown' || $fuzzyMeta === null || $fuzzyMeta === '')) {
+				$this->fileLogger->warning(
+					"[{$this->logPrefix}] metadata field 'fuzzy' is not a list of hashes (" . get_debug_type($fuzzyMeta) . "); ignoring it"
+				);
+			}
 			$fuzzy = '[]';
 		}
 
@@ -209,8 +246,9 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		$message_id = $parser->getHeader('message-id');
 		
 		// return all headers as an array, with charset conversion
+		/** @var array<string, string|array<array-key, string>> $arrayHeaders header name => value, or values when repeated */
 		$arrayHeaders = $parser->getHeaders();
-		if (empty($qid) || $qid === "unknown" || !preg_match('/^[a-zA-Z0-9]+$/D', (string) $qid)) {
+		if ($qid === null || $qid === '' || $qid === "unknown" || !preg_match('/^[a-zA-Z0-9]+$/D', $qid)) {
 			if (isset($arrayHeaders['x-rspamd-queue-id'])) {
 				$qid = $arrayHeaders['x-rspamd-queue-id'];
 
@@ -247,7 +285,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		$mail_location = null;
 		$store_settings = Config::getArray('store_settings') ?? [];
 		
-		if ((!empty($action) && !empty($store_settings[$action])) || $has_virus) {
+		if (($action !== null && $action !== '' && !empty($store_settings[$action])) || $has_virus) {
 			$mail_location = Helper::store_raw_mail(Helper::env_string('QUARANTINE_DIR') ?? '', $qid, $rawEmail);
 			if ($mail_location !== null) {
 				$this->syslogLogger->info("$qid stored in quarantine: $mail_location");
@@ -258,7 +296,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			}
 		}
 		
-		if (empty($mail_from)) {
+		if ($mail_from === null || $mail_from === '') {
 			$this->fileLogger->warning("Unknown envelope address, using empty-mail-from@localhost", [
 				'qid' => $qid,
 			]);
@@ -280,7 +318,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			'has_virus' => $has_virus,
 			'fuzzy_hashes' => $fuzzy,
 			'ip' => $ip,
-			'mail_from' => strtolower((string)$mail_from),
+			'mail_from' => strtolower($mail_from),
 			// an absent header is NULL; false would be bound as 0 and stored as '0'
 			'mime_from' => $mime_from !== false ? $mime_from : null,
 			'rcpt_to' => empty($rcptArr) ? 'unknown' : implode(', ', $rcptArr),
@@ -397,6 +435,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		
 		$dir = Config::getString('log_to_files_dir');
 		if (Config::getBool('log_to_files') && $dir !== null && $dir !== '') {
+			/** @var array<string, string> $web_headers name => value: always an array since PHP 7.3 */
 			$web_headers = getallheaders();
 			Helper::log_to_files($dir, $symbols, $web_headers, $stringHeaders, $arrayHeaders);
 		}

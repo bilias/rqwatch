@@ -39,6 +39,10 @@
 		<testsuite name="charts">
 			<directory>../tests/Unit/Charts</directory>
 		</testsuite>
+		<!-- the importer's metadata fields -->
+		<testsuite name="api">
+			<directory>../tests/Unit/Api</directory>
+		</testsuite>
 		<!-- parsed mail objects (MailObject) -->
 		<testsuite name="inventory">
 			<directory>../tests/Unit/Inventory</directory>
