@@ -67,6 +67,32 @@ final class RetentionTest extends IntegrationTestCase
 		$this->assertStored($other, false);
 	}
 
+	#[TestDox('cron:quarantine -d: rows sharing one file lose mail_stored together; this server\'s row whose directory is gone is cleared, another server\'s is not')]
+	public function testQuarantineClearsRowsWithoutTheirFile(): void {
+		$days = self::quarantineDays() + 30;
+		// two rows naming one file, as a reused queue ID did before each mail got its own directory
+		$first = self::mail($days);
+		$second = ['id' => self::insert('RETSHARED', $days, 'mx1', $first['file']), 'file' => $first['file']];
+		// directories already gone: this server's, and another server's (on its own disk)
+		$gone = self::mail($days);
+		$goneOther = self::mail($days, server: 'mx2');
+		foreach ([$gone, $goneOther] as $mail) {
+			unlink($mail['file']);
+			rmdir(dirname($mail['file']));
+		}
+
+		$output = self::cli('cron:quarantine', '-d', '-v');
+
+		$this->assertStored($first, false);
+		$this->assertStored($second, false);
+		$this->assertStored($gone, false);
+		$this->assertStringContainsString("Already gone {$gone['id']}", $output);
+		$this->assertSame(1, (int) self::value('SELECT mail_stored FROM mail_logs WHERE id = ?', $goneOther['id']),
+			'another server\'s mail: its directory is absent here by nature');
+		$this->assertStringContainsString("Not deleted {$goneOther['id']}", $output);
+		self::db()->prepare('DELETE FROM mail_logs WHERE id = ?')->execute([$goneOther['id']]);
+	}
+
 	#[TestDox('cron:quarantine -d -p prunes date and unknown/ dirs left empty, keeps non-empty ones')]
 	public function testQuarantinePrune(): void {
 		$q = self::root() . '/q';

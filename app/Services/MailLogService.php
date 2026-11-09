@@ -2299,31 +2299,47 @@ final class MailLogService
 		return $query->get();
 	}
 
-	// cleans quarantine
-	/** @param Collection<int, MailLog> $mailLogs */
+	/**
+	 * Deletes the quarantine directories of $mailLogs and sets mail_stored = 0
+	 * on every row that no longer has its file: the row whose directory was
+	 * deleted, and a row of this server whose directory is already gone (a
+	 * reused queue ID could share one path between two rows before each mail
+	 * got its own directory). A directory that exists but cannot be deleted
+	 * keeps its row stored.
+	 * @param Collection<int, MailLog> $mailLogs
+	 */
 	public function cleanQuarantine(
 		Collection $mailLogs,
 		?OutputInterface $cli_output = null
 	): void {
 
 		$ids = [];
+		$local = Helper::serverAlias();
 		foreach ($mailLogs as $mailLog) {
+			$location = $mailLog->mail_location;
 			/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no location; '0' would make dirname() '.' */
-			if ($mailLog->mail_location) {
-				$dirPath = dirname($mailLog->mail_location);
-				if (Helper::deleteDirectory($dirPath)) {
-					$ids[] = $mailLog->id;
-					if ($cli_output) {
-						$cli_output->writeln("<info>Deleted {$mailLog->id} {$dirPath}</info>",
-							OutputInterface::VERBOSITY_VERBOSE);
-					}
-					$this->logger->info("[cleanQuarantine] Deleted mail {$mailLog->qid} from {$dirPath}");
-				}
+			if (!$location) {
+				continue;
+			}
+			$dirPath = dirname($location);
+			if (Helper::deleteDirectory($dirPath)) {
+				$ids[] = $mailLog->id;
+				$cli_output?->writeln("<info>Deleted {$mailLog->id} {$dirPath}</info>",
+					OutputInterface::VERBOSITY_VERBOSE);
+				$this->logger->info("[cleanQuarantine] Deleted mail {$mailLog->qid} from {$dirPath}");
+			} elseif ($mailLog->server === $local && self::quarantineDirGone($dirPath)) {
+				// other servers' directories are on their own disks: absent here is normal
+				$ids[] = $mailLog->id;
+				$cli_output?->writeln("<comment>Already gone {$mailLog->id} {$dirPath}, marking it not stored</comment>",
+					OutputInterface::VERBOSITY_VERBOSE);
+				$this->logger->warning("[cleanQuarantine] {$mailLog->qid} {$dirPath} is already gone, marking it not stored");
+			} else {
+				$cli_output?->writeln("<error>Not deleted {$mailLog->id} {$dirPath}, see the log</error>",
+					OutputInterface::VERBOSITY_VERBOSE);
 			}
 		}
 
 		// clear mail_stored in DB
-		//$ids = $maillogs->pluck('id')->toArray();
 		if ($ids) {
 			MailLog::whereIn('id', $ids)->update(['mail_stored' => 0]);
 			$deleted = 0;
@@ -2344,6 +2360,24 @@ final class MailLogService
 				}
 			}
 		}
+	}
+
+	/*
+	 * A mail directory of this node that no longer exists: under
+	 * QUARANTINE_DIR as the importer writes it (no ..), and that directory
+	 * present and not empty, so an unmounted quarantine is not read as
+	 * every mail being gone.
+	 */
+	private static function quarantineDirGone(string $dirPath): bool {
+		$root = rtrim(Helper::env_string('QUARANTINE_DIR') ?? '', '/');
+		if ($root === '' || !str_starts_with($dirPath, $root . '/') || str_contains($dirPath, '/../')) {
+			return false;
+		}
+		$entries = @scandir($root);
+		if ($entries === false || array_diff($entries, ['.', '..']) === []) {
+			return false;
+		}
+		return !file_exists($dirPath) && !is_link($dirPath);
 	}
 
 	/*
