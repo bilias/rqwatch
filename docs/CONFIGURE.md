@@ -74,6 +74,10 @@ rspamadm configtest && systemctl reload rspamd
 
 Also see [API Settings](#api-settings) for remote side API authentication and ACL settings for Rspamd MetadataImporter.
 
+Rqwatch identifies each mail by its MTA queue ID, which Rspamd passes on. With Postfix,
+enable long queue IDs (`enable_long_queue_ids = yes`), which do not repeat. See
+[Postfix](/docs/INSTALL.md#postfix).
+
 ## Rspamd and Rqwatch Maps
 It is suggested that Rspamd/Rqwatch API servers also run Web (with restricted access)
 just forlocal map downloading, instead of connecting to a remote server (better availability).
@@ -1113,6 +1117,8 @@ Available commands for the "cron" namespace:
   Rqwatch database in being searched for emails stored before that date.
   If `-d` command option is used then those emails are deleted from Quarantine
   directory (.env `QUARANTINE_DIR`) permanently. However entries remain in the database.
+  A mail of this server whose quarantine directory is already gone is marked as
+  not stored (logged as `already gone`).
     ```
     ./bin/cli.php cron:quarantine -h
 

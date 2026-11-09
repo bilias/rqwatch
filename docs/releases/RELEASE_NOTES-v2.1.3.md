@@ -34,6 +34,26 @@ Rqwatch 2.x+ contains updates to the database schema.
   They match the directories rather than the URL, so they also apply under a subdirectory (`WEB_BASE`).
 - Apache: add `Header set X-Content-Type-Options "nosniff"`. See
   [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
+- Postfix: enable long queue IDs, which do not repeat. See
+  [Postfix](https://github.com/bilias/rqwatch/blob/master/docs/INSTALL.md#postfix).
+  ```
+  postconf -e enable_long_queue_ids=yes
+  postfix reload
+  ```
+- Check for mails that share one quarantine file (see Fixes). Each pair is a reused
+  queue ID; the file holds the last one's message:
+  ```
+  SELECT mail_location, COUNT(*) AS n, GROUP_CONCAT(id ORDER BY id) AS ids, SUM(mail_stored) AS stored
+    FROM mail_logs WHERE mail_location IS NOT NULL AND mail_location <> '0'
+    GROUP BY mail_location HAVING n > 1;
+  ```
+  For each, find which import wrote last (the importer logs `<qid> stored in quarantine`
+  and `saved in DB [id: N]`; normally the highest id), then mark the others not stored
+  and drop their notification links:
+  ```
+  UPDATE mail_logs SET mail_stored = 0 WHERE id IN (...);
+  DELETE FROM mail_log_tokens WHERE mail_log_id IN (...);
+  ```
 
 ## From 1.8.x
 Follow **From 1.8.x** in the
@@ -86,8 +106,15 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 - CSP: style-src 'self'; inline styles are allowed only on the mail preview pages (mail view,
   notification-link view)
 - Mail preview: a mail's `<link>` and `<meta>` are made inert
+- Go to message accepts Postfix long queue IDs (letters and digits, 6 to 30 characters)
+- `cron:quarantine -d` marks a mail of this server not stored when its quarantine directory
+  is already gone, instead of keeping it stored and logging a warning on every run
 
 # Fixes
+- Quarantine: Postfix reuses short queue IDs, and a second mail with the same queue ID on
+  the same day overwrote the first mail's stored file. The first mail's page, download and
+  release then showed the second mail, usually another recipient's. Each mail now gets its
+  own directory; see the check under Upgrade for mails stored before this release
 - Upgrades from <=2.0 to 2.1.2 whose `db:migrate_drop_mail_log_columns` failed with error 1846 can now re-run it
 - Long values without spaces (e.g. a regexp) wrap inside Active Filters
 - SQL update files: `18-db-update-2026-10-12` now creates the virus notification skip map

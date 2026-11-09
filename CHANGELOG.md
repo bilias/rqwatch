@@ -5,6 +5,13 @@
 ### 2026-11-09
 - Added .env and config validators that fail application early on boot if required
   config vars are missing or wrong
+- Quarantine: a mail whose queue ID is already in that day's quarantine gets its own
+  directory (`<qid>-<uniqid>`). Postfix reuses short queue IDs, and a second mail with the
+  same ID overwrote the first one's file, so the first mail showed the second one
+- cron:quarantine: a mail of this server whose quarantine directory is already gone is
+  marked not stored instead of staying stored and logging a warning on every run
+- Go to message: accepts Postfix long queue IDs (letters and digits, 6 to 30 characters)
+- Docs: enable Postfix long queue IDs (`enable_long_queue_ids = yes`)
 
 ### 2026-11-07
 - LDAP: an attribute with options (`LDAP_SN_ATTR="sn;lang-en"`) is read as such. The options

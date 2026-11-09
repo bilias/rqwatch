@@ -55,6 +55,8 @@ However, Rqwatch should run on any system with minor adjustments, as it requires
 
 **Rspamd 3.14.2+**
 
+**Postfix** (or another MTA scanned by Rspamd), with long queue IDs: see [Postfix](#postfix)
+
 ## Installation
 All commands below are run as root/sudo unless told otherwise.
 
@@ -313,6 +315,21 @@ chown rqwatch:rqwatch /quarantine/tmp
 
 chmod 750 /quarantine/tmp
 ```
+
+### Postfix
+Rqwatch identifies each mail by its MTA queue ID. Postfix's default short queue IDs
+are built from the time and the queue file's inode, so the same ID comes back:
+two mails can carry it on the same day. Enable Postfix's long queue IDs, which do
+not repeat:
+```
+postconf -e enable_long_queue_ids=yes
+
+postfix reload
+```
+
+Rqwatch accepts both forms (letters and digits, up to 30 characters), so mails
+stored before the change keep working. Since 2.1.3 a reused queue ID no longer
+overwrites another mail's quarantine file either way.
 
 # [Upgrade](/docs/UPGRADE.md)
 
