@@ -43,6 +43,10 @@
 		<testsuite name="api">
 			<directory>../tests/Unit/Api</directory>
 		</testsuite>
+		<!-- import writing: which database failures are spooled -->
+		<testsuite name="import">
+			<directory>../tests/Unit/Import</directory>
+		</testsuite>
 		<!-- parsed mail objects (MailObject) -->
 		<testsuite name="inventory">
 			<directory>../tests/Unit/Inventory</directory>

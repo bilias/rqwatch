@@ -9,16 +9,25 @@
 */
 
 /*
- The importer on malformed rspamd metadata, without rspamd: requests posted
- as metadata_exporter would. A fuzzy value that is not a list of hashes is
- logged and stored as none, where it used to go into the JSON column as it
- came; a text field holding true is logged and treated as absent; a message
- part sent as message[] is refused as a missing message.
+ The importer on malformed or failing input, without rspamd: requests
+ posted as metadata_exporter would. The metadata is kept wherever it can
+ be, and every loss is logged:
+ - a fuzzy value that is not a list of hashes is stored as none, and a
+   text field holding true is treated as absent;
+ - without a usable message part the metadata is still imported;
+ - unusable metadata is refused;
+ - a mail the database rejects is saved without its free text, and one it
+   rejects even so is answered 500 with its raw file removed, so none is
+   left that no row points to.
+ The log names the mail by qid and the database error by SQLSTATE and
+ code, never anything from the mail. A trigger stands in for the database
+ rejecting a mail.
 */
 
 namespace Tests\Integration\Import;
 
 use CURLStringFile;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Tests\Integration\IntegrationTestCase;
 
@@ -27,8 +36,13 @@ final class MetadataTest extends IntegrationTestCase
 	// imported mails' qids start with this
 	private const QID = 'QIDMETA';
 
+	// a subject the trigger rejects, and a qid it rejects even without one
+	private const REJECTED_SUBJECT = 'SUBJ-META-REJECTED';
+	private const REJECTED_QID = self::QID . 'REJECTED';
+
 	#[\Override]
 	protected function tearDown(): void {
+		self::db()->exec('DROP TRIGGER IF EXISTS rqwatch_test_reject');
 		// the imported mails' child rows cascade
 		self::db()->exec("DELETE FROM mail_logs WHERE qid LIKE '" . self::QID . "%'");
 		parent::tearDown();
@@ -51,12 +65,75 @@ final class MetadataTest extends IntegrationTestCase
 		$this->assertStringContainsString("metadata field 'from' is bool, not text; ignoring it", self::logSince($from));
 	}
 
-	public function testMessageArrayRefused(): void {
+	/** @return array<string, array{string}> */
+	public static function messageMissingCases(): array {
+		return [
+			'no message part' => ['other'],
+			'message[]' => ['message[0]'],
+		];
+	}
+
+	#[DataProvider('messageMissingCases')]
+	public function testMetadataImportedWithoutMessage(string $field): void {
 		$from = self::logSize();
-		[$status] = self::post(self::meta(3, []), 'message[0]');
+		$response = self::post(self::meta(3, ['action' => 'reject']), $field);
+		$this->assertSame([200, 'Message saved'], $response);
+		$this->assertSame(0, (int) self::value('SELECT mail_stored FROM mail_logs WHERE qid = ?', self::QID . '3'));
+		$this->assertNull(self::value('SELECT mail_location FROM mail_logs WHERE qid = ?', self::QID . '3'));
+		$log = self::logSince($from);
+		$this->assertStringContainsString(self::QID . '3: no usable message part (Missing multipart file: message); importing the metadata without the mail', $log);
+		$this->assertStringContainsString(self::QID . '3: to be stored in quarantine, but there is no message', $log);
+	}
+
+	public function testInvalidMetadataRefusedAndLogged(): void {
+		$from = self::logSize();
+		[$status] = self::postRaw('{"qid": "' . self::QID . '4", broken', 'message');
 		$this->assertSame(400, $status);
-		$this->assertStringContainsString('Missing multipart file: message', self::logSince($from));
-		$this->assertSame(0, (int) self::value('SELECT COUNT(*) FROM mail_logs WHERE qid = ?', self::QID . '3'));
+		$log = self::logSince($from);
+		$this->assertStringContainsString('Request parse error', $log);
+		$this->assertStringNotContainsString(self::QID . '4', $log, 'the metadata text is not logged');
+	}
+
+	// the free text is left out to keep the rest of the record
+	public function testRejectedMailSavedWithoutFreeText(): void {
+		self::rejectingTrigger();
+		$from = self::logSize();
+		$response = self::post(self::meta(5, ['action' => 'reject']), 'message', self::REJECTED_SUBJECT);
+		$this->assertSame([200, 'Message saved'], $response);
+		$this->assertNull(self::value('SELECT subject FROM mail_logs WHERE qid = ?', self::QID . '5'));
+		$this->assertSame(1, (int) self::value('SELECT mail_stored FROM mail_logs WHERE qid = ?', self::QID . '5'),
+			'the raw file is kept: the row points to it');
+		$this->assertFileExists((string) self::value('SELECT mail_location FROM mail_logs WHERE qid = ?', self::QID . '5'));
+		$log = self::logSince($from);
+		$this->assertStringContainsString(self::QID . '5 the database rejected the mail: SQLSTATE 45000, error 1644;', $log);
+		$this->assertStringContainsString(self::QID . '5 saved without its free text', $log);
+		$this->assertStringNotContainsString(self::REJECTED_SUBJECT, $log);
+		$this->assertStringNotContainsString('meta@example.net', $log);
+	}
+
+	// rejected even without its free text: nothing in the database, nothing left in quarantine, nothing of the mail in the log
+	public function testRejectedEvenSoLoggedAndRemoved(): void {
+		self::rejectingTrigger();
+		$from = self::logSize();
+		[$status] = self::post(['qid' => self::REJECTED_QID] + self::meta(6, ['action' => 'reject']), 'message');
+		$this->assertSame(500, $status);
+		$this->assertSame(0, (int) self::value('SELECT COUNT(*) FROM mail_logs WHERE qid = ?', self::REJECTED_QID));
+		$this->assertSame([], glob(self::root() . '/q/*/' . self::REJECTED_QID));
+		$log = self::logSince($from);
+		$this->assertStringContainsString(self::REJECTED_QID . ' import error: SQLSTATE 45000, error 1644', $log);
+		$this->assertStringContainsString(self::REJECTED_QID . ' removed from quarantine', $log);
+		// the failed INSERT's SQL holds the values: none of them is logged
+		$this->assertStringNotContainsString('meta@example.net', $log);
+		$this->assertStringNotContainsString('192.0.2.41', $log);
+		$this->assertStringNotContainsString('insert into', $log);
+	}
+
+	// rejects a row by its subject, or always for REJECTED_QID
+	private static function rejectingTrigger(): void {
+		self::db()->exec('DROP TRIGGER IF EXISTS rqwatch_test_reject');
+		self::db()->exec("CREATE TRIGGER rqwatch_test_reject BEFORE INSERT ON mail_logs FOR EACH ROW"
+			. " IF NEW.subject = '" . self::REJECTED_SUBJECT . "' OR NEW.qid = '" . self::REJECTED_QID . "' THEN"
+			. " SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'rejected by rqwatch_test_reject'; END IF");
 	}
 
 	/**
@@ -75,15 +152,20 @@ final class MetadataTest extends IntegrationTestCase
 	 * @param array<string, mixed> $meta
 	 * @return array{int, string} HTTP status, body
 	 */
-	private static function post(array $meta, string $field): array {
-		$mail = "From: meta@example.net\r\nTo: admin@example.org\r\nSubject: SUBJ-META\r\n"
+	private static function post(array $meta, string $field, string $subject = 'SUBJ-META'): array {
+		return self::postRaw(json_encode($meta, JSON_THROW_ON_ERROR), $field, $subject);
+	}
+
+	/** @return array{int, string} HTTP status, body */
+	private static function postRaw(string $metadata, string $field, string $subject = 'SUBJ-META'): array {
+		$mail = "From: meta@example.net\r\nTo: admin@example.org\r\nSubject: {$subject}\r\n"
 			. "Message-ID: <meta-" . uniqid() . "@example.net>\r\n\r\nBody\r\n";
 		$ch = curl_init(rtrim((string) getenv('INTEGRATION_API_URL'), '/') . '/api/metadata_importer_multipart.php?server=mx1')
 			?: throw new RuntimeException('curl_init() failed');
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_POSTFIELDS => [
-				'metadata' => json_encode($meta, JSON_THROW_ON_ERROR),
+				'metadata' => $metadata,
 				$field => new CURLStringFile($mail, 'message', 'message/rfc822'),
 			],
 			CURLOPT_USERPWD => (string) getenv('INTEGRATION_RSPAMD_API_USER') . ':' . (string) getenv('INTEGRATION_RSPAMD_API_PASS'),

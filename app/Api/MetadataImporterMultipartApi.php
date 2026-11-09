@@ -55,6 +55,82 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		return [Helper::env_string('RSPAMD_API_USER'), Helper::env_string('RSPAMD_API_PASS')];
 	}
 
+	// mail_logs and mail_log_data columns holding the sender's free text: left
+	// out when the database rejects a mail, to keep the rest of its record
+	private const array FREE_TEXT_COLUMNS = [
+		'subject', 'mime_from', 'mime_to', 'message_id', 'headers', 'symbols', 'fuzzy_hashes',
+	];
+
+	/**
+	 * Stores the raw mail in the quarantine; null, logged, when there is
+	 * none or it cannot be stored, and the metadata is imported without it
+	 */
+	private function storeRawMail(string $qid, string $rawEmail): ?string {
+		if ($rawEmail === '') {
+			$this->fileLogger->error("[{$this->logPrefix}] {$qid}: to be stored in quarantine, but there is no message");
+			return null;
+		}
+		$location = Helper::store_raw_mail(Helper::env_string('QUARANTINE_DIR') ?? '', $qid, $rawEmail);
+		if ($location === null) {
+			$this->fileLogger->error("Error storing $qid in quarantine. Check PHP logs");
+			$this->syslogLogger->error("Error storing $qid in quarantine. Check PHP logs");
+			return null;
+		}
+		// the column would cut a longer path: a row pointing nowhere
+		if (strlen($location) > MailLog::FIELD_LIMITS['mail_location']) {
+			Helper::discard_raw_mail($location);
+			$this->fileLogger->error("[{$this->logPrefix}] {$qid}: quarantine path longer than "
+				. MailLog::FIELD_LIMITS['mail_location'] . " bytes, not stored: {$location}");
+			return null;
+		}
+		$this->syslogLogger->info("$qid stored in quarantine: $location");
+		return $location;
+	}
+
+	/**
+	 * Saves the mail's record: inserted; spooled when the database cannot
+	 * take any mail now (MailLogWriter::databaseUnavailable()), to be
+	 * replayed by cron:import_spool; or, when the database rejected this
+	 * mail's data, inserted again without its free text. Only database-wide
+	 * failures are spooled: drain() stops at the first entry that fails, so
+	 * a mail the database rejects every time would block the spool.
+	 * Anything else is thrown.
+	 * @param array<string, mixed> $data
+	 * @param list<string> $recipients
+	 * @return array{?int, bool, string} row id, spooled, the reply if neither
+	 */
+	private function save(array $data, array $recipients, string $qid): array {
+		/*
+		 A degraded boot has no database at all, so there is nothing to
+		 try: MailLogWriter's constructor calls App::capsule(), which throws.
+		*/
+		if (!App::dbAvailable()) {
+			$this->fileLogger->critical("[{$this->logPrefix}] {$qid} no database connection, spooling");
+			$this->syslogLogger->critical("{$qid} no database connection, spooling");
+			return [null, (new MailLogSpool())->push($data, $recipients), 'Database unavailable and spool failed'];
+		}
+
+		try {
+			return [(new MailLogWriter())->insert($data, $recipients), false, ''];
+		} catch (QueryException | PDOException $e) {
+			// the only record of why the mail was spooled or cut, without its data
+			$reason = MailLogWriter::describe($e);
+			if (MailLogWriter::databaseUnavailable($e)) {
+				$this->fileLogger->critical("[{$this->logPrefix}] {$qid} DB error: {$reason}");
+				$this->syslogLogger->critical("{$qid} DB error: {$reason}");
+				return [null, (new MailLogSpool())->push($data, $recipients), 'Database error. Please try again later'];
+			}
+			$cut = "{$qid} the database rejected the mail: {$reason}; saving it without "
+				. implode(', ', self::FREE_TEXT_COLUMNS);
+			$this->fileLogger->critical("[{$this->logPrefix}] {$cut}");
+			$this->syslogLogger->critical($cut);
+		}
+
+		$id = (new MailLogWriter())->insert(array_merge($data, array_fill_keys(self::FREE_TEXT_COLUMNS, null)), $recipients);
+		$this->fileLogger->warning("[{$this->logPrefix}] {$qid} saved without its free text [id: {$id}]");
+		return [$id, false, ''];
+	}
+
 	/**
 	 * A metadata field that must be a single value. $meta comes from an
 	 * external JSON body: a non-scalar would corrupt the row or throw on a
@@ -123,16 +199,15 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 	#[\Override]
 	public function handle(): void {
 
+		// 1) metadata JSON (string field): without it there is nothing to import
+		$metadataJson = '';
 		try {
 			$contentType = (string) $this->request->headers->get('Content-Type', '');
-
-			$rawEmail = '';
 
 			if (stripos($contentType, 'multipart/form-data') === false) {
 				throw new \RuntimeException('Missing multipart/form-data content type');
 			}
 
-			// 1) metadata JSON (string field)
 			$metadataJson = (string) $this->request->request->get('metadata', '');
 			if ($metadataJson === '') {
 				throw new \RuntimeException('Missing multipart field: metadata');
@@ -142,8 +217,21 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			if (!is_array($meta)) {
 				throw new \RuntimeException('Invalid metadata JSON');
 			}
+		} catch (Throwable $e) {
+			// the reason only: the metadata, and a trace's arguments, hold personal data
+			$this->fileLogger->error("[{$this->logPrefix}] Request parse error: " . $e->getMessage());
+			$this->dropLogResponse(
+				Response::HTTP_BAD_REQUEST,
+				"Invalid request (parse error)",
+				$e->getMessage(),
+				'critical'
+			);
+		}
 
-			// 2) message (file upload)
+		// 2) message (file upload): without it the metadata is still imported
+		$rawEmail = '';
+		$messageError = null;
+		try {
 			$msgFile = $this->request->files->get('message');
 			// one file: message[] gives an array
 			if (!$msgFile instanceof UploadedFile) {
@@ -158,15 +246,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 				throw new \RuntimeException('Empty or unreadable message content');
 			}
 		} catch (Throwable $e) {
-			$this->fileLogger->error("[{$this->logPrefix}] Request parse error: " . $e->getMessage(), [
-				'trace' => $e->getTraceAsString(),
-			]);
-			$this->dropLogResponse(
-				Response::HTTP_BAD_REQUEST,
-				"Invalid request (parse error)",
-				$e->getMessage(),
-				'critical'
-			);
+			$messageError = $e->getMessage();
 		}
 
 		// single-value fields: metaScalar() logs and drops anything else
@@ -231,23 +311,31 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		// a rejected request does not pay for the MIME parse. Body comes from
 		// the uploaded 'message' part - php://input is not readable for
 		// multipart/form-data requests.
-		$parser = new Parser();
-		$parser->setText($rawEmail);
-		
-		// return all headers as a string, no charset conversion
-		$stringHeaders = trim($parser->getHeadersRaw());
-		
-		// unencoded 8-bit headers arrive as raw bytes: decode them with the
-		// charset a MIME part declares, else $mail_fallback_charset
-		$charsets = self::declaredCharsets($parser);
-		$mime_from = self::headerToUtf8($parser->getHeader('from'), $charsets);
-		$mime_to = self::headerToUtf8($parser->getHeader('to'), $charsets);
-		$mime_subject = self::headerToUtf8($parser->getHeader('subject'), $charsets);
-		$message_id = $parser->getHeader('message-id');
-		
-		// return all headers as an array, with charset conversion
-		/** @var array<string, string|array<array-key, string>> $arrayHeaders header name => value, or values when repeated */
-		$arrayHeaders = $parser->getHeaders();
+		// without a message (logged below, with the qid) there are no headers;
+		// the parser refuses an empty text
+		$stringHeaders = '';
+		$charsets = [];
+		$mime_from = $mime_to = $mime_subject = $message_id = false;
+		$arrayHeaders = [];
+		if ($rawEmail !== '') {
+			$parser = new Parser();
+			$parser->setText($rawEmail);
+
+			// return all headers as a string, no charset conversion
+			$stringHeaders = trim($parser->getHeadersRaw());
+
+			// unencoded 8-bit headers arrive as raw bytes: decode them with the
+			// charset a MIME part declares, else $mail_fallback_charset
+			$charsets = self::declaredCharsets($parser);
+			$mime_from = self::headerToUtf8($parser->getHeader('from'), $charsets);
+			$mime_to = self::headerToUtf8($parser->getHeader('to'), $charsets);
+			$mime_subject = self::headerToUtf8($parser->getHeader('subject'), $charsets);
+			$message_id = $parser->getHeader('message-id');
+
+			// return all headers as an array, with charset conversion
+			/** @var array<string, string|array<array-key, string>> $arrayHeaders header name => value, or values when repeated */
+			$arrayHeaders = $parser->getHeaders();
+		}
 		if ($qid === null || $qid === '' || $qid === "unknown" || !preg_match('/^[a-zA-Z0-9]+$/D', $qid)) {
 			if (isset($arrayHeaders['x-rspamd-queue-id'])) {
 				$qid = $arrayHeaders['x-rspamd-queue-id'];
@@ -267,10 +355,13 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			}
 		}
 
-		// the is_scalar() guard above nulls only non-scalars
-		// an int, float or bool qid would hit store_raw_mail()'s `string $qid`
-		// as an uncaught TypeError, outside the insert try/catch
+		// metaString() and the header fallback above leave text
 		$qid = (string) $qid;
+
+		if ($messageError !== null) {
+			$this->fileLogger->error("[{$this->logPrefix}] {$qid}: no usable message part ({$messageError}); importing the metadata without the mail");
+			$this->syslogLogger->error("{$qid}: no usable message part ({$messageError}); importing the metadata without the mail");
+		}
 
 		// check for antivirus symbol
 		$symbolsArr = Helper::sanitizeSymbols($meta['symbols'] ?? [], $qid);
@@ -281,21 +372,9 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			$has_virus = 0;
 		}
 
-		$mail_stored = 0;
-		$mail_location = null;
 		$store_settings = Config::getArray('store_settings') ?? [];
-		
-		if (($action !== null && $action !== '' && !empty($store_settings[$action])) || $has_virus) {
-			$mail_location = Helper::store_raw_mail(Helper::env_string('QUARANTINE_DIR') ?? '', $qid, $rawEmail);
-			if ($mail_location !== null) {
-				$this->syslogLogger->info("$qid stored in quarantine: $mail_location");
-				$mail_stored = 1;
-			} else {
-				$this->fileLogger->error("Error storing $qid in quarantine. Check PHP logs");
-				$this->syslogLogger->error("Error storing $qid in quarantine. Check PHP logs");
-			}
-		}
-		
+		$store = ($action !== null && $action !== '' && !empty($store_settings[$action])) || $has_virus;
+
 		if ($mail_from === null || $mail_from === '') {
 			$this->fileLogger->warning("Unknown envelope address, using empty-mail-from@localhost", [
 				'qid' => $qid,
@@ -323,20 +402,13 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			'mime_from' => $mime_from !== false ? $mime_from : null,
 			'rcpt_to' => empty($rcptArr) ? 'unknown' : implode(', ', $rcptArr),
 			'mime_to' => $mime_to !== false ? mb_strimwidth($mime_to, 0, 250, "!!") : '',
-			'mail_stored' => $mail_stored,
-			'mail_location' => $mail_location,
+			// set once the raw file is stored, below
+			'mail_stored' => 0,
+			'mail_location' => null,
 			'size' => $size,
 			//'headers' => $stringHeaders,
 			'message_id' => $message_id !== false ? $message_id : null,
 		);
-
-		// admin notification is decided at arrival: only mails imported
-		// while admin_notification_rcpt is set get admin_notified = 0
-		if ($mail_stored && in_array($action, ['discard', 'reject'], true)
-			&& !empty(Helper::adminNotificationRcpt())
-			&& App::migrationStatus()->adminNotifiedCompleted()) {
-			$data['admin_notified'] = 0;
-		}
 
 		[$data, $debug] = Helper::trimDataToDbLimits($data, MailLog::FIELD_LIMITS);
 
@@ -374,65 +446,40 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 
 		$db_id = null;
 		$spooled = false;
-		$db_failed = false;
+		$mail_location = null;
 		$ok_msg = 'Message saved';
 		$fail_msg = 'Error storing message in DB';
 
 		/*
-		 A degraded boot has no database at all, so there is nothing to
-		 try: MailLogWriter's constructor calls App::capsule(), which
-		 throws, and that would land in the Throwable branch below - the
-		 one that deliberately does not spool. Skip straight to the spool
-		 and let the tail answer 200.
+		 From here on a stored raw file must end up referenced by a row or by
+		 a spool entry. Every other way out, an exception included, removes
+		 it below: no file is left that nothing points to.
 		*/
-		if (!App::dbAvailable()) {
-			$this->fileLogger->critical("[{$this->logPrefix}] {$qid} no database connection, spooling");
-			$this->syslogLogger->critical("{$qid} no database connection, spooling");
-
-			$fail_msg = 'Database unavailable and spool failed';
-			$db_failed = true;
-		} else {
-			try {
-				$mailLogWriter = new MailLogWriter();
-				// does both insertMailLog and insertMailRecipients
-				// to both tables if migration is completed
-				$db_id = $mailLogWriter->insert($data, $rcptArr);
-			} catch (QueryException | PDOException $e) {
-				// $bindings = $e->getBindings(); // array
-				// $sql = $e->getSql(); // array
-				// $e->getMessage() // very verbose
-
-				/*
-				 Logged here rather than left to dropLogResponse below,
-				 because on the spool path we never get there and the
-				 SQLSTATE is the only record of why the mail was spooled.
-				*/
-				$pdoMessage = $e->getPrevious()?->getMessage() ?? $e->getMessage();
-				$this->fileLogger->critical("[{$this->logPrefix}] {$qid} DB error: {$pdoMessage}");
-				$this->syslogLogger->critical("{$qid} DB error: {$pdoMessage}");
-
-				$fail_msg = 'Database error. Please try again later';
-				$db_failed = true;
-			} catch (Throwable $e) {
-				$this->fileLogger->critical("[{$this->logPrefix}] {$qid} DB insert error: " . $e->getMessage());
-				$this->syslogLogger->critical("{$qid} DB insert error: " . $e->getMessage());
-				$fail_msg = 'Unexpected error';
+		try {
+			if ($store) {
+				$mail_location = $this->storeRawMail($qid, $rawEmail);
+				if ($mail_location !== null) {
+					$data['mail_stored'] = 1;
+					$data['mail_location'] = $mail_location;
+				}
 			}
+
+			// admin notification is decided at arrival: only mails imported
+			// while admin_notification_rcpt is set get admin_notified = 0
+			if ($mail_location !== null && in_array($action, ['discard', 'reject'], true)
+				&& !empty(Helper::adminNotificationRcpt())
+				&& App::migrationStatus()->adminNotifiedCompleted()) {
+				$data['admin_notified'] = 0;
+			}
+
+			[$db_id, $spooled, $fail_msg] = $this->save($data, $rcptArr, $qid);
+		} catch (Throwable $e) {
+			$reason = MailLogWriter::describe($e);
+			$this->fileLogger->critical("[{$this->logPrefix}] {$qid} import error: {$reason}");
+			$this->syslogLogger->critical("{$qid} import error: {$reason}");
+			$fail_msg = 'Unexpected error';
 		}
 
-		/*
-		 Only a database failure is spooled. Anything else reaching the
-		 Throwable branch is a bug or a schema mismatch, and drain() stops
-		 the whole pass on its first failure -- so an entry that throws
-		 every time would block the spool for every mail behind it.
-		 Database unavailability always arrives as QueryException or
-		 PDOException: Connection::run() wraps statement and connect
-		 errors, and a commit aborted by Galera throws PDOException raw.
-		*/
-		if ($db_failed) {
-			$spooled = (new MailLogSpool())->push($data, $rcptArr);
-		}
-		
 		$dir = Config::getString('log_to_files_dir');
 		if (Config::getBool('log_to_files') && $dir !== null && $dir !== '') {
 			/** @var array<string, string> $web_headers name => value: always an array since PHP 7.3 */

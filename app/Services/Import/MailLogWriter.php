@@ -23,6 +23,10 @@ use App\Services\MapHitService;
 use App\Services\VirusService;
 
 use Throwable;
+use Illuminate\Database\ConcurrencyErrorDetector;
+use Illuminate\Database\LostConnectionDetector;
+use Illuminate\Database\QueryException;
+use PDOException;
 
 final class MailLogWriter
 {
@@ -55,6 +59,60 @@ final class MailLogWriter
 
 	 See ManagesTransactions.php in illuminate/database.
 	*/
+	/**
+	 * $e for the logs, without the mail's data. A QueryException's message
+	 * holds the SQL with its values, and MariaDB quotes the offending value
+	 * in some errors (a duplicate entry, an incorrect string): a rejected
+	 * mail is logged by SQLSTATE and error code only. A database outage
+	 * keeps its message, which names hosts and users, not mail.
+	 */
+	public static function describe(Throwable $e): string {
+		if (!$e instanceof PDOException) {
+			return get_debug_type($e) . ': ' . $e->getMessage();
+		}
+		/** @var mixed $state */
+		$state = $e->errorInfo[0] ?? null;
+		/** @var mixed $code */
+		$code = $e->errorInfo[1] ?? $e->getCode();
+		$codes = 'SQLSTATE ' . (is_string($state) ? $state : '?') . ', error ' . (is_int($code) || is_string($code) ? $code : '?');
+		if (!self::databaseUnavailable($e)) {
+			return $codes;
+		}
+		$message = $e instanceof QueryException ? ($e->getPrevious()?->getMessage() ?? '') : $e->getMessage();
+		return "{$codes}: {$message}";
+	}
+
+	/*
+	 MariaDB errors that refuse every mail alike, whatever its data: too
+	 many connections (1040), access denied (1045), node not ready (Galera,
+	 1047), shutdown in progress (1053), lock wait timeout (1205), deadlock
+	 (1213), connection killed (1927), and the client's cannot connect,
+	 server gone away and lost connection (2002, 2003, 2006, 2013)
+	*/
+	private const array UNAVAILABLE_CODES = [1040, 1045, 1047, 1053, 1205, 1213, 1927, 2002, 2003, 2006, 2013];
+
+	/**
+	 * Whether $e says the database cannot take any mail now (connection,
+	 * server, locks), as opposed to rejecting this mail's data. Only the
+	 * first is worth spooling: every mail fails alike and replays once the
+	 * database is back, where a rejected mail would fail again on replay.
+	 */
+	public static function databaseUnavailable(Throwable $e): bool {
+		if ((new LostConnectionDetector())->causedByLostConnection($e)
+			|| (new ConcurrencyErrorDetector())->causedByConcurrencyError($e)) {
+			return true;
+		}
+		if (!$e instanceof PDOException) {
+			return false;
+		}
+		/** @var mixed $state SQLSTATE */
+		$state = $e->errorInfo[0] ?? null;
+		/** @var mixed $code the driver's error code; a failed connect has it only as the exception code */
+		$code = $e->errorInfo[1] ?? $e->getCode();
+		return (is_string($state) && str_starts_with($state, '08'))
+			|| in_array($code, self::UNAVAILABLE_CODES, true);
+	}
+
 	/**
 	 * @param array<string, mixed> $mailData mail_logs + mail_log_data columns => values
 	 * @param array<array-key, string> $recipients
