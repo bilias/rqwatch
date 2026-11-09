@@ -95,8 +95,8 @@ final class MailReleaseForm extends AbstractType
 	 */
 	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData() ?? [];
-			$username = (string) $data['username'];
+			$data = FormHelper::submittedData($form);
+			$username = FormHelper::text($data['username'], 'username');
 
 			$url = $urlGenerator->generate(RouteName::DETAIL->value, [
 				'type' => 'username',

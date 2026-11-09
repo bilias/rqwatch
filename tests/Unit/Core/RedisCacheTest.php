@@ -72,6 +72,7 @@ final class RedisCacheTest extends UnitTestCase
 		$redis = $this->createStub(Redis::class);
 		$redis->method('get')->willReturn(false);
 		$this->assertFalse($this->cache($redis)->get('k'));
+		$this->assertSame([], $this->log->lines);
 	}
 
 	// in MULTI mode phpredis returns the client
@@ -79,6 +80,8 @@ final class RedisCacheTest extends UnitTestCase
 		$redis = $this->createStub(Redis::class);
 		$redis->method('get')->willReturnSelf();
 		$this->assertFalse($this->cache($redis)->get('k'));
+		// a miss, but not a silent one
+		$this->assertSame(["warning RedisCache get got " . get_debug_type($redis) . " for key 'k'"], $this->log->lines);
 	}
 
 	private function cache(Redis $redis): RedisCache {

@@ -28,6 +28,7 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 use App\Core\Auth\AuthManager;
 use Jumbojett\OpenIDConnectClientException;
+use App\Utils\FormHelper;
 //use App\Core\Auth\DbAuth;
 
 final class LoginController extends ViewController
@@ -171,9 +172,9 @@ final class LoginController extends ViewController
 			// get new session if it is expired
 			SessionManager::checkSessionExpired();
 
-			$data = $loginform->getData() ?? [];
-			$username = strtolower(trim((string) $data['username']));
-			$password = trim((string) $loginform->get('password')->getData());
+			$data = FormHelper::submittedData($loginform);
+			$username = strtolower(trim(FormHelper::text($data['username'], 'username')));
+			$password = trim(FormHelper::text($loginform->get('password')->getData(), 'password'));
 
 			$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
 			$throttle = new LoginThrottle($client_ip, App::cache(), $this->fileLogger);

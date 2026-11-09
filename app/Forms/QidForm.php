@@ -81,8 +81,8 @@ final class QidForm extends AbstractType
 		bool $is_admin = false
 	): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData() ?? [];
-			$qid = (string) $data['qid'];
+			$data = FormHelper::submittedData($form);
+			$qid = FormHelper::text($data['qid'], 'qid');
 
 			if ($is_admin) {
 				$url = $urlGenerator->generate(RouteName::ADMIN_DETAIL->value, [

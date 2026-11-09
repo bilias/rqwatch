@@ -25,6 +25,7 @@ use App\Services\MailAliasService;
 use App\Services\UserService;
 
 use Exception;
+use App\Utils\FormHelper;
 
 //use Illuminate\Database\Capsule\Manager as DB;
 
@@ -174,7 +175,7 @@ final class MailAliasController extends ViewController
 		$url = $this->url(RouteName::ADMIN_ALIASES_ADD);
 
 		if ($mailaliasform->isSubmitted() && $mailaliasform->isValid()) {
-			$data = $mailaliasform->getData() ?? [];
+			$data = FormHelper::submittedData($mailaliasform);
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "E-mail empty");
 				return new RedirectResponse($url);
@@ -183,8 +184,8 @@ final class MailAliasController extends ViewController
 				$this->flashbag->add('error', "E-mail alias empty");
 				return new RedirectResponse($url);
 			}
-			$username = strtolower(trim((string) $data['username']));
-			$alias = strtolower(trim((string) $data['alias']));
+			$username = strtolower(trim(FormHelper::text($data['username'], 'username')));
+			$alias = strtolower(trim(FormHelper::text($data['alias'], 'alias')));
 
 			$service = new UserService();
 			$user = $service->getUserByUsername($username);

@@ -32,6 +32,7 @@ use Exception;
 
 //use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Utils\FormHelper;
 
 final class UserController extends ViewController
 {
@@ -302,13 +303,13 @@ final class UserController extends ViewController
 		$profileform_t = $profileform->createView(); // for twig
 
 		if ($profileform->isSubmitted() && $profileform->isValid()) {
-			$data = $profileform->getData() ?? [];
+			$data = FormHelper::submittedData($profileform);
 			// allow password change only for DB users
 			$pass_changed = false;
 			$newHash = null;
 			if ($user->auth_provider === 0) {
-				$newPassword = (string) $profileform->get('password')->getData();
-				if (!empty($newPassword)) {
+				$newPassword = FormHelper::optionalText($profileform->get('password')->getData(), 'password');
+				if ($newPassword !== null && $newPassword !== '') {
 					// a new password requires the current one
 					$current = (string) $profileform->get('current_password')->getData();
 					$hash = (string) User::whereKey($user->id)->value('password');
@@ -399,12 +400,12 @@ final class UserController extends ViewController
 		);
 
 		if ($userform->isSubmitted() && $userform->isValid()) {
-			$data = $userform->getData() ?? [];
+			$data = FormHelper::submittedData($userform);
 			$service = $this->getUserService();
 
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
-			} elseif ($service->userExists((string) $data['username'])) {
+			} elseif ($service->userExists(FormHelper::text($data['username'], 'username'))) {
 				$this->flashbag->add('error', "User '{$data['username']}' already exists");
 			} else {
 				$newPassword = trim((string) $userform->get('password')->getData());
@@ -508,18 +509,18 @@ final class UserController extends ViewController
 		$error = null;
 		if ($userform->isSubmitted() && $userform->isValid()) {
 			//$data = $userform->getData()->toArray();
-			$data = $userform->getData() ?? [];
+			$data = FormHelper::submittedData($userform);
 			$service = $this->getUserService();
 			// username change and new username exists
 			if (empty($data['username'])) {
 				$this->flashbag->add('error', "Username empty");
 			} elseif (($data['username'] !== $user->username) &&
-			           ($service->userExists((string) $data['username']))) {
+			           ($service->userExists(FormHelper::text($data['username'], 'username')))) {
 				$this->flashbag->add('error', "Username '{$data['username']}' already exists.");
 			} else {
 				$newHash = null;
-				$newPassword = (string) $userform->get('password')->getData();
-				if (!empty($newPassword)) {
+				$newPassword = FormHelper::optionalText($userform->get('password')->getData(), 'password');
+				if ($newPassword !== null && $newPassword !== '') {
 					$newHash = Helper::passwordHash($newPassword);
 				}
 				// a null hash leaves the password as it is ("Password not changed")
@@ -527,7 +528,7 @@ final class UserController extends ViewController
 
 				try {
 					//DB::connection()->enableQueryLog();
-					$data['username'] = strtolower(trim((string) $data['username']));
+					$data['username'] = strtolower(trim(FormHelper::text($data['username'], 'username')));
 					$user->fill($data);
 					if ($newHash !== null) {
 						$user->password = $newHash;

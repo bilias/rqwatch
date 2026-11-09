@@ -34,7 +34,12 @@ final class RedisCache implements CacheInterface
 	#[\Override]
 	public function get(string $key): mixed {
 		$value = $this->getConnection()->get($key);
-		return is_string($value) ? $value : false;
+		if (is_string($value) || $value === false) {
+			return $value;
+		}
+		// the client itself in MULTI or pipeline mode: never for our keys
+		$this->logger->warning('RedisCache get got ' . get_debug_type($value) . " for key '{$key}'");
+		return false;
 	}
 
 	#[\Override]

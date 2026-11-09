@@ -11,6 +11,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use RuntimeException;
 
 final class MapActivityLog extends Model
 {
@@ -39,7 +40,10 @@ final class MapActivityLog extends Model
 	public function getRawLastChangedAt(): ?string {
 		/** @var mixed $raw */
 		$raw = $this->getAttributes()['last_changed_at'] ?? null;
-		return is_string($raw) ? $raw : null;
+		if ($raw !== null && !is_string($raw)) {
+			throw new RuntimeException('map_activity_log.last_changed_at is not text: ' . get_debug_type($raw));
+		}
+		return $raw;
 	}
 
 }

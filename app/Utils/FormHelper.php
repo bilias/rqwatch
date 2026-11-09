@@ -23,6 +23,7 @@ use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use LogicException;
 
 final class FormHelper
 {
@@ -58,6 +59,27 @@ final class FormHelper
 		$form->handleRequest($request);
 
 		return $form;
+	}
+
+	/**
+	 * A validly submitted form's data. Symfony always gives one, so null is a
+	 * bug and fails instead of reading as an empty form.
+	 * @psalm-param FormInterface<array<string, mixed>> $form
+	 * @phpstan-param FormInterface $form
+	 * @return array<string, mixed>
+	 */
+	public static function submittedData(FormInterface $form): array {
+		return $form->getData() ?? throw new LogicException("Submitted form '{$form->getName()}' has no data");
+	}
+
+	// a text field the form requires (NotBlank) or the caller has checked: anything but a string is a bug
+	public static function text(mixed $value, string $field): string {
+		return is_string($value) ? $value : throw new LogicException("Form field '{$field}' must be text, not " . get_debug_type($value));
+	}
+
+	// an optional text field: null when left empty, text otherwise; anything else is a bug
+	public static function optionalText(mixed $value, string $field): ?string {
+		return $value === null ? null : self::text($value, $field);
 	}
 
 	/*

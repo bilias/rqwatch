@@ -111,7 +111,10 @@ class Chart
     {
         /** @var mixed $controller */
         $controller = $this->attributes['data-controller'] ?? null;
-        return is_string($controller) ? $controller : null;
+        if ($controller !== null && !is_string($controller)) {
+            throw new \InvalidArgumentException('Chart data-controller must be a string, not ' . get_debug_type($controller));
+        }
+        return $controller;
     }
 
     /**

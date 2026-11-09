@@ -31,6 +31,14 @@
 		<testsuite name="controllers">
 			<directory>../tests/Unit/Controllers</directory>
 		</testsuite>
+		<!-- model accessors that need no database -->
+		<testsuite name="models">
+			<directory>../tests/Unit/Models</directory>
+		</testsuite>
+		<!-- chart objects (Chart) -->
+		<testsuite name="charts">
+			<directory>../tests/Unit/Charts</directory>
+		</testsuite>
 		<!-- parsed mail objects (MailObject) -->
 		<testsuite name="inventory">
 			<directory>../tests/Unit/Inventory</directory>

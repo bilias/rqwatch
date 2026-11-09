@@ -159,7 +159,11 @@ abstract class AbstractMigration {
 			->table(AppConfig::MIGRATIONS_TABLE)
 			->where('migration', $this->getName())
 			->value('status');
-		return is_string($status) ? $status : null;
+		// a VARCHAR: anything else must not read as "not run"
+		if ($status !== null && !is_string($status)) {
+			throw new RuntimeException("Migration '{$this->getName()}' status is not text: " . get_debug_type($status));
+		}
+		return $status;
 	}
 
 	public function verifyMigration(): bool {

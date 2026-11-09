@@ -95,8 +95,8 @@ final class MapSelectForm extends AbstractType
 	 */
 	public static function check_form_show(FormInterface $form, UrlGeneratorInterface $urlGenerator, bool $is_admin): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData() ?? [];
-			$map = (string) $data['map_name'];
+			$data = FormHelper::submittedData($form);
+			$map = FormHelper::text($data['map_name'], 'map_name');
 			/** @var mixed $model */
 			$model = $data['model'] ?? null;
 

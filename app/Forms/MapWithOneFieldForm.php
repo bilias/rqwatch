@@ -74,8 +74,8 @@ class MapWithOneFieldForm extends AbstractType
 	 */
 	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
 		if ($form->isSubmitted() && $form->isValid()) {
-			$data = $form->getData() ?? [];
-			$map = (string) $data['map_name'];
+			$data = FormHelper::submittedData($form);
+			$map = FormHelper::text($data['map_name'], 'map_name');
 
 			$url = $urlGenerator->generate(RouteName::ADMIN_MAP_ADD_ENTRY->value, [
 				'map' => $map,
