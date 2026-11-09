@@ -245,7 +245,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 
 		$mail_stored = 0;
 		$mail_location = null;
-		$store_settings = Config::get('store_settings');
+		$store_settings = Config::getArray('store_settings') ?? [];
 		
 		if ((!empty($action) && !empty($store_settings[$action])) || $has_virus) {
 			$mail_location = Helper::store_raw_mail(Helper::env_string('QUARANTINE_DIR') ?? '', $qid, $rawEmail);
@@ -395,7 +395,8 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			$spooled = (new MailLogSpool())->push($data, $rcptArr);
 		}
 		
-		if (Config::get('log_to_files') && ($dir = Config::get('log_to_files_dir'))) {
+		$dir = Config::getString('log_to_files_dir');
+		if (Config::getBool('log_to_files') && $dir !== null && $dir !== '') {
 			$web_headers = getallheaders();
 			Helper::log_to_files($dir, $symbols, $web_headers, $stringHeaders, $arrayHeaders);
 		}

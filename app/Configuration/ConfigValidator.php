@@ -88,6 +88,46 @@ final class ConfigValidator
 				$errors[] = "{$key} is empty";
 			}
 		}
+		/** @var mixed $servers */
+		$servers = $vars['API_SERVERS'] ?? null;
+		if (is_array($servers)) {
+			$errors = array_merge($errors, self::apiServerErrors($servers));
+		}
+		return $errors;
+	}
+
+	/**
+	 * API_SERVERS entries: server name => url, stat_url and fuzzy_url as strings
+	 * and options (HttpClient options) as an array keyed by option name, each
+	 * when set
+	 * @param array<array-key, mixed> $servers
+	 * @return list<string> one line per failing entry
+	 */
+	public static function apiServerErrors(array $servers): array {
+		$errors = [];
+		/** @var mixed $entry */
+		foreach ($servers as $name => $entry) {
+			if (!is_string($name)) {
+				$errors[] = "API_SERVERS must be keyed by server name, not {$name}";
+				continue;
+			}
+			if (!is_array($entry)) {
+				$errors[] = "API_SERVERS['{$name}'] must be an array, not " . get_debug_type($entry);
+				continue;
+			}
+			foreach (['url', 'stat_url', 'fuzzy_url'] as $key) {
+				/** @var mixed $value */
+				$value = $entry[$key] ?? null;
+				if ($value !== null && !is_string($value)) {
+					$errors[] = "API_SERVERS['{$name}']['{$key}'] must be a string, not " . get_debug_type($value);
+				}
+			}
+			/** @var mixed $options */
+			$options = $entry['options'] ?? null;
+			if ($options !== null && (!is_array($options) || array_filter(array_keys($options), 'is_int') !== [])) {
+				$errors[] = "API_SERVERS['{$name}']['options'] must be an array of HttpClient options by name";
+			}
+		}
 		return $errors;
 	}
 

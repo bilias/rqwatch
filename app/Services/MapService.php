@@ -256,7 +256,8 @@ final class MapService
 	public static function mapSymbols(): array {
 		$maps = [];
 
-		foreach ((array) (Config::get('map_symbols') ?? []) as $map => $symbols) {
+		/** @var mixed $symbols checked below, as map name => list of symbol names */
+		foreach (Config::getArray('map_symbols') ?? [] as $map => $symbols) {
 			$list = array_values(array_filter((array) $symbols, fn ($s) => is_string($s) && self::validSymbol($s)));
 			if (!is_string($map) || $list === [] || count($list) !== count((array) $symbols)) {
 				App::fileLogger()->error("[MapService] invalid map_symbols entry " .

@@ -16,6 +16,8 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogHandler;
 
 use App\Configuration\Config;
+use RuntimeException;
+use Monolog\Level;
 
 /*
 Method               Level     Severity (Monolog constant)
@@ -33,7 +35,7 @@ final class LoggerFactory
 {
 	public static function createFileLogger(): LoggerInterface {
 		// Get log file path from config or use fallback
-		$log_file = Config::get('LOG_FILE') ?? __DIR__ . '/../../../logs/rqwatch.log';
+		$log_file = Config::getString('LOG_FILE') ?? __DIR__ . '/../../../logs/rqwatch.log';
 
 		if (!file_exists(dirname($log_file))) {
 			mkdir(dirname($log_file), 0750, true);
@@ -47,7 +49,7 @@ final class LoggerFactory
 		$output = "[%datetime%] %level_name%: %message% %context%\n";
 
 		$formatter = new SafeLineFormatter($output, $dateFormat, false, true);
-		$log_file_level = Config::get('LOG_FILE_LEVEL') ?? "INFO";
+		$log_file_level = self::level('LOG_FILE_LEVEL', Config::getString('LOG_FILE_LEVEL') ?? 'INFO');
 
 		$handler = new StreamHandler($log_file, $log_file_level);
 		$handler->setFormatter($formatter);
@@ -56,16 +58,32 @@ final class LoggerFactory
 		return $logger;
 	}
 
-	public static function createSyslogLogger(): LoggerInterface {
-		$log_syslog_facility = Config::get('LOG_SYSLOG_FACILITY') ?? 'LOG_MAIL';
-		$log_syslog_prefix = Config::get('LOG_SYSLOG_PREFIX') ?? 'rqwatch';
-		$log_syslog_level = Config::get('LOG_SYSLOG_LEVEL') ?? 'DEBUG';
-
-		if (defined($log_syslog_facility)) {
-			$facility = constant($log_syslog_facility);
-		} else {
-			$facility = LOG_MAIL;
+	// a log level by name (DEBUG, INFO, ...), any case; an unknown name is a config error naming $setting
+	public static function level(string $setting, string $name): Level {
+		foreach (Level::cases() as $level) {
+			if (strcasecmp($level->name, $name) === 0) {
+				return $level;
+			}
 		}
+		throw new RuntimeException("{$setting} '{$name}' is not a log level (DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY)");
+	}
+
+	// the syslog facility LOG_SYSLOG_FACILITY names; any other name is a config error, not LOG_MAIL
+	public static function syslogFacility(string $name): int {
+		$facilities = [
+			'LOG_AUTH', 'LOG_AUTHPRIV', 'LOG_CRON', 'LOG_DAEMON', 'LOG_KERN', 'LOG_LPR', 'LOG_MAIL', 'LOG_NEWS',
+			'LOG_SYSLOG', 'LOG_USER', 'LOG_UUCP', 'LOG_LOCAL0', 'LOG_LOCAL1', 'LOG_LOCAL2', 'LOG_LOCAL3',
+			'LOG_LOCAL4', 'LOG_LOCAL5', 'LOG_LOCAL6', 'LOG_LOCAL7',
+		];
+		/** @var mixed $value */
+		$value = in_array($name, $facilities, true) && defined($name) ? constant($name) : null;
+		return is_int($value) ? $value : throw new RuntimeException("LOG_SYSLOG_FACILITY '{$name}' is not a syslog facility (LOG_MAIL, LOG_LOCAL0 ... LOG_LOCAL7, ...)");
+	}
+
+	public static function createSyslogLogger(): LoggerInterface {
+		$facility = self::syslogFacility(Config::getString('LOG_SYSLOG_FACILITY') ?? 'LOG_MAIL');
+		$log_syslog_prefix = Config::getString('LOG_SYSLOG_PREFIX') ?? 'rqwatch';
+		$log_syslog_level = self::level('LOG_SYSLOG_LEVEL', Config::getString('LOG_SYSLOG_LEVEL') ?? 'DEBUG');
 
 		$logger = new Logger('syslog_logger');
 		$handler = new SyslogHandler($log_syslog_prefix, $facility, $log_syslog_level);

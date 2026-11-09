@@ -33,6 +33,7 @@ use App\Models\MailLog;
 
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Generator\UrlGenerator;
+use RuntimeException;
 
 #[AsCommand(
 	name: 'cron:notifications',
@@ -229,7 +230,7 @@ final class CronNotifications extends RqwatchCliCommand
 
 		unset($removedLogs);
 
-		$notification_score = Config::get('notification_score');
+		$notification_score = Config::getFloat('notification_score') ?? throw new RuntimeException('notification_score is not set in config');
 		$overScore = fn (MailLog $log): bool => $log->score > $notification_score
 			&& !($blacklisted_any_score && Helper::checkForBlacklist($log->symbols ?? []));
 
@@ -391,7 +392,7 @@ final class CronNotifications extends RqwatchCliCommand
 			return 0;
 		}
 
-		$notification_score = Config::get('notification_score');
+		$notification_score = Config::getFloat('notification_score') ?? throw new RuntimeException('notification_score is not set in config');
 
 		$virusPatterns = MapService::getVirusSkipPatterns();
 		if ($virusPatterns === null) {

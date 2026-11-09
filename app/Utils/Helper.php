@@ -1045,8 +1045,9 @@ Mail details:
 		if ($ip === null || $ip === '') {
 			return null;
 		}
-		if (Config::get('geoip_enable') &&
-		    ($geoip_db = Config::get('geoip_country_db')) &&
+		$geoip_db = Config::getString('geoip_country_db');
+		if (Config::getBool('geoip_enable') &&
+		    $geoip_db !== null && $geoip_db !== '' &&
 		    !self::isLocalOrReservedIp($ip)) {
 			try {
 				/** @var array{country?: array{names?: array{en?: string}}}|null $geo the MaxMind country record */

@@ -1575,14 +1575,15 @@ final class MailLogService
 		}
 
 		// get raw mail from remote API server
-		$api_servers = Config::get('API_SERVERS');
+		$api_servers = Config::apiServers();
 
-		if (!array_key_exists($api_server, $api_servers) || empty($api_servers[$api_server]['url'])) {
+		$base = $api_servers[$api_server]['url'] ?? '';
+		if (!array_key_exists($api_server, $api_servers) || $base === '') {
 			Helper::debug_exception_err("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
 			throw new Exception("Error. Contact admin");
 		}
 		// XXX have not checked if it works with remote /subfolder in WEB_BASE
-		$url = $api_servers[$api_server]['url'] . (Config::getString('GET_MAIL_API_PATH') ?? '');
+		$url = $base . Config::getRequiredString('GET_MAIL_API_PATH');
 
 		// no redirects: a redirect can end on a page that answers 200
 		$apiClient = new ApiClient(array_merge(
@@ -1772,8 +1773,8 @@ final class MailLogService
 
 		$mailer = new MailerService($this->logger, $twig);
 		$from = Helper::env_required('MAILER_FROM');
-		$signature = Config::get('mail_signature');
-		$subject = Config::get('release_mail_subject');
+		$signature = Config::getString('mail_signature');
+		$subject = Config::getRequiredString('release_mail_subject');
 
 		$symbols = $maillog->symbols ?? [];
 
@@ -1850,14 +1851,15 @@ final class MailLogService
 			return false;
 		}
 
-		$api_servers = Config::get('API_SERVERS');
+		$api_servers = Config::apiServers();
 
-		if (!array_key_exists($api_server, $api_servers) || empty($api_servers[$api_server]['url'])) {
+		$base = $api_servers[$api_server]['url'] ?? '';
+		if (!array_key_exists($api_server, $api_servers) || $base === '') {
 			$this->logger->error("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
 			return false;
 		}
 		// XXX have not checked if it works with remote /subfolder in WEB_BASE
-		$url = $api_servers[$api_server]['url'] . (Config::getString('RELEASE_MAIL_API_PATH') ?? '');
+		$url = $base . Config::getRequiredString('RELEASE_MAIL_API_PATH');
 
 		// no redirects: a redirect can end on a page that answers 200
 		$apiClient = new ApiClient(array_merge(
@@ -1920,8 +1922,8 @@ final class MailLogService
 
 		$mailer = new MailerService($this->logger, $twig);
 		$from = Helper::env_required('MAILER_FROM');
-		$signature = Config::get('mail_signature');
-		$subject = Config::get('notify_mail_subject');
+		$signature = Config::getString('mail_signature');
+		$subject = Config::getRequiredString('notify_mail_subject');
 
 		/*
 		 One mail per recipient: each gets only their own address in the
@@ -2043,7 +2045,7 @@ final class MailLogService
 
 		$mailer = new MailerService($this->logger, $twig);
 		$from = Helper::env_required('MAILER_FROM');
-		$subject = Config::get('admin_notify_mail_subject');
+		$subject = Config::getRequiredString('admin_notify_mail_subject');
 
 		$recipients = $maillog->recipients->pluck('recipient_email')->all();
 

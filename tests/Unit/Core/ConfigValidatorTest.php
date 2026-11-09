@@ -57,6 +57,24 @@ final class ConfigValidatorTest extends UnitTestCase
 		], ConfigValidator::errors($vars));
 	}
 
+	// API_SERVERS entries: each failing key reported, after the top-level settings
+	public function testApiServerEntries(): void {
+		$vars = ['API_SERVERS' => [
+			'mx1' => ['url' => 'https://mx1.example', 'stat_url' => null, 'options' => ['verify_peer' => false]],
+			'mx2' => ['url' => ['https://mx2.example'], 'fuzzy_url' => 5],
+			'mx3' => 'https://mx3.example',
+			'mx4' => ['options' => ['verify_peer']],
+			0 => ['url' => 'https://mx5.example'],
+		]] + self::shipped();
+		$this->assertSame([
+			"API_SERVERS['mx2']['url'] must be a string, not array",
+			"API_SERVERS['mx2']['fuzzy_url'] must be a string, not int",
+			"API_SERVERS['mx3'] must be an array, not string",
+			"API_SERVERS['mx4']['options'] must be an array of HttpClient options by name",
+			'API_SERVERS must be keyed by server name, not 0',
+		], ConfigValidator::errors($vars));
+	}
+
 	public function testAcceptedForms(): void {
 		$vars = [
 			'show_charts' => 1, 'dns_resolv' => 0,
@@ -73,7 +91,7 @@ final class ConfigValidatorTest extends UnitTestCase
 		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(dirname(__DIR__, 3) . '/app'));
 		foreach ($files as $file) {
 			if ($file instanceof \SplFileInfo && $file->getExtension() === 'php') {
-				preg_match_all("/Config::get(?:Int|IntOr|String|Bool)?\('([A-Za-z0-9_]+)'/",
+				preg_match_all("/Config::get(?:Int|IntOr|String|RequiredString|Bool|Float|Array)?\('([A-Za-z0-9_]+)'/",
 					(string) file_get_contents($file->getPathname()), $m);
 				$keys = [...$keys, ...$m[1]];
 			}

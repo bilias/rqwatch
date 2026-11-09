@@ -42,6 +42,40 @@ final class ConfigAccessorTest extends UnitTestCase
 		}
 	}
 
+	public function testFloatArrayRequiredString(): void {
+		Config::set('f', 7.5);
+		Config::set('i', 7);
+		Config::set('a', ['x' => 1]);
+		Config::set('s', 'x');
+		$this->assertSame(7.5, Config::getFloat('f'));
+		$this->assertSame(7.0, Config::getFloat('i'), 'an int is a number');
+		$this->assertSame(['x' => 1], Config::getArray('a'));
+		$this->assertSame('x', Config::getRequiredString('s'));
+		$this->assertNull(Config::getFloat('unset'));
+		$this->assertNull(Config::getArray('unset'));
+	}
+
+	public function testRequiredStringUnsetThrows(): void {
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('release_mail_subject is not set in config');
+		Config::getRequiredString('release_mail_subject');
+	}
+
+	public function testApiServers(): void {
+		$this->assertSame([], Config::apiServers(), 'unset');
+		$servers = ['mx1' => ['url' => 'https://mx1.example', 'options' => ['verify_peer' => false]]];
+		Config::set('API_SERVERS', $servers);
+		$this->assertSame($servers, Config::apiServers());
+	}
+
+	// a bad entry is named, not read as a missing url
+	public function testApiServersBadEntryThrows(): void {
+		Config::set('API_SERVERS', ['mx1' => ['url' => ['https://mx1.example']]]);
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage("API_SERVERS['mx1']['url'] must be a string, not array in config");
+		Config::apiServers();
+	}
+
 	public function testIntOr(): void {
 		$this->assertSame(50, Config::getIntOr('unset', 50));
 		Config::set('i', 0);
@@ -58,6 +92,8 @@ final class ConfigAccessorTest extends UnitTestCase
 			'string as int' => ['getString', 5, 'x must be a string, not int in config'],
 			'flag as string' => ['getBool', 'false', 'x must be true or false, not string in config'],
 			'flag as 2' => ['getBool', 2, 'x must be true or false, not int in config'],
+			'number as string' => ['getFloat', '7.5', 'x must be a number, not string in config'],
+			'array as string' => ['getArray', 'mx1', 'x must be an array, not string in config'],
 		];
 	}
 
@@ -70,6 +106,8 @@ final class ConfigAccessorTest extends UnitTestCase
 			'getInt' => Config::getInt('x'),
 			'getString' => Config::getString('x'),
 			'getBool' => Config::getBool('x'),
+			'getFloat' => Config::getFloat('x'),
+			'getArray' => Config::getArray('x'),
 			default => throw new \LogicException("unknown getter {$getter}"),
 		};
 	}

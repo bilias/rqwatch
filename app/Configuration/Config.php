@@ -39,6 +39,7 @@ final class Config {
 
 	// an int setting; null when unset, an exception naming the setting when not an int
 	public static function getInt(string $key): ?int {
+		/** @var mixed $value */
 		$value = self::typed($key, 'int');
 		return is_int($value) ? $value : null;
 	}
@@ -51,14 +52,53 @@ final class Config {
 
 	// a string setting; null when unset, an exception naming the setting when not a string
 	public static function getString(string $key): ?string {
+		/** @var mixed $value */
 		$value = self::typed($key, 'string');
 		return is_string($value) ? $value : null;
 	}
 
 	// a flag (bool, or 0/1); null when unset, an exception naming the setting otherwise
 	public static function getBool(string $key): ?bool {
+		/** @var mixed $value */
 		$value = self::typed($key, 'bool');
 		return $value === null ? null : (bool) $value;
+	}
+
+	// as getString(), for a setting the caller cannot work without: unset is an exception naming it
+	public static function getRequiredString(string $key): string {
+		return self::getString($key) ?? throw new RuntimeException("{$key} is not set in config");
+	}
+
+	// a number setting (an int or a float); null when unset, an exception naming the setting otherwise
+	public static function getFloat(string $key): ?float {
+		/** @var mixed $value */
+		$value = self::typed($key, 'float');
+		return is_int($value) || is_float($value) ? (float) $value : null;
+	}
+
+	/**
+	 * An array setting; null when unset, an exception naming the setting when not an array
+	 * @return array<array-key, mixed>|null
+	 */
+	public static function getArray(string $key): ?array {
+		/** @var mixed $value */
+		$value = self::typed($key, 'array');
+		return is_array($value) ? $value : null;
+	}
+
+	/**
+	 * API_SERVERS with every entry checked (ConfigValidator::apiServerErrors()),
+	 * [] when unset; an entry of another shape is an exception naming it
+	 * @return array<string, array{url?: string|null, stat_url?: string|null, fuzzy_url?: string|null, options?: array<string, mixed>|null}>
+	 */
+	public static function apiServers(): array {
+		$servers = self::getArray('API_SERVERS') ?? [];
+		$errors = ConfigValidator::apiServerErrors($servers);
+		if ($errors !== []) {
+			throw new RuntimeException(implode('; ', $errors) . ' in config');
+		}
+		/** @var array<string, array{url?: string|null, stat_url?: string|null, fuzzy_url?: string|null, options?: array<string, mixed>|null}> $servers checked above */
+		return $servers;
 	}
 
 	private static function typed(string $key, string $type): mixed {

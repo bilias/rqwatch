@@ -219,7 +219,7 @@ class Controller
 
 		$cache = App::cache();
 		if ($cache !== null) {
-			$redisKey = Config::get('rspamd_stat_redis_key');
+			$redisKey = Config::getRequiredString('rspamd_stat_redis_key');
 
 			// Try fetching from redis cache first
 			try {
@@ -243,7 +243,7 @@ class Controller
 			}
 		}
 
-		$api_servers = Config::get('API_SERVERS');
+		$api_servers = Config::apiServers();
 
 		$apiClient = new ApiClient();
 		$password = Helper::env_string('RSPAMD_CONTROLLER_PASS') ?? '';
@@ -252,12 +252,13 @@ class Controller
 		// so a dead controller costs one timeout, not one per server
 		$responses = [];
 		foreach ($api_servers as $api_server => $config) {
-			if (empty($config['stat_url'])) {
+			$statUrl = $config['stat_url'] ?? '';
+			if ($statUrl === '') {
 				$this->fileLogger->error("API server '{$api_server}' has an empty stat_url. Check config.local.php");
 				continue;
 			}
 			try {
-				$responses[$api_server] = $apiClient->getWithRspamdPassword($config['stat_url'], $password);
+				$responses[$api_server] = $apiClient->getWithRspamdPassword($statUrl, $password);
 			} catch (Exception $e) {
 				$this->fileLogger->error("Stat request to '{$api_server}' failed: " . $e->getMessage());
 			}
@@ -284,7 +285,7 @@ class Controller
 			}
 		}
 
-		if ($cache !== null && isset($redisKey)) {
+		if ($cache !== null && isset($redisKey)) { // @phpstan-ignore isset.variable (kept: $redisKey is set only on the cache branch above)
 			$ttl = Config::getIntOr('rspamd_stat_redis_cache_ttl', 300);
 			// Store in Redis for future use; a total failure for a shorter time
 			if ($stats === []) {

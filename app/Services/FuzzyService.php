@@ -76,10 +76,10 @@ final class FuzzyService
 
 	// whether mail stored on $server can be learned
 	public static function serverEnabled(?string $server): bool {
-		$api_servers = Config::get('API_SERVERS') ?? [];
+		$api_servers = Config::apiServers();
 
 		return $server !== null
-			&& !empty($api_servers[$server]['fuzzy_url']);
+			&& ($api_servers[$server]['fuzzy_url'] ?? '') !== '';
 	}
 
 	/**
@@ -627,8 +627,8 @@ final class FuzzyService
 	 */
 	private function callApi(string $api_server, string $action, int $id, string $user, string $qid, ?int $flag = null, ?int $weight = null): void {
 		$lf = "[FuzzyService_callApi]";
-		$api_servers = Config::get('API_SERVERS') ?? [];
-		$base = (string) ($api_servers[$api_server]['url'] ?? '');
+		$api_servers = Config::apiServers();
+		$base = $api_servers[$api_server]['url'] ?? '';
 
 		if ($base === '') {
 			$this->logger->error("{$lf} API server '{$api_server}' does not exist in API_SERVERS or has an empty url. Check config.local.php");
@@ -648,7 +648,7 @@ final class FuzzyService
 
 		try {
 			$response = $apiClient->postWithAuth(
-				$base . (Config::getString('FUZZY_MAIL_API_PATH') ?? ''),
+				$base . Config::getRequiredString('FUZZY_MAIL_API_PATH'),
 				[
 					'action' => $action,
 					'id' => $id,
@@ -709,7 +709,7 @@ final class FuzzyService
 	private function call(string $server, string $path, string $body, array $headers, string $qid): array {
 		$lf = "[FuzzyService_call]";
 		// the mail's server entry, as the web side checked; not our own alias
-		$url = Config::get('API_SERVERS')[$server]['fuzzy_url'] ?? '';
+		$url = Config::apiServers()[$server]['fuzzy_url'] ?? '';
 
 		if ($url === '') {
 			$this->logger->error("{$lf} no fuzzy_url for API server '{$server}'. Check config.local.php");
