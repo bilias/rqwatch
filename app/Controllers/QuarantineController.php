@@ -25,6 +25,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 use Exception;
+use RuntimeException;
 
 /*
  * Password-less quarantine access from notification mails.
@@ -96,7 +97,7 @@ final class QuarantineController extends ViewController
 		}
 
 		$handle = bin2hex(random_bytes(16));
-		$handles = $this->session->get(self::SESSION_KEY, []);
+		$handles = $this->handles();
 		$handles[$handle] = ['hash' => $tokenRow->token_hash, 'redeemed' => false, 'seen' => time()];
 		$this->session->set(self::SESSION_KEY, array_slice($handles, -self::SESSION_MAX, null, true));
 
@@ -286,9 +287,31 @@ final class QuarantineController extends ViewController
 		return [$tokenRow, null];
 	}
 
+	/**
+	 * The handles link() stored in this session. Anything else there is a bug
+	 * or a damaged store, and fails rather than reading as no handle.
+	 * @return array<array-key, array<array-key, mixed>> handle => hash, redeemed, seen
+	 */
+	private function handles(): array {
+		/** @var mixed $stored */
+		$stored = $this->session->get(self::SESSION_KEY, []);
+		if (!is_array($stored)) {
+			throw new RuntimeException("Session value '" . self::SESSION_KEY . "' must be an array, not " . get_debug_type($stored));
+		}
+		/** @var mixed $entry */
+		foreach ($stored as $entry) {
+			if (!is_array($entry)) {
+				throw new RuntimeException("Session value '" . self::SESSION_KEY . "' has a handle that is not an array: " . get_debug_type($entry));
+			}
+		}
+		/** @var array<array-key, array<array-key, mixed>> $stored checked above */
+		return $stored;
+	}
+
 	// the token row behind a handle stored by link() in this session
 	private function sessionToken(string $handle): ?MailLogToken {
-		$handles = $this->session->get(self::SESSION_KEY, []);
+		$handles = $this->handles();
+		/** @var mixed $hash */
 		$hash = $handles[$handle]['hash'] ?? null;
 
 		if (!is_string($hash)) {
@@ -296,7 +319,12 @@ final class QuarantineController extends ViewController
 		}
 
 		// idle handles expire on their own, whatever the session lifetime
-		if (time() - ($handles[$handle]['seen'] ?? 0) > MailTokenService::idleSeconds()) {
+		/** @var mixed $seen */
+		$seen = $handles[$handle]['seen'] ?? 0;
+		if (!is_int($seen)) {
+			throw new RuntimeException("Session handle's last-seen time is not a time: " . get_debug_type($seen));
+		}
+		if (time() - $seen > MailTokenService::idleSeconds()) {
 			unset($handles[$handle]);
 			$this->session->set(self::SESSION_KEY, $handles);
 			return null;
@@ -310,7 +338,7 @@ final class QuarantineController extends ViewController
 
 	// one-time links: the first POST rotates the hash, so the emailed link stops working
 	private function redeem(string $handle, MailLogToken $tokenRow): bool {
-		$handles = $this->session->get(self::SESSION_KEY, []);
+		$handles = $this->handles();
 
 		if (!MailTokenService::isOneTime() || ($handles[$handle]['redeemed'] ?? false)) {
 			return true;

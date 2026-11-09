@@ -125,19 +125,19 @@ class Controller
 
 	public function setSessionVars(Session $session): void {
 		if ($session->has('is_admin')) {
-			$this->is_admin = $session->get('is_admin');
+			$this->is_admin = SessionManager::getBool($session, 'is_admin') ?? false;
 		}
 		if ($session->has('username')) {
-			$this->username = $session->get('username');
+			$this->username = SessionManager::getString($session, 'username');
 		}
 		if ($session->has('user_id')) {
-			$this->user_id = $session->get('user_id');
+			$this->user_id = SessionManager::getInt($session, 'user_id');
 		}
 		if ($session->has('email')) {
-			$this->email = $session->get('email');
+			$this->email = SessionManager::getString($session, 'email');
 		}
 		if ($session->has('user_aliases')) {
-			$this->user_aliases = $session->get('user_aliases');
+			$this->user_aliases = SessionManager::getStringList($session, 'user_aliases');
 		}
 	}
 

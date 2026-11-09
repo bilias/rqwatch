@@ -12,6 +12,7 @@ namespace App\Core;
 
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler;
@@ -29,6 +30,53 @@ final class SessionManager
 {
 	private static ?Session $session = null;
 	private static ?int $session_timeout = null;
+
+	/*
+	 Typed reads of what rqwatch stored in the session, as Config::getString()
+	 and friends read the config: null when unset, an exception naming the key
+	 when the stored value has another type. rqwatch writes these values
+	 itself, so another type is a bug or a damaged store, and must not pass
+	 as unset.
+	*/
+	public static function getString(SessionInterface $session, string $key): ?string {
+		/** @var mixed $value */
+		$value = $session->get($key);
+		return $value === null || is_string($value) ? $value : throw self::wrongType($key, 'a string', $value);
+	}
+
+	public static function getInt(SessionInterface $session, string $key): ?int {
+		/** @var mixed $value */
+		$value = $session->get($key);
+		return $value === null || is_int($value) ? $value : throw self::wrongType($key, 'an integer', $value);
+	}
+
+	public static function getBool(SessionInterface $session, string $key): ?bool {
+		/** @var mixed $value */
+		$value = $session->get($key);
+		return $value === null || is_bool($value) ? $value : throw self::wrongType($key, 'true or false', $value);
+	}
+
+	/** @return list<string> the stored list, [] when unset */
+	public static function getStringList(SessionInterface $session, string $key): array {
+		/** @var mixed $value */
+		$value = $session->get($key);
+		if ($value === null) {
+			return [];
+		}
+		if (!is_array($value)) {
+			throw self::wrongType($key, 'a list of strings', $value);
+		}
+		$list = [];
+		/** @var mixed $item */
+		foreach ($value as $item) {
+			$list[] = is_string($item) ? $item : throw self::wrongType($key, 'a list of strings', $item);
+		}
+		return $list;
+	}
+
+	private static function wrongType(string $key, string $expected, mixed $value): RuntimeException {
+		return new RuntimeException("Session value '{$key}' must be {$expected}, not " . get_debug_type($value));
+	}
 
 	public static function getSession(): Session {
 		if (self::$session === null) {

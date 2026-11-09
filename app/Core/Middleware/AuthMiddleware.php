@@ -11,6 +11,7 @@
 namespace App\Core\Middleware;
 
 use App\Core\App;
+use App\Core\SessionManager;
 use App\Core\Auth\AuthManager;
 use App\Core\Routing\RouteName;
 use App\Models\User;
@@ -45,7 +46,7 @@ final class AuthMiddleware
 		if ($request->hasSession() && $request->getSession()->has('username') && !empty($request->getSession()->get('username'))) {
 			$session = $request->getSession();
 			if (!$this->sessionStillValid($session)) {
-				$this->logger->info("Session of '" . $session->get('username') . "' ended: account changed");
+				$this->logger->info("Session of '" . (SessionManager::getString($session, 'username') ?? '') . "' ended: account changed");
 				$session->invalidate();
 				if ($session instanceof FlashBagAwareSessionInterface) {
 					$session->getFlashBag()->add('error', 'Your account was changed, please log in again');

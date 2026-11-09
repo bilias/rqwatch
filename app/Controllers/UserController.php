@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use App\Core\App;
+use App\Core\SessionManager;
 use App\Core\Routing\RouteName;
 use App\Core\Auth\AuthManager;
 use App\Utils\Helper;
@@ -603,7 +604,7 @@ final class UserController extends ViewController
 		$sessionAliases = array_map(
 			'strtolower',
 			array_filter(
-				$this->session->get('user_aliases', []),
+				SessionManager::getStringList($this->session, 'user_aliases'),
 				fn(string $alias) => !empty(trim($alias))
 			)
 		);
@@ -629,8 +630,8 @@ final class UserController extends ViewController
 		$user = User::where('id', $id)->first();
 		// user found
 		if ($user) {
-			$old_username = $this->session->get('username');
-			$old_auth_provider = $this->session->get('auth_provider');
+			$old_username = SessionManager::getString($this->session, 'username');
+			$old_auth_provider = SessionManager::getString($this->session, 'auth_provider');
 
 			// new session id for the new identity
 			$this->session->migrate(true);

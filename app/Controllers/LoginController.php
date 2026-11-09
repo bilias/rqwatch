@@ -82,11 +82,11 @@ final class LoginController extends ViewController
 			]);
 		}
 
-		$auth_provider = $this->session->get('auth_provider');
+		$auth_provider = SessionManager::getString($this->session, 'auth_provider');
 		// maybe we are in loginAs
-		$old_auth_provider = $this->session->get('old_auth_provider');
+		$old_auth_provider = SessionManager::getString($this->session, 'old_auth_provider');
 		// normal OPENIDC login without loginAs
-		if (($auth_provider === 'OPENIDC' && !$old_auth_provider) ||
+		if (($auth_provider === 'OPENIDC' && ($old_auth_provider === null || $old_auth_provider === '')) ||
 			 // original login via OPENIDC, ignore current auth_provider from loginAs
 			 ($old_auth_provider === 'OPENIDC')) {
 			if (Helper::env_bool('OPENIDC_RP_INITIATED_LOGOUT')) {
@@ -106,11 +106,11 @@ final class LoginController extends ViewController
 	}
 
 	private function logout_openidc(): Response {
-		$idToken = $this->session->get('openidc_id_token');
+		$idToken = SessionManager::getString($this->session, 'openidc_id_token');
 
 		$this->clearSession();
 
-		if (empty($idToken)) {
+		if ($idToken === null || $idToken === '') {
 			$this->fileLogger->warning('OPENIDC ID Token empty');
 			return new RedirectResponse($this->getLoginUrl());
 		}
@@ -223,7 +223,8 @@ final class LoginController extends ViewController
 
 				$this->refreshUrls();
 
-				if (!empty($login_redirect = $this->session->get('login_redirect'))) {
+				$login_redirect = SessionManager::getString($this->session, 'login_redirect');
+				if ($login_redirect !== null && $login_redirect !== '') {
 					$url = $this->getRedirectUrl($login_redirect);
 				} else {
 					$url = $this->getHomepageUrl();
@@ -233,6 +234,7 @@ final class LoginController extends ViewController
 			}
 		}
 
+		/** @var mixed $openidcLogoutUrl */
 		$openidcLogoutUrl = $this->session->get('openidc_logout_url');
 		if (Helper::env_bool('OPENIDC_AUTH_ENABLED')) {
 			$clientId = Helper::env_string('OPENIDC_CLIENT_ID');
@@ -347,7 +349,8 @@ final class LoginController extends ViewController
 			return new RedirectResponse($this->getLoginUrl());
 		}
 
-		if (!empty($login_redirect = $this->session->get('login_redirect'))) {
+		$login_redirect = SessionManager::getString($this->session, 'login_redirect');
+		if ($login_redirect !== null && $login_redirect !== '') {
 			$url = $this->getRedirectUrl($login_redirect);
 		} else {
 			$url = $this->getHomepageUrl();

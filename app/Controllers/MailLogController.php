@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
 use App\Core\App;
+use App\Core\SessionManager;
 
 use App\Core\Routing\RouteName;
 use App\Core\Routing\Router;
@@ -1560,8 +1561,8 @@ final class MailLogController extends ViewController
 
 	/** @return array<array-key, array<string, mixed>> the search filters saved by saveFiltersToSession() */
 	private function getFiltersFromSession(): array {
-		$filters = $this->session->get('filters');
-		if (empty($filters)) {
+		$filters = SessionManager::getString($this->session, 'filters');
+		if ($filters === null || $filters === '') {
 			return [];
 		}
 		$decoded = json_decode($filters, true);
