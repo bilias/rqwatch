@@ -175,10 +175,13 @@ final class MapHitService
 			if (!isset($symbolMaps[$name]) && !Helper::symbolMatches($name, 'local_symbol_patterns')) {
 				continue;
 			}
+			/** @var mixed $score */
 			$score = $symbol['score'] ?? null;
+			/** @var list<scalar> $options the scalar options only */
+			$options = array_values(array_filter((array) ($symbol['options'] ?? []), 'is_scalar'));
 			$wanted[$name] = [
 				'score' => is_numeric($score) ? (float) $score : null,
-				'options' => array_values(array_filter((array) ($symbol['options'] ?? []), 'is_scalar')),
+				'options' => $options,
 			];
 		}
 

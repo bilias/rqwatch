@@ -210,6 +210,7 @@ final class Helper {
 	 */
 	public static function symbolMatches(string $name, string $patterns): bool {
 		if (!isset(self::$symbolPatterns[$patterns])) {
+			/** @var mixed $list */
 			$list = Config::get($patterns);
 			$valid = is_array($list) && $list !== []
 				&& array_filter($list, fn ($p) => !is_string($p) || trim($p) === '') === [];
@@ -217,6 +218,7 @@ final class Helper {
 				self::logger()->error("[Helper] invalid {$patterns} in config: list of symbol patterns, using defaults");
 				$list = self::SYMBOL_PATTERNS[$patterns] ?? [];
 			}
+			/** @var array<array-key, string> $list checked above, or the defaults */
 			self::$symbolPatterns[$patterns] = array_map('trim', array_values($list));
 		}
 
@@ -307,7 +309,7 @@ final class Helper {
 		return '';
 	}
 
-	/** @param array<array-key, mixed>|null $symbols a mail's decoded symbols */
+	/** @param array<array-key, array<string, mixed>>|null $symbols a mail's decoded symbols */
 	public static function get_action_details(?array $symbols = null): string {
 		if ($symbols !== null && $symbols !== []) {
 			if (self::checkForWhitelist($symbols)) {
@@ -324,7 +326,7 @@ final class Helper {
 	}
 
 	// change row class depending on action
-	/** @param array<array-key, mixed>|null $symbols a mail's decoded symbols */
+	/** @param array<array-key, array<string, mixed>>|null $symbols a mail's decoded symbols */
 	public static function get_row_class(string $action, ?array $symbols = null): string {
 		if ($symbols !== null && $symbols !== []) {
 			// green only if the whitelist won; a forced reject/discard keeps its colour
@@ -487,11 +489,11 @@ final class Helper {
 		}
 		if (isset($symbol['group']) && $symbol['group'] == 'antivirus') {
 			if (isset($symbol['options']) && isset($symbol['options'][0])) {
-				$virus = $symbol['options'][0];
+				$virus = (string) $symbol['options'][0];
 			} else {
 				$virus = '';
 			}
-			$antivirus = $symbol['name'];
+			$antivirus = (string) $symbol['name'];
 			return "[$antivirus: $virus]";
 		}
 		return false;
@@ -504,6 +506,7 @@ final class Helper {
 			return false;
 		}
 
+		/** @var mixed $symbol */
 		foreach ($symbols as $symbol) {
 			if (($ret = self::check_virus($symbol)) !== false) {
 				return $ret;
@@ -523,6 +526,7 @@ final class Helper {
 				continue;
 			}
 			$names = [(string) $symbol['name']];
+			/** @var mixed $opt */
 			foreach ((array) ($symbol['options'] ?? []) as $opt) {
 				if (is_scalar($opt)) {
 					$names[] = (string) $opt;
@@ -548,23 +552,27 @@ final class Helper {
 		}
 
 		$isList = array_is_list($symbols);
+		$clean = [];
+		/** @var mixed $s */
 		foreach ($symbols as $k => $s) {
 			if (!is_array($s)) {
 				self::logger()->warning("{$qid}: dropped symbol entry that is not a record");
-				unset($symbols[$k]);
 				continue;
 			}
+			/** @var array<string, mixed> $s a decoded JSON object: rspamd's field names */
+			$name = is_scalar($s['name'] ?? null) ? (string) $s['name'] : '?';
 			if (!array_key_exists('score', $s)) {
-				self::logger()->warning("{$qid}: symbol " . ($s['name'] ?? '?') . " has no score, set to 0");
-				$symbols[$k]['score'] = 0;
+				self::logger()->warning("{$qid}: symbol {$name} has no score, set to 0");
+				$s['score'] = 0;
 			}
 			if (isset($s['options']) && !is_array($s['options'])) {
-				self::logger()->warning("{$qid}: symbol " . ($s['name'] ?? '?') . " options not a list, wrapped");
-				$symbols[$k]['options'] = [$s['options']];
+				self::logger()->warning("{$qid}: symbol {$name} options not a list, wrapped");
+				$s['options'] = [$s['options']];
 			}
+			$clean[$k] = $s;
 		}
 
-		return $isList ? array_values($symbols) : $symbols;
+		return $isList ? array_values($clean) : $clean;
 	}
 
 	// checks date for correct format YYYY-MM-DD
@@ -688,14 +696,14 @@ final class Helper {
 		$virus_found = null;
 
 		foreach ($sorted_symbols as $symbol) {
-			 $name = $symbol['name'];
-			 $score = $symbol['score'];
+			 $name = (string) $symbol['name'];
+			 $score = (string) $symbol['score'];
 
 			 if ($has_virus && ($virus = Helper::check_virus($symbol)) !== false) {
 					$symbols[] = "$name:$score:$virus";
 					$virus_found = $virus;
 			 } elseif (isset($symbol['options'])) {
-					$opts = implode(", ", $symbol['options']);
+					$opts = implode(", ", array_map(strval(...), (array) $symbol['options']));
 					$symbols[] = "$name:$score:$opts";
 			 } else {
 					$symbols[] = "$name:$score";

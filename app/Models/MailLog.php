@@ -406,15 +406,19 @@ final class MailLog extends Model
 
 	/** @param string|null $value raw attribute */
 	public function getHeadersAttribute($value): ?string {
-		return $this->mailLogDataValue('headers');
+		/** @var string|null $headers mail_log_data string cast */
+		$headers = $this->mailLogDataValue('headers');
+		return $headers;
 	}
 
 	/**
 	 * @param string|null $value raw attribute
-	 * @return array<array-key, mixed>|null decoded JSON (mail_log_data cast)
+	 * @return array<array-key, array<string, mixed>>|null decoded JSON (mail_log_data cast)
 	 */
 	public function getSymbolsAttribute($value): ?array {
-		return $this->mailLogDataValue('symbols');
+		/** @var array<array-key, array<string, mixed>>|null $symbols as the importer stored them, through Helper::sanitizeSymbols() */
+		$symbols = $this->mailLogDataValue('symbols');
+		return $symbols;
 	}
 
 	/**
@@ -422,7 +426,9 @@ final class MailLog extends Model
 	 * @return array<array-key, mixed>|null decoded JSON (mail_log_data cast)
 	 */
 	public function getFuzzyHashesAttribute($value): ?array {
-		return $this->mailLogDataValue('fuzzy_hashes');
+		/** @var array<array-key, mixed>|null $hashes mail_log_data array cast */
+		$hashes = $this->mailLogDataValue('fuzzy_hashes');
+		return $hashes;
 	}
 
 }

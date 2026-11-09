@@ -136,6 +136,7 @@ final class VirusService
 			$av = mb_substr((string) $symbol['name'], 0, 128);
 
 			$names = [];
+			/** @var mixed $option */
 			foreach ((array) ($symbol['options'] ?? []) as $option) {
 				$names[] = is_scalar($option) ? mb_substr((string) $option, 0, 255) : '';
 			}
