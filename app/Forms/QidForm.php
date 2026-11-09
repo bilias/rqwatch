@@ -51,7 +51,7 @@ final class QidForm extends AbstractType
 						),
 						new Assert\Regex(
 							pattern: '/^[a-zA-Z0-9]+$/D',
-							message: 'The value can only contain capital letters and digits.',
+							message: 'The value can only contain letters and digits.',
 						),
 					 ],
             ])
