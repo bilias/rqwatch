@@ -138,12 +138,36 @@ final class Kernel
 		}
 
 		try {
-			$dotenv = Dotenv::createImmutable(RQWATCH_ROOT);
-			$dotenv->load();
+			Dotenv::createImmutable(RQWATCH_ROOT)->load();
 		} catch (Throwable $e) {
-			$this->fileLogger->error("Error loading .env: " . $e->getMessage());
-			throw new RuntimeException("Failed to load .env file", previous: $e);
+			$this->fileLogger->critical("Error loading .env: " . $e->getMessage());
+			$this->bootFailure("Application configuration error");
 		}
+
+		$this->checkDotenv();
+	}
+
+	/*
+	 A failing key stops every entry point but the metadata importer, which
+	 logs and carries on: rspamd posts once, so a refusal would lose the
+	 mail's metadata, and the importer has its own fallbacks.
+	*/
+	private function checkDotenv(): void {
+		/** @psalm-suppress RedundantCondition WEB_MODE is defined per entry point */
+		$errors = EnvValidator::errors($_ENV, defined('WEB_MODE') && WEB_MODE);
+		if ($errors === []) {
+			return;
+		}
+
+		$detail = '.env: ' . implode('; ', $errors);
+		$this->fileLogger->critical($detail);
+
+		/** @psalm-suppress RedundantCondition ALLOW_DEGRADED_DB is defined per entry point */
+		if (defined('ALLOW_DEGRADED_DB') && ALLOW_DEGRADED_DB) {
+			return;
+		}
+
+		$this->bootFailure("Application configuration error", cliMessage: $detail);
 	}
 
 	/** @param array<string, mixed> $extra_cached_data */
@@ -306,15 +330,17 @@ final class Kernel
 	 vendor autoload, so HttpFoundation is available. The client message
 	 stays generic on purpose: the API is reached by rspamd and by anything
 	 that can hit the endpoint, not by an operator, so the remedy belongs in
-	 the log and nowhere else.
+	 the log and nowhere else. The CLI prints $cliMessage when given: there
+	 the reader is the operator.
 	*/
 	private function bootFailure(
 		string $message,
-		int $status = Response::HTTP_SERVICE_UNAVAILABLE
+		int $status = Response::HTTP_SERVICE_UNAVAILABLE,
+		?string $cliMessage = null
 	): never {
 		/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 		if (defined('CLI_MODE') && CLI_MODE) {
-			fwrite(STDERR, $message . PHP_EOL);
+			fwrite(STDERR, ($cliMessage ?? $message) . PHP_EOL);
 			exit(1);
 		}
 
