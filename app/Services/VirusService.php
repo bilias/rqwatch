@@ -14,10 +14,12 @@ use App\Core\App;
 
 use App\Configuration\AppConfig;
 
+use App\Utils\FormHelper;
 use Psr\Log\LoggerInterface;
 
 use Throwable;
 
+/** @phpstan-import-type SearchFilter from FormHelper */
 final class VirusService
 {
 	// report windows, today included
@@ -47,24 +49,24 @@ final class VirusService
 
 	// the search filters the report applies
 	/**
-	 * @param array<array-key, array<string, mixed>> $filters
-	 * @return list<array<string, mixed>>
+	 * @param array<array-key, SearchFilter> $filters
+	 * @return list<SearchFilter>
 	 */
 	public static function reportFilters(array $filters): array {
 		return array_values(array_filter(
 			$filters,
-			fn ($f) => !in_array($f['filter'] ?? null, self::IGNORED_FILTERS, true)
+			fn ($f) => !in_array($f['filter'], self::IGNORED_FILTERS, true)
 		));
 	}
 
 	// the filters for display, the ignored ones marked
 	/**
-	 * @param array<array-key, array<string, mixed>> $filters
+	 * @param array<array-key, SearchFilter> $filters
 	 * @return array<array-key, array<string, mixed>>
 	 */
 	public static function markIgnoredFilters(array $filters): array {
 		return array_map(
-			fn ($f) => $f + ['ignored' => in_array($f['filter'] ?? null, self::IGNORED_FILTERS, true)],
+			fn ($f) => $f + ['ignored' => in_array($f['filter'], self::IGNORED_FILTERS, true)],
 			$filters
 		);
 	}

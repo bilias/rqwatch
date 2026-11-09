@@ -56,6 +56,7 @@ use DateTimeImmutable;
 use Exception;
 use InvalidArgumentException;
 
+/** @phpstan-import-type SearchFilter from FormHelper */
 final class MailLogService
 {
 	private LoggerInterface $logger;
@@ -114,7 +115,7 @@ final class MailLogService
 
 	/**
 	 * @param Builder<MailLog> $query
-	 * @param array<array-key, array<string, mixed>> $filters
+	 * @param array<array-key, SearchFilter> $filters
 	 * @return Builder<MailLog>
 	 */
 	public function getQueryByFilters(Builder $query, array $filters): Builder {
@@ -128,7 +129,6 @@ final class MailLogService
 			foreach ($filters as $filter) {
 				if (($filter['filter'] ?? null) === 'created_day'
 				    && array_key_exists('choice', $filter)
-				    && array_key_exists('value', $filter)
 				) {
 					$days[] = [$filter['choice'], $filter['value']];
 				}
@@ -137,8 +137,7 @@ final class MailLogService
 			foreach ($filters as $filter) {
 				if (array_key_exists('filter', $filter) &&
 				    array_key_exists('choice', $filter) &&
-					 array_key_exists('value', $filter) &&
-					 !empty($filter['filter'])
+					 $filter['filter'] !== ''
 				) {
 						$f = $filter['filter'];
 						$c = $filter['choice'];
@@ -294,7 +293,7 @@ final class MailLogService
 	*/
 	/**
 	 * @param Builder<MailLog> $query
-	 * @param list<array{mixed, mixed}> $days
+	 * @param list<array{string, string}> $days
 	 */
 	private function filterByMapHit(Builder $query, string $c, mixed $v, array $days): void {
 		$ids = [];
@@ -444,7 +443,7 @@ final class MailLogService
 	 */
 	/**
 	 * @param Builder<MailLog> $query
-	 * @param list<array{mixed, mixed}> $days
+	 * @param list<array{string, string}> $days
 	 */
 	private function filterByVirus(Builder $query, string $c, mixed $v, array $days): void {
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
@@ -491,7 +490,7 @@ final class MailLogService
 	 */
 	/**
 	 * @param Builder<MailLog> $query
-	 * @param list<array{mixed, mixed}> $days
+	 * @param list<array{string, string}> $days
 	 */
 	private function filterByLocalSymbol(Builder $query, string $c, mixed $v, array $days): void {
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
@@ -539,7 +538,7 @@ final class MailLogService
 	 * which is the mail's own day: the result is the same, the plan a
 	 * range on the child's index.
 	 */
-	/** @param list<array{mixed, mixed}> $days choice and value of each Date filter */
+	/** @param list<array{string, string}> $days choice and value of each Date filter */
 	private function whereDays(QueryBuilder $q, string $column, array $days): void {
 		foreach ($days as [$dc, $dv]) {
 			if ($dc === 'LIKE' || $dc === 'NOT LIKE') {
@@ -778,7 +777,7 @@ final class MailLogService
 	 * each mail, so the max_items cap bounds the cost.
 	 */
 	/**
-	 * @param array<array-key, array<string, mixed>> $filters
+	 * @param array<array-key, SearchFilter> $filters
 	 * @return array{int, list<string>, list<array<string, mixed>>, string|null}
 	 */
 	public function getSymbolsReport(array $filters, bool $informational, string $sort, int $limit, bool $local = false): array {
@@ -870,7 +869,7 @@ final class MailLogService
 	 * scan failures (symbols ending in _FAIL, rspamd's default name)
 	 */
 	/**
-	 * @param array<array-key, array<string, mixed>> $filters
+	 * @param array<array-key, SearchFilter> $filters
 	 * @return array{array<string, list<array{virus: string, engines: string, mails: int}>>, list<array{virus: string, engines: string, windows: array<string, int>}>}
 	 */
 	public function getVirusReport(array $filters, int $limit): array {
@@ -927,7 +926,7 @@ final class MailLogService
 	 * when the name is empty), $fail the failures table
 	 */
 	/**
-	 * @param array<array-key, array<string, mixed>> $filters
+	 * @param array<array-key, SearchFilter> $filters
 	 * @return list<int>
 	 */
 	public function getVirusMailIds(array $filters, string $virus, string $window, bool $fail): array {
@@ -959,7 +958,7 @@ final class MailLogService
 	 * query, unless an admin has no filters; nothing more in the subquery, or
 	 * the optimizer drives from mail_logs
 	 */
-	/** @param array<array-key, array<string, mixed>> $filters */
+	/** @param array<array-key, SearchFilter> $filters */
 	private function scopeVirusQuery(QueryBuilder $query, array $filters): void {
 		$filters = VirusService::reportFilters($filters);
 		if ($filters !== [] || !$this->is_admin) {
@@ -974,7 +973,7 @@ final class MailLogService
 	}
 
 	/**
-	 * @param array<array-key, array<string, mixed>> $filters
+	 * @param array<array-key, SearchFilter> $filters
 	 * @return LengthAwarePaginator<int, MailLog>
 	 */
 	public function getPaginatedAll(
@@ -1025,7 +1024,7 @@ final class MailLogService
 	}
 
 	/**
-	 * @param array<array-key, array<string, mixed>> $filters
+	 * @param array<array-key, SearchFilter> $filters
 	 * @return Collection<int, MailLog> aggregate rows
 	 */
 	public function getReports(
@@ -1150,7 +1149,7 @@ final class MailLogService
 	 them renders the filter list and its Remove links instead.
 	*/
 	/**
-	 * @param array<array-key, array<string, mixed>> $filters
+	 * @param array<array-key, SearchFilter> $filters
 	 * @return array<string, mixed>|null
 	 */
 	public function getStats(array $filters): ?array {
@@ -1173,7 +1172,7 @@ final class MailLogService
 	}
 
 	/**
-	 * @param array<array-key, array<string, mixed>> $filters
+	 * @param array<array-key, SearchFilter> $filters
 	 * @return array<string, mixed>
 	 */
 	private function collectStats(array $filters): array {

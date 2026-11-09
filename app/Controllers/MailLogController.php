@@ -50,6 +50,7 @@ use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
+/** @phpstan-import-type SearchFilter from FormHelper */
 final class MailLogController extends ViewController
 {
 	private ?MailLogService $mailLogService = null;
@@ -152,7 +153,8 @@ final class MailLogController extends ViewController
 		$queryParams = [];
 		foreach (MailLog::REPORT_DYN_FIELDS as $field) {
 			$value = $this->request->query->get($field);
-			if ($value !== null) {
+			// a query parameter is text; an array is refused by the request bag
+			if (is_string($value)) {
 				// we don't require create_day migration status here
 				$key = array_search($field, FormHelper::getFilters($this->is_admin));
 				if ($key !== false) {
@@ -172,7 +174,7 @@ final class MailLogController extends ViewController
 					$filters = array_values(array_filter(
 						$filters,
 						static fn(array $filter): bool =>
-							($filter['filter'] ?? null) !== 'Date'
+							$filter['filter'] !== 'Date'
 					));
 
 					$filters[] = [
@@ -204,7 +206,7 @@ final class MailLogController extends ViewController
 			$filters = array_values(array_filter(
 				$filters,
 				static fn(array $filter): bool =>
-					($filter['filter'] ?? null) !== 'Date'
+					$filter['filter'] !== 'Date'
 			));
 			$filters[] = [
 				'filter' => 'Date',
@@ -1223,9 +1225,9 @@ final class MailLogController extends ViewController
 			$filters = $this->getFiltersFromSession();
 			// add new filters
 			$filters[] = [
-				'filter' => $data['filter'],
-				'choice' => $data['choice'],
-				'value' => $data['value'],
+				'filter' => FormHelper::text($data['filter'], 'filter'),
+				'choice' => FormHelper::text($data['choice'], 'choice'),
+				'value' => FormHelper::text($data['value'], 'value'),
 			];
 			$this->saveFiltersToSession($filters);
 
@@ -1481,7 +1483,7 @@ final class MailLogController extends ViewController
 		return $totals;
 	}
 
-	/** @param array<array-key, array<string, mixed>> $filters */
+	/** @param array<array-key, SearchFilter> $filters */
 	private function mailReportsEnabled(array $filters): bool {
 		if (!Config::get('show_mail_reports')) {
 			return false;
@@ -1506,7 +1508,7 @@ final class MailLogController extends ViewController
 		return true;
 	}
 
-	/** @param array<array-key, array<string, mixed>> $filters */
+	/** @param array<array-key, SearchFilter> $filters */
 	private function mailStatsEnabled(array $filters): bool {
 		if (!Config::get('show_mail_stats')) {
 			return false;
@@ -1532,7 +1534,7 @@ final class MailLogController extends ViewController
 	}
 
 	/**
-	 * @param array<array-key, array<string, mixed>> $filters
+	 * @param array<array-key, SearchFilter> $filters
 	 * @return array<string, mixed>
 	 */
 	private function getMailStats(MailLogService $service, array $filters): array {
@@ -1565,7 +1567,7 @@ final class MailLogController extends ViewController
 	 * and value as text. Only rqwatch writes them, so anything else there is
 	 * a bug or a damaged store, and fails naming the session key rather than
 	 * reading as no filter (a search silently wider than asked).
-	 * @return array<array-key, array<string, mixed>>
+	 * @return list<SearchFilter>
 	 */
 	private function getFiltersFromSession(): array {
 		$filters = SessionManager::getString($this->session, 'filters');
@@ -1595,7 +1597,7 @@ final class MailLogController extends ViewController
 		return $valid;
 	}
 
-	/** @param array<array-key, array<string, mixed>> $filters */
+	/** @param array<array-key, SearchFilter> $filters */
 	private function saveFiltersToSession(array $filters): void {
 		$this->session->set('filters', json_encode(array_values($filters)));
 	}

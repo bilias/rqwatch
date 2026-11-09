@@ -25,6 +25,14 @@ use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use LogicException;
 
+/**
+ * A search filter as the search form, the report links and the session hold
+ * it: the filter's label, the choice's label, the value.
+ * @phpstan-type SearchFilter array{filter: string, choice: string, value: string}
+ * A search filter mapped by getFilterByName(): the column and the operator,
+ * each absent when its label is not one the user may filter by.
+ * @phpstan-type QueryFilter array{filter?: string, choice?: string, value: string}
+ */
 final class FormHelper
 {
 	/**
@@ -193,8 +201,8 @@ final class FormHelper
 	}
 
 	/**
-	 * @param array<array-key, array<string, mixed>> $active_filters
-	 * @return array<array-key, array<string, mixed>>
+	 * @param array<array-key, SearchFilter> $active_filters
+	 * @return array<array-key, QueryFilter>
 	 */
 	public static function getFilterByName(array $active_filters, bool $is_admin): array {
 
@@ -203,13 +211,14 @@ final class FormHelper
 		$ar = array();
 
 		foreach ($active_filters as $key => $filter) {
+			$mapped = ['value' => $filter['value']];
 			if (isset($filters[$filter['filter']])) {
-				$ar[$key]['filter'] = $filters[$filter['filter']];
+				$mapped['filter'] = $filters[$filter['filter']];
 			}
 			if (isset($choices[$filter['choice']])) {
-				$ar[$key]['choice'] = $choices[$filter['choice']];
+				$mapped['choice'] = $choices[$filter['choice']];
 			}
-			$ar[$key]['value'] = $filter['value'];
+			$ar[$key] = $mapped;
 		}
 
 		return $ar;
