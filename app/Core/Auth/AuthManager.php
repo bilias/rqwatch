@@ -127,7 +127,7 @@ final class AuthManager
 			throw new RuntimeException("OPENIDC post logout redirect URL problem");
 		}
 
-		if (method_exists($provider, 'logout')) {
+		if ($this->provider instanceof OpenIDConnectAuth) {
 			return $provider->logout($idToken);
 		}
 
