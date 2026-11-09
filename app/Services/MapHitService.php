@@ -568,9 +568,9 @@ final class MapHitService
 
 		$hits = [];
 		foreach ($rows as $row) {
-			$hits[$row->name] ??= [];
+			$hits[(string) $row->name] ??= [];
 			if ((int) $row->entry_model !== self::ENTRY_NONE) {
-				$hits[$row->name][] = [(int) $row->entry_model, (int) $row->entry_id];
+				$hits[(string) $row->name][] = [(int) $row->entry_model, (int) $row->entry_id];
 			}
 		}
 		return $hits;
@@ -670,7 +670,7 @@ final class MapHitService
 
 		$result = [];
 		foreach ($query->get() as $row) {
-			$result[$row->name] = ['windows' => self::windowValues($row), 'last' => $row->last];
+			$result[(string) $row->name] = ['windows' => self::windowValues($row), 'last' => $row->last];
 		}
 		return $result;
 	}
@@ -729,7 +729,9 @@ final class MapHitService
 		}
 
 		// the database's today, as the windows use
-		$today = new \DateTimeImmutable((string) $db->selectOne('SELECT CURDATE() AS d')->d);
+		/** @var \stdClass $day a SELECT without FROM returns one row */
+		$day = $db->selectOne('SELECT CURDATE() AS d');
+		$today = new \DateTimeImmutable((string) $day->d);
 		$result = [];
 		for ($i = $days - 1; $i >= 0; $i--) {
 			$d = $today->modify("-{$i} day")->format('Y-m-d');

@@ -113,7 +113,7 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 			->whereNotNull('last_hit_at')
 			->orderBy('id')
 			->get()
-			->filter(fn ($row) => (int) ($linked[$row->id] ?? 0) < (int) $row->hits)
+			->filter(fn ($row) => (int) ($linked[(int) $row->id] ?? 0) < (int) $row->hits)
 			->values();
 
 		$total = $rows->count();

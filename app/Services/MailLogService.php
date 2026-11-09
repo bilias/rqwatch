@@ -788,7 +788,9 @@ final class MailLogService
 		$db = App::capsule()->getConnection();
 		$since = null;
 		if ($filters === []) {
-			$since = (string) $db->selectOne('SELECT CURDATE() - INTERVAL 6 DAY AS d')->d;
+			/** @var \stdClass $day a SELECT without FROM returns one row */
+			$day = $db->selectOne('SELECT CURDATE() - INTERVAL 6 DAY AS d');
+			$since = (string) $day->d;
 			$idQuery->where('created_day', '>=', $since);
 		}
 		$idQuery->orderBy('id', 'DESC')->limit($this->max_items);
@@ -797,8 +799,10 @@ final class MailLogService
 		$idSql = $ids->toSql();
 		$bindings = $ids->getBindings();
 
+		/** @var \stdClass $count COUNT(*) returns one row */
 		// nosemgrep: rqwatch-raw-sql -- subquery from toSql(), its bindings passed
-		$mails = (int) $db->selectOne("SELECT COUNT(*) AS n FROM ({$idSql}) ids", $bindings)->n;
+		$count = $db->selectOne("SELECT COUNT(*) AS n FROM ({$idSql}) ids", $bindings);
+		$mails = (int) $count->n;
 
 		if ($local) {
 			// one row per mail and symbol: a hit credited to several entries has several rows
@@ -1192,11 +1196,13 @@ final class MailLogService
 		$stats['count'] = (int) $agg->cnt;
 
 		if (($stats['count']) > 0) {
+			/** @var array<int, string> $dates id => created_at */
 			$dates = MailLog::query()->toBase()
 				->whereIn('id', [$agg->first_id, $agg->last_id])
-				->pluck('created_at', 'id');
-			$stats['first'] = $dates[$agg->first_id] ?? null;
-			$stats['last'] = $dates[$agg->last_id] ?? null;
+				->pluck('created_at', 'id')
+				->all();
+			$stats['first'] = $dates[(int) $agg->first_id] ?? null;
+			$stats['last'] = $dates[(int) $agg->last_id] ?? null;
 			$stats['stored'] = (clone $query)->where('mail_stored', 1)->count();
 			$stats['notified'] = (clone $query)->where('notified', 1)->count();
 			$stats['released'] = (clone $query)->where('released', 1)->count();

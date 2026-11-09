@@ -405,7 +405,7 @@ final class FuzzyService
 
 		$holders = [];
 		foreach ($found as $r) {
-			$holders[$r->h][(int) $r->id] = [
+			$holders[(string) $r->h][(int) $r->id] = [
 				'id' => (int) $r->id,
 				'qid' => $r->qid,
 				'mail_log_id' => $r->mail_log_id === null ? null : (int) $r->mail_log_id,
@@ -533,7 +533,7 @@ final class FuzzyService
 
 		$byHash = [];
 		foreach ($found as $r) {
-			$byHash[$r->h][] = ['qid' => (string) $r->qid, 'flag' => (int) $r->flag];
+			$byHash[(string) $r->h][] = ['qid' => (string) $r->qid, 'flag' => (int) $r->flag];
 		}
 
 		$holders = [];

@@ -202,7 +202,7 @@ final class MailRecipientsMigration extends AbstractMigration {
 			// insert in batches
 			$inserted += $this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)->insertOrIgnore($batchRows);
 
-			$lastId = $last->id;
+			$lastId = (int) $last->id;
 			$scanned += $candidates;
 			$migrated += $inserted;
 			$remaining = max(0, $total - $scanned);

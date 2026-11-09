@@ -222,7 +222,7 @@ final class Database {
 		$schema = [];
 
 		foreach ($rows as $row) {
-			$schema[$row->TABLE_NAME][] = $row->COLUMN_NAME;
+			$schema[(string) $row->TABLE_NAME][] = (string) $row->COLUMN_NAME;
 		}
 
 		self::$schema = $schema;

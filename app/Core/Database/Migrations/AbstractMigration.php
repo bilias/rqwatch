@@ -94,7 +94,7 @@ abstract class AbstractMigration {
 		);
 
 		return !empty($row)
-			&& str_contains(strtolower($row[0]->COLUMN_TYPE), 'unsigned');
+			&& str_contains(strtolower((string) $row[0]->COLUMN_TYPE), 'unsigned');
 	}
 
 	protected function columnIsNullable(string $table, string $column): bool {
@@ -106,7 +106,7 @@ abstract class AbstractMigration {
 		);
 
 		return !empty($row)
-			&& strtoupper($row[0]->IS_NULLABLE) === 'YES';
+			&& strtoupper((string) $row[0]->IS_NULLABLE) === 'YES';
 	}
 
 	protected function createTable(string $tableName, Closure $callback): void {
