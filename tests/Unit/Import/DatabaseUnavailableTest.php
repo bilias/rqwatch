@@ -12,8 +12,7 @@
  MailLogWriter::databaseUnavailable(): the failures that refuse every mail
  alike (connection, server, locks), which the importer spools, against the
  database rejecting one mail's data, which would fail again on replay and
- so must not be spooled. And describe(): how either is logged without the
- mail's data.
+ so must not be spooled. And describe(): how either is logged.
 */
 
 namespace Tests\Unit\Import;
@@ -61,23 +60,20 @@ final class DatabaseUnavailableTest extends UnitTestCase
 			new PDOException('SQLSTATE[HY000] [2002] Connection refused', 2002)));
 	}
 
-	// a rejected mail by codes only: the query and the quoted value hold its data
-	public function testDescribeRejected(): void {
+	// codes first, then the whole message: for a query, the SQL with its values
+	public function testDescribeQuery(): void {
 		$pdo = new PDOException("SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'alice@example.org' for key 'x'");
 		$pdo->errorInfo = ['23000', 1062, "Duplicate entry 'alice@example.org' for key 'x'"];
 		$query = new QueryException('mysql', 'insert into mail_logs (mail_from) values (?)', ['alice@example.org'], $pdo);
-		$this->assertSame('SQLSTATE 23000, error 1062', MailLogWriter::describe($pdo));
-		$this->assertSame('SQLSTATE 23000, error 1062', MailLogWriter::describe($query));
+		$described = MailLogWriter::describe($query);
+		$this->assertStringStartsWith("SQLSTATE 23000, error 1062: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'alice@example.org'", $described);
+		$this->assertStringContainsString('insert into mail_logs (mail_from) values (alice@example.org)', $described);
 	}
 
-	// an outage keeps its message, but not the query
-	public function testDescribeOutage(): void {
-		$pdo = new PDOException('SQLSTATE[HY000]: General error: 2006 MySQL server has gone away');
-		$pdo->errorInfo = ['HY000', 2006, 'MySQL server has gone away'];
-		$query = new QueryException('mysql', 'insert into mail_logs (mail_from) values (?)', ['alice@example.org'], $pdo);
-		$described = MailLogWriter::describe($query);
-		$this->assertSame('SQLSTATE HY000, error 2006: SQLSTATE[HY000]: General error: 2006 MySQL server has gone away', $described);
-		$this->assertStringNotContainsString('alice@example.org', $described);
+	// a failed connect has no errorInfo: its code is the exception's
+	public function testDescribeConnect(): void {
+		$this->assertSame('SQLSTATE ?, error 2002: SQLSTATE[HY000] [2002] Connection refused',
+			MailLogWriter::describe(new PDOException('SQLSTATE[HY000] [2002] Connection refused', 2002)));
 	}
 
 	public function testDescribeOther(): void {

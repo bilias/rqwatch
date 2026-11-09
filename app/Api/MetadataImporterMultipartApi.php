@@ -113,7 +113,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		try {
 			return [(new MailLogWriter())->insert($data, $recipients), false, ''];
 		} catch (QueryException | PDOException $e) {
-			// the only record of why the mail was spooled or cut, without its data
+			// the only record of why the mail was spooled or cut
 			$reason = MailLogWriter::describe($e);
 			if (MailLogWriter::databaseUnavailable($e)) {
 				$this->fileLogger->critical("[{$this->logPrefix}] {$qid} DB error: {$reason}");

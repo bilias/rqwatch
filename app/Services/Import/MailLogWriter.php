@@ -25,7 +25,6 @@ use App\Services\VirusService;
 use Throwable;
 use Illuminate\Database\ConcurrencyErrorDetector;
 use Illuminate\Database\LostConnectionDetector;
-use Illuminate\Database\QueryException;
 use PDOException;
 
 final class MailLogWriter
@@ -60,11 +59,11 @@ final class MailLogWriter
 	 See ManagesTransactions.php in illuminate/database.
 	*/
 	/**
-	 * $e for the logs, without the mail's data. A QueryException's message
-	 * holds the SQL with its values, and MariaDB quotes the offending value
-	 * in some errors (a duplicate entry, an incorrect string): a rejected
-	 * mail is logged by SQLSTATE and error code only. A database outage
-	 * keeps its message, which names hosts and users, not mail.
+	 * $e for the logs: SQLSTATE and error code first, then the full
+	 * message. A QueryException's message holds the SQL with its values,
+	 * kept on purpose: it is what shows why the database refused a mail
+	 * (something not checked before the insert, or a schema that needs
+	 * changing).
 	 */
 	public static function describe(Throwable $e): string {
 		if (!$e instanceof PDOException) {
@@ -74,12 +73,8 @@ final class MailLogWriter
 		$state = $e->errorInfo[0] ?? null;
 		/** @var mixed $code */
 		$code = $e->errorInfo[1] ?? $e->getCode();
-		$codes = 'SQLSTATE ' . (is_string($state) ? $state : '?') . ', error ' . (is_int($code) || is_string($code) ? $code : '?');
-		if (!self::databaseUnavailable($e)) {
-			return $codes;
-		}
-		$message = $e instanceof QueryException ? ($e->getPrevious()?->getMessage() ?? '') : $e->getMessage();
-		return "{$codes}: {$message}";
+		return 'SQLSTATE ' . (is_string($state) ? $state : '?') . ', error ' . (is_int($code) || is_string($code) ? $code : '?')
+			. ': ' . $e->getMessage();
 	}
 
 	/*
