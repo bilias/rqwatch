@@ -927,7 +927,7 @@ final class MailLogController extends ViewController
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
-		if (Helper::env_required('MY_API_SERVER_ALIAS') === $maillog->server && !MailerService::isConfigured()) {
+		if (Helper::serverAlias() === $maillog->server && !MailerService::isConfigured()) {
 			$this->fileLogger->error('MAILER_DSN or MAILER_FROM is not set in .env');
 			$this->flashbag->add('error', "Mail cannot be released. Contact administrator");
 			return $this->getDetailIdResponse($maillog->id);
@@ -1016,7 +1016,7 @@ final class MailLogController extends ViewController
 			$release_to = array_values(array_unique($release_to));
 
 			// Mail stored locally
-			if (Helper::env_required('MY_API_SERVER_ALIAS') === $maillog->server) {
+			if (Helper::serverAlias() === $maillog->server) {
 				$success = $service->releaseHtmlMail($release_to, $maillog, $this->twig);
 			// Mail stored in remote server. Call their API
 			} else {
@@ -1601,7 +1601,7 @@ final class MailLogController extends ViewController
 		}
 
 		// a remote mail is sent by its own node, which checks its own settings
-		$disabled = Helper::env_required('MY_API_SERVER_ALIAS') === $log->server && !MailerService::isConfigured();
+		$disabled = Helper::serverAlias() === $log->server && !MailerService::isConfigured();
 		if ($disabled) {
 			$this->fileLogger->error('MAILER_DSN or MAILER_FROM is not set in .env');
 		}

@@ -79,7 +79,7 @@ final class CronNotifications extends RqwatchCliCommand
 		$service = new MailLogService();
 
 		// admin pass first: the user pass below returns early in several places
-		$adminServer = $show_local_only ? Helper::env_required('MY_API_SERVER_ALIAS') : null;
+		$adminServer = $show_local_only ? Helper::serverAlias() : null;
 		$adminFailed = $this->adminNotifications(
 			$service, $output, $send_mails, $show_mails, $send_blacklisted, $blacklisted_any_score, $adminServer
 		);
@@ -87,7 +87,7 @@ final class CronNotifications extends RqwatchCliCommand
 		// MailLog Collection
 		$local = '';
 		if ($show_local_only) {
-			$server = Helper::env_required('MY_API_SERVER_ALIAS');
+			$server = Helper::serverAlias();
 			$logs = $service->getUnnotified($output, $server);
 			$local = " on server: {$server}";
 		} else {

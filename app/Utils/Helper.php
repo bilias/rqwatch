@@ -935,6 +935,15 @@ Mail details:
 		return self::env_string($key) ?? throw new RuntimeException("{$key} is not set in .env");
 	}
 
+	// this node's MY_API_SERVER_ALIAS; unset or blank is a configuration error
+	public static function serverAlias(): string {
+		$alias = self::env_required('MY_API_SERVER_ALIAS');
+		if (trim($alias) === '') {
+			throw new RuntimeException('MY_API_SERVER_ALIAS is empty in .env');
+		}
+		return $alias;
+	}
+
 	public static function env_bool(string $key, bool $default = false): bool {
 		return filter_var($_ENV[$key] ?? $default, FILTER_VALIDATE_BOOLEAN);
 	}

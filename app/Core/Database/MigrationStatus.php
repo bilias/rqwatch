@@ -132,9 +132,10 @@ final class MigrationStatus
 	}
 
 	// keyed per server: in a distributed setup each API server may have
-	// its own database, so its own migration state
+	// its own database, so its own migration state. Throws without an
+	// alias (both callers catch it): no key shared between nodes.
 	private function stateKey(): string {
-		$alias = rawurlencode(trim(Helper::env_string('MY_API_SERVER_ALIAS') ?? 'unknown'));
+		$alias = rawurlencode(trim(Helper::serverAlias()));
 
 		return (string) Config::get('migration_status_redis_key') . ':' . $alias;
 	}

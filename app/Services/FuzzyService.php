@@ -260,7 +260,7 @@ final class FuzzyService
 			throw new FuzzyException("Fuzzy learning is not available for server '{$server}'", FuzzyError::Unavailable);
 		}
 
-		if ($server === (Helper::env_string('MY_API_SERVER_ALIAS') ?? '')) {
+		if ($server === Helper::serverAlias()) {
 			$this->learnLocal($maillog, $flag, $learnedBy, $weight);
 			return;
 		}
@@ -272,7 +272,7 @@ final class FuzzyService
 	public function unlearn(MailLogFuzzy $row, string $unlearnedBy): void {
 		$server = (string) $row->api_server;
 
-		if ($server === (Helper::env_string('MY_API_SERVER_ALIAS') ?? '')) {
+		if ($server === Helper::serverAlias()) {
 			$this->unlearnLocal($row, $unlearnedBy);
 			return;
 		}
@@ -292,7 +292,7 @@ final class FuzzyService
 			throw new FuzzyException("Fuzzy learning is not available for server '{$server}'", FuzzyError::Unavailable);
 		}
 
-		if ($server === (Helper::env_string('MY_API_SERVER_ALIAS') ?? '')) {
+		if ($server === Helper::serverAlias()) {
 			$this->addWeightLocal($row, $weight, $addedBy);
 			return;
 		}

@@ -79,7 +79,7 @@ final class CronQuarantine extends RqwatchCliCommand
 		// MailLog Collection
 		$local = '';
 		if ($show_local_only) {
-			$server = Helper::env_required('MY_API_SERVER_ALIAS');
+			$server = Helper::serverAlias();
 			$logs = $service->getQuarantine($output, $server);
 			$local = " on server: {$server}";
 		} else {

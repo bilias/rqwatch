@@ -67,7 +67,7 @@ final class CronFuzzyCleanup extends RqwatchCliCommand
 			return Command::SUCCESS;
 		}
 
-		$server = $input->getOption('local') ? (Helper::env_string('MY_API_SERVER_ALIAS') ?? '') : null;
+		$server = $input->getOption('local') ? Helper::serverAlias() : null;
 		$local = $server !== null ? " on server: {$server}" : '';
 
 		$service = new FuzzyService();

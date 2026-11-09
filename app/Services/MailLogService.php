@@ -1661,7 +1661,7 @@ final class MailLogService
 		}
 
 		// Mail stored locally
-		if (Helper::env_required('MY_API_SERVER_ALIAS') === $maillog->server) {
+		if (Helper::serverAlias() === $maillog->server) {
 			try {
 				// has applyUserScope
 				$mailobject = $this->getMailObjectLocal($id);
