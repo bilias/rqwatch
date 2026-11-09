@@ -46,7 +46,7 @@ final class QidForm extends AbstractType
 					 'constraints' => [
 						new NotBlank(),
 						new Assert\Length(
-							min: 9,
+							min: 6,
 							max: 30,
 						),
 						new Assert\Regex(
