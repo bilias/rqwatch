@@ -59,6 +59,14 @@ final class ImportDataTest extends UnitTestCase
 		$this->assertLogged('Q2: symbol C options not a list, wrapped');
 	}
 
+	// a name that is not text is logged as ?, as a missing one is
+	public function testSymbolNameNotScalar(): void {
+		$out = Helper::sanitizeSymbols([['name' => ['A'], 'options' => 'o']], 'Q5');
+		$this->assertSame([['name' => ['A'], 'options' => ['o'], 'score' => 0]], $out);
+		$this->assertLogged('Q5: symbol ? has no score, set to 0');
+		$this->assertLogged('Q5: symbol ? options not a list, wrapped');
+	}
+
 	public function testWellFormedSymbolsUntouched(): void {
 		$symbols = [['name' => 'BAYES_SPAM', 'score' => 5.1, 'options' => ['99.9%']], ['name' => 'R_SPF_ALLOW', 'score' => -0.2]];
 		$this->assertSame($symbols, Helper::sanitizeSymbols($symbols, 'Q3'));

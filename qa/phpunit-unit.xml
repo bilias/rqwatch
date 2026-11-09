@@ -27,6 +27,10 @@
 		<testsuite name="core">
 			<directory>../tests/Unit/Core</directory>
 		</testsuite>
+		<!-- controller logic that needs no request (the rspamd stats block) -->
+		<testsuite name="controllers">
+			<directory>../tests/Unit/Controllers</directory>
+		</testsuite>
 		<!-- parsed mail objects (MailObject) -->
 		<testsuite name="inventory">
 			<directory>../tests/Unit/Inventory</directory>

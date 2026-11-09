@@ -203,6 +203,23 @@ abstract class IntegrationTestCase extends TestCase
 	}
 
 	/**
+	 * Runs $test with $php appended to config/config.local.php (PHP-FPM reads
+	 * it per request; the web image has no opcache), then puts the file back.
+	 * With Redis the config is cached: run it inside withEnv() with a fresh
+	 * REDIS_CONFIG_KEY.
+	 */
+	protected static function withLocalConfig(string $php, callable $test): void {
+		$file = self::root() . '/config/config.local.php';
+		$original = (string) file_get_contents($file);
+		file_put_contents($file, $original . "\n" . $php . "\n");
+		try {
+			$test();
+		} finally {
+			file_put_contents($file, $original);
+		}
+	}
+
+	/**
 	 * A quarantined mail stored on $server for $recipients, its file under
 	 * QUARANTINE_DIR, removed after the test with its tokens. Returns its qid.
 	 * $columns overrides mail_logs columns (action, score, mail_stored,

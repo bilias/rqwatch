@@ -11,7 +11,8 @@
 /*
  RedisCache::ttl() for every reply phpredis can give: a TTL, -2 (no key),
  -1 (no expiry), false, the client itself (MULTI or pipeline mode) and an
- exception. A stub client replaces the lazy connection.
+ exception, and RedisCache::get() for a value, a missing key and MULTI mode.
+ A stub client replaces the lazy connection.
 */
 
 namespace Tests\Unit\Core;
@@ -58,6 +59,26 @@ final class RedisCacheTest extends UnitTestCase
 		$redis->method('ttl')->willThrowException(new RedisException('Connection lost'));
 		$this->assertNull($this->cache($redis)->ttl('k'));
 		$this->assertSame(['error RedisCache ttl: Connection lost'], $this->log->lines);
+	}
+
+	// get(): the value, or false for a missing key and anything that is not a string
+	public function testGetString(): void {
+		$redis = $this->createStub(Redis::class);
+		$redis->method('get')->willReturn('v');
+		$this->assertSame('v', $this->cache($redis)->get('k'));
+	}
+
+	public function testGetMissing(): void {
+		$redis = $this->createStub(Redis::class);
+		$redis->method('get')->willReturn(false);
+		$this->assertFalse($this->cache($redis)->get('k'));
+	}
+
+	// in MULTI mode phpredis returns the client
+	public function testGetMultiMode(): void {
+		$redis = $this->createStub(Redis::class);
+		$redis->method('get')->willReturnSelf();
+		$this->assertFalse($this->cache($redis)->get('k'));
 	}
 
 	private function cache(Redis $redis): RedisCache {

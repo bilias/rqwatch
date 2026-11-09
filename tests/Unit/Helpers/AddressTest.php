@@ -78,6 +78,22 @@ final class AddressTest extends UnitTestCase
 		$this->assertSame($expected, Helper::parseEmailList($in));
 	}
 
+	/** @return array<string, array{string, string}> */
+	public static function mimeFromCases(): array {
+		return [
+			'display name' => ['Alice <alice@example.org>', 'alice@example.org'],
+			'first of several' => ['a@x.org, b@x.org', 'a@x.org'],
+			'empty' => ['', ''],
+			'empty address' => ['<>', ''],
+		];
+	}
+
+	// no address: '' without a warning
+	#[DataProvider('mimeFromCases')]
+	public function testGetMailFromMime(string $in, string $expected): void {
+		$this->assertSame($expected, (new Helper())->getMailFromMime($in));
+	}
+
 	public function testAdminNotificationRcptDropsInvalidAndDuplicates(): void {
 		Config::set('admin_notification_rcpt', ' a@x.org, bad, a@x.org ,B@x.org');
 		$this->assertSame(['a@x.org', 'B@x.org'], Helper::adminNotificationRcpt());
