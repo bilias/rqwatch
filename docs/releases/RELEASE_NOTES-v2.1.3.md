@@ -65,6 +65,8 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
   set which symbols are shown as `[map]`, whitelisted and blacklisted.
 
 # Behaviour changes
+- Added .env and config validators that fail application early on boot if required
+  config vars are missing or wrong
 - Login throttle: a successful login no longer resets the failure counter.\
   Busy shared NAT addresses may need `LOGIN_IPS_WHITELIST`
 - Whitelist and blacklist symbols must now end in `_WL`/`_WHITELIST` or `_BL`/`_BLACKLIST`

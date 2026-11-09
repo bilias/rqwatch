@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2026-11-09
+- Added .env and config validators that fail application early on boot if required
+  config vars are missing or wrong
+
 ### 2026-11-07
 - LDAP: an attribute with options (`LDAP_SN_ATTR="sn;lang-en"`) is read as such. The options
   were stripped, so the primary setting read the plain attribute (the fallback's value) and the
