@@ -32,11 +32,16 @@ final class RouteSmokeTest extends IntegrationTestCase
 		'maps_combined', 'maps_custom', 'custom_map_config', 'mail_log_fuzzy',
 	];
 
+	// chart point links checked by smoke()
+	private int $chartLinks = 0;
+
 	#[TestDox('Admin: every admin and user route')]
 	public function testAdmin(): void {
 		$dataBlocks = $this->smoke(self::client('admin'), [self::ADMIN, self::USER], true);
 		// admin pages include charts: the JSON data block check ran
 		$this->assertGreaterThan(0, $dataBlocks, 'JSON data blocks checked');
+		// the quarantine charts link their days
+		$this->assertGreaterThan(0, $this->chartLinks, 'chart links checked');
 	}
 
 	#[TestDox('Plain user: every user route')]
@@ -87,8 +92,14 @@ final class RouteSmokeTest extends IntegrationTestCase
 			// what rqwatch.js parses, e.g. a chart's config
 			preg_match_all('/<script type="application\/json"[^>]*>(.*?)<\/script>/s', $response['body'], $blocks);
 			foreach ($blocks[1] as $json) {
-				$this->assertIsArray(json_decode($json, true), "{$name}: JSON data block");
+				$block = json_decode($json, true);
+				$this->assertIsArray($block, "{$name}: JSON data block");
 				$dataBlocks++;
+				// a chart's point links, which rqwatch.js follows: paths on this site
+				foreach (self::chartLinks($block) as $link) {
+					$this->assertMatchesRegularExpression('#^/(?!/)#', $link, "{$name}: chart link {$link}");
+					$this->chartLinks++;
+				}
 			}
 			if ($loggedIn) {
 				$this->assertNotSame('/login', self::target($response), "{$name}: session lost");
@@ -115,6 +126,25 @@ final class RouteSmokeTest extends IntegrationTestCase
 
 	private static function file(string $path): string {
 		return str_starts_with($path, '/') ? $path : self::root() . "/{$path}";
+	}
+
+	/**
+	 * @param array<array-key, mixed> $block a JSON data block
+	 * @return list<string> the links of its chart datasets (null: no link)
+	 */
+	private static function chartLinks(array $block): array {
+		$links = [];
+		$data = $block['data'] ?? null;
+		$datasets = is_array($data) ? ($data['datasets'] ?? null) : null;
+		foreach (is_array($datasets) ? $datasets : [] as $dataset) {
+			$list = is_array($dataset) ? ($dataset['links'] ?? null) : null;
+			foreach (is_array($list) ? $list : [] as $link) {
+				if ($link !== null) {
+					$links[] = is_string($link) ? $link : get_debug_type($link);
+				}
+			}
+		}
+		return $links;
 	}
 
 	private static function logSize(string $path): int {

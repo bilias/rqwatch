@@ -105,7 +105,16 @@ if (redeem instanceof HTMLFormElement && redeemToken instanceof HTMLInputElement
 }
 
 // charts (partials/chart.html.twig); a click on a point that has a link
-// follows it
+// follows it. Links are paths rqwatch generated; one that would leave this
+// site (another origin, or a javascript: or data: URL, whose origin is
+// "null") is not followed
+const sameOrigin = (link) => {
+	try {
+		return new URL(link, window.location.href).origin === window.location.origin;
+	} catch (e) {
+		return false;
+	}
+};
 if (typeof Chart !== 'undefined') {
 	for (const canvas of document.querySelectorAll('canvas[data-chart]')) {
 		const source = document.getElementById(canvas.dataset.chart);
@@ -116,7 +125,10 @@ if (typeof Chart !== 'undefined') {
 		if (!cfg.options || Array.isArray(cfg.options)) {
 			cfg.options = {};
 		}
-		const linkAt = (els, c) => els.length ? (c.data.datasets[els[0].datasetIndex].links || [])[els[0].index] : null;
+		const linkAt = (els, c) => {
+			const link = els.length ? (c.data.datasets[els[0].datasetIndex].links || [])[els[0].index] : null;
+			return link && sameOrigin(link) ? link : null;
+		};
 		cfg.options.onClick = (e, els, c) => {
 			const link = linkAt(els, c);
 			if (link) {
