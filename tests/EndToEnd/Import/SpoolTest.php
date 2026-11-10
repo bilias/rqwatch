@@ -8,8 +8,9 @@
 */
 
 /*
- The failed-import spool: refused writes, degraded boot, and its refusal.
- The spool is in Redis, so these skip when the run has REDIS_ENABLE=false.
+ The failed-import spool: refused writes, degraded boot, and its refusal;
+ a damaged entry is skipped and the pass goes on. The spool is in Redis,
+ so these skip when the run has REDIS_ENABLE=false.
 */
 
 namespace Tests\EndToEnd\Import;
@@ -73,6 +74,44 @@ final class SpoolTest extends EndToEndTestCase
 		$this->assertImported($reply, $row);
 		$this->assertQuarantined($row);
 		$this->assertStringContainsString('No spooled entries found', self::cli('cron:import_spool', '-l', '-v'));
+	}
+
+	#[TestDox('A damaged spooled entry is skipped and left in place; the pass goes on and imports the next one')]
+	public function testDamagedEntrySkipped(): void {
+		self::db()->exec('SET GLOBAL read_only = 1');
+		try {
+			[, $reply] = $this->import('spam', wait: false);
+			self::waitForSpool();
+		} finally {
+			self::db()->exec('SET GLOBAL read_only = 0');
+		}
+
+		$redis = self::redis();
+		$prefix = 'rqwatch_import_spool:mail:' . rawurlencode(self::SERVER) . ':';
+		$keys = $redis->keys($prefix . '*');
+		$this->assertIsArray($keys);
+		$this->assertCount(1, $keys, 'fixture: one spooled entry');
+		$raw = $redis->get($keys[0]);
+		$this->assertIsString($raw);
+		/** @var mixed $entry */
+		$entry = json_decode($raw, true);
+		$this->assertIsArray($entry);
+		/** @var mixed $recipients */
+		$recipients = $entry['recipients'] ?? null;
+		$this->assertIsArray($recipients);
+		$recipients[] = ['nested@example.org'];
+		$entry['recipients'] = $recipients;
+		// '-' sorts before the uniqid digits: drain() meets the damaged entry first
+		$damaged = $prefix . '-damaged';
+		$redis->set($damaged, (string) json_encode($entry));
+		try {
+			$this->assertStringContainsString('1 imported, 1 skipped of 2 spooled', self::cli('cron:import_spool', '-i', '-l', '-v'));
+			$this->assertImported($reply, self::row("<{$this->sent['id']}@sender.test>"));
+			$this->assertSame(1, self::logCount("[MailLogSpool] unusable payload in {$damaged}"));
+			$this->assertSame(1, $redis->exists($damaged), 'left in place for the operator');
+		} finally {
+			$redis->del($damaged);
+		}
 	}
 
 	#[TestDox('Database unreachable, no migration status in Redis: degraded boot refused, nothing spooled')]

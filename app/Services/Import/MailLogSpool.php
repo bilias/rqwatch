@@ -191,7 +191,7 @@ final class MailLogSpool
 
 		$alias = $this->serverAlias();
 		$countKey = $this->countKey($alias);
-		$qid = (string) ($mailData['qid'] ?? 'unknown');
+		$qid = self::text($mailData, 'qid') ?? 'unknown';
 
 		try {
 			$pending = (int) $cache->get($countKey);
@@ -264,9 +264,9 @@ final class MailLogSpool
 
 	 Any insert failure stops the whole pass and leaves the rest spooled:
 	 a cron firing mid-stall would otherwise grind through the batch
-	 failing every one. An unusable payload is skipped instead, so one
-	 bad entry cannot block the queue; it is left in place for the
-	 operator and cleared by the TTL.
+	 failing every one. An unusable payload (see payload()) is skipped
+	 instead, so one bad entry cannot block the queue; it is left in place
+	 for the operator and cleared by the TTL.
 
 	 @return array{found:int,inserted:int,skipped:int,stopped:bool}
 	*/
@@ -315,25 +315,23 @@ final class MailLogSpool
 				continue;
 			}
 
-			$entry = is_string($raw) ? json_decode($raw, true) : null;
+			$payload = self::payload($raw);
 
-			if (!is_array($entry)
-				|| !isset($entry['data'])
-				|| !is_array($entry['data'])
-				|| !is_array($entry['recipients'] ?? null)
-			) {
+			if ($payload === null) {
 				$this->fileLogger->error("[MailLogSpool] unusable payload in {$key}");
 				$output?->writeln("<error>Unusable payload in {$key}</error>");
 				$result['skipped']++;
 				continue;
 			}
 
-			$data = $entry['data'];
-			$qid = (string) ($data['qid'] ?? 'unknown');
+			[$data, $recipients] = $payload;
+			$qid = self::text($data, 'qid') ?? 'unknown';
 
 			if ($showOnly) {
+				/** @var mixed $stored */
+				$stored = $data['mail_stored'] ?? 0;
 				$output?->writeln(
-					"QID: {$qid}, stored: " . (string) ($data['mail_stored'] ?? '0')
+					"QID: {$qid}, stored: " . (is_int($stored) || is_string($stored) ? (string) $stored : get_debug_type($stored))
 					. ", key: {$key}"
 				);
 				continue;
@@ -344,11 +342,12 @@ final class MailLogSpool
 			 mail_stored = 1 against a missing file breaks the detail and
 			 release pages, so record the metadata honestly instead.
 			*/
+			$location = self::text($data, 'mail_location');
 			if ($localOnly
-				&& !empty($data['mail_location'])
-				&& !file_exists((string) $data['mail_location'])
+				&& $location !== null && $location !== ''
+				&& !file_exists($location)
 			) {
-				$gone = "{$qid} raw file is gone: {$data['mail_location']},"
+				$gone = "{$qid} raw file is gone: {$location},"
 					. " importing with mail_stored = 0";
 				$this->fileLogger->warning("[MailLogSpool] {$gone}");
 				$this->syslogLogger->warning($gone);
@@ -357,7 +356,7 @@ final class MailLogSpool
 			}
 
 			try {
-				$id = $writer->insert($data, $entry['recipients']);
+				$id = $writer->insert($data, $recipients);
 			} catch (Throwable $e) {
 				$reason = $e->getPrevious()?->getMessage() ?? $e->getMessage();
 				$failed = "import of {$qid} failed, stopping ({$key}): {$reason}";
@@ -397,6 +396,60 @@ final class MailLogSpool
 		}
 
 		return $result;
+	}
+
+	/**
+	 * A spooled entry as push() wrote it: the mail data with text field
+	 * names, a mail_location that is text or null, and the recipients as
+	 * text. Null for anything else, which drain() skips as unusable: one
+	 * damaged entry must not reach the insert and stop the whole pass.
+	 * @return array{array<string, mixed>, list<string>}|null
+	 */
+	private static function payload(mixed $raw): ?array {
+		/** @var mixed $entry */
+		$entry = is_string($raw) ? json_decode($raw, true) : null;
+		if (!is_array($entry)) {
+			return null;
+		}
+		/** @var mixed $fields */
+		$fields = $entry['data'] ?? null;
+		/** @var mixed $listed */
+		$listed = $entry['recipients'] ?? null;
+		if (!is_array($fields) || !is_array($listed)) {
+			return null;
+		}
+
+		foreach (array_keys($fields) as $field) {
+			if (!is_string($field)) {
+				return null;
+			}
+		}
+		/** @var array<string, mixed> $data every key checked above */
+		$data = $fields;
+		/** @var mixed $location */
+		$location = $data['mail_location'] ?? null;
+		if ($location !== null && !is_string($location)) {
+			return null;
+		}
+
+		$recipients = [];
+		/** @var mixed $recipient */
+		foreach ($listed as $recipient) {
+			if (!is_string($recipient)) {
+				return null;
+			}
+			$recipients[] = $recipient;
+		}
+
+		return [$data, $recipients];
+	}
+
+	// a field of the mail data when it is text, else null
+	/** @param array<array-key, mixed> $data */
+	private static function text(array $data, string $field): ?string {
+		/** @var mixed $value */
+		$value = $data[$field] ?? null;
+		return is_string($value) ? $value : null;
 	}
 
 	/*
