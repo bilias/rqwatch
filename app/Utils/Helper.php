@@ -352,7 +352,8 @@ final class Helper {
 
 	// change row class depending on action
 	/** @param array<array-key, RspamdSymbol>|null $symbols a mail's decoded symbols */
-	public static function get_row_class(string $action, ?array $symbols = null): string {
+	// a mail without an action (none in its metadata) renders as clean
+	public static function get_row_class(?string $action, ?array $symbols = null): string {
 		if ($symbols !== null && $symbols !== []) {
 			// green only if the whitelist won; a forced reject/discard keeps its colour
 			if (!in_array($action, ['reject', 'discard'], true) && self::checkForWhitelist($symbols)) {
@@ -368,7 +369,8 @@ final class Helper {
 			*/
 		}
 
-		if (!empty($action)) {
+		// what empty() meant: null, '' and '0' are no action
+		if ($action !== null && $action !== '' && $action !== '0') {
 			switch ($action) {
 				case 'no action':
 					return "clean";
@@ -389,8 +391,10 @@ final class Helper {
 		return "clean";
 	}
 
-	public static function getDelivery(string $action): ?string {
-		if (!empty($action)) {
+	// null for a mail without an action, as for an empty one
+	public static function getDelivery(?string $action): ?string {
+		// what empty() meant: null, '' and '0' are no action
+		if ($action !== null && $action !== '' && $action !== '0') {
 			switch ($action) {
 				case 'greylist':
 					return "greylisted";
