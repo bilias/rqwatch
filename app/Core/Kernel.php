@@ -142,7 +142,8 @@ final class Kernel
 		}
 
 		try {
-			Dotenv::createImmutable(RQWATCH_ROOT)->load();
+			// the file checked above, named once
+			Dotenv::createImmutable(dirname(AppConfig::ENV_PATH), basename(AppConfig::ENV_PATH))->load();
 		} catch (Throwable $e) {
 			$this->fileLogger->critical("Error loading .env: " . $e->getMessage());
 			$this->bootFailure("Application configuration error");
