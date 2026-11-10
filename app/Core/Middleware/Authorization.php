@@ -11,6 +11,7 @@
 namespace App\Core\Middleware;
 
 use App\Core\Routing\RouteName;
+use App\Core\SessionManager;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,11 +41,10 @@ final class Authorization
 			return new RedirectResponse($homeUrl);
 		}
 
-		$username = $request->getSession()->get('username');
-		$is_admin = $request->getSession()->get('is_admin');
+		$username = SessionManager::getString($request->getSession(), 'username') ?? '';
 
 		// admin has access
-		if ($is_admin) {
+		if (SessionManager::getBool($request->getSession(), 'is_admin') === true) {
 			return $next($request);
 		}
 

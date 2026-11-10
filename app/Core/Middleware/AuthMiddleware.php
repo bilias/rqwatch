@@ -75,8 +75,11 @@ final class AuthMiddleware
 	// false once an LDAP/OIDC user's admin status no longer matches *_ADMINS,
 	// users.session_version was bumped by an account change, or the user is gone
 	private function sessionStillValid(SessionInterface $session): bool {
-		$external_admin = AuthManager::isExternalAdmin((string) $session->get('auth_provider', ''), (string) $session->get('username', ''));
-		if ($external_admin !== null && $external_admin !== (bool) $session->get('is_admin')) {
+		$external_admin = AuthManager::isExternalAdmin(
+			SessionManager::getString($session, 'auth_provider') ?? '',
+			SessionManager::getString($session, 'username') ?? ''
+		);
+		if ($external_admin !== null && $external_admin !== (SessionManager::getBool($session, 'is_admin') ?? false)) {
 			return false;
 		}
 
@@ -86,7 +89,7 @@ final class AuthMiddleware
 
 		try {
 			/** @var int|null $current the user's session_version, null if the user is gone */
-			$current = User::whereKey((int) $session->get('user_id', 0))->value('session_version');
+			$current = User::whereKey(SessionManager::getInt($session, 'user_id') ?? 0)->value('session_version');
 		} catch (Throwable $e) {
 			$this->logger->error("[AuthMiddleware] session check failed: " . $e->getMessage());
 			Helper::failRequest('Service temporarily unavailable', Response::HTTP_SERVICE_UNAVAILABLE);
@@ -101,7 +104,7 @@ final class AuthMiddleware
 			return false;
 		}
 
-		return (int) $session->get('session_version') === (int) $current;
+		return SessionManager::getInt($session, 'session_version') === (int) $current;
 	}
 
 }

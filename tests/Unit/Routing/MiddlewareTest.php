@@ -10,7 +10,8 @@
 
 /*
  The two access middlewares, for the cases that need no database:
- anonymous requests and the admin check on an existing session.
+ anonymous requests, the admin check on an existing session, and a
+ session value of another type than rqwatch writes, which is refused.
 */
 
 namespace Tests\Unit\Routing;
@@ -20,6 +21,7 @@ use App\Core\Middleware\Authorization;
 use App\Core\Routing\Routes;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -98,5 +100,28 @@ final class MiddlewareTest extends TestCase
 		$response = (new Authorization($this->urls, new NullLogger()))->handle($request, $this->next());
 		$this->assertTrue($this->reached);
 		$this->assertSame('controller', $response->getContent());
+	}
+
+	// a stored value of another type is a bug: refused, never read as admin
+	public function testAdminFlagNotBoolRefused(): void {
+		$request = $this->request('/admin/users', ['username' => 'root', 'is_admin' => 1]);
+		try {
+			(new Authorization($this->urls, new NullLogger()))->handle($request, $this->next());
+			$this->fail('expected a RuntimeException');
+		} catch (RuntimeException $e) {
+			$this->assertSame("Session value 'is_admin' must be true or false, not int", $e->getMessage());
+		}
+		$this->assertFalse($this->reached, 'Controller must not run');
+	}
+
+	public function testAuthProviderNotTextRefused(): void {
+		$request = $this->request('/mail/42', ['username' => 'alice', 'auth_provider' => 5, 'is_admin' => false]);
+		try {
+			(new AuthMiddleware($this->urls, new NullLogger()))->handle($request, $this->next());
+			$this->fail('expected a RuntimeException');
+		} catch (RuntimeException $e) {
+			$this->assertSame("Session value 'auth_provider' must be a string, not int", $e->getMessage());
+		}
+		$this->assertFalse($this->reached, 'Controller must not run');
 	}
 }
