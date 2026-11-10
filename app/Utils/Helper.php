@@ -50,6 +50,11 @@ use InvalidArgumentException;
  * @phpstan-type RspamdSymbol array{name: string, score: int|float, options?: list<string>|null, ...}
  * What the pattern and fuzzy checks read: a name (get_symbol_class() passes only that)
  * @phpstan-type NamedSymbol array{name: string, ...}
+ * The fields MailLogService passes each mail text: MailLog's columns, plus
+ * what that mail adds; the same array feeds the HTML template, hence open
+ * @phpstan-type ReleaseMailVars array{created_at: \Carbon\CarbonInterface, mime_from: string|null, rcpt_to: string, subject: string|null, qid: string|null, score: float|null, has_virus: bool, virus_name: string|null, action: string|null, signature: string|null, ...}
+ * @phpstan-type NotifyMailVars array{created_at: \Carbon\CarbonInterface, mime_from: string|null, rcpt_to: string, subject: string|null, qid: string|null, score: float|null, has_virus: bool, virus_name: string|null, action: string|null, signature: string|null, detailurl: string, link_one_time: bool, ...}
+ * @phpstan-type AdminNotifyMailVars array{created_at: \Carbon\CarbonInterface, mime_from: string|null, rcpt_to: string, subject: string|null, qid: string|null, score: float|null, has_virus: bool, virus_name: string|null, action: string|null, signature: string|null, detailurl: string, server: string, mail_from: string|null, ...}
  */
 final class Helper {
 
@@ -898,7 +903,7 @@ final class Helper {
 	// 	return [];
 	// }
 
-	/** @param array<string, mixed> $ar */
+	/** @param ReleaseMailVars $ar */
 	public static function getReleaseText(array $ar): string {
 		$ret = "The following mail has been released from quarantine storage
 and attached to this mail.
@@ -925,7 +930,7 @@ Action: {$ar['action']}
 		return $ret;
 	}
 
-	/** @param array<string, mixed> $ar */
+	/** @param NotifyMailVars $ar */
 	public static function getNotifyText(array $ar): string {
 		$ret = "The following mail has been saved in our quarantine storage
 because our system has detected it as being high scored spam or that it contains a virus.
@@ -956,7 +961,7 @@ You can view mail details and optionally release it from quarantine by clicking 
 		return $ret;
 	}
 
-	/** @param array<string, mixed> $ar */
+	/** @param AdminNotifyMailVars $ar */
 	public static function getAdminNotifyText(array $ar): string {
 		$ret = "Admin notification: the following mail has been saved in quarantine.
 
