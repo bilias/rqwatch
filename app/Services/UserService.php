@@ -270,17 +270,36 @@ final class UserService
 		]);
 	}
 
-	/** @param array<string, mixed> $data the user form's data */
+	/**
+	 * A username that is empty once trimmed, or '0', is refused quietly, as
+	 * before; a username or password that is not text, or an empty
+	 * password (neither a hash nor EXTERNAL_AUTH), is refused and logged.
+	 * @param array<string, mixed> $data the user form's data
+	 */
 	public function userAdd(array $data): bool {
-		if (empty($data) || empty($data['username'])) {
+		/** @var mixed $username */
+		$username = $data['username'] ?? null;
+		/** @var mixed $password */
+		$password = $data['password'] ?? null;
+		if ($username !== null && !is_string($username)) {
+			$this->logger->error('userAdd: username is ' . get_debug_type($username) . ', not text');
+			return false;
+		}
+		$username = trim($username ?? '');
+		if ($username === '' || $username === '0') {
+			return false;
+		}
+		$username = strtolower($username);
+		if (!is_string($password) || $password === '') {
+			$this->logger->error("userAdd: no usable password for '{$username}'");
 			return false;
 		}
 
 		try {
 			$user = new User;
-			$data['username'] = strtolower(trim($data['username']));
+			$data['username'] = $username;
 			$user->fill($data);
-			$user->password = $data['password'];
+			$user->password = $password;
 			$saved = $user->save();
 
 			if ($saved === true) {
