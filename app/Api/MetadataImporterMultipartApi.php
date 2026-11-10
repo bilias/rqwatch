@@ -191,7 +191,10 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		$charsets = [];
 		/** @var array<string, mixed> $part a mailparse part: its header fields by name */
 		foreach ($parser->getParts() as $part) {
-			$charset = Helper::mailCharset((string) ($part['charset'] ?? ''));
+			// mailparse gives a string; anything else counts as no charset
+			/** @var mixed $declared */
+			$declared = $part['charset'] ?? null;
+			$charset = is_string($declared) ? Helper::mailCharset($declared) : null;
 			if ($charset !== null && !in_array($charset, $charsets, true)) {
 				$charsets[] = $charset;
 			}
