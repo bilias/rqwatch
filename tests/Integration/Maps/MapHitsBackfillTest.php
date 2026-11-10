@@ -14,7 +14,8 @@
  with -a, and only with -r. The test makes its own entries in
  mail_from_rcpt_to_whitelist, read by RQWATCH_SMTP_FROM_RCPT_TO_WHITELIST
  in config.php's map_symbols: other tests change the fixture ones (a
- user's delete-all removes alice's entry 201).
+ user's delete-all removes alice's entry 201). A symbol named with digits,
+ keyed by an int in PHP, is recorded like any other.
 */
 
 namespace Tests\Integration\Maps;
@@ -31,6 +32,8 @@ final class MapHitsBackfillTest extends IntegrationTestCase
 	// matched by local_symbol_patterns, read by no map
 	private const string LOCAL = 'LOCAL_BACKFILL_TEST';
 	private const string STALE = 'STALE_BACKFILL_TEST';
+	// a symbol named with digits, which PHP keys by an int
+	private const string DIGITS = '1234509';
 
 	/** @var array{alice: int, bob: int} whitelist entry ids */
 	private array $entries;
@@ -45,7 +48,7 @@ final class MapHitsBackfillTest extends IntegrationTestCase
 		// the mails go, and their hits with them
 		parent::tearDown();
 		if (getenv('INTEGRATION_BASE_URL') !== false) {
-			self::db()->exec("DELETE FROM symbol_names WHERE name IN ('" . self::LOCAL . "', '" . self::STALE . "')");
+			self::db()->exec("DELETE FROM symbol_names WHERE name IN ('" . self::LOCAL . "', '" . self::STALE . "', '" . self::DIGITS . "')");
 			self::db()->exec("DELETE FROM maps_combined WHERE mail_from LIKE 'backfill-%'");
 		}
 	}
@@ -70,6 +73,22 @@ final class MapHitsBackfillTest extends IntegrationTestCase
 				$this->assertStringContainsString('Batch size must be a positive number', $e->getMessage(), $batch);
 			}
 		}
+	}
+
+	#[TestDox('A symbol named with digits that local_symbol_patterns match is recorded, with the mail\'s other hits')]
+	public function testDigitsSymbolRecorded(): void {
+		$this->quarantined(9503, 'mx1', ['alice@example.org'], [], [
+			self::DIGITS => ['name' => self::DIGITS, 'score' => 1],
+			self::LOCAL => ['name' => self::LOCAL, 'score' => 2.5],
+		]);
+		$patterns = "\$local_symbol_patterns = array('RQWATCH_*', 'LOCAL_*', '1234*');";
+		// a fresh config cache key, so the Redis leg reads the local config too
+		self::withEnv(['REDIS_CONFIG_KEY' => '"rqwatch_config_maphits_' . bin2hex(random_bytes(4)) . '"'], function () use ($patterns): void {
+			self::withLocalConfig($patterns, function (): void {
+				self::cli('db:map_hits_backfill', '-r', '-b', '2');
+			});
+		});
+		$this->assertSame(['9503 ' . self::DIGITS . ' 0 0 1 1', '9503 ' . self::LOCAL . ' 0 0 2.5 1'], self::hits());
 	}
 
 	#[TestDox('-r: hits again from the stored symbols, the old ones replaced, for the last 31 days; -a: the whole log')]

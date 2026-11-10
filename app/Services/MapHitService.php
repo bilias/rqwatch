@@ -57,7 +57,7 @@ final class MapHitService
 			$symbolMaps = [];
 			foreach (MapService::mapSymbols() as $map => $names) {
 				foreach ($names as $name) {
-					$symbolMaps[$name][] = $map;
+					$symbolMaps[$name][] = (string) $map;
 				}
 			}
 
@@ -76,7 +76,7 @@ final class MapHitService
 				return;
 			}
 
-			$ids = $this->symbolIds(array_keys($wanted));
+			$ids = $this->symbolIds(array_map(fn (int|string $key): string => (string) $key, array_keys($wanted)));
 
 			$db = App::capsule()->getConnection();
 			// the mail's own day, so a spool replay lands on its arrival day
@@ -88,7 +88,9 @@ final class MapHitService
 			}
 
 			$rows = [];
-			foreach ($wanted as $name => $symbol) {
+			foreach ($wanted as $key => $symbol) {
+				// a symbol named with digits is keyed by an int
+				$name = (string) $key;
 				if (!isset($ids[$name])) {
 					continue;
 				}
@@ -154,8 +156,8 @@ final class MapHitService
 
 	// symbol name => [score, options] for the local rule symbols and those a map names
 	/**
-	 * @param array<string, list<string>> $symbolMaps symbol => maps naming it
-	 * @return array<string, array{score: float|null, options: list<scalar>}>
+	 * @param array<array-key, list<string>> $symbolMaps symbol => maps naming it
+	 * @return array<array-key, array{score: float|null, options: list<scalar>}> keyed by symbol name
 	 */
 	private function wantedSymbols(string $symbols, array $symbolMaps): array {
 		$list = json_decode($symbols, true);
@@ -854,7 +856,7 @@ final class MapHitService
 	// symbol name => symbol_names.id, for the names recorded so far
 	/**
 	 * @param array<array-key, string> $names
-	 * @return array<string, int>
+	 * @return array<array-key, int> keyed by name: PHP keys a name of digits by an int
 	 */
 	private function existingSymbolIds(array $names): array {
 		$names = array_values(array_unique($names));
@@ -868,7 +870,7 @@ final class MapHitService
 	// symbol name => symbol_names.id, adding the names not seen before
 	/**
 	 * @param list<string> $names
-	 * @return array<string, int>
+	 * @return array<array-key, int> keyed by name: PHP keys a name of digits by an int
 	 */
 	private function symbolIds(array $names): array {
 		$table = App::capsule()->getConnection()->table(AppConfig::SYMBOL_NAMES_TABLE);

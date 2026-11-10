@@ -258,7 +258,8 @@ final class MapService
 	 * $map_symbols for the built-in maps, the map definition for custom maps.
 	 * Invalid config entries are logged and skipped.
 	 */
-	/** @return array<string, list<string>> */
+	// keyed by map name: PHP keys a name of digits by an int, so a reader turns a key back into text
+	/** @return array<array-key, list<string>> */
 	public static function mapSymbols(): array {
 		$maps = [];
 

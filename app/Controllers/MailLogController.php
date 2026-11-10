@@ -879,7 +879,7 @@ final class MailLogController extends ViewController
 			$byName = [];
 			foreach (MapService::mapSymbols() as $map => $names) {
 				foreach ($names as $name) {
-					$byName[$name][] = $map;
+					$byName[$name][] = (string) $map;
 				}
 			}
 			$entryMaps = $hitService->entryMaps(array_merge([], ...array_values($hits)));

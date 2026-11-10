@@ -252,7 +252,7 @@ abstract class IntegrationTestCase extends TestCase
 	 * admin_notified...); $symbols is the stored rspamd symbols report, by name.
 	 * @param list<string> $recipients
 	 * @param array<string, int|float|string|null> $columns
-	 * @param array<string, array<string, mixed>> $symbols
+	 * @param array<array-key, array<string, mixed>> $symbols keyed by name (a name of digits is an int key)
 	 */
 	protected function quarantined(int $id, string $server, array $recipients = ['alice@example.org'],
 			array $columns = [], array $symbols = []): string {
