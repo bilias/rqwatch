@@ -154,7 +154,9 @@ final class RedisCache implements CacheInterface
 
 	/**
 	 * Return all keys matching a prefix with their remaining TTL.
-	 * Uses SCAN, not KEYS, so it does not block the Redis instance.
+	 * Uses SCAN, not KEYS, so it does not block the Redis instance. A key
+	 * that expires between SCAN and TTL (Redis answers -2) is not listed; a
+	 * TTL that fails is an error, not "0 seconds left".
 	 *
 	 * @return array<string,int> key => seconds remaining (-1 = no expiry)
 	 */
@@ -165,11 +167,20 @@ final class RedisCache implements CacheInterface
 			$cursor = null;
 			do {
 				$keys = $connection->scan($cursor, $prefix . '*', 100);
-				if ($keys !== false && !empty($keys)) {
-					foreach ($keys as $key) {
-						$ttl = $connection->ttl($key);
-						$found[$key] = is_int($ttl) ? $ttl : 0;
+				/** @var mixed $key */
+				foreach ($keys === false ? [] : $keys as $key) {
+					// key names stay out of the messages: the login throttle's hold client IPs
+					if (!is_string($key)) {
+						throw new RuntimeException("SCAN for '{$prefix}' returned a key that is not text: " . get_debug_type($key));
 					}
+					$ttl = $connection->ttl($key);
+					if ($ttl === -2) {
+						continue;
+					}
+					if (!is_int($ttl)) {
+						throw new RuntimeException("TTL of a key under '{$prefix}' failed: " . get_debug_type($ttl));
+					}
+					$found[$key] = $ttl;
 				}
 			} while ($cursor != 0);
 		} catch (Throwable $e) {

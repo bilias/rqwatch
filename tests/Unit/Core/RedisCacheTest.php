@@ -20,6 +20,7 @@ namespace Tests\Unit\Core;
 use App\Core\Cache\RedisCache;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Redis;
+use RuntimeException;
 use RedisException;
 use ReflectionProperty;
 use Tests\Unit\UnitTestCase;
@@ -82,6 +83,28 @@ final class RedisCacheTest extends UnitTestCase
 		$this->assertFalse($this->cache($redis)->get('k'));
 		// a miss, but not a silent one
 		$this->assertSame(["warning RedisCache get got " . get_debug_type($redis) . " for key 'k'"], $this->log->lines);
+	}
+
+	// a key gone between SCAN and TTL (-2) is not listed; no expiry (-1) is
+	public function testListByPrefix(): void {
+		$redis = $this->createStub(Redis::class);
+		$redis->method('scan')->willReturn(['p:a', 'p:gone', 'p:forever']);
+		$redis->method('ttl')->willReturnMap([['p:a', 300], ['p:gone', -2], ['p:forever', -1]]);
+		$this->assertSame(['p:a' => 300, 'p:forever' => -1], $this->cache($redis)->listByPrefix('p:'));
+	}
+
+	// a failed TTL is an error, not "0 seconds left"
+	public function testListByPrefixTtlFails(): void {
+		$redis = $this->createStub(Redis::class);
+		$redis->method('scan')->willReturn(['p:a']);
+		$redis->method('ttl')->willReturn(false);
+		try {
+			$this->cache($redis)->listByPrefix('p:');
+			$this->fail('no exception');
+		} catch (RuntimeException $e) {
+			$this->assertSame("TTL of a key under 'p:' failed: bool", $e->getMessage());
+		}
+		$this->assertSame(["error RedisCache listByPrefix: TTL of a key under 'p:' failed: bool"], $this->log->lines);
 	}
 
 	private function cache(Redis $redis): RedisCache {
