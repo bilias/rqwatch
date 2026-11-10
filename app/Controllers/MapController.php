@@ -491,7 +491,7 @@ final class MapController extends ViewController
 		// Fetch config for the selected map
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if (!$config || !array_key_exists('fields', $config) || !array_key_exists('model', $config)) {
+		if ($config === null || !array_key_exists('fields', $config) || !array_key_exists('model', $config)) {
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
 		}
@@ -506,7 +506,7 @@ final class MapController extends ViewController
 		// use local inventory
 		else {
 			foreach ($fields as $field) {
-				$descriptions[] = MapInventory::getFieldDefinitions($field)['description'];
+				$descriptions[] = MapInventory::fieldDefinition($field)['description'];
 			}
 		}
 
@@ -614,7 +614,7 @@ final class MapController extends ViewController
 		//$config = MapInventory::getMapConfigs($map) ?? null;
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if (!$config || !array_key_exists('map_form', $config) || !array_key_exists('model', $config)) {
+		if ($config === null || !array_key_exists('map_form', $config) || !array_key_exists('model', $config)) {
 			$this->fileLogger->warning("User {$this->username} tried to add map entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
@@ -659,7 +659,7 @@ final class MapController extends ViewController
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();
 
-			if (empty($data)) {
+			if ($data === null || $data === []) {
 				$this->flashbag->add('error', "Empty map data");
 				return new RedirectResponse($this->getMapAddEntryUrl($map));
 			}
@@ -672,7 +672,7 @@ final class MapController extends ViewController
 				$pairs[] = $field_db['field_label'] . ": " . $data[$field_db['field_name']];
 			} else {
 				foreach ($fields as $field) {
-					$pairs[] = MapInventory::getFieldDefinitions($field)['description'] . ": " . $data[$field];
+					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $data[$field];
 				}
 			}
 			$entry_str = implode(', ', $pairs);
@@ -771,7 +771,7 @@ final class MapController extends ViewController
 		//$config = MapInventory::getMapConfigs($map) ?? null;
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if (!$config || !array_key_exists('map_form', $config)) {
+		if ($config === null || !array_key_exists('map_form', $config)) {
 			$this->fileLogger->warning("User {$this->username} tried to edit map entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
@@ -823,7 +823,7 @@ final class MapController extends ViewController
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();
 
-			if (empty($data)) {
+			if ($data === null || $data === []) {
 				$this->flashbag->add('error', "Empty map data");
 				return new RedirectResponse($this->getMapAddEntryUrl($map));
 			}
@@ -838,7 +838,7 @@ final class MapController extends ViewController
 				$pairs[] = $field_db['field_label'] . ": " . $data['pattern'];
 			} else {
 				foreach ($fields as $field) {
-					$pairs[] = MapInventory::getFieldDefinitions($field)['description'] . ": " . $data[$field];
+					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $data[$field];
 				}
 			}
 			$entry_str = implode(', ', $pairs);
@@ -937,7 +937,7 @@ final class MapController extends ViewController
 
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if (empty($config) || empty($config['model'])) {
+		if ($config === null || empty($config['model'])) {
 			$this->fileLogger->warning("User {$this->username} tried to del map entry in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
@@ -967,7 +967,7 @@ final class MapController extends ViewController
 						$field_db = MapService::getCustomField($map_entry->map_name);
 						$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
 					} else {
-						$pairs[] = MapInventory::getFieldDefinitions($field)['description'] . ": " . $map_entry->$field;
+						$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $map_entry->$field;
 					}
 				}
 				$entry_str = implode(', ', $pairs);
@@ -1011,7 +1011,7 @@ final class MapController extends ViewController
 
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if (empty($config) || empty($config['model'])) {
+		if ($config === null || empty($config['model'])) {
 			$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
@@ -1243,7 +1243,7 @@ final class MapController extends ViewController
 
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if (empty($config) || empty($config['model'])) {
+		if ($config === null || empty($config['model'])) {
 			$this->fileLogger->warning("User {$this->username} tried to toggle map entry in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
@@ -1273,7 +1273,7 @@ final class MapController extends ViewController
 						$field_db = MapService::getCustomField($map_entry->map_name);
 						$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
 					} else {
-						$pairs[] = MapInventory::getFieldDefinitions($field)['description'] . ": " . $map_entry->$field;
+						$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $map_entry->$field;
 					}
 				}
 				$entry_str = implode(', ', $pairs);

@@ -101,16 +101,17 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 		}
 
 		//$param = $input->getArgument('param');
+		/** @var mixed $map */
 		$map = $input->getOption('map');
 
-		if ($map !== null && $map !== '') {
+		if (is_string($map) && $map !== '') {
 			$map_config = MapInventory::getMapConfigs($map);
 			if ($map_config === null || $map_config === []) {
 				$output->writeln("<comment>Map '{$map}' not found</comment>");
 				$this->fileLogger->warning("{$this->app_name} Map '{$map}' not found");
 				return Command::FAILURE;
 			}
-			$configs = [ (string) $map => $map_config ];
+			$configs = [ $map => $map_config ];
 		} else {
 			$configs = MapInventory::getMapConfigs();
 		}

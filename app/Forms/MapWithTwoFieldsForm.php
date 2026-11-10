@@ -43,8 +43,8 @@ class MapWithTwoFieldsForm extends AbstractType
 			throw new RuntimeException("Field names must be defined in child class: " . static::class);
 		}
 
-		$firstField = MapInventory::getFieldDefinitions(static::$firstFieldName);
-		$secondField = MapInventory::getFieldDefinitions(static::$secondFieldName);
+		$firstField = MapInventory::fieldDefinition(static::$firstFieldName);
+		$secondField = MapInventory::fieldDefinition(static::$secondFieldName);
 
 		$builder
 			->add(static::$firstFieldName, $firstField['type'], $firstField['field_options'])

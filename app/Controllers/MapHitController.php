@@ -123,8 +123,8 @@ final class MapHitController extends ViewController
 		try {
 			if ($map !== '' && $entry > 0) {
 				$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
-				$found = $config ? (new MapService($this->getUserContext()))->findMapEntry($config['model'], $map, $entry) : null;
-				if ($found === null) {
+				$found = $config === null ? null : (new MapService($this->getUserContext()))->findMapEntry($config['model'], $map, $entry);
+				if ($config === null || $found === null) {
 					return new RedirectResponse($report);
 				}
 				$ids = $service->entryHitMailIds(MapHitService::entryModel($config['model']), $entry, $window, $this->max_items);

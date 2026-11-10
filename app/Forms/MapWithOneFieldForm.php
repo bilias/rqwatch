@@ -42,7 +42,7 @@ class MapWithOneFieldForm extends AbstractType
 			throw new RuntimeException("Field name must be defined in child class: " . static::class);
 		}
 
-		$field = MapInventory::getFieldDefinitions(static::$fieldName);
+		$field = MapInventory::fieldDefinition(static::$fieldName);
 
 		$builder
 			->add(static::$fieldName, $field['type'], $field['field_options'])

@@ -30,7 +30,7 @@ class MapWithTwoFieldsUserOverrideForm extends MapWithTwoFieldsForm
 			throw new RuntimeException("Field names must be defined in child class: " . static::class);
 		}
 
-		$firstField = MapInventory::getFieldDefinitions(static::$firstFieldName);
+		$firstField = MapInventory::fieldDefinition(static::$firstFieldName);
 
 		// Get the original rcpt_to field def, and replace with dropdown if needed
 		if (static::$secondFieldName === 'rcpt_to') {
@@ -50,7 +50,7 @@ class MapWithTwoFieldsUserOverrideForm extends MapWithTwoFieldsForm
 				],
 			];
 		} else {
-			$secondField = MapInventory::getFieldDefinitions(static::$secondFieldName);
+			$secondField = MapInventory::fieldDefinition(static::$secondFieldName);
 		}
 
 		$builder

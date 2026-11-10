@@ -203,7 +203,7 @@ final class MapInventory
 
 		self::checkMapConfigs($configs);
 
-		if ($map !== null && $map !== '') {
+		if ($map !== null) {
 			if (array_key_exists($map, $configs)) {
 				return $configs[$map];
 			} else {
@@ -215,8 +215,14 @@ final class MapInventory
 	}
 
 	// Reusable field definitions
-	/** @return ($field is null ? array<string, array<string, mixed>> : array<string, mixed>) all definitions by field, or one ([] if unknown) */
-	public static function getFieldDefinitions(?string $field = null): array {
+	// one field's definition; an unknown field is a bug in the map or form config
+	/** @return array<string, mixed> */
+	public static function fieldDefinition(string $field): array {
+		return self::getFieldDefinitions()[$field] ?? throw new RuntimeException("Unknown map field '{$field}'");
+	}
+
+	/** @return array<string, array<string, mixed>> all definitions by field */
+	public static function getFieldDefinitions(): array {
 		$definitions = [
 			'mail_from' => [
 				'description' => 'Mail From',
@@ -314,22 +320,14 @@ final class MapInventory
 			// Add more fields here...
 		];
 
-		if ($field) {
-			if (array_key_exists($field, $definitions)) {
-				return $definitions[$field];
-			}
-			return [];
-		}
-
-		// no field given, return all field definitions
 		return $definitions;
 	}
 
-	/** @return ($map is null ? array<string, array<string, mixed>> : array<string, mixed>) the role's configs by map name, or one map's config ([] if not available) */
+	/** @return ($map is null ? array<string, array<string, mixed>> : array<string, mixed>|null) the role's configs by map name, or one map's config (null if not available) */
 	public static function getAvailableMapConfigs(
 		string $role = 'admin',
 		?string $map = null
-	): array {
+	): ?array {
 
 		// local map configs
 		$configs = self::getMapConfigs();
@@ -337,7 +335,7 @@ final class MapInventory
 		// map exists in config
 		if ($map !== null) {
 			if (!array_key_exists($map, $configs)) {
-				return [];
+				return null;
 			}
 
 			// check role 'access' in map config
@@ -361,7 +359,7 @@ final class MapInventory
 				return $config;
 			}
 
-			return []; // Not accessible for this role
+			return null; // Not accessible for this role
 		}
 
 		// No specific map requested — filter all

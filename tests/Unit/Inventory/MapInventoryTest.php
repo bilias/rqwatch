@@ -46,6 +46,21 @@ final class MapInventoryTest extends UnitTestCase
 		}
 	}
 
+	public function testBuiltInFieldsDefined(): void {
+		foreach (MapInventory::getMapConfigs(null, false) as $name => $config) {
+			/** @var list<string> $fields every config lists them (checkMapConfigs) */
+			$fields = $config['fields'];
+			foreach ($fields as $field) {
+				$this->assertNotSame('', MapInventory::fieldDefinition($field)['description'], "{$name}: {$field}");
+			}
+		}
+	}
+
+	public function testUnknownFieldDefinitionThrows(): void {
+		$this->expectExceptionMessage("Unknown map field 'domain'");
+		MapInventory::fieldDefinition('domain');
+	}
+
 	public function testCustomConfigPasses(): void {
 		$this->expectNotToPerformAssertions();
 		$this->check(['custom' => self::CUSTOM]);

@@ -1370,10 +1370,14 @@ final class MailLogController extends ViewController
 
 	/** @return array<string, array<string, mixed>> map name => config, plus its add_url */
 	private function getMapConfigsWithAddUrls(MailLog $log, ?string $map = null): array {
-		$configs = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
-
-		if ($map !== null && empty($configs)) {
+		if ($map === null) {
+			$configs = MapInventory::getAvailableMapConfigs($this->getRole());
+		} else {
+			$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
+			if ($config === null) {
 				return [];
+			}
+			$configs = [$map => $config];
 		}
 
 		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' not valid: fail closed */
