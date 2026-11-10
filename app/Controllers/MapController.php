@@ -30,6 +30,7 @@ use App\Services\MapHitService;
 use App\Models\CustomMapConfig;
 use App\Models\MapActivityLog;
 use App\Models\User;
+use App\Utils\FormHelper;
 use App\Utils\Helper;
 
 use RuntimeException;
@@ -625,9 +626,9 @@ final class MapController extends ViewController
 		$data = [];
 
 		foreach ($fields as $field) {
-			// the "add to map" links pass the values in the query string
+			// the "add to map" links pass the values in the query string; only text prefills
 			$value = $this->request->query->all()[$field] ?? null;
-			if ($value !== null) {
+			if (is_string($value)) {
 				$data[$field] = $value;
 			}
 		}
@@ -660,15 +661,21 @@ final class MapController extends ViewController
 				return new RedirectResponse($this->getMapAddEntryUrl($map));
 			}
 
+			// the map's fields: required text in every map form
+			$values = [];
+			foreach ($fields as $field) {
+				$values[$field] = FormHelper::text($data[$field] ?? null, $field);
+			}
+
 			// generate entry string for logs/flashbag
 			$pairs = [];
 			if ($config['model'] === 'MapCustom') {
 				/** @var array{role: string, map: string} $options MapCustom maps are admin-only (getAvailableMapConfigs) */
 				$field_db = MapService::getCustomField($options['map']);
-				$pairs[] = $field_db['field_label'] . ": " . $data[$field_db['field_name']];
+				$pairs[] = $field_db['field_label'] . ": " . $values[$fields[0]];
 			} else {
 				foreach ($fields as $field) {
-					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $data[$field];
+					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $values[$field];
 				}
 			}
 			$entry_str = implode(', ', $pairs);
@@ -678,7 +685,7 @@ final class MapController extends ViewController
 			$model = $config['model'];
 			// entry already exists
 			// has applyUserRcptToScope
-			if ($service->mapEntryExists($model, $map, $fields, $data)) {
+			if ($service->mapEntryExists($model, $map, $fields, $values)) {
 				$this->flashbag->add('error', "Entry '{$entry_str}' already exists in Map '{$mapdescr}'");
 				return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapAddEntryUrl($map));
 			}
@@ -693,7 +700,7 @@ final class MapController extends ViewController
 			// add entry
 			if ($model === 'MapCombined') {
 				// has applyUseScope
-				if ($service->addMapCombinedEntry($map, $fields, $data)) {
+				if ($service->addMapCombinedEntry($map, $fields, $values)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
 					return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapShowUrl($map));
 				} else {
@@ -701,7 +708,7 @@ final class MapController extends ViewController
 					return new RedirectResponse($this->getMapAddEntryUrl($map));
 				}
 			} elseif ($this->is_admin) {
-				if($service->addMapCustomEntry($map, $data[$fields[0]])) {
+				if($service->addMapCustomEntry($map, $values[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
 					return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapShowUrl($map));
 				} else {
@@ -821,17 +828,24 @@ final class MapController extends ViewController
 				return new RedirectResponse($this->getMapAddEntryUrl($map));
 			}
 
+			// the map's fields: required text in every map form
+			$values = [];
+			foreach ($fields as $field) {
+				$values[$field] = FormHelper::text($data[$field] ?? null, $field);
+			}
+
 			// generate entry string for logs/flashbag
 			$pairs = [];
 			if ($model === 'MapCustom') {
 				/** @var array{role: string, map: string, is_edit: true} $options MapCustom maps are admin-only (getAvailableMapConfigs) */
 				$field_db = MapService::getCustomField($options['map']);
-				$data['pattern'] = trim($data[$field_db['field_name']]);
+				$pattern = trim($values[$fields[0]]);
+				$data['pattern'] = $pattern;
 				//unset($data[$field_db['field_name']]);
-				$pairs[] = $field_db['field_label'] . ": " . $data['pattern'];
+				$pairs[] = $field_db['field_label'] . ": " . $pattern;
 			} else {
 				foreach ($fields as $field) {
-					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $data[$field];
+					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $values[$field];
 				}
 			}
 			$entry_str = implode(', ', $pairs);

@@ -571,7 +571,7 @@ final class MapService
 
 	/**
 	 * @param list<string> $map_fields
-	 * @param array<string, mixed> $data form data
+	 * @param array<string, string> $data the map fields' values
 	 */
 	public function mapEntryExists(string $model, string $map_name, array $map_fields, array $data): bool {
 		if ($model === 'MapCombined') {
@@ -861,7 +861,7 @@ final class MapService
 
 	/**
 	 * @param list<string> $map_fields
-	 * @param array<string, mixed> $data form data
+	 * @param array<string, string> $data the map fields' values
 	 */
 	public function addMapCombinedEntry(string $map_name, array $map_fields, array $data): bool {
 		if (empty($data)) {

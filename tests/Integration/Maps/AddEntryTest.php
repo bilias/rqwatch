@@ -13,7 +13,8 @@
  (?mail_from=…&rcpt_to=…). Users from tests/Integration/fixtures.sql: alice
  has the alias alias-alice@example.org, which her rcpt_to choices include.
  Each test also opens the form without a query, so an assertion that could
- not fail (a value rendered regardless) would show.
+ not fail (a value rendered regardless) would show. A query value that is
+ not text (?mail_from[]=…) prefills nothing, instead of showing as Array.
 */
 
 namespace Tests\Integration\Maps;
@@ -53,6 +54,18 @@ final class AddEntryTest extends IntegrationTestCase
 		$this->assertSame(200, $page['status']);
 		$this->assertSame('prefill-alice@example.net', self::inputValue($page['body'], "{$form}[mail_from]"));
 		$this->assertSame('alias-alice@example.org', self::selected($page['body'], "{$form}[rcpt_to]"));
+	}
+
+	public function testPrefillThatIsNotTextIgnored(): void {
+		$admin = self::client('admin');
+		$form = 'map_mail_from_rcpt_to_form';
+		$page = $admin->get('/admin/map/mail_from_rcpt_to_whitelist/add?' . http_build_query([
+			'mail_from' => ['nested@example.net'],
+			'rcpt_to' => 'prefill-rcpt@example.net',
+		]));
+		$this->assertSame(200, $page['status']);
+		$this->assertSame('', self::inputValue($page['body'], "{$form}[mail_from]"), 'not text: ignored');
+		$this->assertSame('prefill-rcpt@example.net', self::inputValue($page['body'], "{$form}[rcpt_to]"), 'the text one still prefills');
 	}
 
 	// the value of the <input> named $name: '' without one, null if there is no such input
