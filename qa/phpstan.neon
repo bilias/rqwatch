@@ -21,6 +21,15 @@ parameters:
 	bootstrapFiles:
 		- ../app/Configuration/AppConfig.php
 		- phpstan-bootstrap.php
+	# qa/taint-selftest/probes.php echoes raw values on purpose: each line is a
+	# taint probe Psalm must flag, and qa/taint-selftest.php reads its
+	# "// expect" markers at the line's end. PHPStan reports the echo from
+	# level 9, so below that this entry matches nothing (reportUnmatched).
+	ignoreErrors:
+		-
+			identifier: echo.nonString
+			path: taint-selftest/probes.php
+			reportUnmatched: false
 	friendly:
 		lineBefore: 1
 		lineAfter: 1
