@@ -244,9 +244,9 @@ final class MailLogService
 	 $c is always a FormHelper::getChoices() value.
 	*/
 	/** @param Builder<MailLog> $query */
-	private function filterByNotificationSkipped(Builder $query, string $c, mixed $v): void {
-		if (in_array($c, ['=', '<>'], true) && in_array((string) $v, ['0', '1'], true)) {
-			if (($c === '=') === ((string) $v === '1')) {
+	private function filterByNotificationSkipped(Builder $query, string $c, string $v): void {
+		if (in_array($c, ['=', '<>'], true) && in_array($v, ['0', '1'], true)) {
+			if (($c === '=') === ($v === '1')) {
 				$query->whereNull('notified');
 			} else {
 				$query->whereNotNull('notified');
@@ -265,14 +265,14 @@ final class MailLogService
 	 FormHelper::getChoices() value.
 	*/
 	/** @param Builder<MailLog> $query */
-	private function filterByFuzzyHit(Builder $query, string $c, mixed $v): void {
+	private function filterByFuzzyHit(Builder $query, string $c, string $v): void {
 		$id = $query->qualifyColumn('id');
 		$exists = fn (QueryBuilder $q): QueryBuilder => $q->selectRaw('1')
 			->from(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE . ' as fh')
 			->whereColumn('fh.mail_log_id', $id);
 
-		if (in_array($c, ['=', '<>'], true) && in_array((string) $v, ['0', '1'], true)) {
-			$query->whereExists($exists, 'and', ($c === '=') !== ((string) $v === '1'));
+		if (in_array($c, ['=', '<>'], true) && in_array($v, ['0', '1'], true)) {
+			$query->whereExists($exists, 'and', ($c === '=') !== ($v === '1'));
 			return;
 		}
 
@@ -295,7 +295,7 @@ final class MailLogService
 	 * @param Builder<MailLog> $query
 	 * @param list<array{string, string}> $days
 	 */
-	private function filterByMapHit(Builder $query, string $c, mixed $v, array $days): void {
+	private function filterByMapHit(Builder $query, string $c, string $v, array $days): void {
 		$ids = [];
 		$names = array_keys(MapService::mappedSymbolSet());
 		if ($names !== []) {
@@ -317,14 +317,14 @@ final class MailLogService
 				}
 			});
 
-		if (!in_array($c, ['=', '<>'], true) || !in_array((string) $v, ['0', '1'], true)) {
+		if (!in_array($c, ['=', '<>'], true) || !in_array($v, ['0', '1'], true)) {
 			$sub = $hits($query->getQuery()->newQuery());
 			// nosemgrep: rqwatch-raw-sql -- $c is a FormHelper::getChoices() operator; subquery bindings passed
 			$query->whereRaw("(EXISTS ({$sub->toSql()})) {$this->rawOperator($c)} ?", [...$sub->getBindings(), $v]);
 			return;
 		}
 
-		if (($c === '=') !== ((string) $v === '1')) {
+		if (($c === '=') !== ($v === '1')) {
 			$query->whereExists($hits, 'and', true);
 			return;
 		}
@@ -350,7 +350,7 @@ final class MailLogService
 	 guaranteed populated at boot.
 	*/
 	/** @param Builder<MailLog> $query */
-	private function filterByRecipient(Builder $query, string $c, mixed $v): void {
+	private function filterByRecipient(Builder $query, string $c, string $v): void {
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
 
 		$op = match ($c) {
@@ -360,7 +360,7 @@ final class MailLogService
 			default      => $c,
 		};
 
-		$email = strtolower(trim((string) $v));
+		$email = strtolower(trim($v));
 		if ($op === 'LIKE') {
 			$email = "%{$email}%";
 		}
@@ -399,7 +399,7 @@ final class MailLogService
 	 default, the override is a no-op.
 	*/
 	/** @param Builder<MailLog> $query */
-	private function filterByMailLogData(Builder $query, string $f, string $c, mixed $v): void {
+	private function filterByMailLogData(Builder $query, string $f, string $c, string $v): void {
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
 
 		$op = match ($c) {
@@ -409,7 +409,7 @@ final class MailLogService
 			default         => $c,
 		};
 
-		$val = (string) $v;
+		$val = $v;
 		if ($op === 'LIKE') {
 			$val = "%{$val}%";
 		}
@@ -445,7 +445,7 @@ final class MailLogService
 	 * @param Builder<MailLog> $query
 	 * @param list<array{string, string}> $days
 	 */
-	private function filterByVirus(Builder $query, string $c, mixed $v, array $days): void {
+	private function filterByVirus(Builder $query, string $c, string $v, array $days): void {
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
 
 		$op = match ($c) {
@@ -455,7 +455,7 @@ final class MailLogService
 			default      => $c,
 		};
 
-		$val = (string) $v;
+		$val = $v;
 		if ($op === 'LIKE') {
 			$val = "%{$val}%";
 		}
@@ -492,7 +492,7 @@ final class MailLogService
 	 * @param Builder<MailLog> $query
 	 * @param list<array{string, string}> $days
 	 */
-	private function filterByLocalSymbol(Builder $query, string $c, mixed $v, array $days): void {
+	private function filterByLocalSymbol(Builder $query, string $c, string $v, array $days): void {
 		$negate = in_array($c, ['<>', '!=', 'NOT LIKE', 'NOT REGEXP'], true);
 
 		$op = match ($c) {
@@ -502,7 +502,7 @@ final class MailLogService
 			default      => $c,
 		};
 
-		$val = (string) $v;
+		$val = $v;
 		if ($op === 'LIKE') {
 			$val = "%{$val}%";
 		}
