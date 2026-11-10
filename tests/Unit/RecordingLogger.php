@@ -19,6 +19,13 @@ final class RecordingLogger extends AbstractLogger
 	/** @var list<string> */
 	public array $lines = [];
 
+	/**
+	 * Psalm 7 infers what Psr\Log\LoggerInterface::log() may do (no
+	 * write-refs) and treats Stringable::__toString(), which turning the
+	 * message into text calls, as possibly writing through references:
+	 * any logger that formats a Stringable message conflicts, whatever its code.
+	 * @psalm-suppress ImmutableDependency
+	 */
 	#[\Override]
 	public function log($level, string|Stringable $message, array $context = []): void {
 		// a PSR level is a string; anything else shows as its type
