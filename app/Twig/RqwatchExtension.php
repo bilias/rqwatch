@@ -32,6 +32,7 @@ use RuntimeException;
  it into its PHP code: a closure would leave it no way to tell that
  linkify and mark_homoglyphs, which are is_safe, escape what they output.
 */
+/** @phpstan-import-type RspamdSymbol from Helper */
 final class RqwatchExtension extends AbstractExtension
 {
 	/** @var array<string, string>|null labels read once per request: the listing calls get_fuzzy_hits for every row */
@@ -100,9 +101,12 @@ final class RqwatchExtension extends AbstractExtension
 		return ($this->csrfManager)()->getToken('logout')->getValue();
 	}
 
-	/** @return list<array{label: string, class: string}> */
-	private function getFuzzyHits(mixed $symbols): array {
-		if (empty($symbols) || !is_array($symbols)) {
+	/**
+	 * @param array<array-key, RspamdSymbol>|null $symbols a mail's symbols (log.symbols)
+	 * @return list<array{label: string, class: string}>
+	 */
+	private function getFuzzyHits(?array $symbols): array {
+		if ($symbols === null || $symbols === []) {
 			return [];
 		}
 		$this->fuzzyLabels ??= FuzzyService::symbolLabels();

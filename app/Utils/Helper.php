@@ -44,6 +44,13 @@ use Throwable;
 use RuntimeException;
 use InvalidArgumentException;
 
+/**
+ * A stored Rspamd symbol, as sanitizeSymbols() guarantees it; rspamd's other
+ * fields (group, description, ...) come along untyped
+ * @phpstan-type RspamdSymbol array{name: string, score: int|float, options?: list<string>|null, ...}
+ * What the pattern and fuzzy checks read: a name (get_symbol_class() passes only that)
+ * @phpstan-type NamedSymbol array{name: string, ...}
+ */
 final class Helper {
 
 	// used when a *_symbol_patterns config value is missing or invalid
@@ -199,15 +206,15 @@ final class Helper {
 	 * Our fuzzy symbols in a mail's symbols, as [['label' => ..., 'class' => ...]].
 	 * $labels maps symbol name to list label.
 	 *
-	 * @param array<array-key, array<string, mixed>> $symbols
+	 * @param array<array-key, NamedSymbol> $symbols
 	 * @param array<string, string> $labels
 	 * @return list<array{label: string, class: string}>
 	 */
 	public static function getFuzzyHits(array $symbols, array $labels): array {
 		$hits = [];
 		foreach ($symbols as $symbol) {
-			$name = (string) ($symbol['name'] ?? '');
-			if ($name === '' || ($class = self::fuzzySymbolClass($name)) === null) {
+			$name = $symbol['name'];
+			if (($class = self::fuzzySymbolClass($name)) === null) {
 				continue;
 			}
 			$hits[] = [
@@ -244,23 +251,23 @@ final class Helper {
 		return false;
 	}
 
-	/** @param array<array-key, array<string, mixed>> $symbols */
+	/** @param array<array-key, NamedSymbol> $symbols */
 	public static function checkForMap(array $symbols): bool {
 		foreach ($symbols as $symbol) {
-			if (isset($symbol['name']) && !self::isFuzzySymbol((string) $symbol['name'])
-				&& (self::symbolMatches((string) $symbol['name'], 'local_symbol_patterns')
-					|| isset(MapService::mappedSymbolSet()[(string) $symbol['name']]))) {
+			$name = $symbol['name'];
+			if (!self::isFuzzySymbol($name)
+				&& (self::symbolMatches($name, 'local_symbol_patterns')
+					|| isset(MapService::mappedSymbolSet()[$name]))) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	/** @param array<array-key, array<string, mixed>> $symbols */
+	/** @param array<array-key, NamedSymbol> $symbols */
 	public static function checkForWhitelist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
-			if (isset($symbol['name'])
-				&& self::symbolMatches((string) $symbol['name'], 'whitelist_symbol_patterns')) {
+			if (self::symbolMatches($symbol['name'], 'whitelist_symbol_patterns')) {
 				return true;
 			}
 		}
@@ -291,11 +298,10 @@ final class Helper {
 		return array_values(array_unique($rcpt));
 	}
 
-	/** @param array<array-key, array<string, mixed>> $symbols */
+	/** @param array<array-key, NamedSymbol> $symbols */
 	public static function checkForBlacklist(array $symbols): bool {
 		foreach ($symbols as $symbol) {
-			if (isset($symbol['name'])
-				&& self::symbolMatches((string) $symbol['name'], 'blacklist_symbol_patterns')) {
+			if (self::symbolMatches($symbol['name'], 'blacklist_symbol_patterns')) {
 				return true;
 			}
 		}
@@ -323,7 +329,7 @@ final class Helper {
 		return '';
 	}
 
-	/** @param array<array-key, array<string, mixed>>|null $symbols a mail's decoded symbols */
+	/** @param array<array-key, RspamdSymbol>|null $symbols a mail's decoded symbols */
 	public static function get_action_details(?array $symbols = null): string {
 		if ($symbols !== null && $symbols !== []) {
 			if (self::checkForWhitelist($symbols)) {
@@ -340,7 +346,7 @@ final class Helper {
 	}
 
 	// change row class depending on action
-	/** @param array<array-key, array<string, mixed>>|null $symbols a mail's decoded symbols */
+	/** @param array<array-key, RspamdSymbol>|null $symbols a mail's decoded symbols */
 	public static function get_row_class(string $action, ?array $symbols = null): string {
 		if ($symbols !== null && $symbols !== []) {
 			// green only if the whitelist won; a forced reject/discard keeps its colour
@@ -399,8 +405,8 @@ final class Helper {
 
 	// Converts rspamd JSON symbols into an array, sorted by score
 	/**
-	 * @param array<array-key, array<string, mixed>> $symbols_ar
-	 * @return array<array-key, array<string, mixed>>
+	 * @param array<array-key, RspamdSymbol> $symbols_ar
+	 * @return array<array-key, RspamdSymbol>
 	 */
 	public static function get_scores(array $symbols_ar, float $score): array {
 		//$symbols_ar = json_decode($symbols, true);
@@ -495,32 +501,24 @@ final class Helper {
 	return $bytes;
 	}
 
-	// expects json decoded array with one symbol
-	public static function check_virus(mixed $symbol): string|false {
-
-		if (!is_array($symbol) || count($symbol) == 0) {
-			return false;
-		}
-		if (isset($symbol['group']) && $symbol['group'] == 'antivirus') {
-			if (isset($symbol['options']) && isset($symbol['options'][0])) {
-				$virus = (string) $symbol['options'][0];
-			} else {
-				$virus = '';
-			}
-			$antivirus = (string) $symbol['name'];
-			return "[$antivirus: $virus]";
+	// "[antivirus: virus]" for an antivirus symbol, else false
+	/** @param array{name: string, options?: list<string>|null, ...} $symbol */
+	public static function check_virus(array $symbol): string|false {
+		if (($symbol['group'] ?? null) == 'antivirus') {
+			$virus = $symbol['options'][0] ?? '';
+			return "[{$symbol['name']}: $virus]";
 		}
 		return false;
 	}
 
-	// expects json decoded array with all symbols. Untyped on purpose:
-	// MailLog's accessor passes null when mailLogData was not eager loaded
-	public static function check_virus_from_all(mixed $symbols): string|false {
-		if (!is_array($symbols) || count($symbols) == 0) {
+	// the first antivirus symbol's "[antivirus: virus]"; null when the
+	// accessor had no mail_log_data (not eager loaded)
+	/** @param array<array-key, RspamdSymbol>|null $symbols */
+	public static function check_virus_from_all(?array $symbols): string|false {
+		if ($symbols === null || $symbols === []) {
 			return false;
 		}
 
-		/** @var mixed $symbol */
 		foreach ($symbols as $symbol) {
 			if (($ret = self::check_virus($symbol)) !== false) {
 				return $ret;
@@ -535,11 +533,14 @@ final class Helper {
 	 * @param array<array-key, string> $patterns
 	 */
 	public static function virusSkipMatch(array $symbols, array $patterns): ?string {
+		/** @var mixed $symbol */
 		foreach ($symbols as $symbol) {
-			if (!is_array($symbol) || ($symbol['group'] ?? null) !== 'antivirus' || !isset($symbol['name'])) {
+			// decoded straight from the stored JSON by MapHitService: checked here
+			$name = is_array($symbol) && ($symbol['group'] ?? null) === 'antivirus' ? ($symbol['name'] ?? null) : null;
+			if (!is_string($name)) {
 				continue;
 			}
-			$names = [(string) $symbol['name']];
+			$names = [$name];
 			/** @var mixed $opt */
 			foreach ((array) ($symbol['options'] ?? []) as $opt) {
 				if (is_scalar($opt)) {
@@ -565,7 +566,7 @@ final class Helper {
 	 from the key), a score that is not a number is set to 0, and an option
 	 that is neither text nor a number is dropped (a number is kept as text).
 	*/
-	/** @return array<array-key, array<string, mixed>> */
+	/** @return array<array-key, RspamdSymbol> */
 	public static function sanitizeSymbols(mixed $symbols, string $qid = ''): array {
 		if (!is_array($symbols)) {
 			self::logger()->warning("{$qid}: symbols is not a list, stored as empty");
@@ -589,13 +590,18 @@ final class Helper {
 				self::logger()->warning("{$qid}: dropped symbol entry without a name");
 				continue;
 			}
+			/** @var mixed $score */
+			$score = $s['score'] ?? null;
 			if (!array_key_exists('score', $s)) {
 				self::logger()->warning("{$qid}: symbol {$name} has no score, set to 0");
-				$s['score'] = 0;
-			} elseif (!is_int($s['score']) && !is_float($s['score'])) {
+				$score = 0;
+			} elseif (!is_int($score) && !is_float($score)) {
 				self::logger()->warning("{$qid}: symbol {$name} score is not a number, set to 0");
-				$s['score'] = 0;
+				$score = 0;
 			}
+			// in place: a key that was there keeps its position
+			$s['name'] = $name;
+			$s['score'] = $score;
 			if (isset($s['options'])) {
 				if (!is_array($s['options'])) {
 					self::logger()->warning("{$qid}: symbol {$name} options not a list, wrapped");
@@ -614,6 +620,7 @@ final class Helper {
 				}
 				$s['options'] = $options;
 			}
+			/** @var RspamdSymbol $s the name and score set above, options a list of text when set (null when sent as null) */
 			$clean[$k] = $s;
 		}
 
@@ -740,7 +747,7 @@ final class Helper {
 
 	// $score is null when Rspamd sent none (the importer still stores the mail)
 	/**
-	 * @param array<array-key, array<string, mixed>> $symbols_ar
+	 * @param array<array-key, RspamdSymbol> $symbols_ar
 	 * @return array{symbols: list<string>, virus_found: string|null}
 	 */
 	public static function format_symbols(array $symbols_ar, ?float $score, bool $has_virus): array {
@@ -750,14 +757,14 @@ final class Helper {
 		$virus_found = null;
 
 		foreach ($sorted_symbols as $symbol) {
-			 $name = (string) $symbol['name'];
-			 $score = (string) $symbol['score'];
+			 $name = $symbol['name'];
+			 $score = $symbol['score'];
 
 			 if ($has_virus && ($virus = Helper::check_virus($symbol)) !== false) {
 					$symbols[] = "$name:$score:$virus";
 					$virus_found = $virus;
 			 } elseif (isset($symbol['options'])) {
-					$opts = implode(", ", array_map(strval(...), (array) $symbol['options']));
+					$opts = implode(", ", $symbol['options']);
 					$symbols[] = "$name:$score:$opts";
 			 } else {
 					$symbols[] = "$name:$score";

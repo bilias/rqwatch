@@ -19,14 +19,15 @@ namespace Tests\Unit\Helpers;
 use App\Utils\Helper;
 use Tests\Unit\UnitTestCase;
 
+/** @phpstan-import-type RspamdSymbol from Helper */
 final class FormatSymbolsTest extends UnitTestCase
 {
-	/** @return list<array<string, mixed>> */
+	/** @return list<RspamdSymbol> stored symbols, as sanitizeSymbols() keeps them */
 	private static function symbols(): array {
 		return [
 			['name' => 'R_SPF_ALLOW', 'score' => -0.2, 'options' => ['+ip4:192.0.2.0/24']],
 			['name' => 'CLAM_VIRUS', 'score' => 12.5, 'group' => 'antivirus', 'options' => ['Eicar-Test-Signature']],
-			['name' => 'BAYES_SPAM', 'score' => 5.1, 'options' => ['99.9%', 7]],
+			['name' => 'BAYES_SPAM', 'score' => 5.1, 'options' => ['99.9%', '7']],
 			['name' => 'MIME_GOOD', 'score' => 0],
 		];
 	}
@@ -65,8 +66,6 @@ final class FormatSymbolsTest extends UnitTestCase
 		$this->assertSame('[CLAM_VIRUS: Eicar-Test-Signature]', Helper::check_virus(self::symbols()[1]));
 		$this->assertSame('[CLAM_VIRUS: ]', Helper::check_virus(['name' => 'CLAM_VIRUS', 'group' => 'antivirus']));
 		$this->assertFalse(Helper::check_virus(self::symbols()[0]));
-		$this->assertFalse(Helper::check_virus('not a symbol'));
-		$this->assertFalse(Helper::check_virus([]));
 	}
 
 	public function testCheckVirusFromAll(): void {

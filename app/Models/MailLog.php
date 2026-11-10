@@ -34,6 +34,7 @@ use Throwable;
  * @property bool $has_virus importer and spool always write 0 or 1
  * @property string $server importer always writes the server query parameter ('' if absent)
  * @property-read \Illuminate\Support\Carbon $created_day generated from the NOT NULL created_at (date cast)
+ * @phpstan-import-type RspamdSymbol from Helper
  */
 final class MailLog extends Model
 {
@@ -189,7 +190,7 @@ final class MailLog extends Model
 			return null;
 		}
 
-		$virus = Helper::check_virus_from_all($this->getAttribute('symbols'));
+		$virus = Helper::check_virus_from_all($this->symbols);
 
 		return $virus === false ? null : $virus;
 	}
@@ -413,10 +414,10 @@ final class MailLog extends Model
 
 	/**
 	 * @param string|null $value raw attribute
-	 * @return array<array-key, array<string, mixed>>|null decoded JSON (mail_log_data cast)
+	 * @return array<array-key, RspamdSymbol>|null decoded JSON (mail_log_data cast)
 	 */
 	public function getSymbolsAttribute($value): ?array {
-		/** @var array<array-key, array<string, mixed>>|null $symbols as the importer stored them, through Helper::sanitizeSymbols() */
+		/** @var array<array-key, RspamdSymbol>|null $symbols as the importer stored them, through Helper::sanitizeSymbols() */
 		$symbols = $this->mailLogDataValue('symbols');
 		return $symbols;
 	}

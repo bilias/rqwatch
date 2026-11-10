@@ -87,7 +87,7 @@ final class SymbolTest extends UnitTestCase
 
 	public function testBlacklistAndWhitelistDefaults(): void {
 		$this->assertTrue(Helper::checkForBlacklist([['name' => 'RQWATCH_MIME_FROM_BL']]));
-		$this->assertFalse(Helper::checkForBlacklist([['name' => 'RQWATCH_MIME_FROM_WL'], ['score' => 1]]));
+		$this->assertFalse(Helper::checkForBlacklist([['name' => 'RQWATCH_MIME_FROM_WL']]));
 		$this->assertTrue(Helper::checkForWhitelist([['name' => 'rqwatch_ip_whitelist']]));
 		$this->assertFalse(Helper::checkForWhitelist([]));
 	}
