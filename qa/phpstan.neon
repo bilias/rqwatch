@@ -31,8 +31,8 @@ parameters:
 			path: taint-selftest/probes.php
 			reportUnmatched: false
 	friendly:
-		lineBefore: 1
-		lineAfter: 1
+		lineBefore: 0
+		lineAfter: 0
 		editorUrl: 'vim://%%file%%:%%line%%'
 
 	# PHPStan paths are relative to this file (qa/); Larastan's own path
