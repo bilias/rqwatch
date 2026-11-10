@@ -64,7 +64,7 @@ class MapWithOneFieldForm extends AbstractType
 			array $options = []): FormInterface {
 
 		// Merge class with any existing class
-		$options['attr']['class'] = trim(($options['attr']['class'] ?? '') . ' onefieldform');
+		$options = FormHelper::withClass($options, 'onefieldform');
 		return FormHelper::formCreator($formFactory, $request, static::class, $data, $options);
 	}
 

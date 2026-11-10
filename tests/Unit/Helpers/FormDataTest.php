@@ -12,7 +12,8 @@
  Reading submitted form data (FormHelper): a valid submit's data, required
  text fields and optional ones. What can only be a bug (no data, a required
  field that is not text) fails with the form or field named; it does not
- read as empty.
+ read as empty. The same for a form's own options: the CSS class merge, a
+ text option and a list of text.
 */
 
 namespace Tests\Unit\Helpers;
@@ -75,5 +76,44 @@ final class FormDataTest extends UnitTestCase
 		$this->expectException(LogicException::class);
 		$this->expectExceptionMessage("Form field 'password' must be text, not int");
 		FormHelper::optionalText(5, 'password');
+	}
+
+	public function testWithClass(): void {
+		$this->assertSame(['attr' => ['class' => 'onefieldform']], FormHelper::withClass([], 'onefieldform'));
+		$this->assertSame(
+			['role' => 'admin', 'attr' => ['id' => 'f', 'class' => 'wide onefieldform']],
+			FormHelper::withClass(['role' => 'admin', 'attr' => ['id' => 'f', 'class' => 'wide']], 'onefieldform')
+		);
+	}
+
+	public function testWithClassAttrNotArrayFails(): void {
+		$this->expectException(LogicException::class);
+		$this->expectExceptionMessage("Form option 'attr' must be an array, not string");
+		FormHelper::withClass(['attr' => 'wide'], 'onefieldform');
+	}
+
+	public function testWithClassClassNotTextFails(): void {
+		$this->expectExceptionMessage("Form option 'attr.class' must be text, not array");
+		FormHelper::withClass(['attr' => ['class' => ['wide']]], 'onefieldform');
+	}
+
+	public function testTextOption(): void {
+		$this->assertSame('admin', FormHelper::textOption(['role' => 'admin'], 'role'));
+	}
+
+	public function testTextOptionMissingFails(): void {
+		$this->expectExceptionMessage("Form option 'map' must be text, not null");
+		FormHelper::textOption(['role' => 'admin'], 'map');
+	}
+
+	public function testTextListOption(): void {
+		$this->assertSame([], FormHelper::textListOption([], 'user_emails'), 'absent: none');
+		$this->assertSame(['a@example.org', 'b@example.org'],
+			FormHelper::textListOption(['user_emails' => [0 => 'a@example.org', 2 => 'b@example.org']], 'user_emails'), 'a list, whatever the keys');
+	}
+
+	public function testTextListOptionNotTextFails(): void {
+		$this->expectExceptionMessage("Form option 'user_emails' must be a list of text, not of int");
+		FormHelper::textListOption(['user_emails' => ['a@example.org', 5]], 'user_emails');
 	}
 }

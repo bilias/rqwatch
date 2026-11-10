@@ -46,7 +46,7 @@ final class MapWithCustomFieldForm extends AbstractType
 		$field = MapInventory::fieldDefinition(static::$fieldName);
 
 		// Override defaults with field options from custom_map_config
-		$field_db = MapService::getCustomField($options['map']);
+		$field_db = MapService::getCustomField(FormHelper::textOption($options, 'map'));
 		$field_name = $field_db['field_name'];
 		$field_label = $field_db['field_label'];
 		$field['description'] = $field_label;
@@ -61,21 +61,32 @@ final class MapWithCustomFieldForm extends AbstractType
 				throw new LogicException('An edit form needs the entry data');
 			}
 
-			// put # in front if it is disabled
-			if (!empty($data['disabled'])) {
-				$data['pattern'] = "#{$data['pattern']}";
+			/** @var mixed $pattern */
+			$pattern = $data['pattern'] ?? null;
+			if (!is_string($pattern)) {
+				throw new LogicException('An edit form needs the entry pattern');
 			}
 
-			if (!array_key_exists($field_name, $data) && array_key_exists('pattern', $data)) {
-				$data[$field_name] = $data['pattern'];
+			// put # in front if it is disabled
+			if (!empty($data['disabled'])) {
+				$pattern = "#{$pattern}";
+				$data['pattern'] = $pattern;
+			}
+
+			if (!array_key_exists($field_name, $data)) {
+				$data[$field_name] = $pattern;
 			}
 
 			// don't do multi-entry on edit
 			// change TextareaType -> TextType
 			if ($field['type'] === TextareaType::class) {
 				$field['type'] = TextType::class;
-				unset($field['field_options']['attr']['rows']);
-				unset($field['field_options']['attr']['style']);
+				/** @var mixed $attr */
+				$attr = $field['field_options']['attr'] ?? null;
+				if (is_array($attr)) {
+					unset($attr['rows'], $attr['style']);
+					$field['field_options']['attr'] = $attr;
+				}
 				$field['field_options']['help'] = 'Lines starting with # are inserted as disabled entries';
 			}
 			// set the fixed data back on the builder
@@ -102,7 +113,7 @@ final class MapWithCustomFieldForm extends AbstractType
 			array $options = []): FormInterface {
 
 		// Merge class with any existing class
-		$options['attr']['class'] = trim(($options['attr']['class'] ?? '') . ' onefieldform');
+		$options = FormHelper::withClass($options, 'onefieldform');
 		return FormHelper::formCreator($formFactory, $request, static::class, $data, $options);
 	}
 

@@ -39,8 +39,8 @@ final class MapSelectForm extends AbstractType
 		// Dynamically populate based on MapDefinitions
 		//$configs = MapInventory::getMapConfigs();
 		// filter available maps based on access role
-		$configs = MapInventory::getAvailableMapConfigs($options['role']);
-		$model_maps = MapInventory::getMapsByModel($options['model'], $configs);
+		$configs = MapInventory::getAvailableMapConfigs(FormHelper::textOption($options, 'role'));
+		$model_maps = MapInventory::getMapsByModel(FormHelper::textOption($options, 'model'), $configs);
 
 		$choices = [];
 		foreach ($configs as $key => $config) {

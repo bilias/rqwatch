@@ -19,6 +19,7 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 use App\Inventory\MapInventory;
+use App\Utils\FormHelper;
 
 use RuntimeException;
 
@@ -34,7 +35,7 @@ class MapWithTwoFieldsUserOverrideForm extends MapWithTwoFieldsForm
 
 		// Get the original rcpt_to field def, and replace with dropdown if needed
 		if (static::$secondFieldName === 'rcpt_to') {
-			$userEmails = $options['user_emails'] ?? [];
+			$userEmails = FormHelper::textListOption($options, 'user_emails');
 
 			$secondField = [
 				'type' => ChoiceType::class,

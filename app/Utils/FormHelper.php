@@ -90,6 +90,58 @@ final class FormHelper
 		return $value === null ? null : self::text($value, $field);
 	}
 
+	/**
+	 * $options with $class added to attr.class, as the forms style themselves;
+	 * an attr that is not an array, or a class that is not text, is a bug
+	 * @param array<string, mixed> $options
+	 * @return array<string, mixed>
+	 */
+	public static function withClass(array $options, string $class): array {
+		/** @var mixed $attr */
+		$attr = $options['attr'] ?? [];
+		if (!is_array($attr)) {
+			throw new LogicException("Form option 'attr' must be an array, not " . get_debug_type($attr));
+		}
+		/** @var mixed $current */
+		$current = $attr['class'] ?? '';
+		if (!is_string($current)) {
+			throw new LogicException("Form option 'attr.class' must be text, not " . get_debug_type($current));
+		}
+		$attr['class'] = trim("{$current} {$class}");
+		$options['attr'] = $attr;
+		return $options;
+	}
+
+	// a form option the form needs as text: missing or another type is a bug in the caller
+	/** @param array<array-key, mixed> $options */
+	public static function textOption(array $options, string $name): string {
+		/** @var mixed $value */
+		$value = $options[$name] ?? null;
+		return is_string($value) ? $value : throw new LogicException("Form option '{$name}' must be text, not " . get_debug_type($value));
+	}
+
+	/**
+	 * a form option holding text values, as a list; absent is none, anything else is a bug
+	 * @param array<array-key, mixed> $options
+	 * @return list<string>
+	 */
+	public static function textListOption(array $options, string $name): array {
+		/** @var mixed $values */
+		$values = $options[$name] ?? [];
+		if (!is_array($values)) {
+			throw new LogicException("Form option '{$name}' must be a list of text, not " . get_debug_type($values));
+		}
+		$list = [];
+		/** @var mixed $value */
+		foreach ($values as $value) {
+			if (!is_string($value)) {
+				throw new LogicException("Form option '{$name}' must be a list of text, not of " . get_debug_type($value));
+			}
+			$list[] = $value;
+		}
+		return $list;
+	}
+
 	/*
 	 Tri-state disable_notifications for the user and profile forms.
 	 NULL follows $default; the choices are strings because ChoiceType

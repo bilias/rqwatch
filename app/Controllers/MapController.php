@@ -656,6 +656,7 @@ final class MapController extends ViewController
 
 		foreach ($fields as $field) {
 			// the "add to map" links pass the values in the query string; only text prefills
+			/** @var mixed $value */
 			$value = $this->request->query->all()[$field] ?? null;
 			if (is_string($value)) {
 				$data[$field] = $value;
@@ -847,7 +848,9 @@ final class MapController extends ViewController
 			];
 		}
 
-		$mapform = $mapFormClass::create($this->formFactory, $this->request, $map_entry->toArray(), $options);
+		/** @var array<string, mixed> $entryData Eloquent's toArray() is keyed by attribute name */
+		$entryData = $map_entry->toArray();
+		$mapform = $mapFormClass::create($this->formFactory, $this->request, $entryData, $options);
 
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();
@@ -1442,6 +1445,7 @@ final class MapController extends ViewController
 	// A malformed value falls back to the caller's default: by now the entry
 	// may be saved, so it must not turn into an error (getInt() would throw)
 	private function getReturnMailUrl(): ?string {
+		/** @var mixed $raw */
 		$raw = $this->request->query->all()['return-mail'] ?? null;
 		$id = is_string($raw) ? filter_var($raw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) : false;
 		if ($id === false) {
