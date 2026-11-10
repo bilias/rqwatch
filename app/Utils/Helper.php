@@ -1309,12 +1309,21 @@ Mail details:
 		return sprintf('%ds', $seconds);
 	}
 
+	/*
+	 The first mail address in a MIME From header, or ''. mailparse also
+	 returns groups ("undisclosed-recipients:;" as the address ":;") and text
+	 that is no address as an "address": neither is one.
+	*/
 	public function getMailFromMime(string $mime_from): string {
-		$parse = mailparse_rfc822_parse_addresses($mime_from);
-		/** @var mixed $address */
-		$address = $parse[0]['address'] ?? '';
-
-		return is_string($address) ? $address : '';
+		/** @var mixed $entry */
+		foreach (mailparse_rfc822_parse_addresses($mime_from) as $entry) {
+			/** @var mixed $address */
+			$address = is_array($entry) && ($entry['is_group'] ?? false) !== true ? ($entry['address'] ?? null) : null;
+			if (is_string($address) && filter_var($address, FILTER_VALIDATE_EMAIL) !== false) {
+				return $address;
+			}
+		}
+		return '';
 	}
 
 	/**

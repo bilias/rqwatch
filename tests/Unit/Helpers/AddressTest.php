@@ -85,6 +85,11 @@ final class AddressTest extends UnitTestCase
 			'first of several' => ['a@x.org, b@x.org', 'a@x.org'],
 			'empty' => ['', ''],
 			'empty address' => ['<>', ''],
+			// mailparse gives a group's members as one "address" (":;" when empty)
+			'empty group' => ['undisclosed-recipients:;', ''],
+			'group' => ['Team: a@x.org, b@x.org;', ''],
+			'not an address' => ['not an address', ''],
+			'first valid of several' => ['not an address, b@x.org', 'b@x.org'],
 		];
 	}
 
