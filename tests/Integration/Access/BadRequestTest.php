@@ -62,7 +62,7 @@ final class BadRequestTest extends IntegrationTestCase
 			]);
 			$this->assertSame(302, $response['status'], "return-mail={$returnMail}");
 			$this->assertSame($target, self::target($response), "return-mail={$returnMail}");
-			$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM maps_combined WHERE mail_from = ?', $sender), "{$sender} saved");
+			$this->assertSame(1, self::valueInt('SELECT COUNT(*) FROM maps_combined WHERE mail_from = ?', $sender), "{$sender} saved");
 		}
 	}
 }

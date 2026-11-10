@@ -72,7 +72,7 @@ final class NotificationTest extends IntegrationTestCase
 		$optout = self::address('optout');
 		self::optOut($optout);
 		$this->pending(9305, [$rcpt, $optout], 'discard', 12.4);
-		$rcptTo = self::value('SELECT rcpt_to FROM mail_logs WHERE id = ?', 9305);
+		$rcptTo = self::valueNullableString('SELECT rcpt_to FROM mail_logs WHERE id = ?', 9305);
 		$recipients = self::recipients(9305);
 		$this->assertCount(2, $recipients, 'fixture: two recipients');
 
@@ -152,17 +152,17 @@ final class NotificationTest extends IntegrationTestCase
 	 * @param list<string> $rcpts
 	 */
 	private function assertUserNotified(int $id, array $rcpts): void {
-		$qid = (string) self::value('SELECT qid FROM mail_logs WHERE id = ?', $id);
+		$qid = self::valueString('SELECT qid FROM mail_logs WHERE id = ?', $id);
 		foreach ($rcpts as $rcpt) {
 			$mails = self::mailsFor($rcpt);
 			$this->assertCount(1, $mails, "notifications to {$rcpt}");
 			$this->assertSame([$rcpt], self::recipientsOf($mails[0]));
 			$this->assertSame('New message stored in quarantine', $mails[0]['Subject']);
 			$this->assertStringContainsString("Mail Queue ID: {$qid}",
-				(string) self::mailpit("/api/v1/message/{$mails[0]['ID']}")['Text']);
+				self::messageText($mails[0]['ID']));
 		}
 		$state = self::state($id);
-		$this->assertSame(1, (int) $state['notified'], 'notified');
+		$this->assertSame(1, $state['notified'], 'notified');
 		$this->assertNotNull($state['notify_date'], 'notify_date');
 	}
 
@@ -176,19 +176,19 @@ final class NotificationTest extends IntegrationTestCase
 
 	private function assertAdminNotified(int $id): void {
 		$admin = (string) getenv('INTEGRATION_ADMIN_RCPT');
-		$qid = (string) self::value('SELECT qid FROM mail_logs WHERE id = ?', $id);
+		$qid = self::valueString('SELECT qid FROM mail_logs WHERE id = ?', $id);
 		$mails = self::mailsFor($admin, $qid);
 		$this->assertCount(1, $mails, "admin notifications for {$qid}");
 		$this->assertSame([$admin], self::recipientsOf($mails[0]));
 		$this->assertSame('[Admin] New message stored in quarantine', $mails[0]['Subject']);
 		$state = self::state($id);
-		$this->assertSame(1, (int) $state['admin_notified'], 'admin_notified');
+		$this->assertSame(1, $state['admin_notified'], 'admin_notified');
 		$this->assertNotNull($state['admin_notify_date'], 'admin_notify_date');
 	}
 
 	/** Skipped by the admin pass: no admin mail, admin_notified NULL with a date. */
 	private function assertAdminSkipped(int $id): void {
-		$qid = (string) self::value('SELECT qid FROM mail_logs WHERE id = ?', $id);
+		$qid = self::valueString('SELECT qid FROM mail_logs WHERE id = ?', $id);
 		$this->assertSame([], self::mailsFor((string) getenv('INTEGRATION_ADMIN_RCPT'), $qid), "admin notifications for {$qid}");
 		$state = self::state($id);
 		$this->assertNull($state['admin_notified'], 'admin_notified (NULL = skipped)');

@@ -118,8 +118,10 @@ final class RouteSmokeTest extends IntegrationTestCase
 	/** @return array<string, string> table => CHECKSUM TABLE result */
 	private static function checksums(): array {
 		$sums = [];
-		foreach (self::db()->query('CHECKSUM TABLE ' . implode(', ', self::TABLES))->fetchAll() as $row) { // @phpstan-ignore method.nonObject (db() sets ERRMODE_EXCEPTION, so query() throws rather than returning false)
-			$sums[(string) $row['Table']] = (string) $row['Checksum'];
+		/** @var list<array{Table: string, Checksum: int|null, ...}> $rows CHECKSUM TABLE's result set */
+		$rows = self::db()->query('CHECKSUM TABLE ' . implode(', ', self::TABLES))->fetchAll(); // @phpstan-ignore method.nonObject (db() sets ERRMODE_EXCEPTION, so query() throws rather than returning false)
+		foreach ($rows as $row) {
+			$sums[$row['Table']] = (string) $row['Checksum'];
 		}
 		return $sums;
 	}
@@ -134,10 +136,15 @@ final class RouteSmokeTest extends IntegrationTestCase
 	 */
 	private static function chartLinks(array $block): array {
 		$links = [];
+		/** @var mixed $data */
 		$data = $block['data'] ?? null;
+		/** @var mixed $datasets */
 		$datasets = is_array($data) ? ($data['datasets'] ?? null) : null;
+		/** @var mixed $dataset */
 		foreach (is_array($datasets) ? $datasets : [] as $dataset) {
+			/** @var mixed $list */
 			$list = is_array($dataset) ? ($dataset['links'] ?? null) : null;
+			/** @var mixed $link */
 			foreach (is_array($list) ? $list : [] as $link) {
 				if ($link !== null) {
 					$links[] = is_string($link) ? $link : get_debug_type($link);

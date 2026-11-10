@@ -58,7 +58,7 @@ final class ApiReleaseTest extends IntegrationTestCase
 	#[TestDox('Release of a mail that does not exist: refused (400), nothing sent')]
 	public function testReleaseOfMissingMailIsRefused(): void {
 		$count = self::mailCount();
-		$id = (int) self::value('SELECT COALESCE(MAX(id), 0) + 1000 FROM mail_logs');
+		$id = self::valueInt('SELECT COALESCE(MAX(id), 0) + 1000 FROM mail_logs');
 
 		$this->assertSame([400, 'Message not found'], self::release($id, [self::address('release')]));
 		$this->assertSame($count, self::mailCount(), 'mail sent');
@@ -76,7 +76,7 @@ final class ApiReleaseTest extends IntegrationTestCase
 	}
 
 	private function assertNotReleased(int $id): void {
-		$this->assertSame(0, (int) self::value('SELECT released FROM mail_logs WHERE id = ?', $id), 'released');
+		$this->assertSame(0, self::valueInt('SELECT released FROM mail_logs WHERE id = ?', $id), 'released');
 		$this->assertNull(self::value('SELECT release_date FROM mail_logs WHERE id = ?', $id), 'release_date');
 	}
 

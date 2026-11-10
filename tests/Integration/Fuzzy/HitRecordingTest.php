@@ -131,14 +131,14 @@ final class HitRecordingTest extends IntegrationTestCase
 		]);
 		$body = curl_exec($ch);
 		$this->assertSame([200, 'Message saved'], [(int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE), $body], "import of {$qid}");
-		return (int) self::value('SELECT id FROM mail_logs WHERE qid = ?', $qid);
+		return self::valueInt('SELECT id FROM mail_logs WHERE qid = ?', $qid);
 	}
 
 	/** @param array<int, int> $expected learned mail id => hits */
 	private function assertHits(array $expected): void {
 		$hits = [];
 		foreach (array_keys($expected) as $learned) {
-			$hits[$learned] = (int) self::value('SELECT hits FROM mail_log_fuzzy WHERE id = ?', $this->records[$learned]);
+			$hits[$learned] = self::valueInt('SELECT hits FROM mail_log_fuzzy WHERE id = ?', $this->records[$learned]);
 		}
 		$this->assertSame($expected, $hits);
 	}
@@ -155,7 +155,7 @@ final class HitRecordingTest extends IntegrationTestCase
 		return $hits;
 	}
 
-	private static function snapshot(): string {
-		return (string) self::value('SELECT JSON_ARRAYAGG(JSON_ARRAY(id, hits, last_hit_at, updated_at)) FROM mail_log_fuzzy');
+	private static function snapshot(): ?string {
+		return self::valueNullableString('SELECT JSON_ARRAYAGG(JSON_ARRAY(id, hits, last_hit_at, updated_at)) FROM mail_log_fuzzy');
 	}
 }

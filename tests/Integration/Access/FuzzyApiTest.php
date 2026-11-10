@@ -133,7 +133,7 @@ final class FuzzyApiTest extends IntegrationTestCase
 		$this->assertSame($records, self::records(), 'mail_log_fuzzy changed');
 	}
 
-	private static function records(): string {
-		return (string) self::value('SELECT JSON_ARRAYAGG(JSON_ARRAY(id, mail_log_id, weight, hashes, updated_at)) FROM mail_log_fuzzy');
+	private static function records(): ?string {
+		return self::valueNullableString('SELECT JSON_ARRAYAGG(JSON_ARRAY(id, mail_log_id, weight, hashes, updated_at)) FROM mail_log_fuzzy');
 	}
 }

@@ -51,7 +51,7 @@ final class EditEntryTest extends IntegrationTestCase
 	#[TestDox('Map edit: the same values submitted three times in a row all succeed')]
 	public function testUnchangedResubmitSucceeds(): void {
 		$alice = self::client('alice');
-		$before = self::value('SELECT CONCAT(mail_from, " ", rcpt_to) FROM maps_combined WHERE id = ?', $this->id);
+		$before = self::valueNullableString('SELECT CONCAT(mail_from, " ", rcpt_to) FROM maps_combined WHERE id = ?', $this->id);
 		// three quick submits: at least two land in the same second
 		foreach ([1, 2, 3] as $n) {
 			$token = WebClient::match('/name="' . self::FORM . '\[_token\]"[^>]*value="([^"]+)"/', $alice->get(self::PATH . $this->id)['body']);

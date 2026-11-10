@@ -80,7 +80,7 @@ final class MapEntryScopingTest extends IntegrationTestCase
 			$alice->get("{$base}/toggle/{$id}?_token=" . urlencode($toggle));
 			$alice->get("{$base}/del/{$id}?_token=" . urlencode($del));
 			$this->assertSame(0, self::entries("id = {$id} AND mail_from LIKE 'acl-edited-%'"), "{$entry} edited");
-			$this->assertSame(0, (int) self::value('SELECT disabled FROM maps_combined WHERE id = ?', $id), "{$entry} toggled");
+			$this->assertSame(0, self::valueInt('SELECT disabled FROM maps_combined WHERE id = ?', $id), "{$entry} toggled");
 			$this->assertSame(1, self::entries("id = {$id}"), "{$entry} deleted");
 		}
 
@@ -89,7 +89,7 @@ final class MapEntryScopingTest extends IntegrationTestCase
 		self::edit($alice, "{$base}/edit/{$id}", "{$base}/edit/{$id}", self::USER_FORM, 'acl-edited-a@example.net', 'alias-alice@example.org');
 		$this->assertSame(1, self::entries("id = {$id} AND mail_from = 'acl-edited-a@example.net' AND rcpt_to = 'alias-alice@example.org'"), 'A not edited');
 		$alice->get("{$base}/toggle/{$id}?_token=" . urlencode($toggle));
-		$this->assertSame(1, (int) self::value('SELECT disabled FROM maps_combined WHERE id = ?', $id), 'A not toggled');
+		$this->assertSame(1, self::valueInt('SELECT disabled FROM maps_combined WHERE id = ?', $id), 'A not toggled');
 		$alice->get("{$base}/del/{$id}?_token=" . urlencode($del));
 		$this->assertSame(0, self::entries("id = {$id}"), 'A not deleted');
 	}
@@ -107,7 +107,7 @@ final class MapEntryScopingTest extends IntegrationTestCase
 
 	public function testUserAddsOnlyForHerOwnAddresses(): void {
 		$alice = self::client('alice');
-		$aliceId = (int) self::value("SELECT id FROM users WHERE username = 'alice'");
+		$aliceId = self::valueInt("SELECT id FROM users WHERE username = 'alice'");
 
 		self::add($alice, '/user/map/' . self::MAP . '/add', self::USER_FORM, 'acl-new-bob@example.net', 'bob@example.org');
 		$this->assertSame(0, self::entries("mail_from = 'acl-new-bob@example.net'"), 'added for bob');
@@ -137,7 +137,7 @@ final class MapEntryScopingTest extends IntegrationTestCase
 		self::edit($admin, "{$base}/edit/{$id}", "{$base}/edit/{$id}", self::ADMIN_FORM, 'acl-edited-by-admin@example.net', 'alice@example.org');
 		$this->assertSame(1, self::entries("id = {$id} AND mail_from = 'acl-edited-by-admin@example.net'"), 'A not edited');
 		$admin->get("{$base}/toggle/{$this->ids['B']}?_token=" . urlencode($toggle));
-		$this->assertSame(1, (int) self::value('SELECT disabled FROM maps_combined WHERE id = ?', $this->ids['B']), 'B not toggled');
+		$this->assertSame(1, self::valueInt('SELECT disabled FROM maps_combined WHERE id = ?', $this->ids['B']), 'B not toggled');
 
 		// delete users' entries and its own
 		foreach (['A', 'B', 'M'] as $entry) {
@@ -161,7 +161,7 @@ final class MapEntryScopingTest extends IntegrationTestCase
 	}
 
 	private static function entries(string $where): int {
-		return (int) self::value("SELECT COUNT(*) FROM maps_combined WHERE map_name = ? AND {$where}", self::MAP);
+		return self::valueInt("SELECT COUNT(*) FROM maps_combined WHERE map_name = ? AND {$where}", self::MAP);
 	}
 
 	/** @return array{string, string} the toggle and delete tokens from the links of entry $id in the list at $base */

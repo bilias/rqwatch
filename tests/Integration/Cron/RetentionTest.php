@@ -37,8 +37,8 @@ final class RetentionTest extends IntegrationTestCase
 		$recent = self::mail(10);
 		self::cli('cron:quarantine', '-d');
 		$this->assertStored($old, false);
-		$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM mail_logs WHERE id = ?', $old['id']), 'row kept');
-		$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM mail_log_recipients WHERE mail_log_id = ?', $old['id']), 'recipients kept');
+		$this->assertSame(1, self::valueInt('SELECT COUNT(*) FROM mail_logs WHERE id = ?', $old['id']), 'row kept');
+		$this->assertSame(1, self::valueInt('SELECT COUNT(*) FROM mail_log_recipients WHERE mail_log_id = ?', $old['id']), 'recipients kept');
 		$this->assertStored($recent, true);
 		$this->assertFileExists(self::root() . '/q/101.eml', 'scoping fixture');
 	}
@@ -87,7 +87,7 @@ final class RetentionTest extends IntegrationTestCase
 		$this->assertStored($second, false);
 		$this->assertStored($gone, false);
 		$this->assertStringContainsString("Already gone {$gone['id']}", $output);
-		$this->assertSame(1, (int) self::value('SELECT mail_stored FROM mail_logs WHERE id = ?', $goneOther['id']),
+		$this->assertSame(1, self::valueInt('SELECT mail_stored FROM mail_logs WHERE id = ?', $goneOther['id']),
 			'another server\'s mail: its directory is absent here by nature');
 		$this->assertStringContainsString("Not deleted {$goneOther['id']}", $output);
 		self::db()->prepare('DELETE FROM mail_logs WHERE id = ?')->execute([$goneOther['id']]);
@@ -177,7 +177,7 @@ final class RetentionTest extends IntegrationTestCase
 		self::withEnv(['DATABASE_DAYS' => (string) self::quarantineDays()], function (): void {
 			$this->assertStringContainsString('DATABASE_DAYS must by higher', self::cli('cron:cleanupdb', '-d'));
 		});
-		$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM mail_logs WHERE id = ?', $old));
+		$this->assertSame(1, self::valueInt('SELECT COUNT(*) FROM mail_logs WHERE id = ?', $old));
 	}
 
 	#[TestDox('cron:cleanupdb -d: rows past DATABASE_DAYS go with their child rows, a fuzzy record is kept unlinked, newer rows stay')]
@@ -195,13 +195,13 @@ final class RetentionTest extends IntegrationTestCase
 
 		$this->assertSame(0, self::countRows($old), 'old rows');
 		foreach (['mail_log_recipients', 'mail_log_data', 'mail_log_viruses'] as $table) {
-			$this->assertSame(0, (int) self::value(
+			$this->assertSame(0, self::valueInt(
 				"SELECT COUNT(*) FROM {$table} WHERE mail_log_id IN (?, ?, ?)", ...$old), "{$table} rows of deleted mail");
 		}
 		$this->assertSame(1, self::countRows([$kept]), 'newer row');
-		$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM mail_log_recipients WHERE mail_log_id = ?', $kept));
+		$this->assertSame(1, self::valueInt('SELECT COUNT(*) FROM mail_log_recipients WHERE mail_log_id = ?', $kept));
 		$this->assertSame([1, null], [
-			(int) self::value('SELECT COUNT(*) FROM mail_log_fuzzy WHERE id = ?', $fuzzy),
+			self::valueInt('SELECT COUNT(*) FROM mail_log_fuzzy WHERE id = ?', $fuzzy),
 			self::value('SELECT mail_log_id FROM mail_log_fuzzy WHERE id = ?', $fuzzy),
 		], 'fuzzy record kept, unlinked');
 	}
@@ -227,10 +227,10 @@ final class RetentionTest extends IntegrationTestCase
 
 		self::cli('cron:fuzzy_cleanup', '-d', '-l');
 		$this->assertSame(0, self::countFuzzy([$expired]), 'expired');
-		$this->assertSame(0, (int) self::value($hits, $expired), 'hits of the expired record');
+		$this->assertSame(0, self::valueInt($hits, $expired), 'hits of the expired record');
 		$this->assertSame(1, self::countFuzzy([$otherServer]), 'other server with -l');
 		$this->assertSame(1, self::countFuzzy([$fresh]), 'fresh');
-		$this->assertSame(1, (int) self::value($hits, $fresh), 'hits of the fresh record');
+		$this->assertSame(1, self::valueInt($hits, $fresh), 'hits of the fresh record');
 
 		self::cli('cron:fuzzy_cleanup', '-d');
 		$this->assertSame(0, self::countFuzzy([$otherServer]), 'other server without -l');
@@ -310,7 +310,7 @@ final class RetentionTest extends IntegrationTestCase
 
 	/** @param array{id: int, file: string} $mail */
 	private function assertStored(array $mail, bool $stored): void {
-		$this->assertSame($stored ? 1 : 0, (int) self::value('SELECT mail_stored FROM mail_logs WHERE id = ?', $mail['id']), 'mail_stored');
+		$this->assertSame($stored ? 1 : 0, self::valueInt('SELECT mail_stored FROM mail_logs WHERE id = ?', $mail['id']), 'mail_stored');
 		if ($stored) {
 			$this->assertFileExists($mail['file']);
 		} else {
@@ -322,12 +322,12 @@ final class RetentionTest extends IntegrationTestCase
 	/** @param list<int> $ids */
 	private static function countRows(array $ids): int {
 		$in = implode(',', array_fill(0, count($ids), '?'));
-		return (int) self::value("SELECT COUNT(*) FROM mail_logs WHERE id IN ({$in})", ...$ids);
+		return self::valueInt("SELECT COUNT(*) FROM mail_logs WHERE id IN ({$in})", ...$ids);
 	}
 
 	/** @param list<int> $ids */
 	private static function countFuzzy(array $ids): int {
 		$in = implode(',', array_fill(0, count($ids), '?'));
-		return (int) self::value("SELECT COUNT(*) FROM mail_log_fuzzy WHERE id IN ({$in})", ...$ids);
+		return self::valueInt("SELECT COUNT(*) FROM mail_log_fuzzy WHERE id IN ({$in})", ...$ids);
 	}
 }

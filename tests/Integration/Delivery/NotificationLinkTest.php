@@ -164,7 +164,7 @@ final class NotificationLinkTest extends IntegrationTestCase
 			$this->assertInvalid($browser->get("/notify/confirm/{$handle}"), 'handle of a mail no longer stored');
 
 			$this->assertSame($count, self::mailCount(), 'mail sent');
-			$this->assertSame(0, (int) self::value('SELECT released FROM mail_logs WHERE id = ?', 9206), 'released');
+			$this->assertSame(0, self::valueInt('SELECT released FROM mail_logs WHERE id = ?', 9206), 'released');
 		});
 	}
 
@@ -194,7 +194,7 @@ final class NotificationLinkTest extends IntegrationTestCase
 		if (count($mails) !== 1) {
 			throw new RuntimeException("expected one notification to {$recipient} for {$qid}, found " . count($mails));
 		}
-		return (string) self::mailpit("/api/v1/message/{$mails[0]['ID']}")['Text'];
+		return self::messageText($mails[0]['ID']);
 	}
 
 	/** The token in $recipient's notification link for the mail $qid. */
@@ -255,6 +255,6 @@ final class NotificationLinkTest extends IntegrationTestCase
 	}
 
 	private static function tokens(int $id): int {
-		return (int) self::value('SELECT COUNT(*) FROM mail_log_tokens WHERE mail_log_id = ?', $id);
+		return self::valueInt('SELECT COUNT(*) FROM mail_log_tokens WHERE mail_log_id = ?', $id);
 	}
 }

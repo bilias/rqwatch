@@ -110,6 +110,30 @@ abstract class IntegrationTestCase extends TestCase
 		return $stmt->fetchColumn();
 	}
 
+	/*
+	 Typed reads of value(): a value of another type fails the test, naming
+	 the query, rather than being cast. MariaDB returns integer columns as
+	 ints (PHP 8.1+); false means no row.
+	*/
+	protected static function valueInt(string $sql, int|string ...$params): int {
+		/** @var mixed $value */
+		$value = self::value($sql, ...$params);
+		return is_int($value) ? $value : self::fail("{$sql}: expected an integer, got " . get_debug_type($value));
+	}
+
+	protected static function valueString(string $sql, int|string ...$params): string {
+		/** @var mixed $value */
+		$value = self::value($sql, ...$params);
+		return is_string($value) ? $value : self::fail("{$sql}: expected text, got " . get_debug_type($value));
+	}
+
+	// text or NULL: a snapshot of a column or aggregate that may be NULL
+	protected static function valueNullableString(string $sql, int|string ...$params): ?string {
+		/** @var mixed $value */
+		$value = self::value($sql, ...$params);
+		return $value === null || is_string($value) ? $value : self::fail("{$sql}: expected text or NULL, got " . get_debug_type($value));
+	}
+
 	/** @return array<string, Route> every route, by name */
 	protected static function routes(): array {
 		return Routes::load()['routes']->all();
@@ -144,7 +168,9 @@ abstract class IntegrationTestCase extends TestCase
 	 */
 	protected static function path(string $name, Route $route): string {
 		$params = [];
-		foreach ($route->compile()->getPathVariables() as $var) {
+		/** @var list<string> $vars the route's placeholder names */
+		$vars = $route->compile()->getPathVariables();
+		foreach ($vars as $var) {
 			$params[$var] = self::sample($name, $var);
 		}
 		$generator = new UrlGenerator(Routes::load()['routes'], new RequestContext());
@@ -154,9 +180,9 @@ abstract class IntegrationTestCase extends TestCase
 	private static function sample(string $route, string $var): string {
 		if ($var === 'id') {
 			return match (true) {
-				str_starts_with($route, 'admin_user') => (string) self::value("SELECT id FROM users WHERE username = 'alice'"),
-				$route === 'admin_aliases_del' => (string) self::value('SELECT MIN(id) FROM mail_aliases'),
-				str_starts_with($route, 'admin_maps_custom_') => (string) self::value('SELECT MIN(id) FROM custom_map_config'),
+				str_starts_with($route, 'admin_user') => (string) self::valueInt("SELECT id FROM users WHERE username = 'alice'"),
+				$route === 'admin_aliases_del' => (string) self::valueInt('SELECT MIN(id) FROM mail_aliases'),
+				str_starts_with($route, 'admin_maps_custom_') => (string) self::valueInt('SELECT MIN(id) FROM custom_map_config'),
 				str_contains($route, 'map_') => '201',
 				default => '101',
 			};
@@ -283,7 +309,7 @@ abstract class IntegrationTestCase extends TestCase
 	 * Exactly one release message for the mail $qid, delivered to exactly
 	 * $recipients, with mail $id's quarantined file attached byte for byte.
 	 * @param list<string> $recipients
-	 * @return array<string, mixed> its Mailpit summary
+	 * @return array{ID: string, Subject: string, ...} its Mailpit summary
 	 */
 	protected function assertReleaseDelivered(string $qid, array $recipients, int $id): array {
 		$mails = array_values(array_filter(self::mailsFor($recipients[0], $qid),
@@ -291,13 +317,13 @@ abstract class IntegrationTestCase extends TestCase
 		$this->assertCount(1, $mails, "release messages for {$qid}");
 		sort($recipients);
 		$this->assertSame($recipients, self::recipientsOf($mails[0]));
-		$this->assertSame((string) file_get_contents(self::quarantineFile($id)), self::attachedMail((string) $mails[0]['ID']),
+		$this->assertSame((string) file_get_contents(self::quarantineFile($id)), self::attachedMail($mails[0]['ID']),
 			'attached mail differs from the quarantined one');
 		return $mails[0];
 	}
 
 	protected function assertReleased(int $id): void {
-		$this->assertSame(1, (int) self::value('SELECT released FROM mail_logs WHERE id = ?', $id), 'released');
+		$this->assertSame(1, self::valueInt('SELECT released FROM mail_logs WHERE id = ?', $id), 'released');
 		$this->assertNotNull(self::value('SELECT release_date FROM mail_logs WHERE id = ?', $id), 'release_date');
 	}
 

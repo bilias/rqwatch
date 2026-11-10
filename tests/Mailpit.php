@@ -27,22 +27,26 @@ trait Mailpit
 	}
 
 	/**
-	 * GET from Mailpit's API.
-	 * @return array<string, mixed>
+	 * GET from Mailpit's API: a JSON object, or the test fails.
+	 * @return array<array-key, mixed>
 	 */
 	protected static function mailpit(string $path): array {
-		return json_decode(self::mailpitGet($path), true, 512, JSON_THROW_ON_ERROR);
+		/** @var mixed $decoded */
+		$decoded = json_decode(self::mailpitGet($path), true, 512, JSON_THROW_ON_ERROR);
+		return is_array($decoded) ? $decoded : throw new RuntimeException("Mailpit {$path}: not a JSON object");
 	}
 
 	/** Messages Mailpit has received in this run. */
 	protected static function mailCount(): int {
-		return (int) self::mailpit('/api/v1/messages?limit=1')['total'];
+		/** @var mixed $total */
+		$total = self::mailpit('/api/v1/messages?limit=1')['total'] ?? null;
+		return is_int($total) ? $total : throw new RuntimeException('Mailpit: no message total');
 	}
 
 	/**
 	 * Messages delivered to $address (To, Cc or envelope-only Bcc), optionally
 	 * only those matching a Mailpit search for $text.
-	 * @return list<array<string, mixed>> Mailpit message summaries
+	 * @return list<array{ID: string, Subject: string, ...}> Mailpit message summaries
 	 */
 	protected static function mailsFor(string $address, ?string $text = null): array {
 		$found = [];
@@ -50,32 +54,68 @@ trait Mailpit
 			$page = $text === null
 				? self::mailpit("/api/v1/messages?limit=500&start={$start}")
 				: self::mailpit('/api/v1/search?limit=500&start=' . $start . '&query=' . rawurlencode($text));
-			foreach ($page['messages'] as $message) {
+			/** @var mixed $messages */
+			$messages = $page['messages'] ?? null;
+			/** @var mixed $count */
+			$count = $page['messages_count'] ?? null;
+			if (!is_array($messages) || !is_int($count)) {
+				throw new RuntimeException('Mailpit: not a message list');
+			}
+			/** @var mixed $message */
+			foreach ($messages as $message) {
+				$message = self::message($message);
 				if (in_array(strtolower($address), self::recipientsOf($message), true)) {
 					$found[] = $message;
 				}
 			}
-			if ($start + 500 >= (int) $page['messages_count']) {
+			if ($start + 500 >= $count) {
 				return $found;
 			}
 		}
 	}
 
 	/**
+	 * A Mailpit message summary, with the fields the tests read checked
+	 * @return array{ID: string, Subject: string, ...}
+	 */
+	private static function message(mixed $message): array {
+		if (!is_array($message) || !is_string($message['ID'] ?? null) || !is_string($message['Subject'] ?? null)) {
+			throw new RuntimeException('Mailpit: a message without an ID and Subject');
+		}
+		/** @var array{ID: string, Subject: string, ...} $message checked above */
+		return $message;
+	}
+
+	/**
 	 * Every address a captured message was delivered to, sorted.
-	 * @param array<string, mixed> $message Mailpit message summary
+	 * @param array<array-key, mixed> $message Mailpit message summary
 	 * @return list<string>
 	 */
 	protected static function recipientsOf(array $message): array {
 		$addresses = [];
 		foreach (['To', 'Cc', 'Bcc'] as $field) {
-			foreach ($message[$field] ?? [] as $entry) {
-				$addresses[] = strtolower((string) $entry['Address']);
+			/** @var mixed $entries */
+			$entries = $message[$field] ?? [];
+			if (!is_array($entries)) {
+				throw new RuntimeException("Mailpit: {$field} is not a list");
+			}
+			/** @var mixed $entry */
+			foreach ($entries as $entry) {
+				/** @var mixed $address */
+				$address = is_array($entry) ? ($entry['Address'] ?? null) : null;
+				$addresses[] = is_string($address) ? strtolower($address) : throw new RuntimeException("Mailpit: a {$field} entry without an Address");
 			}
 		}
 		$addresses = array_values(array_unique($addresses));
 		sort($addresses);
 		return $addresses;
+	}
+
+	/** The plain-text body of a captured message. */
+	protected static function messageText(string $id): string {
+		/** @var mixed $text */
+		$text = self::mailpit('/api/v1/message/' . self::pathSegment($id))['Text'] ?? null;
+		return is_string($text) ? $text : throw new RuntimeException("message {$id}: no Text");
 	}
 
 	/** The raw bytes of the one message/rfc822 attachment of a captured message. */
@@ -90,7 +130,12 @@ trait Mailpit
 		if (count($parts) !== 1) {
 			throw new RuntimeException("message {$id}: expected one message/rfc822 attachment, found " . count($parts));
 		}
-		return self::mailpitGet("/api/v1/message/{$id}/part/" . self::pathSegment((string) $parts[0]['PartID']));
+		/** @var mixed $partId */
+		$partId = $parts[0]['PartID'] ?? null;
+		if (!is_string($partId)) {
+			throw new RuntimeException("message {$id}: an attachment without a PartID");
+		}
+		return self::mailpitGet("/api/v1/message/{$id}/part/" . self::pathSegment($partId));
 	}
 
 	/*

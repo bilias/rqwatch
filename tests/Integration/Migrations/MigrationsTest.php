@@ -482,8 +482,10 @@ final class MigrationsTest extends IntegrationTestCase
 		$stmt = self::mdb()->prepare($sql);
 		$stmt->execute($params);
 		$rows = [];
-		foreach ($stmt->fetchAll(PDO::FETCH_NUM) as $row) {
-			$rows[] = implode('|', array_map(fn (mixed $v): string => $v === null ? 'NULL' : (string) $v, (array) $row));
+		/** @var list<list<scalar|null>> $fetched each a row's column values */
+		$fetched = $stmt->fetchAll(PDO::FETCH_NUM);
+		foreach ($fetched as $row) {
+			$rows[] = implode('|', array_map(fn (mixed $v): string => $v === null ? 'NULL' : (string) $v, $row));
 		}
 		return $rows;
 	}

@@ -54,7 +54,7 @@ final class MetadataTest extends IntegrationTestCase
 		$from = self::logSize();
 		$response = self::post(self::meta(1, ['fuzzy' => 'abc']), 'message');
 		$this->assertSame([200, 'Message saved'], $response);
-		$this->assertSame('[]', (string) self::value(
+		$this->assertSame('[]', self::valueString(
 			'SELECT d.fuzzy_hashes FROM mail_log_data d JOIN mail_logs m ON m.id = d.mail_log_id WHERE m.qid = ?', self::QID . '1'));
 		$this->assertStringContainsString("metadata field 'fuzzy' is not a list of hashes (string); ignoring it", self::logSince($from));
 	}
@@ -63,7 +63,7 @@ final class MetadataTest extends IntegrationTestCase
 		$from = self::logSize();
 		$response = self::post(self::meta(2, ['from' => true]), 'message');
 		$this->assertSame([200, 'Message saved'], $response);
-		$this->assertSame('empty-mail-from@localhost', (string) self::value('SELECT mail_from FROM mail_logs WHERE qid = ?', self::QID . '2'));
+		$this->assertSame('empty-mail-from@localhost', self::valueString('SELECT mail_from FROM mail_logs WHERE qid = ?', self::QID . '2'));
 		$this->assertStringContainsString("metadata field 'from' is bool, not text; ignoring it", self::logSince($from));
 	}
 
@@ -80,7 +80,7 @@ final class MetadataTest extends IntegrationTestCase
 		$from = self::logSize();
 		$response = self::post(self::meta(3, ['action' => 'reject']), $field);
 		$this->assertSame([200, 'Message saved'], $response);
-		$this->assertSame(0, (int) self::value('SELECT mail_stored FROM mail_logs WHERE qid = ?', self::QID . '3'));
+		$this->assertSame(0, self::valueInt('SELECT mail_stored FROM mail_logs WHERE qid = ?', self::QID . '3'));
 		$this->assertNull(self::value('SELECT mail_location FROM mail_logs WHERE qid = ?', self::QID . '3'));
 		$log = self::logSince($from);
 		$this->assertStringContainsString(self::QID . '3: no usable message part (Missing multipart file: message); importing the metadata without the mail', $log);
@@ -103,9 +103,9 @@ final class MetadataTest extends IntegrationTestCase
 		$response = self::post(self::meta(5, ['action' => 'reject']), 'message', self::REJECTED_SUBJECT);
 		$this->assertSame([200, 'Message saved'], $response);
 		$this->assertNull(self::value('SELECT subject FROM mail_logs WHERE qid = ?', self::QID . '5'));
-		$this->assertSame(1, (int) self::value('SELECT mail_stored FROM mail_logs WHERE qid = ?', self::QID . '5'),
+		$this->assertSame(1, self::valueInt('SELECT mail_stored FROM mail_logs WHERE qid = ?', self::QID . '5'),
 			'the raw file is kept: the row points to it');
-		$this->assertFileExists((string) self::value('SELECT mail_location FROM mail_logs WHERE qid = ?', self::QID . '5'));
+		$this->assertFileExists(self::valueString('SELECT mail_location FROM mail_logs WHERE qid = ?', self::QID . '5'));
 		$log = self::logSince($from);
 		$this->assertStringContainsString(self::QID . '5 the database rejected the mail: SQLSTATE 45000, error 1644:', $log);
 		$this->assertStringContainsString('rejected by rqwatch_test_reject', $log, 'why, in full');
@@ -118,7 +118,7 @@ final class MetadataTest extends IntegrationTestCase
 		$from = self::logSize();
 		[$status] = self::post(['qid' => self::REJECTED_QID] + self::meta(6, ['action' => 'reject']), 'message');
 		$this->assertSame(500, $status);
-		$this->assertSame(0, (int) self::value('SELECT COUNT(*) FROM mail_logs WHERE qid = ?', self::REJECTED_QID));
+		$this->assertSame(0, self::valueInt('SELECT COUNT(*) FROM mail_logs WHERE qid = ?', self::REJECTED_QID));
 		$this->assertSame([], glob(self::root() . '/q/*/' . self::REJECTED_QID));
 		$log = self::logSince($from);
 		$this->assertStringContainsString(self::REJECTED_QID . ' import error: SQLSTATE 45000, error 1644:', $log);
@@ -133,7 +133,7 @@ final class MetadataTest extends IntegrationTestCase
 			$from = self::logSize();
 			$response = self::post(self::meta(7, ['action' => 'reject']), 'message');
 			$this->assertSame([200, 'Message saved'], $response);
-			$this->assertSame(1, (int) self::value('SELECT mail_stored FROM mail_logs WHERE qid = ?', self::QID . '7'),
+			$this->assertSame(1, self::valueInt('SELECT mail_stored FROM mail_logs WHERE qid = ?', self::QID . '7'),
 				"config.php's defaults store a rejected mail");
 			$this->assertStringContainsString(
 				self::QID . "7: store_settings must be an array, not string in config; using config.php's defaults", self::logSince($from));
@@ -156,7 +156,7 @@ final class MetadataTest extends IntegrationTestCase
 			$from = self::logSize();
 			$response = self::post(self::meta(9, []), 'message');
 			$this->assertSame([200, 'Message saved'], $response);
-			$this->assertSame(1, (int) self::value('SELECT COUNT(*) FROM mail_logs WHERE qid = ?', self::QID . '9'));
+			$this->assertSame(1, self::valueInt('SELECT COUNT(*) FROM mail_logs WHERE qid = ?', self::QID . '9'));
 			$this->assertStringContainsString(
 				self::QID . '9: log_to_files not written: log_to_files must be true or false, not string in config', self::logSince($from));
 		});
