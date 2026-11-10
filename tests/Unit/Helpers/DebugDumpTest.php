@@ -22,35 +22,22 @@ use Tests\Unit\UnitTestCase;
 
 final class DebugDumpTest extends UnitTestCase
 {
-	private const array SERVER = ['argv', 'TEST_DUMP_PLAIN', 'TEST_DUMP_DB_PASS', 'TEST_DUMP_FLAG', 'TEST_DUMP_COUNT', 'TEST_DUMP_NULL'];
-
 	private string $dir = '';
 
-	/** @var array<string, mixed> */
-	private array $saved = [];
+	// the server variables before the test, put back after it
+	/** @var array<array-key, mixed> */
+	private array $server = [];
 
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
 		$this->dir = sys_get_temp_dir() . '/rqwatch-dump-' . bin2hex(random_bytes(4));
-		foreach (self::SERVER as $key) {
-			if (array_key_exists($key, $_SERVER)) {
-				/** @var mixed $value */
-				$value = $_SERVER[$key];
-				$this->saved[$key] = $value;
-			}
-		}
+		$this->server = $_SERVER;
 	}
 
 	#[\Override]
 	protected function tearDown(): void {
-		foreach (self::SERVER as $key) {
-			if (array_key_exists($key, $this->saved)) {
-				$_SERVER[$key] = $this->saved[$key];
-			} else {
-				unset($_SERVER[$key]);
-			}
-		}
+		$_SERVER = $this->server;
 		$files = glob($this->dir . '/*');
 		foreach ($files === false ? [] : $files as $file) {
 			unlink($file);
