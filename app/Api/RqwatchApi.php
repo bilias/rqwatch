@@ -154,15 +154,24 @@ abstract class RqwatchApi
 	 * another mail than the one asked for.
 	 * @param array<array-key, mixed> $post
 	 * @param list<string> $fields
+	 * @return array<string, string> the fields of $fields that $post holds
 	 */
-	protected function requireSingleValues(array $post, array $fields): void {
+	protected function requireSingleValues(array $post, array $fields): array {
+		$values = [];
 		foreach ($fields as $field) {
-			if (array_key_exists($field, $post) && !is_string($post[$field])) {
+			if (!array_key_exists($field, $post)) {
+				continue;
+			}
+			/** @var mixed $value */
+			$value = $post[$field];
+			if (!is_string($value)) {
 				$this->dropLogResponse(
 					Response::HTTP_BAD_REQUEST, "Missing Required info",
 					"{$this->clientIp} requested {$this->logPrefix} with '{$field}' that is not a single value", 'critical');
 			}
+			$values[$field] = $value;
 		}
+		return $values;
 	}
 
 	protected function getRuntime(): string {

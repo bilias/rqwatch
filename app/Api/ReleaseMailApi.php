@@ -40,18 +40,18 @@ final class ReleaseMailApi extends RqwatchApi
 	public function handle(): void {
 		$post = $this->request->request->all();
 		// remote_user may be empty: a web user without an e-mail
-		$this->requireSingleValues($post, ['remote_user', 'id']);
+		$fields = $this->requireSingleValues($post, ['remote_user', 'id']);
 
-		if (!array_key_exists('remote_user', $post)) {
+		if (!array_key_exists('remote_user', $fields)) {
 			$err_msg = "{$this->clientIp} requested ReleaseMailApi without a calling user email";
 			$response_msg = "Missing Required info";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,
 				$err_msg, 'critical');
 		}
-		$remote_user = $post['remote_user'];
+		$remote_user = $fields['remote_user'];
 
-		if (!array_key_exists('id', $post)) {
+		if (!array_key_exists('id', $fields)) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested mail release without a mail id";
 			$response_msg = "Missing Required info";
 			$this->dropLogResponse(
@@ -59,7 +59,7 @@ final class ReleaseMailApi extends RqwatchApi
 				$err_msg, 'critical');
 		}
 		// digits only: intval() would read "5abc" as 5; 0 is not found below
-		$id_param = (string) $post['id'];
+		$id_param = $fields['id'];
 		$id = ctype_digit($id_param) ? (int) $id_param : 0;
 
 		if (!array_key_exists('email', $post)) {
@@ -80,6 +80,8 @@ final class ReleaseMailApi extends RqwatchApi
 				$err_msg, 'critical');
 		}
 
+		// the addresses as validated
+		$recipients = [];
 		foreach ($release_to as $email) {
 			if (!is_string($email) || filter_var(trim($email), FILTER_VALIDATE_EMAIL) === false) {
 				$err_msg = "{$remote_user} via {$this->clientIp} requested mail release of mail with id {$id} with an invalid destination email";
@@ -88,6 +90,7 @@ final class ReleaseMailApi extends RqwatchApi
 					Response::HTTP_BAD_REQUEST, $response_msg,
 					$err_msg, 'critical');
 			}
+			$recipients[] = trim($email);
 		}
 
 		$service = new MailLogService();
@@ -111,10 +114,10 @@ final class ReleaseMailApi extends RqwatchApi
 				$err_msg, 'error');
 		}
 
-		if ($service->releaseHtmlMail($release_to, $maillog)) {
+		if ($service->releaseHtmlMail($recipients, $maillog)) {
 			$runtime = $this->getRuntime();
 			$msg = "Message {$maillog->qid} released to '" .
-				implode(', ', $release_to) .
+				implode(', ', $recipients) .
 				"' via {$this->logPrefix} from '{$remote_user}' by '{$this->clientIp}' | {$runtime}";
 		
 			$this->fileLogger->info($msg);
