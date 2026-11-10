@@ -57,6 +57,35 @@ final class MapController extends ViewController
 		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, Helper::env_required('WEB_HOST'));
 	}
 
+	/**
+	 * The custom map config form's values, trimmed and the map name
+	 * lowercased; the error to show when the map or field name is empty
+	 * ('' or '0'). The form requires all four as text; anything else is a bug.
+	 * @param array<string, mixed> $data
+	 * @return array{map_name: non-empty-string, field_name: non-empty-string, map_description: string, field_label: string, symbols?: string|null}|string
+	 */
+	private static function customMapConfigValues(array $data): array|string {
+		$map_name = trim(FormHelper::text($data['map_name'] ?? null, 'map_name'));
+		if ($map_name === '' || $map_name === '0') {
+			return 'Map Name empty';
+		}
+		$field_name = trim(FormHelper::text($data['field_name'] ?? null, 'field_name'));
+		if ($field_name === '' || $field_name === '0') {
+			return 'Field Name empty';
+		}
+		$values = [
+			'map_name' => strtolower($map_name),
+			'field_name' => $field_name,
+			'map_description' => trim(FormHelper::text($data['map_description'] ?? null, 'map_description')),
+			'field_label' => trim(FormHelper::text($data['field_label'] ?? null, 'field_label')),
+		];
+		// present only while map hits are enabled
+		if (array_key_exists('symbols', $data)) {
+			$values['symbols'] = FormHelper::optionalText($data['symbols'], 'symbols');
+		}
+		return $values;
+	}
+
 	private function getMapService(): MapService {
 		if ($this->mapService === null) {
 			$this->mapService = new MapService($this->getUserContext());
@@ -296,25 +325,17 @@ final class MapController extends ViewController
 			['map_symbols' => MapService::mapHitsEnabled()]);
 
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
-			$data = $mapform->getData();
-			if (empty($data['map_name'])) {
-				$this->flashbag->add('error', "Map Name empty");
+			$data = FormHelper::submittedData($mapform);
+			$values = self::customMapConfigValues($data);
+			if (is_string($values)) {
+				$this->flashbag->add('error', $values);
 				return new RedirectResponse($this->getMapsCustomAddUrl());
 			}
-			$data['map_name'] = strtolower(trim($data['map_name']));
-
-			if (empty($data['field_name'])) {
-				$this->flashbag->add('error', "Field Name empty");
-				return new RedirectResponse($this->getMapsCustomAddUrl());
-			}
-			$data['field_name'] = trim($data['field_name']);
-			$data['map_description'] = trim($data['map_description']);
-			$data['field_label'] = trim($data['field_label']);
 
 			$service = $this->getMapService();
 			//$model = 'MapCustom';
 
-			$map_name = $data['map_name'];
+			$map_name = $values['map_name'];
 			if ($map_name === 'manage_custom_maps') {
 				$this->flashbag->add('error', "Map name '{$map_name}' is not allowed!");
 				return new RedirectResponse($this->getMapsCustomAddUrl());
@@ -325,9 +346,9 @@ final class MapController extends ViewController
 			}
 
 			// add entry
-			if ($service->addCustomMapConfig($data)) {
+			if ($service->addCustomMapConfig($values)) {
 				$this->fileLogger->info("Custom map '{$map_name}' created by '{$this->email}'");
-				$this->flashbag->add('success', "Custom Map '{$data['map_name']}' created");
+				$this->flashbag->add('success', "Custom Map '{$map_name}' created");
 				return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 			} else {
 				$this->flashbag->add('error', "Custom map '{$map_name}' creation problem. Check logs.");
@@ -399,27 +420,19 @@ final class MapController extends ViewController
 			['map_symbols' => MapService::mapHitsEnabled()]);
 
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
-			$data = $mapform->getData();
-			if (empty($data['map_name'])) {
-				$this->flashbag->add('error', "Map Name empty");
+			$data = FormHelper::submittedData($mapform);
+			$values = self::customMapConfigValues($data);
+			if (is_string($values)) {
+				$this->flashbag->add('error', $values);
 				return new RedirectResponse($this->getMapsCustomAddUrl());
 			}
-			$data['map_name'] = strtolower(trim($data['map_name']));
-
-			if (empty($data['field_name'])) {
-				$this->flashbag->add('error', "Field Name empty");
-				return new RedirectResponse($this->getMapsCustomAddUrl());
-			}
-			$data['field_name'] = trim($data['field_name']);
-			$data['map_description'] = trim($data['map_description']);
-			$data['field_label'] = trim($data['field_label']);
 
 			$service = $this->getMapService();
 			//$model = 'MapCustom';
 
 			$edit_url = $this->url(RouteName::ADMIN_MAPS_CUSTOM_EDIT, [ 'id' => $id ]);
 
-			$map_name = $data['map_name'];
+			$map_name = $values['map_name'];
 			if ($map_name === 'manage_custom_maps') {
 				$this->flashbag->add('error', "Map name '{$map_name}' is not allowed!");
 				return new RedirectResponse($edit_url);
@@ -432,9 +445,9 @@ final class MapController extends ViewController
 			}
 
 			// update entry
-			if ($service->updateCustomMapConfig($data)) {
+			if ($service->updateCustomMapConfig($id, $values)) {
 				$this->fileLogger->info("Custom map '{$map_name}' updated by '{$this->email}'");
-				$this->flashbag->add('success', "Custom Map '{$data['map_name']}' updated");
+				$this->flashbag->add('success', "Custom Map '{$map_name}' updated");
 				return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 			} else {
 				$this->flashbag->add('error', "Custom map '{$map_name}' update problem. Check logs.");

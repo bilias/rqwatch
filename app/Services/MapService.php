@@ -14,7 +14,9 @@ use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
 use App\Core\App;
+use App\Core\Database\Row;
 
+use App\Utils\FormHelper;
 use App\Utils\Helper;
 
 use App\Models\MapCombined;
@@ -207,10 +209,11 @@ final class MapService
 		return $maps;
 	}
 
-	/** @return array<string, mixed> field_name and field_label */
+	/** @return array{field_name: string, field_label: string} */
 	public static function getCustomField(string $map_name): array {
 		$query = CustomMapConfig::select('field_name', 'field_label')
-								  ->where('map_name', $map_name);
+								  ->where('map_name', $map_name)
+								  ->toBase();
 
 		try {
 			$row = $query->first();
@@ -224,7 +227,10 @@ final class MapService
 			return ['field_name' => '', 'field_label' => ''];
 		}
 
-		return $row->toArray();
+		return [
+			'field_name' => Row::string($row, 'field_name'),
+			'field_label' => Row::string($row, 'field_label'),
+		];
 	}
 
 	// configured virus skip map, or null while disabled or not yet migrated
@@ -322,7 +328,7 @@ final class MapService
 
 		// trimmed and deduplicated, case kept; null when none
 		$symbols = array_values(array_unique(array_filter(
-			array_map('trim', explode(',', (string) $data['symbols'])),
+			array_map('trim', explode(',', FormHelper::optionalText($data['symbols'], 'symbols') ?? '')),
 			fn ($s) => $s !== ''
 		)));
 		$data['symbols'] = $symbols === [] ? null : implode(',', $symbols);
@@ -1157,17 +1163,8 @@ final class MapService
 		return true;
 	}
 
-	/** @param array<string, mixed> $data form data */
+	/** @param array{map_name: non-empty-string, field_name: non-empty-string, map_description: string, field_label: string, symbols?: string|null} $data the checked config values */
 	public function addCustomMapConfig(array $data): bool {
-		if (empty($data)) {
-			$this->logger->error("Empty map data in addCustomMapConfig");
-			return false;
-		}
-
-		if (empty($data['map_name'])) {
-			$this->logger->error("Empty map_name in addCustomMapConfig");
-			return false;
-		}
 		$map_name = $data['map_name'];
 
 		$customMapConfig = new CustomMapConfig();
@@ -1195,24 +1192,14 @@ final class MapService
 		return true;
 	}
 
-	/** @param array<string, mixed> $data form data */
-	public function updateCustomMapConfig(array $data): bool {
-		if (empty($data)) {
-			$this->logger->error("Empty map data in updateCustomMapConfig");
-			return false;
-		}
-
-		if (empty($data['map_name'])) {
-			$this->logger->error("Empty map_name in updateCustomMapConfig");
-			return false;
-		}
+	/** @param array{map_name: non-empty-string, field_name: non-empty-string, map_description: string, field_label: string, symbols?: string|null} $data the checked config values */
+	public function updateCustomMapConfig(int $id, array $data): bool {
 		$map_name = $data['map_name'];
 
-		/** @var CustomMapConfig|null $customMapConfig $data['id'] is the model's own id, carried from toArray() through the form */
-		$customMapConfig = CustomMapConfig::find($data['id']);
+		$customMapConfig = CustomMapConfig::find($id);
 
 		if (!$customMapConfig) {
-			$this->logger->error("[updateCustomMapConfig] CustomMapConfig with id '{$data['id']}' not found");
+			$this->logger->error("[updateCustomMapConfig] CustomMapConfig with id '{$id}' not found");
 			return false;
 		}
 
