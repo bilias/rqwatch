@@ -59,12 +59,37 @@ final class ImportDataTest extends UnitTestCase
 		$this->assertLogged('Q2: symbol C options not a list, wrapped');
 	}
 
-	// a name that is not text is logged as ?, as a missing one is
-	public function testSymbolNameNotScalar(): void {
-		$out = Helper::sanitizeSymbols([['name' => ['A'], 'options' => 'o']], 'Q5');
-		$this->assertSame([['name' => ['A'], 'options' => ['o'], 'score' => 0]], $out);
-		$this->assertLogged('Q5: symbol ? has no score, set to 0');
-		$this->assertLogged('Q5: symbol ? options not a list, wrapped');
+	// a symbol is known by its name: without one (or not text) it is dropped,
+	// where it used to be stored and shown as "Array"
+	public function testSymbolWithoutNameDropped(): void {
+		$out = Helper::sanitizeSymbols([
+			['name' => ['A'], 'score' => 1],
+			['name' => '', 'score' => 1],
+			['score' => 1],
+			['name' => 'B', 'score' => 2],
+		], 'Q5');
+		$this->assertSame([['name' => 'B', 'score' => 2]], $out);
+		$this->assertCount(3, array_filter($this->log->lines, fn (string $l): bool => str_contains($l, 'Q5: dropped symbol entry without a name')));
+	}
+
+	// symbols keyed by name may leave the name out of the record
+	public function testNameFromKey(): void {
+		$this->assertSame(['A' => ['score' => 1, 'name' => 'A']], Helper::sanitizeSymbols(['A' => ['score' => 1]], 'Q6'));
+		$this->assertSame([], $this->log->lines);
+	}
+
+	public function testScoreNotANumber(): void {
+		$out = Helper::sanitizeSymbols([['name' => 'A', 'score' => '5'], ['name' => 'B', 'score' => [1]]], 'Q7');
+		$this->assertSame([['name' => 'A', 'score' => 0], ['name' => 'B', 'score' => 0]], $out);
+		$this->assertLogged('Q7: symbol A score is not a number, set to 0');
+		$this->assertLogged('Q7: symbol B score is not a number, set to 0');
+	}
+
+	// options are text: a number is kept as text, anything else dropped
+	public function testOptions(): void {
+		$out = Helper::sanitizeSymbols([['name' => 'A', 'score' => 1, 'options' => ['x', 7, 1.5, ['nested'], null, true]]], 'Q8');
+		$this->assertSame([['name' => 'A', 'score' => 1, 'options' => ['x', '7', '1.5']]], $out);
+		$this->assertCount(3, array_filter($this->log->lines, fn (string $l): bool => str_contains($l, 'Q8: symbol A dropped an option that is not text')));
 	}
 
 	public function testWellFormedSymbolsUntouched(): void {

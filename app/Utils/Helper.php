@@ -557,7 +557,14 @@ final class Helper {
 		return null;
 	}
 
-	// repair only Rspamd symbol shapes that would crash the formatter; log each repair
+	/*
+	 Rspamd's symbols as stored: each entry a record with a name (text), a
+	 score (a number) and, when set, options (text). What would show or match
+	 wrongly is repaired or dropped, and each change logged: a record without
+	 a name is dropped (a name missing from a record keyed by name is taken
+	 from the key), a score that is not a number is set to 0, and an option
+	 that is neither text nor a number is dropped (a number is kept as text).
+	*/
 	/** @return array<array-key, array<string, mixed>> */
 	public static function sanitizeSymbols(mixed $symbols, string $qid = ''): array {
 		if (!is_array($symbols)) {
@@ -574,14 +581,38 @@ final class Helper {
 				continue;
 			}
 			/** @var array<string, mixed> $s a decoded JSON object: rspamd's field names */
-			$name = is_scalar($s['name'] ?? null) ? (string) $s['name'] : '?';
+			if (!isset($s['name']) && is_string($k) && $k !== '') {
+				$s['name'] = $k;
+			}
+			$name = $s['name'] ?? null;
+			if (!is_string($name) || $name === '') {
+				self::logger()->warning("{$qid}: dropped symbol entry without a name");
+				continue;
+			}
 			if (!array_key_exists('score', $s)) {
 				self::logger()->warning("{$qid}: symbol {$name} has no score, set to 0");
 				$s['score'] = 0;
+			} elseif (!is_int($s['score']) && !is_float($s['score'])) {
+				self::logger()->warning("{$qid}: symbol {$name} score is not a number, set to 0");
+				$s['score'] = 0;
 			}
-			if (isset($s['options']) && !is_array($s['options'])) {
-				self::logger()->warning("{$qid}: symbol {$name} options not a list, wrapped");
-				$s['options'] = [$s['options']];
+			if (isset($s['options'])) {
+				if (!is_array($s['options'])) {
+					self::logger()->warning("{$qid}: symbol {$name} options not a list, wrapped");
+					$s['options'] = [$s['options']];
+				}
+				$options = [];
+				/** @var mixed $option */
+				foreach ($s['options'] as $option) {
+					if (is_string($option)) {
+						$options[] = $option;
+					} elseif (is_int($option) || is_float($option)) {
+						$options[] = (string) $option;
+					} else {
+						self::logger()->warning("{$qid}: symbol {$name} dropped an option that is not text");
+					}
+				}
+				$s['options'] = $options;
 			}
 			$clean[$k] = $s;
 		}
