@@ -12,8 +12,9 @@
  The admin's custom map config pages over HTTP. Create: the name is stored
  trimmed, and the map's entry form shows the field label; the same name again,
  the reserved name manage_custom_maps and a name the form's pattern
- refuses (upper case) create nothing. Edit: the label changes. Each test
- removes what it made.
+ refuses (upper case, digits only) create nothing. A name of digits only
+ stored before that refusal makes the map pages fail naming it. Edit: the
+ label changes. Each test removes what it made.
 */
 
 namespace Tests\Integration\Maps;
@@ -31,7 +32,7 @@ final class CustomMapConfigTest extends IntegrationTestCase
 	protected function tearDown(): void {
 		$db = self::db();
 		foreach (['custom_map_config', 'map_activity_logs'] as $table) {
-			$db->prepare("DELETE FROM {$table} WHERE map_name IN (?, ?)")->execute([self::MAP, 'manage_custom_maps']);
+			$db->prepare("DELETE FROM {$table} WHERE map_name IN (?, ?, ?)")->execute([self::MAP, 'manage_custom_maps', '123']);
 		}
 		parent::tearDown();
 	}
@@ -63,6 +64,25 @@ final class CustomMapConfigTest extends IntegrationTestCase
 		$response = self::submit($admin, '/admin/maps/custom/add', ['map_name' => 'Cfg-Test-Map']);
 		$this->assertSame(200, $response['status'], 'the form is shown again');
 		$this->assertSame(0, self::valueInt("SELECT COUNT(*) FROM custom_map_config WHERE map_name LIKE 'cfg-test-map'"));
+	}
+
+	#[TestDox('A name of digits only is refused by the form')]
+	public function testDigitsOnlyNameRefused(): void {
+		$response = self::submit(self::client('admin'), '/admin/maps/custom/add', ['map_name' => '123']);
+		$this->assertSame(200, $response['status'], 'the form is shown again');
+		$this->assertStringContainsString('A map name needs a letter, _ or -', $response['body']);
+		$this->assertSame(0, self::configs('123'));
+	}
+
+	#[TestDox('A name of digits only already stored: the map pages fail naming the map, not with a TypeError')]
+	public function testStoredDigitsOnlyNameNamed(): void {
+		$log = (string) getenv('INTEGRATION_WEB_LOG');
+		clearstatcache(true, $log);
+		$from = is_file($log) ? (int) filesize($log) : 0;
+		self::db()->exec("INSERT INTO custom_map_config (map_name, map_description, field_name, field_label) VALUES ('123', 'Digits', 'domain', 'Domain')");
+
+		$this->assertSame(500, self::client('admin')->get('/admin/maps')['status']);
+		$this->assertStringContainsString("Custom map '123' has a name of digits only", (string) file_get_contents($log, false, null, $from));
 	}
 
 	#[TestDox('Admin edits a custom map: the label changes, in the entry form too')]

@@ -32,6 +32,7 @@ use App\Forms\MapIpForm;
 use App\Forms\MapWithCustomFieldForm;
 use App\Forms\MapWithOneFieldForm;
 
+use App\Configuration\AppConfig;
 use App\Services\MapService;
 
 use RuntimeException;
@@ -242,6 +243,11 @@ final class MapInventory
 		if ($custom_map_configs !== null && $custom_map_configs->count() > 0) {
 			$custom_configs = array();
 			foreach ($custom_map_configs as $cmf) {
+				// PHP keys a name of digits only by an int, which array_merge() renumbers
+				if (ctype_digit($cmf->map_name)) {
+					throw new RuntimeException("Custom map '{$cmf->map_name}' has a name of digits only, which cannot be used: rename it in "
+						. AppConfig::CUSTOM_MAP_CONFIG_TABLE);
+				}
 				$custom_configs[$cmf->map_name]['model'] = 'MapCustom';
 				$custom_configs[$cmf->map_name]['description'] = $cmf->map_description;
 				$custom_configs[$cmf->map_name]['fields'] = [$cmf->field_name];

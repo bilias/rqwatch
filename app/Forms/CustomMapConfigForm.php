@@ -57,6 +57,12 @@ final class CustomMapConfigForm extends AbstractType
 							pattern: '/^[a-z0-9_\-]+$/',
 							message: 'Only lowercase letters, numbers and _- are allowed',
 						),
+						// a name of digits only cannot key the map configs
+						new Assert\Regex(
+							pattern: '/^\d+$/',
+							match: false,
+							message: 'A map name needs a letter, _ or -',
+						),
 					 ],
             ])
             ->add('map_description', TextType::class, [
