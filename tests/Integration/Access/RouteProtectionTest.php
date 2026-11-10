@@ -11,7 +11,8 @@
 /*
  Every protected route refused over HTTP: anonymous requests go to the login
  page, a plain user is refused every admin route. Positive controls first, so
- a broken login cannot make a refusal pass.
+ a broken login cannot make a refusal pass. An unknown URL sends the admin
+ to /admin, a user to / and anonymous requests to the login page.
 */
 
 namespace Tests\Integration\Access;
@@ -62,5 +63,19 @@ final class RouteProtectionTest extends IntegrationTestCase
 			$checked++;
 		}
 		$this->assertGreaterThan(0, $checked);
+	}
+
+	#[TestDox('Unknown URL: the admin goes to /admin, the user to /, both told "Unknown URL"; anonymous to the login page')]
+	public function testUnknownUrlRedirects(): void {
+		foreach (['admin' => '/admin', 'alice' => '/'] as $user => $home) {
+			$client = self::client($user);
+			$response = $client->get('/no-such-page');
+			$this->assertSame(302, $response['status'], $user);
+			$this->assertSame($home, self::target($response), $user);
+			$this->assertStringContainsString('Unknown URL', $client->get($home)['body'], $user);
+		}
+		$response = self::anonymous()->get('/no-such-page');
+		$this->assertSame(302, $response['status'], 'anonymous');
+		$this->assertSame('/login', self::target($response), 'anonymous');
 	}
 }

@@ -195,7 +195,7 @@ final class Router
 				// user is already authenticated
 				// redirect to homepage
 				$session->getFlashBag()->add('error', "Unknown URL");
-				if ($session->get('is_admin')) {
+				if (SessionManager::getBool($session, 'is_admin') === true) {
 					return new RedirectResponse($urlGenerator->generate(RouteName::ADMIN_HOMEPAGE->value));
 				} else {
 					return new RedirectResponse($urlGenerator->generate(RouteName::HOMEPAGE->value));
