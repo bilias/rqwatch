@@ -12,8 +12,9 @@
  The importer on malformed or failing input, without rspamd: requests
  posted as metadata_exporter would. The metadata is kept wherever it can
  be, and every loss is logged:
- - a fuzzy value that is not a list of hashes is stored as none, and a
-   text field holding true is treated as absent;
+ - a fuzzy value that is not a list of hashes is stored as none, a text
+   field holding true is treated as absent, and a recipient that is not
+   text, or is '0', is dropped and the others kept;
  - without a usable message part the metadata is still imported;
  - unusable metadata is refused;
  - a mail the database rejects is saved without its free text, and one it
@@ -65,6 +66,27 @@ final class MetadataTest extends IntegrationTestCase
 		$this->assertSame([200, 'Message saved'], $response);
 		$this->assertSame('empty-mail-from@localhost', self::valueString('SELECT mail_from FROM mail_logs WHERE qid = ?', self::QID . '2'));
 		$this->assertStringContainsString("metadata field 'from' is bool, not text; ignoring it", self::logSince($from));
+	}
+
+	public function testRcptValuesNotTextDropped(): void {
+		$from = self::logSize();
+		$response = self::post(self::meta(11, ['rcpt' => ['Meta-A@example.org', ['meta-b@example.org'], true, 0]]), 'message');
+		$this->assertSame([200, 'Message saved'], $response);
+		$this->assertSame('meta-a@example.org', self::valueString(
+			'SELECT GROUP_CONCAT(r.recipient_email) FROM mail_log_recipients r JOIN mail_logs m ON m.id = r.mail_log_id WHERE m.qid = ?', self::QID . '11'));
+		$this->assertSame('meta-a@example.org', self::valueString('SELECT rcpt_to FROM mail_logs WHERE qid = ?', self::QID . '11'));
+		$log = self::logSince($from);
+		$this->assertStringContainsString("metadata field 'rcpt' has a value of type array, not text; ignoring it", $log);
+		$this->assertStringContainsString("metadata field 'rcpt' has a value of type bool, not text; ignoring it", $log);
+		$this->assertStringContainsString("metadata field 'rcpt' has the value '0'; ignoring it", $log);
+	}
+
+	public function testRcptNotAListOrTextIgnored(): void {
+		$from = self::logSize();
+		$response = self::post(self::meta(12, ['rcpt' => true]), 'message');
+		$this->assertSame([200, 'Message saved'], $response);
+		$this->assertSame('unknown', self::valueString('SELECT rcpt_to FROM mail_logs WHERE qid = ?', self::QID . '12'));
+		$this->assertStringContainsString("metadata field 'rcpt' has a value of type bool, not text; ignoring it", self::logSince($from));
 	}
 
 	/** @return array<string, array{string}> */

@@ -298,19 +298,34 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			$fuzzy = '[]';
 		}
 
+		// rcpt: a list of addresses, or 'unknown' for none; a value that is
+		// not text, or is '0', is logged and dropped, the rest kept
+		/** @var mixed $rcptMeta */
+		$rcptMeta = $meta['rcpt'] ?? null;
+		if ($rcptMeta === null || $rcptMeta === 'unknown') {
+			$rcptMeta = [];
+		}
 		$rcptArr = [];
-		if (isset($meta['rcpt'])) {
-			if (is_array($meta['rcpt'])) {
-				$rcptArr = $meta['rcpt'];
-			} elseif (is_string($meta['rcpt']) && $meta['rcpt'] !== '' && $meta['rcpt'] !== 'unknown') {
-				$rcptArr = [$meta['rcpt']];
+		/** @var mixed $rcpt */
+		foreach (is_array($rcptMeta) ? $rcptMeta : [$rcptMeta] as $rcpt) {
+			if (is_int($rcpt) || is_float($rcpt)) {
+				$rcpt = (string) $rcpt;
+			}
+			if (!is_string($rcpt)) {
+				$this->fileLogger->warning(
+					"[{$this->logPrefix}] metadata field 'rcpt' has a value of type " . get_debug_type($rcpt) . ", not text; ignoring it"
+				);
+				continue;
+			}
+			$rcpt = strtolower(trim($rcpt));
+			if ($rcpt === '0') {
+				$this->fileLogger->warning("[{$this->logPrefix}] metadata field 'rcpt' has the value '0'; ignoring it");
+				continue;
+			}
+			if ($rcpt !== '') {
+				$rcptArr[] = $rcpt;
 			}
 		}
-
-		$rcptArr = array_values(array_filter(array_map(
-			fn($v) => strtolower(trim((string)$v)),
-			$rcptArr
-		)));
 
 		$server = Helper::sanitize_string($server);
 		
