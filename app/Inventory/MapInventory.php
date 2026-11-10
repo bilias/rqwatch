@@ -56,16 +56,15 @@ final class MapInventory
 		$requiredFields = ['model', 'fields', 'map_form', 'access'];
 		foreach ($configs as $key => $config) {
 			foreach ($requiredFields as $field) {
-				if (!array_key_exists($field, $config) || $config[$field] === null) {
-					throw new RuntimeException("Missing or null required field '$field' in map config '$key'");
-				}
+				self::required($config, $field, $key);
 			}
 
-			if (!in_array($config['model'], ['MapCombined', 'MapCustom'], true)) {
+			if (!in_array(self::required($config, 'model', $key), ['MapCombined', 'MapCustom'], true)) {
 				throw new RuntimeException("Unknown model in map config '$key'");
 			}
 
-			$fields = $config['fields'];
+			/** @var mixed $fields */
+			$fields = self::required($config, 'fields', $key);
 			if (!is_array($fields) || $fields === [] || !array_is_list($fields)) {
 				throw new RuntimeException("Map config '$key' needs a non-empty list of fields");
 			}
@@ -75,6 +74,17 @@ final class MapInventory
 				}
 			}
 		}
+	}
+
+	/**
+	 * A required key of map config $key: missing or null is an error
+	 * @param array<string, mixed> $config
+	 */
+	private static function required(array $config, string $field, string $key): mixed {
+		if (!array_key_exists($field, $config) || $config[$field] === null) {
+			throw new RuntimeException("Missing or null required field '$field' in map config '$key'");
+		}
+		return $config[$field];
 	}
 
 	// also need to create child form class in app/Forms
