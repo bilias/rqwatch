@@ -94,6 +94,21 @@ final class RowTest extends TestCase
 		Row::nullableString(self::row(), 'TABLE_NAME');
 	}
 
+	public function testPluckedText(): void {
+		$this->assertSame([0 => 'a@example.org', 'k' => ''], Row::stringValues([0 => 'a@example.org', 'k' => ''], 'alias'));
+	}
+
+	/** @return array<string, array{mixed, string}> */
+	public static function notTextValues(): array {
+		return ['int' => [5, 'int'], 'null' => [null, 'null'], 'nested' => [['x'], 'array']];
+	}
+
+	#[DataProvider('notTextValues')]
+	public function testPluckedTextRefused(mixed $value, string $type): void {
+		$this->expectExceptionMessage("Database column 'alias' must be text, not {$type}");
+		Row::stringValues(['a@example.org', $value], 'alias');
+	}
+
 	public function testPluckedValueRefused(): void {
 		$this->expectExceptionMessage("Database column 'ml.id' must be an integer, not string");
 		Row::intValues([1, '2', 'x'], 'ml.id');

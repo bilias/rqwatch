@@ -13,6 +13,7 @@ namespace App\Services;
 use App\Configuration\Config;
 
 use App\Core\App;
+use App\Core\Database\Row;
 
 use App\Utils\Helper;
 
@@ -203,9 +204,9 @@ final class UserService
 	}
 
 	// true when none of $emails would be notified
-	/** @param array<array-key, mixed> $emails recipient addresses, cast to string here */
+	/** @param array<array-key, string> $emails recipient addresses */
 	public function notificationsDisabledForAll(array $emails): bool {
-		$emails = array_filter(array_map(fn ($e) => trim((string) $e), $emails));
+		$emails = array_filter(array_map(fn (string $e) => trim($e), $emails));
 
 		if (empty($emails)) {
 			return false;
@@ -329,8 +330,11 @@ final class UserService
 		$userMaps = MapInventory::getRoleMapsByModel('MapCombined', 'user');
 
 		$addresses = array_values(array_unique(array_filter(array_map(
-			fn ($a) => strtolower(trim((string) $a)),
-			array_merge([$user->email], $user->mailAliases->pluck('alias')->all())
+			fn (string $a) => strtolower(trim($a)),
+			array_merge(
+				$user->email === null ? [] : [$user->email],
+				Row::stringValues($user->mailAliases->pluck('alias')->all(), 'alias')
+			)
 		))));
 
 		if (!empty($addresses) && !empty($userMaps)) {
@@ -342,7 +346,8 @@ final class UserService
 			/** @var list<string> $affected distinct map_name values */
 			$affected = (clone $query)->distinct()->pluck('map_name')->all();
 
-			$deleted = (int) $query->delete();
+			// what Eloquent's delete() runs when no onDelete is set, typed
+			$deleted = $query->toBase()->delete();
 
 			if ($deleted > 0) {
 				$this->logger->info(

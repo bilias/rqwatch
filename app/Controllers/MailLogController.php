@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
 use App\Core\App;
+use App\Core\Database\Row;
 use App\Core\SessionManager;
 
 use App\Core\Routing\RouteName;
@@ -770,7 +771,7 @@ final class MailLogController extends ViewController
 		// true if no recipient would be notified with current settings
 		$notifications_disabled = ($ar['log']->notification_pending || $ar['log']->notified === null)
 			&& (new UserService())->notificationsDisabledForAll(
-				$ar['log']->recipients->pluck('recipient_email')->all()
+				Row::stringValues($ar['log']->recipients->pluck('recipient_email')->all(), 'recipient_email')
 			);
 
 		$blacklisted = Helper::checkForBlacklist($ar['log']->symbols ?? []);

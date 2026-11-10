@@ -57,6 +57,21 @@ final class Row
 		return $ints;
 	}
 
+	/**
+	 * A plucked list of text values, keys kept.
+	 * @template TKey of array-key
+	 * @param array<TKey, mixed> $values
+	 * @return array<TKey, string>
+	 */
+	public static function stringValues(array $values, string $column): array {
+		$strings = [];
+		/** @var mixed $value */
+		foreach ($values as $key => $value) {
+			$strings[$key] = is_string($value) ? $value : throw self::wrongType($column, 'text', $value);
+		}
+		return $strings;
+	}
+
 	private static function toInt(mixed $value, string $column): int {
 		if (is_int($value)) {
 			return $value;
