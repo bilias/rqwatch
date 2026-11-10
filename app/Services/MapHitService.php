@@ -11,6 +11,7 @@
 namespace App\Services;
 
 use App\Core\App;
+use App\Core\Database\Row;
 
 use App\Configuration\AppConfig;
 
@@ -143,8 +144,8 @@ final class MapHitService
 			->pluck('pattern', 'id')->all();
 
 		$entries = [];
-		foreach ($patterns as $id => $pattern) {
-			if (Helper::virusSkipMatch($antivirus, [(string) $pattern]) !== null) {
+		foreach (Row::stringValues($patterns, 'pattern') as $id => $pattern) {
+			if (Helper::virusSkipMatch($antivirus, [$pattern]) !== null) {
 				$entries[] = [self::ENTRY_CUSTOM, (int) $id];
 			}
 		}
@@ -245,16 +246,15 @@ final class MapHitService
 			foreach ($fields as $i => $field) {
 				$query->where($field, $parts[$i]);
 			}
-			$ids = $query->pluck('id')->all();
+			$ids = array_values(Row::intValues($query->pluck('id')->all(), 'id'));
 			if ($ids !== []) {
-				/** @var list<array{int, int}> pluck() is 0-indexed and array_map() keeps the keys */
-				return array_map(fn ($id) => [self::ENTRY_COMBINED, (int) $id], $ids);
+				return array_map(fn (int $id) => [self::ENTRY_COMBINED, $id], $ids);
 			}
 		}
 
 		if ($fields === ['ip'] && filter_var($keys[0], FILTER_VALIDATE_IP) !== false) {
-			$networks = (clone $table)->where('map_name', $map)->where('disabled', 0)
-				->where('ip', 'like', '%/%')->pluck('ip', 'id')->all();
+			$networks = Row::stringValues((clone $table)->where('map_name', $map)->where('disabled', 0)
+				->where('ip', 'like', '%/%')->pluck('ip', 'id')->all(), 'ip');
 			return $this->longestPrefix($keys[0], $networks, self::ENTRY_COMBINED);
 		}
 
@@ -278,8 +278,8 @@ final class MapHitService
 				->pluck('pattern', 'id')->all();
 
 			$ids = [];
-			foreach ($rows as $id => $pattern) {
-				if (strcasecmp(self::customIdentity((string) $pattern)[0], $key) === 0) {
+			foreach (Row::stringValues($rows, 'pattern') as $id => $pattern) {
+				if (strcasecmp(self::customIdentity($pattern)[0], $key) === 0) {
 					$ids[] = [self::ENTRY_CUSTOM, (int) $id];
 				}
 			}
@@ -292,8 +292,8 @@ final class MapHitService
 			$networks = [];
 			$rows = (clone $table)->where('map_name', $map)->where('disabled', 0)
 				->where('pattern', 'like', '%/%')->pluck('pattern', 'id')->all();
-			foreach ($rows as $id => $pattern) {
-				$networks[$id] = self::customIdentity((string) $pattern)[0];
+			foreach (Row::stringValues($rows, 'pattern') as $id => $pattern) {
+				$networks[$id] = self::customIdentity($pattern)[0];
 			}
 			return $this->longestPrefix($keys[0], $networks, self::ENTRY_CUSTOM);
 		}
@@ -314,8 +314,8 @@ final class MapHitService
 			->pluck('pattern', 'id')->all();
 
 		$entries = [];
-		foreach ($rows as $id => $pattern) {
-			if (self::customIdentity((string) $pattern)[1] === $name) {
+		foreach (Row::stringValues($rows, 'pattern') as $id => $pattern) {
+			if (self::customIdentity($pattern)[1] === $name) {
 				$entries[] = [self::ENTRY_CUSTOM, (int) $id];
 			}
 		}
@@ -325,7 +325,7 @@ final class MapHitService
 
 	// the entries of $networks (id => CIDR) with the longest prefix holding $ip
 	/**
-	 * @param array<int, string> $networks
+	 * @param array<array-key, string> $networks entry id => CIDR
 	 * @return list<array{int, int}>
 	 */
 	private function longestPrefix(string $ip, array $networks, int $model): array {
@@ -339,7 +339,7 @@ final class MapHitService
 			 * @var string $net
 			 * @var string|null $len
 			 */
-			[$net, $len] = array_pad(explode('/', (string) $network, 2), 2, null);
+			[$net, $len] = array_pad(explode('/', $network, 2), 2, null);
 			$bin = filter_var($net, FILTER_VALIDATE_IP) !== false ? inet_pton($net) : false;
 			if ($bin === false || $addr === false || strlen($bin) !== strlen($addr)
 				|| !ctype_digit((string) $len) || (int) $len > strlen($bin) * 8) {
@@ -481,10 +481,14 @@ final class MapHitService
 			->delete();
 
 		foreach ($mails as $mail) {
-			$this->recordHits((int) $mail->id, (string) $mail->symbols, (string) $mail->qid);
+			$this->recordHits(
+				Row::int($mail, 'id'),
+				Row::nullableString($mail, 'symbols') ?? '',
+				Row::nullableString($mail, 'qid') ?? ''
+			);
 		}
 
-		return [(int) $last->id, $mails->count()];
+		return [Row::int($last, 'id'), $mails->count()];
 	}
 
 	// entry_model of a map model ('MapCombined', 'MapCustom')
@@ -509,18 +513,18 @@ final class MapHitService
 
 		$table = App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_SYMBOL_HITS_TABLE);
 
-		$counts = (clone $table)->where('entry_model', $model)->whereIn('entry_id', $ids)
+		$counts = Row::intValues((clone $table)->where('entry_model', $model)->whereIn('entry_id', $ids)
 			->whereRaw('created_day >= CURDATE() - INTERVAL ? DAY', [$days - 1])
 			->groupBy('entry_id')
 			->selectRaw('entry_id, COUNT(DISTINCT mail_log_id) AS hits')
-			->pluck('hits', 'entry_id')->all();
-		$last = (clone $table)->where('entry_model', $model)->whereIn('entry_id', $ids)
+			->pluck('hits', 'entry_id')->all(), 'hits');
+		$last = Row::stringValues((clone $table)->where('entry_model', $model)->whereIn('entry_id', $ids)
 			->groupBy('entry_id')
 			->selectRaw('entry_id, MAX(created_day) AS last')
-			->pluck('last', 'entry_id')->all();
+			->pluck('last', 'entry_id')->all(), 'last');
 
 		foreach ($ids as $id) {
-			$result[$id] = ['hits' => (int) ($counts[$id] ?? 0), 'last' => $last[$id] ?? null];
+			$result[$id] = ['hits' => $counts[$id] ?? 0, 'last' => $last[$id] ?? null];
 		}
 		return $result;
 	}
@@ -533,14 +537,12 @@ final class MapHitService
 			->where('entry_id', $entryId);
 		self::dayWindow($query, $days);
 
-		/** @var list<int> pluck() is 0-indexed and map() keeps the keys */
-		return $query
+		return array_values(Row::intValues($query
 			->orderBy('mail_log_id', 'DESC')
 			->distinct()
 			->limit($limit)
 			->pluck('mail_log_id')
-			->map(fn ($id) => (int) $id)
-			->all();
+			->all(), 'mail_log_id'));
 	}
 
 	// limit an entry query on $table to entries with no hit in the last $days days
@@ -568,9 +570,11 @@ final class MapHitService
 
 		$hits = [];
 		foreach ($rows as $row) {
-			$hits[(string) $row->name] ??= [];
-			if ((int) $row->entry_model !== self::ENTRY_NONE) {
-				$hits[(string) $row->name][] = [(int) $row->entry_model, (int) $row->entry_id];
+			$name = Row::string($row, 'name');
+			$model = Row::int($row, 'entry_model');
+			$hits[$name] ??= [];
+			if ($model !== self::ENTRY_NONE) {
+				$hits[$name][] = [$model, Row::int($row, 'entry_id')];
 			}
 		}
 		return $hits;
@@ -592,8 +596,8 @@ final class MapHitService
 			if ($ids[$model] === []) {
 				continue;
 			}
-			$found = App::capsule()->getConnection()->table($table)
-				->whereIn('id', array_unique($ids[$model]))->pluck('map_name', 'id')->all();
+			$found = Row::stringValues(App::capsule()->getConnection()->table($table)
+				->whereIn('id', array_unique($ids[$model]))->pluck('map_name', 'id')->all(), 'map_name');
 			foreach ($found as $id => $map) {
 				$maps["{$model}:{$id}"] = $map;
 			}
@@ -635,7 +639,7 @@ final class MapHitService
 
 			$result[$map] = [
 				'windows' => self::windowValues($row),
-				'last' => $last->last ?? null,
+				'last' => $last === null ? null : Row::nullableString($last, 'last'),
 			];
 		}
 
@@ -670,7 +674,7 @@ final class MapHitService
 
 		$result = [];
 		foreach ($query->get() as $row) {
-			$result[(string) $row->name] = ['windows' => self::windowValues($row), 'last' => $row->last];
+			$result[Row::string($row, 'name')] = ['windows' => self::windowValues($row), 'last' => Row::nullableString($row, 'last')];
 		}
 		return $result;
 	}
@@ -702,11 +706,11 @@ final class MapHitService
 		}
 		$join = $where === [] ? '' : ' JOIN ' . AppConfig::MAIL_LOGS_TABLE . ' ml ON ml.id = t.mail_log_id WHERE ' . implode(' AND ', $where);
 
-		return array_map('intval', array_column(App::capsule()->getConnection()->select(
+		return array_values(Row::intValues(array_column(App::capsule()->getConnection()->select(
 			// nosemgrep: rqwatch-raw-sql -- built from constants and placeholders; limit cast to int
 			"SELECT DISTINCT t.mail_log_id FROM ({$sql}) t{$join} ORDER BY t.mail_log_id DESC LIMIT " . (int) $limit,
 			$bindings
-		), 'mail_log_id'));
+		), 'mail_log_id'), 'mail_log_id'));
 	}
 
 	/*
@@ -725,13 +729,13 @@ final class MapHitService
 		$counts = [];
 		// nosemgrep: rqwatch-raw-sql -- built from constants and placeholders; bindings passed
 		foreach ($db->select("SELECT t.created_day AS day, COUNT(DISTINCT t.mail_log_id) AS mails FROM ({$sql}) t GROUP BY t.created_day", $bindings) as $row) {
-			$counts[(string) $row->day] = (int) $row->mails;
+			$counts[Row::string($row, 'day')] = Row::int($row, 'mails');
 		}
 
 		// the database's today, as the windows use
 		/** @var \stdClass $day a SELECT without FROM returns one row */
 		$day = $db->selectOne('SELECT CURDATE() AS d');
-		$today = new \DateTimeImmutable((string) $day->d);
+		$today = new \DateTimeImmutable(Row::string($day, 'd'));
 		$result = [];
 		for ($i = $days - 1; $i >= 0; $i--) {
 			$d = $today->modify("-{$i} day")->format('Y-m-d');
@@ -763,10 +767,11 @@ final class MapHitService
 
 		$outcome = [];
 		foreach ($rows as $row) {
-			$outcome[(string) $row->action] = [
-				'mails' => (int) $row->mails,
-				'released' => (int) $row->released,
-				'notified' => (int) $row->notified,
+			// a mail without an action is grouped under ''
+			$outcome[Row::nullableString($row, 'action') ?? ''] = [
+				'mails' => Row::int($row, 'mails'),
+				'released' => Row::int($row, 'released'),
+				'notified' => Row::int($row, 'notified'),
 			];
 		}
 		return $outcome;
@@ -785,14 +790,12 @@ final class MapHitService
 			->where('entry_model', self::ENTRY_NONE);
 		self::dayWindow($query, $days);
 
-		/** @var list<int> pluck() is 0-indexed and map() keeps the keys */
-		return $query
+		return array_values(Row::intValues($query
 			->orderBy('mail_log_id', 'DESC')
 			->distinct()
 			->limit($limit)
 			->pluck('mail_log_id')
-			->map(fn ($id) => (int) $id)
-			->all();
+			->all(), 'mail_log_id'));
 	}
 
 	/*
@@ -840,10 +843,10 @@ final class MapHitService
 	}
 
 	/** @return array<int, int> window days => mails */
-	private static function windowValues(?object $row): array {
+	private static function windowValues(?\stdClass $row): array {
 		$values = [];
 		foreach (self::WINDOWS as $d) {
-			$values[$d] = (int) ($row->{"d{$d}"} ?? 0);
+			$values[$d] = $row === null ? 0 : (Row::nullableInt($row, "d{$d}") ?? 0);
 		}
 		return $values;
 	}
@@ -858,8 +861,8 @@ final class MapHitService
 		if ($names === []) {
 			return [];
 		}
-		return array_map('intval', App::capsule()->getConnection()->table(AppConfig::SYMBOL_NAMES_TABLE)
-			->whereIn('name', $names)->pluck('id', 'name')->all());
+		return Row::intValues(App::capsule()->getConnection()->table(AppConfig::SYMBOL_NAMES_TABLE)
+			->whereIn('name', $names)->pluck('id', 'name')->all(), 'id');
 	}
 
 	// symbol name => symbol_names.id, adding the names not seen before
@@ -870,15 +873,15 @@ final class MapHitService
 	private function symbolIds(array $names): array {
 		$table = App::capsule()->getConnection()->table(AppConfig::SYMBOL_NAMES_TABLE);
 
-		$ids = (clone $table)->whereIn('name', $names)->pluck('id', 'name')->all();
+		$ids = Row::intValues((clone $table)->whereIn('name', $names)->pluck('id', 'name')->all(), 'id');
 
 		$missing = array_values(array_diff($names, array_keys($ids)));
 		if ($missing !== []) {
 			(clone $table)->insertOrIgnore(array_map(fn ($n) => ['name' => $n], $missing));
-			$ids += (clone $table)->whereIn('name', $missing)->pluck('id', 'name')->all();
+			$ids += Row::intValues((clone $table)->whereIn('name', $missing)->pluck('id', 'name')->all(), 'id');
 		}
 
-		return array_map('intval', $ids);
+		return $ids;
 	}
 
 }

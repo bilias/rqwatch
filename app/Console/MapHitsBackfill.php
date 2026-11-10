@@ -63,7 +63,10 @@ final class MapHitsBackfill extends RqwatchCliCommand
 			return Command::FAILURE;
 		}
 
-		$batch = (int) $input->getOption('batch');
+		// the default is an int; given, it is text, and only digits are a size
+		/** @var mixed $option */
+		$option = $input->getOption('batch');
+		$batch = is_int($option) ? $option : (is_string($option) && ctype_digit($option) ? (int) $option : 0);
 		if ($batch < 1) {
 			$output->writeln("<error>Batch size must be a positive number</error>");
 			return Command::FAILURE;

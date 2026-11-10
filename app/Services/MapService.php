@@ -276,9 +276,9 @@ final class MapService
 		}
 
 		if (self::mapHitsEnabled()) {
-			$custom = CustomMapConfig::whereNotNull('symbols')->pluck('symbols', 'map_name');
+			$custom = Row::stringValues(CustomMapConfig::whereNotNull('symbols')->pluck('symbols', 'map_name')->all(), 'symbols');
 			foreach ($custom as $map => $symbols) {
-				$list = array_values(array_filter(explode(',', (string) $symbols), [self::class, 'validSymbol']));
+				$list = array_values(array_filter(explode(',', $symbols), [self::class, 'validSymbol']));
 				if ($list !== []) {
 					$maps[$map] = $list;
 				}
@@ -648,7 +648,7 @@ final class MapService
 		$validMapNames = array_keys($configs);
 
 		// Get maps from activity logs (DB)
-		$dbMapNames = MapActivityLog::pluck('map_name')->toArray();
+		$dbMapNames = Row::stringValues(MapActivityLog::pluck('map_name')->all(), 'map_name');
 
 		// Add missing maps from config into activity log and create map file
 		$missingInDb = array_diff($validMapNames, $dbMapNames);

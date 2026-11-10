@@ -60,6 +60,18 @@ final class MapHitsBackfillTest extends IntegrationTestCase
 		$this->assertSame(['9503 ' . self::STALE . ' 0 0 - 1'], self::hits());
 	}
 
+	#[TestDox('-b takes digits only: 5x, x and 0 are refused')]
+	public function testBatchDigitsOnly(): void {
+		foreach (['5x', 'x', '0'] as $batch) {
+			try {
+				self::cli('db:map_hits_backfill', '-b', $batch);
+				$this->fail("-b {$batch} accepted");
+			} catch (RuntimeException $e) {
+				$this->assertStringContainsString('Batch size must be a positive number', $e->getMessage(), $batch);
+			}
+		}
+	}
+
 	#[TestDox('-r: hits again from the stored symbols, the old ones replaced, for the last 31 days; -a: the whole log')]
 	public function testBackfill(): void {
 		$this->mails();
