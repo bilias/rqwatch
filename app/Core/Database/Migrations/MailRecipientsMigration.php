@@ -13,6 +13,7 @@ namespace App\Core\Database\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 
 use App\Configuration\AppConfig;
+use App\Core\Database\Row;
 use App\Inventory\Migrations;
 
 use Symfony\Component\Console\Output\OutputInterface;
@@ -148,12 +149,13 @@ final class MailRecipientsMigration extends AbstractMigration {
 				));
 				*/
 
-				if ($log->rcpt_to === null || $log->rcpt_to === '') {
+				$rcptTo = Row::nullableString($log, 'rcpt_to');
+				if ($rcptTo === null || $rcptTo === '') {
 					continue;
 				}
 
 				$recipients = [];
-				foreach (explode(',', $log->rcpt_to) as $email) {
+				foreach (explode(',', $rcptTo) as $email) {
 					$email = strtolower(trim($email));
 					if ($email === '' || $email === 'unknown') {
 						continue;
@@ -202,7 +204,7 @@ final class MailRecipientsMigration extends AbstractMigration {
 			// insert in batches
 			$inserted += $this->capsule::table(AppConfig::MAIL_LOG_RECIPIENTS_TABLE)->insertOrIgnore($batchRows);
 
-			$lastId = (int) $last->id;
+			$lastId = Row::int($last, 'id');
 			$scanned += $candidates;
 			$migrated += $inserted;
 			$remaining = max(0, $total - $scanned);

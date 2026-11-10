@@ -11,6 +11,7 @@
 namespace App\Core\Database\Migrations;
 
 use App\Configuration\AppConfig;
+use App\Core\Database\Row;
 use App\Inventory\Migrations;
 
 use Symfony\Component\Console\Output\OutputInterface;
@@ -86,7 +87,8 @@ final class MapUserConstraints extends AbstractMigration {
 			. AppConfig::MAPS_COMBINED_TABLE . "`"
 		);
 
-		if (empty($min) || $min[0]->min_id === null || (int) $min[0]->min_id >= 0) {
+		$minId = $min === [] ? null : Row::nullableInt($min[0], 'min_id');
+		if ($minId === null || $minId >= 0) {
 			return true;
 		}
 
@@ -183,7 +185,7 @@ final class MapUserConstraints extends AbstractMigration {
 			);
 			$output->writeln("<info>Deleted {$deleted} orphaned map entries</info>");
 
-			$this->bumpMapActivity(array_column($affected, 'map_name'));
+			$this->bumpMapActivity(array_map(fn (\stdClass $row) => Row::string($row, 'map_name'), $affected));
 		}
 	}
 
@@ -193,7 +195,7 @@ final class MapUserConstraints extends AbstractMigration {
 	 live in the generated file. Raw SQL rather than MapService: no migration
 	 in this tree touches a model or a service.
 	*/
-	/** @param array<array-key, mixed> $map_names empty and duplicate names are dropped */
+	/** @param list<string> $map_names empty and duplicate names are dropped */
 	private function bumpMapActivity(array $map_names): void {
 		$map_names = array_values(array_unique(array_filter($map_names)));
 

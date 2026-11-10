@@ -27,7 +27,8 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/",
-            "Qa\\PsalmPlugin\\": "qa/PsalmPlugin/"
+            "Qa\\PsalmPlugin\\": "qa/PsalmPlugin/",
+            "Qa\\PHPStan\\": "qa/PHPStan/"
         }
     },
     "require": {

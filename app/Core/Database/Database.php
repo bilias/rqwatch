@@ -223,7 +223,7 @@ final class Database {
 		$schema = [];
 
 		foreach ($rows as $row) {
-			$schema[(string) $row->TABLE_NAME][] = (string) $row->COLUMN_NAME;
+			$schema[Row::string($row, 'TABLE_NAME')][] = Row::string($row, 'COLUMN_NAME');
 		}
 
 		self::$schema = $schema;

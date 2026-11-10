@@ -14,6 +14,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Query\Builder;
 
 use App\Configuration\AppConfig;
+use App\Core\Database\Row;
 use App\Inventory\Migrations;
 
 use Symfony\Component\Console\Output\OutputInterface;
@@ -108,12 +109,12 @@ final class MailLogViruses extends AbstractMigration {
 		$inserted = 0;
 
 		while (true) {
-			$ids = $pending()
+			$ids = Row::intValues($pending()
 				->where('ml.id', '>', $lastId)
 				->orderBy('ml.id')
 				->limit($batch)
 				->pluck('ml.id')
-				->all();
+				->all(), 'ml.id');
 
 			if ($ids === []) {
 				break;
@@ -133,7 +134,7 @@ final class MailLogViruses extends AbstractMigration {
 				->insertOrIgnoreUsing(['mail_log_id', 'created_day', 'av', 'name'], $select);
 
 			// $lastId steps past mails whose symbols yield no row
-			$lastId = (int) end($ids);
+			$lastId = end($ids);
 			$done += count($ids);
 			$remaining = max(0, $total - $done);
 			$output->writeln(

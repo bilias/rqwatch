@@ -15,6 +15,7 @@ use Illuminate\Database\Schema\Blueprint;
 
 use App\Core\App;
 use App\Configuration\AppConfig;
+use App\Core\Database\Row;
 use App\Inventory\Migrations;
 
 use Symfony\Component\Console\Output\OutputInterface;
@@ -100,11 +101,11 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 	private function runMigration(int $batch, int $sleep, OutputInterface $output): void {
 		$db = $this->capsule->getConnection();
 
-		$linked = $db->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)
+		$linked = Row::intValues($db->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)
 			->selectRaw('fuzzy_id, COUNT(*) AS n')
 			->groupBy('fuzzy_id')
 			->pluck('n', 'fuzzy_id')
-			->all();
+			->all(), 'n');
 
 		/** @var \Illuminate\Support\Collection<int, object{id: int, mail_log_id: int|null, qid: string|null, hashes: string, hits: int, created_at: string, last_hit_at: string}> $rows */
 		$rows = $db->table(AppConfig::MAIL_LOG_FUZZY_TABLE)
@@ -113,7 +114,7 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 			->whereNotNull('last_hit_at')
 			->orderBy('id')
 			->get()
-			->filter(fn ($row) => (int) ($linked[(int) $row->id] ?? 0) < (int) $row->hits)
+			->filter(fn (\stdClass $row) => ($linked[Row::int($row, 'id')] ?? 0) < Row::int($row, 'hits'))
 			->values();
 
 		$total = $rows->count();
@@ -125,7 +126,7 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 			$inserted = $hashes === [] ? 0 : $this->linkRecord($row, $hashes, $batch, $sleep);
 
 			$done++;
-			$count = (int) ($linked[$row->id] ?? 0) + $inserted;
+			$count = ($linked[$row->id] ?? 0) + $inserted;
 			$output->writeln(
 				"<info>[{$done}/{$total}] {$row->qid} (id {$row->id}): {$count} mail(s) linked, {$row->hits} hit(s)</info>"
 			);
@@ -161,12 +162,12 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 			if ($row->mail_log_id !== null) {
 				$query->where('ml.id', '<>', $row->mail_log_id);
 			}
-			$ids = $query->pluck('ml.id')->all();
+			$ids = Row::intValues($query->pluck('ml.id')->all(), 'ml.id');
 
 			// ignore only matters for rows the importer wrote meanwhile
 			foreach (array_chunk($ids, self::INSERT_CHUNK) as $chunk) {
 				$inserted += $db->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)->insertOrIgnore(
-					array_map(fn ($id) => ['fuzzy_id' => (int) $row->id, 'mail_log_id' => (int) $id], $chunk)
+					array_map(fn (int $id) => ['fuzzy_id' => (int) $row->id, 'mail_log_id' => $id], $chunk)
 				);
 			}
 

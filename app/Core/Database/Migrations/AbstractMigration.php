@@ -13,6 +13,7 @@ namespace App\Core\Database\Migrations;
 use App\Configuration\AppConfig;
 
 use App\Core\App;
+use App\Core\Database\Row;
 
 use App\Inventory\Migrations;
 
@@ -94,7 +95,7 @@ abstract class AbstractMigration {
 		);
 
 		return !empty($row)
-			&& str_contains(strtolower((string) $row[0]->COLUMN_TYPE), 'unsigned');
+			&& str_contains(strtolower(Row::string($row[0], 'COLUMN_TYPE')), 'unsigned');
 	}
 
 	protected function columnIsNullable(string $table, string $column): bool {
@@ -106,7 +107,7 @@ abstract class AbstractMigration {
 		);
 
 		return !empty($row)
-			&& strtoupper((string) $row[0]->IS_NULLABLE) === 'YES';
+			&& strtoupper(Row::string($row[0], 'IS_NULLABLE')) === 'YES';
 	}
 
 	protected function createTable(string $tableName, Closure $callback): void {

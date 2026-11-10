@@ -13,6 +13,7 @@ namespace App\Core\Database\Migrations;
 use Illuminate\Database\Schema\Blueprint;
 
 use App\Configuration\AppConfig;
+use App\Core\Database\Row;
 use App\Inventory\Migrations;
 use App\Models\MailLogData;
 
@@ -128,13 +129,11 @@ final class MailLogDataMigration extends AbstractMigration {
 				}
 				*/
 
-				$row = [
-					'mail_log_id' => $log->id,
-				];
-
-				foreach (MailLogData::DATA_COLUMNS as $column) {
-					$row[$column] = $log->$column;
-				}
+				// the data columns copied as stored
+				$row = ['mail_log_id' => $log->id] + array_combine(
+					MailLogData::DATA_COLUMNS,
+					array_map(fn (string $column): mixed => $log->$column, MailLogData::DATA_COLUMNS)
+				);
 
 				$batchRows[] = $row;
 			}
@@ -144,7 +143,7 @@ final class MailLogDataMigration extends AbstractMigration {
 				$inserted += $this->capsule::table(AppConfig::MAIL_LOG_DATA_TABLE)->insertOrIgnore($batchRows);
 			}
 
-			$lastId = (int) $last->id;
+			$lastId = Row::int($last, 'id');
 			$scanned += $logs->count();
 			$migrated += $inserted;
 			$remaining = max(0, $total - $scanned);
