@@ -47,6 +47,10 @@
 		<testsuite name="import">
 			<directory>../tests/Unit/Import</directory>
 		</testsuite>
+		<!-- services' logic that needs no database (fuzzy flags) -->
+		<testsuite name="services">
+			<directory>../tests/Unit/Services</directory>
+		</testsuite>
 		<!-- parsed mail objects (MailObject) -->
 		<testsuite name="inventory">
 			<directory>../tests/Unit/Inventory</directory>

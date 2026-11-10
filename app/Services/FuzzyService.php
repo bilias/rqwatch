@@ -93,15 +93,17 @@ final class FuzzyService
 		$flags = [];
 
 		foreach ((array) (Config::get('fuzzy_learn_flags') ?? []) as $flag => $entry) {
+			// label and symbol are text: a cast would turn an array into "Array"
 			$valid = is_int($flag) && $flag >= 1 && $flag <= 255 && is_array($entry)
-				&& trim((string) ($entry['label'] ?? '')) !== ''
+				&& is_string($entry['label'] ?? null) && trim((string) $entry['label']) !== ''
+				&& (!isset($entry['symbol']) || is_string($entry['symbol']))
 				&& is_int($entry['weight'] ?? self::DEFAULT_WEIGHT)
 				&& ($entry['weight'] ?? self::DEFAULT_WEIGHT) >= 1
 				&& ($entry['weight'] ?? self::DEFAULT_WEIGHT) <= 65535;
 
 			if (!$valid) {
 				App::fileLogger()->error("[FuzzyService] invalid fuzzy_learn_flags entry " .
-					(string) json_encode([$flag => $entry], JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE) . " in config: flag 1-255, label required, weight 1-65535");
+					(string) json_encode([$flag => $entry], JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE) . " in config: flag 1-255, label required and symbol as text, weight 1-65535");
 				continue;
 			}
 
