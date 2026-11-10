@@ -2065,7 +2065,7 @@ final class MailLogService
 				[ 'type' => 'id', 'value' => $maillog->id ],
 				UrlGeneratorInterface::ABSOLUTE_URL
 			),
-			'signature'  => Config::get('mail_signature'),
+			'signature'  => Config::getString('mail_signature'),
 		);
 
 		$text_part = Helper::getAdminNotifyText($vars);
