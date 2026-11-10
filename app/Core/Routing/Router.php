@@ -74,7 +74,10 @@ final class Router
 		$fileLogger = App::fileLogger();
 
 		try {
-			$request->attributes->add($matcher->match($request->getPathInfo()));
+			/** @var mixed $value */
+			foreach ($matcher->match($request->getPathInfo()) as $name => $value) {
+				$request->attributes->set((string) $name, $value);
+			}
 
 			$controllerResolver = new ControllerResolver();
 			/** @var callable $controller every route in Routes::load() sets _controller, so never false */
@@ -101,9 +104,13 @@ final class Router
 				return new Response("What?", 404);
 			}
 
-			$middlewareClasses = $request->attributes->get('_middleware', []);
+			/** @var mixed $route */
+			$route = $request->attributes->get('_route');
+			// not text: matches no PUBLIC_ROUTES entry below
+			$request_route = is_string($route) ? $route : '';
 
-			$request_route = $request->attributes->get('_route');
+			/** @var mixed $declared */
+			$declared = $request->attributes->get('_middleware');
 
 			// moved middleware inside routes->add
 			/*
@@ -113,20 +120,26 @@ final class Router
 			*/
 
 			// play safe incase route is missing from $middlewareMap
-			if (empty($middlewareClasses)) {
+			if ($declared === null || $declared === []) {
 				$fileLogger->warning("$request_route does not have a _middleware. Using defaultMiddlewareClasses");
 				$middlewareClasses = $defaultMiddlewareClasses;
+			} else {
+				$middlewareClasses = self::classList($declared);
+				if ($middlewareClasses === null) {
+					$fileLogger->critical(
+						"Route '{$request_route}' declares a _middleware that is not a list of class names; refusing to dispatch"
+					);
+					return new Response('Internal Server Error', 500);
+				}
 			}
 
 			// Final callable that runs the controller
 			$controllerHandler = function (Request $request)
 				use ($controller, $arguments): Response
 			{
-				return call_user_func_array($controller, $arguments);
+				return self::controllerResponse(call_user_func_array($controller, $arguments));
 				//return $controller(...$arguments);
 			};
-
-			$response = null;
 
 			if ($middlewareClasses[0] !== 'NO_MIDDLEWARE') {
 				// Wrap controller with middleware layers (from last to first)
@@ -159,14 +172,8 @@ final class Router
 					$response = new Response('Internal Server Error', 500);
 				} else {
 					// NO_MIDDLEWARE: response without Middleware, and invoke controller
-					$response = call_user_func_array($controller, $arguments);
-					//$response = $controller(...$arguments);
+					$response = $controllerHandler($request);
 				}
-			}
-
-			if (!$response instanceof Response) {
-				// Defensive fallback if controller didn't return a Response
-				$response = new Response('Internal Server Error: Controller did not return a Response object', 500);
 			}
 
 		} catch (MethodNotAllowedException $e) {
@@ -202,6 +209,33 @@ final class Router
 		}
 
 		return $response;
+	}
+
+	/**
+	 * A route's declared _middleware as a list of class names (or
+	 * ['NO_MIDDLEWARE']); null when it is anything else.
+	 * @return list<string>|null
+	 */
+	private static function classList(mixed $declared): ?array {
+		if (!is_array($declared) || !array_is_list($declared)) {
+			return null;
+		}
+		$list = [];
+		/** @var mixed $class */
+		foreach ($declared as $class) {
+			if (!is_string($class)) {
+				return null;
+			}
+			$list[] = $class;
+		}
+		return $list;
+	}
+
+	// defensive fallback if a controller did not return a Response
+	private static function controllerResponse(mixed $result): Response {
+		return $result instanceof Response
+			? $result
+			: new Response('Internal Server Error: Controller did not return a Response object', 500);
 	}
 
 	// Routes::load()'s middleware lists hold only these two classes
