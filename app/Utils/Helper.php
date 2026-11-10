@@ -646,6 +646,15 @@ final class Helper {
 		return preg_replace('/[^a-zA-Z0-9.\-]/', '', $mail);
 	}
 
+	// a value in a debug dump: a string as is, anything else as JSON ($_SERVER['argv'] is a list), never "Array"
+	private static function dumpValue(mixed $value): string {
+		if (is_string($value)) {
+			return $value;
+		}
+		$json = json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+		return $json === false ? get_debug_type($value) : $json;
+	}
+
 	/**
 	 * @param string|false $symbols json_encode() of the mail's symbols
 	 * @param array<string, string> $web_headers getallheaders()
@@ -679,7 +688,7 @@ final class Helper {
 		}
 
 		foreach ($web_headers as $key => $value) {
-			fwrite($fp_web_headers, "$key => " . $redact((string) $key, $value) . "\r\n");
+			fwrite($fp_web_headers, "$key => " . self::dumpValue($redact((string) $key, $value)) . "\r\n");
 		}
 		fclose($fp_web_headers);
 
@@ -689,7 +698,7 @@ final class Helper {
 		}
 
 		foreach ($_SERVER as $key => $value) {
-			fwrite($fp_server, "$key => " . $redact((string) $key, $value) . "\r\n");
+			fwrite($fp_server, "$key => " . self::dumpValue($redact((string) $key, $value)) . "\r\n");
 		}
 		fclose($fp_server);
 
