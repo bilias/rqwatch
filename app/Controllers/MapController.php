@@ -11,6 +11,7 @@
 namespace App\Controllers;
 
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -84,6 +85,20 @@ final class MapController extends ViewController
 			$values['symbols'] = FormHelper::optionalText($data['symbols'], 'symbols');
 		}
 		return $values;
+	}
+
+	/**
+	 * A posted search field as text, by the query string's rule
+	 * (InputBag::get()): a scalar is read as text, anything else is a 400.
+	 * @param array<mixed> $form
+	 */
+	private static function postedSearchField(array $form, string $field): string {
+		/** @var mixed $value */
+		$value = $form[$field] ?? '';
+		if (!is_scalar($value)) {
+			throw new BadRequestException("Input value \"{$field}\" contains a non-scalar value.");
+		}
+		return (string) $value;
 	}
 
 	private function getMapService(): MapService {
@@ -1087,10 +1102,10 @@ final class MapController extends ViewController
 		// the form posts here and is redirected to the GET results page
 		$posted = $this->request->isMethod('POST');
 		if ($posted) {
-			$map_search_form = (array) $this->request->request->all('map_search_form');
-			$model = (string) ($map_search_form['model'] ?? '');
-			$search = trim((string) ($map_search_form['field'] ?? ''));
-			$map_name = (string) ($map_search_form['map_name'] ?? '');
+			$map_search_form = $this->request->request->all('map_search_form');
+			$model = self::postedSearchField($map_search_form, 'model');
+			$search = trim(self::postedSearchField($map_search_form, 'field'));
+			$map_name = self::postedSearchField($map_search_form, 'map_name');
 		} else {
 			$model = (string) $this->request->query->get('model', '');
 			$search = trim((string) $this->request->query->get('q', ''));
