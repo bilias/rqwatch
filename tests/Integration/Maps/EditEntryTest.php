@@ -13,10 +13,11 @@
  fast it is submitted: MariaDB's UPDATE counts changed rows, so a resubmit
  within the same second (unchanged values and updated_at) affects none,
  which MapService::updateMapCombinedEntry() reported as a failure (found
- by ZAP's active scan). A custom map's entry: a new pattern is saved and
- written to the map file; a pattern starting with # is saved without it,
- disabled, and left out of the map file. The tests create their own
- entries (and custom map) and remove them afterwards.
+ by ZAP's active scan), and updateMapCustomEntry() too. A custom map's
+ entry: a new pattern is saved and written to the map file; a pattern
+ starting with # is saved without it, disabled, and left out of the map
+ file. The tests create their own entries (and custom map) and remove
+ them afterwards.
 */
 
 namespace Tests\Integration\Maps;
@@ -59,12 +60,7 @@ final class EditEntryTest extends IntegrationTestCase
 
 	#[TestDox('Custom map edit: a new pattern is saved and in the map file; with # first, saved disabled and left out')]
 	public function testCustomEntryEdit(): void {
-		$db = self::db();
-		$db->prepare("INSERT INTO custom_map_config (map_name, map_description, field_name, field_label) VALUES (?, 'Edit custom', 'domain', 'Domain')")
-			->execute([self::CUSTOM_MAP]);
-		$db->prepare("INSERT INTO maps_custom (map_name, pattern, disabled, created_at, updated_at) VALUES (?, 'old.example.net', 0, NOW(), NOW())")
-			->execute([self::CUSTOM_MAP]);
-		$id = (int) $db->lastInsertId();
+		$id = self::customEntry();
 		$admin = self::client('admin');
 		$path = '/admin/map/' . self::CUSTOM_MAP . "/edit/{$id}";
 		$form = 'map_with_custom_field_form';
@@ -78,6 +74,32 @@ final class EditEntryTest extends IntegrationTestCase
 			$file = (string) file_get_contents(self::mapFile());
 			$this->assertSame($inFile, str_contains($file, "\nnew.example.net"), "{$submitted}: in the map file");
 		}
+	}
+
+	#[TestDox('Custom map edit: the same pattern submitted three times in a row all succeed')]
+	public function testCustomUnchangedResubmitSucceeds(): void {
+		$id = self::customEntry();
+		$admin = self::client('admin');
+		$path = '/admin/map/' . self::CUSTOM_MAP . "/edit/{$id}";
+		$form = 'map_with_custom_field_form';
+		// three quick submits: at least two land in the same second
+		foreach ([1, 2, 3] as $n) {
+			$token = WebClient::match('/name="' . $form . '\[_token\]"[^>]*value="([^"]+)"/', $admin->get($path)['body']);
+			$response = $admin->post($path, ["{$form}[domain]" => 'old.example.net', "{$form}[_token]" => $token]);
+			$this->assertSame(302, $response['status'], "submit {$n}");
+			$this->assertSame('/admin/map/' . self::CUSTOM_MAP, self::target($response), "submit {$n}: success goes to the map");
+		}
+		$this->assertSame('old.example.net 0', self::valueString('SELECT CONCAT(pattern, " ", disabled) FROM maps_custom WHERE id = ?', $id));
+	}
+
+	// a custom map of its own, with one enabled entry: its id
+	private static function customEntry(): int {
+		$db = self::db();
+		$db->prepare("INSERT INTO custom_map_config (map_name, map_description, field_name, field_label) VALUES (?, 'Edit custom', 'domain', 'Domain')")
+			->execute([self::CUSTOM_MAP]);
+		$db->prepare("INSERT INTO maps_custom (map_name, pattern, disabled, created_at, updated_at) VALUES (?, 'old.example.net', 0, NOW(), NOW())")
+			->execute([self::CUSTOM_MAP]);
+		return (int) $db->lastInsertId();
 	}
 
 	private static function mapFile(): string {

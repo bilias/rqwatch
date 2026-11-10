@@ -1130,25 +1130,26 @@ final class MapService
 			// the old key, to detach its hits if the edit changes it
 			/** @var string|null $old the entry's pattern, null if it is gone */
 			$old = MapCustom::where('id', $id)->value('pattern');
-
-			$success = MapCustom::where('id', $id)
-			                    ->update([
-			                       'pattern' => $value,
-			                       'disabled' => $disabled,
-									    ]);
-
-			if (!$success) {
-				// Update did not throw an error, but still failed
-				$this->logger->error("[updateMapCustomEntry] Query update failed");
+			if ($old === null) {
+				$this->logger->warning("[updateMapCustomEntry] map entry {$id} not found");
 				return false;
 			}
+
+			// update() counts changed rows, not matched ones: 0 when the values
+			// and the second-resolution updated_at are unchanged (the same form
+			// submitted twice in a second), which is not a failure
+			MapCustom::where('id', $id)
+			         ->update([
+			            'pattern' => $value,
+			            'disabled' => $disabled,
+			         ]);
 
 		} catch (Throwable $e) {
 			$this->logger->error("[updateMapCustomEntry] Query update error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}
 
-		if ($old !== null && MapHitService::customIdentity($old) !== MapHitService::customIdentity($value)) {
+		if (MapHitService::customIdentity($old) !== MapHitService::customIdentity($value)) {
 			(new MapHitService())->detachEntry(MapHitService::ENTRY_CUSTOM, $id);
 		}
 
