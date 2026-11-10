@@ -72,6 +72,27 @@ final class FuzzyApiTest extends IntegrationTestCase
 		];
 	}
 
+	/** @return array<string, array{array<string, list<string>|string>}> fields replaced in a valid learn request */
+	public static function notSingleValueCases(): array {
+		return [
+			// id[]=… used to read as mail 1
+			'id as an array' => [['id' => [(string) self::STORED]]],
+			'id with trailing text' => [['id' => self::STORED . 'abc']],
+			'flag as an array' => [['flag' => [(string) self::FLAG]]],
+			'user as an array' => [['remote_user' => ['admin']]],
+			'action as an array' => [['action' => ['learn']]],
+			'weight as an array' => [['weight' => ['5']]],
+		];
+	}
+
+	/** @param array<string, list<string>|string> $change */
+	#[DataProvider('notSingleValueCases')]
+	public function testNotSingleValue(array $change): void {
+		$this->assertRefused([400, 'Missing Required info'], array_merge(
+			['remote_user' => 'admin', 'action' => 'learn', 'id' => (string) self::STORED, 'flag' => (string) self::FLAG],
+			$change));
+	}
+
 	/** @param array<string, string|null> $change */
 	#[DataProvider('badInputCases')]
 	public function testBadInput(array $change): void {
@@ -124,7 +145,7 @@ final class FuzzyApiTest extends IntegrationTestCase
 
 	/**
 	 * @param array{int, string} $expected status and body
-	 * @param array<string, string|null> $fields
+	 * @param array<string, list<string>|string|null> $fields
 	 */
 	private function assertRefused(array $expected, array $fields): void {
 		$records = self::records();

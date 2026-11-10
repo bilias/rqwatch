@@ -44,11 +44,15 @@ final class FuzzyMailApi extends RqwatchApi
 	public function handle(): void {
 		$post = $this->request->request->all();
 		$node = Helper::env_string('MY_API_SERVER_ALIAS') ?? '';
+		$this->requireSingleValues($post, ['remote_user', 'action', 'id', 'flag', 'weight']);
 
 		$remote_user = (string) ($post['remote_user'] ?? '');
 		$action = (string) ($post['action'] ?? '');
-		$id = intval($post['id'] ?? 0);
-		$flag = intval($post['flag'] ?? 0);
+		// digits only: intval() would read "5abc" as 5
+		$id_param = (string) ($post['id'] ?? '');
+		$id = ctype_digit($id_param) ? (int) $id_param : 0;
+		$flag_param = (string) ($post['flag'] ?? '');
+		$flag = ctype_digit($flag_param) ? (int) $flag_param : 0;
 		// optional: the list's weight from config when not given
 		$weight_param = (string) ($post['weight'] ?? '');
 		$weight = $weight_param === '' ? null : (ctype_digit($weight_param) ? (int) $weight_param : 0);

@@ -39,6 +39,8 @@ final class ReleaseMailApi extends RqwatchApi
 	#[\Override]
 	public function handle(): void {
 		$post = $this->request->request->all();
+		// remote_user may be empty: a web user without an e-mail
+		$this->requireSingleValues($post, ['remote_user', 'id']);
 
 		if (!array_key_exists('remote_user', $post)) {
 			$err_msg = "{$this->clientIp} requested ReleaseMailApi without a calling user email";
@@ -56,7 +58,9 @@ final class ReleaseMailApi extends RqwatchApi
 				Response::HTTP_BAD_REQUEST, $response_msg,
 				$err_msg, 'critical');
 		}
-		$id = intval($post['id']);
+		// digits only: intval() would read "5abc" as 5; 0 is not found below
+		$id_param = (string) $post['id'];
+		$id = ctype_digit($id_param) ? (int) $id_param : 0;
 
 		if (!array_key_exists('email', $post)) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested mail release of mail with id {$id} without a destination email";

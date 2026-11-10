@@ -147,6 +147,24 @@ abstract class RqwatchApi
 		exit;
 	}
 
+	/**
+	 * Refuses (400) a request where any of $fields holds anything but a
+	 * single value. A form field sent as name[] arrives as an array, which
+	 * intval() reads as 1 and a cast as "Array": the API would act on
+	 * another mail than the one asked for.
+	 * @param array<array-key, mixed> $post
+	 * @param list<string> $fields
+	 */
+	protected function requireSingleValues(array $post, array $fields): void {
+		foreach ($fields as $field) {
+			if (array_key_exists($field, $post) && !is_string($post[$field])) {
+				$this->dropLogResponse(
+					Response::HTTP_BAD_REQUEST, "Missing Required info",
+					"{$this->clientIp} requested {$this->logPrefix} with '{$field}' that is not a single value", 'critical');
+			}
+		}
+	}
+
 	protected function getRuntime(): string {
 		return App::getRuntime();
 	}

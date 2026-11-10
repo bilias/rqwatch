@@ -76,6 +76,26 @@ final class ApiReleaseTest extends IntegrationTestCase
 		$this->assertNotReleased(9404);
 	}
 
+	#[TestDox('Release with an id or user that is not a single value: refused (400), nothing sent')]
+	public function testReleaseWithNonSingleValuesIsRefused(): void {
+		$rcpt = self::address('release');
+		$this->quarantined(9405, 'mx1', [$rcpt]);
+		$count = self::mailCount();
+		$cases = [
+			// id[]=… used to read as mail 1
+			'id as an array' => ['remote_user' => 'integration-test', 'id' => ['9405'], 'email' => [$rcpt]],
+			// used to release mail 9405
+			'id with trailing text' => ['remote_user' => 'integration-test', 'id' => '9405abc', 'email' => [$rcpt]],
+			'user as an array' => ['remote_user' => ['integration-test'], 'id' => '9405', 'email' => [$rcpt]],
+		];
+		foreach ($cases as $case => $fields) {
+			$expected = $case === 'id with trailing text' ? [400, 'Message not found'] : [400, 'Missing Required info'];
+			$this->assertSame($expected, self::mailApi('release_mail.php', $fields), $case);
+		}
+		$this->assertSame($count, self::mailCount(), 'mail sent');
+		$this->assertNotReleased(9405);
+	}
+
 	private function assertNotReleased(int $id): void {
 		$this->assertSame(0, self::valueInt('SELECT released FROM mail_logs WHERE id = ?', $id), 'released');
 		$this->assertNull(self::value('SELECT release_date FROM mail_logs WHERE id = ?', $id), 'release_date');
