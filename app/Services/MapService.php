@@ -766,7 +766,7 @@ final class MapService
 			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
 			$query = $query->where('disabled', 0);
 			try {
-				$map_entries = $query->get()->toArray();
+				$map_entries = $query->get();
 			} catch (Exception $e) {
 				$this->logger->error(
 					"Query error building map {$map_name}: " . $e->getMessage()
@@ -775,8 +775,8 @@ final class MapService
 				@unlink($tmpfile);
 				return false;
 			}
-			foreach ($map_entries as $row) {
-				$values = array_map(fn($field) => $row[$field] ?? '', $map_fields);
+			foreach ($map_entries as $entry) {
+				$values = array_map(fn (string $field): string => $entry->fieldValue($field) ?? '', $map_fields);
 				// Skip the line if any value is empty
 				if (in_array('', $values, true)) {
 					continue;
@@ -787,7 +787,7 @@ final class MapService
 			$query = $this->getMapCustomQuery($map_name);
 			$query = $query->where('disabled', 0);
 			try {
-				$map_entries = $query->get()->toArray();
+				$map_entries = $query->get();
 			} catch (Exception $e) {
 				$this->logger->error(
 					"Query error building map {$map_name}: " . $e->getMessage()
@@ -796,14 +796,13 @@ final class MapService
 				@unlink($tmpfile);
 				return false;
 			}
-			foreach ($map_entries as $row) {
-				// Skip if 'pattern' is missing or empty
-				if (empty($row['pattern'])) {
+			foreach ($map_entries as $entry) {
+				// Skip if 'pattern' is empty: what empty() meant, '' and '0'
+				$pattern = $entry->pattern;
+				if ($pattern === '' || $pattern === '0') {
 					continue;
 				}
-				$pattern = $row['pattern'];
-				$score = $row['score'] ?? '';
-				$lines[] = trim("$pattern $score");
+				$lines[] = trim($pattern . ' ' . ($entry->score ?? ''));
 			}
 		} else {
 			$this->logger->error("Unknown model '{$model}' for map {$map_name}");
@@ -855,14 +854,12 @@ final class MapService
 	}
 
 	/**
-	 * @param array<string, mixed> $data
-	 * @return array<string, mixed>
+	 * @param array<string, string> $data
+	 * @return array<string, string>
 	 */
 	private static function trimLower(array $data): array {
 		// trim and strtolower entries
-		return array_map(function ($value) {
-			return is_string($value) ? strtolower(trim($value)) : $value;
-		}, $data);
+		return array_map(fn (string $value): string => strtolower(trim($value)), $data);
 	}
 
 	/**
@@ -886,13 +883,15 @@ final class MapService
 
 		// applyUseScope
 		if (!$this->is_admin && !defined('CLI_MODE') && in_array('rcpt_to', $map_fields)) {
-			if (empty($data['rcpt_to'])) {
+			// what empty() meant: absent, '' and '0' are no rcpt_to
+			$rcpt_to = $data['rcpt_to'] ?? '';
+			if ($rcpt_to === '' || $rcpt_to === '0') {
 				$this->logger->warning("[addMapCombinedEntry] Missing rcpt_to in data for user {$this->username}");
 				return false;
 			}
 			$allowedRcptTo = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
-			if (!in_array($data['rcpt_to'], $allowedRcptTo, true)) {
-				$this->logger->warning("rcpt_to value '{$data['rcpt_to']}' is not allowed for user {$this->username}");
+			if (!in_array($rcpt_to, $allowedRcptTo, true)) {
+				$this->logger->warning("rcpt_to value '{$rcpt_to}' is not allowed for user {$this->username}");
 				return false;
 			}
 		}
@@ -937,15 +936,17 @@ final class MapService
 	}
 
 	/**
+	 * $entry is the one the caller loaded (findMapEntry(), with the user's
+	 * scope applied); $data its map fields' new values.
 	 * @param list<string> $map_fields
-	 * @param array<string, mixed> $data form data
+	 * @param array<string, string> $data the map fields' values
 	 */
-	public function updateMapCombinedEntry(string $map_name, array $map_fields, array $data): bool {
-		if (empty($data) || empty($data['map_name']) || $map_name !== $data['map_name'] || empty($data['id'])) {
+	public function updateMapCombinedEntry(string $map_name, array $map_fields, MapCombined $entry, array $data): bool {
+		if ($data === [] || $map_name !== $entry->map_name) {
 			$this->logger->error("Empty or invalid map data");
 			return false;
 		}
-		$id = (int) $data['id'];
+		$id = $entry->id;
 
 		/** @psalm-suppress RiskyTruthyFalsyComparison 0 is no user id too: fail closed */
 		if (empty($this->user_id)) {
@@ -958,18 +959,20 @@ final class MapService
 
 		// applyUseScope
 		if (!$this->is_admin && !defined('CLI_MODE') && in_array('rcpt_to', $map_fields)) {
-			if (empty($data['rcpt_to'])) {
+			// what empty() meant: absent, '' and '0' are no rcpt_to
+			$rcpt_to = $data['rcpt_to'] ?? '';
+			if ($rcpt_to === '' || $rcpt_to === '0') {
 				$this->logger->warning("[updateMapCombinedEntry] Missing rcpt_to in data for user {$this->username}");
 				return false;
 			}
 			$allowedRcptTo = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
-			if (!in_array($data['rcpt_to'], $allowedRcptTo, true)) {
-				$this->logger->warning("rcpt_to value '{$data['rcpt_to']}' is not allowed for user {$this->username}");
+			if (!in_array($rcpt_to, $allowedRcptTo, true)) {
+				$this->logger->warning("rcpt_to value '{$rcpt_to}' is not allowed for user {$this->username}");
 				return false;
 			}
 		}
 
-		if (!$this->is_admin && $this->user_id !== $data['user_id']) {
+		if (!$this->is_admin && $this->user_id !== $entry->user_id) {
 			$this->logger->warning("[updateMapCombinedEntry] {$this->username} tried to update map entry {$id} for map {$map_name} without permission");
 			return false;
 		}
@@ -1001,7 +1004,7 @@ final class MapService
 		}
 
 		foreach ($map_fields as $field) {
-			if (strtolower(trim((string) $old->$field)) !== (string) $new_data[$field]) {
+			if (strtolower(trim($old->fieldValue($field) ?? '')) !== $new_data[$field]) {
 				(new MapHitService())->detachEntry(MapHitService::ENTRY_COMBINED, $id);
 				break;
 			}
@@ -1101,17 +1104,17 @@ final class MapService
 		return true;
 	}
 
-	/** @param array<string, mixed> $data form data */
-	public function updateMapCustomEntry(string $map_name, array $data): bool {
-		if (empty($data) || empty($data['map_name']) || $map_name !== $data['map_name'] || empty($data['id'])) {
+	// $entry is the one the caller loaded (findMapEntry()); $pattern its new pattern, '#' first to disable it
+	public function updateMapCustomEntry(string $map_name, MapCustom $entry, string $pattern): bool {
+		if ($map_name !== $entry->map_name) {
 			$this->logger->error("Empty or invalid map data");
 			return false;
 		}
-		$id = (int) $data['id'];
+		$id = $entry->id;
 
-		$disabled = $data['disabled'];
+		$disabled = $entry->disabled;
 
-		$value = $data['pattern'];
+		$value = $pattern;
 		if (strlen($value) > 0) {
 			// If first character is #, insert as disabled entry
 			if($value[0] === '#') {
@@ -1144,7 +1147,7 @@ final class MapService
 			return false;
 		}
 
-		if ($old !== null && MapHitService::customIdentity((string) $old) !== MapHitService::customIdentity((string) $value)) {
+		if ($old !== null && MapHitService::customIdentity($old) !== MapHitService::customIdentity($value)) {
 			(new MapHitService())->detachEntry(MapHitService::ENTRY_CUSTOM, $id);
 		}
 
@@ -1371,7 +1374,8 @@ final class MapService
 		}
 
 		// delete all entries matched by the query
-		$deletedRows = (int) $query->delete();
+		// what Eloquent's delete() runs when no onDelete is set, typed
+		$deletedRows = $query->toBase()->delete();
 
 		if ($deletedRows === 0) {
 			return false;

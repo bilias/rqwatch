@@ -16,6 +16,7 @@ use App\Core\Routing\RouteName;
 use App\Forms\QidForm;
 
 use App\Inventory\MapInventory;
+use App\Models\MapCustom;
 
 use App\Services\MailLogService;
 use App\Services\MapService;
@@ -128,9 +129,9 @@ final class MapHitController extends ViewController
 					return new RedirectResponse($report);
 				}
 				$ids = $service->entryHitMailIds(MapHitService::entryModel($config['model']), $entry, $window, $this->max_items);
-				$key = $config['model'] === 'MapCustom'
-					? (string) $found->getAttribute('pattern')
-					: implode(' | ', array_map(fn (string $f) => (string) $found->getAttribute($f), $config['fields']));
+				$key = $found instanceof MapCustom
+					? $found->pattern
+					: implode(' | ', array_map(fn (string $f): string => $found->fieldValue($f) ?? '', $config['fields']));
 				$filter = ['filter' => 'Map entry', 'choice' => 'of ' . $config['description'], 'value' => $key];
 				$params = ['map' => $map, 'entry' => $entry, 'days' => $days];
 			} elseif (!$this->is_admin) {
@@ -308,7 +309,7 @@ final class MapHitController extends ViewController
 	}
 
 	// every map, as map name => [model, symbols]
-	/** @return array<string, array{mixed, list<string>}> map name => [model, symbols] */
+	/** @return array<string, array{'MapCombined'|'MapCustom', list<string>}> map name => [model, symbols] */
 	private function maps(): array {
 		$symbols = MapService::mapSymbols();
 

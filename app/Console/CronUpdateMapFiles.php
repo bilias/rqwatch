@@ -123,9 +123,11 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 		}
 
 		// get last activity by map
-		$maps_last_activity = MapActivityLog::pluck('last_changed_at', 'map_name')->map(function($value) {
-			return (string) $value;
-		})->toArray();
+		// as stored, Y-m-d H:i:s, by map name
+		$maps_last_activity = [];
+		foreach (MapActivityLog::all() as $log) {
+			$maps_last_activity[$log->map_name] = $log->getRawLastChangedAt() ?? '';
+		}
 
 		$service = new MapService();
 
@@ -135,12 +137,11 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 		foreach ($configs as $mapName => $config) {
 
 			// map missing from MapActivityLog
-			if (empty($maps_last_activity[$mapName])) {
+			$last_activity = $maps_last_activity[$mapName] ?? '';
+			if ($last_activity === '') {
 				$last_activity = date("Y-m-d H:i:s");
 				// update MapActivityLog
 				$service->updateMapActivityLog($mapName, $last_activity);
-			} else {
-				$last_activity = $maps_last_activity[$mapName];
 			}
 
 			// check if file missing or is older

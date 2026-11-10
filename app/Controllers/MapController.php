@@ -576,7 +576,8 @@ final class MapController extends ViewController
 		];
 		$mapSearchForm = MapSearchForm::create($this->formFactory, $this->request, $this->urlGenerator, $sf_data);
 
-		$last_activity = (string) MapActivityLog::where('map_name', $map)->value('last_changed_at');
+		// as stored, Y-m-d H:i:s; '' for a map without activity yet
+		$last_activity = MapActivityLog::find($map)?->getRawLastChangedAt() ?? '';
 
 		$hits_days = max(MapHitService::WINDOWS);
 		if ($idle) {
@@ -684,7 +685,7 @@ final class MapController extends ViewController
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();
 
-			if ($data === null || $data === []) {
+			if (!is_array($data) || $data === []) {
 				$this->flashbag->add('error', "Empty map data");
 				return new RedirectResponse($this->getMapAddEntryUrl($map));
 			}
@@ -851,7 +852,7 @@ final class MapController extends ViewController
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();
 
-			if ($data === null || $data === []) {
+			if (!is_array($data) || $data === []) {
 				$this->flashbag->add('error', "Empty map data");
 				return new RedirectResponse($this->getMapAddEntryUrl($map));
 			}
@@ -867,10 +868,7 @@ final class MapController extends ViewController
 			if ($model === 'MapCustom') {
 				/** @var array{role: string, map: string, is_edit: true} $options MapCustom maps are admin-only (getAvailableMapConfigs) */
 				$field_db = MapService::getCustomField($options['map']);
-				$pattern = trim($values[$fields[0]]);
-				$data['pattern'] = $pattern;
-				//unset($data[$field_db['field_name']]);
-				$pairs[] = $field_db['field_label'] . ": " . $pattern;
+				$pairs[] = $field_db['field_label'] . ": " . trim($values[$fields[0]]);
 			} else {
 				foreach ($fields as $field) {
 					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $values[$field];
@@ -886,7 +884,8 @@ final class MapController extends ViewController
 			// add entry
 			if ($model === 'MapCombined') {
 				// has applyUseScope
-				if ($service->updateMapCombinedEntry($map, $fields, $data)) {
+				/** @var \App\Models\MapCombined $map_entry findMapEntry() returns the \$model it was asked for */
+				if ($service->updateMapCombinedEntry($map, $fields, $map_entry, $values)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' updated in Map '{$mapdescr}'");
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
@@ -894,8 +893,8 @@ final class MapController extends ViewController
 					return new RedirectResponse($this->getMapEditEntryUrl($map, $id));
 				}
 			} elseif ($adminMapCustom) {
-				//if($service->updateMapCustomEntry($map, $data[$fields[0]])) {
-				if($service->updateMapCustomEntry($map, $data)) {
+				/** @var \App\Models\MapCustom $map_entry findMapEntry() returns the \$model it was asked for */
+				if($service->updateMapCustomEntry($map, $map_entry, trim($values[$fields[0]]))) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' updated in Map '{$mapdescr}'");
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
@@ -1000,7 +999,8 @@ final class MapController extends ViewController
 					$field_db = MapService::getCustomField($map_entry->map_name);
 					$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
 				} else {
-					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $map_entry->$field;
+					/** @var \App\Models\MapCombined $map_entry findMapEntry() returns the \$model it was asked for */
+					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . ($map_entry->fieldValue($field) ?? '');
 				}
 			}
 			$entry_str = implode(', ', $pairs);
@@ -1291,7 +1291,8 @@ final class MapController extends ViewController
 					$field_db = MapService::getCustomField($map_entry->map_name);
 					$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
 				} else {
-					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $map_entry->$field;
+					/** @var \App\Models\MapCombined $map_entry findMapEntry() returns the \$model it was asked for */
+					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . ($map_entry->fieldValue($field) ?? '');
 				}
 			}
 			$entry_str = implode(', ', $pairs);

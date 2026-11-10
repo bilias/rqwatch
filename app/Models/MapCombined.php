@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use Illuminate\Database\Eloquent\Builder;
 
+use LogicException;
+
 /**
  * Runtime-only attributes, set by MapController for the views (not columns):
  * @property string $map_description
@@ -104,4 +106,13 @@ final class MapCombined extends Model
 		return $query->whereNotNull('mail_from');
 	}
 
+	// one of the entry's map fields: text, or null when the entry has none
+	public function fieldValue(string $field): ?string {
+		/** @var mixed $value */
+		$value = $this->getAttribute($field);
+		if ($value !== null && !is_string($value)) {
+			throw new LogicException("Map entry field '{$field}' must be text, not " . get_debug_type($value));
+		}
+		return $value;
+	}
 }
