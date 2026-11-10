@@ -42,7 +42,7 @@ abstract class RqwatchApi
 		$this->fileLogger = App::fileLogger();
 		$this->syslogLogger = App::syslogLogger();
 
-		$this->clientIp = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+		$this->clientIp = Helper::server_string('REMOTE_ADDR') ?? 'UNKNOWN';
 
 		// Check if API is disabled
 		$this->checkApiEnabled();
@@ -61,7 +61,7 @@ abstract class RqwatchApi
 
 	protected function checkApiEnabled(): void {
 		if (!Helper::env_bool('API_ENABLE')) {
-			$logMsg = "{$this->clientIp} requested '" . ($_SERVER['REQUEST_URI'] ?? 'UNKNOWN') . "' but API is disabled.";
+			$logMsg = "{$this->clientIp} requested '" . (Helper::server_string('REQUEST_URI') ?? 'UNKNOWN') . "' but API is disabled.";
 
 			$responseMsg = "API is disabled";
 			$this->dropLogResponse(

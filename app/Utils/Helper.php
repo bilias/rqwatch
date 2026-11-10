@@ -958,6 +958,13 @@ Mail details:
 		return $alias;
 	}
 
+	// a $_SERVER value, null when unset or not a string
+	public static function server_string(string $key): ?string {
+		/** @var mixed $value */
+		$value = $_SERVER[$key] ?? null;
+		return is_string($value) ? $value : null;
+	}
+
 	public static function env_bool(string $key, bool $default = false): bool {
 		return filter_var($_ENV[$key] ?? $default, FILTER_VALIDATE_BOOLEAN);
 	}
