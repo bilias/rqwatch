@@ -15,6 +15,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use App\Configuration\AppConfig;
 
+/**
+ * @property list<string> $hashes the mail's digests: written only from
+ *   FuzzyService::fuzzyAdd()'s reply, each checked against HASH_FORMAT
+ */
 final class MailLogFuzzy extends Model
 {
 	protected $table = AppConfig::MAIL_LOG_FUZZY_TABLE;

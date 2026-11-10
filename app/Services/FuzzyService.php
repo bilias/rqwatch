@@ -92,25 +92,29 @@ final class FuzzyService
 	public static function flags(): array {
 		$flags = [];
 
+		/** @var mixed $entry */
 		foreach ((array) (Config::get('fuzzy_learn_flags') ?? []) as $flag => $entry) {
-			// label and symbol are text: a cast would turn an array into "Array"
-			$valid = is_int($flag) && $flag >= 1 && $flag <= 255 && is_array($entry)
-				&& is_string($entry['label'] ?? null) && trim((string) $entry['label']) !== ''
-				&& (!isset($entry['symbol']) || is_string($entry['symbol']))
-				&& is_int($entry['weight'] ?? self::DEFAULT_WEIGHT)
-				&& ($entry['weight'] ?? self::DEFAULT_WEIGHT) >= 1
-				&& ($entry['weight'] ?? self::DEFAULT_WEIGHT) <= 65535;
+			/** @var mixed $label */
+			$label = is_array($entry) ? ($entry['label'] ?? null) : null;
+			/** @var mixed $symbol */
+			$symbol = is_array($entry) ? ($entry['symbol'] ?? null) : null;
+			/** @var mixed $weight */
+			$weight = is_array($entry) ? ($entry['weight'] ?? self::DEFAULT_WEIGHT) : null;
 
-			if (!$valid) {
+			// label and symbol are text: a cast would turn an array into "Array"
+			if (!(is_int($flag) && $flag >= 1 && $flag <= 255 && is_array($entry)
+				&& is_string($label) && trim($label) !== ''
+				&& ($symbol === null || is_string($symbol))
+				&& is_int($weight) && $weight >= 1 && $weight <= 65535)) {
 				App::fileLogger()->error("[FuzzyService] invalid fuzzy_learn_flags entry " .
 					(string) json_encode([$flag => $entry], JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE) . " in config: flag 1-255, label required and symbol as text, weight 1-65535");
 				continue;
 			}
 
 			$flags[$flag] = [
-				'label' => trim((string) $entry['label']),
-				'symbol' => trim((string) ($entry['symbol'] ?? '')),
-				'weight' => $entry['weight'] ?? self::DEFAULT_WEIGHT,
+				'label' => trim($label),
+				'symbol' => trim($symbol ?? ''),
+				'weight' => $weight,
 			];
 		}
 
@@ -136,8 +140,10 @@ final class FuzzyService
 	 * @return list<array{id: int, mail_log_id: int|null, qid: string, flag: int}>
 	 */
 	public function matchedBy(int $mailLogId): array {
+		/** @var mixed $hashes the raw column, read past the model's cast */
 		$hashes = MailLogData::where('mail_log_id', $mailLogId)->value('fuzzy_hashes');
 		if (is_string($hashes)) {
+			/** @var mixed $hashes */
 			$hashes = json_decode($hashes, true);
 		}
 		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT, // @phpstan-ignore argument.type (preg_grep() is false only on a PCRE failure)
@@ -383,7 +389,7 @@ final class FuzzyService
 	// per row id: the other learned mails sharing any of its hashes, oldest first
 	/**
 	 * @param iterable<MailLogFuzzy> $rows
-	 * @return array<int, list<array{id: int, qid: string, mail_log_id: int|null, flag: int}>> row id => others
+	 * @return array<int, list<array{id: int, qid: string|null, mail_log_id: int|null, flag: int}>> row id => others
 	 */
 	public function sharedWith(iterable $rows): array {
 		$hashes = [];
@@ -409,7 +415,8 @@ final class FuzzyService
 		foreach ($found as $r) {
 			$holders[(string) $r->h][(int) $r->id] = [
 				'id' => (int) $r->id,
-				'qid' => $r->qid,
+				// mail_log_fuzzy.qid may be NULL
+				'qid' => $r->qid === null ? null : (string) $r->qid,
 				'mail_log_id' => $r->mail_log_id === null ? null : (int) $r->mail_log_id,
 				'flag' => (int) $r->flag,
 			];
@@ -519,7 +526,7 @@ final class FuzzyService
 	 * @return list<array{qid: string, flag: int}>
 	 */
 	public function orphanedSlotHolders(MailLogFuzzy $row): array {
-		$hashes = array_values(array_unique(array_filter((array) $row->hashes, 'is_string')));
+		$hashes = array_values(array_unique($row->hashes));
 		if ($hashes === []) {
 			return [];
 		}
@@ -737,7 +744,9 @@ final class FuzzyService
 		$reply = json_decode($content, true);
 
 		if ($code !== Response::HTTP_OK || !is_array($reply)) {
-			$err = is_array($reply) && is_string($reply['error'] ?? null) ? $reply['error'] : $content;
+			/** @var mixed $error */
+			$error = is_array($reply) ? ($reply['error'] ?? null) : null;
+			$err = is_string($error) ? $error : $content;
 			$this->logger->error("{$lf} {$qid} {$path} for '{$server}' returned {$code}: '" .
 				mb_strimwidth($err, 0, 200, '...') . "'");
 			// rspamd's reply stays in the log: the message goes to an admin and,
@@ -776,6 +785,7 @@ final class FuzzyService
 			throw new FuzzyException("Unexpected reply from rspamd", FuzzyError::Upstream);
 		}
 
+		/** @var array<array-key, string> $hashes each matched HASH_FORMAT above */
 		return $hashes;
 	}
 

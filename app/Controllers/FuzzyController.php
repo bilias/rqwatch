@@ -379,9 +379,9 @@ final class FuzzyController extends ViewController
 	private function warnShared(FuzzyService $fuzzy, int $mailLogId, int $flag): void {
 		try {
 			$row = $fuzzy->getByMailLogId($mailLogId);
-			$others = $row ? ($fuzzy->sharedWith([$row])[$row->getKey()] ?? []) : [];
+			$others = $row ? ($fuzzy->sharedWith([$row])[(int) $row->getKey()] ?? []) : [];
 
-			/** @param array<array{qid: string, ...}> $rows */
+			/** @param array<array{qid: string|null, ...}> $rows */
 			$qids = function (array $rows): string {
 				$names = array_column($rows, 'qid');
 				$more = count($names) - 3;
