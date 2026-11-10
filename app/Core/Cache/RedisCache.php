@@ -43,7 +43,7 @@ final class RedisCache implements CacheInterface
 	}
 
 	#[\Override]
-	public function set(string $key, mixed $value, ?int $ttl = null): bool {
+	public function set(string $key, string $value, ?int $ttl = null): bool {
 		if ($ttl !== null) {
 			return (bool) $this->getConnection()->set(
 				$key,

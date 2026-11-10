@@ -31,8 +31,8 @@ final class RecordingCache implements CacheInterface
 	}
 
 	#[\Override]
-	public function set(string $key, mixed $value, ?int $ttl = null): bool {
-		$this->values[$key] = is_string($value) ? $value : (string) json_encode($value);
+	public function set(string $key, string $value, ?int $ttl = null): bool {
+		$this->values[$key] = $value;
 		return true;
 	}
 

@@ -15,9 +15,10 @@ interface CacheInterface
 	/** @return string|false the value, false when the key does not exist */
 	public function get(string $key): mixed;
 
+	// Redis stores text: encode anything else first
 	public function set(
 		string $key,
-		mixed $value,
+		string $value,
 		?int $ttl = null
 	): bool;
 

@@ -124,7 +124,7 @@ final class LoginThrottle
 			return false;
 		}
 
-		$this->cache->set($this->blockKey(), 1, $this->blockDuration);
+		$this->cache->set($this->blockKey(), '1', $this->blockDuration);
 
 		// Drop the counter so that when the block expires this IP starts from
 		// a clean window instead of being re-blocked on its next failure.
