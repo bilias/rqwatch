@@ -320,6 +320,7 @@ final class LdapAuth implements AuthInterface {
 		if ($field === null || $field === '') {
 			return null;
 		}
+		/** @var mixed $values checked below: only the name => values entries are arrays */
 		foreach ($attrs as $name => $values) {
 			if (is_string($name) && is_array($values) && strcasecmp($name, $field) === 0) {
 				return $values;
