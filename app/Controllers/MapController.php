@@ -491,7 +491,7 @@ final class MapController extends ViewController
 		// Fetch config for the selected map
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if ($config === null || !array_key_exists('fields', $config) || !array_key_exists('model', $config)) {
+		if ($config === null) {
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
 		}
@@ -532,7 +532,7 @@ final class MapController extends ViewController
 				$map_entry->map_username = $this->getMapUser($map_entry->user);
 				$map_entry->user_can_delete = $this->getUserCanDelete($this->username, $map_entry->map_username);
 			}
-		} elseif($this->is_admin && $config['model'] === 'MapCustom') {
+		} elseif ($this->is_admin) {
 			$model = 'MapCustom';
 			$map_entries = $service->getPaginatedMapCustom($map, $page, $this->getMapShowUrl($map), $idle, $entry_filter);
 		} else {
@@ -614,15 +614,14 @@ final class MapController extends ViewController
 		//$config = MapInventory::getMapConfigs($map) ?? null;
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if ($config === null || !array_key_exists('map_form', $config) || !array_key_exists('model', $config)) {
+		if ($config === null) {
 			$this->fileLogger->warning("User {$this->username} tried to add map entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$mapdescr = $config['description'];
-		/** @var list<string> $fields field names, as every map config lists them */
-		$fields = $config['fields'] ?? [];
+		$fields = $config['fields'];
 		$data = [];
 
 		foreach ($fields as $field) {
@@ -633,11 +632,8 @@ final class MapController extends ViewController
 			}
 		}
 
-		// Dynamically call the correct form class's `create()` method
+		// the map's form class; every one has a static create()
 		$mapFormClass = $config['map_form'];
-		if (!is_callable([$mapFormClass, 'create'])) {
-			throw new RuntimeException("Form class $mapFormClass does not have a static create() method");
-		}
 
 		$options = [
 			'role' => $this->getRole(),
@@ -704,7 +700,7 @@ final class MapController extends ViewController
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
 					return new RedirectResponse($this->getMapAddEntryUrl($map));
 				}
-			} elseif ($this->is_admin && $model === 'MapCustom') {
+			} elseif ($this->is_admin) {
 				if($service->addMapCustomEntry($map, $data[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
 					return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapShowUrl($map));
@@ -771,17 +767,17 @@ final class MapController extends ViewController
 		//$config = MapInventory::getMapConfigs($map) ?? null;
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if ($config === null || !array_key_exists('map_form', $config)) {
+		if ($config === null) {
 			$this->fileLogger->warning("User {$this->username} tried to edit map entry in " . $this->request->getPathInfo() . " without admin authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
 		}
 
 		$mapdescr = $config['description'];
-		$fields = $config['fields'] ?? [];
+		$fields = $config['fields'];
 		$model = $config['model'];
 
-		if ($model === 'MapCombined' || ($this->is_admin && $model === 'MapCustom')) {
+		if ($model === 'MapCombined' || $this->is_admin) {
 			// scoped to the map and, for users, to their own entries
 			$map_entry = $this->getMapService()->findMapEntry($model, $map, $id);
 		} else {
@@ -795,11 +791,8 @@ final class MapController extends ViewController
 			return new RedirectResponse($this->getMapShowUrl($map));
 		}
 
-		// Dynamically call the correct form class's `create()` method
+		// the map's form class; every one has a static create()
 		$mapFormClass = $config['map_form'];
-		if (!is_callable([$mapFormClass, 'create'])) {
-			throw new RuntimeException("Form class $mapFormClass does not have a static create() method");
-		}
 
 		$options = [
 			'role' => $this->getRole(),
@@ -937,7 +930,7 @@ final class MapController extends ViewController
 
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if ($config === null || empty($config['model'])) {
+		if ($config === null) {
 			$this->fileLogger->warning("User {$this->username} tried to del map entry in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
@@ -946,7 +939,7 @@ final class MapController extends ViewController
 		$model = $config['model'];
 
 		// we need the entry details for flashbag
-		if ($model === 'MapCombined' || ($this->is_admin && $model === 'MapCustom')) {
+		if ($model === 'MapCombined' || $this->is_admin) {
 			// scoped to the map and, for users, to their own entries
 			$map_entry = $this->getMapService()->findMapEntry($model, $map, $id);
 		} else {
@@ -956,37 +949,28 @@ final class MapController extends ViewController
 		}
 
 		if (!empty($map_entry)) {
-			$mapdescr = $config['description'] ?? null;
-			$fields = $config['fields'] ?? null;
+			$mapdescr = $config['description'];
+			$fields = $config['fields'];
 			$pairs = [];
-			$entry_str = '';
-			if ($fields) {
-				foreach ($fields as $field) {
-					if ($model === 'MapCustom') {
-						/** @var \App\Models\MapCustom $map_entry findMapEntry() returns the \$model it was asked for */
-						$field_db = MapService::getCustomField($map_entry->map_name);
-						$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
-					} else {
-						$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $map_entry->$field;
-					}
+			foreach ($fields as $field) {
+				if ($model === 'MapCustom') {
+					/** @var \App\Models\MapCustom $map_entry findMapEntry() returns the \$model it was asked for */
+					$field_db = MapService::getCustomField($map_entry->map_name);
+					$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
+				} else {
+					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $map_entry->$field;
 				}
-				$entry_str = implode(', ', $pairs);
 			}
+			$entry_str = implode(', ', $pairs);
 
 			$service = $this->getMapService();
 
-			if ($fields) {
-				// has applyUseScope for MapCombined
-				$delete = $service->delMapEntry($model, $map, $fields, $id);
-				if ($delete) {
-					$this->flashbag->add('success', "Map entry '{$entry_str}' deleted from Map '{$mapdescr}'");
-				} else {
-					$this->flashbag->add('error', "Map entry {$entry_str} failed to be deleted from Map {$mapdescr}");
-				}
-			} else { // if no fields it failed the role in getAvailableMapConfigs()
-				$this->fileLogger->warning("User '{$this->username}' tried to access " . $this->request->getPathInfo() . " without admin authorization");
-				$this->flashbag->add('error', "Permission denied");
-				return new RedirectResponse($this->getMapsUrl());
+			// has applyUseScope for MapCombined
+			$delete = $service->delMapEntry($model, $map, $fields, $id);
+			if ($delete) {
+				$this->flashbag->add('success', "Map entry '{$entry_str}' deleted from Map '{$mapdescr}'");
+			} else {
+				$this->flashbag->add('error', "Map entry {$entry_str} failed to be deleted from Map {$mapdescr}");
 			}
 		} else {
 			$this->flashbag->add('error', "Map entry not found");
@@ -1011,7 +995,7 @@ final class MapController extends ViewController
 
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if ($config === null || empty($config['model'])) {
+		if ($config === null) {
 			$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
@@ -1019,7 +1003,7 @@ final class MapController extends ViewController
 
 		$model = $config['model'];
 
-		if (empty($map) || (($model !== 'MapCombined') && ($model !== 'MapCustom'))) {
+		if (empty($map)) {
 			$this->fileLogger->warning("User {$this->username} tried to del all entries in " . $this->request->getPathInfo() . " for an invalid map");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
@@ -1031,23 +1015,17 @@ final class MapController extends ViewController
 			return new RedirectResponse($this->getMapsUrl());
 		}
 
-		$mapdescr = $config['description'] ?? null;
-		$fields = $config['fields'] ?? null;
+		$mapdescr = $config['description'];
+		$fields = $config['fields'];
 
 		$service = $this->getMapService();
 
-		if ($fields) {
-			// has applyUseScope for MapCombined
-			$delete = $service->delMapAllEntries($model, $map, $fields);
-			if ($delete) {
-				$this->flashbag->add('success', "All entries from Map '{$mapdescr}' deleted");
-			} else {
-				$this->flashbag->add('error', "All entries failed to be deleted from Map {$mapdescr}");
-			}
-		} else { // if no fields it failed the role in getAvailableMapConfigs()
-			$this->fileLogger->warning("User '{$this->username}' tried to access " . $this->request->getPathInfo() . " without admin authorization");
-			$this->flashbag->add('error', "Permission denied");
-			return new RedirectResponse($this->getMapsUrl());
+		// has applyUseScope for MapCombined
+		$delete = $service->delMapAllEntries($model, $map, $fields);
+		if ($delete) {
+			$this->flashbag->add('success', "All entries from Map '{$mapdescr}' deleted");
+		} else {
+			$this->flashbag->add('error', "All entries failed to be deleted from Map {$mapdescr}");
 		}
 
 		return new RedirectResponse($this->getMapShowUrl($map));
@@ -1243,7 +1221,7 @@ final class MapController extends ViewController
 
 		$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
 
-		if ($config === null || empty($config['model'])) {
+		if ($config === null) {
 			$this->fileLogger->warning("User {$this->username} tried to toggle map entry in " . $this->request->getPathInfo() . " for an invalid map or without authorization");
 			$this->flashbag->add('error', 'Invalid map selected');
 			return new RedirectResponse($this->getMapsUrl());
@@ -1252,7 +1230,7 @@ final class MapController extends ViewController
 		$model = $config['model'];
 
 		// we need the entry details for flashbag
-		if ($model === 'MapCombined' || ($this->is_admin && $model === 'MapCustom')) {
+		if ($model === 'MapCombined' || $this->is_admin) {
 			// scoped to the map and, for users, to their own entries
 			$map_entry = $this->getMapService()->findMapEntry($model, $map, $id);
 		} else {
@@ -1262,38 +1240,29 @@ final class MapController extends ViewController
 		}
 
 		if (!empty($map_entry)) {
-			$mapdescr = $config['description'] ?? null;
-			$fields = $config['fields'] ?? null;
+			$mapdescr = $config['description'];
+			$fields = $config['fields'];
 			$pairs = [];
-			$entry_str = '';
-			if ($fields) {
-				foreach ($fields as $field) {
-					if ($model === 'MapCustom') {
-						/** @var \App\Models\MapCustom $map_entry findMapEntry() returns the \$model it was asked for */
-						$field_db = MapService::getCustomField($map_entry->map_name);
-						$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
-					} else {
-						$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $map_entry->$field;
-					}
+			foreach ($fields as $field) {
+				if ($model === 'MapCustom') {
+					/** @var \App\Models\MapCustom $map_entry findMapEntry() returns the \$model it was asked for */
+					$field_db = MapService::getCustomField($map_entry->map_name);
+					$pairs[] = $field_db['field_label'] . ": " . $map_entry->pattern;
+				} else {
+					$pairs[] = MapInventory::fieldDefinition($field)['description'] . ": " . $map_entry->$field;
 				}
-				$entry_str = implode(', ', $pairs);
 			}
+			$entry_str = implode(', ', $pairs);
 
 			$service = $this->getMapService();
 
-			if ($fields) {
-				// has applyUseScope for MapCombined
-				$what_toggle = $map_entry->disabled ? "enabled" : "disabled";
-				$toggle = $service->toggleMapEntry($model, $map, $fields, $id);
-				if ($toggle) {
-					$this->flashbag->add('success', "Map entry '{$entry_str}' {$what_toggle} in Map '{$mapdescr}'");
-				} else {
-					$this->flashbag->add('error', "Map entry {$entry_str} failed to be {$what_toggle} in Map {$mapdescr}");
-				}
-			} else { // if no fields it failed the role in getAvailableMapConfigs()
-				$this->fileLogger->warning("User '{$this->username}' tried to access " . $this->request->getPathInfo() . " without admin authorization");
-				$this->flashbag->add('error', "Permission denied");
-				return new RedirectResponse($this->getMapsUrl());
+			// has applyUseScope for MapCombined
+			$what_toggle = $map_entry->disabled ? "enabled" : "disabled";
+			$toggle = $service->toggleMapEntry($model, $map, $fields, $id);
+			if ($toggle) {
+				$this->flashbag->add('success', "Map entry '{$entry_str}' {$what_toggle} in Map '{$mapdescr}'");
+			} else {
+				$this->flashbag->add('error', "Map entry {$entry_str} failed to be {$what_toggle} in Map {$mapdescr}");
 			}
 		} else {
 			$this->flashbag->add('error', "Map entry not found");

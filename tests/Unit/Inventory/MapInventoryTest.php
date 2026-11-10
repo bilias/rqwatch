@@ -10,9 +10,11 @@
 
 /*
  MapInventory's map config check: every config, built-in or custom from
- the DB, needs model, fields, map_form and access, a known model and a
- non-empty list of field names, or getMapConfigs() throws. And the IP or
- CIDR check of the ip map fields: host bits clear, with a suggestion.
+ the DB, needs a known model, a text description, a non-empty list of
+ field names, one of the map form classes and a list of roles, or
+ getMapConfigs() throws; it returns the configs it checked. An unknown
+ field definition throws too. And the IP or CIDR check of the ip map
+ fields: host bits clear, with a suggestion.
 */
 
 namespace Tests\Unit\Inventory;
@@ -42,15 +44,12 @@ final class MapInventoryTest extends UnitTestCase
 		$this->assertNotEmpty($configs);
 		foreach ($configs as $name => $config) {
 			$this->assertContains($config['model'], ['MapCombined', 'MapCustom'], $name);
-			$this->assertIsList($config['fields'], $name);
 		}
 	}
 
 	public function testBuiltInFieldsDefined(): void {
 		foreach (MapInventory::getMapConfigs(null, false) as $name => $config) {
-			/** @var list<string> $fields every config lists them (checkMapConfigs) */
-			$fields = $config['fields'];
-			foreach ($fields as $field) {
+			foreach ($config['fields'] as $field) {
 				$this->assertNotSame('', MapInventory::fieldDefinition($field)['description'], "{$name}: {$field}");
 			}
 		}
@@ -62,8 +61,7 @@ final class MapInventoryTest extends UnitTestCase
 	}
 
 	public function testCustomConfigPasses(): void {
-		$this->expectNotToPerformAssertions();
-		$this->check(['custom' => self::CUSTOM]);
+		$this->assertSame(['custom' => self::CUSTOM], $this->check(['custom' => self::CUSTOM]));
 	}
 
 	/** @return array<string, array{array<string, mixed>, string}> */
@@ -81,6 +79,12 @@ final class MapInventoryTest extends UnitTestCase
 			'fields not a list' => [['fields' => [1 => 'domain']] + self::CUSTOM, "Map config 'm' needs a non-empty list of fields"],
 			'empty field name' => [['fields' => ['domain', '']] + self::CUSTOM, "Map config 'm' has an invalid field name"],
 			'field name not a string' => [['fields' => [5]] + self::CUSTOM, "Map config 'm' has an invalid field name"],
+			'no description' => [$without('description'), "Missing or null required field 'description' in map config 'm'"],
+			'description not text' => [['description' => 5] + self::CUSTOM, "Map config 'm' needs a text description"],
+			'map_form not a map form' => [['map_form' => \stdClass::class] + self::CUSTOM, "Map config 'm' has an unknown map_form"],
+			'map_form not a class' => [['map_form' => 'NoSuchForm'] + self::CUSTOM, "Map config 'm' has an unknown map_form"],
+			'access a string' => [['access' => 'admin'] + self::CUSTOM, "Map config 'm' needs a list of roles"],
+			'role not text' => [['access' => ['admin', 1]] + self::CUSTOM, "Map config 'm' has an invalid role"],
 		];
 	}
 
@@ -133,7 +137,7 @@ final class MapInventoryTest extends UnitTestCase
 	}
 
 	/** @param array<string, array<string, mixed>> $configs */
-	private function check(array $configs): void {
-		(new ReflectionMethod(MapInventory::class, 'checkMapConfigs'))->invoke(null, $configs);
+	private function check(array $configs): mixed {
+		return (new ReflectionMethod(MapInventory::class, 'checkMapConfigs'))->invoke(null, $configs);
 	}
 }

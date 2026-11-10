@@ -30,11 +30,18 @@ use App\Forms\MapIpForm;
 //use App\Forms\MapUrlForm;
 //use App\Forms\MapEmailForm;
 use App\Forms\MapWithCustomFieldForm;
+use App\Forms\MapWithOneFieldForm;
 
 use App\Services\MapService;
 
 use RuntimeException;
+use Symfony\Component\Form\FormTypeInterface;
 
+/**
+ * @phpstan-type MapForm class-string<MapWithOneFieldForm>|class-string<MapWithTwoFieldsForm>|class-string<MapWithCustomFieldForm>
+ * @phpstan-type MapConfig array{model: 'MapCombined'|'MapCustom', description: string, fields: non-empty-list<non-empty-string>, map_form: MapForm, access: list<string>}
+ * @phpstan-type FieldDefinition array{description: string, type: class-string<FormTypeInterface<mixed>>, field_options: array<string, mixed>}
+ */
 final class MapInventory
 {
 	private const array USER_FORM_OVERRIDES = [
@@ -42,25 +49,34 @@ final class MapInventory
 		MapMimeFromRcptToForm::class => MapMimeFromRcptToUserForm::class,
 	];
 
+	/**
+	 * @param class-string<MapWithTwoFieldsForm> $adminFormClass
+	 * @return class-string<MapWithTwoFieldsForm>
+	 */
 	private static function getUserOverrideFormClass(string $adminFormClass): string {
 		return self::USER_FORM_OVERRIDES[$adminFormClass] ?? $adminFormClass;
 	}
 
-	/*
-	 Every map config, built-in or custom from the DB, must have these keys,
-	 a known model and a non-empty list of field names: callers rely on them.
-	 Typed loosely on purpose, so the checks are not redundant to the analysers.
-	*/
-	/** @param array<string, array<string, mixed>> $configs */
-	private static function checkMapConfigs(array $configs): void {
-		$requiredFields = ['model', 'fields', 'map_form', 'access'];
+	/**
+	 * Every map config, built-in or custom from the DB, as callers rely on
+	 * it: a known model, a description, a non-empty list of field names, one
+	 * of the map form classes and a list of roles. Returns what it checked.
+	 * @param array<string, array<string, mixed>> $configs
+	 * @return array<string, MapConfig>
+	 */
+	private static function checkMapConfigs(array $configs): array {
+		$checked = [];
 		foreach ($configs as $key => $config) {
-			foreach ($requiredFields as $field) {
-				self::required($config, $field, $key);
+			/** @var mixed $model */
+			$model = self::required($config, 'model', $key);
+			if ($model !== 'MapCombined' && $model !== 'MapCustom') {
+				throw new RuntimeException("Unknown model in map config '$key'");
 			}
 
-			if (!in_array(self::required($config, 'model', $key), ['MapCombined', 'MapCustom'], true)) {
-				throw new RuntimeException("Unknown model in map config '$key'");
+			/** @var mixed $description */
+			$description = self::required($config, 'description', $key);
+			if (!is_string($description)) {
+				throw new RuntimeException("Map config '$key' needs a text description");
 			}
 
 			/** @var mixed $fields */
@@ -68,12 +84,46 @@ final class MapInventory
 			if (!is_array($fields) || $fields === [] || !array_is_list($fields)) {
 				throw new RuntimeException("Map config '$key' needs a non-empty list of fields");
 			}
+			$names = [];
+			/** @var mixed $name */
 			foreach ($fields as $name) {
 				if (!is_string($name) || $name === '') {
 					throw new RuntimeException("Map config '$key' has an invalid field name");
 				}
+				$names[] = $name;
 			}
+
+			/** @var mixed $form */
+			$form = self::required($config, 'map_form', $key);
+			if (!is_string($form) || !(is_a($form, MapWithOneFieldForm::class, true)
+				|| is_a($form, MapWithTwoFieldsForm::class, true)
+				|| is_a($form, MapWithCustomFieldForm::class, true))) {
+				throw new RuntimeException("Map config '$key' has an unknown map_form");
+			}
+
+			/** @var mixed $access */
+			$access = self::required($config, 'access', $key);
+			if (!is_array($access) || !array_is_list($access)) {
+				throw new RuntimeException("Map config '$key' needs a list of roles");
+			}
+			$roles = [];
+			/** @var mixed $role */
+			foreach ($access as $role) {
+				if (!is_string($role)) {
+					throw new RuntimeException("Map config '$key' has an invalid role");
+				}
+				$roles[] = $role;
+			}
+
+			$checked[$key] = [
+				'model' => $model,
+				'description' => $description,
+				'fields' => $names,
+				'map_form' => $form,
+				'access' => $roles,
+			];
 		}
+		return $checked;
 	}
 
 	/**
@@ -90,7 +140,7 @@ final class MapInventory
 	// also need to create child form class in app/Forms
 	// and add the Form use at top
 	// $withCustom = false: the built-in maps only, without a query
-	/** @return ($map is null ? array<string, array<string, mixed>> : array<string, mixed>|null) all configs by map name, or one map's config */
+	/** @return ($map is null ? array<string, MapConfig> : MapConfig|null) all configs by map name, or one map's config */
 	public static function getMapConfigs(?string $map = null, bool $withCustom = true): ?array {
 		$configs = [
 			'mail_from_rcpt_to_whitelist' => [
@@ -201,7 +251,7 @@ final class MapInventory
 			$configs = array_merge($configs, $custom_configs);
 		}
 
-		self::checkMapConfigs($configs);
+		$configs = self::checkMapConfigs($configs);
 
 		if ($map !== null) {
 			if (array_key_exists($map, $configs)) {
@@ -216,12 +266,12 @@ final class MapInventory
 
 	// Reusable field definitions
 	// one field's definition; an unknown field is a bug in the map or form config
-	/** @return array<string, mixed> */
+	/** @return FieldDefinition */
 	public static function fieldDefinition(string $field): array {
 		return self::getFieldDefinitions()[$field] ?? throw new RuntimeException("Unknown map field '{$field}'");
 	}
 
-	/** @return array<string, array<string, mixed>> all definitions by field */
+	/** @return array<string, FieldDefinition> all definitions by field */
 	public static function getFieldDefinitions(): array {
 		$definitions = [
 			'mail_from' => [
@@ -323,7 +373,7 @@ final class MapInventory
 		return $definitions;
 	}
 
-	/** @return ($map is null ? array<string, array<string, mixed>> : array<string, mixed>|null) the role's configs by map name, or one map's config (null if not available) */
+	/** @return ($map is null ? array<string, MapConfig> : MapConfig|null) the role's configs by map name, or one map's config (null if not available) */
 	public static function getAvailableMapConfigs(
 		string $role = 'admin',
 		?string $map = null
@@ -339,15 +389,14 @@ final class MapInventory
 			}
 
 			// check role 'access' in map config
-			/** @var array{map_form: class-string, fields?: list<string>, access?: list<string>} $config map_form is a ::class constant in every config */
 			$config = $configs[$map];
 			$isUser = $role === 'user';
-			if (in_array($role, $config['access'] ?? ['admin'], true)) {
+			if (in_array($role, $config['access'], true)) {
 
 				// check for override form class for user forms
 				if (
 					$isUser &&
-					in_array('user', $config['access'] ?? [], true) &&
+					in_array('user', $config['access'], true) &&
 					is_a($config['map_form'], MapWithTwoFieldsForm::class, true) &&
 					isset($config['fields'][1]) &&
 					$config['fields'][1] === 'rcpt_to'
@@ -364,12 +413,12 @@ final class MapInventory
 
 		// No specific map requested — filter all
 		return array_filter($configs, function ($config) use ($role) {
-			return in_array($role, $config['access'] ?? ['admin'], true);
+			return in_array($role, $config['access'], true);
 		});
 	}
 
 	/**
-	 * @param array<string, array<string, mixed>> $configs
+	 * @param array<string, MapConfig> $configs
 	 * @return list<string> map names
 	 */
 	public static function getMapsByModel(string $model, array $configs): array {
@@ -379,7 +428,7 @@ final class MapInventory
 
 		$maps = [];
 		foreach ($configs as $key => $config) {
-			if (array_key_exists('model', $config) && $config['model'] === $model) {
+			if ($config['model'] === $model) {
 				$maps[] = $key;
 			}
 		}

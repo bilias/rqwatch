@@ -106,7 +106,7 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 
 		if (is_string($map) && $map !== '') {
 			$map_config = MapInventory::getMapConfigs($map);
-			if ($map_config === null || $map_config === []) {
+			if ($map_config === null) {
 				$output->writeln("<comment>Map '{$map}' not found</comment>");
 				$this->fileLogger->warning("{$this->app_name} Map '{$map}' not found");
 				return Command::FAILURE;
@@ -147,10 +147,7 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 			$model = $config['model'];
 			$fields = $model === 'MapCombined' ? $config['fields'] : null;
 			if($this->mapFileNeedsUpdate($mapName, $last_activity)) {
-				if (!in_array($model, ['MapCombined', 'MapCustom'], true)) {
-					$output->writeln("<comment>Wrong model '{$model}' for Map file '{$mapName}'</comment>", OutputInterface::VERBOSITY_VERBOSE);
-					$this->fileLogger->warning("{$this->app_name} Wrong model '{$model}' for Map file '{$mapName}'");
-				} elseif ($service->updateMapFile(
+				if ($service->updateMapFile(
 					$model,
 					$mapName,
 					$last_activity,

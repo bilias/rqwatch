@@ -51,7 +51,10 @@ use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
-/** @phpstan-import-type SearchFilter from FormHelper */
+/**
+ * @phpstan-import-type SearchFilter from FormHelper
+ * @phpstan-import-type MapForm from MapInventory
+ */
 final class MailLogController extends ViewController
 {
 	private ?MailLogService $mailLogService = null;
@@ -904,7 +907,7 @@ final class MailLogController extends ViewController
 				foreach (array_unique($maps) as $map) {
 					if (isset($available[$map])) {
 						$links[$name][] = [
-							'label' => $available[$map]['description'] ?? $map,
+							'label' => $available[$map]['description'],
 							'url' => $this->url($this->is_admin ? RouteName::ADMIN_MAP_SHOW : RouteName::MAP_SHOW, ['map' => $map]),
 						];
 					}
@@ -1368,7 +1371,9 @@ final class MailLogController extends ViewController
 		}
 	}
 
-	/** @return array<string, array<string, mixed>> map name => config, plus its add_url */
+	/**
+	 * @return array<string, array{model: 'MapCombined'|'MapCustom', description: string, fields: non-empty-list<non-empty-string>, map_form: MapForm, access: list<string>, add_url: string}> map name => config, plus its add_url
+	 */
 	private function getMapConfigsWithAddUrls(MailLog $log, ?string $map = null): array {
 		if ($map === null) {
 			$configs = MapInventory::getAvailableMapConfigs($this->getRole());
@@ -1395,10 +1400,11 @@ final class MailLogController extends ViewController
 			? RouteName::ADMIN_MAP_ADD_ENTRY
 			: RouteName::MAP_ADD_ENTRY;
 
-		foreach ($configs as $mapName => &$cfg) {
+		$withUrls = [];
+		foreach ($configs as $mapName => $cfg) {
 			$queryParams = ['map' => $mapName, 'return-mail' => $log->id];
 
-			foreach ($cfg['fields'] ?? [] as $field) {
+			foreach ($cfg['fields'] as $field) {
 				$sourceField = $fieldMap[$field] ?? $field;
 				$value = $log->{$sourceField} ?? null;
 
@@ -1406,11 +1412,10 @@ final class MailLogController extends ViewController
 					$queryParams[$field] = $value;
 				}
 			}
-			$cfg['add_url'] = $this->url($route, $queryParams);
+			$withUrls[$mapName] = $cfg + ['add_url' => $this->url($route, $queryParams)];
 		}
-		unset($cfg);
 
-		return $configs;
+		return $withUrls;
 	}
 
 	private function chartsEnabled(): bool {

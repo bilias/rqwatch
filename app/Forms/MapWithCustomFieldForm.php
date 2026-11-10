@@ -44,9 +44,6 @@ final class MapWithCustomFieldForm extends AbstractType
 	public function buildForm(FormBuilderInterface $builder, array $options): void {
 
 		$field = MapInventory::fieldDefinition(static::$fieldName);
-		if (!isset($field['type'])) {
-			throw new LogicException('No field definition for ' . static::$fieldName);
-		}
 
 		// Override defaults with field options from custom_map_config
 		$field_db = MapService::getCustomField($options['map']);
