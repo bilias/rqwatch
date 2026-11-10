@@ -22,6 +22,7 @@ use App\Services\FuzzyService;
 use App\Services\MapHitService;
 use App\Services\VirusService;
 
+use RuntimeException;
 use Throwable;
 use Illuminate\Database\ConcurrencyErrorDetector;
 use Illuminate\Database\LostConnectionDetector;
@@ -137,14 +138,14 @@ final class MailLogWriter
 	// credit learned fuzzy mails whose hashes this mail matched
 	/** @param array<string, mixed> $mailData */
 	private function recordFuzzyHits(int $mailLogId, array $mailData): void {
-		$hashes = json_decode((string) ($mailData['fuzzy_hashes'] ?? ''), true);
-		if (!is_array($hashes) || $hashes === []) {
-			return;
-		}
-
-		$qid = (string) ($mailData['qid'] ?? '');
+		$qid = self::qid($mailData);
 		try {
-			(new FuzzyService())->recordHits($mailLogId, $hashes, $mailData['created_at'] ?? null, $qid);
+			$hashes = json_decode(self::text($mailData, 'fuzzy_hashes') ?? '', true);
+			if (!is_array($hashes) || $hashes === []) {
+				return;
+			}
+			$at = self::text($mailData, 'created_at');
+			(new FuzzyService())->recordHits($mailLogId, $hashes, $at, $qid);
 		} catch (Throwable $e) {
 			App::fileLogger()->error("[MailLogWriter] {$qid} could not record fuzzy hits: " . $e->getMessage());
 		}
@@ -153,9 +154,10 @@ final class MailLogWriter
 	// record the map and local rule symbols this mail carries
 	/** @param array<string, mixed> $mailData */
 	private function recordMapHits(int $mailLogId, array $mailData): void {
-		$qid = (string) ($mailData['qid'] ?? '');
+		$qid = self::qid($mailData);
 		try {
-			(new MapHitService())->recordHits($mailLogId, (string) ($mailData['symbols'] ?? ''), $qid);
+			$symbols = self::text($mailData, 'symbols') ?? '';
+			(new MapHitService())->recordHits($mailLogId, $symbols, $qid);
 		} catch (Throwable $e) {
 			App::fileLogger()->error("[MailLogWriter] {$qid} could not record map hits: " . $e->getMessage());
 		}
@@ -168,9 +170,10 @@ final class MailLogWriter
 			return;
 		}
 
-		$qid = (string) ($mailData['qid'] ?? '');
+		$qid = self::qid($mailData);
 		try {
-			(new VirusService())->recordViruses($mailLogId, (string) ($mailData['symbols'] ?? ''), $qid);
+			$symbols = self::text($mailData, 'symbols') ?? '';
+			(new VirusService())->recordViruses($mailLogId, $symbols, $qid);
 		} catch (Throwable $e) {
 			App::fileLogger()->error("[MailLogWriter] {$qid} could not record viruses: " . $e->getMessage());
 		}
@@ -243,17 +246,32 @@ final class MailLogWriter
 	 * @return array{array<string, mixed>, array<string, mixed>} mail_logs columns, mail_log_data columns
 	 */
 	private function splitMailData(array $mailData): array {
-		$main = $mailData;
-		$extra = [];
+		$extra = array_intersect_key($mailData, array_flip(MailLogData::DATA_COLUMNS));
 
-		foreach (MailLogData::DATA_COLUMNS as $column) {
-			if (array_key_exists($column, $main)) {
-				$extra[$column] = $main[$column];
-				unset($main[$column]);
-			}
+		return [array_diff_key($mailData, $extra), $extra];
+	}
+
+	/**
+	 * A mail data field the after-commit records read: text, or null when
+	 * absent. Another type throws, so the record's catch logs it instead
+	 * of a cast quietly recording nothing.
+	 * @param array<string, mixed> $mailData
+	 */
+	private static function text(array $mailData, string $field): ?string {
+		/** @var mixed $value */
+		$value = $mailData[$field] ?? null;
+		if ($value === null || is_string($value)) {
+			return $value;
 		}
+		throw new RuntimeException("{$field} is " . get_debug_type($value) . ', not text');
+	}
 
-		return [$main, $extra];
+	// the qid, for log lines only
+	/** @param array<string, mixed> $mailData */
+	private static function qid(array $mailData): string {
+		/** @var mixed $qid */
+		$qid = $mailData['qid'] ?? '';
+		return is_string($qid) ? $qid : '';
 	}
 
 }
