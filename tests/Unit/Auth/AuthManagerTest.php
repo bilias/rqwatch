@@ -86,6 +86,7 @@ final class AuthManagerTest extends UnitTestCase
 
 	/** @param array<string, mixed> $values */
 	private static function set(object $provider, array $values): void {
+		/** @var mixed $value */
 		foreach ($values as $name => $value) {
 			(new ReflectionProperty($provider, $name))->setValue($provider, $value);
 		}

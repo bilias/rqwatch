@@ -89,6 +89,7 @@ final class ConfigValidatorTest extends UnitTestCase
 	public function testEveryReadSettingTyped(): void {
 		$keys = [];
 		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(dirname(__DIR__, 3) . '/app'));
+		/** @var mixed $file */
 		foreach ($files as $file) {
 			if ($file instanceof \SplFileInfo && $file->getExtension() === 'php') {
 				preg_match_all("/Config::get(?:Int|IntOr|String|RequiredString|Bool|Float|Array)?\('([A-Za-z0-9_]+)'/",

@@ -21,6 +21,7 @@ final class RecordingLogger extends AbstractLogger
 
 	#[\Override]
 	public function log($level, string|Stringable $message, array $context = []): void {
-		$this->lines[] = "{$level} {$message}";
+		// a PSR level is a string; anything else shows as its type
+		$this->lines[] = (is_string($level) ? $level : get_debug_type($level)) . " {$message}";
 	}
 }

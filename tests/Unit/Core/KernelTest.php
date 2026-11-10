@@ -26,7 +26,8 @@ use Tests\Unit\UnitTestCase;
 
 final class KernelTest extends UnitTestCase
 {
-	private mixed $argv;
+	/** @var array<array-key, mixed>|null the argv before the test */
+	private ?array $argv;
 
 	/** @return array<string, array{list<string>, string, bool}> argv, command, exempt */
 	public static function commandCases(): array {
@@ -50,7 +51,9 @@ final class KernelTest extends UnitTestCase
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
-		$this->argv = $_SERVER['argv'] ?? null;
+		/** @var mixed $argv */
+		$argv = $_SERVER['argv'] ?? null;
+		$this->argv = is_array($argv) ? $argv : null;
 	}
 
 	#[\Override]

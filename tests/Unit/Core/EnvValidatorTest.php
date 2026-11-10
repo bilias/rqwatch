@@ -122,6 +122,7 @@ final class EnvValidatorTest extends UnitTestCase
 	public function testEveryEnvBoolKeyChecked(): void {
 		$keys = [];
 		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(dirname(__DIR__, 3) . '/app'));
+		/** @var mixed $file */
 		foreach ($files as $file) {
 			if ($file instanceof \SplFileInfo && $file->getExtension() === 'php') {
 				preg_match_all("/env_bool\('([A-Z0-9_]+)'/", (string) file_get_contents($file->getPathname()), $m);

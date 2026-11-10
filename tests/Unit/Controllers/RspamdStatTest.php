@@ -33,7 +33,9 @@ final class RspamdStatTest extends UnitTestCase
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
-		$this->password = isset($_ENV['RSPAMD_CONTROLLER_PASS']) ? (string) $_ENV['RSPAMD_CONTROLLER_PASS'] : null;
+		/** @var mixed $saved */
+		$saved = $_ENV['RSPAMD_CONTROLLER_PASS'] ?? null;
+		$this->password = is_string($saved) ? $saved : null;
 	}
 
 	#[\Override]

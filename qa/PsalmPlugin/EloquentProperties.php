@@ -195,7 +195,12 @@ final class EloquentProperties implements AfterCodebasePopulatedInterface
 			return ['read' => $type, 'write' => $type];
 		}
 
+		/** @var mixed $cast */
 		$cast = $model->getCasts()[$name] ?? null;
+		// Eloquent casts are a type or a class name
+		if ($cast !== null && !is_string($cast)) {
+			throw new \LogicException(get_class($model) . "::\$casts['{$name}'] is not a string");
+		}
 		if (in_array($name, $model->getDates(), true)) {
 			// Eloquent runs fromDateTime() on date columns before any cast
 			$read = $cast !== null ? self::castType($cast, $column['type'], true) : self::DATE;

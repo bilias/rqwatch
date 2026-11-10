@@ -169,6 +169,6 @@ final class RouteSmokeTest extends IntegrationTestCase
 			return [];
 		}
 		$new = (string) file_get_contents(self::file($path), false, null, $from);
-		return array_values(preg_grep($pattern, explode("\n", $new)) ?: []);
+		return array_values(array_filter(explode("\n", $new), fn (string $line): bool => preg_match($pattern, $line) === 1));
 	}
 }

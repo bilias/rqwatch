@@ -119,6 +119,7 @@ function defaultValue(ReflectionParameter $p): string {
 		$c = (string) $p->getDefaultValueConstantName();
 		return str_contains($c, '\\') || str_contains($c, '::') ? '\\' . ltrim($c, '\\') : $c;
 	}
+	/** @var mixed $v */
 	$v = $p->getDefaultValue();
 	return match (true) {
 		$v === null  => 'null',

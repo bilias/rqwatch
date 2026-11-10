@@ -84,6 +84,7 @@ final class ConfigCacheTest extends UnitTestCase
 		$cached = null;
 		$redis->expects($this->once())->method('set')
 			->with(self::KEY, $this->callback(function (mixed $json) use (&$cached): bool {
+				/** @var mixed $cached */
 				$cached = $json;
 				return true;
 			}), ['ex' => self::TTL])
@@ -94,7 +95,7 @@ final class ConfigCacheTest extends UnitTestCase
 		$this->assertSame(['file', 'local', 1], [Config::get('plain'), Config::get('overridden'), Config::get('extra')]);
 		$this->assertSame(
 			['APP_VERSION' => AppConfig::VERSION, 'plain' => 'file', 'overridden' => 'local'],
-			json_decode((string) $cached, true),
+			json_decode(is_string($cached) ? $cached : self::fail('the cached config is not text'), true),
 			'the files are cached, the extras are not'
 		);
 		$this->assertContains('debug Config [loadAndInitWithRedisCache]: Cached data in Redis', $this->log->lines);

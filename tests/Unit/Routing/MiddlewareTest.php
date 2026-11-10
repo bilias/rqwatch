@@ -43,6 +43,7 @@ final class MiddlewareTest extends TestCase
 	private function request(string $path, array $session = []): Request {
 		$request = Request::create($path);
 		$s = new Session(new MockArraySessionStorage());
+		/** @var mixed $v */
 		foreach ($session as $k => $v) {
 			$s->set($k, $v);
 		}

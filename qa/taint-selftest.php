@@ -33,9 +33,21 @@ foreach ($lines as $i => $line) {
 
 // "file:line" => issue types reported there
 $reported = [];
+/** @var mixed $issue */
 foreach ($report as $issue) {
-	if (is_array($issue) && str_starts_with((string) $issue['type'], 'Tainted')) {
-		$reported[$issue['file_name'] . ':' . $issue['line_from']][] = $issue['type'];
+	/** @var mixed $type */
+	$type = is_array($issue) ? ($issue['type'] ?? null) : null;
+	/** @var mixed $file */
+	$file = is_array($issue) ? ($issue['file_name'] ?? null) : null;
+	/** @var mixed $line */
+	$line = is_array($issue) ? ($issue['line_from'] ?? null) : null;
+	// a changed report format must fail the self-test, not mismatch quietly
+	if (!is_string($type) || !is_string($file) || !is_int($line)) {
+		fwrite(STDERR, "taint self-test: a Psalm report entry without type, file_name and line_from\n");
+		exit(1);
+	}
+	if (str_starts_with($type, 'Tainted')) {
+		$reported["{$file}:{$line}"][] = $type;
 	}
 }
 

@@ -108,8 +108,10 @@ final class MapHitsBackfillTest extends IntegrationTestCase
 			throw new RuntimeException('Cannot read the map hits');
 		}
 		$hits = [];
+		/** @var mixed $hit */
 		foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $hit) {
-			$hits[] = (string) $hit;
+			self::assertIsString($hit, 'a CONCAT_WS() hit line');
+			$hits[] = $hit;
 		}
 		return $hits;
 	}

@@ -149,8 +149,13 @@ final class HitRecordingTest extends IntegrationTestCase
 			. " JOIN mail_logs m ON m.id = h.mail_log_id WHERE m.qid LIKE '" . self::QID . "%' ORDER BY h.fuzzy_id")
 			?: throw new RuntimeException('hits query failed');
 		$hits = [];
+		/** @var mixed $row */
 		foreach ($rows->fetchAll(PDO::FETCH_NUM) as $row) {
-			$hits[] = [(int) $row[0], (int) $row[1]];
+			self::assertIsArray($row);
+			[$fuzzyId, $mailLogId] = $row;
+			self::assertIsInt($fuzzyId);
+			self::assertIsInt($mailLogId);
+			$hits[] = [$fuzzyId, $mailLogId];
 		}
 		return $hits;
 	}
