@@ -76,10 +76,14 @@ final class MigrationStatus
 		}
 
 		try {
-			$this->stateCache = $this->capsule
+			$state = self::knownStates($this->capsule
 				->table(AppConfig::MIGRATIONS_TABLE)
 				->pluck('status', 'migration')
-				->all();
+				->all());
+			if ($state === null) {
+				throw new RuntimeException(AppConfig::MIGRATIONS_TABLE . " holds a status that is not text");
+			}
+			$this->stateCache = $state;
 
 			$this->cacheLoaded = true;
 
@@ -102,6 +106,29 @@ final class MigrationStatus
 
 			throw $e;
 		}
+	}
+
+	/**
+	 * The statuses of the migrations this version knows, from a database
+	 * read or the Redis copy; other names are left out. Null when one of
+	 * them is neither text nor null (not recorded).
+	 * @param array<array-key, mixed> $raw
+	 * @return array<string, string|null>|null
+	 */
+	private static function knownStates(array $raw): ?array {
+		$state = [];
+		foreach (Migrations::MIGRATIONS as $migration) {
+			if (!array_key_exists($migration, $raw)) {
+				continue;
+			}
+			/** @var mixed $status */
+			$status = $raw[$migration];
+			if ($status !== null && !is_string($status)) {
+				return null;
+			}
+			$state[$migration] = $status;
+		}
+		return $state;
 	}
 
 	public function setMigrationState(string $migration, ?string $status): void {
@@ -172,12 +199,14 @@ final class MigrationStatus
 			return false;
 		}
 
-		// keep only migrations this version knows about, so an older
-		// copy cannot inject a name that setMigrationState() rejects
-		$this->stateCache = array_intersect_key(
-			$state,
-			array_flip(Migrations::MIGRATIONS)
-		);
+		// only migrations this version knows about, so an older copy cannot
+		// inject a name that setMigrationState() rejects
+		$known = self::knownStates($state);
+		if ($known === null) {
+			$this->fileLogger->critical("Migration status in Redis holds a status that is not text; not used");
+			return false;
+		}
+		$this->stateCache = $known;
 
 		$this->cacheLoaded = true;
 		/*
