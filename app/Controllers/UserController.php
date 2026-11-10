@@ -109,7 +109,7 @@ final class UserController extends ViewController
 
 		if (!$this->csrfValid('throttle_clear')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on clearThrottle from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				"CSRF check failed on clearThrottle from " . Helper::remote_addr()
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getAdminThrottlesUrl());
@@ -314,7 +314,7 @@ final class UserController extends ViewController
 					$current = (string) $profileform->get('current_password')->getData();
 					$hash = (string) User::whereKey($user->id)->value('password');
 					if (!Helper::passwordVerify($current, $hash)) {
-						$this->fileLogger->warning("'{$this->username}' failed password change: wrong current password from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN'));
+						$this->fileLogger->warning("'{$this->username}' failed password change: wrong current password from " . Helper::remote_addr());
 						$this->flashbag->add('error', 'Current password is wrong, password not changed');
 						return new RedirectResponse($this->url(RouteName::PROFILE));
 					}
@@ -622,7 +622,7 @@ final class UserController extends ViewController
 
 		if (!$this->csrfValid('user_loginas')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on loginAs from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				"CSRF check failed on loginAs from " . Helper::remote_addr()
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getHomepageUrl());

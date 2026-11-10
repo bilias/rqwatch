@@ -1035,7 +1035,7 @@ final class MailLogController extends ViewController
 			if ($success) {
 				// per-mail trail of who released it; a remote node also logs its own send
 				$msg = "Message {$maillog->qid} released to '" . implode(', ', $release_to)
-					. "' by '{$this->email}' from '" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+					. "' by '{$this->email}' from '" . Helper::remote_addr()
 					. "' via web (sent by {$maillog->server})";
 				$this->fileLogger->info($msg);
 				$this->syslogLogger->info($msg);

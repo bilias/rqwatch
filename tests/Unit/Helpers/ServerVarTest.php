@@ -10,7 +10,8 @@
 
 /*
  $_SERVER reader: a string is returned as is (an empty one too), an
- unset or non-string value is null.
+ unset or non-string value is null. remote_addr() is REMOTE_ADDR, or
+ 'UNKNOWN' when that is unset or not a string.
 */
 
 namespace Tests\Unit\Helpers;
@@ -23,9 +24,22 @@ final class ServerVarTest extends UnitTestCase
 {
 	private const string KEY = 'RQWATCH_UNIT_SERVER_TEST';
 
+	private ?string $savedAddr;
+
+	#[\Override]
+	protected function setUp(): void {
+		parent::setUp();
+		$this->savedAddr = Helper::server_string('REMOTE_ADDR');
+	}
+
 	#[\Override]
 	protected function tearDown(): void {
 		unset($_SERVER[self::KEY]);
+		if ($this->savedAddr === null) {
+			unset($_SERVER['REMOTE_ADDR']);
+		} else {
+			$_SERVER['REMOTE_ADDR'] = $this->savedAddr;
+		}
 		parent::tearDown();
 	}
 
@@ -50,5 +64,25 @@ final class ServerVarTest extends UnitTestCase
 	public function testNonStringIsNull(array|int|bool|null $value): void {
 		$_SERVER[self::KEY] = $value;
 		$this->assertNull(Helper::server_string(self::KEY));
+	}
+
+	/** @return array<string, array{list<string>|string|null, string}> */
+	public static function remoteAddrs(): array {
+		return [
+			'set' => ['2001:db8::7', '2001:db8::7'],
+			'unset' => [null, 'UNKNOWN'],
+			'not a string' => [['192.0.2.7'], 'UNKNOWN'],
+		];
+	}
+
+	/** @param list<string>|string|null $value null: unset */
+	#[DataProvider('remoteAddrs')]
+	public function testRemoteAddr(array|string|null $value, string $expected): void {
+		if ($value === null) {
+			unset($_SERVER['REMOTE_ADDR']);
+		} else {
+			$_SERVER['REMOTE_ADDR'] = $value;
+		}
+		$this->assertSame($expected, Helper::remote_addr());
 	}
 }

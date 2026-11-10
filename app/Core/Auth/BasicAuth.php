@@ -15,6 +15,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 use Psr\Log\LoggerInterface;
 
+use App\Utils\Helper;
+
 use SensitiveParameter;
 
 use RuntimeException;
@@ -46,13 +48,12 @@ final class BasicAuth implements AuthInterface {
 
 	#[\Override]
 	public function authenticate(): bool {
-		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no credentials too: fail closed */
-		if (empty($_SERVER['PHP_AUTH_USER']) || empty($_SERVER['PHP_AUTH_PW'])) {
+		$providedUser = Helper::server_string('PHP_AUTH_USER');
+		$providedPass = Helper::server_string('PHP_AUTH_PW');
+		// '' and '0' are no credentials too: fail closed
+		if (in_array($providedUser, [null, '', '0'], true) || in_array($providedPass, [null, '', '0'], true)) {
 			$this->doBasicAuth(); // and exit
 		}
-
-		$providedUser = (string) $_SERVER['PHP_AUTH_USER'];
-		$providedPass = (string) $_SERVER['PHP_AUTH_PW'];
 
 		if (!hash_equals($this->username, $providedUser) ||
 			!hash_equals($this->password, $providedPass)) {
@@ -62,7 +63,7 @@ final class BasicAuth implements AuthInterface {
 			} else {
 				$mode = "";
 			}
-			$this->logger->warning("Failed" . $mode . "Basic Auth user: '{$providedUser}' from '" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "'");
+			$this->logger->warning("Failed" . $mode . "Basic Auth user: '{$providedUser}' from '" . Helper::remote_addr() . "'");
 			//sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 			$this->doBasicAuth(); // and exit
 		} else {

@@ -20,6 +20,7 @@ use App\Models\MailLogFuzzy;
 
 use App\Services\FuzzyService;
 use App\Services\MailLogService;
+use App\Utils\Helper;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Form\FormInterface;
@@ -351,7 +352,7 @@ final class FuzzyController extends ViewController
 
 		if (!$this->csrfValid($csrfId)) {
 			$this->fileLogger->warning(
-				"CSRF check failed on {$csrfId} from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				"CSRF check failed on {$csrfId} from " . Helper::remote_addr()
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getHomepageUrl());

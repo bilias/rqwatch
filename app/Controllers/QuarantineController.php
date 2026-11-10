@@ -77,7 +77,7 @@ final class QuarantineController extends ViewController
 		if (!$this->csrfValid('token_redeem')) {
 			$this->fileLogger->warning(
 				"[QuarantineController] CSRF check failed on token_redeem from "
-				. ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				. Helper::remote_addr()
 			);
 			return $this->tokenError();
 		}
@@ -245,7 +245,7 @@ final class QuarantineController extends ViewController
 		// per-mail trail of who released it; a remote node also logs its own send
 		$this->syslogLogger->info(
 			"Message {$maillog->qid} released to '{$recipient}' via notification link from '"
-			. ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN') . "' (sent by {$maillog->server})"
+			. Helper::remote_addr() . "' (sent by {$maillog->server})"
 		);
 
 		// single use: the link cannot be replayed
@@ -273,7 +273,7 @@ final class QuarantineController extends ViewController
 		if (!$this->csrfValid($csrfId)) {
 			$this->fileLogger->warning(
 				"[QuarantineController] CSRF check failed on {$csrfId} from "
-				. ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				. Helper::remote_addr()
 			);
 			return [null, $this->tokenError()];
 		}
@@ -357,7 +357,7 @@ final class QuarantineController extends ViewController
 
 		$this->fileLogger->info(
 			"[QuarantineController] notification link for mail id {$tokenRow->mail_log_id} used from "
-			. ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+			. Helper::remote_addr()
 		);
 
 		return true;

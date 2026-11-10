@@ -70,7 +70,7 @@ final class LoginController extends ViewController
 	public function logout(): Response {
 		if (!$this->csrfValid('logout')) {
 			$this->fileLogger->warning(
-				"Logout without valid token for '{$this->username}' from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				"Logout without valid token for '{$this->username}' from " . Helper::remote_addr()
 			);
 			return new RedirectResponse($this->getHomepageUrl());
 		}
@@ -78,7 +78,7 @@ final class LoginController extends ViewController
 			$this->fileLogger->info("User logout: '{$this->username}'", [
 				'is_admin' => $this->is_admin,
 				'email' => $this->email,
-				'ip' => $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN',
+				'ip' => Helper::remote_addr(),
 				'session_id' => $this->session->getId(),
 			]);
 		}
@@ -176,7 +176,7 @@ final class LoginController extends ViewController
 			$username = strtolower(trim(FormHelper::text($data['username'], 'username')));
 			$password = trim(FormHelper::text($loginform->get('password')->getData(), 'password'));
 
-			$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+			$client_ip = Helper::remote_addr();
 			$throttle = new LoginThrottle($client_ip, App::cache(), $this->fileLogger);
 
 			if ($throttle->isBlocked()) {
@@ -417,7 +417,7 @@ final class LoginController extends ViewController
 		$auth_provider = $auth->getAuthProvider();
 		// called only after a successful authenticate(), so a provider has a user
 		if ($username === null) {
-			$this->fileLogger->warning("($auth_provider) authenticated without a username from IP:" . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN'));
+			$this->fileLogger->warning("($auth_provider) authenticated without a username from IP:" . Helper::remote_addr());
 			$this->flashbag->add('error', "Authentication problem. Contact admin");
 			return false;
 		}
@@ -435,7 +435,7 @@ final class LoginController extends ViewController
 		if (($auth_provider !== "DB") && $username === 'admin') {
 			$this->fileLogger->warning(
 				"($auth_provider) login refused for reserved local account 'admin' from IP:" .
-				($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				Helper::remote_addr()
 			);
 			$this->flashbag->add('error', "Authentication problem. Contact admin");
 			return false;
@@ -474,7 +474,7 @@ final class LoginController extends ViewController
 		$this->fileLogger->info("User login: '{$username}' ($auth_provider)", [
 			'is_admin' => $is_admin,
 			'email' => $email,
-			'ip' => $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN',
+			'ip' => Helper::remote_addr(),
 			'session_id' => $this->session->getId(),
 		]);
 

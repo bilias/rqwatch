@@ -965,6 +965,12 @@ Mail details:
 		return is_string($value) ? $value : null;
 	}
 
+	// the client's socket address (REMOTE_ADDR, never X-Forwarded-For), for
+	// IP checks and log lines; 'UNKNOWN' matches no IP list entry
+	public static function remote_addr(): string {
+		return self::server_string('REMOTE_ADDR') ?? 'UNKNOWN';
+	}
+
 	public static function env_bool(string $key, bool $default = false): bool {
 		return filter_var($_ENV[$key] ?? $default, FILTER_VALIDATE_BOOLEAN);
 	}

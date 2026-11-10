@@ -42,7 +42,7 @@ abstract class RqwatchApi
 		$this->fileLogger = App::fileLogger();
 		$this->syslogLogger = App::syslogLogger();
 
-		$this->clientIp = Helper::server_string('REMOTE_ADDR') ?? 'UNKNOWN';
+		$this->clientIp = Helper::remote_addr();
 
 		// Check if API is disabled
 		$this->checkApiEnabled();

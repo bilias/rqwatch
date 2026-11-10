@@ -26,6 +26,7 @@ use App\Services\UserService;
 
 use Exception;
 use App\Utils\FormHelper;
+use App\Utils\Helper;
 
 //use Illuminate\Database\Capsule\Manager as DB;
 
@@ -248,7 +249,7 @@ final class MailAliasController extends ViewController
 
 		if (!$this->csrfValid('alias_del')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on alias del from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				"CSRF check failed on alias del from " . Helper::remote_addr()
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getAdminAliasesUrl());

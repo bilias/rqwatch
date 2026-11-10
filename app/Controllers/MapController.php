@@ -51,8 +51,8 @@ final class MapController extends ViewController
 	public function __construct() {
 		parent::__construct();
 
-		/** @psalm-suppress RiskyTruthyFalsyComparison the canonical HTTPS check: '' and '0' is not https */
-		$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+		// the canonical HTTPS check: unset, '', '0' and 'off' are not https
+		$scheme = in_array(Helper::server_string('HTTPS'), [null, '', '0', 'off'], true) ? 'http' : 'https';
 		$this->maps_url_base = sprintf('%s://%s/maps/', $scheme, Helper::env_required('WEB_HOST'));
 	}
 
@@ -899,7 +899,7 @@ final class MapController extends ViewController
 
 		if (!$this->csrfValid('custom_map_del')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on delCustomMap from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				"CSRF check failed on delCustomMap from " . Helper::remote_addr()
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getShowCustomMapsConfigUrl());
@@ -929,7 +929,7 @@ final class MapController extends ViewController
 	public function delMapEntry(string $map, int $id): Response {
 		if (!$this->csrfValid('map_del')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on delMapEntry from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				"CSRF check failed on delMapEntry from " . Helper::remote_addr()
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getMapsUrl());
@@ -1003,7 +1003,7 @@ final class MapController extends ViewController
 	public function delMapAllEntries(string $map): Response {
 		if (!$this->csrfValid('map_delall')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on delMapAllEntries from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				"CSRF check failed on delMapAllEntries from " . Helper::remote_addr()
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getMapsUrl());
@@ -1234,7 +1234,7 @@ final class MapController extends ViewController
 	public function toggleMapEntry(string $map, int $id): Response {
 		if (!$this->csrfValid('map_toggle')) {
 			$this->fileLogger->warning(
-				"CSRF check failed on toggleMapEntry from " . ($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN')
+				"CSRF check failed on toggleMapEntry from " . Helper::remote_addr()
 			);
 			$this->flashbag->add('error', 'Invalid or expired request. Please try again.');
 			return new RedirectResponse($this->getMapsUrl());
