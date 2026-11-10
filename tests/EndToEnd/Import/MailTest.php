@@ -27,8 +27,8 @@ final class MailTest extends EndToEndTestCase
 
 		$this->assertSame($subject, $row['subject']);
 		$this->assertSame('alice@rqwatch.test, bob@rqwatch.test', $row['rcpt_to']);
-		$this->assertSame(['alice@rqwatch.test', 'bob@rqwatch.test'], self::recipients((int) $row['id']));
-		$this->assertSame(0, (int) $row['has_virus']);
+		$this->assertSame(['alice@rqwatch.test', 'bob@rqwatch.test'], self::recipients(self::colInt($row, 'id')));
+		$this->assertSame(0, self::colInt($row, 'has_virus'));
 		$this->assertNotQuarantined($row);
 	}
 
@@ -37,9 +37,9 @@ final class MailTest extends EndToEndTestCase
 		[, $reply, $row] = $this->import('spam');
 		$this->assertSame('reject', $reply['action'], 'fixture: rspamd verdict');
 
-		$this->assertSame(0, (int) $row['has_virus']);
+		$this->assertSame(0, self::colInt($row, 'has_virus'));
 		$this->assertQuarantined($row);
-		$this->assertHit((int) $row['id'], 'LOCAL_IMPORT_TEST_SPAM', 0, 0, 50.0);
+		$this->assertHit(self::colInt($row, 'id'), 'LOCAL_IMPORT_TEST_SPAM', 0, 0, 50.0);
 	}
 
 	#[TestDox('Discard by score: contrib actions.conf threshold (12) below reject')]
@@ -64,7 +64,7 @@ final class MailTest extends EndToEndTestCase
 		[, , $row] = $this->import('spam', qid: self::QID_HEADER);
 
 		$this->assertQuarantined($row);
-		$this->assertStringContainsString("/{$row['qid']}/mail.eml", (string) $row['mail_location']);
+		$this->assertStringContainsString('/' . self::colString($row, 'qid') . '/mail.eml', self::colString($row, 'mail_location'));
 	}
 
 	#[TestDox('No qid at all: logged as unknown, quarantined under unknown/')]
@@ -72,7 +72,7 @@ final class MailTest extends EndToEndTestCase
 		[, , $row] = $this->import('spam', qid: self::QID_NONE);
 
 		$this->assertQuarantined($row);
-		$this->assertMatchesRegularExpression('#/\d{4}-\d{2}-\d{2}/unknown/[^/]+/mail\.eml$#', (string) $row['mail_location']);
+		$this->assertMatchesRegularExpression('#/\d{4}-\d{2}-\d{2}/unknown/[^/]+/mail\.eml$#', self::colString($row, 'mail_location'));
 	}
 
 	#[TestDox('60 recipients: rcpt_to and mime_to truncated, every recipient listed')]
@@ -84,6 +84,6 @@ final class MailTest extends EndToEndTestCase
 		[, , $row] = $this->import('clean', rcpts: $rcpts, to: array_slice($rcpts, 0, 10));
 
 		$this->assertSame(mb_substr(implode(', ', $rcpts), 0, 1024), $row['rcpt_to']);
-		$this->assertSame($rcpts, self::recipients((int) $row['id']));
+		$this->assertSame($rcpts, self::recipients(self::colInt($row, 'id')));
 	}
 }

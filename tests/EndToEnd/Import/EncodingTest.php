@@ -48,7 +48,7 @@ final class EncodingTest extends EndToEndTestCase
 			mimeFrom: (string) iconv('UTF-8', $encoding, $from), storedMimeFrom: $from);
 
 		$this->assertSame($subject, $row['subject']);
-		$headers = (string) self::query('SELECT headers FROM mail_log_data WHERE mail_log_id = ?', [(int) $row['id']])[0]['headers'];
+		$headers = self::valueString('SELECT headers FROM mail_log_data WHERE mail_log_id = ?', [self::colInt($row, 'id')]);
 		$this->assertStringContainsString("Subject: {$subject}", $headers);
 		$this->assertStringContainsString("From: {$from}", $headers);
 	}

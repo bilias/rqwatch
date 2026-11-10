@@ -51,10 +51,10 @@ final class SpoolTest extends EndToEndTestCase
 		$this->assertStringContainsString('No spooled entries found', self::cli('cron:import_spool', '-l', '-v'));
 
 		[, , $after] = $this->import('clean');
-		$created = strtotime((string) $row['created_at']);
-		$this->assertGreaterThanOrEqual(strtotime((string) $before['created_at']), $created,
+		$created = strtotime(self::colString($row, 'created_at'));
+		$this->assertGreaterThanOrEqual(strtotime(self::colString($before, 'created_at')), $created,
 			'spooled created_at earlier than a mail imported before it (PHP and database clocks differ?)');
-		$this->assertLessThan(strtotime((string) $after['created_at']), $created,
+		$this->assertLessThan(strtotime(self::colString($after, 'created_at')), $created,
 			'spooled created_at is the replay time, or PHP and database clocks differ');
 	}
 

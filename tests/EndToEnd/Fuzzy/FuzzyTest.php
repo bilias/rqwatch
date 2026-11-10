@@ -23,30 +23,30 @@ final class FuzzyTest extends EndToEndTestCase
 	public function testFuzzyLearnAndHit(): void {
 		$body = self::fuzzyBody('learn-and-hit');
 		[, , $learned] = $this->import('spam', body: $body);
-		$this->assertSame('Message learned', self::fuzzyApi('learn', (int) $learned['id'], 11));
+		$this->assertSame('Message learned', self::fuzzyApi('learn', self::colInt($learned, 'id'), 11));
 
-		$records = self::query('SELECT id, flag, hashes FROM mail_log_fuzzy WHERE mail_log_id = ?', [(int) $learned['id']]);
+		$records = self::query('SELECT id, flag, hashes FROM mail_log_fuzzy WHERE mail_log_id = ?', [self::colInt($learned, 'id')]);
 		$this->assertCount(1, $records, 'mail_log_fuzzy record');
-		$this->assertSame(11, (int) $records[0]['flag']);
-		$hashes = json_decode((string) $records[0]['hashes'], true, 512, JSON_THROW_ON_ERROR);
+		$this->assertSame(11, self::colInt($records[0], 'flag'));
+		$hashes = self::stringList(self::colString($records[0], 'hashes'), 'mail_log_fuzzy.hashes');
 		$this->assertNotEmpty($hashes, 'learned hashes');
 
 		self::waitForFuzzy($body, true);
 		[, $reply, $copy] = $this->import('clean', body: $body);
-		$this->assertArrayHasKey('RQWATCH_FUZZY_DENIED', $reply['symbols'], 'fixture: contrib fuzzy_check.conf');
+		$this->assertArrayHasKey('RQWATCH_FUZZY_DENIED', self::symbols($reply), 'fixture: contrib fuzzy_check.conf');
 
-		$data = self::query('SELECT fuzzy_hashes FROM mail_log_data WHERE mail_log_id = ?', [(int) $copy['id']]);
-		$matched = json_decode((string) $data[0]['fuzzy_hashes'], true, 512, JSON_THROW_ON_ERROR);
+		$data = self::query('SELECT fuzzy_hashes FROM mail_log_data WHERE mail_log_id = ?', [self::colInt($copy, 'id')]);
+		$matched = self::stringList(self::colString($data[0], 'fuzzy_hashes'), 'mail_log_data.fuzzy_hashes');
 		$this->assertNotEmpty(array_intersect($hashes, $matched), 'the copy carries a learned hash');
 
-		$record = self::query('SELECT hits, last_hit_at FROM mail_log_fuzzy WHERE id = ?', [(int) $records[0]['id']]);
-		$this->assertSame(1, (int) $record[0]['hits']);
+		$record = self::query('SELECT hits, last_hit_at FROM mail_log_fuzzy WHERE id = ?', [self::colInt($records[0], 'id')]);
+		$this->assertSame(1, self::colInt($record[0], 'hits'));
 		$this->assertNotNull($record[0]['last_hit_at']);
 		$this->assertSame(
-			[(int) $copy['id']],
-			array_map('intval', array_column(self::query(
-				'SELECT mail_log_id FROM mail_log_fuzzy_hits WHERE fuzzy_id = ?', [(int) $records[0]['id']]
-			), 'mail_log_id')),
+			[self::colInt($copy, 'id')],
+			array_map(fn (array $hit): int => self::colInt($hit, 'mail_log_id'), self::query(
+				'SELECT mail_log_id FROM mail_log_fuzzy_hits WHERE fuzzy_id = ?', [self::colInt($records[0], 'id')]
+			)),
 			'hit mails'
 		);
 	}
@@ -55,8 +55,8 @@ final class FuzzyTest extends EndToEndTestCase
 	public function testFuzzyUnlearn(): void {
 		$body = self::fuzzyBody('unlearn');
 		[, , $learned] = $this->import('spam', body: $body);
-		$this->assertSame('Message learned', self::fuzzyApi('learn', (int) $learned['id'], 11));
-		$id = (int) self::query('SELECT id FROM mail_log_fuzzy WHERE mail_log_id = ?', [(int) $learned['id']])[0]['id'];
+		$this->assertSame('Message learned', self::fuzzyApi('learn', self::colInt($learned, 'id'), 11));
+		$id = self::valueInt('SELECT id FROM mail_log_fuzzy WHERE mail_log_id = ?', [self::colInt($learned, 'id')]);
 		self::waitForFuzzy($body, true);
 
 		$this->assertSame('Message unlearned', self::fuzzyApi('unlearn', $id));

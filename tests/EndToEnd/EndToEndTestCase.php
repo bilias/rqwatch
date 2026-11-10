@@ -68,7 +68,7 @@ abstract class EndToEndTestCase extends TestCase
 	 * @param list<string> $rcpts
 	 * @param list<string> $to
 	 * @param list<string> $headers more header lines in the mail
-	 * @return ($wait is true ? array{0: string, 1: array<string, mixed>, 2: array<string, mixed>} : array{0: string, 1: array<string, mixed>, 2: null})
+	 * @return ($wait is true ? array{0: string, 1: array<array-key, mixed>, 2: array<string, mixed>} : array{0: string, 1: array<array-key, mixed>, 2: null})
 	 */
 	protected function import(
 		string $test,
@@ -104,32 +104,34 @@ abstract class EndToEndTestCase extends TestCase
 
 	/**
 	 * The row and its mail_log_data agree with rspamd's verdict and the mail sent.
-	 * @param array<string, mixed> $reply
+	 * @param array<array-key, mixed> $reply
 	 * @param array<string, mixed> $row
 	 */
 	protected function assertImported(array $reply, array $row): void {
 		$this->assertSame($this->sent['qid'], $row['qid']);
 		$this->assertSame(self::SERVER, $row['server']);
 		$this->assertSame($reply['action'], $row['action']);
-		$this->assertEqualsWithDelta((float) $reply['score'], (float) $row['score'], 0.005, 'score');
+		$this->assertEqualsWithDelta(self::colFloat($reply, 'score'), self::colFloat($row, 'score'), 0.005, 'score');
 		$this->assertSame($this->sent['ip'], $row['ip']);
 		$this->assertSame(strtolower($this->sent['from']), $row['mail_from']);
 		$this->assertSame($this->sent['mime_from'], $row['mime_from']);
 		$this->assertSame(mb_strimwidth(implode(', ', $this->sent['to']), 0, 250, '!!'), $row['mime_to']);
 		$this->assertSame("<{$this->sent['id']}@sender.test>", $row['message_id']);
-		$this->assertSame(strlen($this->sent['mail']), (int) $row['size'], 'size');
+		$this->assertSame(strlen($this->sent['mail']), self::colInt($row, 'size'), 'size');
 
-		$data = self::query('SELECT headers, symbols FROM mail_log_data WHERE mail_log_id = ?', [(int) $row['id']]);
+		$data = self::query('SELECT headers, symbols FROM mail_log_data WHERE mail_log_id = ?', [self::colInt($row, 'id')]);
 		$this->assertCount(1, $data, 'mail_log_data row');
-		$this->assertStringContainsString("Message-ID: <{$this->sent['id']}@sender.test>", (string) $data[0]['headers']);
+		$this->assertStringContainsString("Message-ID: <{$this->sent['id']}@sender.test>", self::colString($data[0], 'headers'));
 
-		$expected = [];
-		foreach ($reply['symbols'] as $name => $symbol) {
-			$expected[$name] = round((float) $symbol['score'], 2);
-		}
+		$expected = array_map(fn (float $score): float => round($score, 2), self::symbolScores($reply));
 		$stored = [];
-		foreach (json_decode((string) $data[0]['symbols'], true, 512, JSON_THROW_ON_ERROR) as $symbol) {
-			$stored[$symbol['name']] = round((float) $symbol['score'], 2);
+		/** @var mixed $decoded */
+		$decoded = json_decode(self::colString($data[0], 'symbols'), true, 512, JSON_THROW_ON_ERROR);
+		$this->assertIsArray($decoded, 'mail_log_data.symbols');
+		/** @var mixed $symbol */
+		foreach ($decoded as $symbol) {
+			$this->assertIsArray($symbol, 'a stored symbol');
+			$stored[self::colString($symbol, 'name')] = round(self::colFloat($symbol, 'score'), 2);
 		}
 		ksort($expected);
 		ksort($stored);
@@ -138,9 +140,9 @@ abstract class EndToEndTestCase extends TestCase
 
 	/** @param array<string, mixed> $row */
 	protected function assertQuarantined(array $row): void {
-		$this->assertSame(1, (int) $row['mail_stored']);
+		$this->assertSame(1, self::colInt($row, 'mail_stored'));
 		$this->assertAdminFeed($row);
-		$location = (string) $row['mail_location'];
+		$location = self::colString($row, 'mail_location');
 		$this->assertStringStartsWith(self::quarantineDir() . '/', $location);
 		$this->assertFileExists($location);
 		$this->assertSame($this->sent['mail'], file_get_contents($location), 'stored mail differs from the mail scanned');
@@ -148,7 +150,7 @@ abstract class EndToEndTestCase extends TestCase
 
 	/** @param array<string, mixed> $row */
 	protected function assertNotQuarantined(array $row): void {
-		$this->assertSame(0, (int) $row['mail_stored']);
+		$this->assertSame(0, self::colInt($row, 'mail_stored'));
 		$this->assertAdminFeed($row);
 		$this->assertNull($row['mail_location']);
 		$this->assertDirectoryDoesNotExist(self::quarantineDir() . '/' . date('Y-m-d') . "/{$this->sent['qid']}");
@@ -161,17 +163,17 @@ abstract class EndToEndTestCase extends TestCase
 	 * @param array<string, mixed> $row
 	 */
 	private function assertAdminFeed(array $row): void {
-		$enrolled = (int) $row['mail_stored'] === 1 && in_array($row['action'], ['discard', 'reject'], true);
-		$this->assertSame($enrolled ? 0 : null, $row['admin_notified'] === null ? null : (int) $row['admin_notified'],
+		$enrolled = self::colInt($row, 'mail_stored') === 1 && in_array($row['action'], ['discard', 'reject'], true);
+		$this->assertSame($enrolled ? 0 : null, self::colNullableInt($row, 'admin_notified'),
 			'admin_notified (' . ($enrolled ? 'enrolled' : 'not enrolled') . ')');
 	}
 
 	/** @param array<string, mixed> $row */
 	protected function assertVirus(array $row): void {
-		$this->assertSame(1, (int) $row['has_virus']);
+		$this->assertSame(1, self::colInt($row, 'has_virus'));
 		$this->assertSame(
 			[['av' => 'CLAM_VIRUS', 'name' => 'Eicar-Test-Signature']],
-			self::query('SELECT av, name FROM mail_log_viruses WHERE mail_log_id = ?', [(int) $row['id']])
+			self::query('SELECT av, name FROM mail_log_viruses WHERE mail_log_id = ?', [self::colInt($row, 'id')])
 		);
 	}
 
@@ -184,11 +186,11 @@ abstract class EndToEndTestCase extends TestCase
 		);
 		$this->assertSame(
 			[[$model, $entryId]],
-			array_map(fn($h) => [(int) $h['entry_model'], (int) $h['entry_id']], $hits),
+			array_map(fn (array $h): array => [self::colInt($h, 'entry_model'), self::colInt($h, 'entry_id')], $hits),
 			"map hit for {$symbol}"
 		);
 		if ($score !== null) {
-			$this->assertEqualsWithDelta($score, (float) $hits[0]['score'], 0.001);
+			$this->assertEqualsWithDelta($score, self::colFloat($hits[0], 'score'), 0.001);
 		}
 	}
 
@@ -251,7 +253,7 @@ abstract class EndToEndTestCase extends TestCase
 	/**
 	 * Scans the mail through rspamd's normal worker.
 	 * @param list<string> $headers
-	 * @return array<string, mixed> rspamd's reply
+	 * @return array<array-key, mixed> rspamd's reply
 	 */
 	protected static function scan(string $mail, array $headers): array {
 		$ch = curl_init(rtrim((string) getenv('E2E_RSPAMD_URL'), '/') . '/checkv2') ?: throw new RuntimeException('curl_init() failed');
@@ -267,6 +269,7 @@ abstract class EndToEndTestCase extends TestCase
 			throw new RuntimeException("rspamd scan failed (HTTP {$status}): " . curl_error($ch));
 		}
 
+		/** @var mixed $reply */
 		$reply = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
 		if (!is_array($reply) || !isset($reply['action'], $reply['score'], $reply['symbols'])) {
 			throw new RuntimeException("Unexpected rspamd reply: {$body}");
@@ -296,7 +299,7 @@ abstract class EndToEndTestCase extends TestCase
 				$headers = self::scanHeaders($qid, $ip, $from, $rcpts);
 				$headers[] = 'Settings: {symbols_disabled = ["EXPORT_METADATA_RQWATCH"]}';
 				$reply = self::scan(self::message($qid, 'Probe', 'clean', $mimeFrom), $headers);
-				if (isset($reply['symbols'][$symbol])) {
+				if (isset(self::symbols($reply)[$symbol])) {
 					unset($probes[$symbol]);
 				}
 			}
@@ -326,12 +329,7 @@ abstract class EndToEndTestCase extends TestCase
 		$headers = self::scanHeaders($qid, self::IP, self::MAIL_FROM, [self::RCPT]);
 		$headers[] = 'Settings: {symbols_disabled = ["EXPORT_METADATA_RQWATCH"]}';
 		$reply = self::scan(self::message($qid, 'Probe', 'clean', self::MIME_FROM, body: $body), $headers);
-		$scores = [];
-		foreach ((array) $reply['symbols'] as $name => $symbol) {
-			if (str_starts_with((string) $name, 'RQWATCH_FUZZY_') && is_array($symbol)) {
-				$scores[(string) $name] = (float) $symbol['score'];
-			}
-		}
+		$scores = array_filter(self::symbolScores($reply), fn (string $name): bool => str_starts_with($name, 'RQWATCH_FUZZY_'), ARRAY_FILTER_USE_KEY);
 		ksort($scores);
 		return $scores;
 	}
@@ -378,10 +376,10 @@ abstract class EndToEndTestCase extends TestCase
 
 	/** @return list<string> */
 	protected static function recipients(int $id): array {
-		return array_column(self::query(
+		return array_map(fn (array $r): string => self::colString($r, 'recipient_email'), self::query(
 			'SELECT recipient_email FROM mail_log_recipients WHERE mail_log_id = ? ORDER BY recipient_email',
 			[$id]
-		), 'recipient_email');
+		));
 	}
 
 	/** Runs bin/cli.php in the instance's copy and returns its output; fails on a non-zero exit. */
@@ -412,6 +410,111 @@ abstract class EndToEndTestCase extends TestCase
 	protected static function query(string $sql, array $params): array {
 		$stmt = self::db()->prepare($sql);
 		$stmt->execute($params);
-		return array_values($stmt->fetchAll());
+		/** @var list<array<string, mixed>> $rows FETCH_ASSOC, set in db() */
+		$rows = array_values($stmt->fetchAll());
+		return $rows;
+	}
+
+	/*
+	 Typed reads of a database value, a row's column or a decoded reply's
+	 field: another type fails the test, naming it, rather than being cast.
+	 MariaDB returns integer columns as ints and FLOAT/DOUBLE as floats
+	 (PHP 8.1+).
+	*/
+
+	/** @param list<int|string> $params */
+	protected static function valueInt(string $sql, array $params): int {
+		$stmt = self::db()->prepare($sql);
+		$stmt->execute($params);
+		/** @var mixed $value */
+		$value = $stmt->fetchColumn();
+		return is_int($value) ? $value : self::fail("{$sql}: expected an integer, got " . get_debug_type($value));
+	}
+
+	/** @param list<int|string> $params */
+	protected static function valueString(string $sql, array $params): string {
+		$stmt = self::db()->prepare($sql);
+		$stmt->execute($params);
+		/** @var mixed $value */
+		$value = $stmt->fetchColumn();
+		return is_string($value) ? $value : self::fail("{$sql}: expected text, got " . get_debug_type($value));
+	}
+
+	/** @param array<array-key, mixed> $row */
+	protected static function colInt(array $row, string $key): int {
+		/** @var mixed $value */
+		$value = $row[$key] ?? null;
+		return is_int($value) ? $value : self::fail("{$key}: expected an integer, got " . get_debug_type($value));
+	}
+
+	/** @param array<array-key, mixed> $row */
+	protected static function colNullableInt(array $row, string $key): ?int {
+		/** @var mixed $value */
+		$value = $row[$key] ?? null;
+		return $value === null || is_int($value) ? $value : self::fail("{$key}: expected an integer or NULL, got " . get_debug_type($value));
+	}
+
+	/** @param array<array-key, mixed> $row */
+	protected static function colString(array $row, string $key): string {
+		/** @var mixed $value */
+		$value = $row[$key] ?? null;
+		return is_string($value) ? $value : self::fail("{$key}: expected text, got " . get_debug_type($value));
+	}
+
+	// a number: rspamd sends a whole score as an int, FLOAT/DOUBLE columns come as floats
+	/** @param array<array-key, mixed> $row */
+	protected static function colFloat(array $row, string $key): float {
+		/** @var mixed $value */
+		$value = $row[$key] ?? null;
+		return is_int($value) || is_float($value) ? (float) $value : self::fail("{$key}: expected a number, got " . get_debug_type($value));
+	}
+
+	/**
+	 * Rspamd's symbols in a scan reply, by name
+	 * @param array<array-key, mixed> $reply
+	 * @return array<string, array<array-key, mixed>>
+	 */
+	protected static function symbols(array $reply): array {
+		/** @var mixed $symbols */
+		$symbols = $reply['symbols'] ?? null;
+		if (!is_array($symbols)) {
+			self::fail('rspamd reply without symbols');
+		}
+		$named = [];
+		/** @var mixed $symbol */
+		foreach ($symbols as $name => $symbol) {
+			if (!is_string($name) || !is_array($symbol)) {
+				self::fail('rspamd reply: a symbol that is not name => {...}');
+			}
+			$named[$name] = $symbol;
+		}
+		return $named;
+	}
+
+	/**
+	 * Each symbol's score in a scan reply
+	 * @param array<array-key, mixed> $reply
+	 * @return array<string, float>
+	 */
+	protected static function symbolScores(array $reply): array {
+		return array_map(fn (array $symbol): float => self::colFloat($symbol, 'score'), self::symbols($reply));
+	}
+
+	/**
+	 * A JSON list of strings, such as stored hashes ($what names it)
+	 * @return list<string>
+	 */
+	protected static function stringList(string $json, string $what): array {
+		/** @var mixed $decoded */
+		$decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+		if (!is_array($decoded) || !array_is_list($decoded)) {
+			self::fail("{$what}: expected a JSON list, got {$json}");
+		}
+		$list = [];
+		/** @var mixed $item */
+		foreach ($decoded as $item) {
+			$list[] = is_string($item) ? $item : self::fail("{$what}: an element that is not text in {$json}");
+		}
+		return $list;
 	}
 }

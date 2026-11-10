@@ -80,6 +80,6 @@ final class MapsTest extends EndToEndTestCase
 	private function assertMapHit(array $row, string $symbol, string $map): void {
 		$entries = self::query('SELECT id FROM maps_combined WHERE map_name = ?', [$map]);
 		$this->assertCount(1, $entries, "fixture: one {$map} entry");
-		$this->assertHit((int) $row['id'], $symbol, self::ENTRY_COMBINED, (int) $entries[0]['id']);
+		$this->assertHit(self::colInt($row, 'id'), $symbol, self::ENTRY_COMBINED, self::colInt($entries[0], 'id'));
 	}
 }

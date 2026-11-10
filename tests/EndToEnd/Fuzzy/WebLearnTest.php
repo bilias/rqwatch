@@ -46,7 +46,7 @@ final class WebLearnTest extends EndToEndTestCase
 	public function testLearnBoostUnlearn(string $server): void {
 		$body = self::fuzzyBody("web-{$server}");
 		[$qid, , $row] = $this->import('spam', body: $body);
-		$id = (int) $row['id'];
+		$id = self::colInt($row, 'id');
 		if ($server !== self::SERVER) {
 			self::db()->prepare('UPDATE mail_logs SET server = ? WHERE id = ?')->execute([$server, $id]);
 		}
@@ -57,7 +57,7 @@ final class WebLearnTest extends EndToEndTestCase
 		$record = self::query('SELECT id, flag, weight, api_server, learned_by FROM mail_log_fuzzy WHERE mail_log_id = ?', [$id]);
 		$this->assertCount(1, $record, 'mail_log_fuzzy record');
 		$this->assertSame([self::SPAM, 7, $server, 'admin'],
-			[(int) $record[0]['flag'], (int) $record[0]['weight'], $record[0]['api_server'], $record[0]['learned_by']]);
+			[self::colInt($record[0], 'flag'), self::colInt($record[0], 'weight'), $record[0]['api_server'], $record[0]['learned_by']]);
 		self::waitForFuzzy($body, true);
 		$before = self::fuzzyScore($body);
 		$this->assertNotNull($before);
@@ -66,7 +66,7 @@ final class WebLearnTest extends EndToEndTestCase
 		[$action, $token] = self::form($page, '/fuzzy/boost/\d+');
 		$page = self::follow($admin, $admin->get($action . '?' . http_build_query(['_token' => $token, 'weight' => '20'])), self::detail($id));
 		$this->assertStringContainsString("Mail {$qid}: weight +20 added to fuzzy 'Spam', now 27", $page);
-		$this->assertSame(27, (int) self::query('SELECT weight FROM mail_log_fuzzy WHERE mail_log_id = ?', [$id])[0]['weight']);
+		$this->assertSame(27, self::valueInt('SELECT weight FROM mail_log_fuzzy WHERE mail_log_id = ?', [$id]));
 		self::waitUntil('the score rises', fn(): bool => (self::fuzzyScore($body) ?? 0.0) > $before);
 
 		$page = self::unlearn($admin, $id);
@@ -91,7 +91,7 @@ final class WebLearnTest extends EndToEndTestCase
 		$body = self::fuzzyBody('shared-one-list');
 		[$qidA, , $rowA] = $this->import('spam', body: $body);
 		[$qidB, , $rowB] = $this->import('spam', body: $body);
-		[$a, $b] = [(int) $rowA['id'], (int) $rowB['id']];
+		[$a, $b] = [self::colInt($rowA, 'id'), self::colInt($rowB, 'id')];
 		$admin = self::admin();
 
 		self::learn($admin, $a, self::SPAM, 10);
@@ -119,7 +119,7 @@ final class WebLearnTest extends EndToEndTestCase
 		$body = self::fuzzyBody('shared-two-lists');
 		[$qidA, , $rowA] = $this->import('spam', body: $body);
 		[$qidB, , $rowB] = $this->import('spam', body: $body);
-		[$a, $b] = [(int) $rowA['id'], (int) $rowB['id']];
+		[$a, $b] = [self::colInt($rowA, 'id'), self::colInt($rowB, 'id')];
 		$admin = self::admin();
 
 		self::learn($admin, $a, self::SPAM, 10);
@@ -150,7 +150,7 @@ final class WebLearnTest extends EndToEndTestCase
 	public function testNearMatchLearnsItsOwnHashes(): void {
 		$body = self::fuzzyBody('near-match');
 		[$qidA, , $rowA] = $this->import('spam', body: $body);
-		$a = (int) $rowA['id'];
+		$a = self::colInt($rowA, 'id');
 		$admin = self::admin();
 		self::learn($admin, $a, self::SPAM, 10);
 		$hashesA = self::hashes($a);
@@ -162,13 +162,13 @@ final class WebLearnTest extends EndToEndTestCase
 			$words[$i] = 'near' . $i;
 		}
 		[$qidB, $reply, $rowB] = $this->import('spam', body: wordwrap(implode(' ', $words), 72, "\r\n"));
-		$b = (int) $rowB['id'];
-		$this->assertArrayHasKey('RQWATCH_FUZZY_DENIED', $reply['symbols'], 'the changed copy matches the learned mail');
-		$matched = json_decode((string) self::query('SELECT fuzzy_hashes FROM mail_log_data WHERE mail_log_id = ?', [$b])[0]['fuzzy_hashes'], true);
-		$this->assertNotEmpty(array_intersect($hashesA, is_array($matched) ? $matched : []),
-			'stored with the learned digest it matched; options ' . json_encode($reply['symbols']['RQWATCH_FUZZY_DENIED']['options'] ?? null, JSON_THROW_ON_ERROR)
+		$b = self::colInt($rowB, 'id');
+		$this->assertArrayHasKey('RQWATCH_FUZZY_DENIED', self::symbols($reply), 'the changed copy matches the learned mail');
+		$matched = self::stringList(self::valueString('SELECT fuzzy_hashes FROM mail_log_data WHERE mail_log_id = ?', [$b]), 'mail_log_data.fuzzy_hashes');
+		$this->assertNotEmpty(array_intersect($hashesA, $matched),
+			'stored with the learned digest it matched; options ' . json_encode(self::symbols($reply)['RQWATCH_FUZZY_DENIED']['options'] ?? null, JSON_THROW_ON_ERROR)
 			. ', stored ' . json_encode($matched, JSON_THROW_ON_ERROR) . ', learned ' . json_encode($hashesA, JSON_THROW_ON_ERROR));
-		$this->assertSame(1, (int) self::query('SELECT hits FROM mail_log_fuzzy WHERE mail_log_id = ?', [$a])[0]['hits'], 'hit on the learned mail');
+		$this->assertSame(1, self::valueInt('SELECT hits FROM mail_log_fuzzy WHERE mail_log_id = ?', [$a]), 'hit on the learned mail');
 
 		$page = self::learn($admin, $b, self::SPAM, 10);
 		$this->assertStringContainsString("Mail {$qidB} learned as fuzzy 'Spam' (weight 10)", $page);
@@ -205,8 +205,7 @@ final class WebLearnTest extends EndToEndTestCase
 
 	/** @return list<string> the learned digests of mail $id, sorted */
 	private static function hashes(int $id): array {
-		$hashes = json_decode((string) self::query('SELECT hashes FROM mail_log_fuzzy WHERE mail_log_id = ?', [$id])[0]['hashes'], true);
-		$hashes = is_array($hashes) ? array_map('strval', array_values($hashes)) : [];
+		$hashes = self::stringList(self::valueString('SELECT hashes FROM mail_log_fuzzy WHERE mail_log_id = ?', [$id]), 'mail_log_fuzzy.hashes');
 		sort($hashes);
 		return $hashes;
 	}
