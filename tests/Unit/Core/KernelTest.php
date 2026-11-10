@@ -45,6 +45,8 @@ final class KernelTest extends UnitTestCase
 			'a near miss' => [['cli.php', 'db:migrat'], 'db:migrat', false],
 			// as Symfony: a short option's separate value is taken for the command
 			'short option with a separate value' => [['cli.php', '-b', '2', 'db:migrate'], '2', false],
+			// as Symfony: an empty first argument is the command name, so it runs the list
+			'an empty argument first' => [['cli.php', '', 'db:wipe'], '', true],
 		];
 	}
 

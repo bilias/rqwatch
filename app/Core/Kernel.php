@@ -22,6 +22,7 @@ use App\Core\Database\Database;
 use App\Core\Database\MigrationStatus;
 use App\Core\Cache\RedisCache;
 
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\HttpFoundation\Response;
 
 use App\Core\Logging\LoggerService;
@@ -292,19 +293,10 @@ final class Kernel
 		return str_starts_with($command, $migrationPrefix);
 	}
 
-	// first non-option argv token, which is what Symfony resolves as the
-	// command name
+	// the command name as Symfony resolves it: its own parser on the same
+	// argv, so the two cannot disagree ('' when there is none: the list)
 	private function cliCommandName(): string {
-		$argv = $_SERVER['argv'] ?? [];
-		foreach (array_slice($argv, 1) as $arg) {
-			if ($arg === '' || $arg[0] === '-') {
-				continue;
-			}
-
-			return (string) $arg;
-		}
-
-		return '';
+		return (new ArgvInput())->getFirstArgument() ?? '';
 	}
 
 	private function createMigrationStatus(): void {
