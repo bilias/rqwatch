@@ -116,7 +116,7 @@ jobs:
       # it, which anyone who can read the repository sees
       - name: Upload taint results to Security tab
         if: ${{ !cancelled() && hashFiles('psalm-taint.sarif') != '' && github.actor != 'dependabot[bot]' && github.event_name == 'push' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: psalm-taint.sarif
           category: psalm-taint
@@ -174,7 +174,7 @@ jobs:
       # it, which anyone who can read the repository sees
       - name: Upload Opengrep results to Security tab
         if: ${{ !cancelled() && hashFiles('opengrep.sarif') != '' && github.actor != 'dependabot[bot]' && github.event_name == 'push' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: opengrep.sarif
           category: opengrep
@@ -440,14 +440,14 @@ jobs:
 
       - name: Upload ZAP results (alice) to Security tab
         if: ${{ !cancelled() && hashFiles('zap-report/rqwatch-zap-alice.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: zap-report/rqwatch-zap-alice.sarif
           category: zap-alice
 
       - name: Upload ZAP results (admin) to Security tab
         if: ${{ !cancelled() && hashFiles('zap-report/rqwatch-zap-admin.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: zap-report/rqwatch-zap-admin.sarif
           category: zap-admin
