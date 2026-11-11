@@ -54,6 +54,7 @@ use Throwable;
 /**
  * @phpstan-import-type SearchFilter from FormHelper
  * @phpstan-import-type MapForm from MapInventory
+ * @phpstan-import-type MailStats from MailLogService
  */
 final class MailLogController extends ViewController
 {
@@ -300,15 +301,16 @@ final class MailLogController extends ViewController
 
 		$show_host = $field === 'ip' && Config::get('dns_resolv');
 		if ($show_host) {
-			$logs = array_map(fn(array $log): array => $log + ['country' => Helper::getCountry($log['ip'] ?? null)], $logs);
+			foreach ($logs as $i => $log) {
+				$logs[$i]['country'] = Helper::getCountry($log['ip'] ?? null);
+			}
 		}
 
 		$chart = null;
 		if ($field === 'date' && in_array($mode, ['day', 'month'], true)) {
 			$param = $mode === 'month' ? 'month' : 'date';
 			$chart = $this->createChart(
-				fn(array $d): Chart => ChartBuilder::createReportsDayChart($d, fn(string $v): string => $this->getSearchResultsUrl() . "?{$param}=" . rawurlencode($v), $mode),
-				$logs
+				fn(): Chart => ChartBuilder::createReportsDayChart($logs, fn(string $v): string => $this->getSearchResultsUrl() . "?{$param}=" . rawurlencode($v), $mode)
 			);
 		}
 
@@ -657,8 +659,7 @@ final class MailLogController extends ViewController
 
 		if ($totalMailsInPage > 0) {
 			$chart = $this->createChart(
-				fn(iterable $d): Chart => ChartBuilder::createQuarantineChart($d, $this->getQuarantineDayUrl(...), $this->getQuarantineDayTotals($service, $d)),
-				$days
+				fn(): Chart => ChartBuilder::createQuarantineChart($days, $this->getQuarantineDayUrl(...), $this->getQuarantineDayTotals($service, $days))
 			);
 		}
 
@@ -707,8 +708,7 @@ final class MailLogController extends ViewController
 
 		if ($totalMailsInPage > 0) {
 			$chart = $this->createChart(
-				fn(iterable $d): Chart => ChartBuilder::createQuarantinePerMonthChart($d, $this->getQuarantineMonthUrl(...), $this->getQuarantineMonthTotals($service, $d)),
-				$months
+				fn(): Chart => ChartBuilder::createQuarantinePerMonthChart($months, $this->getQuarantineMonthUrl(...), $this->getQuarantineMonthTotals($service, $months))
 			);
 		}
 
@@ -1248,11 +1248,8 @@ final class MailLogController extends ViewController
 		$stats = $this->getMailStats($service, $filters);
 
 		$chart = null;
-		if (($stats['count'] ?? 0) > 0) {
-			$chart = $this->createChart(
-				[ChartBuilder::class, 'createSearchChart'],
-				$stats
-			);
+		if ($stats !== null && $stats['count'] > 0) {
+			$chart = $this->createChart(fn(): Chart => ChartBuilder::createSearchChart($stats));
 		}
 
 		return new Response($this->twig->render('search.twig', [
@@ -1428,17 +1425,14 @@ final class MailLogController extends ViewController
 		return true;
 	}
 
-	/**
-	 * @template T of iterable<array-key, mixed>
-	 * @param callable(T): Chart $builder
-	 * @param T $stats what $builder takes
-	 */
-	private function createChart(callable $builder, iterable $stats): ?Chart {
+	// $builder's chart, or none while charts are off
+	/** @param callable(): Chart $builder */
+	private function createChart(callable $builder): ?Chart {
 		if (!$this->chartsEnabled()) {
 			return null;
 		}
 
-		return $builder($stats);
+		return $builder();
 	}
 
 	// totals for the stored/total bar; 31 days, cheap whatever the table size
@@ -1543,9 +1537,9 @@ final class MailLogController extends ViewController
 
 	/**
 	 * @param array<array-key, SearchFilter> $filters
-	 * @return array<string, mixed>
+	 * @return MailStats|null null when stats are off or failed
 	 */
-	private function getMailStats(MailLogService $service, array $filters): array {
+	private function getMailStats(MailLogService $service, array $filters): ?array {
 		if ($this->mailStatsEnabled($filters)) {
 			// has applyUserScope
 			try {
@@ -1553,7 +1547,7 @@ final class MailLogController extends ViewController
 			} catch (QueryTimeoutException $e) {
 				$this->flashbag->add('error', "Statistics took too long and were stopped. "
 					. "Narrow the search with more filters, for example a date.");
-				return [];
+				return null;
 			}
 
 			if ($stats === null) {
@@ -1561,13 +1555,13 @@ final class MailLogController extends ViewController
 				// disabled: both render no block, only one is an error
 				$this->flashbag->add('error',
 					"Statistics unavailable - query error. Check the logs, and remove the filter if it persists.");
-				return [];
+				return null;
 			}
 
 			return $stats;
 		}
 
-		return [];
+		return null;
 	}
 
 	/**

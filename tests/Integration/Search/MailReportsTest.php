@@ -16,8 +16,8 @@
  report's rows and the number of mails it read, the informational symbol
  only on request, the virus report's virus and scan failure, and the
  reports by sender domain and by action, the mail without an action
- counted on its own row. Rows are compared as text, in any order: equal
- totals have no fixed order.
+ counted on its own row, and the day report's chart. Rows are compared as
+ text, in any order: equal totals have no fixed order.
 */
 
 namespace Tests\Integration\Search;
@@ -86,6 +86,59 @@ final class MailReportsTest extends IntegrationTestCase
 
 		$actions = self::rows($admin->get('/admin/reports/action/count')['body']);
 		$this->assertContains('1 0 500B', $actions, 'the mail without an action');
+	}
+
+	#[TestDox("The day report's chart: total, stored and size per day, oldest first; no size known counts as none")]
+	public function testDayChart(): void {
+		$page = self::client('admin')->get('/admin/reports/date/day');
+		$this->assertSame(200, $page['status']);
+		[$labels, $sets] = self::chart($page['body']);
+		$sorted = $labels;
+		sort($sorted);
+		$this->assertSame($sorted, $labels, 'oldest first');
+
+		// days only this test's mails fall on
+		foreach ([2 => [1, 1], 40 => [1, 0]] as $ago => [$total, $stored]) {
+			$day = (new DateTimeImmutable("-{$ago} days"))->format('Y-m-d');
+			$i = array_search($day, $labels, true);
+			$this->assertIsInt($i, $day);
+			$this->assertSame($total, $sets['Total'][$i] ?? null, "{$day}: total");
+			$this->assertSame($stored, $sets['Stored'][$i] ?? null, "{$day}: stored");
+			$this->assertEquals(0, $sets['Size (MB)'][$i] ?? null, "{$day}: size");
+		}
+	}
+
+	/**
+	 * The page's first chart: its labels, and each dataset's values by label.
+	 * @return array{list<mixed>, array<string, list<mixed>>}
+	 */
+	private static function chart(string $html): array {
+		$found = preg_match('#<script type="application/json" id="chart-\d+-config">(.*?)</script>#s', $html, $m);
+		self::assertSame(1, $found, 'a chart on the page');
+		/** @var mixed $config */
+		$config = json_decode($m[1], true);
+		/** @var mixed $data */
+		$data = is_array($config) ? ($config['data'] ?? null) : null;
+		self::assertIsArray($data);
+		/** @var mixed $labels */
+		$labels = $data['labels'] ?? null;
+		/** @var mixed $datasets */
+		$datasets = $data['datasets'] ?? null;
+		self::assertIsArray($labels);
+		self::assertIsArray($datasets);
+		$sets = [];
+		/** @var mixed $set */
+		foreach ($datasets as $set) {
+			self::assertIsArray($set);
+			/** @var mixed $label */
+			$label = $set['label'] ?? null;
+			/** @var mixed $values */
+			$values = $set['data'] ?? null;
+			self::assertIsString($label);
+			self::assertIsArray($values);
+			$sets[$label] = array_values($values);
+		}
+		return [array_values($labels), $sets];
 	}
 
 	/** @return list<string> the page's table rows, as text */

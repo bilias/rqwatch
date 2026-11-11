@@ -57,7 +57,11 @@ use DateTimeImmutable;
 use Exception;
 use InvalidArgumentException;
 
-/** @phpstan-import-type SearchFilter from FormHelper */
+/**
+ * @phpstan-import-type SearchFilter from FormHelper
+ * @phpstan-type MailStats array{count: int, first: string|null, last: string|null, stored: int, notified: int, released: int, has_virus: int, action: array<string, int>}
+ * @phpstan-type ReportRow array{total: int, total_size: int|null, total_stored: int, ...<string, string|null>}
+ */
 final class MailLogService
 {
 	private LoggerInterface $logger;
@@ -1051,7 +1055,7 @@ final class MailLogService
 	 * the template and the day chart read it, then total, total_size (null
 	 * when none of the mails has a size) and total_stored.
 	 * @param array<array-key, SearchFilter> $filters
-	 * @return list<array{total: int, total_size: int|null, total_stored: int, ...<string, string|null>}>
+	 * @return list<ReportRow>
 	 */
 	public function getReports(
 		array $filters,
@@ -1186,7 +1190,7 @@ final class MailLogService
 	*/
 	/**
 	 * @param array<array-key, SearchFilter> $filters
-	 * @return array<string, mixed>|null
+	 * @return MailStats|null
 	 */
 	public function getStats(array $filters): ?array {
 		$lf = "MailLogService_getStats";
@@ -1209,7 +1213,7 @@ final class MailLogService
 
 	/**
 	 * @param array<array-key, SearchFilter> $filters
-	 * @return array<string, mixed>
+	 * @return MailStats
 	 */
 	private function collectStats(array $filters): array {
 		$fields = ['id'];

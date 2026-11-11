@@ -10,13 +10,19 @@
 
 namespace App\Charts;
 
+use LogicException;
+
+/**
+ * @phpstan-import-type MailStats from \App\Services\MailLogService
+ * @phpstan-import-type ReportRow from \App\Services\MailLogService
+ */
 final class ChartBuilder {
 
 	// distinct from every MailCategory colour (Tableau 10 teal)
 	private const STORED_RATIO_COLOR = '#76b7b2';
 	private const SIZE_COLOR = '#59a14f';
 
-	/** @param array<string, mixed> $stats MailLogService::getStats() */
+	/** @param MailStats $stats */
 	public static function createSearchChart(array $stats): Chart {
 		$chart = new Chart(Chart::TYPE_BAR);
 
@@ -214,7 +220,7 @@ final class ChartBuilder {
 	// reports by date (rows newest first): mails and stored per day or month ($unit;
 	// month counts ever stored), size (MB) on the right axis
 	/**
-	 * @param array<array-key, array<string, mixed>> $rows date, total, total_stored, total_size
+	 * @param list<ReportRow> $rows MailLogService::getReports() for the date field
 	 * @param callable(string): string $dayUrl date => its link
 	 */
 	public static function createReportsDayChart(array $rows, callable $dayUrl, string $unit = 'day'): Chart {
@@ -227,11 +233,13 @@ final class ChartBuilder {
 		$links = [];
 
 		foreach (array_reverse($rows) as $row) {
-			$labels[] = (string) $row['date'];
-			$total[] = (int) $row['total'];
-			$stored[] = (int) $row['total_stored'];
-			$size[] = round((float) $row['total_size'] / 1048576.0, 1);
-			$links[] = $dayUrl((string) $row['date']);
+			$date = $row['date'] ?? '';
+			$labels[] = $date;
+			$total[] = $row['total'];
+			$stored[] = $row['total_stored'];
+			// no size known counts as none
+			$size[] = round((float) ($row['total_size'] ?? 0) / 1048576.0, 1);
+			$links[] = $dayUrl($date);
 		}
 
 		$chart->setData([
@@ -295,7 +303,12 @@ final class ChartBuilder {
 	 */
 	private static function addStoredRatio(Chart $chart, array $ratios, array $links): void {
 		$data = $chart->getData();
-		$data['datasets'][] = [
+		/** @var mixed $datasets */
+		$datasets = $data['datasets'] ?? null;
+		if (!is_array($datasets)) {
+			throw new LogicException('The chart has no datasets to add the stored ratio to');
+		}
+		$datasets[] = [
 			'label' => 'Stored / Total (%)',
 			'data' => $ratios,
 			'links' => $links,
@@ -304,6 +317,7 @@ final class ChartBuilder {
 				self::STORED_RATIO_COLOR,
 			],
 		];
+		$data['datasets'] = $datasets;
 		$chart->setData($data);
 
 		$options = $chart->getOptions();
