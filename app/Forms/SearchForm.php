@@ -43,7 +43,8 @@ final class SearchForm extends AbstractType
 			->add('filter', ChoiceType::class, [
 				'required' => true,
 				'label' => 'Filter: ',
-				'choices' => FormHelper::getSearchFilters($options['is_admin']),
+				// a bool, as configureOptions() requires
+				'choices' => FormHelper::getSearchFilters($options['is_admin'] === true),
 				'constraints' => [
 					new NotBlank(),
 				],
@@ -146,13 +147,18 @@ final class SearchForm extends AbstractType
 
 		// getChoices() maps the submitted label to the SQL operator, so the
 		// labels are not duplicated here.
-		$operator = FormHelper::getChoices()[$data['choice'] ?? ''] ?? null;
+		/** @var mixed $choice */
+		$choice = $data['choice'] ?? null;
+		$operator = is_string($choice) ? (FormHelper::getChoices()[$choice] ?? null) : null;
 
 		if ($operator !== 'REGEXP' && $operator !== 'NOT REGEXP') {
 			return;
 		}
 
-		$pattern = (string) ($data['value'] ?? '');
+		// the form gives text, or null for an empty field
+		/** @var mixed $value */
+		$value = $data['value'] ?? null;
+		$pattern = is_string($value) ? $value : '';
 
 		if (@preg_match("\x01" . $pattern . "\x01", '') === false) {
 			$context->buildViolation('Invalid regular expression.')

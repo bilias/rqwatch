@@ -1210,12 +1210,9 @@ final class MailLogController extends ViewController
 			return $response;
 		}
 
+		// the filter just deleted (search_filter_del()), to edit and add again
 		$deleted_filter = $this->flashbag->get('deleted_filter', []);
-		if (!empty($deleted_filter)) {
-			$prefillData = $deleted_filter;
-		} else {
-			$prefillData = [];
-		}
+		$prefillData = $deleted_filter === [] ? [] : self::checkedFilter($deleted_filter, 'deleted_filter');
 
 		$searchform = SearchForm::create(
 			$this->formFactory,
@@ -1594,18 +1591,27 @@ final class MailLogController extends ViewController
 		$valid = [];
 		/** @var mixed $filter */
 		foreach ($decoded as $filter) {
-			/** @var mixed $f */
-			$f = is_array($filter) ? ($filter['filter'] ?? null) : null;
-			/** @var mixed $c */
-			$c = is_array($filter) ? ($filter['choice'] ?? null) : null;
-			/** @var mixed $v */
-			$v = is_array($filter) ? ($filter['value'] ?? null) : null;
-			if (!is_string($f) || !is_string($c) || !is_string($v)) {
-				throw new RuntimeException("Session value 'filters' holds a filter that is not a filter, choice and value as text");
-			}
-			$valid[] = ['filter' => $f, 'choice' => $c, 'value' => $v];
+			$valid[] = self::checkedFilter($filter, 'filters');
 		}
 		return $valid;
+	}
+
+	/**
+	 * A search filter kept in the session under $key: filter, choice and
+	 * value as text; anything else is a bug in what stored it
+	 * @return SearchFilter
+	 */
+	private static function checkedFilter(mixed $filter, string $key): array {
+		/** @var mixed $f */
+		$f = is_array($filter) ? ($filter['filter'] ?? null) : null;
+		/** @var mixed $c */
+		$c = is_array($filter) ? ($filter['choice'] ?? null) : null;
+		/** @var mixed $v */
+		$v = is_array($filter) ? ($filter['value'] ?? null) : null;
+		if (!is_string($f) || !is_string($c) || !is_string($v)) {
+			throw new RuntimeException("Session value '{$key}' holds a filter that is not a filter, choice and value as text");
+		}
+		return ['filter' => $f, 'choice' => $c, 'value' => $v];
 	}
 
 	/** @param array<array-key, SearchFilter> $filters */
