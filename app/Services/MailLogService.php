@@ -14,6 +14,7 @@ use App\Configuration\AppConfig;
 use App\Configuration\Config;
 
 use App\Core\App;
+use App\Core\Database\Row;
 
 use App\Utils\Helper;
 use App\Utils\FormHelper;
@@ -567,7 +568,8 @@ final class MailLogService
 				break;
 			}
 
-			$removed = (int) MailLog::whereIn('id', $ids)->delete();
+			// what Eloquent's delete() runs when no onDelete is set, typed
+			$removed = MailLog::whereIn('id', $ids)->toBase()->delete();
 
 			if ($removed < 1) {
 				// nothing went away; stop rather than spin
@@ -777,6 +779,24 @@ final class MailLogService
 	 * each mail, so the max_items cap bounds the cost.
 	 */
 	/**
+	 * the symbols report's order by score: the largest average score either way first, then by name
+	 * @param array{name: string, avg_score: float, ...} $a
+	 * @param array{name: string, avg_score: float, ...} $b
+	 */
+	private static function bySymbolScore(array $a, array $b): int {
+		return [abs($b['avg_score']), $a['name']] <=> [abs($a['avg_score']), $b['name']];
+	}
+
+	/**
+	 * the symbols report's order by mails: the most mails first, then by name
+	 * @param array{name: string, mails: int, ...} $a
+	 * @param array{name: string, mails: int, ...} $b
+	 */
+	private static function bySymbolMails(array $a, array $b): int {
+		return [$b['mails'], $a['name']] <=> [$a['mails'], $b['name']];
+	}
+
+	/**
 	 * @param array<array-key, SearchFilter> $filters
 	 * @return array{int, list<string>, list<array<string, mixed>>, string|null}
 	 */
@@ -789,7 +809,7 @@ final class MailLogService
 		if ($filters === []) {
 			/** @var \stdClass $day a SELECT without FROM returns one row */
 			$day = $db->selectOne('SELECT CURDATE() - INTERVAL 6 DAY AS d');
-			$since = (string) $day->d;
+			$since = Row::string($day, 'd');
 			$idQuery->where('created_day', '>=', $since);
 		}
 		$idQuery->orderBy('id', 'DESC')->limit($this->max_items);
@@ -801,7 +821,7 @@ final class MailLogService
 		/** @var \stdClass $count COUNT(*) returns one row */
 		// nosemgrep: rqwatch-raw-sql -- subquery from toSql(), its bindings passed
 		$count = $db->selectOne("SELECT COUNT(*) AS n FROM ({$idSql}) ids", $bindings);
-		$mails = (int) $count->n;
+		$mails = Row::int($count, 'n');
 
 		if ($local) {
 			// one row per mail and symbol: a hit credited to several entries has several rows
@@ -832,28 +852,32 @@ final class MailLogService
 		$rows = [];
 		$seen = [];
 		foreach ($cells as $c) {
-			$name = (string) $c->name;
-			$action = (string) $c->action;
+			// a symbol without a name, or a mail without an action, is grouped under ''
+			$name = Row::nullableString($c, 'name') ?? '';
+			$action = Row::nullableString($c, 'action') ?? '';
+			$cellMails = Row::int($c, 'mails');
 			$rows[$name] ??= ['name' => $name, 'mails' => 0, 'actions' => [], 'scored' => 0, 'score' => 0.0];
-			$rows[$name]['mails'] += (int) $c->mails;
-			$rows[$name]['actions'][$action] = (int) $c->mails;
-			$rows[$name]['scored'] += (int) $c->scored;
-			$rows[$name]['score'] += (float) $c->score;
+			$rows[$name]['mails'] += $cellMails;
+			$rows[$name]['actions'][$action] = $cellMails;
+			$rows[$name]['scored'] += Row::int($c, 'scored');
+			$rows[$name]['score'] += Row::float($c, 'score');
 			$seen[$action] = true;
 		}
 
 		if (!$informational) {
 			$rows = array_filter($rows, fn ($r) => $r['scored'] > 0);
 		}
-		foreach ($rows as &$r) {
-			$r['avg_score'] = $r['score'] / (float) $r['mails'];
-			unset($r['scored'], $r['score']);
+		$finished = [];
+		foreach ($rows as $r) {
+			$finished[] = ['name' => $r['name'], 'mails' => $r['mails'], 'actions' => $r['actions'], 'avg_score' => $r['score'] / (float) $r['mails']];
 		}
-		unset($r);
+		$rows = $finished;
 
-		usort($rows, $sort === 'score'
-			? fn (array $a, array $b) => [abs($b['avg_score']), $a['name']] <=> [abs($a['avg_score']), $b['name']]
-			: fn (array $a, array $b) => [$b['mails'], $a['name']] <=> [$a['mails'], $b['name']]);
+		if ($sort === 'score') {
+			usort($rows, self::bySymbolScore(...));
+		} else {
+			usort($rows, self::bySymbolMails(...));
+		}
 		$rows = array_slice($rows, 0, $limit);
 
 		$extra = array_diff(array_keys($seen), self::SYMBOL_REPORT_ACTIONS);
@@ -893,13 +917,13 @@ final class MailLogService
 		$windows = array_fill_keys(array_keys(VirusService::WINDOWS), []);
 		$failures = [];
 		foreach ($query->get() as $r) {
-			$row = ['virus' => (string) $r->virus, 'engines' => (string) $r->engines];
+			$row = ['virus' => Row::nullableString($r, 'virus') ?? '', 'engines' => Row::nullableString($r, 'engines') ?? ''];
 			$counts = [];
 			foreach (array_keys(VirusService::WINDOWS) as $window) {
-				$counts[$window] = (int) $r->{$window};
+				$counts[$window] = Row::int($r, $window);
 			}
 			/** @var array{today: int, yesterday: int, week: int, month: int} $counts every WINDOWS key, filled above */
-			if ((int) $r->fail === 1) {
+			if (Row::nullableInt($r, 'fail') === 1) {
 				$failures[] = $row + ['windows' => $counts];
 				continue;
 			}
@@ -945,12 +969,10 @@ final class MailLogService
 
 		$this->scopeVirusQuery($query, $filters);
 
-		/** @var list<int> pluck() is 0-indexed and map() keeps the keys */
-		return $query->orderBy('v.mail_log_id', 'DESC')
+		return array_values(Row::intValues($query->orderBy('v.mail_log_id', 'DESC')
 			->limit($this->max_items)
 			->pluck('mail_log_id')
-			->map(fn ($id) => (int) $id)
-			->all();
+			->all(), 'mail_log_id'));
 	}
 
 	/*
@@ -969,7 +991,8 @@ final class MailLogService
 
 	// a query stopped by max_statement_time
 	private static function isStatementTimeout(QueryException $e): bool {
-		return (int) ($e->errorInfo[1] ?? 0) === 1969;
+		// the driver's error code, an int (or its digits)
+		return in_array($e->errorInfo[1] ?? null, [1969, '1969'], true);
 	}
 
 	/**
@@ -1024,14 +1047,17 @@ final class MailLogService
 	}
 
 	/**
+	 * One row per value of $field: the value under $field's own name, as
+	 * the template and the day chart read it, then total, total_size (null
+	 * when none of the mails has a size) and total_stored.
 	 * @param array<array-key, SearchFilter> $filters
-	 * @return Collection<int, MailLog> aggregate rows
+	 * @return list<array{total: int, total_size: int|null, total_stored: int, ...<string, string|null>}>
 	 */
 	public function getReports(
 		array $filters,
 		string $field,
 		string $mode = 'count'
-	): Collection {
+	): array {
 
 		$lf = "MailLogService_getReports";
 
@@ -1047,7 +1073,7 @@ final class MailLogService
 		    || (!$this->adminFieldsAllowed() && in_array($field, MailLog::ADMIN_ONLY_FIELDS, true))
 		) {
 			$this->logger->error("{$lf} rejected field: {$field}");
-			return new Collection();
+			return [];
 		}
 
 		switch($field) {
@@ -1120,13 +1146,23 @@ final class MailLogService
 		}
 
 		try {
-			$logs = $query->get();
+			$result = $query->toBase()->get();
 		} catch (Exception $e) {
 			$this->logger->error("{$lf} Query error: " . $e->getMessage());
 			Helper::failRequest("Query error");
 		}
 
-		return $logs;
+		// the base rows: every report field is text (a string cast, or an alias)
+		$rows = [];
+		foreach ($result as $r) {
+			$rows[] = [
+				$field => Row::nullableString($r, $field),
+				'total' => Row::int($r, 'total'),
+				'total_size' => Row::nullableInt($r, 'total_size'),
+				'total_stored' => Row::int($r, 'total_stored'),
+			];
+		}
+		return $rows;
 	}
 
 	/*
@@ -1192,30 +1228,33 @@ final class MailLogService
 			->select(DB::connection()->raw('COUNT(*) AS cnt, MIN(id) AS first_id, MAX(id) AS last_id'))
 			->first();
 		$stats = [];
-		$stats['count'] = (int) $agg->cnt;
+		$stats['count'] = Row::int($agg, 'cnt');
 
 		if (($stats['count']) > 0) {
-			/** @var array<int, string> $dates id => created_at */
-			$dates = MailLog::query()->toBase()
-				->whereIn('id', [$agg->first_id, $agg->last_id])
+			$firstId = Row::int($agg, 'first_id');
+			$lastId = Row::int($agg, 'last_id');
+			$dates = Row::stringValues(MailLog::query()->toBase()
+				->whereIn('id', [$firstId, $lastId])
 				->pluck('created_at', 'id')
-				->all();
-			$stats['first'] = $dates[(int) $agg->first_id] ?? null;
-			$stats['last'] = $dates[(int) $agg->last_id] ?? null;
+				->all(), 'created_at');
+			$stats['first'] = $dates[$firstId] ?? null;
+			$stats['last'] = $dates[$lastId] ?? null;
 			$stats['stored'] = (clone $query)->where('mail_stored', 1)->count();
 			$stats['notified'] = (clone $query)->where('notified', 1)->count();
 			$stats['released'] = (clone $query)->where('released', 1)->count();
 			$stats['has_virus'] = (clone $query)->where('has_virus', 1)->count();
 
-			$stats['action'] = collect((clone $query)
+			// a mail without an action is counted under ''
+			$stats['action'] = [];
+			foreach ((clone $query)
 				->selectRaw('action, COUNT(*) as cnt')
 				->groupBy('action')
 				->orderBy('cnt', 'DESC')
 				->orderBy('action')
-				->get()
-				)
-				->mapWithKeys(fn($item) => [$item['action'] => $item['cnt']])
-				->toArray();
+				->toBase()
+				->get() as $row) {
+				$stats['action'][Row::nullableString($row, 'action') ?? ''] = Row::int($row, 'cnt');
+			}
 
 			$stats['action'] = array_merge([
 				'no action'       => 0,
@@ -1316,7 +1355,7 @@ final class MailLogService
 			$this->logger->info(self::getSqlFromQuery($idQuery));
 		}
 
-		$ids = $idQuery->pluck('id')->all();
+		$ids = array_values(Row::intValues($idQuery->pluck('id')->all(), 'id'));
 		rsort($ids, SORT_NUMERIC);
 
 		$pageIds = array_slice($ids, ($page - 1) * $this->items_per_page, $this->items_per_page);
@@ -1403,7 +1442,7 @@ final class MailLogService
 
 		$totals = [];
 		foreach ($query->toBase()->get() as $row) {
-			$totals[(string) $row->day] = (int) $row->total;
+			$totals[Row::string($row, 'day')] = Row::int($row, 'total');
 		}
 
 		return $totals;
@@ -1928,7 +1967,7 @@ final class MailLogService
 		 One mail per recipient: each gets only their own address in the
 		 body and (later) their own release link.
 		*/
-		$recipients = $maillog->recipients->pluck('recipient_email')->all();
+		$recipients = Row::stringValues($maillog->recipients->pluck('recipient_email')->all(), 'recipient_email');
 
 		$recipients = array_values(array_unique(array_filter(array_map(
 			'trim',
@@ -2046,7 +2085,7 @@ final class MailLogService
 		$from = Helper::env_required('MAILER_FROM');
 		$subject = Config::getRequiredString('admin_notify_mail_subject');
 
-		$recipients = $maillog->recipients->pluck('recipient_email')->all();
+		$recipients = Row::stringValues($maillog->recipients->pluck('recipient_email')->all(), 'recipient_email');
 
 		$vars = array(
 			'created_at' => $maillog->created_at,
@@ -2228,10 +2267,10 @@ final class MailLogService
 	public function filterDisabledRecipients(Collection $logs, UserService $userService): void {
 	 $logs->each(function ($log) use ($userService) {
 
-		$emails = $log->recipients->pluck('recipient_email')->all();
+		$emails = Row::stringValues($log->recipients->pluck('recipient_email')->all(), 'recipient_email');
 
 		$emails = array_values(array_unique(array_filter(array_map(
-			fn ($e) => strtolower(trim((string) $e)),
+			fn (string $e) => strtolower(trim($e)),
 			$emails
 		))));
 

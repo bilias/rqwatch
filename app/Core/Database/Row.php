@@ -42,6 +42,16 @@ final class Row
 		return $value === null ? null : self::toInt($value, $column);
 	}
 
+	// a number column: an int, a float, or numeric text (a DECIMAL arrives as text)
+	public static function float(stdClass $row, string $column): float {
+		/** @var mixed $value */
+		$value = self::value($row, $column);
+		if (is_int($value) || is_float($value) || (is_string($value) && is_numeric($value))) {
+			return (float) $value;
+		}
+		throw self::wrongType($column, 'a number', $value);
+	}
+
 	/**
 	 * A plucked list of integer values, keys kept.
 	 * @template TKey of array-key

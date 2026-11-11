@@ -286,20 +286,21 @@ final class MailLogController extends ViewController
 		$service = $this->getMailLogService();
 
 		// has applyUserScope
-		$logs = $service->getReports($filters, $field, $mode)->toArray();
+		$logs = $service->getReports($filters, $field, $mode);
 
 		$sum = ['count' => 0, 'size' => 0, 'stored' => 0];
 		foreach ($logs as $log) {
 			$sum['count'] += $log['total'];
-			$sum['size'] += $log['total_size'];
+			$sum['size'] += $log['total_size'] ?? 0;
 			$sum['stored'] += $log['total_stored'];
 		}
 
-		$field = isset($logs[0]) ? array_key_first($logs[0]) : null;
+		// the rows are keyed by the field; none means nothing to show
+		$field = $logs === [] ? null : $field;
 
 		$show_host = $field === 'ip' && Config::get('dns_resolv');
 		if ($show_host) {
-			$logs = array_map(fn(array $log): array => $log + ['country' => Helper::getCountry($log['ip'])], $logs);
+			$logs = array_map(fn(array $log): array => $log + ['country' => Helper::getCountry($log['ip'] ?? null)], $logs);
 		}
 
 		$chart = null;
