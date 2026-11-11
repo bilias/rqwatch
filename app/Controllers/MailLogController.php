@@ -1406,10 +1406,10 @@ final class MailLogController extends ViewController
 			$queryParams = ['map' => $mapName, 'return-mail' => $log->id];
 
 			foreach ($cfg['fields'] as $field) {
-				$sourceField = $fieldMap[$field] ?? $field;
-				$value = $log->{$sourceField} ?? null;
+				$value = $log->textAttribute($fieldMap[$field] ?? $field);
 
-				if (!empty($value)) {
+				// what empty() meant: no value, '' and '0' add nothing
+				if ($value !== null && $value !== '' && $value !== '0') {
 					$queryParams[$field] = $value;
 				}
 			}

@@ -15,10 +15,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 use App\Core\App;
+use App\Core\Database\Row;
 //use App\Configuration\AppConfig;
 
 use App\Utils\Helper;
 
+use LogicException;
 use Throwable;
 
 /**
@@ -238,8 +240,13 @@ final class MailLog extends Model
 			$this->logUnparsableMimeFrom($warning);
 		}
 
-		if (is_array($parsed) && !empty($parsed[0]['address'])) {
-			return $this->mimeFromDecoded = (string) $parsed[0]['address'];
+		// the first address mailparse found: text, not '' or '0' (what empty() meant)
+		/** @var mixed $first */
+		$first = is_array($parsed) ? ($parsed[0] ?? null) : null;
+		/** @var mixed $address */
+		$address = is_array($first) ? ($first['address'] ?? null) : null;
+		if (is_string($address) && $address !== '' && $address !== '0') {
+			return $this->mimeFromDecoded = $address;
 		}
 
 		// Fallback if no address found
@@ -261,7 +268,7 @@ final class MailLog extends Model
 			);
 
 			App::fileLogger()->warning(
-				"MailLog {$this->getKey()} (qid {$this->qid}): mime_from is not "
+				"MailLog {$this->id} (qid {$this->qid}): mime_from is not "
 				. "RFC822 compliant ({$reason}), value: '"
 				. mb_substr($raw, 0, 120) . "'"
 			);
@@ -303,9 +310,8 @@ final class MailLog extends Model
 			$this->logMissingRelation('recipients', 'recipient_email');
 		}
 
-		$emails = $this->recipients
-			->pluck('recipient_email')
-			->map(fn ($e) => strtolower(trim($e)))
+		$emails = collect(Row::stringValues($this->recipients->pluck('recipient_email')->all(), 'recipient_email'))
+			->map(fn (string $e) => strtolower(trim($e)))
 			->unique()
 			->values()
 			->all();
@@ -334,7 +340,7 @@ final class MailLog extends Model
 	private function logLegacyRcptTo(): void {
 		try {
 			App::fileLogger()->error(
-				"MailLog {$this->getKey()} (qid {$this->qid}): read rcpt_to "
+				"MailLog {$this->id} (qid {$this->qid}): read rcpt_to "
 				. "on a keyed model; use mail_recipients"
 			);
 		} catch (Throwable) {
@@ -393,10 +399,20 @@ final class MailLog extends Model
 		return $data->{$column};
 	}
 
+	// one of the mail's text attributes (through its accessor, if any): text, or null when it has none
+	public function textAttribute(string $name): ?string {
+		/** @var mixed $value */
+		$value = $this->getAttribute($name);
+		if ($value !== null && !is_string($value)) {
+			throw new LogicException("MailLog attribute '{$name}' must be text, not " . get_debug_type($value));
+		}
+		return $value;
+	}
+
 	private function logMissingRelation(string $relation, string $column): void {
 		try {
 			App::fileLogger()->error(
-				"MailLog {$this->getKey()} (qid {$this->qid}): '{$relation}' was not "
+				"MailLog {$this->id} (qid {$this->qid}): '{$relation}' was not "
 				. "eager-loaded, lazy-loading it to read '{$column}'"
 			);
 		} catch (Throwable) {
