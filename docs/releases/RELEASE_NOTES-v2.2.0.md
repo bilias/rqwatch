@@ -54,7 +54,7 @@ The documented MariaDB version is now 10.6 or later.
   ```
   SELECT server, mail_location, COUNT(*) AS n, GROUP_CONCAT(id ORDER BY id) AS ids, SUM(mail_stored) AS stored
     FROM mail_logs WHERE mail_location IS NOT NULL AND mail_location <> '0'
-    GROUP BY server, mail_location HAVING n > 1;
+    GROUP BY server, mail_location HAVING n > 1 AND stored > 0;
   ```
   For each, find which import wrote last (the importer logs `<qid> stored in quarantine`
   and `saved in DB [id: N]`; normally the highest id), then mark the others not stored
