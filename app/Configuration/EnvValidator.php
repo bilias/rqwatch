@@ -31,6 +31,7 @@ final class EnvValidator
 	// a non-negative integer when set
 	private const array OPTIONAL_INT = [
 		'DATABASE_DAYS', 'FAILED_LOGIN_TIMEOUT', 'LOGIN_MAX_ATTEMPTS_IP', 'LOGIN_WINDOW', 'LOGIN_BLOCK_DURATION',
+		'DB_WEB_MAX_STATEMENT_TIME',
 	];
 
 	// a non-negative integer or empty when set: empty turns the timeout off

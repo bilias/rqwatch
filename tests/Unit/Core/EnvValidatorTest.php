@@ -72,7 +72,7 @@ final class EnvValidatorTest extends UnitTestCase
 
 	#[DataProvider('integers')]
 	public function testIntegers(string $value, bool $accepted): void {
-		foreach (['QUARANTINE_DAYS', 'LOGIN_WINDOW'] as $key) {
+		foreach (['QUARANTINE_DAYS', 'LOGIN_WINDOW', 'DB_WEB_MAX_STATEMENT_TIME'] as $key) {
 			$errors = EnvValidator::errors([$key => $value] + self::valid(), false);
 			$this->assertSame($accepted ? [] : ["{$key} is not a non-negative integer"], $errors, $key);
 		}
