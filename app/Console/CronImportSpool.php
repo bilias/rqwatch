@@ -59,13 +59,13 @@ final class CronImportSpool extends RqwatchCliCommand
 			return Command::FAILURE;
 		}
 
-		$do_import = $input->getOption('import');
-		$show_spool = $input->getOption('show');
-		$local_only = $input->getOption('local');
+		$do_import = $this->flag($input, 'import');
+		$show_spool = $this->flag($input, 'show');
+		$local_only = $this->flag($input, 'local');
 
 		// VALUE_OPTIONAL yields null for a bare --batch, so the declared
 		// default does not apply; normalise before any consumer.
-		$batch = (int) $input->getOption('batch');
+		$batch = $this->intOption($input, 'batch') ?? 0;
 		if ($batch < 1) {
 			$batch = self::BATCH;
 		}

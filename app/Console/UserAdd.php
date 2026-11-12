@@ -63,7 +63,7 @@ final class UserAdd extends RqwatchCliCommand
 		}
 
 		//$param = $input->getArgument('param');
-		$username = strtolower(trim($input->getArgument('username')));
+		$username = strtolower(trim($this->textArgument($input, 'username')));
 
 		$service = new UserService();
 
@@ -72,13 +72,13 @@ final class UserAdd extends RqwatchCliCommand
 			return Command::FAILURE;
 		}
 
-		$email = $input->getArgument('mail');
+		$email = $this->textArgument($input, 'mail');
 
 		$is_admin = 0;
 		$external_auth = false;
 
-		$admin = $input->getOption('admin');
-		$ldap = $input->getOption('ldap');
+		$admin = $this->flag($input, 'admin');
+		$ldap = $this->flag($input, 'ldap');
 
 		if ($admin && $ldap) {
 			$output->writeln("<comment>Cannot create admin LDAP users from cli.\nSee LDAP_ADMINS in .env</comment>");
@@ -96,17 +96,16 @@ final class UserAdd extends RqwatchCliCommand
 			$auth_provider = 0;
 		}
 
-		$first = $input->getOption('first');
-		$surname = $input->getOption('surname');
-		$password = $input->getOption('password');
+		$first = $this->textOption($input, 'first');
+		$surname = $this->textOption($input, 'surname');
+		$password = $this->textOption($input, 'password');
 
 		$is_admin_str = $is_admin ? 'Yes' : 'No';
 		$auth_provider_str = Helper::getAuthProvider($auth_provider);
 
 		if (!$external_auth) {
-			// pass not given with -p
-			/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no password: ask, as the check after the prompt does */
-			if (!$password) {
+			// pass not given with -p; '' and '0' are no password either (what !$password meant)
+			if ($password === null || $password === '' || $password === '0') {
 				$output->writeln("<comment>Creating user with</comment>:\n
 <comment>Username</comment>: <info>{$username}</info>
 <comment>Authentication provider</comment>: <info>{$auth_provider_str}</info>
@@ -120,20 +119,20 @@ final class UserAdd extends RqwatchCliCommand
 				$question = new Question("Please enter password for {$username}: ");
 				$question->setHidden(true);
 				$question->setHiddenFallback(false);
-				$password = $helper->ask($input, $output, $question);
+				$password = self::answer($helper->ask($input, $output, $question));
 
 				// Password confirmation
 				$confirmQuestion = new Question('Please confirm the password: ');
 				$confirmQuestion->setHidden(true);
 				$confirmQuestion->setHiddenFallback(false);
-				$confirmPassword = $helper->ask($input, $output, $confirmQuestion);
+				$confirmPassword = self::answer($helper->ask($input, $output, $confirmQuestion));
 
 				if ($password !== $confirmPassword) {
 					$output->writeln('<error>Passwords do not match!</error>');
 					return Command::FAILURE;
 				}
 
-				if (!$password) {
+				if ($password === null || $password === '' || $password === '0') {
 					$output->writeln('<error>Empty password given!</error>');
 					return Command::FAILURE;
 				}
@@ -172,4 +171,8 @@ final class UserAdd extends RqwatchCliCommand
 		return Command::FAILURE;
 	}
 
+	// an answer to a question: text, or null for none
+	private static function answer(mixed $answer): ?string {
+		return is_string($answer) ? $answer : null;
+	}
 }

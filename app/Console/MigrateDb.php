@@ -55,7 +55,7 @@ final class MigrateDb extends MigrateCliCommand
 			return Command::FAILURE;
 		}
 
-		$force = $input->getOption('force');
+		$force = $this->flag($input, 'force');
 
 		foreach (Migrations::MIGRATIONS as $migration_str) {
 			// run each migration

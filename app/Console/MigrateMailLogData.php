@@ -55,9 +55,9 @@ final class MigrateMailLogData extends MigrateCliCommand
 			return Command::FAILURE;
 		}
 
-		$batch = (int) $input->getOption('batch');
-		$sleep = (int) $input->getOption('sleep');
-		$force = $input->getOption('force');
+		$batch = $this->intOption($input, 'batch') ?? 0;
+		$sleep = $this->intOption($input, 'sleep') ?? 0;
+		$force = $this->flag($input, 'force');
 
 		// run the migration
 		$migration = $this->createMigration(self::MIGRATION);

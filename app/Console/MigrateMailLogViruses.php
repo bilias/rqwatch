@@ -53,9 +53,9 @@ final class MigrateMailLogViruses extends MigrateCliCommand
 			return Command::FAILURE;
 		}
 
-		$batch = (int) $input->getOption('batch');
-		$sleep = max(0, (int) $input->getOption('sleep'));
-		$force = (bool) $input->getOption('force');
+		$batch = $this->intOption($input, 'batch') ?? 0;
+		$sleep = max(0, $this->intOption($input, 'sleep') ?? 0);
+		$force = $this->flag($input, 'force');
 
 		$migration = $this->createMigration(self::MIGRATION);
 

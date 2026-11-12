@@ -24,6 +24,7 @@ use App\Core\Routing\Routes;
 
 use App\Configuration\Config;
 use App\Core\App;
+use App\Core\Database\Row;
 use App\Utils\Helper;
 use App\Services\MailLogService;
 use App\Services\UserService;
@@ -70,12 +71,12 @@ final class CronNotifications extends RqwatchCliCommand
 		}
 
 		//$param = $input->getArgument('param');
-		$send_mails = $input->getOption('mail');
-		$show_mails = $input->getOption('show');
-		$show_local_only = $input->getOption('local');
+		$send_mails = $this->flag($input, 'mail');
+		$show_mails = $this->flag($input, 'show');
+		$show_local_only = $this->flag($input, 'local');
 		// blacklisted mail can score far above notification_score; -B lets it past that check
-		$blacklisted_any_score = (bool) $input->getOption('blacklisted-any-score');
-		$send_blacklisted = $input->getOption('blacklisted') || $blacklisted_any_score;
+		$blacklisted_any_score = $this->flag($input, 'blacklisted-any-score');
+		$send_blacklisted = $this->flag($input, 'blacklisted') || $blacklisted_any_score;
 
 		$service = new MailLogService();
 
@@ -117,11 +118,11 @@ final class CronNotifications extends RqwatchCliCommand
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
-		$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
+		$skippedIds = array_merge($skippedIds, Row::intValues($removedLogs->pluck('id')->all(), 'id'));
 
 		if (count($removedLogs) > 0) {
 			// get the ids based on filter above
-			$removedIds = $removedLogs->pluck('id')->all();
+			$removedIds = Row::intValues($removedLogs->pluck('id')->all(), 'id');
 			foreach ($removedIds as $id) {
 				$output->writeln("<comment>Empty `mail_recipients` for id: {$id}</comment>, disabling notification{$local}",
 					OutputInterface::VERBOSITY_VERBOSE);
@@ -145,11 +146,11 @@ final class CronNotifications extends RqwatchCliCommand
 				return Helper::checkForBlacklist($log->symbols ?? []);
 			});
 
-			$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
+			$skippedIds = array_merge($skippedIds, Row::intValues($removedLogs->pluck('id')->all(), 'id'));
 
 			if (count($removedLogs) > 0) {
 				// get the ids based on filter above
-				$removedIds = $removedLogs->pluck('id')->all();
+				$removedIds = Row::intValues($removedLogs->pluck('id')->all(), 'id');
 				foreach ($removedIds as $id) {
 					$output->writeln("<comment>Blacklisted mail with id: {$id}</comment>, disabling notification{$local}",
 						OutputInterface::VERBOSITY_VERBOSE);
@@ -191,7 +192,7 @@ final class CronNotifications extends RqwatchCliCommand
 				return true;
 			});
 
-			$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
+			$skippedIds = array_merge($skippedIds, Row::intValues($removedLogs->pluck('id')->all(), 'id'));
 
 			foreach ($matched as $id => $pattern) {
 				$output->writeln("<comment>Virus skip map entry '{$pattern}' matched id: {$id}</comment>, disabling notification{$local}",
@@ -211,7 +212,7 @@ final class CronNotifications extends RqwatchCliCommand
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
-		$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
+		$skippedIds = array_merge($skippedIds, Row::intValues($removedLogs->pluck('id')->all(), 'id'));
 
 		if ($removedLogs->isNotEmpty()) {
 			foreach ($removedLogs as $log) {
@@ -237,11 +238,11 @@ final class CronNotifications extends RqwatchCliCommand
 		// identify empty score > $notification_score
 		$removedLogs = $logs->filter($overScore);
 
-		$skippedIds = array_merge($skippedIds, $removedLogs->pluck('id')->all());
+		$skippedIds = array_merge($skippedIds, Row::intValues($removedLogs->pluck('id')->all(), 'id'));
 
 		if (count($removedLogs) > 0) {
 			// get the ids based on filter above
-			$removedIds = $removedLogs->pluck('id')->all();
+			$removedIds = Row::intValues($removedLogs->pluck('id')->all(), 'id');
 			foreach ($removedIds as $id) {
 				$output->writeln("<comment>Score higher than {$notification_score} for id: {$id}</comment>, disabling notification{$local}",
 					OutputInterface::VERBOSITY_VERBOSE);
@@ -415,7 +416,7 @@ final class CronNotifications extends RqwatchCliCommand
 
 		// skips are final, but only a sending run records them
 		if ($send_mails && $skipped->isNotEmpty()) {
-			$marked = $service->markNotificationsSkipped($skipped->pluck('id')->all(), 'admin_notified');
+			$marked = $service->markNotificationsSkipped(Row::intValues($skipped->pluck('id')->all(), 'id'), 'admin_notified');
 			$output->writeln("<info>{$marked} entries marked as not to be admin notified{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
 			$this->fileLogger->info("{$this->app_name} {$marked} entries marked as not to be admin notified{$local}");

@@ -20,6 +20,7 @@ use Symfony\Component\Console\Command\LockableTrait;
 use App\Configuration\AppConfig;
 
 use App\Core\App;
+use App\Core\Database\Row;
 
 #[AsCommand(
 	name: 'db:optimize_table',
@@ -57,7 +58,7 @@ final class OptimizeTable extends RqwatchCliCommand
 			return Command::FAILURE;
 		}
 
-		$table = (string) $input->getOption('table');
+		$table = $this->textOption($input, 'table') ?? '';
 
 		if (!in_array($table, self::tables(), true)) {
 			$output->writeln("<error>Unknown table '{$table}'</error>");
@@ -119,9 +120,10 @@ final class OptimizeTable extends RqwatchCliCommand
 
 		return sprintf(
 			'data %s, index %s, free %s',
-			$this->humanBytes((int) $row->data_length),
-			$this->humanBytes((int) $row->index_length),
-			$this->humanBytes((int) $row->data_free)
+			// NULL in information_schema counts as none
+			$this->humanBytes(Row::nullableInt($row, 'data_length') ?? 0),
+			$this->humanBytes(Row::nullableInt($row, 'index_length') ?? 0),
+			$this->humanBytes(Row::nullableInt($row, 'data_free') ?? 0)
 		);
 	}
 

@@ -67,7 +67,7 @@ final class CronFuzzyCleanup extends RqwatchCliCommand
 			return Command::SUCCESS;
 		}
 
-		$server = $input->getOption('local') ? Helper::serverAlias() : null;
+		$server = $this->flag($input, 'local') ? Helper::serverAlias() : null;
 		$local = $server !== null ? " on server: {$server}" : '';
 
 		$service = new FuzzyService();
@@ -84,14 +84,14 @@ final class CronFuzzyCleanup extends RqwatchCliCommand
 			OutputInterface::VERBOSITY_VERBOSE);
 		$this->fileLogger->info("{$this->app_name} {$count} fuzzy records unchanged for {$days} days{$local}");
 
-		if ($input->getOption('show')) {
+		if ($this->flag($input, 'show')) {
 			foreach ((clone $query)->get() as $row) {
 				$output->writeln("QID: {$row->qid} server: {$row->api_server} learned: {$row->created_at} " .
 					"updated: {$row->updated_at} last hit: " . ($row->last_hit_at?->toDateTimeString() ?? 'never'));
 			}
 		}
 
-		if (!$input->getOption('delete')) {
+		if (!$this->flag($input, 'delete')) {
 			$output->writeln("<info>Use -d to delete them</info>", OutputInterface::VERBOSITY_VERBOSE);
 			$this->printRuntime($output);
 			return Command::SUCCESS;

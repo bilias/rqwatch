@@ -21,6 +21,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\LockableTrait;
 
 use App\Core\App;
+use App\Core\Database\Row;
 
 use App\Models\MailLog;
 use App\Services\MailLogService;
@@ -66,10 +67,10 @@ final class CronQuarantine extends RqwatchCliCommand
 		}
 
 		//$param = $input->getArgument('param');
-		$delete_quarantine = $input->getOption('delete');
-		$show_local_only = $input->getOption('local');
-		$prune_quaranatine = $input->getOption('prune');
-		$show_quarantine = $input->getOption('show');
+		$delete_quarantine = $this->flag($input, 'delete');
+		$show_local_only = $this->flag($input, 'local');
+		$prune_quaranatine = $this->flag($input, 'prune');
+		$show_quarantine = $this->flag($input, 'show');
 
 		$days = (int) (Helper::env_string('QUARANTINE_DAYS') ?? 366);
 
@@ -122,7 +123,7 @@ final class CronQuarantine extends RqwatchCliCommand
 
 		if (count($removedLogs) > 0) {
 			// get the ids based on filter above
-			$removedIds = $removedLogs->pluck('id')->all();
+			$removedIds = Row::intValues($removedLogs->pluck('id')->all(), 'id');
 			foreach ($removedIds as $id) {
 				$output->writeln("<comment>Empty `mail_location` for id: {$id}</comment>, disabling quarantine clean{$local}",
 					OutputInterface::VERBOSITY_VERBOSE);
