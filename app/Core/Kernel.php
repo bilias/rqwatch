@@ -21,6 +21,7 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use App\Core\Database\Database;
 use App\Core\Database\MigrationStatus;
 use App\Core\Cache\RedisCache;
+use App\Services\Import\MailLogSpool;
 
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\HttpFoundation\Response;
@@ -230,7 +231,7 @@ final class Kernel
 		return defined('ALLOW_DEGRADED_DB')
 			&& ALLOW_DEGRADED_DB
 			&& $this->cache !== null
-			&& Config::get('import_spool');
+			&& MailLogSpool::enabled($this->fileLogger, 'boot');
 	}
 
 	private function verifyDatabaseSchema(): void {

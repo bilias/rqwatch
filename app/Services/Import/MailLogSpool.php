@@ -20,6 +20,7 @@ use App\Utils\Helper;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Throwable;
 
 /*
@@ -66,6 +67,19 @@ final class MailLogSpool
 		if (Helper::env_bool('REDIS_ENABLE')) {
 			$cache = App::cache();
 			$this->cache = $cache instanceof RedisCache ? $cache : null;
+		}
+	}
+
+	/*
+	 The $import_spool switch; unset is off. Mistyped, it is on, as
+	 config.php ships it, and logged with $context (the qid, or boot).
+	*/
+	public static function enabled(LoggerInterface $logger, string $context): bool {
+		try {
+			return Config::getBool('import_spool') === true;
+		} catch (RuntimeException $e) {
+			$logger->error("[MailLogSpool] {$context}: " . $e->getMessage() . "; spooling, as config.php's default");
+			return true;
 		}
 	}
 
@@ -165,12 +179,14 @@ final class MailLogSpool
 	 * @param array<array-key, string> $recipients
 	 */
 	public function push(array $mailData, array $recipients): bool {
+		$qid = self::text($mailData, 'qid') ?? 'unknown';
+
 		/*
 		 Deliberately here and not in the constructor: pending() and
 		 drain() must keep working with the switch off, so cli cron:import_spool
 		 can still import mail from Redis
 		*/
-		if (!Config::get('import_spool')) {
+		if (!self::enabled($this->fileLogger, $qid)) {
 			return false;
 		}
 
@@ -191,7 +207,6 @@ final class MailLogSpool
 
 		$alias = $this->serverAlias();
 		$countKey = $this->countKey($alias);
-		$qid = self::text($mailData, 'qid') ?? 'unknown';
 
 		try {
 			$pending = (int) $cache->get($countKey);
