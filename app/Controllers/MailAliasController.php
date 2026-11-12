@@ -123,7 +123,7 @@ final class MailAliasController extends ViewController
 				http_build_query(['q' => FormHelper::text($mailAliasSearchForm->get('alias')->getData(), 'alias')]));
 		}
 
-		$search = trim((string) $this->request->query->get('q', ''));
+		$search = trim($this->request->query->getString('q'));
 		if (strlen($search) < 2 || strlen($search) > 128 || !preg_match(MailAliasSearchForm::PATTERN, $search)) {
 			return new RedirectResponse($this->getAdminAliasesUrl());
 		}

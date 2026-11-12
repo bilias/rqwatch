@@ -194,7 +194,7 @@ final class MailLogController extends ViewController
 
 		// ?since=Y-m-d: from that day on, as the symbols report links its
 		// default window; listed first, as the report shows it
-		$since = (string) $this->request->query->get('since', '');
+		$since = $this->request->query->getString('since');
 		if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $since) && strtotime($since) !== false) {
 			array_unshift($filters, [
 				'filter' => 'Date',
@@ -206,7 +206,7 @@ final class MailLogController extends ViewController
 
 		// ?month=Y-m: that calendar month, from Reports -> Mails by Month;
 		// replaces any Date filter, as ?date= does
-		$month = (string) $this->request->query->get('month', '');
+		$month = $this->request->query->getString('month');
 		if (preg_match('/^(\d{4})-(\d{2})$/D', $month, $m) && checkdate((int) $m[2], 1, (int) $m[1])) {
 			$filters = array_values(array_filter(
 				$filters,
@@ -450,8 +450,8 @@ final class MailLogController extends ViewController
 	public function showVirusMails(): Response {
 		$report = $this->url(RouteName::ADMIN_VIRUS_REPORT);
 
-		$virus = (string) $this->request->query->get('virus', '');
-		$window = (string) $this->request->query->get('window', 'month');
+		$virus = $this->request->query->getString('virus');
+		$window = $this->request->query->getString('window', 'month');
 		$fail = $this->request->query->get('fail') === '1';
 		if ($virus === '' || mb_strlen($virus) > 255 || !isset(VirusService::WINDOWS[$window])) {
 			return new RedirectResponse($report);

@@ -1110,9 +1110,9 @@ final class MapController extends ViewController
 			$search = trim(self::postedSearchField($map_search_form, 'field'));
 			$map_name = self::postedSearchField($map_search_form, 'map_name');
 		} else {
-			$model = (string) $this->request->query->get('model', '');
-			$search = trim((string) $this->request->query->get('q', ''));
-			$map_name = (string) $this->request->query->get('map', '');
+			$model = $this->request->query->getString('model');
+			$search = trim($this->request->query->getString('q'));
+			$map_name = $this->request->query->getString('map');
 		}
 
 		if ($model === '') {

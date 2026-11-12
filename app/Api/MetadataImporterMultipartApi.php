@@ -216,7 +216,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		// 1) metadata JSON (string field): without it there is nothing to import
 		$metadataJson = '';
 		try {
-			$contentType = (string) $this->request->headers->get('Content-Type', '');
+			$contentType = $this->request->headers->get('Content-Type') ?? '';
 
 			if (stripos($contentType, 'multipart/form-data') === false) {
 				throw new \RuntimeException('Missing multipart/form-data content type');

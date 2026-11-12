@@ -157,7 +157,7 @@ final class UserController extends ViewController
 				http_build_query(['q' => FormHelper::text($userSearchForm->get('user')->getData(), 'user')]));
 		}
 
-		$search = trim((string) $this->request->query->get('q', ''));
+		$search = trim($this->request->query->getString('q'));
 		if ($search === '' || strlen($search) > 128 || !preg_match(UserSearchForm::PATTERN, $search)) {
 			return new RedirectResponse($this->getAdminUsersUrl());
 		}

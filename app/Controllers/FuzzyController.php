@@ -85,7 +85,7 @@ final class FuzzyController extends ViewController
 				http_build_query(['q' => FormHelper::text($form->get('search')->getData(), 'search')]));
 		}
 
-		$search = trim((string) $this->request->query->get('q', ''));
+		$search = trim($this->request->query->getString('q'));
 		if ($search === '' || strlen($search) > 128 || !preg_match(FuzzySearchForm::PATTERN, $search)) {
 			return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY));
 		}
@@ -184,9 +184,9 @@ final class FuzzyController extends ViewController
 
 		// optional: the list's weight from config when not given
 		$weight = null;
-		$weight_param = $this->request->query->get('weight');
-		if ($weight_param !== null && $weight_param !== '') {
-			if (!ctype_digit((string) $weight_param) || (int) $weight_param < 1 || (int) $weight_param > 65535) {
+		$weight_param = $this->request->query->getString('weight');
+		if ($weight_param !== '') {
+			if (!ctype_digit($weight_param) || (int) $weight_param < 1 || (int) $weight_param > 65535) {
 				$this->flashbag->add('error', "Invalid weight, must be 1-65535");
 				return $this->detailResponse($id);
 			}
@@ -279,7 +279,7 @@ final class FuzzyController extends ViewController
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
-		$weight = (string) $this->request->query->get('weight', '');
+		$weight = $this->request->query->getString('weight');
 		if (!ctype_digit($weight) || (int) $weight < 1 || (int) $weight > 65535) {
 			$this->flashbag->add('error', "Invalid weight, must be 1-65535");
 			return $this->detailResponse($row->mail_log_id);

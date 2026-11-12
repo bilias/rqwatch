@@ -114,8 +114,8 @@ final class MapHitController extends ViewController
 		}
 		$window = $days === 0 ? null : $days;
 
-		$map = (string) $this->request->query->get('map', '');
-		$symbol = (string) $this->request->query->get('symbol', '');
+		$map = $this->request->query->getString('map');
+		$symbol = $this->request->query->getString('symbol');
 		$maps = $this->maps();
 		$service = new MapHitService();
 		$outcomeFilters = [];
@@ -140,7 +140,7 @@ final class MapHitController extends ViewController
 				[$model, $symbols] = $maps[$map];
 				[$outcome, $outcomeFilters, $outcomeParams] = $this->outcomeQuery();
 				// one day of the trend chart
-				$day = (string) $this->request->query->get('day', '');
+				$day = $this->request->query->getString('day');
 				$day = preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) && strtotime($day) !== false ? $day : null;
 				$ids = $service->mapHitMailIds($map, $model, $symbols, $window, $this->max_items, $outcome, $day);
 				if ($day !== null) {
@@ -210,7 +210,7 @@ final class MapHitController extends ViewController
 		}
 
 		$report = $this->url(RouteName::ADMIN_MAP_HITS);
-		$map = (string) $this->request->query->get('map', '');
+		$map = $this->request->query->getString('map');
 		$days = $this->request->query->getInt('days', max(MapHitService::WINDOWS));
 		$maps = $this->maps();
 		if (!isset($maps[$map]) || !in_array($days, MapHitService::WINDOWS, true)) {
@@ -275,7 +275,7 @@ final class MapHitController extends ViewController
 		$filters = [];
 		$params = [];
 
-		$action = (string) $this->request->query->get('action', '');
+		$action = $this->request->query->getString('action');
 		if ($action !== '' && preg_match('/^[a-z ]{1,20}$/', $action)) {
 			$outcome['action'] = $action;
 			$filters[] = ['filter' => 'Action', 'choice' => 'is', 'value' => $action];
