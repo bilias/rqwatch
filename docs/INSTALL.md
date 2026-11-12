@@ -20,12 +20,12 @@
 <!--te-->
 
 ## Setup
-Development and production environments are primarily tested on Rocky Linux 9 (RHEL 9), using PHP 8.3, MariaDB 10.5 (or later) and Valkey 8 (Redis should be fine too).\
+Development and production environments are primarily tested on Rocky Linux 9 (RHEL 9), using PHP 8.4, MariaDB 10.6 (or later) and Valkey 8 (Redis should be fine too); CI also tests PHP 8.3 and 8.5.\
 However, Rqwatch should run on any system with minor adjustments, as it requires no exotic components.
 
 ## Requirements
 
-**PHP 8.3** with:
+**PHP 8.4** (8.3 and 8.5 are also supported) with:
 
 - php-fpm
 
@@ -67,25 +67,30 @@ dnf install epel-release
 dnf config-manager --set-enabled crb
 ```
 
-EL9 PHP8.3 has a problem with `php-pecl-mailparse`, which is required for mail parsing.
-For this reason, we use PHP from [Remi's RPM Repository](https://blog.remirepo.net/pages/Config-en).
+We use PHP from [Remi's RPM Repository](https://blog.remirepo.net/pages/Config-en): it provides every supported PHP version,
+and EL9's own PHP 8.3 has a problem with `php-pecl-mailparse`, which is required for mail parsing.
 
 ```
 dnf install https://rpms.remirepo.net/enterprise/remi-release-9.rpm
 dnf makecache
-dnf module enable php:remi-8.3
+dnf module enable php:remi-8.4
 
 dnf install php-fpm php-cli php-mysqlnd php-pdo \
 php-pecl-mailparse php-mbstring php-xml \
 php-ldap php-pecl-redis6 php-gmp composer git glibc-gconv-extra
 ```
 
-For Ubuntu 24.04:
+For Ubuntu 24.04, which ships only PHP 8.3, use [Ondřej Surý's PPA](https://launchpad.net/~ondrej/+archive/ubuntu/php):
 ```
 apt-get update
+apt install software-properties-common
+add-apt-repository ppa:ondrej/php
+apt-get update
 apt install git composer \
-php8.3-fpm php8.3-cli php8.3-mysql php8.3-mailparse php8.3-mbstring \
-php8.3-xml php8.3-ldap php8.3-redis php8.3-gmp
+php8.4-fpm php8.4-cli php8.4-mysql php8.4-mailparse php8.4-mbstring \
+php8.4-xml php8.4-ldap php8.4-redis php8.4-gmp
+# make sure the CLI is 8.4 (the PPA may pull in a newer default for composer)
+update-alternatives --set php /usr/bin/php8.4
 ```
 
 ### Users and groups
@@ -166,7 +171,7 @@ chown root /var/www/html/rqwatch
 ```
 cd /etc/php-fpm.d
 # For Ubuntu
-cd /etc/php/8.3/fpm/pool.d
+cd /etc/php/8.4/fpm/pool.d
 
 cat <<EOF > rqwatch.conf
 [rqwatch]
@@ -216,7 +221,7 @@ chmod 700 /var/www/html/rqwatch/fpm
 
 systemctl enable --now php-fpm
 # For Ubuntu
-systemctl enable --now php8.3-fpm
+systemctl enable --now php8.4-fpm
 ```
 
 ### Web Server

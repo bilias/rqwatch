@@ -3,6 +3,8 @@ Rqwatch 2.x+ contains updates to the database schema.
 
 **Upgrade is only supported from 1.8.4 and 2.x**.
 
+PHP 8.4 is now the default PHP version.
+
 # Upgrade
 
 ## From 2.x

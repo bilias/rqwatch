@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-11-12
+- PHP 8.4 is the default now in INSTALL.md
 - QA gate: PHPStan level 10 and Psalm level 1
 
 ### 2026-11-09
