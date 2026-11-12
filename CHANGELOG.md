@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-11-12
+- QA gate: PHPStan level 10 and Psalm level 1
+
 ### 2026-11-09
 - Added .env and config validators that fail application early on boot if required
   config vars are missing or wrong

@@ -10,7 +10,7 @@ services:
 			- phpstan.broker.dynamicMethodReturnTypeExtension
 
 parameters:
-	level: 8
+	level: 10
 	paths:
 		- ../app
 		- ../bin
