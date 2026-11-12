@@ -1530,7 +1530,6 @@ Mail details:
 		try {
 			$resolver = new Resolver([
 				'timeout' => Config::get('dns_resolv_timeout'),
-				'retry'   => 0,
 			]);
 			if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
 				/** @var string $expanded validated as IPv6 above, so inet_pton() cannot fail */
@@ -1597,7 +1596,6 @@ Mail details:
 		try {
 			$resolver = new Resolver([
 				'timeout' => Config::get('dns_resolv_timeout'),
-				'retry'   => 0,
 			]);
 			$result = $resolver->query($host, 'A');
 			// the answer may start with a CNAME
