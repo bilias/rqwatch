@@ -139,12 +139,12 @@ final class FuzzyController extends ViewController
 			->getPaginatedByIds($ids, $this->url(RouteName::ADMIN_FUZZY_HITS, ['id' => $id]), $page);
 
 		// hits counted on mails since purged, or before this list was recorded
-		if ($logs->total() < (int) $row->hits) {
+		if ($logs->total() < $row->hits) {
 			$this->flashbag->add('info', "{$logs->total()} of {$row->hits} hits listed: the rest are on purged mails or were counted before the hits were linked");
 		}
 
 		$flags = FuzzyService::flags();
-		$label = $flags[(int) $row->flag]['label'] ?? "flag {$row->flag}";
+		$label = $flags[$row->flag]['label'] ?? "flag {$row->flag}";
 
 		return new Response($this->twig->render('home_paginated.twig', [
 			'qidform' => $qidform->createView(),
@@ -207,7 +207,7 @@ final class FuzzyController extends ViewController
 			$entry = FuzzyService::flags()[$flag];
 			$used = $weight ?? $entry['weight'];
 			$this->flashbag->add('success', "Mail {$maillog->qid} learned as fuzzy '{$entry['label']}' (weight {$used})");
-			$this->warnShared($fuzzy, (int) $maillog->id, $flag);
+			$this->warnShared($fuzzy, $maillog->id, $flag);
 		} catch (FuzzyException $e) {
 			$this->flashbag->add('error', $e->getMessage());
 		} catch (Throwable $e) {
@@ -238,7 +238,7 @@ final class FuzzyController extends ViewController
 			$orphaned = $fuzzy->orphanedSlotHolders($row);
 			$fuzzy->unlearn($row, (string) $this->username);
 			$flags = FuzzyService::flags();
-			$label = $flags[(int) $row->flag]['label'] ?? "flag {$row->flag}";
+			$label = $flags[$row->flag]['label'] ?? "flag {$row->flag}";
 			$kept = $shared > 0 ? " ({$shared} hash(es) kept, shared with other learned mails)" : '';
 			$this->flashbag->add('success', "Mail {$row->qid} unlearned from fuzzy '{$label}'{$kept}");
 
@@ -287,9 +287,9 @@ final class FuzzyController extends ViewController
 
 		try {
 			(new FuzzyService())->addWeight($row, (int) $weight, (string) $this->username);
-			$label = FuzzyService::flags()[(int) $row->flag]['label'] ?? "flag {$row->flag}";
+			$label = FuzzyService::flags()[$row->flag]['label'] ?? "flag {$row->flag}";
 			$this->flashbag->add('success', "Mail {$row->qid}: weight +{$weight} added to fuzzy '{$label}', now " .
-				((int) $row->weight + (int) $weight));
+				($row->weight + (int) $weight));
 		} catch (FuzzyException $e) {
 			$this->flashbag->add('error', $e->getMessage());
 		} catch (Throwable $e) {
@@ -413,7 +413,7 @@ final class FuzzyController extends ViewController
 			$same = array_filter($others, fn (array $o): bool => $o['flag'] === $flag);
 			if ($same !== []) {
 				$shared = count($fuzzy->sharedHashes($row));
-				$total = count(array_unique((array) $row->hashes));
+				$total = count(array_unique($row->hashes));
 				$what = $shared >= $total ? 'Its content was' :
 					"{$shared} of its {$total} hashes " . ($shared === 1 ? 'was' : 'were');
 				$this->flashbag->add('warning', "{$what} already learned via " . $qids($same) .

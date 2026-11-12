@@ -245,7 +245,7 @@ final class UserService
 			? $default_off
 			: $holders->every(fn ($u) => $u->disable_notifications === null
 				? $default_off
-				: (bool) $u->disable_notifications);
+				: $u->disable_notifications);
 
 		return $this->notificationsDisabledCache[$email] = $disabled;
 	}

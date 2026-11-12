@@ -165,10 +165,10 @@ final class FuzzyService
 		/** @var list<array{id: int, mail_log_id: int|null, qid: string, flag: int}> get() is 0-indexed and map() keeps the keys */
 		return $query->orderBy('id')->get(['id', 'mail_log_id', 'qid', 'flag'])->toBase()
 			->map(fn ($r) => [
-				'id' => (int) $r->id,
+				'id' => $r->id,
 				'mail_log_id' => $r->mail_log_id,
 				'qid' => (string) $r->qid,
-				'flag' => (int) $r->flag,
+				'flag' => $r->flag,
 			])->all();
 	}
 
@@ -259,7 +259,7 @@ final class FuzzyService
 
 	// learn on this node, or through the API of the node that stores the mail
 	public function learn(MailLog $maillog, int $flag, string $learnedBy, ?int $weight = null): void {
-		$server = (string) $maillog->server;
+		$server = $maillog->server;
 
 		$this->flagEntry($flag, (string) $maillog->qid);
 		$this->checkWeight($weight);
@@ -274,25 +274,25 @@ final class FuzzyService
 			return;
 		}
 
-		$this->callApi($server, 'learn', (int) $maillog->id, $learnedBy, (string) $maillog->qid, $flag, $weight);
+		$this->callApi($server, 'learn', $maillog->id, $learnedBy, (string) $maillog->qid, $flag, $weight);
 	}
 
 	// unlearn by the same route learn() took: the mail's server
 	public function unlearn(MailLogFuzzy $row, string $unlearnedBy): void {
-		$server = (string) $row->api_server;
+		$server = $row->api_server;
 
 		if ($server === Helper::serverAlias()) {
 			$this->unlearnLocal($row, $unlearnedBy);
 			return;
 		}
 
-		$this->callApi($server, 'unlearn', (int) $row->id, $unlearnedBy, (string) $row->qid);
+		$this->callApi($server, 'unlearn', $row->id, $unlearnedBy, (string) $row->qid);
 	}
 
 
 	// add weight by the same route learn() took: the mail's server
 	public function addWeight(MailLogFuzzy $row, int $weight, string $addedBy): void {
-		$server = (string) $row->api_server;
+		$server = $row->api_server;
 
 		$this->checkWeight($weight);
 
@@ -306,7 +306,7 @@ final class FuzzyService
 			return;
 		}
 
-		$this->callApi($server, 'boost', (int) $row->id, $addedBy, (string) $row->qid, null, $weight);
+		$this->callApi($server, 'boost', $row->id, $addedBy, (string) $row->qid, null, $weight);
 	}
 
 	// $weight overrides the list's weight from config
@@ -318,7 +318,7 @@ final class FuzzyService
 			throw new FuzzyException("Mail {$qid} is not stored", FuzzyError::Conflict);
 		}
 
-		if ($this->getByMailLogId((int) $maillog->id) !== null) {
+		if ($this->getByMailLogId($maillog->id) !== null) {
 			throw new FuzzyException("Mail {$qid} is already learned", FuzzyError::Conflict);
 		}
 
@@ -335,10 +335,10 @@ final class FuzzyService
 				->transaction(
 					function () use ($maillog, $flag, $weight, $hashes, $learnedBy) {
 						return MailLogFuzzy::create([
-							'mail_log_id' => (int) $maillog->id,
+							'mail_log_id' => $maillog->id,
 							'qid' => $maillog->qid,
 							// the mail's server, so unlearn() routes the same way learn() did
-							'api_server' => (string) $maillog->server,
+							'api_server' => $maillog->server,
 							'flag' => $flag,
 							'weight' => $weight,
 							'hashes' => array_values($hashes),
@@ -352,14 +352,14 @@ final class FuzzyService
 			$concurrent = null;
 			try {
 				// a concurrent learn of the same mail recorded these hashes: keep them
-				$concurrent = $this->getByMailLogId((int) $maillog->id) !== null;
+				$concurrent = $this->getByMailLogId($maillog->id) !== null;
 				if (!$concurrent) {
 					// rspamd deletes the whole key: keep digests other learned mails have
 					$delete = array_values(array_diff($hashes, $this->hashesHeldByOthers($hashes)));
 					$this->logger->error("{$lf} {$qid} rolling back unrecorded hashes: " .
 						($delete === [] ? 'none' : implode(',', $delete)) . " (" . (count($hashes) - count($delete)) . " kept, shared)");
 					if ($delete !== []) {
-						$this->deleteHashes((string) $maillog->server, $delete, $flag, $qid);
+						$this->deleteHashes($maillog->server, $delete, $flag, $qid);
 					}
 				}
 			} catch (Throwable $e2) {
@@ -384,7 +384,7 @@ final class FuzzyService
 	// digests of $row that other learned mails also have
 	/** @return list<string> */
 	public function sharedHashes(MailLogFuzzy $row): array {
-		return $this->hashesHeldByOthers((array) $row->hashes, $row->id);
+		return $this->hashesHeldByOthers($row->hashes, $row->id);
 	}
 
 	// per row id: the other learned mails sharing any of its hashes, oldest first
@@ -395,8 +395,8 @@ final class FuzzyService
 	public function sharedWith(iterable $rows): array {
 		$hashes = [];
 		foreach ($rows as $row) {
-			foreach ((array) $row->hashes as $hash) {
-				$hashes[(string) $hash] = true;
+			foreach ($row->hashes as $hash) {
+				$hashes[$hash] = true;
 			}
 		}
 		if ($hashes === []) {
@@ -427,8 +427,8 @@ final class FuzzyService
 		$shared = [];
 		foreach ($rows as $row) {
 			$others = [];
-			foreach ((array) $row->hashes as $hash) {
-				$others += $holders[(string) $hash] ?? [];
+			foreach ($row->hashes as $hash) {
+				$others += $holders[$hash] ?? [];
 			}
 			unset($others[$row->id]);
 			if ($others !== []) {
@@ -510,7 +510,7 @@ final class FuzzyService
 	 */
 	private function hashesHeldByOthers(array $hashes, ?int $exceptId = null): array {
 		return array_values(array_filter($hashes, function ($hash) use ($exceptId): bool {
-			$query = MailLogFuzzy::whereRaw('JSON_CONTAINS(hashes, JSON_QUOTE(?))', [(string) $hash]);
+			$query = MailLogFuzzy::whereRaw('JSON_CONTAINS(hashes, JSON_QUOTE(?))', [$hash]);
 			if ($exceptId !== null) {
 				$query->whereKeyNot($exceptId);
 			}
@@ -549,7 +549,7 @@ final class FuzzyService
 		$holders = [];
 		foreach ($byHash as $list) {
 			// another holder in the same list keeps the slot legitimately
-			if (!in_array((int) $row->flag, array_column($list, 'flag'), true)) {
+			if (!in_array($row->flag, array_column($list, 'flag'), true)) {
 				foreach ($list as $h) {
 					$holders[$h['qid']] = $h;
 				}
@@ -564,14 +564,14 @@ final class FuzzyService
 		// a shared digest stays in rspamd until its last learned mail is unlearned
 		$shared = $this->sharedHashes($row);
 		$orphaned = $this->orphanedSlotHolders($row);
-		$delete = array_values(array_diff((array) $row->hashes, $shared));
+		$delete = array_values(array_diff($row->hashes, $shared));
 
 		if ($delete !== []) {
-			$this->deleteHashes((string) $row->api_server, $delete, (int) $row->flag, $qid);
+			$this->deleteHashes($row->api_server, $delete, $row->flag, $qid);
 		}
 		$row->delete();
 
-		$label = self::flags()[(int) $row->flag]['label'] ?? "flag {$row->flag}";
+		$label = self::flags()[$row->flag]['label'] ?? "flag {$row->flag}";
 		$kept = $shared !== [] ? ", kept " . count($shared) . " hash(es) shared with other learned mails" : '';
 		$msg = "{$qid} unlearned from fuzzy '{$label}' (flag {$row->flag}, weight {$row->weight}){$kept} by '{$unlearnedBy}'";
 		$this->logger->info($msg);
@@ -590,7 +590,7 @@ final class FuzzyService
 		$qid = (string) $row->qid;
 
 		$this->checkWeight($weight);
-		if ((int) $row->weight + $weight > 65535) {
+		if ($row->weight + $weight > 65535) {
 			throw new FuzzyException("Mail {$qid}: total weight would exceed 65535", FuzzyError::Conflict);
 		}
 
@@ -599,9 +599,9 @@ final class FuzzyService
 			throw new FuzzyException("Mail {$qid} is not stored", FuzzyError::Conflict);
 		}
 
-		$entry = $this->flagEntry((int) $row->flag, $qid);
-		$hashes = $this->fuzzyAdd($maillog, (int) $row->flag, $weight, $lf);
-		$merged = array_values(array_unique(array_merge((array) $row->hashes, $hashes)));
+		$entry = $this->flagEntry($row->flag, $qid);
+		$hashes = $this->fuzzyAdd($maillog, $row->flag, $weight, $lf);
+		$merged = array_values(array_unique(array_merge($row->hashes, $hashes)));
 
 		// rspamd cannot subtract: once added, this weight is kept even if recording fails
 		try {
@@ -626,7 +626,7 @@ final class FuzzyService
 		}
 
 		$msg = "{$qid} fuzzy '{$entry['label']}' (flag {$row->flag}) weight +{$weight}, now " .
-			((int) $row->weight + $weight) . ", by '{$addedBy}'";
+			($row->weight + $weight) . ", by '{$addedBy}'";
 		$this->logger->info($msg);
 		$this->syslogLogger->info($msg);
 	}
@@ -773,7 +773,7 @@ final class FuzzyService
 			throw new FuzzyException("Mail {$qid} file not readable", FuzzyError::Internal);
 		}
 
-		$reply = $this->call((string) $maillog->server, '/fuzzyadd', $raw, [
+		$reply = $this->call($maillog->server, '/fuzzyadd', $raw, [
 			'Flag' => (string) $flag,
 			'Weight' => (string) $weight,
 		], $qid);

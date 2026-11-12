@@ -96,7 +96,7 @@ final class MailAliasService
 	 to maps a user may manage so admin-only entries are never touched.
 	*/
 	public function aliasDel(MailAlias $alias, string $actingUsername): bool {
-		$address = strtolower(trim((string) $alias->alias));
+		$address = strtolower(trim($alias->alias));
 		$user_id = $alias->user_id;
 		$userMaps = MapInventory::getRoleMapsByModel('MapCombined', 'user');
 
@@ -126,7 +126,7 @@ final class MailAliasService
 					$removed = (bool) $alias->delete();
 					// the alias is cached in the owner's sessions
 					if ($removed) {
-						UserService::endSessions((int) $user_id);
+						UserService::endSessions($user_id);
 					}
 					return $removed;
 				}

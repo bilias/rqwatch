@@ -60,7 +60,7 @@ final class DbAuth implements AuthInterface {
 
 		// external accounts ("EXTERNAL_AUTH") do the same bcrypt work as
 		// unknown users and never match
-		$usable = $user !== null && password_get_info((string) $user->password)['algo'] !== null;
+		$usable = $user !== null && password_get_info($user->password)['algo'] !== null;
 		$valid = Helper::passwordVerify($this->password, $usable ? $user->password : self::DUMMY_HASH) && $usable;
 
 		if (!$user || !$valid) {

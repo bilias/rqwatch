@@ -114,7 +114,7 @@ final class CronNotifications extends RqwatchCliCommand
 		// identify empty mail_recipients. Just to track their id for debugging
 		$removedLogs = $logs->filter(function ($log) {
 			// if recipients are loaded, this catches true empties too
-			$rcpt = trim((string) $log->mail_recipients);
+			$rcpt = trim($log->mail_recipients);
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
@@ -135,7 +135,7 @@ final class CronNotifications extends RqwatchCliCommand
 
 		// filter out empty mail_recipients
 		$logs = $logs->reject(function ($log) {
-			$rcpt = trim((string) $log->mail_recipients);
+			$rcpt = trim($log->mail_recipients);
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
@@ -208,7 +208,7 @@ final class CronNotifications extends RqwatchCliCommand
 
 		// Logs where everyone is disabled (or no recipients)
 		$removedLogs = $logs->filter(function ($log) {
-			$rcpt = trim((string) $log->mail_recipients);
+			$rcpt = trim($log->mail_recipients);
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 
@@ -225,7 +225,7 @@ final class CronNotifications extends RqwatchCliCommand
 		}
 
 		$logs = $logs->reject(function ($log) {
-			$rcpt = trim((string) $log->mail_recipients);
+			$rcpt = trim($log->mail_recipients);
 			return $rcpt === '' || $rcpt === 'unknown';
 		});
 

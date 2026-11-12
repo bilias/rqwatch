@@ -342,7 +342,7 @@ final class UserController extends ViewController
 					$saved = $user->save();
 					// end the user's other sessions
 					if ($saved && $pass_changed) {
-						UserService::endSessions((int) $user->id);
+						UserService::endSessions($user->id);
 					}
 					return $saved;
 				});
@@ -548,7 +548,7 @@ final class UserController extends ViewController
 						$saved = $user->save();
 						// fields cached in the user's sessions: end them
 						if ($saved && $user->wasChanged(['username', 'email', 'is_admin', 'auth_provider', 'password'])) {
-							UserService::endSessions((int) $user->id);
+							UserService::endSessions($user->id);
 						}
 						return $saved;
 					});
@@ -653,11 +653,11 @@ final class UserController extends ViewController
 
 			$this->session->set('username', $user->username);
 			$this->session->set('user_id', $user->id);
-			$this->session->set('session_version', (int) ($user->session_version ?? 0));
+			$this->session->set('session_version', $user->session_version ?? 0);
 			$this->session->set('email', $user->email);
 			// need this to get the auth_provider description
 			$provider = AuthManager::getAuthProviderById($user->auth_provider);
-			$this->session->set('is_admin', AuthManager::isExternalAdmin($provider, $user->username) ?? (bool) $user->is_admin);
+			$this->session->set('is_admin', AuthManager::isExternalAdmin($provider, $user->username) ?? $user->is_admin);
 			$this->session->set('auth_provider', $provider);
 			$aliases = array_unique(array_map('strtolower', array_filter(
 				Row::stringValues($user->mailAliases()->toBase()->pluck('alias')->all(), 'alias'),

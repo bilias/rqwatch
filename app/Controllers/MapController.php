@@ -1247,7 +1247,7 @@ final class MapController extends ViewController
 		}
 		try {
 			return (new MapHitService())->entryHits(MapHitService::entryModel($model),
-				array_map(fn ($e) => (int) $e->id, $entries->items()), max(MapHitService::WINDOWS));
+				array_map(fn ($e) => $e->id, $entries->items()), max(MapHitService::WINDOWS));
 		} catch (Throwable $e) {
 			$this->fileLogger->error("[MapController] map hits query error: " . $e->getMessage());
 			return null;
