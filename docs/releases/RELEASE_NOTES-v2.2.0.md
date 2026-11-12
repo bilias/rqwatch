@@ -38,9 +38,9 @@ The documented MariaDB version is now 10.6 or later.
 - Apache: replace the `<Location /api>` and `<Location /maps>` blocks with the `<Directory>`
   blocks from [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
   They match the directories rather than the URL, so they also apply under a subdirectory (`WEB_BASE`).
-- Apache: add `Header set X-Content-Type-Options "nosniff"`. See
-  [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
-- (Apache Optional): add `ServerSignature Off`, `ServerTokens Prod` and `TraceEnable off`
+- Apache: add `Header set X-Content-Type-Options "nosniff"`.\
+  See [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
+- (Apache Optional): add `ServerSignature Off`, `ServerTokens Prod` and `TraceEnable off`.\
   See [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
 - OIDC: list in `OPENIDC_TRUSTED_HOSTS` any other host names users browse Rqwatch with.
 - Postfix: enable long queue IDs, which do not repeat. See
