@@ -36,7 +36,7 @@ final class MetadataFieldsTest extends UnitTestCase
 	public function testScalarFields(): void {
 		$this->assertSame('ABC123', $this->call('metaScalar', 'qid'));
 		$this->assertSame(7.5, $this->call('metaScalar', 'score'));
-		$this->assertSame(true, $this->call('metaScalar', 'subject'));
+		$this->assertTrue($this->call('metaScalar', 'subject'));
 		$this->assertNull($this->call('metaScalar', 'action'));
 		$this->assertNull($this->call('metaScalar', 'unset'));
 		$this->assertSame([], $this->log->lines);

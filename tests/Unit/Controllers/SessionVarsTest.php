@@ -31,7 +31,7 @@ final class SessionVarsTest extends UnitTestCase
 	public function testLoginValues(): void {
 		$controller = $this->controller(['is_admin' => true, 'username' => 'alice', 'user_id' => 7,
 			'email' => 'alice@example.org', 'user_aliases' => ['a@example.org']]);
-		$this->assertSame(true, self::read($controller, 'is_admin'));
+		$this->assertTrue(self::read($controller, 'is_admin'));
 		$this->assertSame('alice', self::read($controller, 'username'));
 		$this->assertSame(7, self::read($controller, 'user_id'));
 		$this->assertSame('alice@example.org', self::read($controller, 'email'));
@@ -41,7 +41,7 @@ final class SessionVarsTest extends UnitTestCase
 	// no login: the defaults stay
 	public function testEmptySession(): void {
 		$controller = $this->controller([]);
-		$this->assertSame(false, self::read($controller, 'is_admin'));
+		$this->assertFalse(self::read($controller, 'is_admin'));
 		$this->assertNull(self::read($controller, 'username'));
 		$this->assertSame([], self::read($controller, 'user_aliases'));
 	}
