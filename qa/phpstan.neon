@@ -10,6 +10,7 @@ services:
 			- phpstan.broker.dynamicMethodReturnTypeExtension
 
 parameters:
+	phpVersion: 80400
 	level: 10
 	paths:
 		- ../app
@@ -36,6 +37,15 @@ parameters:
 		-
 			identifier: echo.nonString
 			path: taint-selftest/probes.php
+			reportUnmatched: false
+		# From PHP 8.4 a subclass could redeclare $session with hooks, which
+		# unset() cannot remove; no controller does. clearSession() unsets it so a
+		# later read fails loudly. Analysing for 8.3 matches nothing (reportUnmatched).
+		# Drop this when 8.3 is: the property becomes final
+		-
+			identifier: unset.possiblyHookedProperty
+			message: '#Controller::\$session #'
+			path: ../app/Controllers/Controller.php
 			reportUnmatched: false
 	friendly:
 		lineBefore: 0
