@@ -104,13 +104,11 @@ final class WebClient
 		if ($body === false) {
 			throw new RuntimeException("Request to {$path} failed: " . curl_error($ch));
 		}
-		$result = [
+		return [
 			'status' => (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE),
 			'location' => (string) curl_getinfo($ch, CURLINFO_REDIRECT_URL),
 			'body' => (string) $body,
 			'headers' => $headers,
 		];
-		curl_close($ch);
-		return $result;
 	}
 }
