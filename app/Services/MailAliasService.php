@@ -27,6 +27,7 @@ use Psr\Log\LoggerInterface;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Core\Database\Row;
 
 final class MailAliasService
 {
@@ -108,10 +109,9 @@ final class MailAliasService
 							->where('rcpt_to', $address);
 
 						// map names while the rows still exist
-						/** @var list<string> $affected distinct map_name values */
-						$affected = (clone $query)->distinct()->pluck('map_name')->all();
+						$affected = array_values(Row::stringValues((clone $query)->toBase()->distinct()->pluck('map_name')->all(), 'map_name'));
 
-						$deleted = (int) $query->delete();
+						$deleted = $query->toBase()->delete();
 
 						if ($deleted > 0) {
 							$this->logger->info(

@@ -70,6 +70,9 @@ final class ConfigCacheTest extends UnitTestCase
 			'an old version' => [json_encode(['APP_VERSION' => '0.0.1', 'plain' => 'cached'])],
 			'not JSON' => ['{not json'],
 			'JSON, not an object' => ['"plain"'],
+			// used to read $data['APP_VERSION'] with a warning
+			'a list, not keyed by setting' => [json_encode(['plain', 'cached'])],
+			'no version' => [json_encode(['plain' => 'cached'])],
 		];
 	}
 

@@ -33,6 +33,8 @@ final class RspamdStatTest extends UnitTestCase
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
+		// required at boot, so a booted app always has it
+		Config::set('rspamd_stat_redis_key', 'rqwatch_rspamd_stats_test');
 		/** @var mixed $saved */
 		$saved = $_ENV['RSPAMD_CONTROLLER_PASS'] ?? null;
 		$this->password = is_string($saved) ? $saved : null;

@@ -211,20 +211,22 @@ class Controller
 	}
 	*/
 
-	/** @return array<string, mixed> API server => its decoded rspamd stat reply */
+	/** @return array<array-key, mixed> API server alias (PHP may key it as an int) => its decoded rspamd stat reply */
 	public function getRspamdStat(): array {
 		if (!$this->is_admin || Config::get('rspamd_stat_disable')) {
 			return [];
 		}
 
+		// required at boot (ConfigValidator), so set whenever stats are shown
+		$redisKey = Config::getRequiredString('rspamd_stat_redis_key');
 		$cache = App::cache();
 		if ($cache !== null) {
-			$redisKey = Config::getRequiredString('rspamd_stat_redis_key');
 
 			// Try fetching from redis cache first
 			try {
 				$cached = $cache->get($redisKey);
 				if ($cached !== false) {
+					/** @var mixed $stats */
 					$stats = json_decode($cached, true);
 					if (is_array($stats) && !empty($stats)) {
 						$this->fileLogger->debug("Rspamd stats loaded from Redis cache");
@@ -285,7 +287,7 @@ class Controller
 			}
 		}
 
-		if ($cache !== null && isset($redisKey)) { // @phpstan-ignore isset.variable (kept: $redisKey is set only on the cache branch above)
+		if ($cache !== null) {
 			$ttl = Config::getIntOr('rspamd_stat_redis_cache_ttl', 300);
 			// Store in Redis for future use; a total failure for a shorter time
 			if ($stats === []) {

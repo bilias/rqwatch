@@ -74,6 +74,7 @@ final class ConfigValidator
 	public static function errors(array $vars): array {
 		$errors = [];
 		foreach (self::TYPES as $key => $type) {
+			/** @var mixed $value checked below */
 			$value = $vars[$key] ?? null;
 			$required = in_array($key, self::REQUIRED, true);
 			if ($value === null) {

@@ -29,6 +29,7 @@ use Illuminate\Database\Capsule\Manager as DB;
 use App\Core\Auth\AuthManager;
 use Jumbojett\OpenIDConnectClientException;
 use App\Utils\FormHelper;
+use App\Core\Database\Row;
 //use App\Core\Auth\DbAuth;
 
 final class LoginController extends ViewController
@@ -148,7 +149,7 @@ final class LoginController extends ViewController
 		}
 
 		if (!empty($this->session->get('username'))) {
-			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
+			$this->fileLogger->warning("'" . (SessionManager::getString($this->session, 'username') ?? '') . "' Already logged in");
 			$this->flashbag->add('info', "Already logged in");
 			return new RedirectResponse($this->getHomepageUrl());
 		}
@@ -269,7 +270,7 @@ final class LoginController extends ViewController
 		}
 
 		if (!empty($this->session->get('username'))) {
-			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
+			$this->fileLogger->warning("'" . (SessionManager::getString($this->session, 'username') ?? '') . "' Already logged in");
 			$this->flashbag->add('info', "Already logged in");
 			return new RedirectResponse($this->getHomepageUrl());
 		}
@@ -310,7 +311,7 @@ final class LoginController extends ViewController
 		}
 
 		if (!empty($this->session->get('username'))) {
-			$this->fileLogger->warning("'{$this->session->get('username')}' Already logged in");
+			$this->fileLogger->warning("'" . (SessionManager::getString($this->session, 'username') ?? '') . "' Already logged in");
 			$this->flashbag->add('info', "Already logged in");
 			return new RedirectResponse($this->getHomepageUrl());
 		}
@@ -516,7 +517,13 @@ final class LoginController extends ViewController
 		}
 
 		if ($user->wasChanged(['email', 'auth_provider']) && App::migrationStatus()->sessionVersionCompleted()) {
-			$user->session_version = User::whereKey($user->id)->value('session_version');
+			// the unsigned column, refreshed after the update bumped it
+			$row = User::whereKey($user->id)->toBase()->first(['session_version']);
+			$version = $row === null ? null : Row::nullableInt($row, 'session_version');
+			if ($version !== null && $version < 0) {
+				throw new \RuntimeException("users.session_version of '$username' is negative");
+			}
+			$user->session_version = $version;
 		}
 
 		// Rotate session id on privilege change (prevents session fixation).

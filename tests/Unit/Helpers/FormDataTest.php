@@ -21,7 +21,10 @@ namespace Tests\Unit\Helpers;
 use App\Utils\FormHelper;
 use LogicException;
 use PHPUnit\Framework\MockObject\Stub;
+use App\Forms\LoginForm;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Tests\Unit\UnitTestCase;
 
 final class FormDataTest extends UnitTestCase
@@ -115,5 +118,38 @@ final class FormDataTest extends UnitTestCase
 	public function testTextListOptionNotTextFails(): void {
 		$this->expectExceptionMessage("Form option 'user_emails' must be a list of text, not of int");
 		FormHelper::textListOption(['user_emails' => ['a@example.org', 5]], 'user_emails');
+	}
+
+	public function testSubmittedDataNotFieldsFails(): void {
+		/**
+		 * @psalm-var FormInterface<array<string, mixed>>&Stub $form
+		 * @phpstan-var FormInterface&Stub $form
+		 */
+		$form = $this->createStub(FormInterface::class);
+		$form->method('getData')->willReturn(new \stdClass());
+		$form->method('getName')->willReturn('search_form');
+		$this->expectException(LogicException::class);
+		$this->expectExceptionMessage("Submitted form 'search_form' data is stdClass, not its fields");
+		FormHelper::submittedData($form);
+	}
+
+	public function testSubmittedDataUnnamedFieldFails(): void {
+		/**
+		 * @psalm-var FormInterface<array<string, mixed>>&Stub $form
+		 * @phpstan-var FormInterface&Stub $form
+		 */
+		$form = $this->createStub(FormInterface::class);
+		$form->method('getData')->willReturn(['x']);
+		$form->method('getName')->willReturn('search_form');
+		$this->expectException(LogicException::class);
+		$this->expectExceptionMessage("Submitted form 'search_form' has a field without a name");
+		FormHelper::submittedData($form);
+	}
+
+	// used to be a TypeError inside Symfony
+	public function testFormNameNotTextFails(): void {
+		$this->expectException(LogicException::class);
+		$this->expectExceptionMessage('form_name must be text, not int');
+		FormHelper::formCreator($this->createStub(FormFactoryInterface::class), new Request(), LoginForm::class, null, ['form_name' => 5]);
 	}
 }

@@ -51,6 +51,11 @@ public const string ENV_PATH = RQWATCH_ROOT . '/.env';
 // Views directory
 public const string VIEWS_PATH = RQWATCH_ROOT . '/app/Views';
 
+// the asset files whose mtime versions their URLs, and Composer's vendor directory
+public const string STYLE_CSS_PATH = RQWATCH_ROOT . '/web/css/style.css';
+public const string SCRIPT_JS_PATH = RQWATCH_ROOT . '/web/js/rqwatch.js';
+public const string VENDOR_PATH = RQWATCH_ROOT . '/vendor';
+
 // Twig Cache directory for compiled templates
 public const string TWIG_CACHE_PATH = RQWATCH_ROOT . '/tmp/cache';
 

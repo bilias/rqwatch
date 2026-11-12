@@ -116,9 +116,9 @@ class ViewController extends Controller
 
 		// a changed style.css or rqwatch.js gets a new URL, so browsers don't keep the old one
 		/** @psalm-suppress RiskyTruthyFalsyComparison an unreadable file (false) and a 0 mtime both give no version */
-		$this->twig->addGlobal('STYLE_VERSION', (string) (@filemtime(RQWATCH_ROOT . '/web/css/style.css') ?: ''));
+		$this->twig->addGlobal('STYLE_VERSION', (string) (@filemtime(AppConfig::STYLE_CSS_PATH) ?: ''));
 		/** @psalm-suppress RiskyTruthyFalsyComparison an unreadable file (false) and a 0 mtime both give no version */
-		$this->twig->addGlobal('SCRIPT_VERSION', (string) (@filemtime(RQWATCH_ROOT . '/web/js/rqwatch.js') ?: ''));
+		$this->twig->addGlobal('SCRIPT_VERSION', (string) (@filemtime(AppConfig::SCRIPT_JS_PATH) ?: ''));
 
 		return $this->twig;
 	}
@@ -129,7 +129,7 @@ class ViewController extends Controller
 			$this->twigView();
 		}
 			
-		$vendorDirectory = RQWATCH_ROOT . '/vendor';
+		$vendorDirectory = AppConfig::VENDOR_PATH;
 		$vendorFormDirectory = $vendorDirectory.'/symfony/form';
 		$vendorValidatorDirectory = $vendorDirectory.'/symfony/validator';
 		

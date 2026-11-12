@@ -99,6 +99,7 @@ final class EnvValidator
 		}
 
 		// on every node: cron:notifications puts it in the links it mails
+		/** @var mixed $scheme */
 		$scheme = $env['WEB_SCHEME'] ?? null;
 		if ($scheme !== null && $scheme !== 'http' && $scheme !== 'https') {
 			$errors[] = 'WEB_SCHEME must be http or https';
@@ -159,6 +160,7 @@ final class EnvValidator
 
 	/** @param array<array-key, mixed> $env */
 	private static function isTrue(array $env, string $key): bool {
+		/** @var mixed $value */
 		$value = $env[$key] ?? null;
 		return is_string($value) && filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
 	}

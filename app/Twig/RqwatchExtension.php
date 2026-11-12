@@ -24,6 +24,8 @@ use Twig\TwigFunction;
 
 use Closure;
 use RuntimeException;
+use LogicException;
+use Stringable;
 
 /*
  rqwatch's Twig functions and filters. Each is a named method (as a
@@ -93,7 +95,11 @@ final class RqwatchExtension extends AbstractExtension
 			throw new RuntimeException("Unknown RouteName enum case: $caseName");
 		}
 
-		$enumCase = constant("$enumClass::$caseName"); // gets the enum case object
+		/** @var mixed $enumCase */
+		$enumCase = constant("$enumClass::$caseName");
+		if (!$enumCase instanceof RouteName) {
+			throw new RuntimeException("Not a RouteName enum case: $caseName");
+		}
 		return UrlBuilder::generate(($this->urlGenerator)(), $enumCase, $params);
 	}
 
@@ -113,7 +119,11 @@ final class RqwatchExtension extends AbstractExtension
 		return Helper::getFuzzyHits($symbols, $this->fuzzyLabels);
 	}
 
+	// text to at most $len characters; a value that is not text (an array) is a template bug, not "Array"
 	public static function truncate(mixed $str, int $len): string {
+		if (!(is_scalar($str) || $str === null || $str instanceof Stringable)) {
+			throw new LogicException('truncate: ' . get_debug_type($str) . ' is not text');
+		}
 		return mb_strimwidth((string) $str, 0, $len, "...");
 	}
 

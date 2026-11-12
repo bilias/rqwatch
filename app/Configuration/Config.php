@@ -102,6 +102,7 @@ final class Config {
 	}
 
 	private static function typed(string $key, string $type): mixed {
+		/** @var mixed $value checked below */
 		$value = self::get($key);
 		if ($value !== null && !ConfigValidator::matches($value, $type)) {
 			throw new RuntimeException(ConfigValidator::wrongType($key, $type, $value) . ' in config');
@@ -110,7 +111,7 @@ final class Config {
 	}
 
 	public static function set(string $key, mixed $value): void {
-		self::$vars[$key] = $value;
+		self::$vars = array_replace(self::$vars, [$key => $value]);
 	}
 
 	/** @return array<string, mixed> */
@@ -170,8 +171,30 @@ final class Config {
 	 every Config::get() value read back from the cache.
 	*/
 	/** @psalm-taint-escape input */
-	private static function decodeCachedConfig(string $cached): mixed {
-		return json_decode($cached, true);
+	/**
+	 * The cached config, null unless it decodes to an array keyed by setting
+	 * name: a damaged copy reloads from the config files, as a missing one does.
+	 *
+	 * Not tainted: only rqwatch writes this entry, from its own config files,
+	 * and Redis is trusted infrastructure, as the database is. Psalm's model
+	 * of Redis holds every key in one place, so without this it reads the
+	 * spooled mail data (another key) back as config.
+	 * @return array<string, mixed>|null
+	 * @psalm-taint-escape input
+	 */
+	private static function decodeCachedConfig(string $cached): ?array {
+		/** @var mixed $data */
+		$data = json_decode($cached, true);
+		if (!is_array($data)) {
+			return null;
+		}
+		foreach (array_keys($data) as $key) {
+			if (!is_string($key)) {
+				return null;
+			}
+		}
+		/** @var array<string, mixed> $data keyed by text, checked above */
+		return $data;
 	}
 
 	/** @param array<string, mixed> $extras */
@@ -195,7 +218,7 @@ final class Config {
 					self::$logger->debug("Config [loadAndInitWithRedisCache]: Config is cached in Redis");
 					$data = self::decodeCachedConfig($cached);
 					// catch app version update
-					if (is_array($data) && (AppConfig::VERSION === $data['APP_VERSION'])) {
+					if ($data !== null && AppConfig::VERSION === ($data['APP_VERSION'] ?? null)) {
 						// Merge extras on top of cached data — overrides if keys overlap
 						self::init(array_merge($data, $extras));
 						return;

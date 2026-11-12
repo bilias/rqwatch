@@ -50,9 +50,13 @@ final class FormHelper
 		array $options = []
 	): FormInterface {
 
-		// Get form name from options, default to null or '' for unnamed form
+		// a named form takes its prefix from form_name; without one it is unnamed
+		/** @var mixed $formName */
 		$formName = $options['form_name'] ?? null;
-		if ($formName) {
+		if ($formName !== null && !is_string($formName)) {
+			throw new LogicException('form_name must be text, not ' . get_debug_type($formName));
+		}
+		if ($formName !== null && $formName !== '') {
 			// Create named form with prefix
 			$form = $formFactory->createNamed($formName, $formTypeClass, $data, $options);
 		} else {
@@ -77,7 +81,22 @@ final class FormHelper
 	 * @return array<string, mixed>
 	 */
 	public static function submittedData(FormInterface $form): array {
-		return $form->getData() ?? throw new LogicException("Submitted form '{$form->getName()}' has no data");
+		/** @var mixed $data */
+		$data = $form->getData();
+		if ($data === null) {
+			throw new LogicException("Submitted form '{$form->getName()}' has no data");
+		}
+		// no form here has a data_class: its data is the fields by name
+		if (!is_array($data)) {
+			throw new LogicException("Submitted form '{$form->getName()}' data is " . get_debug_type($data) . ', not its fields');
+		}
+		foreach (array_keys($data) as $field) {
+			if (!is_string($field)) {
+				throw new LogicException("Submitted form '{$form->getName()}' has a field without a name");
+			}
+		}
+		/** @var array<string, mixed> $data keyed by field name, checked above */
+		return $data;
 	}
 
 	// a text field the form requires (NotBlank) or the caller has checked: anything but a string is a bug

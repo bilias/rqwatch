@@ -69,4 +69,23 @@ final class RqwatchExtensionTest extends UnitTestCase
 		$rest = (string) preg_replace('#<mark class="homoglyph" title="(invisible )?U\+[0-9A-F]{4,6}">|</mark>#', '', $out);
 		$this->assertDoesNotMatchRegularExpression('/[<>"\']/', $rest, $out);
 	}
+
+	public function testTruncate(): void {
+		$this->assertSame('abc...', RqwatchExtension::truncate('abcdefgh', 6));
+		$this->assertSame('12345', RqwatchExtension::truncate(12345, 10));
+		$this->assertSame('', RqwatchExtension::truncate(null, 10));
+		$this->assertSame('text', RqwatchExtension::truncate(new class implements \Stringable {
+			#[\Override]
+			public function __toString(): string {
+				return 'text';
+			}
+		}, 10));
+	}
+
+	// a value that is not text is a template bug: an error, not "Array" with a warning
+	public function testTruncateNotTextFails(): void {
+		$this->expectException(\LogicException::class);
+		$this->expectExceptionMessage('truncate: array is not text');
+		RqwatchExtension::truncate(['a'], 10);
+	}
 }

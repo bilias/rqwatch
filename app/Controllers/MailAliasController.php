@@ -120,7 +120,7 @@ final class MailAliasController extends ViewController
 			}
 			// a GET results page: Back, refresh and paging keep the search
 			return new RedirectResponse($this->url(RouteName::ADMIN_ALIASES_SEARCH) . '?' .
-				http_build_query(['q' => (string) $mailAliasSearchForm->get('alias')->getData()]));
+				http_build_query(['q' => FormHelper::text($mailAliasSearchForm->get('alias')->getData(), 'alias')]));
 		}
 
 		$search = trim((string) $this->request->query->get('q', ''));
