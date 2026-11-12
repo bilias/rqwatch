@@ -134,9 +134,9 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
   own directory; see the check under Upgrade for mails stored before this release
 - Upgrades from <=2.0 to 2.1.2 whose `db:migrate_drop_mail_log_columns` failed with error 1846 can now re-run it
 - Long values without spaces (e.g. a regexp) wrap inside Active Filters
-- Mail text and 8-bit headers in a missing or wrong charset are decoded instead of shown as `?`.
-  The new `$mail_fallback_charset` (default `Windows-1252`) sets the charset tried last.
-- Map hits were lost for symbols named with digits only
+- Mail text and 8-bit headers in a missing or wrong charset are decoded instead of shown
+  as `?`. The new `$mail_fallback_charset` (default `Windows-1252`) sets the charset
+  tried last.
 - A mail without an action caused an error on mail lists and detail
 - Rspamd stats failed on an unset `RSPAMD_CONTROLLER_PASS` or a non-JSON reply
 
