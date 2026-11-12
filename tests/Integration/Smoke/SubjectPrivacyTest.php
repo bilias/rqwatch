@@ -21,7 +21,6 @@ use Tests\Integration\IntegrationTestCase;
 
 final class SubjectPrivacyTest extends IntegrationTestCase
 {
-	private const int MAIL = 9901;
 	private const string HEADER = "<th class='subjwidth'>Subject</th>";
 
 	private int $fuzzy;
@@ -29,10 +28,11 @@ final class SubjectPrivacyTest extends IntegrationTestCase
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
-		$qid = $this->quarantined(self::MAIL, 'mx1');
+		// a record whose learned mail is purged: no mail_logs row, so no
+		// explicit id moves AUTO_INCREMENT into other tests' fixed ids
 		self::db()->prepare('INSERT INTO mail_log_fuzzy (mail_log_id, qid, api_server, flag, weight, hashes, learned_by)'
 			. ' VALUES (?, ?, ?, ?, ?, ?, ?)')
-			->execute([self::MAIL, $qid, 'mx1', 11, 10, '[]', 'admin']);
+			->execute([null, 'QIDSUBJPRIV', 'mx1', 11, 10, '[]', 'admin']);
 		$this->fuzzy = (int) self::db()->lastInsertId();
 	}
 
