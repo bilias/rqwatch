@@ -40,6 +40,7 @@ final class User extends Model
 		'last_login' => 'datetime',
 		'auth_provider' => 'int',
 		'password' => 'string',
+		'session_version' => 'integer',
 		'created_at' => 'datetime',
 		'updated_at' => 'datetime',
 	];
