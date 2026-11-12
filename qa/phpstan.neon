@@ -41,7 +41,7 @@ parameters:
 		# From PHP 8.4 a subclass could redeclare $session with hooks, which
 		# unset() cannot remove; no controller does. clearSession() unsets it so a
 		# later read fails loudly. Analysing for 8.3 matches nothing (reportUnmatched).
-		# Drop this when 8.3 is: the property becomes final
+		# When PHP 8.3 support ends: drop this and make Controller::$session final
 		-
 			identifier: unset.possiblyHookedProperty
 			message: '#Controller::\$session #'

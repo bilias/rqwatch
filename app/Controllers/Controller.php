@@ -63,6 +63,7 @@ class Controller
 	*/
 	/** @psalm-suppress PropertyNotSetInConstructor set by setRequest() */
 	protected Request $request;
+	// When PHP 8.3 support ends: make it final and drop its ignoreErrors entry in qa/phpstan.neon
 	/** @psalm-suppress PropertyNotSetInConstructor set by setRequest() */
 	protected Session $session;
 	/** @psalm-suppress PropertyNotSetInConstructor set by setRequest() */
