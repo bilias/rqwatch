@@ -35,7 +35,7 @@ find_php() {
 
 binaries=
 missing=
-for entry in ${QA_PHP:-8.5}; do
+for entry in ${QA_PHP:-8.4}; do
 	case $entry in
 		[0-9]*.[0-9]*) php=$(find_php "$entry") ;;
 		*) php=$entry; [ -n "$(php_version "$php")" ] || php= ;;
