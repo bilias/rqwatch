@@ -43,7 +43,7 @@ The documented MariaDB version is now 10.6 or later.
 - (Apache Optional): add `ServerSignature Off`, `ServerTokens Prod` and `TraceEnable off`.\
   See [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
 - OIDC: list in `OPENIDC_TRUSTED_HOSTS` any other host names users browse Rqwatch with.
-- Postfix: enable long queue IDs, which do not repeat. See
+- Postfix: **enable long queue IDs, which do not repeat**. See
   [Postfix](https://github.com/bilias/rqwatch/blob/master/docs/INSTALL.md#postfix).
   ```
   postconf -e enable_long_queue_ids=yes
