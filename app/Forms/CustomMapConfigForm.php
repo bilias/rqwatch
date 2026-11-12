@@ -128,7 +128,7 @@ final class CustomMapConfigForm extends AbstractType
 			$builder->add('symbols', TextType::class, [
 				'required' => false,
 				'label' => 'Rspamd Symbols: ',
-				'help' => 'Symbols of the rspamd rules that read this map, comma-separated. Used for map hits.',
+				'help' => 'Symbols of the rspamd rules that read this map, comma-separated. Used for map hits; after changing them, re-run db:map_hits_backfill.',
 				'attr' => [
 					'class' => 'label',
 					'title' => 'Enter rspamd symbol names',

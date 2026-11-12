@@ -127,7 +127,7 @@ Checkout [latest Rqwatch release](https://github.com/bilias/rqwatch/releases/lat
 # Get latest release tagged version
 git describe --tags --abbrev=0
 
-git checkout v2.1.2
+git checkout v2.2.0
 ```
 
 ```

@@ -154,7 +154,8 @@ $USER_MAP_MAX_ENTRIES = 1000;
 
 # Rspamd symbols of the built-in maps, for map hit reports. Key: map name (its
 # file is <map name>.txt), value: every symbol whose rule reads that map.
-# Custom maps take their symbols from the map definition.
+# Custom maps take their symbols from the map definition. After changing symbols,
+# re-run ./bin/cli.php db:map_hits_backfill -r (-a for the whole mail log).
 $map_symbols = array(
 	'mail_from_rcpt_to_whitelist' => array('RQWATCH_SMTP_FROM_RCPT_TO_WHITELIST'),
 	'mail_from_rcpt_to_blacklist' => array('RQWATCH_SMTP_FROM_RCPT_TO_BLACKLIST'),

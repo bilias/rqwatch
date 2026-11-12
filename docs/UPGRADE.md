@@ -21,7 +21,7 @@ git fetch --tags origin
 # Find the latest 2.x release tagged version
 git describe --tags --abbrev=0
 
-git checkout v2.1.2
+git checkout v2.2.0
 
 # upgrade dependencies
 composer install --no-dev
