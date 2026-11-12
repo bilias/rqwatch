@@ -63,7 +63,9 @@ final class Database {
 		$maxTime = (int) (Helper::env_string('DB_WEB_MAX_STATEMENT_TIME') ?? 30);
 		if (defined('WEB_MODE') && $maxTime > 0) {
 			$db_config['options'] = [
-				PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION max_statement_time = {$maxTime}",
+				// Pdo\Mysql's constant exists from PHP 8.4; PDO's is deprecated in 8.5
+				(PHP_VERSION_ID >= 80400 ? \Pdo\Mysql::ATTR_INIT_COMMAND : PDO::MYSQL_ATTR_INIT_COMMAND)
+					=> "SET SESSION max_statement_time = {$maxTime}",
 			];
 		}
 
