@@ -147,7 +147,8 @@ final class UserForm extends AbstractType
 				'label' => $options['is_edit'] ? 'Update User' : 'Add User',
 			]);
 
-			FormHelper::addNotificationsField($builder, $options['notifications_default']);
+			// a bool, as configureOptions() requires
+			FormHelper::addNotificationsField($builder, $options['notifications_default'] === true);
 	}
 
 	/**

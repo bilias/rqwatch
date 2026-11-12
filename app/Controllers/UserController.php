@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use App\Core\App;
+use App\Core\Database\Row;
 use App\Core\SessionManager;
 use App\Core\Routing\RouteName;
 use App\Core\Auth\AuthManager;
@@ -153,7 +154,7 @@ final class UserController extends ViewController
 			}
 			// a GET results page: Back, refresh and paging keep the search
 			return new RedirectResponse($this->url(RouteName::ADMIN_USERSEARCH) . '?' .
-				http_build_query(['q' => (string) $userSearchForm->get('user')->getData()]));
+				http_build_query(['q' => FormHelper::text($userSearchForm->get('user')->getData(), 'user')]));
 		}
 
 		$search = trim((string) $this->request->query->get('q', ''));
@@ -294,10 +295,12 @@ final class UserController extends ViewController
 			return new RedirectResponse($this->getHomepageUrl());
 		}
 
+		/** @var array<string, mixed> $userData Eloquent's toArray() is keyed by attribute name */
+		$userData = $user->toArray();
 		$profileform = ProfileForm::create(
 			$this->formFactory,
 			$this->request,
-			$user->toArray(),
+			$userData,
 			['notifications_default' => $service->userNotificationsDefault()]
 		);
 		$profileform_t = $profileform->createView(); // for twig
@@ -311,8 +314,11 @@ final class UserController extends ViewController
 				$newPassword = FormHelper::optionalText($profileform->get('password')->getData(), 'password');
 				if ($newPassword !== null && $newPassword !== '') {
 					// a new password requires the current one
-					$current = (string) $profileform->get('current_password')->getData();
-					$hash = (string) User::whereKey($user->id)->value('password');
+					$current = FormHelper::optionalText($profileform->get('current_password')->getData(), 'current_password') ?? '';
+					// one column: no model needed; a missing hash fails the check, as '' always did
+					/** @var mixed $stored */
+					$stored = User::whereKey($user->id)->toBase()->value('password');
+					$hash = is_string($stored) ? $stored : '';
 					if (!Helper::passwordVerify($current, $hash)) {
 						$this->fileLogger->warning("'{$this->username}' failed password change: wrong current password from " . Helper::remote_addr());
 						$this->flashbag->add('error', 'Current password is wrong, password not changed');
@@ -344,7 +350,8 @@ final class UserController extends ViewController
 					$this->flashbag->add('success', "Profile updated");
 					// keep this session
 					if ($pass_changed && App::migrationStatus()->sessionVersionCompleted()) {
-						$this->session->set('session_version', (int) User::whereKey($user->id)->value('session_version'));
+						$version = User::whereKey($user->id)->toBase()->first(['session_version']);
+						$this->session->set('session_version', $version === null ? 0 : (Row::nullableInt($version, 'session_version') ?? 0));
 					}
 				} else {
 					$this->flashbag->add('error', "Profile update failed");
@@ -402,14 +409,16 @@ final class UserController extends ViewController
 		if ($userform->isSubmitted() && $userform->isValid()) {
 			$data = FormHelper::submittedData($userform);
 			$service = $this->getUserService();
+			$username = FormHelper::optionalText($data['username'] ?? null, 'username') ?? '';
 
-			if (empty($data['username'])) {
+			// what empty() meant: '' and '0' are no username, or no password
+			if ($username === '' || $username === '0') {
 				$this->flashbag->add('error', "Username empty");
-			} elseif ($service->userExists(FormHelper::text($data['username'], 'username'))) {
-				$this->flashbag->add('error', "User '{$data['username']}' already exists");
+			} elseif ($service->userExists($username)) {
+				$this->flashbag->add('error', "User '{$username}' already exists");
 			} else {
-				$newPassword = trim((string) $userform->get('password')->getData());
-				if (empty($newPassword)) {
+				$newPassword = trim(FormHelper::optionalText($userform->get('password')->getData(), 'password') ?? '');
+				if ($newPassword === '' || $newPassword === '0') {
 						$this->flashbag->add('error', 'Empty password not allowed.');
 						return new RedirectResponse($this->getAdminUsersUrl());
 				}
@@ -420,8 +429,8 @@ final class UserController extends ViewController
 				}
 
 				if ($service->userAdd($data)) {
-					$this->fileLogger->info("User '{$data['username']}' created by '{$this->username}'");
-					$this->flashbag->add('success', "User '{$data['username']}' created");
+					$this->fileLogger->info("User '{$username}' created by '{$this->username}'");
+					$this->flashbag->add('success', "User '{$username}' created");
 				} else {
 					$this->flashbag->add('error', "User creation failed");
 				}
@@ -468,10 +477,12 @@ final class UserController extends ViewController
 		}
 
 		// or $user->toArray() if empty attribute and not getter in Model
+		/** @var array<string, mixed> $userData Eloquent's toArray() is keyed by attribute name */
+		$userData = $user->toArray();
 		$userform = UserForm::create(
 			$this->formFactory,
 			$this->request,
-			$user->toArray(),
+			$userData,
 			[
 				'is_edit' => true,
 				'notifications_default' => $this->getUserService()->userNotificationsDefault(),
@@ -511,12 +522,12 @@ final class UserController extends ViewController
 			//$data = $userform->getData()->toArray();
 			$data = FormHelper::submittedData($userform);
 			$service = $this->getUserService();
-			// username change and new username exists
-			if (empty($data['username'])) {
+			$username = FormHelper::optionalText($data['username'] ?? null, 'username') ?? '';
+			// username change and new username exists; what empty() meant: '' and '0' are no username
+			if ($username === '' || $username === '0') {
 				$this->flashbag->add('error', "Username empty");
-			} elseif (($data['username'] !== $user->username) &&
-			           ($service->userExists(FormHelper::text($data['username'], 'username')))) {
-				$this->flashbag->add('error', "Username '{$data['username']}' already exists.");
+			} elseif ($username !== $user->username && $service->userExists($username)) {
+				$this->flashbag->add('error', "Username '{$username}' already exists.");
 			} else {
 				$newHash = null;
 				$newPassword = FormHelper::optionalText($userform->get('password')->getData(), 'password');
@@ -597,7 +608,7 @@ final class UserController extends ViewController
 		$dbAliases = array_map(
 			'strtolower',
 			array_filter(
-				$user->mailAliases()->pluck('alias')->toArray(),
+				Row::stringValues($user->mailAliases()->toBase()->pluck('alias')->all(), 'alias'),
 				fn(string $alias) => !empty(trim($alias))
 			)
 		);
@@ -649,8 +660,8 @@ final class UserController extends ViewController
 			$this->session->set('is_admin', AuthManager::isExternalAdmin($provider, $user->username) ?? (bool) $user->is_admin);
 			$this->session->set('auth_provider', $provider);
 			$aliases = array_unique(array_map('strtolower', array_filter(
-				$user->mailAliases()->pluck('alias')->toArray(),
-				fn($alias) => !empty(trim($alias))
+				Row::stringValues($user->mailAliases()->toBase()->pluck('alias')->all(), 'alias'),
+				fn(string $alias) => !empty(trim($alias))
 			)));
 			$this->session->set('user_aliases', $aliases);
 			$this->session->set('old_username', $old_username);

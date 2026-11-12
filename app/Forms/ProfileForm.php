@@ -98,7 +98,8 @@ final class ProfileForm extends AbstractType
 				'label' => 'Update',
 			]);
 
-			FormHelper::addNotificationsField($builder, $options['notifications_default']);
+			// a bool, as configureOptions() requires
+			FormHelper::addNotificationsField($builder, $options['notifications_default'] === true);
 	}
 
 	/**
