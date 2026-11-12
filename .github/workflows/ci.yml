@@ -54,12 +54,22 @@ jobs:
         run: composer audit --locked --abandoned=report
 
   static:
-    name: PHPStan + Psalm
+    # each supported PHP version, run on that version and analysed for it;
+    # locally composer analyse targets config.platform.php (the oldest).
+    # Taint, its self-test and the SARIF upload run once, on 8.3
+    name: PHPStan + Psalm (PHP ${{ matrix.php }})
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
       security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        # quoted: 8.3 is a number in YAML
+        php: ['8.3', '8.4', '8.5']
+    env:
+      PHP_TARGET: ${{ matrix.php }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -67,7 +77,7 @@ jobs:
 
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
-          php-version: '8.4'
+          php-version: ${{ matrix.php }}
           extensions: ldap, redis, mailparse, mbstring, iconv, pdo_mysql, gmp, curl
           coverage: none
 
@@ -88,34 +98,41 @@ jobs:
       # fail fast and visibly when the stub no longer matches vendor
       # (qa/psalm-taint.sh checks it again before the analysis)
       - name: Taint stub matches vendor
+        if: matrix.php == '8.3'
         run: sh qa/taint-stubs.sh --check
 
       # each check runs even if an earlier one failed, so one run reports all
+      # qa/phpstan.neon with phpVersion set to this version (PHPStan has no
+      # option for it); its relative paths still resolve from qa/
       - name: PHPStan
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: composer phpstan -- --no-progress --error-format=github
+        run: |
+          version_id=$(echo "$PHP_TARGET" | awk -F. '{ printf "%d%02d00", $1, $2 }')
+          printf 'includes:\n\t- %s/qa/phpstan.neon\nparameters:\n\tphpVersion: %s\n' \
+            "$GITHUB_WORKSPACE" "$version_id" > "$RUNNER_TEMP/phpstan.neon"
+          vendor/bin/phpstan analyse -c "$RUNNER_TEMP/phpstan.neon" --memory-limit=512M --no-progress --error-format=github
 
       - name: Psalm
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: composer psalm -- --no-cache --output-format=github
+        run: composer psalm -- --no-cache --output-format=github --php-version="$PHP_TARGET"
 
       # findings go only to the SARIF report, for the Security tab (write
       # access only): nothing in the public log, no PR annotations. With a
       # report under GitHub Actions, Psalm exits 0 on taint findings, so the
       # step fails only when the analysis itself does
       - name: Psalm taint
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && matrix.php == '8.3' }}
         run: composer psalm-taint -- --report=psalm-taint.sarif --report-show-info=false > /dev/null
 
       # the taint setup still finds planted flows and honours its escapes
       - name: Taint self-test
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && matrix.php == '8.3' }}
         run: composer taint-selftest
 
       # push only: results uploaded for a pull request become annotations on
       # it, which anyone who can read the repository sees
       - name: Upload taint results to Security tab
-        if: ${{ !cancelled() && hashFiles('psalm-taint.sarif') != '' && github.actor != 'dependabot[bot]' && github.event_name == 'push' }}
+        if: ${{ !cancelled() && matrix.php == '8.3' && hashFiles('psalm-taint.sarif') != '' && github.actor != 'dependabot[bot]' && github.event_name == 'push' }}
         uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: psalm-taint.sarif
