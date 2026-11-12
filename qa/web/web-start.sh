@@ -44,8 +44,9 @@ install_conf qa/web/php-fpm-rqwatch.conf /etc/php-fpm.d/rqwatch.conf \
 	"s#^php_admin_value\[upload_tmp_dir\] = .*#php_admin_value[upload_tmp_dir] = ${UPLOAD_TMP_DIR}#"
 
 # OPcache (always loaded from PHP 8.5) checks for changed files on every
-# request: the harnesses rewrite config.local.php between requests
-echo 'opcache.revalidate_freq = 0' > /etc/php.d/99-qa.ini
+# request: the harnesses rewrite config.local.php between requests.
+# Every error level is logged, deprecations too, for RouteSmokeTest to find
+printf '%s\n' 'opcache.revalidate_freq = 0' 'error_reporting = E_ALL' > /etc/php.d/99-qa.ini
 
 # systemd-tmpfiles creates it on a host; nothing does in a container
 mkdir -p /run/php-fpm
