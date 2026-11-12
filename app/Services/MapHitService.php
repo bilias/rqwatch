@@ -709,8 +709,8 @@ final class MapHitService
 		$join = $where === [] ? '' : ' JOIN ' . AppConfig::MAIL_LOGS_TABLE . ' ml ON ml.id = t.mail_log_id WHERE ' . implode(' AND ', $where);
 
 		return array_values(Row::intValues(array_column(App::capsule()->getConnection()->select(
-			// nosemgrep: rqwatch-raw-sql -- built from constants and placeholders; limit cast to int
-			"SELECT DISTINCT t.mail_log_id FROM ({$sql}) t{$join} ORDER BY t.mail_log_id DESC LIMIT " . (int) $limit,
+			// nosemgrep: rqwatch-raw-sql -- built from constants and placeholders; limit is an int parameter
+			"SELECT DISTINCT t.mail_log_id FROM ({$sql}) t{$join} ORDER BY t.mail_log_id DESC LIMIT " . $limit,
 			$bindings
 		), 'mail_log_id'), 'mail_log_id'));
 	}

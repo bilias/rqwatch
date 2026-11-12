@@ -115,8 +115,9 @@ function fail(string $msg): never {
 }
 
 function defaultValue(ReflectionParameter $p): string {
-	if ($p->isDefaultValueConstant()) {
-		$c = (string) $p->getDefaultValueConstantName();
+	// null when the default is not a constant
+	$c = $p->getDefaultValueConstantName();
+	if ($c !== null) {
 		return str_contains($c, '\\') || str_contains($c, '::') ? '\\' . ltrim($c, '\\') : $c;
 	}
 	/** @var mixed $v */

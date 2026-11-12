@@ -228,7 +228,7 @@ final class MailLog extends Model
 		);
 
 		try {
-			$parsed = mailparse_rfc822_parse_addresses((string) $this->mime_from);
+			$parsed = mailparse_rfc822_parse_addresses($this->mime_from);
 		} catch (Throwable $e) {
 			$parsed = null;
 			$warning ??= $e->getMessage();

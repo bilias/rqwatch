@@ -398,9 +398,6 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			}
 		}
 
-		// metaString() and the header fallback above leave text
-		$qid = (string) $qid;
-
 		if ($messageError !== null) {
 			$this->fileLogger->error("[{$this->logPrefix}] {$qid}: no usable message part ({$messageError}); importing the metadata without the mail");
 			$this->syslogLogger->error("{$qid}: no usable message part ({$messageError}); importing the metadata without the mail");

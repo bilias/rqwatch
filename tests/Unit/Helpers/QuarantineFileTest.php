@@ -73,7 +73,7 @@ final class QuarantineFileTest extends UnitTestCase
 	public function testStoresUnderDateAndQid(): void {
 		$file = Helper::store_raw_mail($this->q, '4C1012A4C8D', "Subject: x\r\n\r\nbody");
 		$this->assertNotNull($file);
-		$this->assertMatchesRegularExpression('#^' . $this->dayDir() . '/4C1012A4C8D/mail\.eml$#', (string) $file);
+		$this->assertMatchesRegularExpression('#^' . $this->dayDir() . '/4C1012A4C8D/mail\.eml$#', $file);
 		$this->assertSame("Subject: x\r\n\r\nbody", file_get_contents($file));
 	}
 
