@@ -63,7 +63,7 @@ final class MailTokenService
 	 * Whether an emailed link stops working once it is used.
 	 */
 	public static function isOneTime(): bool {
-		return (bool) (Config::get('notification_links_one_time') ?? true);
+		return Config::getBool('notification_links_one_time') ?? true;
 	}
 
 	/*

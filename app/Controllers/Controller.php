@@ -213,7 +213,7 @@ class Controller
 
 	/** @return array<array-key, mixed> API server alias (PHP may key it as an int) => its decoded rspamd stat reply */
 	public function getRspamdStat(): array {
-		if (!$this->is_admin || Config::get('rspamd_stat_disable')) {
+		if (!$this->is_admin || Config::getBool('rspamd_stat_disable')) {
 			return [];
 		}
 

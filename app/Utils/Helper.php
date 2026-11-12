@@ -1483,7 +1483,7 @@ Mail details:
 	}
 
 	public static function my_gethostbyaddr(string $ip): string {
-		if (!Config::get('dns_resolv')) {
+		if (!Config::getBool('dns_resolv')) {
 			return $ip;
 		}
 
@@ -1520,6 +1520,11 @@ Mail details:
 		return $host;
 	}
 
+	// netdns2's timeout; unset is an exception naming the setting
+	private static function dnsResolvTimeout(): float {
+		return Config::getFloat('dns_resolv_timeout') ?? throw new RuntimeException('dns_resolv_timeout is not set in config');
+	}
+
 	/**
 	 * PTR lookup of $ip: the host, or $ip when there is none or the query
 	 * fails, and whether the failure was transient (worth a short cache TTL).
@@ -1527,9 +1532,11 @@ Mail details:
 	 * @return array{string, bool}
 	 */
 	private static function lookupPtr(string $ip): array {
+		// outside the try: a missing setting is not a DNS failure
+		$timeout = self::dnsResolvTimeout();
 		try {
 			$resolver = new Resolver([
-				'timeout' => Config::get('dns_resolv_timeout'),
+				'timeout' => $timeout,
 			]);
 			if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
 				/** @var string $expanded validated as IPv6 above, so inet_pton() cannot fail */
@@ -1553,7 +1560,7 @@ Mail details:
 	}
 
 	public static function my_gethostbyname(string $host): string {
-		if (!Config::get('dns_resolv')) {
+		if (!Config::getBool('dns_resolv')) {
 			return $host;
 		}
 
@@ -1593,9 +1600,11 @@ Mail details:
 	 * @return array{string, bool}
 	 */
 	private static function lookupA(string $host): array {
+		// outside the try: a missing setting is not a DNS failure
+		$timeout = self::dnsResolvTimeout();
 		try {
 			$resolver = new Resolver([
-				'timeout' => Config::get('dns_resolv_timeout'),
+				'timeout' => $timeout,
 			]);
 			$result = $resolver->query($host, 'A');
 			// the answer may start with a CNAME

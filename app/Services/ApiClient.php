@@ -27,7 +27,7 @@ final class ApiClient
 		$defaultOptions = [
 			'verify_peer' => true,
 			'verify_host' => true,
-			'capath' => Config::get('SYS_CA_PATH'),
+			'capath' => Config::getString('SYS_CA_PATH'),
 		];
 		$mergedOptions = array_merge($defaultOptions, $options);
 
@@ -49,7 +49,7 @@ final class ApiClient
 	{
 		return $this->client->request('GET', $url, [
 			'headers' => [ 'Password' => $password, ],
-			'timeout' => Config::get('rspamd_stat_api_timeout'),
+			'timeout' => Config::getFloat('rspamd_stat_api_timeout'),
 		]);
 	}
 

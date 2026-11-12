@@ -90,7 +90,7 @@ final class MapService
 		}
 
 		// own entries, plus entries created by an admin if USER_CAN_SEE_ADMIN_MAP_ENTRIES
-		if (Config::get('USER_CAN_SEE_ADMIN_MAP_ENTRIES')) {
+		if (Config::getBool('USER_CAN_SEE_ADMIN_MAP_ENTRIES')) {
 			$query = $query->where(function (Builder $q) {
 				$q->where('user_id', $this->user_id)
 					->orWhereIn('user_id', User::where('is_admin', 1)->select('id'));
@@ -1306,7 +1306,7 @@ final class MapService
 			USER_CAN_DEL_ADMIN_MAP_ENTRIES is true,
 			user will not be able to delete the entry
 			*/
-			if (!$this->is_admin && !Config::get('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
+			if (!$this->is_admin && !Config::getBool('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
 				$query = $query->where('user_id', $this->user_id);
 			}
 
@@ -1361,7 +1361,7 @@ final class MapService
 			USER_CAN_DEL_ADMIN_MAP_ENTRIES is true,
 			user will not be able to delete the entry
 			*/
-			if (!$this->is_admin && !Config::get('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
+			if (!$this->is_admin && !Config::getBool('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
 				$query = $query->where('user_id', $this->user_id);
 			}
 
@@ -1411,7 +1411,7 @@ final class MapService
 			USER_CAN_DEL_ADMIN_MAP_ENTRIES is true,
 			user will not be able to delete the entry
 			*/
-			if (!$this->is_admin && !Config::get('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
+			if (!$this->is_admin && !Config::getBool('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
 				$query = $query->where('user_id', $this->user_id);
 			}
 

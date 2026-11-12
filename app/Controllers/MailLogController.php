@@ -299,7 +299,7 @@ final class MailLogController extends ViewController
 		// the rows are keyed by the field; none means nothing to show
 		$field = $logs === [] ? null : $field;
 
-		$show_host = $field === 'ip' && Config::get('dns_resolv');
+		$show_host = $field === 'ip' && Config::getBool('dns_resolv') === true;
 		if ($show_host) {
 			foreach ($logs as $i => $log) {
 				$logs[$i]['country'] = Helper::getCountry($log['ip'] ?? null);
@@ -1414,11 +1414,11 @@ final class MailLogController extends ViewController
 	}
 
 	private function chartsEnabled(): bool {
-		if (!Config::get('show_charts')) {
+		if (!Config::getBool('show_charts')) {
 			return false;
 		}
 
-		if (!$this->is_admin && !Config::get('show_user_charts')) {
+		if (!$this->is_admin && !Config::getBool('show_user_charts')) {
 			return false;
 		}
 
@@ -1487,11 +1487,11 @@ final class MailLogController extends ViewController
 
 	/** @param array<array-key, SearchFilter> $filters */
 	private function mailReportsEnabled(array $filters): bool {
-		if (!Config::get('show_mail_reports')) {
+		if (!Config::getBool('show_mail_reports')) {
 			return false;
 		}
 
-		if (!$this->is_admin && !Config::get('show_user_mail_reports')) {
+		if (!$this->is_admin && !Config::getBool('show_user_mail_reports')) {
 			return false;
 		}
 
@@ -1499,11 +1499,11 @@ final class MailLogController extends ViewController
 			return true;
 		}
 
-		if (!Config::get('show_unfiltered_mail_reports')) {
+		if (!Config::getBool('show_unfiltered_mail_reports')) {
 			return false;
 		}
 
-		if (!$this->is_admin && !Config::get('show_unfiltered_user_mail_reports')) {
+		if (!$this->is_admin && !Config::getBool('show_unfiltered_user_mail_reports')) {
 			return false;
 		}
 
@@ -1512,11 +1512,11 @@ final class MailLogController extends ViewController
 
 	/** @param array<array-key, SearchFilter> $filters */
 	private function mailStatsEnabled(array $filters): bool {
-		if (!Config::get('show_mail_stats')) {
+		if (!Config::getBool('show_mail_stats')) {
 			return false;
 		}
 
-		if (!$this->is_admin && !Config::get('show_user_mail_stats')) {
+		if (!$this->is_admin && !Config::getBool('show_user_mail_stats')) {
 			return false;
 		}
 
@@ -1524,11 +1524,11 @@ final class MailLogController extends ViewController
 			return true;
 		}
 
-		if (!Config::get('show_unfiltered_mail_stats')) {
+		if (!Config::getBool('show_unfiltered_mail_stats')) {
 			return false;
 		}
 
-		if (!$this->is_admin && !Config::get('show_unfiltered_user_mail_stats')) {
+		if (!$this->is_admin && !Config::getBool('show_unfiltered_user_mail_stats')) {
 			return false;
 		}
 

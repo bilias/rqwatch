@@ -98,15 +98,15 @@ class ViewController extends Controller
 			));
 		}
 
-		$this->twig->addGlobal('APP_NAME', Config::get('APP_NAME') ?? AppConfig::APP_NAME);
-		$this->twig->addGlobal('APP_INFO', Config::get('APP_INFO') ?? AppConfig::APP_INFO);
-		$this->twig->addGlobal('APP_LOGO_PATH', Config::get('APP_LOGO_PATH') ?? AppConfig::APP_LOGO_PATH);
-		$this->twig->addGlobal('APP_LOGO_ALT', Config::get('APP_LOGO_ALT') ?? AppConfig::APP_LOGO_ALT);
-		$this->twig->addGlobal('FOOTER_NAME', Config::get('FOOTER_NAME') ?? AppConfig::APP_NAME);
-		$this->twig->addGlobal('FOOTER_URL', Config::get('FOOTER_URL') ?? AppConfig::GITHUB);
-		$this->twig->addGlobal('FOOTER_VERSION', Config::get('FOOTER_VERSION') ?? AppConfig::APP_NAME);
+		$this->twig->addGlobal('APP_NAME', Config::getString('APP_NAME') ?? AppConfig::APP_NAME);
+		$this->twig->addGlobal('APP_INFO', Config::getString('APP_INFO') ?? AppConfig::APP_INFO);
+		$this->twig->addGlobal('APP_LOGO_PATH', Config::getString('APP_LOGO_PATH') ?? AppConfig::APP_LOGO_PATH);
+		$this->twig->addGlobal('APP_LOGO_ALT', Config::getString('APP_LOGO_ALT') ?? AppConfig::APP_LOGO_ALT);
+		$this->twig->addGlobal('FOOTER_NAME', Config::getString('FOOTER_NAME') ?? AppConfig::APP_NAME);
+		$this->twig->addGlobal('FOOTER_URL', Config::getString('FOOTER_URL') ?? AppConfig::GITHUB);
+		$this->twig->addGlobal('FOOTER_VERSION', Config::getString('FOOTER_VERSION') ?? AppConfig::APP_NAME);
 		$this->twig->addGlobal('WEB_BASE', Helper::env_string('WEB_BASE') ?? '');
-		$this->twig->addGlobal('NOTIFICATION_SCORE', Config::get('notification_score') ?? 1000);
+		$this->twig->addGlobal('NOTIFICATION_SCORE', Config::getFloat('notification_score') ?? 1000);
 		$this->twig->addGlobal('OPENIDC_LABEL', Helper::env_string('OPENIDC_LABEL') ?? 'Login with OpenID Connect');
 		$this->twig->addGlobal('LOGIN_THROTTLE_ENABLED',
 			Helper::env_bool('REDIS_ENABLE', false) &&

@@ -190,7 +190,7 @@ final class UserService
 			return $this->userNotificationsDefault;
 		}
 
-		$default = (bool) (Config::get('user_notifications_default') ?? true);
+		$default = Config::getBool('user_notifications_default') ?? true;
 
 		if (!$default && !App::migrationStatus()->userNotificationsDefaultCompleted()) {
 			$this->logger->warning(

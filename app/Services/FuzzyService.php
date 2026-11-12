@@ -61,7 +61,7 @@ final class FuzzyService
 	}
 
 	public static function isEnabled(): bool {
-		return (bool) Config::get('fuzzy_learn_enable')
+		return Config::getBool('fuzzy_learn_enable') === true
 			&& App::migrationStatus()->mailLogFuzzyCompleted();
 	}
 
@@ -94,7 +94,7 @@ final class FuzzyService
 		$flags = [];
 
 		/** @var mixed $entry */
-		foreach ((array) (Config::get('fuzzy_learn_flags') ?? []) as $flag => $entry) {
+		foreach (Config::getArray('fuzzy_learn_flags') ?? [] as $flag => $entry) {
 			/** @var mixed $label */
 			$label = is_array($entry) ? ($entry['label'] ?? null) : null;
 			/** @var mixed $symbol */

@@ -1340,7 +1340,7 @@ final class MapController extends ViewController
 		// user is not the map entry creator and not admin
 
 		// allow if USER_CAN_DEL_ADMIN_MAP_ENTRIES is true
-		if (Config::get('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
+		if (Config::getBool('USER_CAN_DEL_ADMIN_MAP_ENTRIES')) {
 			return true;
 		}
 

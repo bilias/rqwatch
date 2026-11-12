@@ -183,7 +183,7 @@ final class MapHitController extends ViewController
 			'max_items' => $this->max_items,
 			'runtime' => $this->getRuntime(),
 			'refresh_rate' => $this->refresh_rate,
-			'subject_privacy' => Config::get('subject_privacy'),
+			'subject_privacy' => Config::getBool('subject_privacy') ?? false,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
@@ -223,7 +223,7 @@ final class MapHitController extends ViewController
 		try {
 			$outcome = $service->mapOutcome($map, $model, $symbols, $days);
 			// the trend always spans the longest window
-			if (Config::get('show_charts')) {
+			if (Config::getBool('show_charts')) {
 				$mails = $this->url(RouteName::ADMIN_MAP_HITS_MAILS);
 				$chart = ChartBuilder::createMapHitsChart(
 					$service->mapDailyHits($map, $model, $symbols, max(MapHitService::WINDOWS)),

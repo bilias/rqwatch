@@ -162,7 +162,7 @@ final class FuzzyController extends ViewController
 			'max_items' => $this->max_items,
 			'runtime' => $this->getRuntime(),
 			'refresh_rate' => $this->refresh_rate,
-			'subject_privacy' => Config::get('subject_privacy'),
+			'subject_privacy' => Config::getBool('subject_privacy') ?? false,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
 			'username' => $this->username,
