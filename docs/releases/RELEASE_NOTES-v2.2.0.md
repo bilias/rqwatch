@@ -25,7 +25,7 @@ The documented MariaDB version is now 10.6 or later.
 - Link your custom maps to the Rspamd symbols that read them, in the new **Rspamd Symbols**
   field of each custom map definition. List every rule that reads the map file, including
   composites built on its symbol. Built-in maps use `$map_symbols`; the defaults match `contrib/`.
-- Record the hits of past mail:
+- Record the hits of past mail (see [Map Hits](https://github.com/bilias/rqwatch/blob/master/docs/CONFIGURE.md#map-hits)):
   ```
   ./bin/cli.php db:map_hits_backfill -r -v      # the last 31 days
   ./bin/cli.php db:map_hits_backfill -r -a -v   # the whole mail log
