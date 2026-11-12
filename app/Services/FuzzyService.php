@@ -11,6 +11,7 @@
 namespace App\Services;
 
 use App\Core\App;
+use App\Core\Database\Row;
 
 use App\Configuration\AppConfig;
 use App\Configuration\Config;
@@ -383,7 +384,7 @@ final class FuzzyService
 	// digests of $row that other learned mails also have
 	/** @return list<string> */
 	public function sharedHashes(MailLogFuzzy $row): array {
-		return $this->hashesHeldByOthers((array) $row->hashes, (int) $row->getKey());
+		return $this->hashesHeldByOthers((array) $row->hashes, $row->id);
 	}
 
 	// per row id: the other learned mails sharing any of its hashes, oldest first
@@ -413,12 +414,13 @@ final class FuzzyService
 
 		$holders = [];
 		foreach ($found as $r) {
-			$holders[(string) $r->h][(int) $r->id] = [
-				'id' => (int) $r->id,
+			$id = Row::int($r, 'id');
+			$holders[Row::string($r, 'h')][$id] = [
+				'id' => $id,
 				// mail_log_fuzzy.qid may be NULL
-				'qid' => $r->qid === null ? null : (string) $r->qid,
-				'mail_log_id' => $r->mail_log_id === null ? null : (int) $r->mail_log_id,
-				'flag' => (int) $r->flag,
+				'qid' => Row::nullableString($r, 'qid'),
+				'mail_log_id' => Row::nullableInt($r, 'mail_log_id'),
+				'flag' => Row::int($r, 'flag'),
 			];
 		}
 
@@ -428,10 +430,10 @@ final class FuzzyService
 			foreach ((array) $row->hashes as $hash) {
 				$others += $holders[(string) $hash] ?? [];
 			}
-			unset($others[(int) $row->getKey()]);
+			unset($others[$row->id]);
 			if ($others !== []) {
 				ksort($others);
-				$shared[(int) $row->getKey()] = array_values($others);
+				$shared[$row->id] = array_values($others);
 			}
 		}
 		return $shared;
@@ -467,7 +469,7 @@ final class FuzzyService
 			}
 
 			// never moves last_hit_at backwards, e.g. on a spool replay
-			$ids = $rows->pluck('id')->all();
+			$ids = array_values(Row::intValues($rows->pluck('id')->all(), 'id'));
 			App::capsule()->getConnection()->update(
 				"UPDATE " . AppConfig::MAIL_LOG_FUZZY_TABLE . " SET hits = hits + 1, " .
 				"last_hit_at = GREATEST(COALESCE(last_hit_at, COALESCE(?, NOW())), COALESCE(?, NOW())) " .
@@ -478,7 +480,7 @@ final class FuzzyService
 			// ignores rows the MAIL_LOG_FUZZY_HITS_MAILS backfill wrote meanwhile
 			if (App::migrationStatus()->mailLogFuzzyHitsMailsWritable()) {
 				App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)->insertOrIgnore(
-					array_map(fn ($id) => ['fuzzy_id' => (int) $id, 'mail_log_id' => $mailLogId], $ids)
+					array_map(fn (int $id) => ['fuzzy_id' => $id, 'mail_log_id' => $mailLogId], $ids)
 				);
 			}
 
@@ -493,14 +495,12 @@ final class FuzzyService
 	// the mails that hit learned mail $fuzzyId, newest first
 	/** @return list<int> */
 	public function getHitMailIds(int $fuzzyId, int $limit): array {
-		/** @var list<int> pluck() is 0-indexed and map() keeps the keys */
-		return App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)
+		return array_values(Row::intValues(App::capsule()->getConnection()->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)
 			->where('fuzzy_id', $fuzzyId)
 			->orderBy('mail_log_id', 'DESC')
 			->limit($limit)
 			->pluck('mail_log_id')
-			->map(fn ($id) => (int) $id)
-			->all();
+			->all(), 'mail_log_id'));
 	}
 
 	// the subset of $hashes held by learned mails other than $exceptId
@@ -537,12 +537,13 @@ final class FuzzyService
 			"SELECT f.qid, f.flag, j.h FROM {$table} f, " .
 			"JSON_TABLE(f.hashes, '$[*]' COLUMNS (h VARCHAR(128) PATH '$')) j " .
 			"WHERE f.id <> ? AND j.h IN (" . implode(',', array_fill(0, count($hashes), '?')) . ")",
-			array_merge([(int) $row->getKey()], $hashes)
+			array_merge([$row->id], $hashes)
 		);
 
 		$byHash = [];
 		foreach ($found as $r) {
-			$byHash[(string) $r->h][] = ['qid' => (string) $r->qid, 'flag' => (int) $r->flag];
+			// a NULL qid reads as '', as it always did
+			$byHash[Row::string($r, 'h')][] = ['qid' => Row::nullableString($r, 'qid') ?? '', 'flag' => Row::int($r, 'flag')];
 		}
 
 		$holders = [];
@@ -777,16 +778,34 @@ final class FuzzyService
 			'Weight' => (string) $weight,
 		], $qid);
 
-		$hashes = $reply['hashes'] ?? null;
+		$hashes = self::replyHashes($reply['hashes'] ?? null);
 
-		if (!is_array($hashes) || $hashes === [] ||
-			count(preg_grep(self::HASH_FORMAT, $hashes)) !== count($hashes)) { // @phpstan-ignore argument.type (preg_grep() is false only on a PCRE failure)
+		if ($hashes === null) {
 			$this->logger->error("{$lf} {$qid} unexpected fuzzyadd reply: " . (string) json_encode($reply, JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE));
 			throw new FuzzyException("Unexpected reply from rspamd", FuzzyError::Upstream);
 		}
 
-		/** @var array<array-key, string> $hashes each matched HASH_FORMAT above */
 		return $hashes;
+	}
+
+	/**
+	 * The hashes of a fuzzyadd reply, keys kept: every one text in
+	 * HASH_FORMAT. Null for none, or for anything else among them.
+	 * @return non-empty-array<array-key, string>|null
+	 */
+	private static function replyHashes(mixed $hashes): ?array {
+		if (!is_array($hashes) || $hashes === []) {
+			return null;
+		}
+		$valid = [];
+		/** @var mixed $hash */
+		foreach ($hashes as $key => $hash) {
+			if (!is_string($hash) || preg_match(self::HASH_FORMAT, $hash) !== 1) {
+				return null;
+			}
+			$valid[$key] = $hash;
+		}
+		return $valid;
 	}
 
 	private function checkWeight(?int $weight): void {

@@ -20,6 +20,7 @@ use App\Models\MailLogFuzzy;
 
 use App\Services\FuzzyService;
 use App\Services\MailLogService;
+use App\Utils\FormHelper;
 use App\Utils\Helper;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -81,7 +82,7 @@ final class FuzzyController extends ViewController
 			}
 			// a GET results page: Back, refresh and paging keep the search
 			return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY_SEARCH) . '?' .
-				http_build_query(['q' => (string) $form->get('search')->getData()]));
+				http_build_query(['q' => FormHelper::text($form->get('search')->getData(), 'search')]));
 		}
 
 		$search = trim((string) $this->request->query->get('q', ''));
@@ -376,18 +377,25 @@ final class FuzzyController extends ViewController
 	}
 
 
+	/**
+	 * the first three qids of $rows, and how many more; a NULL qid shows empty, as implode() gave it
+	 * @param array<array{qid: string|null, ...}> $rows
+	 */
+	private static function qidList(array $rows): string {
+		$names = [];
+		foreach ($rows as $row) {
+			$names[] = $row['qid'] ?? '';
+		}
+		$more = count($names) - 3;
+		return implode(', ', array_slice($names, 0, 3)) . ($more > 0 ? " (+{$more} more)" : '');
+	}
+
 	// warn when the hashes of a fresh learn were already learned by other mails
 	private function warnShared(FuzzyService $fuzzy, int $mailLogId, int $flag): void {
 		try {
 			$row = $fuzzy->getByMailLogId($mailLogId);
-			$others = $row ? ($fuzzy->sharedWith([$row])[(int) $row->getKey()] ?? []) : [];
-
-			/** @param array<array{qid: string|null, ...}> $rows */
-			$qids = function (array $rows): string {
-				$names = array_column($rows, 'qid');
-				$more = count($names) - 3;
-				return implode(', ', array_slice($names, 0, 3)) . ($more > 0 ? " (+{$more} more)" : '');
-			};
+			$others = $row ? ($fuzzy->sharedWith([$row])[$row->id] ?? []) : [];
+			$qids = self::qidList(...);
 
 			// a near (not identical) match on arrival: different digests, so not shared
 			$sharedIds = array_column($others, 'id');
