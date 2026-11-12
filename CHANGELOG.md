@@ -4,7 +4,12 @@
 
 ### 2026-11-12
 - PHP 8.4 is the default now in INSTALL.md
+- PHP 8.5 support
 - QA gate: PHPStan level 10 and Psalm level 1
+
+### 2026-11-10
+- Fix: map hits lost for symbols named with digits only
+- Fix: a mail without an action caused an error on mail lists and detail
 
 ### 2026-11-09
 - Added .env and config validators that fail application early on boot if required
@@ -16,6 +21,9 @@
   marked not stored instead of staying stored and logging a warning on every run
 - Go to message: accepts Postfix long queue IDs (letters and digits, 6 to 30 characters)
 - Docs: enable Postfix long queue IDs (`enable_long_queue_ids = yes`)
+
+### 2026-11-08
+- Fix: Rspamd stats on an unset `RSPAMD_CONTROLLER_PASS` or a non-JSON reply
 
 ### 2026-11-07
 - LDAP: an attribute with options (`LDAP_SN_ATTR="sn;lang-en"`) is read as such. The options
@@ -32,6 +40,7 @@
 - Mail preview: a mail's `<link>` and `<meta>` are made inert. CSP does not cover resource
   hints: a `<link rel="preconnect">` made the browser resolve the sender's hostname as soon
   as the preview opened (a DNS-level read receipt)
+- Add COOP and CORP headers
 
 ### 2026-11-04
 - Add Content-Security-Policy and Permissions-Policy headers
@@ -47,8 +56,15 @@
 
 ### 2026-10-31
 - Read a stored mail only from a file under QUARANTINE_DIR (get_mail, mail view, fuzzy learn, as release)
+- Discard viruses even from whitelisted senders (`force_actions.conf`, Rspamd 4.2.3+)
+
+### 2026-10-30
+- Importer: decode unencoded 8-bit headers with the declared charset, then `$mail_fallback_charset`
 
 ### 2026-10-29
+- End sessions on account, email or provider change; LDAP/OIDC admin status follows `*_ADMINS` per request
+- Login as rotates the session id
+- Database session time zone follows PHP's
 - CI: rspamd import integration tests
 - QA: rspamd metadata export -> importer end-to-end test (rspamd:4 + MariaDB via Podman)
 - Login throttle: a successful login no longer resets the failure counter
@@ -59,7 +75,8 @@
 - CI: add daily composer audit workflow
 - CI: add Opengrep job with signature-verified binary
 - Add Opengrep checks
-- Fix normalizeToUtf8 charset fallback
+- Fix normalizeToUtf8 charset fallback; new `$mail_fallback_charset`
+- Add `OPENIDC_TRUSTED_HOSTS`
 - Add psalm, phpstan checks
 
 ### 2026-10-27
@@ -71,6 +88,7 @@
 ### 2026-10-26
 - Reports: add reports by month
 - Reports: bar chart of total, stored and size per day on date/day
+- Reports: hostname and GeoIP country in the top IP report
 - Reports: hide Hostname column when dns_resolv is off
 - Fuzzy: each hit count links to the mails that hit the learned mail.
   Run `php bin/cli.php db:migrate` (or `db:migrate_mail_log_fuzzy_hits_mails`) to create
@@ -81,6 +99,7 @@
 
 ### 2026-10-20
 - Add sort by last hit in Fuzzy
+- Mail detail: open DSN report parts as text
 - Add quick filters for week and month in search
 - Top Viruses report (admin): the virus names of the search's mails today,
   yesterday, in the last 7 and the last 31 days, with antivirus scan failures listed apart.

@@ -3,7 +3,8 @@ Rqwatch 2.x+ contains updates to the database schema.
 
 **Upgrade is only supported from 1.8.4 and 2.x**.
 
-PHP 8.4 is now the default PHP version.
+PHP 8.4 is now the default PHP version; 8.3 and 8.5 are also supported.\
+The documented MariaDB version is now 10.6 or later.
 
 # Upgrade
 
@@ -13,13 +14,14 @@ PHP 8.4 is now the default PHP version.
   ```
   ./bin/cli.php db:migrate
   ```
-  This applies two new migrations:
+  This applies three new migrations:
   - `Map Hits`: a column on `custom_map_config` and two new tables. It is instant.
     It also links the virus notification skip map (`$notification_skip_virus_map`) to the
     symbol `RQWATCH_VIRUS_NO_NOTIFY`.
   - `Mail Log Viruses`: a new table `mail_log_viruses`, filled from the stored symbols of
     past virus mails in batches (about 10-15 seconds for ~32k virus mails). `mail_logs`
     is not altered. Re-running it fills only the mails that are missing.
+  - `Mail Log Fuzzy Hits Mails`: a new table `mail_log_fuzzy_hits`, linking existing fuzzy hits to their mails.
 - Link your custom maps to the Rspamd symbols that read them, in the new **Rspamd Symbols**
   field of each custom map definition. List every rule that reads the map file, including
   composites built on its symbol. Built-in maps use `$map_symbols`; the defaults match `contrib/`.
@@ -31,11 +33,14 @@ PHP 8.4 is now the default PHP version.
   About 5 ms per mail, so a full log of ~860k mails takes 70-90 minutes. Run it in `tmux`
   or `screen`; it is safe next to live imports and can be re-run. Run it again after
   changing map symbols.
+- Rspamd: the virus rule in `force_actions.conf` now has `priority = "high"`, so viruses are
+  discarded even from whitelisted senders (Rspamd 4.2.3+). See [Basic Maps](https://github.com/bilias/rqwatch/blob/master/docs/CONFIGURE.md#basic-maps).
 - Apache: replace the `<Location /api>` and `<Location /maps>` blocks with the `<Directory>`
   blocks from [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
   They match the directories rather than the URL, so they also apply under a subdirectory (`WEB_BASE`).
 - Apache: add `Header set X-Content-Type-Options "nosniff"`. See
   [contrib/apache-rqwatch.conf](https://github.com/bilias/rqwatch/blob/master/contrib/apache-rqwatch.conf).
+- OIDC: list in `OPENIDC_TRUSTED_HOSTS` any other host names users browse Rqwatch with.
 - Postfix: enable long queue IDs, which do not repeat. See
   [Postfix](https://github.com/bilias/rqwatch/blob/master/docs/INSTALL.md#postfix).
   ```
@@ -85,6 +90,11 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 - Custom maps have a **Rspamd Symbols** field; built-in maps use `$map_symbols`.
 - `$local_symbol_patterns`, `$whitelist_symbol_patterns` and `$blacklist_symbol_patterns`
   set which symbols are shown as `[map]`, whitelisted and blacklisted.
+- Search filters: Map hit, Local symbol, Fuzzy hit and Virus; week and month quick filters.
+- Fuzzy: each hit count links to its mails; sort by last hit.
+- Reports: by month, a daily bar chart, hostname and GeoIP country in the top IP report.
+- Mail detail: homoglyphs marked in Subject and MIME From; embedded (cid:) images shown;
+  DSN report parts open as text.
 
 # Behaviour changes
 - Added .env and config validators that fail application early on boot if required
@@ -102,7 +112,7 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 - A stored mail is read (mail page, `get_mail` API, fuzzy learn) only when its path is a file
   under `QUARANTINE_DIR`, as release and quarantine cleanup already required. If you moved the
   quarantine, see [QUARANTINE_DIR](https://github.com/bilias/rqwatch/blob/master/docs/CONFIGURE.md#quarantine-settings).
-- Add Content-Security-Policy and Permissions-Policy headers
+- Add Content-Security-Policy, Permissions-Policy, COOP and CORP headers
 - Mail preview: remote images, fonts and stylesheets in quarantined HTML are blocked
 - CSP: script-src 'self', no inline script or event handler runs
 - CSP: style-src 'self'; inline styles are allowed only on the mail preview pages (mail view,
@@ -111,6 +121,9 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 - Go to message accepts Postfix long queue IDs (letters and digits, 6 to 30 characters)
 - `cron:quarantine -d` marks a mail of this server not stored when its quarantine directory
   is already gone, instead of keeping it stored and logging a warning on every run
+- Sessions end when the account, its email or its login provider changes. LDAP/OIDC admin
+  status follows `*_ADMINS` on every request. Login as rotates the session id.
+- The database session time zone follows PHP's.
 
 # Fixes
 - Quarantine: Postfix reuses short queue IDs, and a second mail with the same queue ID on
@@ -121,9 +134,15 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 - Long values without spaces (e.g. a regexp) wrap inside Active Filters
 - SQL update files: `18-db-update-2026-10-12` now creates the virus notification skip map
   (`rqwatch_virus_no_notify`), which only `db:migrate` created in 2.1.2
+- Mail text and 8-bit headers in a missing or wrong charset are decoded instead of shown as `?`.
+  The new `$mail_fallback_charset` (default `Windows-1252`) sets the charset tried last.
+- Map hits were lost for symbols named with digits only
+- A mail without an action caused an error on mail lists and detail
+- Rspamd stats failed on an unset `RSPAMD_CONTROLLER_PASS` or a non-JSON reply
 
 # Changes
 - multimap.conf: drop `prefilter` (ignored since rspamd 3.3)
 - Require Symfony 7.4 (LTS) for all components
+- PHP 8.5 support
 
-**Full Changelog**: https://github.com/bilias/rqwatch/compare/v2.1.2...v2.1.3
+**Full Changelog**: https://github.com/bilias/rqwatch/compare/v2.1.2...v2.2.0
