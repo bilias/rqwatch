@@ -12,7 +12,14 @@ concurrency:
 on:
   push:
     branches: [master]
+    paths-ignore:
+      - 'docs/**'
+      - 'contrib/**'
+    branches: [master]
   pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'contrib/**'
   schedule:
     # audit, daily: new advisories appear without code changes
     - cron: '23 5 * * *'
