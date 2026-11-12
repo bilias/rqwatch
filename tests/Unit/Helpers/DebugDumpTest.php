@@ -12,7 +12,8 @@
  Helper::log_to_files(), the importer's $log_to_files debug dump: $_SERVER
  and the request headers as "key => value", a string as is and anything
  else as JSON ($_SERVER['argv'] is a list, which used to be written as
- "Array" with a warning), credentials redacted.
+ "Array" with a warning), credentials redacted. A numeric header or
+ variable name, which PHP stores as an int key, is written like any other.
 */
 
 namespace Tests\Unit\Helpers;
@@ -67,5 +68,15 @@ final class DebugDumpTest extends UnitTestCase
 		$this->assertStringContainsString("TEST_DUMP_NULL => null\r\n", $server);
 		$this->assertStringNotContainsString('secret', $server);
 		$this->assertSame("Host => mx1.example\r\n", (string) file_get_contents($this->dir . '/web_headers'));
+	}
+
+	public function testNumericNames(): void {
+		$_SERVER['123'] = 'numeric variable';
+		$this->assertArrayHasKey(123, $_SERVER, 'stored as an int key');
+
+		$this->assertTrue(Helper::log_to_files($this->dir, '[]', ['123' => 'numeric header'], 'Subject: x', ['subject' => 'x']));
+
+		$this->assertStringContainsString("123 => numeric variable\r\n", (string) file_get_contents($this->dir . '/server'));
+		$this->assertSame("123 => numeric header\r\n", (string) file_get_contents($this->dir . '/web_headers'));
 	}
 }

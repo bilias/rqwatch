@@ -535,7 +535,7 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		try {
 			$dir = Config::getString('log_to_files_dir');
 			if (Config::getBool('log_to_files') && $dir !== null && $dir !== '') {
-				/** @var array<string, string> $web_headers name => value: always an array since PHP 7.3 */
+				/** @var array<array-key, string> $web_headers name => value: always an array since PHP 7.3; a numeric name is an int key */
 				$web_headers = getallheaders();
 				Helper::log_to_files($dir, $symbols, $web_headers, $stringHeaders, $arrayHeaders);
 			}

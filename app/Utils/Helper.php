@@ -673,7 +673,7 @@ final class Helper {
 
 	/**
 	 * @param string|false $symbols json_encode() of the mail's symbols
-	 * @param array<string, string> $web_headers getallheaders()
+	 * @param array<array-key, string> $web_headers getallheaders(); a numeric header name is an int key
 	 * @param array<string, string|array<array-key, string>> $arrayHeaders Parser::getHeaders()
 	 */
 	public static function log_to_files(string $dir, string|false $symbols, array $web_headers, string $stringHeaders, array $arrayHeaders): bool {
@@ -713,7 +713,10 @@ final class Helper {
 			return false;
 		}
 
-		foreach ($_SERVER as $key => $value) {
+		/** @var array<array-key, mixed> $server a numeric variable name is an int key */
+		$server = $_SERVER;
+		/** @var mixed $value */
+		foreach ($server as $key => $value) {
 			fwrite($fp_server, "$key => " . self::dumpValue($redact((string) $key, $value)) . "\r\n");
 		}
 		fclose($fp_server);

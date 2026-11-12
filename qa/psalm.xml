@@ -59,8 +59,6 @@
 			</errorLevel>
 		</InternalProperty>
 
-		<RedundantCast errorLevel="suppress"/>
-
 		<!-- Optional backends in Symfony RedisAdapter's return type; not installed -->
 		<UndefinedClass>
 			<errorLevel type="suppress">
