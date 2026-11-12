@@ -95,10 +95,10 @@ final class MailObject
 		$images = [];
 		$budget = self::EMBED_MAX_BYTES;
 		foreach ($this->parser->getAttachments() as $attachment) {
-			// false, not '', when the part has no Content-ID
-			$cid = (string) $attachment->getContentID();
+			/** @var string|false $cid false when the part has no Content-ID (the vendor docblock says string) */
+			$cid = $attachment->getContentID();
 			$type = strtolower(trim(explode(';', $attachment->getContentType())[0]));
-			if ($cid === '' || isset($images[$cid]) || !in_array($type, self::EMBED_TYPES, true)) {
+			if ($cid === false || $cid === '' || isset($images[$cid]) || !in_array($type, self::EMBED_TYPES, true)) {
 				continue;
 			}
 			$content = $attachment->getContent();

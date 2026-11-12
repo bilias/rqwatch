@@ -77,6 +77,19 @@ final class MailObjectTest extends UnitTestCase
 		$this->assertStringContainsString('cid:big@x', $html);
 	}
 
+	#[TestDox('An image part without Content-ID is not embedded, not even for cid:0')]
+	public function testNoContentId(): void {
+		$html = self::html([
+			'<img src="cid:0">',
+			'<img src="cid:a@x">',
+		], [
+			['', 'image/png', self::PNG],
+			['a@x', 'image/png', self::PNG],
+		]);
+		$this->assertStringContainsString('<img src="cid:0">', $html);
+		$this->assertStringContainsString('data:image/png;base64,' . base64_encode(self::PNG), $html);
+	}
+
 	#[TestDox('<link> and <meta> become inert elements in any case and layout; look-alikes and text stay')]
 	public function testInertLinkMeta(): void {
 		$cases = [
@@ -101,7 +114,8 @@ final class MailObjectTest extends UnitTestCase
 
 	/**
 	 * The HTML body MailObject makes of a multipart/related mail with $lines
-	 * as its HTML part and $parts (Content-ID, type, content) as base64 parts.
+	 * as its HTML part and $parts (Content-ID, type, content) as base64 parts;
+	 * an empty Content-ID leaves the header out.
 	 * @param list<string> $lines
 	 * @param list<array{0: string, 1: string, 2: string}> $parts
 	 */
@@ -112,7 +126,7 @@ final class MailObjectTest extends UnitTestCase
 			. '<html><body>' . implode("\r\n", $lines) . "</body></html>\r\n";
 		foreach ($parts as [$cid, $type, $content]) {
 			$mail .= "--B\r\nContent-Type: {$type}\r\nContent-Transfer-Encoding: base64\r\n"
-				. "Content-ID: <{$cid}>\r\nContent-Disposition: inline\r\n\r\n"
+				. ($cid !== '' ? "Content-ID: <{$cid}>\r\n" : '') . "Content-Disposition: inline\r\n\r\n"
 				. chunk_split(base64_encode($content)) . "\r\n";
 		}
 		$mail .= "--B--\r\n";
