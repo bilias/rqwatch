@@ -558,8 +558,8 @@ final class Helper {
 			}
 			foreach ($patterns as $pattern) {
 				foreach ($names as $name) {
-					if (fnmatch((string) $pattern, $name, FNM_CASEFOLD)) {
-						return (string) $pattern;
+					if (fnmatch($pattern, $name, FNM_CASEFOLD)) {
+						return $pattern;
 					}
 				}
 			}

@@ -1443,7 +1443,7 @@ final class MailLogController extends ViewController
 	private function getQuarantineDayTotals(MailLogService $service, iterable $days): array {
 		$keys = [];
 		foreach ($days as $day) {
-			$keys[] = (string) $day->day;
+			$keys[] = $day->day;
 		}
 
 		if ($keys === []) {
@@ -1466,7 +1466,7 @@ final class MailLogController extends ViewController
 
 		$keys = [];
 		foreach ($months as $month) {
-			$keys[] = (string) $month->month;
+			$keys[] = $month->month;
 		}
 
 		if ($keys === []) {

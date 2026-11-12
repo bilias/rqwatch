@@ -104,7 +104,7 @@ final class AuthMiddleware
 			return false;
 		}
 
-		return SessionManager::getInt($session, 'session_version') === (int) $current;
+		return SessionManager::getInt($session, 'session_version') === $current;
 	}
 
 }

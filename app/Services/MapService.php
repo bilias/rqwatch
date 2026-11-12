@@ -701,7 +701,7 @@ final class MapService
 		$last_update = date('Y-m-d H:i:s');
 
 		foreach (array_unique($map_names) as $map_name) {
-			if (!$this->updateMapActivityLog((string) $map_name, $last_update)) {
+			if (!$this->updateMapActivityLog($map_name, $last_update)) {
 				$this->logger->warning(
 					"updateMapActivityLogs: cannot update MapActivityLog for '{$map_name}'"
 				);

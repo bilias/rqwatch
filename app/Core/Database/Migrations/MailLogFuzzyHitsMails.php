@@ -122,7 +122,7 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 
 		$done = 0;
 		foreach ($rows as $row) {
-			$hashes = array_values(array_filter((array) json_decode((string) $row->hashes, true), 'is_string'));
+			$hashes = array_values(array_filter((array) json_decode($row->hashes, true), 'is_string'));
 			$inserted = $hashes === [] ? 0 : $this->linkRecord($row, $hashes, $batch, $sleep);
 
 			$done++;
@@ -142,8 +142,8 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 	private function linkRecord(object $row, array $hashes, int $batch, int $sleep): int {
 		$db = $this->capsule->getConnection();
 
-		$first = new DateTimeImmutable(substr((string) $row->created_at, 0, 10));
-		$last = new DateTimeImmutable(substr((string) $row->last_hit_at, 0, 10));
+		$first = new DateTimeImmutable(substr($row->created_at, 0, 10));
+		$last = new DateTimeImmutable(substr($row->last_hit_at, 0, 10));
 		$inserted = 0;
 
 		for ($from = $first; $from <= $last; $from = $from->modify("+{$batch} days")) {
@@ -167,7 +167,7 @@ final class MailLogFuzzyHitsMails extends AbstractMigration {
 			// ignore only matters for rows the importer wrote meanwhile
 			foreach (array_chunk($ids, self::INSERT_CHUNK) as $chunk) {
 				$inserted += $db->table(AppConfig::MAIL_LOG_FUZZY_HITS_TABLE)->insertOrIgnore(
-					array_map(fn (int $id) => ['fuzzy_id' => (int) $row->id, 'mail_log_id' => $id], $chunk)
+					array_map(fn (int $id) => ['fuzzy_id' => $row->id, 'mail_log_id' => $id], $chunk)
 				);
 			}
 

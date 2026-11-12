@@ -698,7 +698,7 @@ final class MapHitService
 		$where = [];
 		if (isset($outcome['action'])) {
 			$where[] = 'ml.action = ?';
-			$bindings[] = (string) $outcome['action'];
+			$bindings[] = $outcome['action'];
 		}
 		if (!empty($outcome['released'])) {
 			$where[] = 'ml.released = 1';

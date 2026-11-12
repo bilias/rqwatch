@@ -94,8 +94,8 @@ final class ChartBuilder {
 		foreach ($days as $day) {
 			 $labels[] = $day->day;
 			 $data[] = $day->cnt;
-			 $links[] = $dayUrl !== null ? $dayUrl((string) $day->day) : null;
-			 $ratios[] = self::storedRatio((int) $day->cnt, $totals[(string) $day->day] ?? 0);
+			 $links[] = $dayUrl !== null ? $dayUrl($day->day) : null;
+			 $ratios[] = self::storedRatio($day->cnt, $totals[$day->day] ?? 0);
 		}
 
 		$chart->setData([
@@ -150,8 +150,8 @@ final class ChartBuilder {
 		foreach ($months as $month) {
 			 $labels[] = $month->month;
 			 $data[] = $month->cnt;
-			 $links[] = $monthUrl !== null ? $monthUrl((string) $month->month) : null;
-			 $ratios[] = self::storedRatio((int) $month->cnt, $totals[(string) $month->month] ?? 0);
+			 $links[] = $monthUrl !== null ? $monthUrl($month->month) : null;
+			 $ratios[] = self::storedRatio($month->cnt, $totals[$month->month] ?? 0);
 		}
 
 		$chart->setData([
@@ -199,7 +199,7 @@ final class ChartBuilder {
 				[
 					'label' => 'Mails hit',
 					'data' => array_values($days),
-					'links' => array_map(fn ($d): string => $dayUrl((string) $d), array_keys($days)),
+					'links' => array_map(fn ($d): string => $dayUrl($d), array_keys($days)),
 					'backgroundColor' => [
 						MailCategory::TOTAL->color(),
 					],
