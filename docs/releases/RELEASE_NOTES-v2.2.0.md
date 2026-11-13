@@ -63,11 +63,9 @@ The documented MariaDB version is now 10.6 or later.
   UPDATE mail_logs SET mail_stored = 0 WHERE id IN (...);
   DELETE FROM mail_log_tokens WHERE mail_log_id IN (...);
   ```
-
 ## From 1.8.x
-Follow **From 1.8.x** in the
-[2.1.2 release notes](https://github.com/bilias/rqwatch/blob/master/docs/releases/RELEASE_NOTES-v2.1.2.md):
-the same `db:migrate` run also applies this release's migration.
+Follow [**From 1.8.x** in the 2.1.2 release notes](https://github.com/bilias/rqwatch/blob/master/docs/releases/RELEASE_NOTES-v2.1.2.md#from-18x).
+The same `db:migrate` run also applies to this release's migration.
 Then follow the steps of **From 2.x** above after `db:migrate`.
 
 # New Features
