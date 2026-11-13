@@ -379,6 +379,7 @@ final class Helper {
 				case 'rewrite subject':
 					return "subject";
 				case 'greylist':
+				case 'soft reject':
 					return "greylist";
 				case 'reject':
 					return "reject";
@@ -398,6 +399,9 @@ final class Helper {
 			switch ($action) {
 				case 'greylist':
 					return "greylisted";
+				// what rspamd's greylisting and ratelimit modules return
+				case 'soft reject':
+					return "temporarily rejected (greylisted or rate-limited)";
 				case 'reject':
 					return "rejected and notified sender";
 				case 'discard':
