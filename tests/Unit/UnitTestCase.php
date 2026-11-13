@@ -10,7 +10,8 @@
 
 /*
  Base for the unit tests: an App with a recording logger and no database,
- cache or DNS, and a config holding only what each test sets.
+ cache or DNS, and a config holding only what each test sets. setEnv()
+ changes a .env value for one test.
 */
 
 namespace Tests\Unit;
@@ -26,6 +27,9 @@ abstract class UnitTestCase extends TestCase
 {
 	protected RecordingLogger $log;
 
+	/** @var array<non-empty-string, string|null> .env values setEnv() changed, as they were */
+	private array $envSaved = [];
+
 	#[\Override]
 	protected function setUp(): void {
 		$this->log = new RecordingLogger();
@@ -37,8 +41,31 @@ abstract class UnitTestCase extends TestCase
 
 	#[\Override]
 	protected function tearDown(): void {
+		foreach ($this->envSaved as $key => $value) {
+			if ($value === null) {
+				unset($_ENV[$key]);
+			} else {
+				$_ENV[$key] = $value;
+			}
+		}
+		$this->envSaved = [];
 		App::reset();
 		Config::init([]);
+	}
+
+	/**
+	 * a .env value for this test only (null: unset), put back in tearDown()
+	 * @param non-empty-string $key
+	 */
+	protected function setEnv(string $key, ?string $value): void {
+		if (!array_key_exists($key, $this->envSaved)) {
+			$this->envSaved[$key] = Helper::env_string($key);
+		}
+		if ($value === null) {
+			unset($_ENV[$key]);
+		} else {
+			$_ENV[$key] = $value;
+		}
 	}
 
 	protected function assertLogged(string $needle): void {

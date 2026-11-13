@@ -11,7 +11,9 @@
 /*
  .env accessors: a set value is returned as is (an empty one too),
  an unset or non-string one is null, or an exception naming the key.
- The server alias must also not be blank.
+ The server alias must also not be blank. The mail API credentials count
+ as set only when both are, and the password is not .env-example's
+ CHANGE_ME_ placeholder.
 */
 
 namespace Tests\Unit\Helpers;
@@ -90,5 +92,24 @@ final class EnvTest extends UnitTestCase
 		$_ENV['MY_API_SERVER_ALIAS'] = $alias;
 		$this->expectExceptionMessage('MY_API_SERVER_ALIAS is empty in .env');
 		Helper::serverAlias();
+	}
+
+	/** @return array<string, array{string|null, string|null, bool}> user, password, set */
+	public static function mailApiCases(): array {
+		return [
+			'both set' => ['rqwatch', 's3cret-pass', true],
+			'no user' => [null, 's3cret-pass', false],
+			'empty user' => ['', 's3cret-pass', false],
+			'no password' => ['rqwatch', null, false],
+			'empty password' => ['rqwatch', '', false],
+			'example placeholder' => ['rqwatch', 'CHANGE_ME_8788P7pYn5PhwoICqhbvpyjIRSCd7vA59B', false],
+		];
+	}
+
+	#[DataProvider('mailApiCases')]
+	public function testMailApiCredentialsSet(?string $user, ?string $pass, bool $set): void {
+		$this->setEnv('MAIL_API_USER', $user);
+		$this->setEnv('MAIL_API_PASS', $pass);
+		$this->assertSame($set, Helper::mailApiCredentialsSet());
 	}
 }

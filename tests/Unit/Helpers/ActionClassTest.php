@@ -11,8 +11,10 @@
 /*
  What a mail's action and symbols show: getDelivery()'s delivery text,
  get_row_class()'s row colour (a whitelist wins unless rspamd forced a
- reject or discard) and get_action_details()'s whitelist, blacklist or
- map label. The map symbols are set directly, without a database.
+ reject or discard), get_action_details()'s whitelist, blacklist or map
+ label, get_symbol_class() for one symbol or detail line, the symbols
+ sorted by score toward the mail's score, and the fuzzy hits with their
+ labels. The map symbols are set directly, without a database.
 */
 
 namespace Tests\Unit\Helpers;
@@ -32,7 +34,7 @@ final class ActionClassTest extends UnitTestCase
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
-		self::mappedSymbols(['RQWATCH_CUSTOM_MAP' => true]);
+		self::mappedSymbols(['CUSTOM_SENDERS' => true]);
 	}
 
 	#[\Override]
@@ -96,7 +98,7 @@ final class ActionClassTest extends UnitTestCase
 			'whitelist' => [self::WL, 'whitelist'],
 			'blacklist' => [self::BL, 'blacklist'],
 			'whitelist before blacklist' => [[...self::BL, ...self::WL], 'whitelist'],
-			'map symbol' => [[['name' => 'RQWATCH_CUSTOM_MAP', 'score' => 0.0]], 'rqwatch_map'],
+			'map symbol' => [[['name' => 'CUSTOM_SENDERS', 'score' => 0.0]], 'rqwatch_map'],
 			'local symbol pattern' => [[['name' => 'LOCAL_RULE', 'score' => 0.0]], 'rqwatch_map'],
 		];
 	}
@@ -105,6 +107,54 @@ final class ActionClassTest extends UnitTestCase
 	#[DataProvider('actionDetailCases')]
 	public function testGetActionDetails(?array $symbols, string $expected): void {
 		$this->assertSame($expected, Helper::get_action_details($symbols));
+	}
+
+	/** @return array<string, array{string|null, string}> */
+	public static function symbolClassCases(): array {
+		return [
+			'fuzzy' => ['RQWATCH_FUZZY_DENIED', 'rqwatch_fuzzy'],
+			'fuzzy detail line' => ['RQWATCH_FUZZY_WHITE:5.0:abc', 'rqwatch_fuzzy_white'],
+			'whitelist' => ['rqwatch_ip_whitelist', 'whitelist'],
+			'whitelist detail line' => ['rqwatch_ip_whitelist:-10.00:192.0.2.1', 'whitelist'],
+			'blacklist' => ['RQWATCH_MIME_FROM_BL', 'blacklist'],
+			'map symbol detail line' => ['CUSTOM_SENDERS:0.00:x', 'rqwatch_map'],
+			'local symbol pattern' => ['LOCAL_RULE', 'rqwatch_map'],
+			'other' => ['BAYES_SPAM:5.10:99%', ''],
+			'empty' => ['', ''],
+			'null' => [null, ''],
+		];
+	}
+
+	#[DataProvider('symbolClassCases')]
+	public function testGetSymbolClass(?string $symbol, string $expected): void {
+		$this->assertSame($expected, Helper::get_symbol_class($symbol));
+	}
+
+	// the symbols that pushed the mail toward its score come first
+	public function testGetScores(): void {
+		$symbols = [
+			['name' => 'A', 'score' => 1.0],
+			['name' => 'B', 'score' => 5.0],
+			['name' => 'C', 'score' => -2.0],
+		];
+		$this->assertSame(['B', 'A', 'C'], array_column(Helper::get_scores($symbols, 10.0), 'name'));
+		$this->assertSame(['C', 'A', 'B'], array_column(Helper::get_scores($symbols, -3.0), 'name'));
+		$this->assertSame(['C', 'A', 'B'], array_column(Helper::get_scores($symbols, 0.0), 'name'));
+		$this->assertSame([], Helper::get_scores([], 1.0));
+	}
+
+	public function testGetFuzzyHits(): void {
+		$symbols = [
+			['name' => 'RQWATCH_FUZZY_DENIED'],
+			['name' => 'BAYES_SPAM'],
+			['name' => 'rqwatch_fuzzy_white'],
+		];
+		// labels are keyed by the upper-case name; an unlabelled hit shows its name
+		$this->assertSame([
+			['label' => 'RQWATCH_FUZZY_DENIED', 'class' => 'rqwatch_fuzzy'],
+			['label' => 'Not spam', 'class' => 'rqwatch_fuzzy_white'],
+		], Helper::getFuzzyHits($symbols, ['RQWATCH_FUZZY_WHITE' => 'Not spam']));
+		$this->assertSame([], Helper::getFuzzyHits([], []));
 	}
 
 	/** @param array<string, true>|null $set null: read again on next use */
