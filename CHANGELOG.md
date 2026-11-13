@@ -19,6 +19,7 @@
   same ID overwrote the first one's file, so the first mail showed the second one
 - cron:quarantine: a mail of this server whose quarantine directory is already gone is
   marked not stored instead of staying stored and logging a warning on every run
+- cron:quarantine -p: remove mail directories past retention that no row names
 - Go to message: accepts Postfix long queue IDs (letters and digits, 6 to 30 characters)
 - Docs: enable Postfix long queue IDs (`enable_long_queue_ids = yes`)
 

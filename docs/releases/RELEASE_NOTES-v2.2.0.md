@@ -123,6 +123,7 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
 - Go to message accepts Postfix long queue IDs (letters and digits, 6 to 30 characters)
 - `cron:quarantine -d` marks a mail of this server not stored when its quarantine directory
   is already gone, instead of keeping it stored and logging a warning on every run
+- `cron:quarantine -d -p` also removes mail directories past `QUARANTINE_DAYS` that no mail row names
 - Sessions end when the account, its email or its login provider changes. LDAP/OIDC admin
   status follows `*_ADMINS` on every request. Login as rotates the session id.
 - The database session time zone follows PHP's.

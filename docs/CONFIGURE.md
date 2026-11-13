@@ -1119,6 +1119,9 @@ Available commands for the "cron" namespace:
   directory (.env `QUARANTINE_DIR`) permanently. However entries remain in the database.
   A mail of this server whose quarantine directory is already gone is marked as
   not stored (logged as `already gone`).
+  With `-p`, mail directories under a date past `QUARANTINE_DAYS` that no database
+  row names are removed too (only with `-d`; `-s` lists them), then empty date
+  directories are pruned.
     ```
     ./bin/cli.php cron:quarantine -h
 
