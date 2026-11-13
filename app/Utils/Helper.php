@@ -910,22 +910,42 @@ final class Helper {
 	// 	return [];
 	// }
 
+	/*
+	 A value from the mail itself (Subject, From, To, the virus name) on one
+	 line of a plain-text notification: a decoded header can hold line breaks
+	 (=0A in an encoded word), which would let the sender add lines of their
+	 own, such as a fake release link. Controls and line or paragraph
+	 separators become a space.
+	*/
+	private static function oneLine(?string $value): string {
+		if ($value === null) {
+			return '';
+		}
+		return preg_replace('/[\p{Cc}\p{Zl}\p{Zp}]+/u', ' ', $value)
+			// not valid UTF-8: the ASCII controls at least
+			?? (string) preg_replace('/[\x00-\x1F\x7F]+/', ' ', $value);
+	}
+
 	/** @param ReleaseMailVars $ar */
 	public static function getReleaseText(array $ar): string {
+		$from = self::oneLine($ar['mime_from']);
+		$to = self::oneLine($ar['rcpt_to']);
+		$subject = self::oneLine($ar['subject']);
+		$virus = self::oneLine($ar['virus_name']);
 		$ret = "The following mail has been released from quarantine storage
 and attached to this mail.
 
 Please be very carefull before opening any attachment the original mail might have!
 
 Date: {$ar['created_at']}
-From: {$ar['mime_from']}
-To: {$ar['rcpt_to']}
-Subject: {$ar['subject']}
+From: {$from}
+To: {$to}
+Subject: {$subject}
 Mail Queue ID: {$ar['qid']}
 Spam Score: {$ar['score']}
 Virus Detected:";
 		if (!empty($ar['has_virus'])) {
-			$ret .= rtrim(" Yes {$ar['virus_name']}");
+			$ret .= rtrim(" Yes {$virus}");
 		} else {
 			$ret .= " No";
 		}
@@ -939,18 +959,22 @@ Action: {$ar['action']}
 
 	/** @param NotifyMailVars $ar */
 	public static function getNotifyText(array $ar): string {
+		$from = self::oneLine($ar['mime_from']);
+		$to = self::oneLine($ar['rcpt_to']);
+		$subject = self::oneLine($ar['subject']);
+		$virus = self::oneLine($ar['virus_name']);
 		$ret = "The following mail has been saved in our quarantine storage
 because our system has detected it as being high scored spam or that it contains a virus.
 
 Date: {$ar['created_at']}
-From: {$ar['mime_from']}
-To: {$ar['rcpt_to']}
-Subject: {$ar['subject']}
+From: {$from}
+To: {$to}
+Subject: {$subject}
 Mail Queue ID: {$ar['qid']}
 Spam Score: {$ar['score']}
 Virus Detected:";
 		if (!empty($ar['has_virus'])) {
-			$ret .= rtrim(" Yes {$ar['virus_name']}");
+			$ret .= rtrim(" Yes {$virus}");
 		} else {
 			$ret .= " No";
 		}
@@ -970,19 +994,24 @@ You can view mail details and optionally release it from quarantine by clicking 
 
 	/** @param AdminNotifyMailVars $ar */
 	public static function getAdminNotifyText(array $ar): string {
+		$mailFrom = self::oneLine($ar['mail_from']);
+		$from = self::oneLine($ar['mime_from']);
+		$to = self::oneLine($ar['rcpt_to']);
+		$subject = self::oneLine($ar['subject']);
+		$virus = self::oneLine($ar['virus_name']);
 		$ret = "Admin notification: the following mail has been saved in quarantine.
 
 Date: {$ar['created_at']}
 Server: {$ar['server']}
-MAIL From: {$ar['mail_from']}
-From: {$ar['mime_from']}
-To: {$ar['rcpt_to']}
-Subject: {$ar['subject']}
+MAIL From: {$mailFrom}
+From: {$from}
+To: {$to}
+Subject: {$subject}
 Mail Queue ID: {$ar['qid']}
 Spam Score: {$ar['score']}
 Virus Detected:";
 		if (!empty($ar['has_virus'])) {
-			$ret .= rtrim(" Yes {$ar['virus_name']}");
+			$ret .= rtrim(" Yes {$virus}");
 		} else {
 			$ret .= " No";
 		}

@@ -140,6 +140,8 @@ Then follow the steps of **From 2.x** above after `db:migrate`.
   tried last.
 - A mail without an action caused an error on mail lists and detail
 - Rspamd stats failed on an unset `RSPAMD_CONTROLLER_PASS` or a non-JSON reply
+- Notification mails: a line break in the Subject, From or To (an encoded header) could add
+  lines of the sender's own, such as a fake release link, to the plain-text part
 
 # Changes
 - multimap.conf: drop `prefilter` (ignored since rspamd 3.3)

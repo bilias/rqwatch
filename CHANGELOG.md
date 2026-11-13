@@ -2,6 +2,10 @@
 
 ## Master Dev Branch
 
+### 2026-11-13
+- Notification mails: a line break in the Subject, From or To (an encoded header) could add
+  lines of the sender's own, such as a fake release link, to the plain-text part
+
 ### 2026-11-12
 - PHP 8.4 is the default now in INSTALL.md
 - PHP 8.5 support
