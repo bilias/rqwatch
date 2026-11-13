@@ -11,12 +11,14 @@
 /*
  Quarantine files: where store_raw_mail() writes, what deleteDirectory()
  refuses to remove, and which paths quarantinedFile() accepts. Runs in a
- temporary directory.
+ temporary directory. And stripBasePath(): the stored path shown relative
+ to QUARANTINE_DIR, unchanged (so hidden) when outside it.
 */
 
 namespace Tests\Unit\Helpers;
 
 use App\Utils\Helper;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RequiresFunction;
 use RuntimeException;
 use Tests\Unit\UnitTestCase;
@@ -234,5 +236,22 @@ final class QuarantineFileTest extends UnitTestCase
 		$this->assertSame(realpath($file), Helper::quarantinedFile($viaLink));
 		$_ENV['QUARANTINE_DIR'] = $this->q;
 		$this->assertSame(realpath($file), Helper::quarantinedFile($viaLink));
+	}
+
+	/** @return array<string, array{string, string, string}> */
+	public static function basePathCases(): array {
+		$mail = '/quarantine/2026-11-13/ABC123/mail.eml';
+		return [
+			'under the base' => ['/quarantine', $mail, '2026-11-13/ABC123/mail.eml'],
+			'base with a trailing slash' => ['/quarantine/', $mail, '2026-11-13/ABC123/mail.eml'],
+			'the base itself' => ['/quarantine', '/quarantine', ''],
+			'base is a prefix, not a directory' => ['/quarantine', '/quarantine2/2026-11-13/ABC123/mail.eml', '/quarantine2/2026-11-13/ABC123/mail.eml'],
+			'outside the base' => ['/quarantine', '/var/quarantine/x/mail.eml', '/var/quarantine/x/mail.eml'],
+		];
+	}
+
+	#[DataProvider('basePathCases')]
+	public function testStripBasePath(string $base, string $path, string $expected): void {
+		$this->assertSame($expected, Helper::stripBasePath($base, $path));
 	}
 }

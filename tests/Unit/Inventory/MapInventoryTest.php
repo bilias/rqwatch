@@ -14,7 +14,8 @@
  field names, one of the map form classes and a list of roles, or
  getMapConfigs() throws; it returns the configs it checked. An unknown
  field definition throws too. And the IP or CIDR check of the ip map
- fields: host bits clear, with a suggestion.
+ fields: host bits clear, with a suggestion, and the canonical form
+ MapIpForm stores.
 */
 
 namespace Tests\Unit\Inventory;
@@ -134,6 +135,25 @@ final class MapInventoryTest extends UnitTestCase
 			$messages[] = (string) $violation->getMessage();
 		}
 		$this->assertSame($message === null ? [] : [$message], $messages);
+	}
+
+	/** @return array<string, array{string, string}> */
+	public static function canonicalCases(): array {
+		return [
+			'IPv4' => ['192.0.2.1', '192.0.2.1'],
+			'IPv4 network' => ['192.0.2.0/24', '192.0.2.0/24'],
+			'IPv6 compressed, lowercased' => ['2001:0DB8:0:0::1', '2001:db8::1'],
+			'IPv6 network, prefix kept' => ['2001:0DB8:0000::/32', '2001:db8::/32'],
+			'IPv4-mapped IPv6' => ['::FFFF:192.0.2.1', '::ffff:192.0.2.1'],
+			'not an IP' => ['example.org', 'example.org'],
+			'invalid IPv4' => ['192.0.2.300', '192.0.2.300'],
+			'empty' => ['', ''],
+		];
+	}
+
+	#[DataProvider('canonicalCases')]
+	public function testCanonicalIpOrCidr(string $value, string $expected): void {
+		$this->assertSame($expected, MapInventory::canonicalIpOrCidr($value));
 	}
 
 	/** @param array<string, array<string, mixed>> $configs */

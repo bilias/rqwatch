@@ -12,7 +12,8 @@
  AuthManager's user getters read the logged-in provider's own getters: DB,
  LDAP or OpenID Connect each answers what it has, and a getter the provider
  lacks gives the default. Each provider is built without its server, its
- properties set directly.
+ properties set directly. isExternalAdmin() reads LDAP_ADMINS or
+ OPENIDC_ADMINS from .env, case- and whitespace-insensitive.
 */
 
 namespace Tests\Unit\Auth;
@@ -22,11 +23,63 @@ use App\Core\Auth\AuthManager;
 use App\Core\Auth\DbAuth;
 use App\Core\Auth\LdapAuth;
 use App\Core\Auth\OpenIDConnectAuth;
+use App\Utils\Helper;
 use ReflectionProperty;
 use Tests\Unit\UnitTestCase;
 
 final class AuthManagerTest extends UnitTestCase
 {
+	private const array ADMIN_VARS = ['LDAP_ADMINS', 'OPENIDC_ADMINS'];
+
+	/** @var array<non-empty-string, string|null> */
+	private array $savedEnv = [];
+
+	#[\Override]
+	protected function setUp(): void {
+		parent::setUp();
+		foreach (self::ADMIN_VARS as $var) {
+			$this->savedEnv[$var] = Helper::env_string($var);
+			unset($_ENV[$var]);
+		}
+	}
+
+	#[\Override]
+	protected function tearDown(): void {
+		foreach ($this->savedEnv as $var => $value) {
+			if ($value === null) {
+				unset($_ENV[$var]);
+			} else {
+				$_ENV[$var] = $value;
+			}
+		}
+		parent::tearDown();
+	}
+
+	public function testIsExternalAdmin(): void {
+		$_ENV['LDAP_ADMINS'] = ' Alice , bob,';
+		$this->assertTrue(AuthManager::isExternalAdmin('LDAP', 'alice'));
+		$this->assertTrue(AuthManager::isExternalAdmin('LDAP', ' BOB '));
+		$this->assertFalse(AuthManager::isExternalAdmin('LDAP', 'carol'));
+		// each provider reads its own list
+		$this->assertFalse(AuthManager::isExternalAdmin('OPENIDC', 'alice'));
+		$_ENV['OPENIDC_ADMINS'] = 'carol';
+		$this->assertTrue(AuthManager::isExternalAdmin('OPENIDC', 'Carol'));
+		$this->assertFalse(AuthManager::isExternalAdmin('LDAP', 'carol'));
+	}
+
+	public function testIsExternalAdminUnsetOrEmpty(): void {
+		$this->assertFalse(AuthManager::isExternalAdmin('LDAP', 'alice'));
+		$_ENV['OPENIDC_ADMINS'] = '';
+		$this->assertFalse(AuthManager::isExternalAdmin('OPENIDC', 'alice'));
+	}
+
+	// DB users keep their stored is_admin
+	public function testIsExternalAdminOtherProvider(): void {
+		$_ENV['LDAP_ADMINS'] = 'alice';
+		$this->assertNull(AuthManager::isExternalAdmin('DB', 'alice'));
+		$this->assertNull(AuthManager::isExternalAdmin('ldap', 'alice'));
+	}
+
 	public function testDb(): void {
 		$db = new DbAuth('alice', 'unused');
 		self::set($db, ['authenticatedUser' => 'alice', 'is_admin' => true, 'email' => 'alice@example.org', 'user_id' => 7]);

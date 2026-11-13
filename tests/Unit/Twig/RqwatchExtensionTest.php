@@ -12,6 +12,8 @@
  The mark_homoglyphs filter (is_safe html, on the subject and From in the
  mail detail): escapes everything, marks non-Latin letters in words that
  mix scripts and every invisible format char (\p{Cf}), letter or not.
+ The linkify filter (is_safe html): escapes everything and links only
+ http(s) URLs. jsJson: JSON for a <script> block, no tag can close it.
 */
 
 namespace Tests\Unit\Twig;
@@ -68,6 +70,44 @@ final class RqwatchExtensionTest extends UnitTestCase
 		$out = RqwatchExtension::markHomoglyphs($text);
 		$rest = (string) preg_replace('#<mark class="homoglyph" title="(invisible )?U\+[0-9A-F]{4,6}">|</mark>#', '', $out);
 		$this->assertDoesNotMatchRegularExpression('/[<>"\']/', $rest, $out);
+	}
+
+	/** @return array<string, array{string, string}> */
+	public static function linkifyCases(): array {
+		$a = fn(string $url): string => '<a href="' . $url . '" target="_blank" rel="noopener noreferrer">' . $url . '</a>';
+		return [
+			'plain text escaped' => ['<b>"x" & \'y\'</b>', '&lt;b&gt;&quot;x&quot; &amp; &#039;y&#039;&lt;/b&gt;'],
+			'URL with a query' => ['see https://example.org/a?b=1&c=2 now', 'see ' . $a('https://example.org/a?b=1&amp;c=2') . ' now'],
+			'trailing punctuation kept out' => ['(https://example.org/x).', '(' . $a('https://example.org/x') . ').'],
+			'quote ends the URL' => ['"https://example.org/x"onmouseover=alert(1)', '&quot;' . $a('https://example.org/x') . '&quot;onmouseover=alert(1)'],
+			'tag ends the URL' => ['https://example.org/<script>', $a('https://example.org/') . '&lt;script&gt;'],
+			'scheme case-insensitive' => ['HTTP://Example.org', $a('HTTP://Example.org')],
+			'other schemes not linked' => ['javascript:alert(1) ftp://example.org', 'javascript:alert(1) ftp://example.org'],
+			'empty' => ['', ''],
+		];
+	}
+
+	#[DataProvider('linkifyCases')]
+	public function testLinkify(string $text, string $expected): void {
+		$this->assertSame($expected, RqwatchExtension::linkify($text));
+	}
+
+	public function testLinkifySameTab(): void {
+		$this->assertSame('<a href="https://example.org">https://example.org</a>', RqwatchExtension::linkify('https://example.org', false));
+	}
+
+	// the filter is is_safe html: apart from its own <a> tags, nothing comes out unescaped
+	#[DataProvider('escapeCases')]
+	public function testLinkifyOnlyItsOwnMarkupIsRaw(string $text): void {
+		$out = RqwatchExtension::linkify($text . ' https://example.org/"<x>\'');
+		$rest = (string) preg_replace('#<a href="[^"<>]*" target="_blank" rel="noopener noreferrer">|</a>#', '', $out);
+		$this->assertDoesNotMatchRegularExpression('/[<>"\']/', $rest, $out);
+	}
+
+	public function testJsJson(): void {
+		$this->assertSame('"\\u003C\\/script\\u003E\\u003Cb\\u003E"', RqwatchExtension::jsJson('</script><b>'));
+		$this->assertSame('{"a":[1,"x"]}', RqwatchExtension::jsJson(['a' => [1, 'x']]));
+		$this->assertSame('null', RqwatchExtension::jsJson(null));
 	}
 
 	public function testTruncate(): void {
