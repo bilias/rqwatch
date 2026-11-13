@@ -14,9 +14,21 @@ on:
     branches: [master]
     paths-ignore:
       - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+      - 'COPYRIGHT'
+      - 'contrib/cron'
+      - 'contrib/maps-htaccess'
+      - 'contrib/updates/**'
   pull_request:
     paths-ignore:
       - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+      - 'COPYRIGHT'
+      - 'contrib/cron'
+      - 'contrib/maps-htaccess'
+      - 'contrib/updates/**'
   schedule:
     # audit, daily: new advisories appear without code changes
     - cron: '23 5 * * *'
