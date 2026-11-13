@@ -75,6 +75,7 @@ final class UserForm extends AbstractType
 						min: 6,
 						max: 128,
 					),
+					new Assert\Email(),
 				 ],
 			])
 			->add('password', RepeatedType::class, [

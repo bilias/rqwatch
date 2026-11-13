@@ -10,7 +10,8 @@
 
 /*
  The user, profile and mail alias forms: a username is letters, digits and
- ._+- with an optional @domain.tld; a password, when given, is 8 to 128
+ ._+- with an optional @domain.tld; an e-mail or alias is an address of
+ 6 to 128 characters; a password, when given, is 8 to 128
  characters and typed twice the same; names are at most 64 characters; the
  notifications choice maps Default, Yes and No to null, false and true.
  An empty password passes the form: the controller refuses it on add.
@@ -53,6 +54,8 @@ final class UserFormsTest extends UnitTestCase
 			'username empty' => [['username' => ''], ['username']],
 			'email too short' => [['email' => 'a@b.c'], ['email']],
 			'email empty' => [['email' => ''], ['email']],
+			'email not an address' => [['email' => 'not an address'], ['email']],
+			'email without a local part' => [['email' => '@example.org'], ['email']],
 			'passwords differ' => [['password' => ['first' => 'long enough', 'second' => 'long enougH']], ['password']],
 			'password too short' => [['password' => ['first' => 'short', 'second' => 'short']], ['password']],
 			'password too long' => [['password' => ['first' => str_repeat('x', 129), 'second' => str_repeat('x', 129)]], ['password']],
@@ -121,6 +124,7 @@ final class UserFormsTest extends UnitTestCase
 			'username with a domain' => ['alice@example.org', 'a.smith@example.org', []],
 			'username with a slash' => ['alice/x', 'alice.smith@example.org', ['username']],
 			'alias too short' => ['alice', 'a@b.c', ['alias']],
+			'alias not an address' => ['alice', 'not an address', ['alias']],
 			'both empty' => ['', '', ['username', 'alias']],
 		];
 	}

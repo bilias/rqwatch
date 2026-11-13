@@ -65,6 +65,7 @@ final class MailAliasForm extends AbstractType
 							min: 6,
 							max: 128,
 						),
+						new Assert\Email(),
 					 ],
             ])
             ->add('add', SubmitType::class, [
