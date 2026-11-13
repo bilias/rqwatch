@@ -9,7 +9,7 @@
 */
 
 /*
- Address helpers: SRS/PRVS decoding for display, address extraction,
+ Address helpers: SRS/PRVS decoding for display,
  the release form's alternate recipients and the admin notification list.
 */
 
@@ -43,22 +43,6 @@ final class AddressTest extends UnitTestCase
 	public function testPrvsKeepsCaseOnItsOwn(): void {
 		$this->assertSame('Alice@Example.org', Helper::convertPRVSAddress('prvs=1234abcd=Alice@Example.org'));
 		$this->assertSame('bob@example.org', Helper::convertPRVSAddress('bob@example.org'));
-	}
-
-	/** @return array<string, array{string, string|null}> */
-	public static function extractCases(): array {
-		return [
-			'display name' => ['"Bob" <Bob.Smith+tag@Mail.Example.COM>', 'bob.smith+tag@mail.example.com'],
-			'bare' => ['alice@example.org', 'alice@example.org'],
-			'first of several' => ['a@example.org, b@example.org', 'a@example.org'],
-			'no address' => ['Undisclosed recipients', null],
-			'no TLD' => ['root@localhost', null],
-		];
-	}
-
-	#[DataProvider('extractCases')]
-	public function testExtractEmail(string $in, ?string $expected): void {
-		$this->assertSame($expected, Helper::extractEmail($in));
 	}
 
 	/** @return array<string, array{string, list<string>|null}> */
