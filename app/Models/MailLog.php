@@ -271,9 +271,9 @@ final class MailLog extends Model
 				(string) $this->mime_from
 			);
 
-			App::fileLogger()->warning(
-				"MailLog {$this->id} (qid {$this->qid}): mime_from is not "
-				. "RFC822 compliant ({$reason}), value: '"
+			App::fileLogger()->debug(
+				"MailLog {$this->id} (qid {$this->qid}): mailparse warned "
+				. "on mime_from ({$reason}), value: '"
 				. mb_substr($raw, 0, 120) . "'"
 			);
 		} catch (Throwable) {
