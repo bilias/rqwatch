@@ -26,7 +26,7 @@ define('RQWATCH_ROOT', $root);
 final class AppConfig {
 
 // Application version
-public const string VERSION = '2.2.0-dev1';
+public const string VERSION = '2.2.0';
 
 public const string APP_NAME = 'Rqwatch';
 
