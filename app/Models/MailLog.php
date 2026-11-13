@@ -203,10 +203,18 @@ final class MailLog extends Model
 			return $this->mimeFromDecoded;
 		}
 
-		// If mime_from is missing or empty, just return mail_from
+		return $this->mimeFromDecoded = $this->mimeFromAddress() ?? $this->getMailFrom();
+	}
+
+	/*
+	 The first address in mime_from, or null when it is empty or holds
+	 none. No mail_from fallback: callers that want one (the accessor)
+	 add it; a map entry for the From header must not get the envelope.
+	*/
+	public function mimeFromAddress(): ?string {
 		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' not valid: fail closed */
 		if (empty($this->mime_from)) {
-			return $this->mimeFromDecoded = $this->getMailFrom();
+			return null;
 		}
 
 		/*
@@ -250,11 +258,10 @@ final class MailLog extends Model
 			/** @var mixed $address */
 			$address = is_array($entry) ? ($entry['address'] ?? null) : null;
 			if (is_string($address) && preg_match('/^[^\s"<>@]+@[^\s"<>@]+$/u', $address) === 1) {
-				return $this->mimeFromDecoded = $address;
+				return $address;
 			}
 		}
-		// Fallback if no address found
-		return $this->mimeFromDecoded = $this->getMailFrom();
+		return null;
 	}
 
 	private function getMailFrom(): string {

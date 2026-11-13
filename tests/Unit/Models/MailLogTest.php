@@ -43,6 +43,12 @@ final class MailLogTest extends UnitTestCase
 		$this->assertSame($decoded, $log->mime_from_decoded);
 	}
 
+	public function testMimeFromAddressHasNoMailFromFallback(): void {
+		$log = (new MailLog())->setRawAttributes(['id' => 7, 'qid' => 'Q7', 'mail_from' => 'envelope@example.org', 'mime_from' => '"Only a name" <>']);
+		$this->assertNull($log->mimeFromAddress());
+		$this->assertSame('envelope@example.org', $log->mime_from_decoded);
+	}
+
 	public function testTextAttribute(): void {
 		$log = (new MailLog())->setRawAttributes(['id' => 7, 'mail_from' => 'envelope@example.org', 'ip' => null, 'size' => 1200]);
 		$this->assertSame('envelope@example.org', $log->textAttribute('mail_from'));

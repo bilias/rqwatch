@@ -1380,10 +1380,8 @@ final class MailLogController extends ViewController
 			$configs = [$map => $config];
 		}
 
-		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' not valid: fail closed */
-		if (!empty($log->mime_from)) {
-			$log->mime_from_normalized = Helper::extractEmail($log->mime_from);
-		}
+		$address = $log->mimeFromAddress();
+		$log->mime_from_normalized = $address === null ? null : mb_strtolower($address);
 
 		// Map config field names to the model attribute holding the value.
 		$fieldMap = [
