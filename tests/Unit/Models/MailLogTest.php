@@ -33,6 +33,7 @@ final class MailLogTest extends UnitTestCase
 			'none: mail_from' => [null, 'envelope@example.org'],
 			'empty: mail_from' => ['', 'envelope@example.org'],
 			'no address in it: mail_from' => ['"Only a name" <>', 'envelope@example.org'],
+			'quoted-pair comma in the name: the address' => ['"\\"Last, First\\"" (via List) <list@example.net>', 'list@example.net'],
 		];
 	}
 

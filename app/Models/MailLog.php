@@ -240,15 +240,19 @@ final class MailLog extends Model
 			$this->logUnparsableMimeFrom($warning);
 		}
 
-		// the first address mailparse found: text, not '' or '0' (what empty() meant)
-		/** @var mixed $first */
-		$first = is_array($parsed) ? ($parsed[0] ?? null) : null;
-		/** @var mixed $address */
-		$address = is_array($first) ? ($first['address'] ?? null) : null;
-		if (is_string($address) && $address !== '' && $address !== '0') {
-			return $this->mimeFromDecoded = $address;
+		/*
+		 The first entry that is an address. mailparse does not honour
+		 quoted-pairs: "\"Last, First\"" <a@b> splits at the comma and
+		 entry 0 is the fragment '"\" Last', so entry 0 is not enough.
+		*/
+		/** @var mixed $entry */
+		foreach (is_array($parsed) ? $parsed : [] as $entry) {
+			/** @var mixed $address */
+			$address = is_array($entry) ? ($entry['address'] ?? null) : null;
+			if (is_string($address) && preg_match('/^[^\s"<>@]+@[^\s"<>@]+$/u', $address) === 1) {
+				return $this->mimeFromDecoded = $address;
+			}
 		}
-
 		// Fallback if no address found
 		return $this->mimeFromDecoded = $this->getMailFrom();
 	}
