@@ -8047,16 +8047,16 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.13.2",
+            "version": "2.13.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "adee536f95101929f262b8c59e8a61472f347d58"
+                "reference": "6d3cd8285a97eaa352956a4ada92fa03ecce1c4e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/adee536f95101929f262b8c59e8a61472f347d58",
-                "reference": "adee536f95101929f262b8c59e8a61472f347d58",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/6d3cd8285a97eaa352956a4ada92fa03ecce1c4e",
+                "reference": "6d3cd8285a97eaa352956a4ada92fa03ecce1c4e",
                 "shasum": ""
             },
             "require": {
@@ -8146,7 +8146,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.13.2"
+                "source": "https://github.com/guzzle/psr7/tree/2.13.3"
             },
             "funding": [
                 {
@@ -8162,8 +8162,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-10-17T23:49:46+00:00",
-            "published-time": "2026-10-17T23:51:00+00:00"
+            "time": "2026-11-12T15:57:42+00:00",
+            "published-time": "2026-11-12T15:58:42+00:00"
         },
         {
             "name": "guzzlehttp/uri-template",
@@ -10304,16 +10304,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "12.5.43",
+            "version": "12.5.44",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "1d5a4a3c98fa1ca3a51402c74b66c2c8df85e0bb"
+                "reference": "47d052b58672b016b512974c1139346306c8ca24"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/1d5a4a3c98fa1ca3a51402c74b66c2c8df85e0bb",
-                "reference": "1d5a4a3c98fa1ca3a51402c74b66c2c8df85e0bb",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/47d052b58672b016b512974c1139346306c8ca24",
+                "reference": "47d052b58672b016b512974c1139346306c8ca24",
                 "shasum": ""
             },
             "require": {
@@ -10341,7 +10341,7 @@
                 "sebastian/object-enumerator": "^7.0.0",
                 "sebastian/recursion-context": "^7.0.1",
                 "sebastian/type": "^6.0.4",
-                "sebastian/version": "^6.0.1",
+                "sebastian/version": "^6.0.2",
                 "staabm/side-effects-detector": "^1.0.5"
             },
             "bin": [
@@ -10382,7 +10382,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.5.43"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.5.44"
             },
             "funding": [
                 {
@@ -10390,28 +10390,28 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-11-02T07:10:00+00:00",
-            "published-time": "2026-11-02T07:10:59+00:00"
+            "time": "2026-11-13T11:09:06+00:00",
+            "published-time": "2026-11-13T11:09:57+00:00"
         },
         {
             "name": "psalm/plugin-laravel",
-            "version": "v4.19.3",
+            "version": "v4.19.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/psalm/psalm-plugin-laravel.git",
-                "reference": "8eb2822e1c695d1c9ab90e97fd6c333d8b7bbaa3"
+                "reference": "f9b54e015ff81be1240bfdc7bf3b4f95e45c3218"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/psalm/psalm-plugin-laravel/zipball/8eb2822e1c695d1c9ab90e97fd6c333d8b7bbaa3",
-                "reference": "8eb2822e1c695d1c9ab90e97fd6c333d8b7bbaa3",
+                "url": "https://api.github.com/repos/psalm/psalm-plugin-laravel/zipball/f9b54e015ff81be1240bfdc7bf3b4f95e45c3218",
+                "reference": "f9b54e015ff81be1240bfdc7bf3b4f95e45c3218",
                 "shasum": ""
             },
             "require": {
                 "ext-simplexml": "*",
                 "nikic/php-parser": "^5.0",
                 "php": "^8.2",
-                "psalm/psalm-plugin-api": "^0.4.1",
+                "psalm/psalm-plugin-api": "^0.4.2",
                 "sebastian/diff": "^4.0 || ^5.0 || ^6.0 || ^7.0 || ^8.0 || ^9.0",
                 "symfony/console": "^6.4 || ^7.0 || ^8.0",
                 "vimeo/psalm": "^7.3.1@stable"
@@ -10472,7 +10472,7 @@
             ],
             "support": {
                 "issues": "https://github.com/psalm/psalm-plugin-laravel/issues",
-                "source": "https://github.com/psalm/psalm-plugin-laravel/tree/v4.19.3"
+                "source": "https://github.com/psalm/psalm-plugin-laravel/tree/v4.19.5"
             },
             "funding": [
                 {
@@ -10480,8 +10480,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-12T10:12:50+00:00",
-            "published-time": "2026-11-12T10:44:05+00:00"
+            "time": "2026-11-13T00:15:12+00:00",
+            "published-time": "2026-11-13T00:15:38+00:00"
         },
         {
             "name": "psalm/plugin-mockery",
@@ -12254,16 +12254,16 @@
         },
         {
             "name": "vimeo/psalm",
-            "version": "7.3.1",
+            "version": "7.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vimeo/psalm.git",
-                "reference": "81bda61675df22fc4e5e1ceab1c33f4c61a4830b"
+                "reference": "ca6d68437df9a573212d442d00556d81b6337ecd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vimeo/psalm/zipball/81bda61675df22fc4e5e1ceab1c33f4c61a4830b",
-                "reference": "81bda61675df22fc4e5e1ceab1c33f4c61a4830b",
+                "url": "https://api.github.com/repos/vimeo/psalm/zipball/ca6d68437df9a573212d442d00556d81b6337ecd",
+                "reference": "ca6d68437df9a573212d442d00556d81b6337ecd",
                 "shasum": ""
             },
             "require": {
@@ -12371,8 +12371,8 @@
                 "issues": "https://github.com/vimeo/psalm/issues",
                 "source": "https://github.com/vimeo/psalm"
             },
-            "time": "2026-11-12T00:44:09+00:00",
-            "published-time": "2026-11-12T01:27:10+00:00"
+            "time": "2026-11-13T11:08:59+00:00",
+            "published-time": "2026-11-13T11:09:32+00:00"
         },
         {
             "name": "webmozart/assert",
