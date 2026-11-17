@@ -180,6 +180,9 @@ final class RqwatchExtension extends AbstractExtension
 	 * spoofing, e.g. Cyrillic о/а in "Eurоbаnk"), wrap non-Latin letters
 	 * and invisible format chars (\p{Cf}) in <mark class="homoglyph">.
 	 * Pure Greek / pure Latin words are untouched. Output is marked safe.
+	 * A format char becomes an empty <mark class="homoglyph invisible">:
+	 * the CSS draws its dot, so copied text has neither the dot nor the
+	 * char (a kept U+202E would reorder the line it is meant to expose).
 	 *
 	 * Every character of $text goes through htmlspecialchars(ENT_QUOTES);
 	 * the only other output is the markup and U+XXXX titles built here:
@@ -205,7 +208,7 @@ final class RqwatchExtension extends AbstractExtension
 			foreach (mb_str_split($part) as $ch) {
 				$cp = sprintf('U+%04X', (int) mb_ord($ch));
 				if (preg_match('/\p{Cf}/u', $ch)) {
-					$out .= '<mark class="homoglyph" title="invisible ' . $cp . '">·</mark>';
+					$out .= '<mark class="homoglyph invisible" title="invisible ' . $cp . '"></mark>';
 				} elseif (preg_match('/(?!\p{Latin})\p{L}/u', $ch)) {
 					$out .= '<mark class="homoglyph" title="' . $cp . '">'
 						. htmlspecialchars($ch, ENT_QUOTES | ENT_SUBSTITUTE) . '</mark>';

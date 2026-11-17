@@ -12,6 +12,7 @@
  The mark_homoglyphs filter (is_safe html, on the subject and From in the
  mail detail): escapes everything, marks non-Latin letters in words that
  mix scripts and every invisible format char (\p{Cf}), letter or not.
+ A format char's dot comes from CSS, so the copied text has no dot.
  The linkify filter (is_safe html): escapes everything and links only
  http(s) URLs. jsJson: JSON for a <script> block, no tag can close it.
 */
@@ -35,14 +36,14 @@ final class RqwatchExtensionTest extends UnitTestCase
 			'pure Greek' => ['αβγ', 'αβγ'],
 			'Latin with an accent' => ['café', 'café'],
 			'Latin with a combining mark' => ["cafe\u{0301}", "cafe\u{0301}"],
-			'zero-width space in a word' => ["pay\u{200B}pal", 'pay<mark class="homoglyph" title="invisible U+200B">·</mark>pal'],
-			'soft hyphen in a word' => ["a\u{00AD}b", 'a<mark class="homoglyph" title="invisible U+00AD">·</mark>b'],
-			'RLO before letters' => ["\u{202E}gnp.exe", '<mark class="homoglyph" title="invisible U+202E">·</mark>gnp.exe'],
+			'zero-width space in a word' => ["pay\u{200B}pal", 'pay<mark class="homoglyph invisible" title="invisible U+200B"></mark>pal'],
+			'soft hyphen in a word' => ["a\u{00AD}b", 'a<mark class="homoglyph invisible" title="invisible U+00AD"></mark>b'],
+			'RLO before letters' => ["\u{202E}gnp.exe", '<mark class="homoglyph invisible" title="invisible U+202E"></mark>gnp.exe'],
 			// these three passed through unmarked before the fix
-			'RLO on its own' => ["\u{202E} gnp.exe", '<mark class="homoglyph" title="invisible U+202E">·</mark> gnp.exe'],
-			'zero-width space on its own' => ["a \u{200B} b", 'a <mark class="homoglyph" title="invisible U+200B">·</mark> b'],
-			'isolate and RLO at the end' => ["invoice \u{2066}\u{202E}", 'invoice <mark class="homoglyph" title="invisible U+2066">·</mark><mark class="homoglyph" title="invisible U+202E">·</mark>'],
-			'Cyrillic word with a format char' => ["привет\u{200B}", '<mark class="homoglyph" title="U+043F">п</mark><mark class="homoglyph" title="U+0440">р</mark><mark class="homoglyph" title="U+0438">и</mark><mark class="homoglyph" title="U+0432">в</mark><mark class="homoglyph" title="U+0435">е</mark><mark class="homoglyph" title="U+0442">т</mark><mark class="homoglyph" title="invisible U+200B">·</mark>'],
+			'RLO on its own' => ["\u{202E} gnp.exe", '<mark class="homoglyph invisible" title="invisible U+202E"></mark> gnp.exe'],
+			'zero-width space on its own' => ["a \u{200B} b", 'a <mark class="homoglyph invisible" title="invisible U+200B"></mark> b'],
+			'isolate and RLO at the end' => ["invoice \u{2066}\u{202E}", 'invoice <mark class="homoglyph invisible" title="invisible U+2066"></mark><mark class="homoglyph invisible" title="invisible U+202E"></mark>'],
+			'Cyrillic word with a format char' => ["привет\u{200B}", '<mark class="homoglyph" title="U+043F">п</mark><mark class="homoglyph" title="U+0440">р</mark><mark class="homoglyph" title="U+0438">и</mark><mark class="homoglyph" title="U+0432">в</mark><mark class="homoglyph" title="U+0435">е</mark><mark class="homoglyph" title="U+0442">т</mark><mark class="homoglyph invisible" title="invisible U+200B"></mark>'],
 			'invalid UTF-8' => ["bad\xC3(", "bad\u{FFFD}("],
 			'empty' => ['', ''],
 			'null' => [null, ''],
@@ -68,8 +69,17 @@ final class RqwatchExtensionTest extends UnitTestCase
 	#[DataProvider('escapeCases')]
 	public function testOnlyItsOwnMarkupIsRaw(string $text): void {
 		$out = RqwatchExtension::markHomoglyphs($text);
-		$rest = (string) preg_replace('#<mark class="homoglyph" title="(invisible )?U\+[0-9A-F]{4,6}">|</mark>#', '', $out);
+		$rest = (string) preg_replace('#<mark class="homoglyph( invisible)?" title="(invisible )?U\+[0-9A-F]{4,6}">|</mark>#', '', $out);
 		$this->assertDoesNotMatchRegularExpression('/[<>"\']/', $rest, $out);
+	}
+
+	// what a copy from the page gives: the text nodes, without the CSS dots and the format chars
+	public function testCopiedTextHasNoFormatChars(): void {
+		$from = "C\u{200D}\u{2061}r\u{2062}e\u{2060}\u{2063}d\u{2064}\u{2062}i\u{200C}a\u{2063}\u{2064}B\u{2063}a\u{200D}\u{2062}n\u{2061}k\u{2063}\u{200C} "
+			. "e\u{200C}\u{200C}-\u{200B}\u{200C}b\u{2063}\u{200B}a\u{200D}\u{2060}n\u{2063}k\u{200C}\u{200C}i\u{2064}\u{200C}n\u{2063}\u{FEFF}g\u{2064} <no-reply@example.org>";
+		$out = RqwatchExtension::markHomoglyphs($from);
+		$this->assertSame(32, substr_count($out, '<mark class="homoglyph invisible"'));
+		$this->assertSame('CrediaBank e-banking <no-reply@example.org>', html_entity_decode(strip_tags($out), ENT_QUOTES));
 	}
 
 	/** @return array<string, array{string, string}> */

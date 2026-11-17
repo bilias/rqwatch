@@ -445,6 +445,11 @@ mark.homoglyph {
 	outline: 1px solid #c00;
 }
 
+/* drawn, not text: a copy of the line leaves the dot out */
+mark.homoglyph.invisible::before {
+	content: "·";
+}
+
 a.stored {
 	background-color: var(--color-mail-stored);
 	display: inline-block;
