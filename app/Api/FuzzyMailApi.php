@@ -91,7 +91,7 @@ final class FuzzyMailApi extends RqwatchApi
 				$this->logRequest($remote_user, $action, (string) $row->qid, $node);
 				if ($action === 'boost') {
 					// weight in boost is non-null int from 1 to 65535
-					$fuzzy->addWeightLocal($row, (int) $weight, $remote_user);
+					$fuzzy->addWeightLocal($row, $weight, $remote_user);
 				} else {
 					$fuzzy->unlearnLocal($row, $remote_user);
 				}
