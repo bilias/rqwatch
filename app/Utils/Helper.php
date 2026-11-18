@@ -549,7 +549,10 @@ final class Helper {
 		/** @var mixed $symbol */
 		foreach ($symbols as $symbol) {
 			// decoded straight from the stored JSON by MapHitService: checked here
-			$name = is_array($symbol) && ($symbol['group'] ?? null) === 'antivirus' ? ($symbol['name'] ?? null) : null;
+			if (!is_array($symbol) || ($symbol['group'] ?? null) !== 'antivirus') {
+				continue;
+			}
+			$name = $symbol['name'] ?? null;
 			if (!is_string($name)) {
 				continue;
 			}
@@ -561,8 +564,8 @@ final class Helper {
 				}
 			}
 			foreach ($patterns as $pattern) {
-				foreach ($names as $name) {
-					if (fnmatch($pattern, $name, FNM_CASEFOLD)) {
+				foreach ($names as $candidate) {
+					if (fnmatch($pattern, $candidate, FNM_CASEFOLD)) {
 						return $pattern;
 					}
 				}
