@@ -27,8 +27,7 @@ final class MailLogRecipient extends Model
 	// No auto-increment ID
 	public $incrementing = false;
 
-	// Primary key is composite leave undefined
-	/** @psalm-suppress PossiblyNullPropertyAssignmentValue */
+	/** @psalm-suppress PossiblyNullPropertyAssignmentValue composite key: no single key column */
 	protected $primaryKey = null;
 
 	protected $casts = [
