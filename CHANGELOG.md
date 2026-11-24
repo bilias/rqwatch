@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-11-24
+- Security: Update twig/twig
+
 ## Version v2.2.0 - Released: 2026-11-13
 
 ### 2026-11-13
