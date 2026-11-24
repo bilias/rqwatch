@@ -99,23 +99,18 @@
          "@test-unit",
          "@analyse",
          "@psalm-taint",
-         "@taint-selftest",
-         "@test-integration",
-         "@test-e2e"
+         "@taint-selftest"
       ],
       "opengrep": "sh qa/opengrep.sh",
       "taint-stubs": "sh qa/taint-stubs.sh",
       "post-update-cmd": "@taint-stubs",
       "test": [
          "@static",
-         "@opengrep"
-		],
-      "check": [
-         "@static",
          "@opengrep",
          "@test-integration",
          "@test-e2e"
-      ]
+		],
+      "check": "@test",
    },
    "scripts-descriptions": {
       "phpstan": "PHPStan with Larastan (qa/phpstan.neon)",
