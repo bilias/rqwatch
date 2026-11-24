@@ -102,9 +102,9 @@
       "taint-stubs": "sh qa/taint-stubs.sh",
       "post-update-cmd": "@taint-stubs",
       "analyse": [
-         "@phpstan",
-         "@psalm"
-      ],
+			"Composer\\Config::disableProcessTimeout",
+			"sh qa/analyse.sh"
+		],
       "analyze": "@analyse",
       "static": [
          "@composer validate --no-check-publish",

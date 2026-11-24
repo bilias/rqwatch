@@ -82,7 +82,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # quoted: 8.3 is a number in YAML
+        # quoted: 8.3 is a number in YAML; keep in sync with QA_ANALYSE_PHP in qa/analyse.sh
         php: ['8.3', '8.4', '8.5']
     env:
       PHP_TARGET: ${{ matrix.php }}
