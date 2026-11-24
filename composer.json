@@ -110,7 +110,7 @@
          "@test-integration",
          "@test-e2e"
 		],
-      "check": "@test",
+      "check": "@test"
    },
    "scripts-descriptions": {
       "phpstan": "PHPStan with Larastan (qa/phpstan.neon)",
