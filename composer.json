@@ -119,7 +119,7 @@
       "test-unit": "Unit tests, no database: helpers, and route access levels and middleware (QA_PHP)",
 		"analyse": "PHPStan and Psalm for every PHP version CI checks (QA_ANALYSE_PHP)",
       "analyze": "Alias of analyse",
-		"static": "Validate, audit, test-unit, analyse, psalm-taint, taint-selftest: no Podman, no network scanners",
+		"static": "Validate, audit, test-unit, analyse, psalm-taint, taint-selftest: no Podman, no opengrep",
       "test-integration": "Integration tests against a throwaway MariaDB and Mailpit via Podman, without and with Redis: route protection, API access, a smoke pass over every route, retention crons, data scoping, release (web and API), notifications and password-less links (QA_PHP)",
       "test-e2e": "End-to-end tests with rspamd, Redis and MariaDB via Podman, with and without the app's Redis: import, maps, encoding, spool, fuzzy learning (QA_PHP)",
       "test": "Everything CI runs, cheapest first: static, opengrep, test-integration, test-e2e; stops at the first failure",
