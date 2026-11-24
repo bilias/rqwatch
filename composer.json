@@ -80,6 +80,11 @@
       "psalm-taint": "sh qa/psalm-taint.sh",
       "taint-selftest": "sh qa/taint-selftest.sh",
       "test-unit": "sh qa/each-php.sh bash qa/unit-tests.sh",
+      "analyse": [
+			"Composer\\Config::disableProcessTimeout",
+			"sh qa/analyse.sh"
+		],
+      "analyze": "@analyse",
       "test-integration": [
          "Composer\\Config::disableProcessTimeout",
          "sh qa/each-php.sh bash qa/integration-tests.sh"
@@ -88,7 +93,7 @@
          "Composer\\Config::disableProcessTimeout",
          "sh qa/each-php.sh bash qa/e2e-tests.sh"
       ],
-      "test": [
+      "static": [
          "@composer validate --no-check-publish",
          "@composer audit --locked --abandoned=report",
          "@test-unit",
@@ -101,27 +106,12 @@
       "opengrep": "sh qa/opengrep.sh",
       "taint-stubs": "sh qa/taint-stubs.sh",
       "post-update-cmd": "@taint-stubs",
-      "analyse": [
-			"Composer\\Config::disableProcessTimeout",
-			"sh qa/analyse.sh"
-		],
-      "analyze": "@analyse",
-      "static": [
-         "@composer validate --no-check-publish",
-         "@composer audit --locked --abandoned=report",
-         "@test-unit",
-         "@analyse",
-         "@psalm-taint",
-         "@taint-selftest",
+      "test": [
+         "@static",
          "@opengrep"
 		],
       "check": [
-         "@composer validate --no-check-publish",
-         "@composer audit --locked --abandoned=report",
-         "@test-unit",
-         "@analyse",
-         "@psalm-taint",
-         "@taint-selftest",
+         "@static",
          "@opengrep",
          "@test-integration",
          "@test-e2e"
