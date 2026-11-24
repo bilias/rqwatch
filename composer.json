@@ -117,13 +117,15 @@
       "psalm": "Psalm type checks (qa/psalm.xml)",
       "psalm-taint": "Psalm taint analysis; regenerates the vendor taint stub first",
       "test-unit": "Unit tests, no database: helpers, and route access levels and middleware (QA_PHP)",
+		"analyse": "PHPStan and Psalm for every PHP version CI checks (QA_ANALYSE_PHP)",
+		"static": "Validate, audit, test-unit, analyse, psalm-taint, taint-selftest: no Podman, no network scanners",
       "test-integration": "Integration tests against a throwaway MariaDB and Mailpit via Podman, without and with Redis: route protection, API access, a smoke pass over every route, retention crons, data scoping, release (web and API), notifications and password-less links (QA_PHP)",
       "test-e2e": "End-to-end tests with rspamd, Redis and MariaDB via Podman, with and without the app's Redis: import, maps, encoding, spool, fuzzy learning (QA_PHP)",
-      "test": "Validate, audit and all test suites: test-unit, test-integration, test-e2e (one line per test, except test-unit; CI runs the scripts without -v)",
+      "test": "Everything CI runs, cheapest first: static, opengrep, test-integration, test-e2e; stops at the first failure",
+      "check": "Alias of test",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor",
       "analyse": "PHPStan and Psalm",
-      "analyze": "Alias of analyse",
-      "check": "Everything CI runs, cheapest first; stops at the first failure"
+      "analyze": "Alias of analyse"
    }
 }
