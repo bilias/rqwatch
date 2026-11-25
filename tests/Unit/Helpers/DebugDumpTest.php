@@ -17,12 +17,14 @@
  int key, is written like any other. The directory is created 0750 and
  logged; the symbols as pretty JSON, the headers as given and per name.
  A directory it cannot write is refused, logged (skipped as root, which
- writes anywhere).
+ writes anywhere); one it cannot create, or a dump file it cannot open,
+ stops the dump, logged with PHP's reason.
 */
 
 namespace Tests\Unit\Helpers;
 
 use App\Utils\Helper;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Unit\UnitTestCase;
 
 final class DebugDumpTest extends UnitTestCase
@@ -64,6 +66,39 @@ final class DebugDumpTest extends UnitTestCase
 			chmod($this->dir, 0750);
 		}
 		$this->assertSame(["error {$this->dir} is not writable"], $this->log->lines);
+	}
+
+	// a file where the directory has to go
+	public function testDirectoryNotCreated(): void {
+		file_put_contents($this->dir, 'x');
+		try {
+			$this->assertFalse(Helper::log_to_files($this->dir . '/sub', '[]', [], '', []));
+		} finally {
+			unlink($this->dir);
+		}
+		$this->assertSame([
+			"warning {$this->dir}/sub does not exist",
+			"error Error creating directory {$this->dir}/sub: mkdir(): Not a directory",
+		], $this->log->lines);
+	}
+
+	/** @return array<string, array{string}> */
+	public static function dumpFiles(): array {
+		$files = ['web_headers', 'server', 'symbols', 'headers', 'headers_ar'];
+		return array_combine($files, array_map(fn (string $file): array => [$file], $files));
+	}
+
+	// a directory where a dump file goes: the dump stops there
+	#[DataProvider('dumpFiles')]
+	public function testFileNotOpened(string $file): void {
+		$path = "{$this->dir}/{$file}";
+		mkdir($path, 0750, true);
+		try {
+			$this->assertFalse(Helper::log_to_files($this->dir, '[]', [], '', []));
+		} finally {
+			rmdir($path);
+		}
+		$this->assertSame(["error Cannot open file ({$path}): fopen({$path}): Failed to open stream: Is a directory"], $this->log->lines);
 	}
 
 	public function testServerValues(): void {

@@ -11,11 +11,11 @@
 /*
  Quarantine files: where store_raw_mail() writes, what deleteDirectory()
  refuses to remove, and which paths quarantinedFile() accepts. Runs in a
- temporary directory. A directory that cannot be created or written, or a
- nested one that cannot be removed, fails with the reason logged; the tests
- that need an unwritable directory are skipped as root, which writes
- anywhere. And stripBasePath(): the stored path shown relative
- to QUARANTINE_DIR, unchanged (so hidden) when outside it.
+ temporary directory. A directory that cannot be created, written, read or
+ removed, or a file that cannot be removed, fails with the reason logged;
+ the tests that need an unwritable directory are skipped as root, which
+ writes anywhere. And stripBasePath(): the stored path shown relative to
+ QUARANTINE_DIR, unchanged (so hidden) when outside it.
 */
 
 namespace Tests\Unit\Helpers;
@@ -302,6 +302,53 @@ final class QuarantineFileTest extends UnitTestCase
 		$this->assertFalse(Helper::deleteDirectory($this->q . '/day/qid'));
 		$this->assertDirectoryExists($this->q . '/day/qid/sub');
 		$this->assertLogged('Cannot delete directory in quarantine: ' . (string) realpath($this->q . '/day/qid/sub'));
+	}
+
+	public function testUnreadableDirectoryKept(): void {
+		$this->requireNotRoot();
+		mkdir($this->q . '/day/qid', 0750, true);
+		$real = (string) realpath($this->q . '/day/qid');
+		chmod($real, 0300);
+		try {
+			$this->assertFalse(Helper::deleteDirectory($real));
+		} finally {
+			chmod($real, 0750);
+		}
+		$this->assertDirectoryExists($real);
+		$this->assertCount(1, $this->log->lines);
+		$this->assertMatchesRegularExpression('#^warning Quarantine ' . preg_quote($real, '#') . ' scan problem: .*Permission denied$#',
+			implode("\n", $this->log->lines));
+	}
+
+	public function testFileNotUnlinked(): void {
+		$this->requireNotRoot();
+		mkdir($this->q . '/day/qid', 0750, true);
+		$real = (string) realpath($this->q . '/day/qid');
+		file_put_contents($real . '/mail.eml', 'raw');
+		chmod($real, 0550);
+		try {
+			$this->assertFalse(Helper::deleteDirectory($real));
+		} finally {
+			chmod($real, 0750);
+		}
+		$this->assertFileExists($real . '/mail.eml');
+		$this->assertSame(["warning Cannot unlink file in quarantine: {$real}/mail.eml: unlink({$real}/mail.eml): Permission denied"], $this->log->lines);
+	}
+
+	public function testEmptiedDirectoryNotRemoved(): void {
+		$this->requireNotRoot();
+		mkdir($this->q . '/day/qid', 0750, true);
+		$real = (string) realpath($this->q . '/day/qid');
+		file_put_contents($real . '/mail.eml', 'raw');
+		chmod(dirname($real), 0550);
+		try {
+			$this->assertFalse(Helper::deleteDirectory($real));
+		} finally {
+			chmod(dirname($real), 0750);
+		}
+		$this->assertFileDoesNotExist($real . '/mail.eml');
+		$this->assertDirectoryExists($real);
+		$this->assertSame(["warning Cannot remove directory in quarantine: {$real}: rmdir({$real}): Permission denied"], $this->log->lines);
 	}
 
 	public function testMissingDirectory(): void {
