@@ -46,6 +46,11 @@ final class SessionVarsTest extends UnitTestCase
 		$this->assertSame([], self::read($controller, 'user_aliases'));
 	}
 
+	// a flag stored as null is no admin
+	public function testNullAdminFlag(): void {
+		$this->assertFalse(self::read($this->controller(['is_admin' => null]), 'is_admin'));
+	}
+
 	/** @return array<string, array{string, mixed}> */
 	public static function wrongTypeCases(): array {
 		return [

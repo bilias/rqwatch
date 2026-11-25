@@ -66,7 +66,7 @@ final class OidcBaseUrlTest extends UnitTestCase
 	#[DataProvider('untrusted')]
 	public function testUntrustedFallsBack(string $url, string $logged): void {
 		$this->assertSame(self::FALLBACK, $this->baseUrl($url));
-		$this->assertLogged("OPENIDC: untrusted origin '{$logged}'");
+		$this->assertSame(["warning OPENIDC: untrusted origin '{$logged}' from 127.0.0.1, using WEB_HOST"], $this->log->lines);
 	}
 
 	// a host name alone (the form before origins) trusts nothing; EnvValidator refuses it at boot
