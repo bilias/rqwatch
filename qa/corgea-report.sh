@@ -5,24 +5,30 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Corgea report: fetches the results of an existing Corgea scan (run from the
-# web UI against the GitHub repository) into $CORGEA_OUT (default
-# corgea-report/), without scanning anything here. The HTML, SARIF and
-# Markdown reports (rqwatch-corgea.html, .sarif, .md) are the ones Corgea
-# renders, from the endpoint `corgea scan --out-format` uses
-# (GET /api/v1/scan/ID/report). rqwatch-corgea-issues.json is every page of
+# Corgea report. Without an argument, runs a Corgea BLAST scan of HEAD: a
+# fresh clone of this checkout's current branch, with origin set to this
+# checkout's origin URL so Corgea files it under the GitHub repository's
+# project; uncommitted, untracked and ignored files (.env, config.local.php)
+# are not uploaded. With SCAN_ID, fetches that existing scan (one run from the
+# web UI, say) and scans nothing. Either way, into $CORGEA_OUT (default
+# corgea-report/) go the HTML, SARIF and Markdown reports Corgea renders
+# (rqwatch-corgea.html, .sarif, .md; the HTML and Markdown from the endpoint
+# `corgea scan --out-format` uses, GET /api/v1/scan/ID/report) and
+# rqwatch-corgea-issues.json, every page of
 # `corgea ls --issues --scan-id ID --json` merged into one array, with each
-# issue's status and triage.
-# Usage: qa/corgea-report.sh SCAN_ID (the id in the scan's URL)
+# issue's status and triage; a scan also leaves its console output in
+# corgea-scan.log.
+# Usage: qa/corgea-report.sh [SCAN_ID]   (SCAN_ID: the id in the scan's URL)
 # Needs the corgea CLI, logged in (corgea login): the token and URL come from
 # CORGEA_TOKEN and CORGEA_URL, else ~/.corgea/config.toml, as the CLI reads
 # them. Run from the project root.
 set -euo pipefail
 
 PHP="${PHP:-php}"
+UUID_RE='^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
 SCAN_ID="${1:-}"
-if ! [[ "$SCAN_ID" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
-	echo "Usage: $0 SCAN_ID (a UUID, from the scan's URL)" >&2
+if [ -n "$SCAN_ID" ] && ! [[ "$SCAN_ID" =~ $UUID_RE ]]; then
+	echo "Usage: $0 [SCAN_ID] (a UUID, from the scan's URL)" >&2
 	exit 2
 fi
 
@@ -55,6 +61,22 @@ fi
 echo 'CORGEA-SOURCE: cli' >> "${WORK}/headers"
 umask 022
 
+if [ -z "$SCAN_ID" ]; then
+	if [ -n "$(git status --porcelain)" ]; then
+		echo "Note: uncommitted changes are not scanned; this scans HEAD"
+	fi
+	git clone -q --depth 1 "file://$(pwd)" "${WORK}/rqwatch"
+	git -C "${WORK}/rqwatch" remote set-url origin "$(git remote get-url origin)"
+	echo "=== scan of $(git -C "${WORK}/rqwatch" log -1 --format='%h %s')"
+	(cd "${WORK}/rqwatch" && corgea scan --out-format sarif --out-file "${OUT}/rqwatch-corgea.sarif") \
+		| tee "${OUT}/corgea-scan.log"
+	SCAN_ID=$(sed -n 's/.*Scan has started with ID: \([0-9a-f-]*\)\..*/\1/p' "${OUT}/corgea-scan.log" | tail -n 1)
+	if ! [[ "$SCAN_ID" =~ $UUID_RE ]]; then
+		echo "No scan id in the scan's output: ${OUT}/corgea-scan.log" >&2
+		exit 1
+	fi
+fi
+
 # fetch_report QUERY EXT: the report Corgea renders (no QUERY: HTML)
 fetch_report() {
 	echo "=== ${2}"
@@ -62,7 +84,10 @@ fetch_report() {
 		"${URL}/api/v1/scan/${SCAN_ID}/report${1}"
 }
 fetch_report '' html
-fetch_report '?format=sarif' sarif
+# a scan has written the SARIF already
+if [ -n "${1:-}" ]; then
+	fetch_report '?format=sarif' sarif
+fi
 fetch_report '?format=markdown' md
 
 echo "=== issues"
