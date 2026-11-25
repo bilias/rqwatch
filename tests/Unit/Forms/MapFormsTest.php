@@ -12,7 +12,9 @@
  The map entry forms: address fields need a valid address, the IP field
  an IP or network with its host bits clear and stores it in canonical
  form, the URL field anything not blank. A user's form offers only the
- user's own addresses as RCPT To; any other is refused.
+ user's own addresses as RCPT To, each shown as itself; any other is
+ refused. Every map form takes the role option the controllers pass, and a
+ two-field form without both field names fails at build time.
 */
 
 namespace Tests\Unit\Forms;
@@ -23,7 +25,10 @@ use App\Forms\MapMailFromForm;
 use App\Forms\MapMailFromRcptToForm;
 use App\Forms\MapMailFromRcptToUserForm;
 use App\Forms\MapUrlForm;
+use App\Forms\MapWithTwoFieldsForm;
+use App\Forms\MapWithTwoFieldsUserOverrideForm;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormTypeInterface;
@@ -93,6 +98,49 @@ final class MapFormsTest extends UnitTestCase
 		if (!$valid) {
 			$this->assertGreaterThan(0, $form->get('rcpt_to')->getErrors(true)->count());
 		}
+	}
+
+	public function testUserRcptToShownAsAddresses(): void {
+		$mine = ['alice@example.org', 'a.smith@example.org'];
+		$form = self::factory()->create(MapMailFromRcptToUserForm::class, null, ['user_emails' => $mine]);
+		$this->assertSame(array_combine($mine, $mine), $form->get('rcpt_to')->getConfig()->getOption('choices'));
+	}
+
+	/** @return array<string, array{class-string<FormTypeInterface<array<string, mixed>>>, array<string, mixed>}> form, other options */
+	public static function roleForms(): array {
+		return [
+			'one field' => [MapMailFromForm::class, []],
+			'two fields' => [MapMailFromRcptToForm::class, []],
+			"two fields, a user's" => [MapMailFromRcptToUserForm::class, ['user_emails' => ['alice@example.org']]],
+		];
+	}
+
+	/**
+	 * @param class-string<FormTypeInterface<array<string, mixed>>> $class
+	 * @param array<string, mixed> $options
+	 */
+	#[DataProvider('roleForms')]
+	public function testRoleOptionAccepted(string $class, array $options): void {
+		$form = self::factory()->create($class, null, ['role' => 'admin'] + $options);
+		$this->assertTrue($form->has('submit'));
+	}
+
+	public function testTwoFieldFormNeedsBothNames(): void {
+		$form = new class extends MapWithTwoFieldsForm {
+			protected static string $firstFieldName = 'mail_from';
+		};
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Field names must be defined in child class');
+		self::factory()->createNamed('form', $form::class);
+	}
+
+	public function testUserTwoFieldFormNeedsBothNames(): void {
+		$form = new class extends MapWithTwoFieldsUserOverrideForm {
+			protected static string $firstFieldName = 'mail_from';
+		};
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Field names must be defined in child class');
+		self::factory()->createNamed('form', $form::class);
 	}
 
 	private static function factory(): FormFactoryInterface {

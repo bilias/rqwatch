@@ -10,7 +10,8 @@
 
 /*
  "Go to message" takes Postfix short (hex) and long (enable_long_queue_ids)
- queue IDs, up to the qid column's 30 characters, letters and digits only.
+ queue IDs, up to the qid column's 30 characters, letters and digits only;
+ an empty one is refused.
 */
 
 namespace Tests\Unit\Forms;
@@ -37,6 +38,7 @@ final class QidFormTest extends UnitTestCase
 			'trailing newline, trimmed by TextType' => ["4B3E020C949\n", true],
 			'inner newline' => ["4B3E\n020C949", false],
 			'punctuation' => ['4B3E-20C949', false],
+			'empty' => ['', false],
 		];
 	}
 
