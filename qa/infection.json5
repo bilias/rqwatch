@@ -192,7 +192,8 @@
 				"App\\Utils\\Helper::isLocalOrReservedIp::1281",
 				// the function ends in return null too
 				"App\\Utils\\Helper::getCountry::1262",
-				// without a database the next check returns as well
+				// without a database a later check returns as well
+				"App\\Core\\Database\\MigrationStatus::warmCache::66",
 				"App\\Core\\Database\\MigrationStatus::warmCache::70",
 				// a lookup without a cache is live DNS, which a unit test cannot make
 				"App\\Utils\\Helper::my_gethostbyaddr::1600",
