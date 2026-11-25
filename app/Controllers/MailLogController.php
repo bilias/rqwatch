@@ -1617,7 +1617,8 @@ final class MailLogController extends ViewController
 		$filename = str_replace(['/', '\\'], '_', (string) $name);
 		$ext = pathinfo($filename, PATHINFO_EXTENSION);
 		// non-cryptographic hash: only derives an ASCII fallback download filename
-		$fallback = hash('xxh3', $filename) . (preg_match('/^[A-Za-z0-9]{1,10}$/', $ext) ? ".{$ext}" : '');
+		// D: $ alone also matches before a final line break, which makeDisposition() refuses in the fallback
+		$fallback = hash('xxh3', $filename) . (preg_match('/^[A-Za-z0-9]{1,10}$/D', $ext) ? ".{$ext}" : '');
 		return [$filename, $fallback];
 	}
 
