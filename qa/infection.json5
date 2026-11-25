@@ -15,6 +15,10 @@
 		// Reviewed escapes that no test can tell from the original, each by
 		// Class::method::line. When a line moves, its mutant is reported again
 		// for review.
+		"ArrayOneItem": {
+			// stats come only from a real controller; Integration's Smoke/RspamdStatTest
+			"ignore": ["App\\Controllers\\Controller::getRspamdStat::310"]
+		},
 		"ArrayItemRemoval": {
 			"ignore": [
 				// Symfony's HttpClient verifies the peer by default too
@@ -72,6 +76,8 @@
 		},
 		"Coalesce": {
 			"ignore": [
+				// the password goes only to a real controller; Integration's Smoke/RspamdStatTest
+				"App\\Controllers\\Controller::getRspamdStat::257",
 				// checkSet() and checkInt() report the same for a missing or non-string value
 				"App\\Configuration\\EnvValidator::errors::96",
 				// mailparse always sets is_group; a group's ":;" is no address anyway
