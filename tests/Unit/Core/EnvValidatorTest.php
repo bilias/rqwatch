@@ -13,7 +13,8 @@
  CHANGE_ME_ placeholders only, every failing key is reported, values that
  (int) or env_bool() would silently misread are refused, the WEB_* keys and
  OPENIDC_TRUSTED_HOSTS are checked by the web entry point only, and a
- published secret is refused in each key where that key is read.
+ published secret is refused in each key where that key is read: a plain
+ secret whole, a DSN part by part.
 */
 
 namespace Tests\Unit\Core;
@@ -63,6 +64,11 @@ final class EnvValidatorTest extends UnitTestCase
 			'DB_HOST is missing', 'DB_NAME is missing', 'DB_USER is missing', 'MY_API_SERVER_ALIAS is missing',
 			'QUARANTINE_DIR is missing', 'DB_PASS is missing', 'DB_PORT is missing', 'QUARANTINE_DAYS is missing',
 		], EnvValidator::errors([], false));
+		$this->assertSame([
+			'DB_HOST is missing', 'DB_NAME is missing', 'DB_USER is missing', 'MY_API_SERVER_ALIAS is missing',
+			'QUARANTINE_DIR is missing', 'WEB_HOST is missing', 'WEB_SCHEME is missing', 'DB_PASS is missing',
+			'WEB_BASE is missing', 'DB_PORT is missing', 'QUARANTINE_DAYS is missing',
+		], EnvValidator::errors([], true));
 	}
 
 	public function testWebKeysOnlyForTheWeb(): void {
@@ -154,6 +160,8 @@ final class EnvValidatorTest extends UnitTestCase
 		$refused = fn (string $key, string $why = ''): string => "{$key} is a published example value{$why}; set your own";
 
 		$this->assertSame([$refused('DB_PASS')], EnvValidator::errors(['DB_PASS' => $old['DB_PASS']] + self::valid(), false));
+		// a plain secret is checked whole, a DSN part by part
+		$this->assertSame([], EnvValidator::errors(['DB_PASS' => "own-{$old['DB_PASS']}"] + self::valid(), false));
 
 		$env = ['RSPAMD_CONTROLLER_PASS' => $old['RSPAMD_CONTROLLER_PASS'], 'RSPAMD_CONTROLLER_ENABLE_PASS' => 'CHANGE_ME_x'] + self::valid();
 		$this->assertSame([], EnvValidator::errors($env, false));
