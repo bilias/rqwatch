@@ -14,7 +14,8 @@
 # because a mutant can turn a path the tests write under into a relative one
 # and litter the checkout. Reports go to $INFECTION_OUT (default
 # infection-report/): infection.html, infection.log, infection.json. Extra
-# arguments go to infection: --filter=app/Utils/Helper.php for one file,
+# arguments go to infection, paths relative to qa/ (where the config is):
+# ../app/Utils/Helper.php for one file,
 # --git-diff-lines --git-diff-base=github/master for the lines changed since.
 # Needs a coverage driver: pcov (dnf install php-pecl-pcov) or Xdebug. Run
 # from the project root.
