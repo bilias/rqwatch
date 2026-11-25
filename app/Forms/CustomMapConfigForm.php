@@ -54,12 +54,12 @@ final class CustomMapConfigForm extends AbstractType
 							max: 128,
 						),
 						new Assert\Regex(
-							pattern: '/^[a-z0-9_\-]+$/',
+							pattern: '/^[a-z0-9_\-]+$/D',
 							message: 'Only lowercase letters, numbers and _- are allowed',
 						),
 						// a name of digits only cannot key the map configs
 						new Assert\Regex(
-							pattern: '/^\d+$/',
+							pattern: '/^\d+$/D',
 							match: false,
 							message: 'A map name needs a letter, _ or -',
 						),
@@ -79,7 +79,7 @@ final class CustomMapConfigForm extends AbstractType
 							max: 128,
 						),
 						new Assert\Regex(
-							pattern: '/^[a-zA-Z0-9._\-\(\) ]+$/',
+							pattern: '/^[a-zA-Z0-9._\-\(\) ]+$/D',
 							message: 'Only letters, numbers, space and ._-()  are allowed',
 						),
 					 ],
@@ -98,7 +98,7 @@ final class CustomMapConfigForm extends AbstractType
 							max: 128,
 						),
 						new Assert\Regex(
-							pattern: '/^[a-zA-Z_]+$/',
+							pattern: '/^[a-zA-Z_]+$/D',
 							message: 'Only letters and _ is allowed',
 						),
 					 ],
@@ -117,7 +117,7 @@ final class CustomMapConfigForm extends AbstractType
 							max: 128,
 						),
 						new Assert\Regex(
-							pattern: '/^[a-zA-Z0-9._\-\(\) ]+$/',
+							pattern: '/^[a-zA-Z0-9._\-\(\) ]+$/D',
 							message: 'Only letters, numbers, space and ._-()  are allowed',
 						),
 					 ],
@@ -136,7 +136,7 @@ final class CustomMapConfigForm extends AbstractType
 				'constraints' => [
 					new Assert\Length(max: 255),
 					new Assert\Regex(
-						pattern: '/^\s*[A-Za-z0-9_]+(\s*,\s*[A-Za-z0-9_]+)*\s*$/',
+						pattern: '/^\s*[A-Za-z0-9_]+(\s*,\s*[A-Za-z0-9_]+)*\s*$/D',
 						message: 'Comma-separated symbol names: only letters, numbers and _ are allowed',
 					),
 				],

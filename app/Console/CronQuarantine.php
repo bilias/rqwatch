@@ -322,7 +322,7 @@ final class CronQuarantine extends RqwatchCliCommand
 			}
 
 			// Only YYYY-MM-DD
-			if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $name)) {
+			if (!preg_match('/^\d{4}-\d{2}-\d{2}$/D', $name)) {
 				continue;
 			}
 

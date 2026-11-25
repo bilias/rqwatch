@@ -117,6 +117,7 @@ final class MapInventoryTest extends UnitTestCase
 			'prefix with a leading zero' => ['10.0.0.0/08', $invalid],
 			'empty prefix' => ['10.0.0.0/', $invalid],
 			'prefix not a number' => ['10.0.0.0/x', $invalid],
+			'prefix ending in a line feed' => ["10.0.0.0/8\n", $invalid],
 			'octet out of range' => ['300.1.1.1', $invalid],
 			'not an IP' => ['bad/8', $invalid],
 			// left to NotBlank on the field

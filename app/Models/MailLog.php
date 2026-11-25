@@ -257,7 +257,7 @@ final class MailLog extends Model
 		foreach (is_array($parsed) ? $parsed : [] as $entry) {
 			/** @var mixed $address */
 			$address = is_array($entry) ? ($entry['address'] ?? null) : null;
-			if (is_string($address) && preg_match('/^[^\s"<>@]+@[^\s"<>@]+$/u', $address) === 1) {
+			if (is_string($address) && preg_match('/^[^\s"<>@]+@[^\s"<>@]+$/uD', $address) === 1) {
 				return $address;
 			}
 		}

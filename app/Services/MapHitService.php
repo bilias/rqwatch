@@ -214,7 +214,7 @@ final class MapHitService
 					continue;
 				}
 				$keys = [$option];
-				if (preg_match('/^(.+):[A-Za-z]:[+-]$/', $option, $m)) {
+				if (preg_match('/^(.+):[A-Za-z]:[+-]$/D', $option, $m)) {
 					$keys[] = $m[1];
 				}
 

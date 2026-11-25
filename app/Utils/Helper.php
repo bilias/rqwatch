@@ -453,8 +453,8 @@ final class Helper {
 	    $srsAddress = strtolower((string) $srsAddress);
 
 	    // Match SRS0 format
-	    // if (preg_match('/^srs0=[^=]+=[^=]+=([^=]+)=(.*@.*)$/i', $srsAddress, $matches))
-	    if (preg_match('/^srs0=[^=]+=[^=]+=([^=]+)=(.+)$/i', $srsAddress, $matches)) {
+	    // if (preg_match('/^srs0=[^=]+=[^=]+=([^=]+)=(.*@.*)$/iD', $srsAddress, $matches))
+	    if (preg_match('/^srs0=[^=]+=[^=]+=([^=]+)=(.+)$/iD', $srsAddress, $matches)) {
 	        $domain = $matches[1];
 	        $localPart = $matches[2];
 
@@ -466,7 +466,7 @@ final class Helper {
 	        return "$localPart@$domain";
 	    }
 		 // Match SRS1 format
-	    if (preg_match('/^srs1=[^=]+=[^=]+==[^=]+=[^=]+=([^=]+)=([^@=]+)@[^=]+$/i', $srsAddress, $matches)) {
+	    if (preg_match('/^srs1=[^=]+=[^=]+==[^=]+=[^=]+=([^=]+)=([^@=]+)@[^=]+$/iD', $srsAddress, $matches)) {
 	        $domain = $matches[1];
 	        $localPart = $matches[2];
 	        return "$localPart@$domain";
@@ -477,7 +477,7 @@ final class Helper {
 
 	public static function convertPRVSAddress(string $email): string {
 		// Match PRVS format
-		if (preg_match('/^prvs=[^=]+=(.+)@(.+)$/i', $email, $matches)) {
+		if (preg_match('/^prvs=[^=]+=(.+)@(.+)$/iD', $email, $matches)) {
 			$local = $matches[1];
 			$domain = $matches[2];
 			return "$local@$domain";
@@ -649,7 +649,7 @@ final class Helper {
 			return false;
 		}
 		
-		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
+		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/D', $day)) {
 			return false;
 		}
 

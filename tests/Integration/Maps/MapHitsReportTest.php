@@ -127,6 +127,34 @@ final class MapHitsReportTest extends IntegrationTestCase
 		}
 	}
 
+	#[TestDox('A query value ending in a line feed is no value: ?day= and ?action= filter nothing, ?symbol= goes back to the report')]
+	public function testLineFeedIsNoValue(): void {
+		$admin = self::client('admin');
+		$list = '/admin/maps/hits/mails?map=' . self::MAP . '&days=31';
+		$day = self::day(3);
+		$cases = [
+			// [query, senders listed, text on the page or null]
+			"&day={$day}" => [['hits-b'], "the day {$day}"],
+			'&day=' . rawurlencode("{$day}\n") => [['hits-a', 'hits-b', 'hits-c'], null],
+			'&action=discard' => [['hits-b'], null],
+			'&action=' . rawurlencode("discard\n") => [['hits-a', 'hits-b', 'hits-c'], null],
+		];
+		foreach ($cases as $query => [$senders, $text]) {
+			$page = $admin->get($list . $query);
+			$this->assertSame(200, $page['status'], $query);
+			$this->assertSame($senders, self::senders($page['body']), $query);
+			if ($text !== null) {
+				$this->assertStringContainsString($text, $page['body'], $query);
+			} else {
+				$this->assertStringNotContainsString('the day ', $page['body'], $query);
+			}
+		}
+
+		$symbol = '/admin/maps/hits/mails?days=31&symbol=';
+		$this->assertSame(200, $admin->get($symbol . self::UNMAPPED)['status'], 'symbol');
+		$this->assertSame(302, $admin->get($symbol . rawurlencode(self::UNMAPPED . "\n"))['status'], 'symbol with a line feed');
+	}
+
 	#[TestDox("The entry's hits on the map page, and the map link on the mail's detail page")]
 	public function testEntryAndMailLinks(): void {
 		$admin = self::client('admin');
@@ -137,6 +165,15 @@ final class MapHitsReportTest extends IntegrationTestCase
 		$detail = $admin->get("/admin/detail/id/{$this->mail}");
 		$this->assertSame(200, $detail['status']);
 		$this->assertStringContainsString('<a href="/admin/map/' . self::MAP . '">', $detail['body'], 'credited through the entry');
+	}
+
+	// the seeded senders a mail list shows, as hits-a .. hits-d
+	/** @return list<string> */
+	private static function senders(string $body): array {
+		preg_match_all('/hits-[a-d]@example\.net/', $body, $found);
+		$shown = array_values(array_unique(array_map(fn (string $s) => substr($s, 0, 6), $found[0])));
+		sort($shown);
+		return $shown;
 	}
 
 	private static function day(int $ago): string {

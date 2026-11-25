@@ -483,7 +483,7 @@ final class MapInventory
 
 		if ($bin === false
 			|| ($prefix !== null
-				&& (!preg_match('/^(0|[1-9]\d{0,2})$/', $prefix) || (int) $prefix > strlen($bin) * 8))
+				&& (!preg_match('/^(0|[1-9]\d{0,2})$/D', $prefix) || (int) $prefix > strlen($bin) * 8))
 		) {
 			$context->buildViolation('Invalid IP address or CIDR network.')->addViolation();
 			return;

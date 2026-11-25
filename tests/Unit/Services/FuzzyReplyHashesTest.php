@@ -33,6 +33,7 @@ final class FuzzyReplyHashesTest extends UnitTestCase
 			'too short' => [[substr($hash, 1)]],
 			'a nested array' => [[$hash, [$hash]]],
 			'a number' => [[$hash, 7]],
+			'ending in a line feed' => [["{$hash}\n"]],
 		];
 	}
 

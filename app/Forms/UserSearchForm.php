@@ -32,7 +32,7 @@ use App\Utils\FormHelper;
 /** @extends AbstractType<array<string, mixed>> */
 final class UserSearchForm extends AbstractType
 {
-	public const string PATTERN = '/^[a-zA-Z0-9._+@-]+$/';
+	public const string PATTERN = '/^[a-zA-Z0-9._+@-]+$/D';
 
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

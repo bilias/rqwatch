@@ -72,7 +72,7 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 		}
 
 		// Expected format: "# Last-Modified: Tue, 29 Jul 2025 10:37:04 GMT"
-		if (preg_match('/^# Last-Modified: (.+)$/', trim($firstLine), $matches)) {
+		if (preg_match('/^# Last-Modified: (.+)$/D', trim($firstLine), $matches)) {
 			$lastModifiedStr = $matches[1];
 
 			// Convert GMT string to local time Y-m-d H:i:s

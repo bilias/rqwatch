@@ -57,7 +57,7 @@ final class UserForm extends AbstractType
 						max: 128,
 					),
 					new Assert\Regex(
-						pattern: '/^[a-zA-Z0-9._+-]+(@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)?$/',
+						pattern: '/^[a-zA-Z0-9._+-]+(@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+)?$/D',
 						message: 'The value can only contain letters, numbers and ._+-@',
 					),
 				],

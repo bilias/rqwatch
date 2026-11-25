@@ -34,6 +34,7 @@ final class FuzzyDigestsTest extends UnitTestCase
 			$a,
 			substr($a, 1),
 			strtoupper($b),
+			"{$a}\n",
 		]));
 	}
 

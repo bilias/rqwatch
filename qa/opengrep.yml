@@ -27,6 +27,24 @@ rules:
           - pattern-regex: '\|\s*raw\b'
           - pattern-regex: '\{%-?\s*autoescape\s+false'
 
+  - id: rqwatch-regex-dollar
+    languages: [php]
+    severity: WARNING
+    message: >-
+      An anchored pattern ending in $ without the D modifier. PCRE's $ also
+      matches before a final line feed, so "value\n" passes as "value". Add D
+      (or end the pattern with \z); for a multiline (m) pattern this rule does
+      not apply.
+    metadata:
+      category: security
+      cwe: ["CWE-20: Improper Input Validation"]
+    # a quoted string that is a /^...$/ pattern (or ~ # delimited) whose
+    # modifiers have neither D nor m: in preg_*(), a constant or a Regex
+    # constraint alike
+    patterns:
+      - pattern-regex: >-
+          '([/~#])\^[^'\n]*\$\1[a-ln-zA-CE-Z]*'|"([/~#])\^[^"\n]*\$\2[a-ln-zA-CE-Z]*"
+
   - id: rqwatch-raw-sql
     languages: [php]
     severity: WARNING

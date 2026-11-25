@@ -241,7 +241,7 @@ foreach ($taints as $class => $methods) {
 		if ($rm->getDeclaringClass()->getName() !== $class) {
 			fail("$class::$method() is inherited from " . $rm->getDeclaringClass()->getName() . '; list it there');
 		}
-		if (preg_match('/^@psalm-taint-sink \w+ \$(\w+)$/', $annotation, $m)) {
+		if (preg_match('/^@psalm-taint-sink \w+ \$(\w+)$/D', $annotation, $m)) {
 			$names = array_map(static fn (ReflectionParameter $p): string => $p->getName(), $rm->getParameters());
 			if (!in_array($m[1], $names, true)) {
 				fail("$class::$method() has no parameter \$$m[1]");

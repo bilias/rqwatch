@@ -12,7 +12,8 @@
  Search results with ?month=Y-m (Reports -> Mails by Month): Date filters
  from the first to the last day of that month, replacing any other Date
  filter; an invalid month is ignored. Mails on both sides of each month
- boundary, February of a leap year.
+ boundary, February of a leap year. ?since= ending in a line feed is ignored
+ as an invalid month is.
 */
 
 namespace Tests\Integration\Search;
@@ -96,6 +97,18 @@ final class MonthFilterTest extends IntegrationTestCase
 		$response = $client->get("/admin/results?{$query}");
 		$this->assertSame(200, $response['status'], $query);
 		return $response['body'];
+	}
+
+	// '$' alone would match before the line feed, as for ?month=
+	public function testSinceEndingInLineFeedIsIgnored(): void {
+		$admin = self::client('admin');
+		$body = $this->results($admin, 'since=2024-02-01');
+		$this->assertSame(['is greater than or equal "2024-02-01"'], self::dateFilters($body));
+		$this->assertListed($body, [9602, 9603, 9604]);
+
+		$body = $this->results($admin, 'since=' . rawurlencode("2024-02-01\n"));
+		$this->assertSame([], self::dateFilters($body));
+		$this->assertListed($body, array_keys(self::MAILS));
 	}
 
 	/** @return list<string> the Active Filters' Date entries, without the field name */

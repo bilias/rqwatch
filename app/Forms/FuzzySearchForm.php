@@ -33,7 +33,7 @@ use App\Utils\FormHelper;
 final class FuzzySearchForm extends AbstractType
 {
 	// QID, learned by, server or a hash prefix
-	public const string PATTERN = '/^[a-zA-Z0-9._+@-]+$/';
+	public const string PATTERN = '/^[a-zA-Z0-9._+@-]+$/D';
 
 	#[\Override]
 	public function buildForm(FormBuilderInterface $builder, array $options): void {

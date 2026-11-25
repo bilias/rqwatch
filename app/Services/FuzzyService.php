@@ -47,7 +47,7 @@ use Throwable;
 final class FuzzyService
 {
 	// rspamd returns digests as 64 bytes, hex encoded
-	private const string HASH_FORMAT = '/^[a-f0-9]{128}$/';
+	private const string HASH_FORMAT = '/^[a-f0-9]{128}$/D';
 
 	private const float TIMEOUT = 10.0;
 
@@ -225,7 +225,7 @@ final class FuzzyService
 							->whereRaw('m.qid LIKE ? AND mj.h = oj.h', [$like]);
 					});
 				// hashes are 128 hex characters; symbol options show a 10 character prefix
-				if (preg_match('/^[a-f0-9]{8,128}$/i', $search)) {
+				if (preg_match('/^[a-f0-9]{8,128}$/iD', $search)) {
 					$q->orWhere('hashes', 'like', '%"' . strtolower($search) . '%');
 				}
 			});

@@ -24,7 +24,7 @@ final class VirusSkipMap extends AbstractMigration {
 	protected const string MIGRATION_NAME = Migrations::VIRUS_SKIP_MAP;
 
 	// same rule as CustomMapConfigForm and the {map} route requirement
-	private const string NAME_REGEX = '/^[a-z0-9_\-]{3,64}$/';
+	private const string NAME_REGEX = '/^[a-z0-9_\-]{3,64}$/D';
 
 	#[\Override]
 	public function run(int $batch, int $sleep, bool $force, OutputInterface $output): bool {

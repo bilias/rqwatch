@@ -307,7 +307,7 @@ final class MapService
 
 	// rspamd symbol name, as accepted by the custom map form
 	public static function validSymbol(string $symbol): bool {
-		return preg_match('/^[A-Za-z0-9_]{1,128}$/', $symbol) === 1;
+		return preg_match('/^[A-Za-z0-9_]{1,128}$/D', $symbol) === 1;
 	}
 
 	// a custom map's symbols are stored only once the migration has added the column
@@ -705,7 +705,7 @@ final class MapService
 	// Same charset CustomMapConfigForm enforces; built-in map names match it too
 	/** @psalm-taint-escape file */
 	private static function fileSafeMapName(string $map_name): ?string {
-		return preg_match('/^[a-z0-9_\-]+$/', $map_name) ? $map_name : null;
+		return preg_match('/^[a-z0-9_\-]+$/D', $map_name) ? $map_name : null;
 	}
 
 	/** @param list<string>|null $map_fields */

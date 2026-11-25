@@ -141,7 +141,7 @@ final class MapHitController extends ViewController
 				[$outcome, $outcomeFilters, $outcomeParams] = $this->outcomeQuery();
 				// one day of the trend chart
 				$day = $this->request->query->getString('day');
-				$day = preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) && strtotime($day) !== false ? $day : null;
+				$day = preg_match('/^\d{4}-\d{2}-\d{2}$/D', $day) && strtotime($day) !== false ? $day : null;
 				$ids = $service->mapHitMailIds($map, $model, $symbols, $window, $this->max_items, $outcome, $day);
 				if ($day !== null) {
 					$period = "the day {$day}";
@@ -276,7 +276,7 @@ final class MapHitController extends ViewController
 		$params = [];
 
 		$action = $this->request->query->getString('action');
-		if ($action !== '' && preg_match('/^[a-z ]{1,20}$/', $action)) {
+		if ($action !== '' && preg_match('/^[a-z ]{1,20}$/D', $action)) {
 			$outcome['action'] = $action;
 			$filters[] = ['filter' => 'Action', 'choice' => 'is', 'value' => $action];
 			$params['action'] = $action;

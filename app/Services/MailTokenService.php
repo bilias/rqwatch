@@ -42,7 +42,7 @@ final class MailTokenService
 	private const int TOKEN_BYTES = 32;
 
 	// sha256 hex digest of the token, as stored in token_hash
-	private const string TOKEN_FORMAT = '/^[a-f0-9]{64}$/';
+	private const string TOKEN_FORMAT = '/^[a-f0-9]{64}$/D';
 
 	private const int DEFAULT_IDLE_MINUTES = 10;
 

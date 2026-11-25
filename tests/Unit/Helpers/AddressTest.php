@@ -32,6 +32,9 @@ final class AddressTest extends UnitTestCase
 			'PRVS' => ['prvs=1234abcd=Alice@Example.org', 'alice@example.org'],
 			'PRVS inside SRS0' => ['SRS0=HHH=TT=example.org=prvs=1234abcd=alice@fwd.example.net', 'alice@example.org'],
 			'empty' => ['', ''],
+			// a value that ends in a line feed is not an encoded address: shown as it is
+			'SRS0 ending in a line feed' => ["SRS0=HHH=TT=example.org=alice@fwd.example.net\n", "srs0=hhh=tt=example.org=alice@fwd.example.net\n"],
+			'PRVS ending in a line feed' => ["prvs=1234abcd=Alice@Example.org\n", "prvs=1234abcd=alice@example.org\n"],
 		];
 	}
 
