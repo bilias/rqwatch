@@ -16,8 +16,10 @@
 		// Class::method::line. When a line moves, its mutant is reported again
 		// for review.
 		"ArrayItemRemoval": {
-			// 'required' => true is the default
 			"ignore": [
+				// Symfony's HttpClient verifies the peer by default too
+				"App\\Services\\ApiClient::__construct::27",
+				// 'required' => true is the default
 				"App\\Forms\\CustomMapConfigForm::buildForm::41",
 				"App\\Forms\\CustomMapConfigForm::buildForm::68",
 				"App\\Forms\\CustomMapConfigForm::buildForm::87",
@@ -56,7 +58,9 @@
 				// json_encode() of a decoded value does not fail
 				"App\\Utils\\Helper::log_to_files::703",
 				// preg_replace() with this ASCII pattern does not fail
-				"App\\Utils\\Helper::oneLine::933"
+				"App\\Utils\\Helper::oneLine::933",
+				// json_encode() with JSON_PARTIAL_OUTPUT_ON_ERROR does not fail
+				"App\\Services\\FuzzyService::flags::112"
 			]
 		},
 		"Coalesce": {
@@ -135,6 +139,14 @@
 				"App\\Utils\\Helper::normalizeToUtf8::1528",
 				// the reader is reused only after a database opened; a unit test has none
 				"App\\Utils\\Helper::geoipReader::1271"
+			]
+		},
+		"LogicalOrAllSubExprNegation": {
+			"ignore": [
+				// a code is an int or a string, never both, so the negation is always true, as the original is
+				"App\\Services\\Import\\MailLogWriter::describe::77",
+				// a usable password goes on to the database; Integration's UserAdminTest adds users
+				"App\\Services\\UserService::userAdd::294"
 			]
 		},
 		"LogicalOrSingleSubExprNegation": {
