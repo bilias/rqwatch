@@ -31,13 +31,39 @@
 				"App\\Forms\\UserForm::buildForm::65"
 			]
 		},
+		"CastFloat": {
+			// a SUM() string divides as a number without the cast
+			"ignore": [
+				"App\\Utils\\Helper::formatSizeUnits::501",
+				"App\\Utils\\Helper::formatSizeUnits::503",
+				"App\\Utils\\Helper::formatSizeUnits::505"
+			]
+		},
 		"CastInt": {
-			// preg_match_all() false is not > 0 either
-			"ignore": ["App\\Utils\\Helper::extract_mail_relays::1192"]
+			"ignore": [
+				// preg_match_all() false is not > 0 either
+				"App\\Utils\\Helper::extract_mail_relays::1192",
+				// a digits-only string compares with 0 as a number
+				"App\\Utils\\Helper::check_id_qid::810"
+			]
+		},
+		"CastString": {
+			"ignore": [
+				// an int . 'B' is the same string
+				"App\\Utils\\Helper::formatSizeUnits::507",
+				// json_encode() of a decoded value does not fail
+				"App\\Utils\\Helper::log_to_files::703",
+				// preg_replace() with this ASCII pattern does not fail
+				"App\\Utils\\Helper::oneLine::933"
+			]
 		},
 		"Coalesce": {
-			// checkSet() and checkInt() report the same for a missing or non-string value
-			"ignore": ["App\\Configuration\\EnvValidator::errors::96"]
+			"ignore": [
+				// checkSet() and checkInt() report the same for a missing or non-string value
+				"App\\Configuration\\EnvValidator::errors::96",
+				// mailparse always sets is_group; a group's ":;" is no address anyway
+				"App\\Utils\\Helper::getMailFromMime::1453"
+			]
 		},
 		"DecrementInteger": {
 			"ignore": [
@@ -49,24 +75,112 @@
 				"App\\Core\\Auth\\LoginThrottle::keyFor::290"
 			]
 		},
+		"FalseValue": {
+			// mailparse always sets is_group
+			"ignore": ["App\\Utils\\Helper::getMailFromMime::1453"]
+		},
 		"GreaterThan": {
 			"ignore": [
 				// no addresses matched leaves the loop empty either way
 				"App\\Utils\\Helper::extract_mail_relays::1192",
 				// one second at the idle limit; a test would race the clock
-				"App\\Controllers\\QuarantineController::sessionToken::327"
+				"App\\Controllers\\QuarantineController::sessionToken::327",
+				// 1 byte is "1B" in either branch
+				"App\\Utils\\Helper::formatSizeUnits::506"
 			]
+		},
+		"Identical": {
+			// the reader is reused only after a database opened; a unit test has none
+			"ignore": ["App\\Utils\\Helper::geoipReader::1271"]
 		},
 		"IncrementInteger": {
 			"ignore": [
 				"App\\Controllers\\QuarantineController::sessionToken::323",
 				// 9 zero bytes differ from 8 only in the reserved ::/64
-				"App\\Core\\Auth\\LoginThrottle::keyFor::290"
+				"App\\Core\\Auth\\LoginThrottle::keyFor::290",
+				// explode()'s limit: only [0] is read
+				"App\\Utils\\Helper::fuzzySymbolClass::203",
+				"App\\Utils\\Helper::get_symbol_class::323",
+				// only frame [1] is read
+				"App\\Utils\\Helper::debugException::1561",
+				// a lookup without a cache is live DNS, which a unit test cannot make
+				"App\\Utils\\Helper::my_gethostbyaddr::1600",
+				"App\\Utils\\Helper::my_gethostbyname::1673"
+			]
+		},
+		"LogicalAnd": {
+			"ignore": [
+				// null and '' fall through the switch to the same "clean"
+				"App\\Utils\\Helper::get_row_class::373",
+				// every mailparse entry is an array
+				"App\\Utils\\Helper::getMailFromMime::1453"
+			]
+		},
+		"LogicalOr": {
+			"ignore": [
+				// php-ip's isPrivate() or isReserved() already covers loopback and link-local
+				"App\\Utils\\Helper::isLocalOrReservedIp::1290",
+				// valid UTF-8 comes out of toUtf8() unchanged
+				"App\\Utils\\Helper::normalizeToUtf8::1528",
+				// the reader is reused only after a database opened; a unit test has none
+				"App\\Utils\\Helper::geoipReader::1271"
+			]
+		},
+		"LogicalOrSingleSubExprNegation": {
+			// the reader is reused only after a database opened; a unit test has none
+			"ignore": ["App\\Utils\\Helper::geoipReader::1271"]
+		},
+		"NotIdentical": {
+			// the reader is reused only after a database opened; a unit test has none
+			"ignore": ["App\\Utils\\Helper::geoipReader::1271"]
+		},
+		"PregMatchRemoveCaret": {
+			"ignore": [
+				// the Y-m-d round trip refuses anything else
+				"App\\Utils\\Helper::check_date::652",
+				// no MimeCharset alias has these names past its start; unknown names become us-ascii
+				"App\\Utils\\Helper::mailCharset::1488"
+			]
+		},
+		"PregMatchRemoveDollar": {
+			// the Y-m-d round trip refuses anything else
+			"ignore": ["App\\Utils\\Helper::check_date::652"]
+		},
+		"PregMatchRemoveFlags": {
+			"ignore": [
+				// the Y-m-d round trip refuses a trailing line feed
+				"App\\Utils\\Helper::check_date::652",
+				// the address is lowercased first; [^=]+ takes a trailing line feed either way
+				"App\\Utils\\Helper::convertSRSAddress::457",
+				"App\\Utils\\Helper::convertSRSAddress::469"
+			]
+		},
+		"PublicVisibility": {
+			// public, but only called inside Helper
+			"ignore": [
+				"App\\Utils\\Helper::checkForMap::260",
+				"App\\Utils\\Helper::convertSRSAddress::451"
 			]
 		},
 		"ReturnRemoval": {
-			// a non-IPv6 value falls through to the same $ip
-			"ignore": ["App\\Core\\Auth\\LoginThrottle::keyFor::286"]
+			"ignore": [
+				// a non-IPv6 value falls through to the same $ip
+				"App\\Core\\Auth\\LoginThrottle::keyFor::286",
+				// the Y-m-d round trip refuses it too
+				"App\\Utils\\Helper::check_date::653",
+				// 'unknown' fails IP::create() and returns true there
+				"App\\Utils\\Helper::isLocalOrReservedIp::1281",
+				// the function ends in return null too
+				"App\\Utils\\Helper::getCountry::1262",
+				// a lookup without a cache is live DNS, which a unit test cannot make
+				"App\\Utils\\Helper::my_gethostbyaddr::1600",
+				"App\\Utils\\Helper::my_gethostbyname::1673"
+			]
+		},
+		"SharedCaseRemoval": {
+			// these cases fall to default; the line also holds the default's own
+			// mutant, which testGetDelivery's 'unknown action' kills
+			"ignore": ["App\\Utils\\Helper::getDelivery::399"]
 		},
 		"SpreadOneItem": {
 			// one-key lists: [...$a][0] is $a
@@ -80,8 +194,14 @@
 			"ignore": ["App\\Core\\Auth\\LoginThrottle::__construct::80"]
 		},
 		"UnwrapArrayValues": {
-			// in_array() does not need list keys
-			"ignore": ["App\\Core\\Auth\\LoginThrottle::__construct::80"]
+			"ignore": [
+				// in_array() does not need list keys
+				"App\\Core\\Auth\\LoginThrottle::__construct::80",
+				// only iterated
+				"App\\Utils\\Helper::symbolMatches::248",
+				// vsprintf() reads the values in order, whatever their keys
+				"App\\Utils\\Helper::sqlWithBindings::1471"
+			]
 		},
 		"UnwrapStrRepeat": {
 			// one leading zero byte differs from 8 only in the reserved ::/8

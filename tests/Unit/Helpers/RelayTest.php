@@ -136,6 +136,13 @@ final class RelayTest extends UnitTestCase
 		$this->assertSame($expected, array_column(Helper::extract_mail_relays($h), 'host'));
 	}
 
+	// a private address is never looked up, even with an answer in the cache
+	public function testPrivateAddressNotLookedUp(): void {
+		$this->resolving(['ptr:10.1.2.3' => 'ptr.example.net']);
+		$h = "Received: from h.example.org ([10.1.2.3]) by mx.example\n";
+		$this->assertSame(['h.example.org'], array_column(Helper::extract_mail_relays($h), 'host'));
+	}
+
 	public function testForwardLookupBudget(): void {
 		$max = AppConfig::DNS_MAX_RELAYS;
 		$h = '';

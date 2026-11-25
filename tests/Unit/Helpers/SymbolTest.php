@@ -60,6 +60,15 @@ final class SymbolTest extends UnitTestCase
 		));
 	}
 
+	public function testNumericOptionMatched(): void {
+		$this->assertSame('154042', Helper::virusSkipMatch([['name' => 'V', 'group' => 'antivirus', 'options' => [154042]]], ['154042']));
+	}
+
+	public function testSymbolPatternsFromConfigTrimmed(): void {
+		Config::set('blacklist_symbol_patterns', [' MY_*_DENY ']);
+		$this->assertTrue(Helper::symbolMatches('my_from_deny', 'blacklist_symbol_patterns'));
+	}
+
 	public function testSymbolPatternsFromConfig(): void {
 		Config::set('blacklist_symbol_patterns', ['MY_*_DENY']);
 		$this->assertTrue(Helper::symbolMatches('my_from_deny', 'blacklist_symbol_patterns'));

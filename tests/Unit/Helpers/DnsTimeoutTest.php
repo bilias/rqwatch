@@ -17,6 +17,7 @@ namespace Tests\Unit\Helpers;
 
 use App\Configuration\Config;
 use App\Utils\Helper;
+use ReflectionMethod;
 use RuntimeException;
 use Tests\Unit\UnitTestCase;
 
@@ -26,6 +27,11 @@ final class DnsTimeoutTest extends UnitTestCase
 	protected function setUp(): void {
 		parent::setUp();
 		Config::set('dns_resolv', true);
+	}
+
+	public function testTimeoutFromConfig(): void {
+		Config::set('dns_resolv_timeout', 1.5);
+		$this->assertSame(1.5, (new ReflectionMethod(Helper::class, 'dnsResolvTimeout'))->invoke(null));
 	}
 
 	public function testReverseLookupNamesTheSetting(): void {

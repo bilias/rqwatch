@@ -53,6 +53,7 @@ final class ActionClassTest extends UnitTestCase
 			'soft reject' => ['soft reject', 'temporarily rejected (greylisted or rate-limited)'],
 			'reject' => ['reject', 'rejected and notified sender'],
 			'discard' => ['discard', 'discarded without notifying sender'],
+			'unknown action' => ['some new action', 'delivered'],
 			'null' => [null, null],
 			'empty' => ['', null],
 			'zero' => ['0', null],

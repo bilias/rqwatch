@@ -30,6 +30,13 @@ final class ImportDataTest extends UnitTestCase
 		$this->assertSame(['Field subject exceeded max 4, truncated.'], $debug);
 	}
 
+	// the limit is in characters, and a value at it is kept as it is
+	public function testValueAtTheLimit(): void {
+		[$data, $debug] = Helper::trimDataToDbLimits(['subject' => 'αααα', 'from' => 'abcd'], ['subject' => 4, 'from' => 4]);
+		$this->assertSame(['subject' => 'αααα', 'from' => 'abcd'], $data);
+		$this->assertSame([], $debug);
+	}
+
 	public function testTrimScrubsInvalidUtf8(): void {
 		// strict mode refuses invalid UTF-8 (1366) and the metadata would be lost
 		[$data, $debug] = Helper::trimDataToDbLimits(['from' => "ab\xFFcd"], ['from' => 10]);
@@ -76,6 +83,26 @@ final class ImportDataTest extends UnitTestCase
 	public function testNameFromKey(): void {
 		$this->assertSame(['A' => ['score' => 1, 'name' => 'A']], Helper::sanitizeSymbols(['A' => ['score' => 1]], 'Q6'));
 		$this->assertSame([], $this->log->lines);
+	}
+
+	// a record's own name wins over its key
+	public function testNameKeptOverKey(): void {
+		$this->assertSame(['A' => ['name' => 'B', 'score' => 1]], Helper::sanitizeSymbols(['A' => ['name' => 'B', 'score' => 1]], 'Q6'));
+	}
+
+	/** @return array<string, array{string|null, bool}> */
+	public static function dates(): array {
+		return [
+			'a date' => ['2026-02-28', true],
+			'no such day' => ['2026-02-30', false],
+			'not padded' => ['2026-2-28', false],
+			'null' => [null, false],
+		];
+	}
+
+	#[DataProvider('dates')]
+	public function testCheckDate(?string $day, bool $valid): void {
+		$this->assertSame($valid, Helper::check_date($day));
 	}
 
 	public function testScoreNotANumber(): void {

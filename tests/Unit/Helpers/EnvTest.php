@@ -62,6 +62,10 @@ final class EnvTest extends UnitTestCase
 		$this->assertNull(Helper::env_string(self::KEY));
 	}
 
+	public function testUnsetBoolIsFalse(): void {
+		$this->assertFalse(Helper::env_bool(self::KEY));
+	}
+
 	public function testNonStringIsNull(): void {
 		$_ENV[self::KEY] = ['x'];
 		$this->assertNull(Helper::env_string(self::KEY));

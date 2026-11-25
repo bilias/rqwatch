@@ -49,6 +49,8 @@ final class OriginTest extends UnitTestCase
 			'user info' => ['https://user@rq.example', null],
 			'empty port' => ['https://rq.example:', null],
 			'port 0' => ['https://rq.example:0', null],
+			'port 1' => ['https://rq.example:1', 'https://rq.example:1'],
+			'port 65535' => ['https://rq.example:65535', 'https://rq.example:65535'],
 			'port past 65535' => ['https://rq.example:65536', null],
 			'port with text' => ['https://rq.example:443x', null],
 			'blank around' => [' https://rq.example', null],

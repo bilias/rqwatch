@@ -99,6 +99,11 @@ final class CharsetTest extends UnitTestCase
 		$this->assertStringContainsString('<body>Привет</body>', Helper::normalizeToUtf8($html));
 	}
 
+	public function testNormalizeUsesUpperCaseMetaCharset(): void {
+		$html = '<HTML><META CHARSET="KOI8-R"><BODY>' . (string) iconv('UTF-8', 'KOI8-R', 'Привет') . '</BODY>';
+		$this->assertStringEndsWith('<BODY>Привет</BODY>', Helper::normalizeToUtf8($html));
+	}
+
 	public function testNormalizeUsesHttpEquivCharset(): void {
 		$html = '<meta http-equiv="Content-Type" content="text/html; charset=windows-1253">'
 			. (string) iconv('UTF-8', 'Windows-1253', 'Γειά');
@@ -114,6 +119,10 @@ final class CharsetTest extends UnitTestCase
 		$this->assertSame('Windows-1252', Helper::mailFallbackCharset(), 'unset');
 		Config::set('mail_fallback_charset', 'koi8-r');
 		$this->assertSame('koi8-r', Helper::mailFallbackCharset());
+		Config::set('mail_fallback_charset', '');
+		$this->assertSame('Windows-1252', Helper::mailFallbackCharset(), 'empty');
+		Config::set('mail_fallback_charset', '0');
+		$this->assertSame('Windows-1252', Helper::mailFallbackCharset(), '0');
 	}
 
 	public function testFallbackCharsetNotTextThrows(): void {

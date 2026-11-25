@@ -29,6 +29,8 @@ final class FormatTest extends UnitTestCase
 			'one byte' => [1, '1B'],
 			'bytes' => [512, '512B'],
 			'one K' => [1024, '1,0K'],
+			'exactly one M' => [1048576, '1,0M'],
+			'exactly one G' => [1073741824, '1,0G'],
 			'K' => [1536, '1,5K'],
 			'M' => [5 * 1048576, '5,0M'],
 			'a float' => [1536.0, '1,5K'],

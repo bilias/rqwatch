@@ -29,6 +29,7 @@ final class AddressTest extends UnitTestCase
 			'SRS0' => ['SRS0=HHH=TT=example.org=alice@fwd.example.net', 'alice@example.org'],
 			'SRS0, = in local part' => ['srs0=HHH=TT=example.org=a=b@fwd.example.net', 'a=b@example.org'],
 			'SRS1' => ['SRS1=HHH=fwd1.example==HHH=TT=example.org=alice@fwd2.example', 'alice@example.org'],
+			'SRS1 with = after the forwarder' => ['SRS1=HHH=fwd1.example==HHH=TT=example.org=alice@fwd2.example=x', 'srs1=hhh=fwd1.example==hhh=tt=example.org=alice@fwd2.example=x'],
 			'PRVS' => ['prvs=1234abcd=Alice@Example.org', 'alice@example.org'],
 			'PRVS inside SRS0' => ['SRS0=HHH=TT=example.org=prvs=1234abcd=alice@fwd.example.net', 'alice@example.org'],
 			'empty' => ['', ''],
@@ -45,6 +46,7 @@ final class AddressTest extends UnitTestCase
 
 	public function testPrvsKeepsCaseOnItsOwn(): void {
 		$this->assertSame('Alice@Example.org', Helper::convertPRVSAddress('prvs=1234abcd=Alice@Example.org'));
+		$this->assertSame('Alice@Example.org', Helper::convertPRVSAddress('PRVS=1234abcd=Alice@Example.org'));
 		$this->assertSame('bob@example.org', Helper::convertPRVSAddress('bob@example.org'));
 	}
 
@@ -53,6 +55,7 @@ final class AddressTest extends UnitTestCase
 		return [
 			'trimmed, lowercased, deduplicated' => [' A@x.org, b@x.org ,a@X.org,, ', ['a@x.org', 'b@x.org']],
 			'single' => ['a@x.org', ['a@x.org']],
+			'a duplicate before another' => ['a@x.org, a@x.org, b@x.org', ['a@x.org', 'b@x.org']],
 			'one invalid refuses all' => ['a@x.org, nope', null],
 			'empty' => ['', null],
 			'only separators' => [' , ,', null],

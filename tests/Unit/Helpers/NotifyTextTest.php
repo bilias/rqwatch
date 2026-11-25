@@ -63,6 +63,15 @@ final class NotifyTextTest extends UnitTestCase
 		$this->assertStringContainsString("\nSubject: Inv\xFFoice " . self::FAKE . "\n", $text);
 	}
 
+	// a virus without a name: no trailing blank after Yes
+	public function testVirusWithoutName(): void {
+		$vars = self::vars('x');
+		$vars['virus_name'] = '';
+		foreach ([Helper::getReleaseText($vars), Helper::getNotifyText($vars), Helper::getAdminNotifyText($vars)] as $text) {
+			$this->assertStringContainsString("\nVirus Detected: Yes\n", $text);
+		}
+	}
+
 	public function testNoVirusAndNullValues(): void {
 		$vars = self::vars('x');
 		$vars['has_virus'] = false;
