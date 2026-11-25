@@ -135,6 +135,8 @@ chown -R rqwatch:rqwatch tmp logs web/maps
 
 cp .env-example .env
 ```
+Replace every `CHANGE_ME_...` value in `.env` with a secret of your own: Rqwatch refuses to
+start on a published one (see [.env Configuration file](CONFIGURE.md#env-configuration-file)).
 
 I prefer root user as the owner for (sensitive) config files.\
 rqwatch user can only read there and not make modifications.

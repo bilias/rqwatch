@@ -3,6 +3,11 @@
 ## Master Dev Branch
 
 ### 2026-11-25
+- Security: refuse published secrets at boot. A `CHANGE_ME_` placeholder, or an example value
+  `.env-example` and `contrib/` shipped before v1.8.4 (still in the git history), in `DB_PASS`,
+  the API, controller, LDAP and OIDC secrets or the `REDIS_DSN`/`MAILER_DSN` password stops
+  Rqwatch where that key is read. The APIs and the mail API client also refuse the old values,
+  not only `CHANGE_ME_`
 - OIDC: `OPENIDC_TRUSTED_HOSTS` takes origins (`https://host`, `https://host:8443`) instead of
   host names. Scheme, host and port must match; the port was ignored, and the request's `Host`
   port went into the callback and logout URLs. They are now built on the `.env` origin, not on

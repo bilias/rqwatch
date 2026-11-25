@@ -100,12 +100,16 @@ abstract class RqwatchApi
 		}
 
 		/*
-		 .env-example ships CHANGE_ME_ placeholders, and RSPAMD_API_PASS is
+		 .env-example ships CHANGE_ME_ placeholders (before them, real-looking
+		 values now public in the git history), and RSPAMD_API_PASS is
 		 pre-matched with contrib's metadata_exporter.conf: an install that
 		 copies both unchanged would accept a publicly known password.
+		 EnvValidator refuses these at boot while API_ENABLE is on, but the
+		 importer boots with ALLOW_DEGRADED_DB (logged, not refused): this check
+		 is what stops it there.
 		*/
-		if (str_starts_with($password, 'CHANGE_ME_')) {
-			$msg = "Placeholder API password in .env for " . static::class . "; set a real one";
+		if (Helper::isPublishedSecret($password)) {
+			$msg = "Published example API password in .env for " . static::class . "; set your own";
 			$this->fileLogger->critical($msg);
 			throw new RuntimeException($msg);
 		}

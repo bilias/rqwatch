@@ -1100,6 +1100,52 @@ Mail details:
 		return filter_var($_ENV[$key] ?? $default, FILTER_VALIDATE_BOOLEAN);
 	}
 
+	/*
+	 SHA-256 of every secret .env-example or contrib/ ever shipped before the
+	 CHANGE_ME_ placeholders (fd3b618, v1.8.4): public in the git history
+	 (found by scanning it for random-looking strings, Nov 25 2026).
+	 Hashes, not the values, so secret scanners do not flag them again.
+	*/
+	private const array PUBLISHED_SECRETS_SHA256 = [
+		// DB_PASS 1vkUSBLf...
+		'3af2440f67c20864562b44ecce3c97f981722b4b912313520e7cc33e137e4437',
+		// RSPAMD_CONTROLLER_PASS fnPsTu6p...
+		'81d74d3b77eeefd9f8793102adee36290b03cd3ab4be69ad8e6ccb08a86ef921',
+		// RSPAMD_API_PASS and metadata_exporter.conf 1k5X73kl...
+		'f8e553c6227665dbb271b7cb820a2ecf8c772f431e192fad3aeb47fcade0c3d6',
+		// metadata_exporter.conf at the start of the public history jPaEFfhP...
+		'b419b39b7caca70e4a7e1cda48f4f03a53b9c97884ae039b071e375a9a81c50e',
+		// MAIL_API_PASS, earlier WEB_API_PASS, BBfXqlWk...
+		'774fdd8dbdced3c3d806f92e1af0571643e7727793b940059043e063c3c71450',
+		// OPENIDC_CLIENT_SECRET wLwVOWBw...
+		'740e2d087c5bf2f0f7c0451acc8014f9dc4705135d044d20599b5d8923def944',
+		// the password in REDIS_DSN v47o7uz9...
+		'8fbbb3b05b028ac09da568cafab6e4a393315588ac49076c08966fe0b20e2eae',
+		// the password in MAILER_DSN itzWMXZa...
+		'188dcff2c018632472c38d7d2acc88ecbc5ccdeef2777d265240ee50e84e0d0f',
+	];
+
+	// a secret anyone can read: a CHANGE_ME_ placeholder or a value shipped before them
+	public static function isPublishedSecret(string $value): bool {
+		$value = trim($value);
+		return str_starts_with($value, 'CHANGE_ME_')
+			|| in_array(hash('sha256', $value), self::PUBLISHED_SECRETS_SHA256, true);
+	}
+
+	// a DSN with a published secret in it: each run of letters, digits and _ is checked
+	public static function hasPublishedSecret(string $dsn): bool {
+		$parts = preg_split('/[^A-Za-z0-9_]+/', $dsn, -1, PREG_SPLIT_NO_EMPTY);
+		if ($parts === false) {
+			throw new RuntimeException('Splitting a DSN failed: ' . preg_last_error_msg());
+		}
+		foreach ($parts as $part) {
+			if (self::isPublishedSecret($part)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static function mailApiCredentialsSet(): bool {
 		$user = self::env_string('MAIL_API_USER');
 		$pass = self::env_string('MAIL_API_PASS');
@@ -1108,7 +1154,7 @@ Mail details:
 			&& $user !== ''
 			&& is_string($pass)
 			&& $pass !== ''
-			&& !str_starts_with($pass, 'CHANGE_ME_');
+			&& !self::isPublishedSecret($pass);
 	}
 
 	/** @return list<array{ip: string, host: string|null, country: string|null}> */

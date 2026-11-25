@@ -383,6 +383,16 @@ You should create a copy of the provided file:
 ```
 cp .env-example .env
 ```
+Replace every `CHANGE_ME_...` value with a secret of your own. Rqwatch refuses to start while a
+secret it reads is a published one: a `CHANGE_ME_` placeholder, or one of the example values
+`.env-example` and `contrib/` shipped before v1.8.4 (public in the git history). Each key is
+checked where it is read: `DB_PASS` always; `RSPAMD_API_PASS` and `MAIL_API_PASS` while
+`API_ENABLE` is on; `LDAP_BIND_PASS`, `OPENIDC_CLIENT_SECRET` and the password in `REDIS_DSN`
+while LDAP, OIDC or Redis is enabled; the password in `MAILER_DSN` while `MAILER_FROM` is set;
+`RSPAMD_CONTROLLER_PASS` and `RSPAMD_CONTROLLER_ENABLE_PASS` by the web interface. The error
+names the key, never its value. A key that is not read is not checked (leave it as it is or
+blank it). The importer API logs these errors and goes on, so no mail is lost, but it still
+refuses a published `RSPAMD_API_PASS`.
 ### Database Connection details
 - `DB_HOST` - Database server IP
 

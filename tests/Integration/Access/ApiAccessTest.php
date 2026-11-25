@@ -20,6 +20,7 @@ namespace Tests\Integration\Access;
 use PHPUnit\Framework\Attributes\TestDox;
 use RuntimeException;
 use Tests\Integration\IntegrationTestCase;
+use Tests\PublishedSecrets;
 
 final class ApiAccessTest extends IntegrationTestCase
 {
@@ -71,6 +72,13 @@ final class ApiAccessTest extends IntegrationTestCase
 		});
 	}
 
+	/*
+	 How a published API password is refused: the mail APIs do not boot
+	 (EnvValidator, 503); the importer boots anyway so no mail is lost
+	 (ALLOW_DEGRADED_DB) and its password check refuses the request (500)
+	*/
+	private const REFUSED = ['RSPAMD' => 500, 'MAIL' => 503];
+
 	#[TestDox('A CHANGE_ME_ placeholder password is never accepted, even when sent')]
 	public function testPlaceholderPasswordIsRefused(): void {
 		$placeholder = 'CHANGE_ME_integration-test';
@@ -78,7 +86,19 @@ final class ApiAccessTest extends IntegrationTestCase
 			foreach (self::SCRIPTS as $script => $kind) {
 				[$user] = self::credentials($kind);
 				$status = self::api($script, [$user, $placeholder])[0];
-				$this->assertSame(500, $status, "{$script}: placeholder password");
+				$this->assertSame(self::REFUSED[$kind], $status, "{$script}: placeholder password");
+			}
+		});
+	}
+
+	#[TestDox('A password shipped before the CHANGE_ME_ placeholders is never accepted, even when sent')]
+	public function testOldExamplePasswordIsRefused(): void {
+		$old = ['RSPAMD' => PublishedSecrets::VALUES['RSPAMD_API_PASS'], 'MAIL' => PublishedSecrets::VALUES['MAIL_API_PASS']];
+		self::withEnv(['RSPAMD_API_PASS' => $old['RSPAMD'], 'MAIL_API_PASS' => $old['MAIL']], function () use ($old): void {
+			foreach (self::SCRIPTS as $script => $kind) {
+				[$user] = self::credentials($kind);
+				$status = self::api($script, [$user, $old[$kind]])[0];
+				$this->assertSame(self::REFUSED[$kind], $status, "{$script}: old example password");
 			}
 		});
 	}

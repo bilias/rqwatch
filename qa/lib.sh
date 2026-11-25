@@ -120,9 +120,13 @@ copy_tree() {
 
 # write_env SED_ARGS...: .env from .env-example with the settings every
 # harness wants (quarantine in $WORK/q, mail to the null transport, no LDAP
-# or OpenID Connect) plus the caller's sed expressions
+# or OpenID Connect, no CHANGE_ME_ placeholder: EnvValidator refuses them)
+# plus the caller's sed expressions, which apply after these
 write_env() {
-	sed -e "s#^QUARANTINE_DIR=.*#QUARANTINE_DIR=${WORK}/q#" \
+	local tag
+	tag=$(head -c 8 /dev/urandom | od -An -tx1 | tr -d ' \n')
+	sed -e "s#CHANGE_ME_#qa-${tag}-#g" \
+		-e "s#^QUARANTINE_DIR=.*#QUARANTINE_DIR=${WORK}/q#" \
 		-e "s#^MAILER_DSN=.*#MAILER_DSN=\"null://null\"#" \
 		-e "s#^LDAP_AUTH_ENABLED=.*#LDAP_AUTH_ENABLED=false#" \
 		-e "s#^OPENIDC_AUTH_ENABLED=.*#OPENIDC_AUTH_ENABLED=false#" \

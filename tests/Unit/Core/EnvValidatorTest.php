@@ -9,10 +9,11 @@
 */
 
 /*
- The boot-time .env check: .env-example passes as shipped, every failing
- key is reported, values that (int) or env_bool() would silently misread are
- refused, and the WEB_* keys and OPENIDC_TRUSTED_HOSTS are checked by the web
- entry point only.
+ The boot-time .env check: .env-example is refused as shipped for its
+ CHANGE_ME_ placeholders only, every failing key is reported, values that
+ (int) or env_bool() would silently misread are refused, the WEB_* keys and
+ OPENIDC_TRUSTED_HOSTS are checked by the web entry point only, and a
+ published secret is refused in each key where that key is read.
 */
 
 namespace Tests\Unit\Core;
@@ -20,6 +21,7 @@ namespace Tests\Unit\Core;
 use App\Configuration\EnvValidator;
 use Dotenv\Dotenv;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\PublishedSecrets;
 use Tests\Unit\UnitTestCase;
 
 final class EnvValidatorTest extends UnitTestCase
@@ -33,10 +35,27 @@ final class EnvValidatorTest extends UnitTestCase
 		];
 	}
 
-	public function testEnvExamplePasses(): void {
+	// an unedited copy does not boot; with its placeholders replaced it does
+	public function testEnvExampleRefusedForItsPlaceholdersOnly(): void {
 		$env = Dotenv::parse((string) file_get_contents(dirname(__DIR__, 3) . '/.env-example'));
-		$this->assertSame([], EnvValidator::errors($env, true));
-		$this->assertSame([], EnvValidator::errors($env, false));
+		$api = ' (read while API_ENABLE is on)';
+		$this->assertSame([
+			'DB_PASS is a published example value; set your own',
+			'RSPAMD_CONTROLLER_PASS is a published example value; set your own',
+			"RSPAMD_API_PASS is a published example value{$api}; set your own",
+			"MAIL_API_PASS is a published example value{$api}; set your own",
+			'MAILER_DSN is a published example value (read while MAILER_FROM is set); set your own',
+		], EnvValidator::errors($env, true));
+		$this->assertSame([
+			'DB_PASS is a published example value; set your own',
+			"RSPAMD_API_PASS is a published example value{$api}; set your own",
+			"MAIL_API_PASS is a published example value{$api}; set your own",
+			'MAILER_DSN is a published example value (read while MAILER_FROM is set); set your own',
+		], EnvValidator::errors($env, false));
+
+		$own = array_map(fn (?string $value): ?string => $value === null ? null : str_replace('CHANGE_ME_', 'own-', $value), $env);
+		$this->assertSame([], EnvValidator::errors($own, true));
+		$this->assertSame([], EnvValidator::errors($own, false));
 	}
 
 	public function testEveryMissingKeyReported(): void {
@@ -127,6 +146,41 @@ final class EnvValidatorTest extends UnitTestCase
 		$this->assertSame([], EnvValidator::errors($env, false));
 		$this->assertSame(['OPENIDC_TRUSTED_HOSTS is not a string'],
 			EnvValidator::errors(['OPENIDC_TRUSTED_HOSTS' => ['x']] + self::valid(), true));
+	}
+
+	// each key where it is read: DB_PASS always, the rest while their switch is on or on the web
+	public function testPublishedSecretsRefusedWhereRead(): void {
+		$old = PublishedSecrets::VALUES;
+		$refused = fn (string $key, string $why = ''): string => "{$key} is a published example value{$why}; set your own";
+
+		$this->assertSame([$refused('DB_PASS')], EnvValidator::errors(['DB_PASS' => $old['DB_PASS']] + self::valid(), false));
+
+		$env = ['RSPAMD_CONTROLLER_PASS' => $old['RSPAMD_CONTROLLER_PASS'], 'RSPAMD_CONTROLLER_ENABLE_PASS' => 'CHANGE_ME_x'] + self::valid();
+		$this->assertSame([], EnvValidator::errors($env, false));
+		$this->assertSame([$refused('RSPAMD_CONTROLLER_PASS'), $refused('RSPAMD_CONTROLLER_ENABLE_PASS')], EnvValidator::errors($env, true));
+
+		$switched = [
+			'API_ENABLE' => ['RSPAMD_API_PASS' => $old['RSPAMD_API_PASS'], 'MAIL_API_PASS' => $old['MAIL_API_PASS']],
+			'LDAP_AUTH_ENABLED' => ['LDAP_BIND_PASS' => 'CHANGE_ME_x'],
+			'OPENIDC_AUTH_ENABLED' => ['OPENIDC_CLIENT_SECRET' => $old['OPENIDC_CLIENT_SECRET']],
+			'REDIS_ENABLE' => ['REDIS_DSN' => "redis:rqwatch:{$old['REDIS_DSN']}@?host[10.10.10.2:5000]"],
+		];
+		foreach ($switched as $switch => $secrets) {
+			$this->assertSame([], EnvValidator::errors([$switch => 'false'] + $secrets + self::valid(), true), $switch);
+			$expected = array_map(fn (string $key): string => $refused($key, " (read while {$switch} is on)"), array_keys($secrets));
+			$errors = EnvValidator::errors([$switch => 'true', 'LDAP_URI' => 'ldap://x', 'LDAP_BASE' => 'dc=x',
+				'OPENIDC_URL' => 'https://idp', 'OPENIDC_CLIENT_ID' => 'rq'] + $secrets + self::valid(), false);
+			$this->assertSame($expected, $errors, $switch);
+		}
+
+		$mailer = ['MAILER_DSN' => "smtp://rq@example.com:{$old['MAILER_DSN']}@smtp.example.com:587"] + self::valid();
+		$this->assertSame([], EnvValidator::errors(['MAILER_FROM' => ' '] + $mailer, false));
+		$this->assertSame([$refused('MAILER_DSN', ' (read while MAILER_FROM is set)')],
+			EnvValidator::errors(['MAILER_FROM' => 'rq@example.com'] + $mailer, false));
+
+		// an empty secret is no published one: LDAP binds anonymously, DB_PASS may be empty
+		$this->assertSame([], EnvValidator::errors(['LDAP_AUTH_ENABLED' => 'true', 'LDAP_URI' => 'ldap://x',
+			'LDAP_BASE' => 'dc=x', 'LDAP_BIND_PASS' => ''] + self::valid(), false));
 	}
 
 	public function testNonStringRefused(): void {

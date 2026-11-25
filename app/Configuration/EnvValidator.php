@@ -60,6 +60,21 @@ final class EnvValidator
 	// the web entry point only: set, may be empty
 	private const array WEB_REQUIRED_MAY_BE_EMPTY = ['WEB_BASE'];
 
+	/*
+	 Secrets refused when they hold a published value (Helper::isPublishedSecret():
+	 a CHANGE_ME_ placeholder or a value shipped before them), each where it is
+	 read: always, while its switch is on, or by the web entry point.
+	*/
+	private const array SECRETS = ['DB_PASS'];
+	private const array SECRETS_WHEN = [
+		'API_ENABLE' => ['RSPAMD_API_PASS', 'MAIL_API_PASS'],
+		'LDAP_AUTH_ENABLED' => ['LDAP_BIND_PASS'],
+		'OPENIDC_AUTH_ENABLED' => ['OPENIDC_CLIENT_SECRET'],
+	];
+	private const array WEB_SECRETS = ['RSPAMD_CONTROLLER_PASS', 'RSPAMD_CONTROLLER_ENABLE_PASS'];
+	// DSNs, checked part by part (Helper::hasPublishedSecret())
+	private const array DSN_SECRETS_WHEN = ['REDIS_ENABLE' => ['REDIS_DSN']];
+
 	/**
 	 * @param array<array-key, mixed> $env normally $_ENV
 	 * @return list<string> one line per failing key, empty when all pass
@@ -113,6 +128,31 @@ final class EnvValidator
 			$errors[] = self::checkOrigins($env, 'OPENIDC_TRUSTED_HOSTS');
 		}
 
+		$secrets = $web ? [...self::SECRETS, ...self::WEB_SECRETS] : self::SECRETS;
+		foreach ($secrets as $key) {
+			$errors[] = self::checkSecret($env, $key);
+		}
+		foreach (self::SECRETS_WHEN as $switch => $keys) {
+			if (self::isTrue($env, $switch)) {
+				foreach ($keys as $key) {
+					$errors[] = self::checkSecret($env, $key, " (read while {$switch} is on)");
+				}
+			}
+		}
+		foreach (self::DSN_SECRETS_WHEN as $switch => $keys) {
+			if (self::isTrue($env, $switch)) {
+				foreach ($keys as $key) {
+					$errors[] = self::checkSecret($env, $key, " (read while {$switch} is on)", true);
+				}
+			}
+		}
+		// mail is sent (release, notifications) only when MAILER_FROM is set too
+		/** @var mixed $from */
+		$from = $env['MAILER_FROM'] ?? null;
+		if (is_string($from) && trim($from) !== '') {
+			$errors[] = self::checkSecret($env, 'MAILER_DSN', ' (read while MAILER_FROM is set)', true);
+		}
+
 		return array_values(array_filter($errors, fn(?string $error): bool => $error !== null));
 	}
 
@@ -164,6 +204,18 @@ final class EnvValidator
 			return "{$key} is not a boolean (true/false, yes/no, on/off, 1/0)";
 		}
 		return null;
+	}
+
+	// not a published value (the value is not shown); unset or not a string passes, other checks report those
+	/** @param array<array-key, mixed> $env */
+	private static function checkSecret(array $env, string $key, string $why = '', bool $dsn = false): ?string {
+		/** @var mixed $value */
+		$value = $env[$key] ?? null;
+		if (!is_string($value)
+			|| !($dsn ? Helper::hasPublishedSecret($value) : Helper::isPublishedSecret($value))) {
+			return null;
+		}
+		return "{$key} is a published example value{$why}; set your own";
 	}
 
 	// comma-separated origins (Helper::origin()), blank entries skipped; unset passes

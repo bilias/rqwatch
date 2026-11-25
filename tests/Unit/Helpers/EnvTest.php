@@ -12,8 +12,8 @@
  .env accessors: a set value is returned as is (an empty one too),
  an unset or non-string one is null, or an exception naming the key.
  The server alias must also not be blank. The mail API credentials count
- as set only when both are, and the password is not .env-example's
- CHANGE_ME_ placeholder.
+ as set only when both are, and the password is not a published one
+ (.env-example's CHANGE_ME_ placeholder or the value shipped before it).
 */
 
 namespace Tests\Unit\Helpers;
@@ -21,6 +21,7 @@ namespace Tests\Unit\Helpers;
 use App\Utils\Helper;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use Tests\PublishedSecrets;
 use Tests\Unit\UnitTestCase;
 
 final class EnvTest extends UnitTestCase
@@ -103,6 +104,7 @@ final class EnvTest extends UnitTestCase
 			'no password' => ['rqwatch', null, false],
 			'empty password' => ['rqwatch', '', false],
 			'example placeholder' => ['rqwatch', 'CHANGE_ME_8788P7pYn5PhwoICqhbvpyjIRSCd7vA59B', false],
+			'example before the placeholder' => ['rqwatch', PublishedSecrets::VALUES['MAIL_API_PASS'], false],
 		];
 	}
 

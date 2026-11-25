@@ -1717,7 +1717,7 @@ final class MailLogService
 		} else {
 			try {
 				if (!Helper::mailApiCredentialsSet()) {
-					$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a CHANGE_ME_ placeholder");
+					$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a published example value");
 					throw new Exception("Error. Contact admin");
 				}
 				// has applyUserScope
@@ -1889,7 +1889,7 @@ final class MailLogService
 		}
 
 		if (!Helper::mailApiCredentialsSet()) {
-			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a CHANGE_ME_ placeholder");
+			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a published example value");
 			return false;
 		}
 

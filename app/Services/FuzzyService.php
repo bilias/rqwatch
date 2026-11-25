@@ -645,8 +645,8 @@ final class FuzzyService
 		}
 
 		if (!Helper::mailApiCredentialsSet()) {
-			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a CHANGE_ME_ placeholder");
-			throw new FuzzyException("MAIL_API_USER or MAIL_API_PASS not set or a CHANGE_ME_ placeholder", FuzzyError::Internal);
+			$this->logger->warning("{$lf} MAIL_API_USER or MAIL_API_PASS not set or a published example value");
+			throw new FuzzyException("MAIL_API_USER or MAIL_API_PASS not set or a published example value", FuzzyError::Internal);
 		}
 
 		// no redirects: a redirect can end on a page that answers 200

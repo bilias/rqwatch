@@ -6,6 +6,16 @@ Rqwatch 2.x+ contains updates to the database schema.
 # Upgrade
 
 ## From 2.x
+- **Before deploying**, check `.env` and Rspamd's `metadata_exporter.conf` for published
+  secrets. Rqwatch now refuses to start while a key it reads holds a `CHANGE_ME_` placeholder
+  or one of the example values shipped before v1.8.4, and names the key:
+  ```
+  grep -nE 'CHANGE_ME_|1vkUSBLf|fnPsTu6p|1k5X73kl|jPaEFfhP|BBfXqlWk|wLwVOWBw|v47o7uz9|itzWMXZa' \
+    .env /etc/rspamd/local.d/metadata_exporter.conf
+  ```
+  Change `RSPAMD_API_PASS` in `.env` and `metadata_exporter.conf` together, and a database or
+  Redis password on the server too. A key Rqwatch does not read is not checked
+  (see [.env Configuration file](https://github.com/bilias/rqwatch/blob/master/docs/CONFIGURE.md#env-configuration-file)).
 - **Before deploying**, if `OPENIDC_TRUSTED_HOSTS` is set in `.env`, rewrite each host name
   as an origin, `http(s)://host` or `http(s)://host:port`. The web interface refuses to start
   on a bare host name and names the entries to fix:
@@ -21,11 +31,16 @@ Rqwatch 2.x+ contains updates to the database schema.
 - Follow the [Rqwatch Upgrade Guide](https://github.com/bilias/rqwatch/blob/master/docs/UPGRADE.md) to get the latest code
 
 # Security
+- Secrets that were published in `.env-example` or `contrib/` (the `CHANGE_ME_` placeholders,
+  and the example values shipped before v1.8.4, still in the git history) are refused at boot
+  where Rqwatch reads them. Before, only the importer and mail APIs refused `CHANGE_ME_`, and
+  an install that kept a pre-1.8.4 example password still accepted it.
 - OIDC: the port of a trusted host name came unchecked from the request's `Host` header into
   the callback and logout URLs sent to the IdP (which still had to accept them). Origins must
   now match in scheme, host and port, and the URLs are built on the `.env` origin, not on the request's.
 
 # Behaviour changes
+- Rqwatch does not start while a secret it reads is a published one. See **Upgrade**.
 - `OPENIDC_TRUSTED_HOSTS` takes origins instead of host names. See **Upgrade** and
   [OPENIDC_TRUSTED_HOSTS](https://github.com/bilias/rqwatch/blob/master/docs/CONFIGURE.md#openid-connect-settings).
 - `WEB_HOST` and `WEB_HOST_NOTIFICATIONS` are trusted with `WEB_SCHEME` and its default port only.
