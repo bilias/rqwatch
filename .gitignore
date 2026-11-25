@@ -20,4 +20,5 @@ gh-md-toc
 /psalm-taint.sarif
 /qa/.phpunit.result.cache
 /zap-report/
+/infection-report/
 /corgea-report/

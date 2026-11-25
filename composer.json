@@ -14,7 +14,10 @@
     "config": {
 	     "platform": {
 		      "php": "8.3.16"
-		  }
+		  },
+        "allow-plugins": {
+            "infection/extension-installer": false
+        }
 	 },
     "autoload": {
         "psr-4": {
@@ -80,7 +83,8 @@
         "ext-posix": "*",
         "yamadashy/phpstan-friendly-formatter": "^1.5",
         "phpstan/phpstan-deprecation-rules": "^2.0",
-        "phpstan/phpstan-phpunit": "^2.1"
+        "phpstan/phpstan-phpunit": "^2.1",
+        "infection/infection": "^0.35"
     },
    "scripts": {
       "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M --error-format friendly",
@@ -90,6 +94,10 @@
       "test-unit": "sh qa/each-php.sh bash qa/unit-tests.sh",
       "shellcheck": "sh qa/shellcheck.sh",
       "betterleaks": "sh qa/betterleaks.sh",
+      "infection": [
+         "Composer\\Config::disableProcessTimeout",
+         "sh qa/infection.sh"
+      ],
       "analyse": [
 			"Composer\\Config::disableProcessTimeout",
 			"sh qa/analyse.sh"
@@ -119,6 +127,7 @@
          "@static",
          "@opengrep",
          "@betterleaks",
+         "@infection",
          "@test-integration",
          "@test-e2e"
 		],
@@ -134,11 +143,12 @@
 		"static": "Validate, audit, test-unit, analyse, psalm-taint, taint-selftest, shellcheck: no Podman, no opengrep",
       "test-integration": "Integration tests against a throwaway MariaDB and Mailpit via Podman, without and with Redis: route protection, API access, a smoke pass over every route, retention crons, data scoping, release (web and API), notifications and password-less links (QA_PHP)",
       "test-e2e": "End-to-end tests with rspamd, Redis and MariaDB via Podman, with and without the app's Redis: import, maps, encoding, spool, fuzzy learning (QA_PHP)",
-      "test": "Everything CI runs, cheapest first: static, opengrep, test-integration, test-e2e; stops at the first failure",
+      "test": "Everything CI runs, cheapest first: static, opengrep, betterleaks, infection, test-integration, test-e2e; stops at the first failure",
       "check": "Alias of test",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "shellcheck": "ShellCheck on every tracked shell script (qa/shellcheck.sh)",
       "betterleaks": "Betterleaks over the GitHub remote's history (as last fetched)",
+      "infection": "Mutation testing of the unit suite (Infection, needs pcov or Xdebug); reports in infection-report/, not part of test (qa/infection.sh)",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor"
    }
 }

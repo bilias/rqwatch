@@ -1,0 +1,16 @@
+// Infection on the unit suite (qa/infection.sh, which also sets the report
+// paths); paths are relative to this file (qa/). The suite is
+// qa/infection/phpunit.xml: Infection wants a phpunit.xml in a directory of
+// its own, so it cannot use qa/phpunit-unit.xml.
+{
+	"$schema": "../vendor/infection/infection/resources/schema.json",
+	"source": {
+		"directories": ["../app"]
+	},
+	"phpUnit": {
+		"configDir": "infection"
+	},
+	"mutators": {
+		"@default": true
+	}
+}
