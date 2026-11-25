@@ -62,6 +62,8 @@ final class QuarantineHandlesTest extends UnitTestCase
 		]);
 		$before = time();
 		$this->assertNull(self::call($controller, 'sessionToken', 'aa'));
+		// stopped at the hash format: no lookup was tried and failed
+		$this->assertSame([], $this->log->lines);
 		/** @var array<string, array<string, mixed>> $stored */
 		$stored = $session->get(self::KEY);
 		$this->assertSame(['aa', 'bb'], array_keys($stored));
