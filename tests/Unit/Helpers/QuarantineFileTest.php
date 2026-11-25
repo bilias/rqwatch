@@ -11,7 +11,10 @@
 /*
  Quarantine files: where store_raw_mail() writes, what deleteDirectory()
  refuses to remove, and which paths quarantinedFile() accepts. Runs in a
- temporary directory. And stripBasePath(): the stored path shown relative
+ temporary directory. A directory that cannot be created or written, or a
+ nested one that cannot be removed, fails with the reason logged; the tests
+ that need an unwritable directory are skipped as root, which writes
+ anywhere. And stripBasePath(): the stored path shown relative
  to QUARANTINE_DIR, unchanged (so hidden) when outside it.
 */
 
@@ -68,6 +71,13 @@ final class QuarantineFileTest extends UnitTestCase
 		rmdir($path);
 	}
 
+	// root ignores permissions: these tests need a directory it cannot write
+	private function requireNotRoot(): void {
+		if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
+			$this->markTestSkipped('root writes anywhere');
+		}
+	}
+
 	private function dayDir(): string {
 		return preg_quote($this->q, '#') . '/\d{4}-\d{2}-\d{2}';
 	}
@@ -120,6 +130,59 @@ final class QuarantineFileTest extends UnitTestCase
 		$this->assertLogged('missing does not exist');
 		$this->assertNull(Helper::store_raw_mail($this->q, 'ABC', ''));
 		$this->assertLogged('No input received for ABC');
+	}
+
+	public function testUnwritableQuarantineRefused(): void {
+		$this->requireNotRoot();
+		chmod($this->q, 0550);
+		try {
+			$this->assertNull(Helper::store_raw_mail($this->q, 'ABC', 'raw'));
+		} finally {
+			chmod($this->q, 0750);
+		}
+		$this->assertLogged("{$this->q} is not writable");
+	}
+
+	// a file where the day's directory goes
+	public function testDayDirectoryNotCreated(): void {
+		$day = $this->q . '/' . date('Y-m-d');
+		file_put_contents($day, 'x');
+		$this->assertNull(Helper::store_raw_mail($this->q, 'ABC', 'raw'));
+		$this->assertLogged("Error creating directory {$day}: mkdir(): File exists");
+	}
+
+	// the qid's directory taken and the day's not writable: no second one either
+	public function testReusedQidNotCreated(): void {
+		$this->requireNotRoot();
+		$day = $this->q . '/' . date('Y-m-d');
+		mkdir($day . '/ABC', 0750, true);
+		chmod($day, 0550);
+		try {
+			$this->assertNull(Helper::store_raw_mail($this->q, 'ABC', 'raw'));
+		} finally {
+			chmod($day, 0750);
+		}
+		$this->assertMatchesRegularExpression('#^error Error creating directory ' . preg_quote($day, '#')
+			. '/ABC-\w+: mkdir\(\): Permission denied$#m', implode("\n", $this->log->lines));
+		$entries = scandir($day);
+		$this->assertIsArray($entries);
+		$this->assertSame(['ABC'], array_values(array_diff($entries, ['.', '..'])));
+	}
+
+	// the mail's directory created but not writable: removed again
+	public function testMailNotWritten(): void {
+		$this->requireNotRoot();
+		$day = $this->q . '/' . date('Y-m-d');
+		mkdir($day, 0750);
+		$umask = umask(0277);
+		try {
+			$this->assertNull(Helper::store_raw_mail($this->q, 'ABC', 'raw'));
+		} finally {
+			umask($umask);
+		}
+		$this->assertLogged("Failed to write raw email to file: {$day}/ABC/mail.eml: ");
+		$this->assertLogged('Failed to open stream: Permission denied');
+		$this->assertDirectoryDoesNotExist($day . '/ABC');
 	}
 
 	public function testDiscardRemovesQidDirOnly(): void {
@@ -202,6 +265,43 @@ final class QuarantineFileTest extends UnitTestCase
 		}
 		$this->assertDirectoryExists($this->q . '/day');
 		$this->assertLogged('QUARANTINE_DIR is empty or points to root /');
+	}
+
+	public function testQuarantineNotADirectoryRefused(): void {
+		mkdir($this->q . '/day', 0750);
+		file_put_contents($this->root . '/q-file', 'x');
+		$_ENV['QUARANTINE_DIR'] = $this->root . '/q-file';
+		$this->assertFalse(Helper::deleteDirectory($this->q . '/day'));
+		$this->assertDirectoryExists($this->q . '/day');
+		$this->assertSame(['warning QUARANTINE_DIR is not a directory'], $this->log->lines);
+	}
+
+	// a quarantine that resolves to / (not caught as '/' itself), or / to remove
+	public function testRootRefused(): void {
+		mkdir($this->q . '/day', 0750);
+		$_ENV['QUARANTINE_DIR'] = '/.';
+		$this->assertFalse(Helper::deleteDirectory($this->q . '/day'));
+		$this->assertDirectoryExists($this->q . '/day');
+		$_ENV['QUARANTINE_DIR'] = $this->q;
+		$this->assertFalse(Helper::deleteDirectory('/'));
+		$this->assertSame(['warning Quarantine points to root /', 'warning Quarantine points to root /'], $this->log->lines);
+	}
+
+	public function testFileRefused(): void {
+		$file = (string) Helper::store_raw_mail($this->q, 'ABC', 'raw');
+		$this->assertFalse(Helper::deleteDirectory($file));
+		$this->assertFileExists($file);
+		$this->assertSame(['warning Quarantine ' . (string) realpath($file) . ' is not a directory'], $this->log->lines);
+	}
+
+	// a subdirectory that cannot go stops the removal, logged at each level
+	#[RequiresFunction('posix_mkfifo')]
+	public function testNestedFailureStops(): void {
+		mkdir($this->q . '/day/qid/sub', 0750, true);
+		posix_mkfifo($this->q . '/day/qid/sub/fifo', 0600);
+		$this->assertFalse(Helper::deleteDirectory($this->q . '/day/qid'));
+		$this->assertDirectoryExists($this->q . '/day/qid/sub');
+		$this->assertLogged('Cannot delete directory in quarantine: ' . (string) realpath($this->q . '/day/qid/sub'));
 	}
 
 	public function testMissingDirectory(): void {

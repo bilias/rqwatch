@@ -16,6 +16,8 @@
  text unescaped. A numeric header or variable name, which PHP stores as an
  int key, is written like any other. The directory is created 0750 and
  logged; the symbols as pretty JSON, the headers as given and per name.
+ A directory it cannot write is refused, logged (skipped as root, which
+ writes anywhere).
 */
 
 namespace Tests\Unit\Helpers;
@@ -49,6 +51,19 @@ final class DebugDumpTest extends UnitTestCase
 			rmdir($this->dir);
 		}
 		parent::tearDown();
+	}
+
+	public function testUnwritableDirectoryRefused(): void {
+		if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
+			$this->markTestSkipped('root writes anywhere');
+		}
+		mkdir($this->dir, 0550);
+		try {
+			$this->assertFalse(Helper::log_to_files($this->dir, '[]', [], '', []));
+		} finally {
+			chmod($this->dir, 0750);
+		}
+		$this->assertSame(["error {$this->dir} is not writable"], $this->log->lines);
 	}
 
 	public function testServerValues(): void {
