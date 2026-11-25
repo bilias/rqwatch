@@ -51,7 +51,9 @@
 				// a SUM() string divides as a number without the cast
 				"App\\Utils\\Helper::formatSizeUnits::501",
 				"App\\Utils\\Helper::formatSizeUnits::503",
-				"App\\Utils\\Helper::formatSizeUnits::505"
+				"App\\Utils\\Helper::formatSizeUnits::505",
+				// an int or a SUM() string divides by a float as a float anyway
+				"App\\Charts\\ChartBuilder::createReportsDayChart::241"
 			]
 		},
 		"CastInt": {
@@ -88,7 +90,10 @@
 				// checkSet() and checkInt() report the same for a missing or non-string value
 				"App\\Configuration\\EnvValidator::errors::96",
 				// mailparse always sets is_group; a group's ":;" is no address anyway
-				"App\\Utils\\Helper::getMailFromMime::1453"
+				"App\\Utils\\Helper::getMailFromMime::1453",
+				// the builders' charts always have datasets; without, both fail (the
+				// swap only adds an undefined-key warning, which still passes)
+				"App\\Charts\\ChartBuilder::addStoredRatio::307"
 			]
 		},
 		"DecrementInteger": {
@@ -100,7 +105,12 @@
 				// 7 zero bytes differ from 8 only in the reserved ::/56
 				"App\\Core\\Auth\\LoginThrottle::keyFor::290",
 				// a shift by 9 masks the byte to 0, as a shift by 8 does
-				"App\\Inventory\\MapInventory::validateIpOrCidr::498"
+				"App\\Inventory\\MapInventory::validateIpOrCidr::498",
+				// any total not above 0 is no total: no ratio
+				"App\\Charts\\ChartBuilder::createQuarantineChart::98",
+				"App\\Charts\\ChartBuilder::createQuarantinePerMonthChart::154",
+				// a byte either side of no size rounds to 0.0 MB (-0.0 === 0.0)
+				"App\\Charts\\ChartBuilder::createReportsDayChart::241"
 			]
 		},
 		"FalseValue": {
@@ -147,7 +157,9 @@
 				// array_pad() to 3 leaves the two values destructured unchanged; the line's
 				// other mutant, explode() limit 3, is killed by the 'a second slash' cases
 				"App\\Inventory\\MapInventory::canonicalIpOrCidr::457",
-				"App\\Inventory\\MapInventory::validateIpOrCidr::481"
+				"App\\Inventory\\MapInventory::validateIpOrCidr::481",
+				// a byte either side of no size rounds to 0.0 MB
+				"App\\Charts\\ChartBuilder::createReportsDayChart::241"
 			]
 		},
 		"LogicalAnd": {
