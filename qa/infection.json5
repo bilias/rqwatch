@@ -143,10 +143,6 @@
 			// custom maps come from the database; Integration covers them
 			"ignore": ["App\\Inventory\\MapInventory::getMapConfigs::243"]
 		},
-		"Identical": {
-			// the reader is reused only after a database opened; a unit test has none
-			"ignore": ["App\\Utils\\Helper::geoipReader::1211"]
-		},
 		"IncrementInteger": {
 			"ignore": [
 				"App\\Controllers\\QuarantineController::sessionToken::323",
@@ -191,8 +187,6 @@
 				"App\\Utils\\Helper::isLocalOrReservedIp::1230",
 				// valid UTF-8 comes out of toUtf8() unchanged
 				"App\\Utils\\Helper::normalizeToUtf8::1460",
-				// the reader is reused only after a database opened; a unit test has none
-				"App\\Utils\\Helper::geoipReader::1211",
 				// authenticate() returns true or answers and exits: either way the
 				// condition is false, || or &&
 				"App\\Api\\RqwatchApi::checkAuth::125"
@@ -206,10 +200,6 @@
 				"App\\Services\\UserService::userAdd::294"
 			]
 		},
-		"LogicalOrSingleSubExprNegation": {
-			// the reader is reused only after a database opened; a unit test has none
-			"ignore": ["App\\Utils\\Helper::geoipReader::1211"]
-		},
 		"MethodCallRemoval": {
 			"ignore": [
 				// without a database warmCache() returns at once; Integration covers the warm-up
@@ -217,10 +207,6 @@
 				// with the API on it does nothing; off, it answers and exits (Integration's ApiAccessTest)
 				"App\\Api\\RqwatchApi::__construct::48"
 			]
-		},
-		"NotIdentical": {
-			// the reader is reused only after a database opened; a unit test has none
-			"ignore": ["App\\Utils\\Helper::geoipReader::1211"]
 		},
 		"PregMatchRemoveCaret": {
 			"ignore": [
