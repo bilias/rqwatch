@@ -564,8 +564,19 @@ final class LoginController extends ViewController
 		return true;
 	}
 
-	// Only same-origin paths ("/x", not "//host") pass; everything else goes home
-	/** @psalm-taint-escape header */
+	/*
+	 Only paths on this site pass (sameOriginPath()); everything else goes home.
+	 The kinds escaped are those of a redirect target: no control character
+	 (header), this site (redirect), and the whole path and query the user's
+	 own browser asked for, on routes that check access themselves
+	 (url_component, url_path). Not html: the value is still raw input.
+	*/
+	/**
+	 * @psalm-taint-escape header
+	 * @psalm-taint-escape redirect
+	 * @psalm-taint-escape url_component
+	 * @psalm-taint-escape url_path
+	 */
 	private function getRedirectUrl(string $login_redirect): string {
 		$url = $this->getHomepageUrl();
 		if ($login_redirect !== $this->url(RouteName::LOGIN) &&
@@ -573,13 +584,24 @@ final class LoginController extends ViewController
 		    $login_redirect !== $this->url(RouteName::ADMIN_HOMEPAGE) &&
 		    $login_redirect !== $this->url(RouteName::HOMEPAGE) &&
 			 $login_redirect !== $this->getHomepageUrl()) {
-				if (str_starts_with($login_redirect, '/') && !str_starts_with($login_redirect, '//')) {
+				if (self::sameOriginPath($login_redirect)) {
 					$url = $login_redirect;
 				}
 				$this->session->remove('login_redirect');
 		}
 
 		return $url;
+	}
+
+	/*
+	 A path on this site: one leading "/", and no "\" or control character.
+	 Browsers read "\" as "/" and drop tabs and line breaks, so "/\evil" and
+	 "/<tab>/evil" would become "//evil", a URL on another host. On a PCRE
+	 failure the path does not pass.
+	*/
+	private static function sameOriginPath(string $path): bool {
+		return str_starts_with($path, '/') && !str_starts_with($path, '//')
+			&& preg_match('/[\\\\\x00-\x1F\x7F]/', $path) === 0;
 	}
 
 }
