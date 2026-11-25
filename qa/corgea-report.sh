@@ -74,7 +74,7 @@ if [ -z "$SCAN_ID" ]; then
 		echo "No remote on github.com: set CORGEA_REPO_URL" >&2
 		exit 1
 	fi
-	git clone -q --depth 1 "file://$(pwd)" "${WORK}/rqwatch"
+	git clone -q "file://$(pwd)" "${WORK}/rqwatch"
 	git -C "${WORK}/rqwatch" remote set-url origin "$repo_url"
 	echo "=== scan of $(git -C "${WORK}/rqwatch" log -1 --format='%h %s')"
 	(cd "${WORK}/rqwatch" && corgea scan --out-format sarif --out-file "${OUT}/rqwatch-corgea.sarif") \
