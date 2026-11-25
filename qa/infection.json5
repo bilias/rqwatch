@@ -37,6 +37,13 @@
 				"App\\Forms\\UserForm::buildForm::65"
 			]
 		},
+		"BitwiseOr": {
+			// a word run holds only letters, marks and format chars: valid UTF-8, no quotes
+			"ignore": [
+				"App\\Twig\\RqwatchExtension::markHomoglyphs::216",
+				"App\\Twig\\RqwatchExtension::markHomoglyphs::218"
+			]
+		},
 		"CastFloat": {
 			"ignore": [
 				// a float return type converts an int anyway, strict_types or not
@@ -210,14 +217,18 @@
 			"ignore": [
 				// the Y-m-d round trip refuses a trailing line feed
 				"App\\Utils\\Helper::check_date::652",
+				// the D flag: mailparse drops a trailing line feed; the line's u flag mutant
+				// is killed by MailLogTest's invalid UTF-8 case
+				"App\\Models\\MailLog::mimeFromAddress::260",
 				// the address is lowercased first; [^=]+ takes a trailing line feed either way
 				"App\\Utils\\Helper::convertSRSAddress::457",
 				"App\\Utils\\Helper::convertSRSAddress::469"
 			]
 		},
 		"PublicVisibility": {
-			// public, but only called inside its class
+			// public, but only called inside its class (Eloquent calls accessors from inside the model)
 			"ignore": [
+				"App\\Models\\MailLog::getMimeFromDecodedAttribute::200",
 				"App\\Configuration\\Config::loadAndInit::152",
 				"App\\Utils\\Helper::checkForMap::260",
 				"App\\Utils\\Helper::convertSRSAddress::451"
@@ -266,6 +277,10 @@
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::211",
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::218"
 			]
+		},
+		"UnwrapFinally": {
+			// the catch takes every Throwable, so the handler is restored either way
+			"ignore": ["App\\Models\\MailLog::mimeFromAddress::238"]
 		},
 		"UnwrapArrayDiffKey": {
 			// $before is a closure's get_defined_vars(), which is always []
