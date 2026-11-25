@@ -18,7 +18,9 @@
 namespace Tests\Unit\Services;
 
 use App\Services\UserService;
+use App\Configuration\Config;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionProperty;
 use Tests\Unit\UnitTestCase;
 
 final class UserAddTest extends UnitTestCase
@@ -39,6 +41,14 @@ final class UserAddTest extends UnitTestCase
 	public function testRefusedQuietly(array $data): void {
 		$this->assertFalse((new UserService())->userAdd($data));
 		$this->assertSame([], $this->log->lines);
+	}
+
+	// the page size: items_per_page, 50 when unset
+	public function testItemsPerPage(): void {
+		$size = new ReflectionProperty(UserService::class, 'items_per_page');
+		$this->assertSame(50, $size->getValue(new UserService()));
+		Config::set('items_per_page', 20);
+		$this->assertSame(20, $size->getValue(new UserService()));
 	}
 
 	public function testUsernameNotTextRefused(): void {

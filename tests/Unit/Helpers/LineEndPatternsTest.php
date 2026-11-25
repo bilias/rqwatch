@@ -102,12 +102,14 @@ final class LineEndPatternsTest extends UnitTestCase
 	public function testSymbolName(): void {
 		$this->assertTrue(MapService::validSymbol('RQWATCH_FUZZY_SPAM'));
 		$this->assertFalse(MapService::validSymbol("RQWATCH_FUZZY_SPAM\n"));
+		$this->assertFalse(MapService::validSymbol('NOT A_SYMBOL'), 'the whole name, not its end');
 	}
 
 	public function testMapFileName(): void {
 		$safe = new ReflectionMethod(MapService::class, 'fileSafeMapName');
 		$this->assertSame('blocked-senders', $safe->invoke(null, 'blocked-senders'));
 		$this->assertNull($safe->invoke(null, "blocked-senders\n"));
+		$this->assertNull($safe->invoke(null, '../blocked-senders'), 'the whole name, not its end');
 	}
 
 	// the date parse after the pattern refuses the line feed too

@@ -38,6 +38,13 @@ final class FuzzyDigestsTest extends UnitTestCase
 		]));
 	}
 
+	// a repeat before another digest: still a list
+	public function testRepeatFirst(): void {
+		$a = str_repeat('a1', 64);
+		$b = str_repeat('0f', 64);
+		$this->assertSame([$a, $b], self::digests([$a, $a, $b]));
+	}
+
 	public function testNone(): void {
 		$this->assertSame([], self::digests([]));
 		$this->assertSame([], self::digests(['abc', 5, null]));

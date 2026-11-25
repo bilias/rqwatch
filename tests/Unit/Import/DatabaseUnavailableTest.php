@@ -18,9 +18,11 @@
 namespace Tests\Unit\Import;
 
 use App\Services\Import\MailLogWriter;
+use Exception;
 use Illuminate\Database\QueryException;
 use PDOException;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionProperty;
 use RuntimeException;
 use Tests\Unit\UnitTestCase;
 
@@ -36,6 +38,8 @@ final class DatabaseUnavailableTest extends UnitTestCase
 			'access denied' => ['28000', "Access denied for user 'rqwatch'", 1045, true],
 			'deadlock' => ['40001', 'Deadlock found when trying to get lock; try restarting transaction', 1213, true],
 			'lock wait' => ['HY000', 'Lock wait timeout exceeded; try restarting transaction', 1205, true],
+			// class 08 is a connection error, whatever the code
+			'connection class only' => ['08004', 'rejected', 9999, true],
 			'CHECK constraint' => ['23000', 'CONSTRAINT `mail_log_data.fuzzy_hashes` failed', 4025, false],
 			'data too long' => ['22001', "Data too long for column 'subject'", 1406, false],
 			'incorrect string' => ['HY000', "Incorrect string value: '\\xF0' for column 'subject'", 1366, false],
@@ -82,5 +86,20 @@ final class DatabaseUnavailableTest extends UnitTestCase
 
 	public function testNotADatabaseError(): void {
 		$this->assertFalse(MailLogWriter::databaseUnavailable(new RuntimeException('Connection refused')));
+		// only a database error's code counts
+		$this->assertFalse(MailLogWriter::databaseUnavailable(new RuntimeException('Disk full', 2002)));
+	}
+
+	// Laravel's detectors read the message, whatever the exception
+	public function testDetectedByMessage(): void {
+		$this->assertTrue(MailLogWriter::databaseUnavailable(new RuntimeException('MySQL server has gone away')));
+		$this->assertTrue(MailLogWriter::databaseUnavailable(new RuntimeException('Deadlock found when trying to get lock')));
+	}
+
+	// PDO's own exceptions carry the SQLSTATE as their code
+	public function testDescribeTextCode(): void {
+		$pdo = new PDOException('SQLSTATE[42S02]: Base table or view not found');
+		(new ReflectionProperty(Exception::class, 'code'))->setValue($pdo, '42S02');
+		$this->assertSame('SQLSTATE ?, error 42S02: SQLSTATE[42S02]: Base table or view not found', MailLogWriter::describe($pdo));
 	}
 }
