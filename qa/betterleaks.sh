@@ -31,4 +31,4 @@ if [ -z "$remote" ]; then
 	exit 1
 fi
 exec "$BETTERLEAKS" git --no-banner --redact --verbose --config .betterleaks.toml \
-	--gitleaks-ignore-path .betterleaksignore --log-opts="--remotes=$remote" "$@" .
+	--gitleaks-ignore-path .betterleaksignore --platform=none --log-opts="--remotes=$remote" "$@" .
