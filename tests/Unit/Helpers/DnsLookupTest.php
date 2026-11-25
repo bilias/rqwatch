@@ -164,14 +164,20 @@ final class DnsLookupTest extends UnitTestCase
 		$this->assertSame([$key => $ttl], $cache->ttls);
 	}
 
-	// unset TTLs: a day, an hour, a minute
+	// unset TTLs: a day found, an hour not found, a minute failed, both ways
 	public function testDefaultTtls(): void {
 		Config::init(['dns_resolv' => true, 'dns_resolv_timeout' => 1.0, 'dns_resolv_redis_key' => 'dns']);
 		$cache = $this->cache();
-		Helper::my_gethostbyaddr('8.8.4.4');
-		Helper::my_gethostbyaddr('9.9.9.9');
-		Helper::my_gethostbyname('down.example.org');
-		$this->assertSame(['dns:ptr:8.8.4.4' => 86400, 'dns:ptr:9.9.9.9' => 3600, 'dns:fwd:down.example.org' => 60], $cache->ttls);
+		foreach (['8.8.4.4', '9.9.9.9', '1.1.1.1'] as $ip) {
+			Helper::my_gethostbyaddr($ip);
+		}
+		foreach (['mail.example.org', 'nx.example.org', 'down.example.org'] as $host) {
+			Helper::my_gethostbyname($host);
+		}
+		$this->assertSame([
+			'dns:ptr:8.8.4.4' => 86400, 'dns:ptr:9.9.9.9' => 3600, 'dns:ptr:1.1.1.1' => 60,
+			'dns:fwd:mail.example.org' => 86400, 'dns:fwd:nx.example.org' => 3600, 'dns:fwd:down.example.org' => 60,
+		], $cache->ttls);
 	}
 
 	public function testFailingCachePassedBy(): void {

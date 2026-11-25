@@ -121,7 +121,10 @@
 				// mailparse always sets is_group
 				"App\\Utils\\Helper::getMailFromMime::1385",
 				// inet_pton() of an address FILTER_VALIDATE_IP accepted does not fail
-				"App\\Inventory\\MapInventory::canonicalIpOrCidr::463"
+				"App\\Inventory\\MapInventory::canonicalIpOrCidr::463",
+				// an answer found is cached for the full TTL whether or not it is called transient
+				"App\\Utils\\Helper::lookupPtr::1586",
+				"App\\Utils\\Helper::lookupA::1643"
 			]
 		},
 		"GreaterThan": {
@@ -266,6 +269,8 @@
 				"App\\Utils\\Helper::isLocalOrReservedIp::1221",
 				// the function ends in return null too
 				"App\\Utils\\Helper::getCountry::1202",
+				// without a cache countByPrefix() on null throws, caught, and returns null too
+				"App\\Utils\\Helper::count_dns_cache::1673",
 				// an unknown action falls out of the switch to the same return "clean"
 				"App\\Utils\\Helper::get_row_class::388",
 				// nothing to embed: the HTML comes back as it is either way
