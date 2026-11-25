@@ -1654,7 +1654,7 @@ Mail details:
 	 set one, so the lookups above run without a network.
 	*/
 	/** @var (\Closure(string, string): \NetDNS2\Packet\Response)|null name, type => the answer */
-	private static ?\Closure $dnsQuery = null;
+	private static ?\Closure $dnsQuery = null; // @phpstan-ignore property.unusedType (the unit tests set it, through reflection)
 
 	private static function dnsQuery(string $name, string $type, float $timeout): \NetDNS2\Packet\Response {
 		if (self::$dnsQuery !== null) {
