@@ -110,7 +110,10 @@
 				"App\\Charts\\ChartBuilder::createQuarantineChart::98",
 				"App\\Charts\\ChartBuilder::createQuarantinePerMonthChart::154",
 				// a byte either side of no size rounds to 0.0 MB (-0.0 === 0.0)
-				"App\\Charts\\ChartBuilder::createReportsDayChart::241"
+				"App\\Charts\\ChartBuilder::createReportsDayChart::241",
+				// a byte more or less in a MB is a millionth: no %.2f figure shows it
+				"App\\Utils\\Helper::getRuntime::446",
+				"App\\Utils\\Helper::getRuntime::447"
 			]
 		},
 		"FalseValue": {
@@ -159,7 +162,10 @@
 				"App\\Inventory\\MapInventory::canonicalIpOrCidr::457",
 				"App\\Inventory\\MapInventory::validateIpOrCidr::481",
 				// a byte either side of no size rounds to 0.0 MB
-				"App\\Charts\\ChartBuilder::createReportsDayChart::241"
+				"App\\Charts\\ChartBuilder::createReportsDayChart::241",
+				// a byte more or less in a MB is a millionth: no %.2f figure shows it
+				"App\\Utils\\Helper::getRuntime::446",
+				"App\\Utils\\Helper::getRuntime::447"
 			]
 		},
 		"LogicalAnd": {

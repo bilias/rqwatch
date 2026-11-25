@@ -10,7 +10,8 @@
 
 /*
  Input checks on the import and lookup paths: column limits, malformed
- rspamd symbols, and id/qid parameters.
+ rspamd symbols, id/qid parameters, and the importer's ?server= kept to
+ letters, digits, dots and hyphens.
 */
 
 namespace Tests\Unit\Helpers;
@@ -153,5 +154,19 @@ final class ImportDataTest extends UnitTestCase
 
 	public function testCheckIdAcceptsInt(): void {
 		$this->assertSame(['error' => false, 'id' => 7, 'qid' => false], Helper::check_id_qid('id', 7));
+	}
+
+	/** @return array<string, array{string, string}> */
+	public static function serverNames(): array {
+		return [
+			'a host name as is' => ['mx-1.Example.org', 'mx-1.Example.org'],
+			'anything else dropped' => ["mx1 <b>/_;\x00é\n", 'mx1b'],
+			'nothing left' => ['<>', ''],
+		];
+	}
+
+	#[DataProvider('serverNames')]
+	public function testSanitizeString(string $server, string $expected): void {
+		$this->assertSame($expected, Helper::sanitize_string($server));
 	}
 }

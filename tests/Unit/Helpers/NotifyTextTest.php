@@ -81,6 +81,9 @@ final class NotifyTextTest extends UnitTestCase
 		$this->assertStringContainsString("\nFrom: \nTo: x\nSubject: \n", $text);
 		$this->assertStringContainsString("\nVirus Detected: No\n", $text);
 		$this->assertStringContainsString("\nThis link can be used only once.\n", $text);
+		foreach ([Helper::getReleaseText($vars), Helper::getAdminNotifyText($vars)] as $text) {
+			$this->assertStringContainsString("\nVirus Detected: No\n", $text);
+		}
 	}
 
 	/**

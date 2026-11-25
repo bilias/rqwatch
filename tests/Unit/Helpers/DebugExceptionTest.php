@@ -32,4 +32,9 @@ final class DebugExceptionTest extends UnitTestCase
 		$this->assertSame(__FILE__ . ":{$warnLine} 'unknown id'", $warn);
 		$this->assertSame(["error {$err}", "warning {$warn}"], $this->log->lines);
 	}
+
+	public function testNullMessageIsEmpty(): void {
+		$line = __LINE__ + 1;
+		$this->assertSame(__FILE__ . ":{$line} ''", Helper::debug_exception_warn(null));
+	}
 }

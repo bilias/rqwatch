@@ -13,7 +13,8 @@
  LDAP or OpenID Connect each answers what it has, and a getter the provider
  lacks gives the default. Each provider is built without its server, its
  properties set directly. isExternalAdmin() reads LDAP_ADMINS or
- OPENIDC_ADMINS from .env, case- and whitespace-insensitive.
+ OPENIDC_ADMINS from .env, case- and whitespace-insensitive. A provider id
+ (users.auth_provider) names its provider, UNKNOWN when there is none.
 */
 
 namespace Tests\Unit\Auth;
@@ -129,6 +130,11 @@ final class AuthManagerTest extends UnitTestCase
 		$this->assertNull($auth->getIdToken());
 		$this->assertSame([], $auth->getUserEmailAliases());
 		$this->assertFalse($auth->getIsAdmin());
+	}
+
+	public function testProviderNames(): void {
+		$this->assertSame(['DB', 'LDAP', 'OPENIDC', 'UNKNOWN', 'UNKNOWN'],
+			array_map(Helper::getAuthProvider(...), [0, 1, 2, 3, -1]));
 	}
 
 	private function manager(AuthInterface $provider): AuthManager {

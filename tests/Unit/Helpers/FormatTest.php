@@ -10,7 +10,8 @@
 
 /*
  Display formats: sizes in B, K, M and G with a decimal comma (and a dot
- between thousands), "Null" for nothing; a TTL in minutes and seconds.
+ between thousands), "Null" for nothing; a TTL in minutes and seconds;
+ today as Y-m-d.
 */
 
 namespace Tests\Unit\Helpers;
@@ -60,5 +61,9 @@ final class FormatTest extends UnitTestCase
 	#[DataProvider('ttlCases')]
 	public function testFormatTtlHuman(int $ttl, string $expected): void {
 		$this->assertSame($expected, Helper::formatTtlHuman($ttl));
+	}
+
+	public function testToday(): void {
+		$this->assertSame(date('Y-m-d'), Helper::get_today());
 	}
 }
