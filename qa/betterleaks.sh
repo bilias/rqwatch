@@ -30,5 +30,14 @@ if [ -z "$remote" ]; then
 	echo "No remote on github.com: set BETTERLEAKS_REMOTE" >&2
 	exit 1
 fi
-exec "$BETTERLEAKS" git --no-banner --redact --verbose --config .betterleaks.toml \
-	--gitleaks-ignore-path .betterleaksignore --platform=none --log-opts="--remotes=$remote" "$@" .
+echo "=== Betterleaks $("$BETTERLEAKS" version), history of ${remote}"
+status=0
+"$BETTERLEAKS" git --no-banner --redact --verbose --config .betterleaks.toml \
+	--gitleaks-ignore-path .betterleaksignore --platform=none --log-opts="--remotes=$remote" "$@" . \
+	|| status=$?
+if [ "$status" -eq 0 ]; then
+	echo "=== Betterleaks: clean"
+else
+	echo "=== Betterleaks: failed (exit ${status})" >&2
+fi
+exit "$status"
