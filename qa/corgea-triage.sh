@@ -59,10 +59,12 @@ fi
 printf 'CORGEA-SOURCE: cli\nContent-Type: application/json\n' >> "${WORK}/headers"
 umask 022
 
+# shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
 count=$("$PHP" -r 'echo count(json_decode((string) file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR));' "$GROUPS_FILE")
 status=0
 for ((g = 0; g < count; g++)); do
 	# the request body of group $g, and its name on stdout
+	# shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
 	name=$("$PHP" -r '
 		$group = json_decode((string) file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR)[(int) $argv[2]];
 		file_put_contents($argv[4], json_encode([
@@ -83,6 +85,7 @@ for ((g = 0; g < count; g++)); do
 		continue
 	fi
 	# action status, counts and unresolved ids, as Corgea reports them
+	# shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
 	"$PHP" -r '
 		$r = json_decode((string) file_get_contents($argv[1]), true);
 		$a = $r["action"] ?? [];

@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Rqwatch
 # Copyright (C) 2026 Giannis Kapetanakis
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -35,6 +36,7 @@ make_workdir() {
 }
 
 free_port() {
+	# shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
 	"$PHP" -r '$s = stream_socket_server("tcp://127.0.0.1:0"); echo explode(":", stream_socket_get_name($s, false))[1];'
 }
 
@@ -61,8 +63,7 @@ start_mailpit() {
 
 # wait_mailpit: until the Mailpit API on MAILPIT_HTTP_PORT answers
 wait_mailpit() {
-	local i
-	for i in $(seq 30); do
+	for _ in $(seq 30); do
 		curl -fs -o /dev/null "http://127.0.0.1:${MAILPIT_HTTP_PORT}/readyz" && return 0
 		sleep 1
 	done
@@ -80,8 +81,8 @@ start_redis() {
 
 # wait_redis: until Redis on REDIS_PORT answers PING (plain TCP, no client needed)
 wait_redis() {
-	local i reply
-	for i in $(seq 30); do
+	local reply
+	for _ in $(seq 30); do
 		# a port forwarder may accept before Redis listens: resets are retried quietly
 		reply=$({ exec 3<>"/dev/tcp/127.0.0.1/${REDIS_PORT}" && printf 'PING\r\n' >&3 \
 			&& timeout 2 head -c 5 <&3; } 2>/dev/null) || reply=
@@ -95,13 +96,13 @@ wait_redis() {
 # start_mariadb IMAGE ROOT_PASSWORD [SERVER_ARGS...]: a throwaway MariaDB on
 # a free loopback port; sets DB_CID, DB_PORT and DB_EXEC (a root client)
 start_mariadb() {
-	local image=$1 pass=$2 i
+	local image=$1 pass=$2
 	shift 2
 	DB_PORT=$(free_port)
 	start_container DB_CID -e MARIADB_ROOT_PASSWORD="$pass" \
 		-p "127.0.0.1:${DB_PORT}:3306" --tmpfs /var/lib/mysql "$image" "$@"
 	DB_EXEC="podman exec -i $DB_CID mariadb -uroot -p$pass"
-	for i in $(seq 60); do
+	for _ in $(seq 60); do
 		podman exec "$DB_CID" healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1 && return 0
 		sleep 1
 	done
@@ -114,7 +115,7 @@ start_mariadb() {
 copy_tree() {
 	git ls-files -co --exclude-standard -z | tar --null -T - -cf - | tar -xf - -C "$WORK"
 	cp -a vendor "$WORK/"
-	cd "$WORK"
+	cd "$WORK" || exit 1
 	mkdir -p logs q
 }
 
@@ -173,7 +174,7 @@ web_image() {
 # streams to $WEB_SERVER_LOG, default logs/web-server.log; PHP's own errors go
 # to logs/php-error.log. Sets WEB_CID. Run in the copy, after copy_tree.
 start_web_container() {
-	local probe=$1 i
+	local probe=$1
 	shift
 	web_image
 	# The copy is mounted where contrib/apache-rqwatch.conf expects it, and at
@@ -195,7 +196,7 @@ start_web_container() {
 	LIB_CIDS+=("$WEB_CID")
 	podman logs -f "$WEB_CID" > "${WEB_SERVER_LOG:-logs/web-server.log}" 2>&1 &
 	LIB_PIDS+=("$!")
-	for i in $(seq 30); do
+	for _ in $(seq 30); do
 		curl -fs -o /dev/null "http://127.0.0.1:${1}${probe}" && return 0
 		sleep 1
 	done

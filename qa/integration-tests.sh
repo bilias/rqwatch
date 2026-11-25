@@ -60,6 +60,7 @@ if [ -z "${INTEGRATION_MAILPIT_SMTP_PORT:-}" ]; then
 	start_mailpit "$MAILPIT_IMAGE"
 else
 	MAILPIT_SMTP_PORT="$INTEGRATION_MAILPIT_SMTP_PORT"
+	# shellcheck disable=SC2153 # set by the caller together with INTEGRATION_MAILPIT_SMTP_PORT
 	MAILPIT_HTTP_PORT="$INTEGRATION_MAILPIT_HTTP_PORT"
 	wait_mailpit
 fi

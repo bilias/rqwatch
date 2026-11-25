@@ -14,7 +14,7 @@ trap 'exit 1' INT TERM
 cd "$D"
 
 ok=
-for i in 1 2 3 4 5; do
+for _ in 1 2 3 4 5; do
 	gh release download "$OPENGREP_VERSION" -R opengrep/opengrep --clobber \
 		-p "$F" -p "$F.sig" -p "$F.cert" && { ok=1; break; }
 	sleep 20

@@ -213,6 +213,19 @@ jobs:
           sarif_file: opengrep.sarif
           category: opengrep
 
+  shellcheck:
+    name: ShellCheck
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # the runner image ships ShellCheck
+      - name: ShellCheck
+        run: sh qa/shellcheck.sh
+
   web-image:
     # the web image (qa/web) for tests and e2e, built once per PHP version and
     # day here rather than by every job that needs it; lookup-only: a hit

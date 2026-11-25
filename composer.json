@@ -88,6 +88,7 @@
       "psalm-taint": "sh qa/psalm-taint.sh",
       "taint-selftest": "sh qa/taint-selftest.sh",
       "test-unit": "sh qa/each-php.sh bash qa/unit-tests.sh",
+      "shellcheck": "sh qa/shellcheck.sh",
       "analyse": [
 			"Composer\\Config::disableProcessTimeout",
 			"sh qa/analyse.sh"
@@ -107,7 +108,8 @@
          "@test-unit",
          "@analyse",
          "@psalm-taint",
-         "@taint-selftest"
+         "@taint-selftest",
+         "@shellcheck"
       ],
       "opengrep": "sh qa/opengrep.sh",
       "taint-stubs": "sh qa/taint-stubs.sh",
@@ -130,9 +132,10 @@
 		"static": "Validate, audit, test-unit, analyse, psalm-taint, taint-selftest: no Podman, no opengrep",
       "test-integration": "Integration tests against a throwaway MariaDB and Mailpit via Podman, without and with Redis: route protection, API access, a smoke pass over every route, retention crons, data scoping, release (web and API), notifications and password-less links (QA_PHP)",
       "test-e2e": "End-to-end tests with rspamd, Redis and MariaDB via Podman, with and without the app's Redis: import, maps, encoding, spool, fuzzy learning (QA_PHP)",
-      "test": "Everything CI runs, cheapest first: static, opengrep, test-integration, test-e2e; stops at the first failure",
+      "test": "Everything CI runs, cheapest first: static, opengrep, shellcheck, test-integration, test-e2e; stops at the first failure",
       "check": "Alias of test",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
+      "shellcheck": "ShellCheck on every tracked shell script (qa/shellcheck.sh)",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor"
    }
 }

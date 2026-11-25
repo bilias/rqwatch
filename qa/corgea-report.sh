@@ -107,10 +107,12 @@ while [ "$page" -le "$pages" ]; do
 	corgea ls --issues --scan-id "$SCAN_ID" --page "$page" --page-size 100 --json \
 		> "${WORK}/issues-${page}.json"
 	files+=("${WORK}/issues-${page}.json")
+	# shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
 	pages=$("$PHP" -r 'echo (int) (json_decode(file_get_contents($argv[1]), true)["total_pages"] ?? 1);' \
 		"${WORK}/issues-${page}.json")
 	page=$((page + 1))
 done
+# shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
 "$PHP" -r '
 	$all = [];
 	foreach (array_slice($argv, 1) as $f) {
