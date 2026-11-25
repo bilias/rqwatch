@@ -18,6 +18,7 @@
 namespace Tests\Unit\Core;
 
 use App\Core\Cache\RedisCache;
+use Closure;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Redis;
 use RuntimeException;
@@ -88,7 +89,7 @@ final class RedisCacheTest extends UnitTestCase
 	// a key gone between SCAN and TTL (-2) is not listed; no expiry (-1) is
 	public function testListByPrefix(): void {
 		$redis = $this->createStub(Redis::class);
-		$redis->method('scan')->willReturn(['p:a', 'p:gone', 'p:forever']);
+		$redis->method('scan')->willReturnCallback(self::scanReplies([[['p:a', 'p:gone', 'p:forever'], 0]]));
 		$redis->method('ttl')->willReturnMap([['p:a', 300], ['p:gone', -2], ['p:forever', -1]]);
 		$this->assertSame(['p:a' => 300, 'p:forever' => -1], $this->cache($redis)->listByPrefix('p:'));
 	}
@@ -96,17 +97,8 @@ final class RedisCacheTest extends UnitTestCase
 	// SCAN answers in batches: the cursor is followed until Redis returns 0
 	public function testListByPrefixFollowsTheCursor(): void {
 		$redis = $this->createMock(Redis::class);
-		/** @var list<array{list<string>, int}> $batches */
-		$batches = [[['p:a'], 7], [['p:b'], 0]];
 		$redis->expects($this->exactly(2))->method('scan')->with($this->anything(), 'p:*', 100)
-			->willReturnCallback(function (mixed &$iterator) use (&$batches): array {
-				$batch = array_shift($batches);
-				if ($batch === null) {
-					return [];
-				}
-				[$keys, $iterator] = $batch;
-				return $keys;
-			});
+			->willReturnCallback(self::scanReplies([[['p:a'], 7], [['p:b'], 0]]));
 		$redis->method('ttl')->willReturn(60);
 		$this->assertSame(['p:a' => 60, 'p:b' => 60], $this->cache($redis)->listByPrefix('p:'));
 	}
@@ -114,7 +106,7 @@ final class RedisCacheTest extends UnitTestCase
 	// a failed TTL is an error, not "0 seconds left"
 	public function testListByPrefixTtlFails(): void {
 		$redis = $this->createStub(Redis::class);
-		$redis->method('scan')->willReturn(['p:a']);
+		$redis->method('scan')->willReturnCallback(self::scanReplies([[['p:a'], 0]]));
 		$redis->method('ttl')->willReturn(false);
 		try {
 			$this->cache($redis)->listByPrefix('p:');
@@ -123,6 +115,23 @@ final class RedisCacheTest extends UnitTestCase
 			$this->assertSame("TTL of a key under 'p:' failed: bool", $e->getMessage());
 		}
 		$this->assertSame(["error RedisCache listByPrefix: TTL of a key under 'p:' failed: bool"], $this->log->lines);
+	}
+
+	/**
+	 * SCAN's replies in turn, each with the cursor it leaves; a call after
+	 * the last is an error, so a loop that does not stop at cursor 0 fails
+	 * at once instead of running until the time limit
+	 * @param list<array{list<string>, int}> $batches
+	 */
+	private static function scanReplies(array $batches): Closure {
+		return function (mixed &$iterator) use (&$batches): array {
+			$batch = array_shift($batches);
+			if ($batch === null) {
+				throw new RuntimeException('SCAN called again after cursor 0');
+			}
+			[$keys, $iterator] = $batch;
+			return $keys;
+		};
 	}
 
 	private function cache(Redis $redis): RedisCache {

@@ -66,6 +66,15 @@ final class MigrationStatusMirrorTest extends UnitTestCase
 		$this->assertSame([self::BASE . ':mx1'], $this->cache->reads);
 	}
 
+	// the boot warm-up (Kernel) after a mirror was loaded keeps it
+	public function testWarmUpKeepsTheLoadedMirror(): void {
+		$_ENV['MY_API_SERVER_ALIAS'] = 'mx1';
+		$status = $this->migrationStatus();
+		$this->assertTrue($status->loadPersistedState());
+		$status->warmCache();
+		$this->assertTrue($status->isMigrationCompleted(Migrations::MIGRATIONS[0]));
+	}
+
 	public function testPaddedAliasTrimmed(): void {
 		$_ENV['MY_API_SERVER_ALIAS'] = ' mx1 ';
 		$this->assertTrue($this->migrationStatus()->loadPersistedState());

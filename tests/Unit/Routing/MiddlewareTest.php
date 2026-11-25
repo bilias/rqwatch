@@ -101,22 +101,24 @@ final class MiddlewareTest extends TestCase
 		$this->assertFalse($request->getSession()->has('login_redirect'));
 	}
 
-	/** @return array<string, array{string, bool}> LDAP_ADMINS, is_admin in the session */
+	/** @return array<string, array{string, bool|null}> LDAP_ADMINS, is_admin in the session (null: not set) */
 	public static function adminChanges(): array {
 		return [
 			'made an admin' => ['alice', false],
+			'made an admin, no flag in the session' => ['alice', null],
 			'no longer an admin' => ['bob', true],
 		];
 	}
 
 	// an LDAP user whose admin status no longer matches LDAP_ADMINS logs in again
 	#[DataProvider('adminChanges')]
-	public function testAdminChangeEndsTheSession(string $admins, bool $isAdmin): void {
+	public function testAdminChangeEndsTheSession(string $admins, ?bool $isAdmin): void {
 		$saved = $_ENV['LDAP_ADMINS'] ?? null;
 		$_ENV['LDAP_ADMINS'] = $admins;
 		try {
 			$log = new RecordingLogger();
-			$request = $this->request('/mail/42', ['username' => 'alice', 'auth_provider' => 'LDAP', 'is_admin' => $isAdmin]);
+			$request = $this->request('/mail/42', ['username' => 'alice', 'auth_provider' => 'LDAP']
+				+ ($isAdmin === null ? [] : ['is_admin' => $isAdmin]));
 			$response = (new AuthMiddleware($this->urls, $log))->handle($request, $this->next());
 		} finally {
 			if ($saved === null) {
