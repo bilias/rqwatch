@@ -132,9 +132,9 @@
          "@static",
          "@opengrep",
          "@betterleaks",
-         "@infection",
          "@test-integration",
-         "@test-e2e"
+         "@test-e2e",
+         "@infection"
 		],
       "check": "@test"
    },
