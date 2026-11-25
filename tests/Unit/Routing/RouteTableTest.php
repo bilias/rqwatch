@@ -60,6 +60,7 @@ final class RouteTableTest extends TestCase
 	public function testEveryPlaceholderHasARequirement(): void {
 		foreach ($this->routes() as $name => $route) {
 			$placeholders = [];
+			/** @var mixed $variable */
 			foreach ($route->compile()->getPathVariables() as $variable) {
 				$this->assertIsString($variable);
 				$placeholders[] = $variable;
