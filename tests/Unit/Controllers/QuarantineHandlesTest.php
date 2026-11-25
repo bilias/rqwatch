@@ -10,9 +10,10 @@
 
 /*
  The notification-link handles QuarantineController keeps in the session:
- what link() stored is read back and an idle handle expires; anything else
- there fails with the session key named, rather than reading as no handle.
- Only the paths that stop before the database are run.
+ what link() stored is read back, an idle handle expires, a fresh one is kept
+ with its last-seen time refreshed, and other handles are left alone; anything
+ else there fails with the session key named, rather than reading as no
+ handle. Only the paths that stop before the database are run.
 */
 
 namespace Tests\Unit\Controllers;
@@ -31,9 +32,12 @@ final class QuarantineHandlesTest extends UnitTestCase
 	private const string KEY = 'notify_tokens';
 
 	public function testStoredHandles(): void {
-		$entry = ['hash' => 'h', 'redeemed' => false, 'seen' => 1];
-		[$controller] = $this->controller(['aa' => $entry]);
-		$this->assertSame(['aa' => $entry], self::call($controller, 'handles'));
+		$stored = [
+			'aa' => ['hash' => 'h', 'redeemed' => false, 'seen' => 1],
+			'bb' => ['hash' => 'i', 'redeemed' => true, 'seen' => 2],
+		];
+		[$controller] = $this->controller($stored);
+		$this->assertSame($stored, self::call($controller, 'handles'));
 	}
 
 	public function testNoHandles(): void {
@@ -47,6 +51,29 @@ final class QuarantineHandlesTest extends UnitTestCase
 		[$controller, $session] = $this->controller(['aa' => ['hash' => 'h', 'redeemed' => false, 'seen' => time() - 86400 * 30]]);
 		$this->assertNull(self::call($controller, 'sessionToken', 'aa'));
 		$this->assertSame([], $session->get(self::KEY));
+	}
+
+	// 'h' is not a token hash, so the lookup returns null before the database
+	public function testFreshHandleKept(): void {
+		$other = ['hash' => 'i', 'redeemed' => false, 'seen' => 1];
+		[$controller, $session] = $this->controller([
+			'aa' => ['hash' => 'h', 'redeemed' => false, 'seen' => time() - 60],
+			'bb' => $other,
+		]);
+		$before = time();
+		$this->assertNull(self::call($controller, 'sessionToken', 'aa'));
+		/** @var array<string, array<string, mixed>> $stored */
+		$stored = $session->get(self::KEY);
+		$this->assertSame(['aa', 'bb'], array_keys($stored));
+		$this->assertGreaterThanOrEqual($before, $stored['aa']['seen']);
+		$this->assertSame($other, $stored['bb']);
+	}
+
+	public function testHandleWithoutHashLeftAlone(): void {
+		$stored = ['aa' => ['redeemed' => false, 'seen' => time()]];
+		[$controller, $session] = $this->controller($stored);
+		$this->assertNull(self::call($controller, 'sessionToken', 'aa'));
+		$this->assertSame($stored, $session->get(self::KEY));
 	}
 
 	public function testDamagedStoreFails(): void {
