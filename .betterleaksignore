@@ -1,0 +1,35 @@
+# Betterleaks (qa/betterleaks.sh): findings in the git history that are not
+# secrets, by fingerprint (commit:file:rule:line). Anything else is reported.
+
+# Example values shipped before 1.8.4, public since: Helper::isPublishedSecret() refuses them, and tests/PublishedSecrets.php holds them as its fixture
+2224d617091422b43e3da2fe1afdf61a7f888a2c:contrib/rspamd/local.d/metadata_exporter.conf:rqwatch-env-secret:16
+698c05c8bcaf3292d4222d2821c94af4e4944bc5:.env-example:rqwatch-env-secret:136
+79ee0150c83749482e1fc111ebca2da16642b63c:tests/PublishedSecrets.php:generic-api-key:25
+79ee0150c83749482e1fc111ebca2da16642b63c:tests/PublishedSecrets.php:generic-api-key:27
+79ee0150c83749482e1fc111ebca2da16642b63c:tests/PublishedSecrets.php:generic-api-key:28
+8192448e581202d49bf55fadc03d70bff975f226:.env-example:rqwatch-env-secret:39
+8192448e581202d49bf55fadc03d70bff975f226:.env-example:rqwatch-env-secret:47
+8192448e581202d49bf55fadc03d70bff975f226:.env-example:rqwatch-env-secret:52
+8192448e581202d49bf55fadc03d70bff975f226:.env-example:rqwatch-env-secret:60
+8192448e581202d49bf55fadc03d70bff975f226:.env-example:rqwatch-env-secret:76
+8192448e581202d49bf55fadc03d70bff975f226:.env-example:rqwatch-env-secret:84
+892759cee7ba557e4d48335aedad4af81d1abe62:contrib/metadata_exporter.conf:rqwatch-env-secret:15
+8d508a9ddd97312d9fabdedbf2c84eb47a1235f9:.env-example:rqwatch-env-secret:70
+cde329d01216b35f9ffc6a3fb196ef17f5f0e99e:contrib/rspamd/local.d/metadata_exporter.conf:rqwatch-env-secret:16
+
+# CHANGE_ME_ placeholder (fd3b618)
+fd3b6184db39126529e69e007736d391a6b60bf5:contrib/rspamd/local.d/metadata_exporter.conf:generic-password:17
+
+# Passwords of the test and CI throwaway databases and seeded users
+643655a1e5405598279162b2ee6ec8df2346a73c:tests/Integration/Access/UserProfileTest.php:generic-password:67
+a5a5539252e12ed44fe6e6e3f32cb29731414d99:.github/workflows/integration-tests.yml:generic-password:24
+ad03d2bb2c33254d50fac604668eaa38e448de3c:.github/workflows/tests.yml:generic-password:40
+b90e7acb90c2b0359fb7baedf3be3a676186f8a6:tests/Scoping/WebTestCase.php:generic-password:48
+d144ff9c07af94e0a4665cc803065053de6125e8:.github/workflows/static-analysis.yml:generic-password:71
+d144ff9c07af94e0a4665cc803065053de6125e8:tests/Scoping/ScopingTest.php:generic-password:32
+f7280481f98b08edcef4cdc9e9dbdc15095048ff:.github/workflows/ci.yml:generic-password:160
+
+# EXTERNAL_AUTH: the password-column marker of external users, not a secret
+1e99bd2f7333ccdd9ab27551d9328749b79bb483:app/Controllers/LoginController.php:generic-password:335
+892759cee7ba557e4d48335aedad4af81d1abe62:app/Controllers/LoginController.php:generic-password:116
+9113fdbf6166e53e84939e5b8d13189c106f7c51:app/Controllers/LoginController.php:generic-password:252

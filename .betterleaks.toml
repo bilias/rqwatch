@@ -1,0 +1,30 @@
+# Betterleaks config for qa/betterleaks.sh: the default rules plus two for
+# the shapes rqwatch's own secrets take.
+
+[extend]
+useDefault = true
+
+# rqwatch keeps its secrets in .env and config/config.local.php, as NAME=value
+# and $name = 'value'. The default rules miss both shapes (DB_PASS=..., or
+# $ldap_bind_pass = '...'), and both files are ignored by git, so a finding
+# here means one was committed anyway (git add -f, a changed .gitignore) or a
+# real value went into a tracked example or contrib file.
+[[rules]]
+id = "rqwatch-env-secret"
+description = "Secret-named setting with a literal value in a .env or config file"
+path = '''(^|/)(\.env[^/]*|[^/]*\.(conf|ini|cnf))$'''
+regex = '''(?im)^\s*(?:export\s+)?[a-z0-9_.]*(?:pass|passwd|password|secret|token|dsn)[a-z0-9_.]*[ \t]*[=:][ \t]*["']?([^\s"'#;$]{8,})'''
+secretGroup = 1
+entropy = 3.0
+keywords = ["pass", "secret", "token", "dsn"]
+[[rules.allowlists]]
+regexTarget = "secret"
+regexes = ['''CHANGE_ME_''']
+
+[[rules]]
+id = "rqwatch-php-config-secret"
+description = "Secret-named PHP config variable assigned a string literal"
+path = '''(^|/)config[^/]*\.php$'''
+regex = '''(?i)\$[a-z0-9_]*(?:pass|passwd|password|secret|token|dsn)[a-z0-9_]*\s*=\s*(?:"([^"$\\]{8,})"|'([^'\\]{8,})')'''
+entropy = 3.0
+keywords = ["pass", "secret", "token", "dsn"]
