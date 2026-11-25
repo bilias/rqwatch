@@ -36,7 +36,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -2439,18 +2439,18 @@ final class MailLogService
 		return ['recipients'];
 	}
 
-	/** @return array<int|string, string|\Closure> */
+	/** @return array<array-key, string|\Closure(Relation<*, *, *>): mixed> */
 	public function getMailLogSymbolsRelations(): array {
 		return [...$this->recipientsRelation(), 'mailLogData:mail_log_id,symbols'];
 	}
 
-	/** @return array<int|string, string|\Closure> */
+	/** @return array<array-key, string|\Closure(Relation<*, *, *>): mixed> */
 	public function getMailLogRelations(): array {
 		return [...$this->recipientsRelation(), 'mailLogData'];
 	}
 
 	// non-admins see only their own envelope recipients, as in their mailbox
-	/** @return array<int|string, string|\Closure> */
+	/** @return array<array-key, string|\Closure(Relation<*, *, *>): mixed> */
 	private function recipientsRelation(): array {
 		// admins, CLI and system callers without user context (mail APIs) see all recipients
 		if ($this->adminFieldsAllowed() || $this->is_admin === null) {
@@ -2458,7 +2458,7 @@ final class MailLogService
 		}
 
 		$emails = $this->getUserRecipientEmails();
-		return ['recipients' => fn (HasMany $q): HasMany => $q->whereIn('recipient_email', $emails)];
+		return ['recipients' => fn (Relation $q): mixed => $q->whereIn('recipient_email', $emails)];
 	}
 
 	/** @return array<int, string> */
