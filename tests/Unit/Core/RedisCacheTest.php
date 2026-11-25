@@ -93,6 +93,24 @@ final class RedisCacheTest extends UnitTestCase
 		$this->assertSame(['p:a' => 300, 'p:forever' => -1], $this->cache($redis)->listByPrefix('p:'));
 	}
 
+	// SCAN answers in batches: the cursor is followed until Redis returns 0
+	public function testListByPrefixFollowsTheCursor(): void {
+		$redis = $this->createMock(Redis::class);
+		/** @var list<array{list<string>, int}> $batches */
+		$batches = [[['p:a'], 7], [['p:b'], 0]];
+		$redis->expects($this->exactly(2))->method('scan')->with($this->anything(), 'p:*', 100)
+			->willReturnCallback(function (mixed &$iterator) use (&$batches): array {
+				$batch = array_shift($batches);
+				if ($batch === null) {
+					return [];
+				}
+				[$keys, $iterator] = $batch;
+				return $keys;
+			});
+		$redis->method('ttl')->willReturn(60);
+		$this->assertSame(['p:a' => 60, 'p:b' => 60], $this->cache($redis)->listByPrefix('p:'));
+	}
+
 	// a failed TTL is an error, not "0 seconds left"
 	public function testListByPrefixTtlFails(): void {
 		$redis = $this->createStub(Redis::class);

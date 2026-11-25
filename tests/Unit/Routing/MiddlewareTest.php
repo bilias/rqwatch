@@ -10,15 +10,22 @@
 
 /*
  The two access middlewares, for the cases that need no database:
- anonymous requests, the admin check on an existing session, and a
- session value of another type than rqwatch writes, which is refused.
+ anonymous requests (never sent back to login, home or logout after
+ login), the admin check on an existing session and what it logs, with the
+ request in the context, an external admin-status change that ends the
+ session, and a session value of another type than rqwatch writes, which
+ is refused.
 */
 
 namespace Tests\Unit\Routing;
 
+use App\Core\App;
+use App\Core\AppContainer;
+use App\Core\Database\MigrationStatus;
 use App\Core\Middleware\AuthMiddleware;
 use App\Core\Middleware\Authorization;
 use App\Core\Routing\Routes;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
@@ -29,6 +36,7 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\RequestContext;
+use Tests\Unit\RecordingLogger;
 
 final class MiddlewareTest extends TestCase
 {
@@ -74,6 +82,71 @@ final class MiddlewareTest extends TestCase
 		$this->assertSame('/mail/42', $request->getSession()->get('login_redirect'));
 	}
 
+	/** @return array<string, array{string, string}> path, route */
+	public static function noReturnPaths(): array {
+		return [
+			'login' => ['/login', 'login'],
+			'home' => ['/', 'homepage'],
+			'logout' => ['/logout', 'logout'],
+		];
+	}
+
+	// after login, never back to login, home or logout
+	#[DataProvider('noReturnPaths')]
+	public function testNoReturnToLoginHomeOrLogout(string $path, string $route): void {
+		$request = $this->request($path);
+		$request->attributes->set('_route', $route);
+		$response = (new AuthMiddleware($this->urls, new NullLogger()))->handle($request, $this->next());
+		$this->assertRedirectsTo('login', $response);
+		$this->assertFalse($request->getSession()->has('login_redirect'));
+	}
+
+	/** @return array<string, array{string, bool}> LDAP_ADMINS, is_admin in the session */
+	public static function adminChanges(): array {
+		return [
+			'made an admin' => ['alice', false],
+			'no longer an admin' => ['bob', true],
+		];
+	}
+
+	// an LDAP user whose admin status no longer matches LDAP_ADMINS logs in again
+	#[DataProvider('adminChanges')]
+	public function testAdminChangeEndsTheSession(string $admins, bool $isAdmin): void {
+		$saved = $_ENV['LDAP_ADMINS'] ?? null;
+		$_ENV['LDAP_ADMINS'] = $admins;
+		try {
+			$log = new RecordingLogger();
+			$request = $this->request('/mail/42', ['username' => 'alice', 'auth_provider' => 'LDAP', 'is_admin' => $isAdmin]);
+			$response = (new AuthMiddleware($this->urls, $log))->handle($request, $this->next());
+		} finally {
+			if ($saved === null) {
+				unset($_ENV['LDAP_ADMINS']);
+			} else {
+				$_ENV['LDAP_ADMINS'] = $saved;
+			}
+		}
+		$this->assertRedirectsTo('login', $response);
+		$session = $request->getSession();
+		$this->assertInstanceOf(Session::class, $session);
+		$this->assertFalse($session->has('username'), 'the session was ended');
+		$this->assertSame(['Your account was changed, please log in again'], $session->getFlashBag()->get('error'));
+		$this->assertSame(["info Session of 'alice' ended: account changed"], $log->lines);
+	}
+
+	// a database user is not checked against *_ADMINS; before the session_version
+	// migration the session is not checked further
+	public function testDbUserPassesBeforeTheSessionVersionMigration(): void {
+		App::swap(new AppContainer(0.0, 0, new NullLogger(), new NullLogger(), null, new MigrationStatus(null, new NullLogger()), null, false));
+		try {
+			$request = $this->request('/mail/42', ['username' => 'alice', 'auth_provider' => 'DB', 'is_admin' => false]);
+			$response = (new AuthMiddleware($this->urls, new NullLogger()))->handle($request, $this->next());
+		} finally {
+			App::reset();
+		}
+		$this->assertTrue($this->reached);
+		$this->assertSame('controller', $response->getContent());
+	}
+
 	public function testEmptyUsernameIsAnonymous(): void {
 		$request = $this->request('/mail/42', ['username' => '']);
 		$response = (new AuthMiddleware($this->urls, new NullLogger()))->handle($request, $this->next());
@@ -81,15 +154,20 @@ final class MiddlewareTest extends TestCase
 	}
 
 	public function testAuthorizationWithoutLoginGoesHome(): void {
+		$log = new RecordingLogger();
 		$request = $this->request('/admin/users');
-		$response = (new Authorization($this->urls, new NullLogger()))->handle($request, $this->next());
+		$response = (new Authorization($this->urls, $log))->handle($request, $this->next());
 		$this->assertRedirectsTo('homepage', $response);
+		$this->assertSame(['error In Authorization without Auth'], $log->lines);
+		$this->assertSame([['method' => 'GET', 'uri' => '/admin/users', 'ip' => '127.0.0.1', 'username' => null, 'is_admin' => null]], $log->contexts);
 	}
 
 	public function testNonAdminIsDenied(): void {
+		$log = new RecordingLogger();
 		$request = $this->request('/admin/users', ['username' => 'alice', 'is_admin' => false]);
-		$response = (new Authorization($this->urls, new NullLogger()))->handle($request, $this->next());
+		$response = (new Authorization($this->urls, $log))->handle($request, $this->next());
 		$this->assertRedirectsTo('homepage', $response);
+		$this->assertSame(["warning User 'alice' tried to access '/admin/users' without admin authorization"], $log->lines);
 		$session = $request->getSession();
 		$this->assertInstanceOf(Session::class, $session);
 		$this->assertSame(['Permission denied'], $session->getFlashBag()->get('error'));

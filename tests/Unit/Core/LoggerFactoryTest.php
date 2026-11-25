@@ -37,8 +37,14 @@ final class LoggerFactoryTest extends UnitTestCase
 	}
 
 	public function testFacility(): void {
-		$this->assertSame(LOG_MAIL, LoggerFactory::syslogFacility('LOG_MAIL'));
-		$this->assertSame(LOG_LOCAL3, LoggerFactory::syslogFacility('LOG_LOCAL3'));
+		$names = [
+			'LOG_AUTH', 'LOG_AUTHPRIV', 'LOG_CRON', 'LOG_DAEMON', 'LOG_KERN', 'LOG_LPR', 'LOG_MAIL', 'LOG_NEWS',
+			'LOG_SYSLOG', 'LOG_USER', 'LOG_UUCP', 'LOG_LOCAL0', 'LOG_LOCAL1', 'LOG_LOCAL2', 'LOG_LOCAL3',
+			'LOG_LOCAL4', 'LOG_LOCAL5', 'LOG_LOCAL6', 'LOG_LOCAL7',
+		];
+		foreach ($names as $name) {
+			$this->assertSame(constant($name), LoggerFactory::syslogFacility($name), $name);
+		}
 	}
 
 	/** @return array<string, array{string}> */

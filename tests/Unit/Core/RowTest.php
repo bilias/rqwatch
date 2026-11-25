@@ -39,6 +39,7 @@ final class RowTest extends TestCase
 		$row->float = 1.5;
 		$row->bool = true;
 		$row->spaced = ' 7';
+		$row->newline = "7\n";
 		$row->overflow = '99999999999999999999';
 		return $row;
 	}
@@ -67,6 +68,7 @@ final class RowTest extends TestCase
 			'float' => ['float', 'float'],
 			'bool' => ['bool', 'bool'],
 			'leading space' => ['spaced', 'string'],
+			'trailing line feed' => ['newline', 'string'],
 			'out of range' => ['overflow', 'string'],
 			'null' => ['none', 'null'],
 		];

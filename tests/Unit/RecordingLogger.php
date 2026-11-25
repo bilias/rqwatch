@@ -13,11 +13,14 @@ namespace Tests\Unit;
 use Psr\Log\AbstractLogger;
 use Stringable;
 
-// keeps every log line as "<level> <message>"
+// keeps every log line as "<level> <message>", and each line's context
 final class RecordingLogger extends AbstractLogger
 {
 	/** @var list<string> */
 	public array $lines = [];
+
+	/** @var list<array<array-key, mixed>> */
+	public array $contexts = [];
 
 	/**
 	 * Psalm 7 infers what Psr\Log\LoggerInterface::log() may do (no
@@ -30,5 +33,6 @@ final class RecordingLogger extends AbstractLogger
 	public function log($level, string|Stringable $message, array $context = []): void {
 		// a PSR level is a string; anything else shows as its type
 		$this->lines[] = (is_string($level) ? $level : get_debug_type($level)) . " {$message}";
+		$this->contexts[] = $context;
 	}
 }

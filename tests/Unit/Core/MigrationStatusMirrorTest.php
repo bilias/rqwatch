@@ -19,9 +19,11 @@
 namespace Tests\Unit\Core;
 
 use App\Configuration\Config;
+use App\Core\Cache\CacheInterface;
 use App\Core\Database\MigrationStatus;
 use App\Inventory\Migrations;
 use App\Utils\Helper;
+use RuntimeException;
 use Tests\Unit\RecordingCache;
 use Tests\Unit\UnitTestCase;
 
@@ -62,6 +64,28 @@ final class MigrationStatusMirrorTest extends UnitTestCase
 		$this->assertTrue($status->loadPersistedState());
 		$this->assertTrue($status->isMigrationCompleted(Migrations::MIGRATIONS[0]));
 		$this->assertSame([self::BASE . ':mx1'], $this->cache->reads);
+	}
+
+	public function testPaddedAliasTrimmed(): void {
+		$_ENV['MY_API_SERVER_ALIAS'] = ' mx1 ';
+		$this->assertTrue($this->migrationStatus()->loadPersistedState());
+		$this->assertSame([self::BASE . ':mx1'], $this->cache->reads);
+	}
+
+	// an empty copy is nothing usable
+	public function testEmptyMirrorNotUsed(): void {
+		$_ENV['MY_API_SERVER_ALIAS'] = 'mx1';
+		$this->cache->values[self::BASE . ':mx1'] = '[]';
+		$this->assertFalse($this->migrationStatus()->loadPersistedState());
+		$this->assertSame([], $this->log->lines);
+	}
+
+	public function testRedisErrorLogged(): void {
+		$_ENV['MY_API_SERVER_ALIAS'] = 'mx1';
+		$cache = $this->createStub(CacheInterface::class);
+		$cache->method('get')->willThrowException(new RuntimeException('Connection lost'));
+		$this->assertFalse((new MigrationStatus(null, $this->log, $cache))->loadPersistedState());
+		$this->assertSame(['critical Cannot read migration status from Redis: Connection lost'], $this->log->lines);
 	}
 
 	public function testNoAliasNoMirror(): void {
