@@ -141,6 +141,10 @@
 			// the reader is reused only after a database opened; a unit test has none
 			"ignore": ["App\\Utils\\Helper::geoipReader::1271"]
 		},
+		"MethodCallRemoval": {
+			// without a database warmCache() returns at once; Integration covers the warm-up
+			"ignore": ["App\\Core\\Database\\MigrationStatus::getMigrationState::155"]
+		},
 		"NotIdentical": {
 			// the reader is reused only after a database opened; a unit test has none
 			"ignore": ["App\\Utils\\Helper::geoipReader::1271"]
