@@ -59,7 +59,7 @@ abstract class RqwatchApi
 	/** @return array{?string, ?string} username, password from .env */
 	abstract protected function getAuthCredentials(): array;
 
-	protected function checkApiEnabled(): void {
+	private function checkApiEnabled(): void {
 		if (!Helper::env_bool('API_ENABLE')) {
 			$logMsg = "{$this->clientIp} requested '" . (Helper::server_string('REQUEST_URI') ?? 'UNKNOWN') . "' but API is disabled.";
 
@@ -71,7 +71,7 @@ abstract class RqwatchApi
 	}
 
 	/** @param list<string> $allowedIps */
-	protected function checkIpAcl(array $allowedIps): void {
+	private function checkIpAcl(array $allowedIps): void {
 		if (empty($allowedIps)) {
 			$msg = "getAllowedIps() returned empty IP ACL in " . static::class;
 			$this->fileLogger->error($msg);
@@ -88,7 +88,7 @@ abstract class RqwatchApi
 		}
 	}
 
-	protected function checkAuth(): void {
+	private function checkAuth(): void {
 		[$username, $password] = $this->getAuthCredentials();
 
 		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no credentials too: fail closed */

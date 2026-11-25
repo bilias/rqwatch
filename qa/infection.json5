@@ -186,7 +186,10 @@
 				// valid UTF-8 comes out of toUtf8() unchanged
 				"App\\Utils\\Helper::normalizeToUtf8::1528",
 				// the reader is reused only after a database opened; a unit test has none
-				"App\\Utils\\Helper::geoipReader::1271"
+				"App\\Utils\\Helper::geoipReader::1271",
+				// authenticate() returns true or answers and exits: either way the
+				// condition is false, || or &&
+				"App\\Api\\RqwatchApi::checkAuth::125"
 			]
 		},
 		"LogicalOrAllSubExprNegation": {
@@ -202,8 +205,12 @@
 			"ignore": ["App\\Utils\\Helper::geoipReader::1271"]
 		},
 		"MethodCallRemoval": {
-			// without a database warmCache() returns at once; Integration covers the warm-up
-			"ignore": ["App\\Core\\Database\\MigrationStatus::getMigrationState::155"]
+			"ignore": [
+				// without a database warmCache() returns at once; Integration covers the warm-up
+				"App\\Core\\Database\\MigrationStatus::getMigrationState::155",
+				// with the API on it does nothing; off, it answers and exits (Integration's ApiAccessTest)
+				"App\\Api\\RqwatchApi::__construct::48"
+			]
 		},
 		"NotIdentical": {
 			// the reader is reused only after a database opened; a unit test has none
@@ -287,7 +294,9 @@
 				"App\\Inventory\\MapInventory::getMapConfigs::145",
 				// without a database warmCache() returns before it could replace the loaded state
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::211",
-				"App\\Core\\Database\\MigrationStatus::loadPersistedState::218"
+				"App\\Core\\Database\\MigrationStatus::loadPersistedState::218",
+				// REMOTE_ADDR is an IP: no IP is a numeric string, so == matches as === does
+				"App\\Api\\RqwatchApi::checkIpAcl::82"
 			]
 		},
 		"UnwrapFinally": {
