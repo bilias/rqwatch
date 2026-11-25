@@ -59,7 +59,7 @@ final class RspamdStatTest extends UnitTestCase
 	}
 
 	private const string KEY = 'rqwatch_rspamd_stats_test';
-	private const string STATS = '{"mx1":{"scanned":5}}';
+	private const string STATS = '{"mx1":{"scanned":5},"mx2":{"scanned":7}}';
 
 	public function testNonAdminGetsNone(): void {
 		$this->cache()->values[self::KEY] = self::STATS;
@@ -76,7 +76,7 @@ final class RspamdStatTest extends UnitTestCase
 
 	public function testCachedStats(): void {
 		$this->cache()->values[self::KEY] = self::STATS;
-		$this->assertSame(['mx1' => ['scanned' => 5]], $this->controller(true)->getRspamdStat());
+		$this->assertSame(['mx1' => ['scanned' => 5], 'mx2' => ['scanned' => 7]], $this->controller(true)->getRspamdStat());
 		$this->assertSame(['debug Rspamd stats loaded from Redis cache'], $this->log->lines);
 	}
 
@@ -119,8 +119,8 @@ final class RspamdStatTest extends UnitTestCase
 		$_ENV['RSPAMD_CONTROLLER_PASS'] = 'secret';
 		$this->assertSame([], $this->controller(true)->getRspamdStat());
 		$this->assertCount(3, $this->log->lines);
-		$this->assertStringStartsWith("error Stat request to 'mx1' failed: ", $this->log->lines[0]);
-		$this->assertStringStartsWith("error Stat request to 'mx2' failed: ", $this->log->lines[1]);
+		$this->assertMatchesRegularExpression("/^error Stat request to 'mx1' failed: \S/", $this->log->lines[0]);
+		$this->assertMatchesRegularExpression("/^error Stat request to 'mx2' failed: \S/", $this->log->lines[1]);
 		$this->assertSame('debug Rspamd stats cached in Redis for 60 seconds', $this->log->lines[2]);
 		$this->assertSame(['[]', 60], [$cache->values[self::KEY], $cache->ttls[self::KEY]]);
 
