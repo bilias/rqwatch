@@ -118,6 +118,7 @@
       "test": [
          "@static",
          "@opengrep",
+         "@betterleaks",
          "@test-integration",
          "@test-e2e"
 		],
@@ -137,7 +138,7 @@
       "check": "Alias of test",
       "opengrep": "Opengrep with the rqwatch and pinned community rules",
       "shellcheck": "ShellCheck on every tracked shell script (qa/shellcheck.sh)",
-      "betterleaks": "Betterleaks over the whole git history, before a push; not part of test (qa/betterleaks.sh)",
+      "betterleaks": "Betterleaks over the GitHub remote's history (as last fetched)",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor"
    }
 }
