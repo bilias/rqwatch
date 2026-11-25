@@ -11,7 +11,8 @@
 /*
  Per-IP login throttling on an in-memory cache: the counter's window is
  set by the first failure only, the block starts at LOGIN_MAX_ATTEMPTS_IP
- and drops the counter, IPv6 clients share their /64 (IPv4, loopback and
+ and drops the counter, the settings default to 10 attempts, 600 s and
+ 900 s and are at least 1, IPv6 clients share their /64 (IPv4, loopback and
  IPv4-mapped addresses stay exact), and nothing is counted while the
  throttle is off, without a cache, or for an unknown or whitelisted IP.
 */
@@ -45,6 +46,7 @@ final class LoginThrottleTest extends UnitTestCase
 	public function testBlocksAtMaxAttempts(): void {
 		$throttle = $this->throttle('192.0.2.1');
 		$this->assertFalse($throttle->registerFailure());
+		$this->assertSame([[self::COUNT . '192.0.2.1', 600]], $this->cache->expires);
 		$this->assertFalse($throttle->registerFailure());
 		$this->assertFalse($throttle->isBlocked());
 		$this->assertSame('2', $this->cache->values[self::COUNT . '192.0.2.1']);
@@ -75,6 +77,27 @@ final class LoginThrottleTest extends UnitTestCase
 		$throttle = $this->throttle('192.0.2.1');
 		$this->assertSame(1, $throttle->getMaxAttempts());
 		$this->assertTrue($throttle->registerFailure());
+	}
+
+	/** @return array<string, array{string|null, string|null, string|null, int, int, int}> .env attempts, window, block; the values used */
+	public static function settings(): array {
+		return [
+			'unset' => [null, null, null, 10, 600, 900],
+			'set' => ['5', '60', '120', 5, 60, 120],
+			'below one' => ['0', '0', '0', 1, 1, 1],
+		];
+	}
+
+	#[DataProvider('settings')]
+	public function testSettings(?string $attempts, ?string $window, ?string $block, int $maxAttempts, int $windowTtl, int $blockDuration): void {
+		$this->setEnv('LOGIN_MAX_ATTEMPTS_IP', $attempts);
+		$this->setEnv('LOGIN_WINDOW', $window);
+		$this->setEnv('LOGIN_BLOCK_DURATION', $block);
+		$throttle = $this->throttle('192.0.2.1');
+		$this->assertSame($maxAttempts, $throttle->getMaxAttempts());
+		$this->assertSame($blockDuration, $throttle->getBlockDuration());
+		$throttle->registerFailure();
+		$this->assertSame([[self::COUNT . '192.0.2.1', $windowTtl]], $this->cache->expires);
 	}
 
 	/** @return array<string, array{string, string}> client IP, key */
@@ -138,6 +161,32 @@ final class LoginThrottleTest extends UnitTestCase
 		$this->assertFalse($throttle->registerFailure());
 		$this->assertFalse($throttle->isBlocked());
 		$this->assertLogged('per-IP login throttling is disabled');
+	}
+
+	// the notice is for a throttle that is on but has no cache, nothing else
+	public function testNoNoticeOtherwise(): void {
+		$this->throttle('192.0.2.1');
+		$this->setEnv('LOGIN_THROTTLE_ENABLE', 'false');
+		new LoginThrottle('192.0.2.1', null, $this->log);
+		$this->assertSame([], $this->log->lines);
+	}
+
+	// whitelisting an IP lifts a block already on record
+	public function testWhitelistedIpWithABlockOnRecord(): void {
+		$this->cache->set(self::BLOCK . '192.0.2.200', '1', 900);
+		$throttle = $this->throttle('192.0.2.200');
+		$this->assertFalse($throttle->isBlocked());
+		$this->assertNull($throttle->retryAfter());
+	}
+
+	// both switches, each off when unset
+	public function testIsEnabled(): void {
+		$this->assertTrue(LoginThrottle::isEnabled());
+		$this->setEnv('REDIS_ENABLE', null);
+		$this->assertFalse(LoginThrottle::isEnabled());
+		$this->setEnv('REDIS_ENABLE', 'true');
+		$this->setEnv('LOGIN_THROTTLE_ENABLE', null);
+		$this->assertFalse(LoginThrottle::isEnabled());
 	}
 
 	private function throttle(string $ip): LoginThrottle {
