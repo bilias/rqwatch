@@ -34,6 +34,7 @@ use Symfony\Component\HttpFoundation\Response;
 use App\Core\Exception\FuzzyError;
 use App\Core\Exception\FuzzyException;
 
+use RuntimeException;
 use Throwable;
 
 /*
@@ -147,8 +148,7 @@ final class FuzzyService
 			/** @var mixed $hashes */
 			$hashes = json_decode($hashes, true);
 		}
-		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT, // @phpstan-ignore argument.type (preg_grep() is false only on a PCRE failure)
-			array_filter((array) $hashes, 'is_string'))));
+		$hashes = self::digests((array) $hashes);
 		if ($hashes === []) {
 			return [];
 		}
@@ -447,13 +447,12 @@ final class FuzzyService
 	 * @param array<array-key, mixed> $hashes the mail's fuzzy_hashes; non-digests are dropped
 	 */
 	public function recordHits(int $mailLogId, array $hashes, ?string $at, string $qid): void {
-		$hashes = array_values(array_unique(preg_grep(self::HASH_FORMAT, // @phpstan-ignore argument.type (preg_grep() is false only on a PCRE failure)
-			array_filter($hashes, 'is_string'))));
-		if ($hashes === []) {
-			return;
-		}
-
 		try {
+			$hashes = self::digests($hashes);
+			if ($hashes === []) {
+				return;
+			}
+
 			if (!App::migrationStatus()->mailLogFuzzyHitsCompleted()) {
 				return;
 			}
@@ -786,6 +785,30 @@ final class FuzzyService
 		}
 
 		return $hashes;
+	}
+
+	/**
+	 * The digests among $values: text in HASH_FORMAT, each once, in order.
+	 * Anything else (not text, another format) is dropped.
+	 * @param array<array-key, mixed> $values
+	 * @return list<string>
+	 */
+	private static function digests(array $values): array {
+		$digests = [];
+		/** @var mixed $value */
+		foreach ($values as $value) {
+			if (!is_string($value)) {
+				continue;
+			}
+			$match = preg_match(self::HASH_FORMAT, $value);
+			if ($match === false) {
+				throw new RuntimeException('preg_match() failed on a fuzzy digest: ' . preg_last_error_msg());
+			}
+			if ($match === 1) {
+				$digests[] = $value;
+			}
+		}
+		return array_values(array_unique($digests));
 	}
 
 	/**
