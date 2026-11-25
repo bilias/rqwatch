@@ -99,10 +99,15 @@
          "sh qa/infection.sh"
       ],
       "analyse": [
+			"@phpstan",
+			"@psalm"
+		],
+      "analyze": "@analyse",
+      "analyse-all": [
 			"Composer\\Config::disableProcessTimeout",
 			"sh qa/analyse.sh"
 		],
-      "analyze": "@analyse",
+      "analyse-all": "@analyse-all",
       "test-integration": [
          "Composer\\Config::disableProcessTimeout",
          "sh qa/each-php.sh bash qa/integration-tests.sh"
@@ -138,8 +143,10 @@
       "psalm": "Psalm type checks (qa/psalm.xml)",
       "psalm-taint": "Psalm taint analysis; regenerates the vendor taint stub first",
       "test-unit": "Unit tests, no database: helpers, and route access levels and middleware (QA_PHP)",
-		"analyse": "PHPStan and Psalm for every PHP version CI checks (QA_ANALYSE_PHP)",
+		"analyse": "PHPStan and PsalmP",
       "analyze": "Alias of analyse",
+		"analyse-all": "PHPStan and PsalmP version CI checks (QA_ANALYSE_PHP)",
+		"analyze-all": "Alias of analyse-all",
 		"static": "Validate, audit, test-unit, analyse, psalm-taint, taint-selftest, shellcheck: no Podman, no opengrep",
       "test-integration": "Integration tests against a throwaway MariaDB and Mailpit via Podman, without and with Redis: route protection, API access, a smoke pass over every route, retention crons, data scoping, release (web and API), notifications and password-less links (QA_PHP)",
       "test-e2e": "End-to-end tests with rspamd, Redis and MariaDB via Podman, with and without the app's Redis: import, maps, encoding, spool, fuzzy learning (QA_PHP)",
