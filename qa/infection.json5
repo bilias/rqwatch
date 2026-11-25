@@ -156,7 +156,7 @@
 				"App\\Utils\\Helper::debugException::1561",
 				// a lookup without a cache is live DNS, which a unit test cannot make
 				"App\\Utils\\Helper::my_gethostbyaddr::1600",
-				"App\\Utils\\Helper::my_gethostbyname::1673",
+				"App\\Utils\\Helper::my_gethostbyname::1670",
 				// array_pad() to 3 leaves the two values destructured unchanged; the line's
 				// other mutant, explode() limit 3, is killed by the 'a second slash' cases
 				"App\\Inventory\\MapInventory::canonicalIpOrCidr::457",
@@ -281,7 +281,7 @@
 				"App\\Core\\Database\\MigrationStatus::warmCache::70",
 				// a lookup without a cache is live DNS, which a unit test cannot make
 				"App\\Utils\\Helper::my_gethostbyaddr::1600",
-				"App\\Utils\\Helper::my_gethostbyname::1673"
+				"App\\Utils\\Helper::my_gethostbyname::1670"
 			]
 		},
 		"SharedCaseRemoval": {

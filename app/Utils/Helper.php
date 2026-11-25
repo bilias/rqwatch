@@ -1639,9 +1639,6 @@ Mail details:
 		// outside the try: a missing setting is not a DNS failure
 		$timeout = self::dnsResolvTimeout();
 		try {
-			$resolver = new Resolver([
-				'timeout' => $timeout,
-			]);
 			if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
 				/** @var string $expanded validated as IPv6 above, so inet_pton() cannot fail */
 				$expanded = inet_pton($ip);
@@ -1650,7 +1647,7 @@ Mail details:
 			} else {
 				$ptr = implode('.', array_reverse(explode('.', $ip))) . '.in-addr.arpa';
 			}
-			$result = $resolver->query($ptr, 'PTR');
+			$result = self::dnsQuery($ptr, 'PTR', $timeout);
 			// the answer may start with a CNAME (RFC 2317)
 			foreach ($result->answer as $rr) {
 				if ($rr instanceof DnsPtr) {
@@ -1707,10 +1704,7 @@ Mail details:
 		// outside the try: a missing setting is not a DNS failure
 		$timeout = self::dnsResolvTimeout();
 		try {
-			$resolver = new Resolver([
-				'timeout' => $timeout,
-			]);
-			$result = $resolver->query($host, 'A');
+			$result = self::dnsQuery($host, 'A', $timeout);
 			// the answer may start with a CNAME
 			foreach ($result->answer as $rr) {
 				if ($rr instanceof DnsA) {
@@ -1721,6 +1715,20 @@ Mail details:
 		} catch (Exception $e) {
 			return [$host, self::dnsTransientFailure($e)];
 		}
+	}
+
+	/*
+	 A query through netdns2; through $dnsQuery instead when a unit test has
+	 set one, so the lookups above run without a network.
+	*/
+	/** @var (\Closure(string, string): \NetDNS2\Packet\Response)|null name, type => the answer */
+	private static ?\Closure $dnsQuery = null;
+
+	private static function dnsQuery(string $name, string $type, float $timeout): \NetDNS2\Packet\Response {
+		if (self::$dnsQuery !== null) {
+			return (self::$dnsQuery)($name, $type);
+		}
+		return (new Resolver(['timeout' => $timeout]))->query($name, $type);
 	}
 
 	public static function count_dns_cache(): ?int {
