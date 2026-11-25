@@ -87,6 +87,31 @@ final class ScopingTest extends IntegrationTestCase
 		}
 	}
 
+	// a mail to bob and alice: alice sees only her own recipient, admin sees both
+	public function testCoRecipientsAreHidden(): void {
+		// bob first: the listing truncates recipients to 25 characters
+		$this->quarantined(9361, 'mx1', ['bob@example.org', 'alice@example.org'],
+			['mime_to' => 'undisclosed-recipients:;']);
+
+		$alice = self::client('alice');
+		foreach (['/mail/9361', '/detail/id/9361', '/'] as $path) {
+			$response = $alice->get($path);
+			$this->assertSame(200, $response['status'], $path);
+			$this->assertStringContainsString('SUBJ-Q-9361', $response['body'], "{$path}: mail missing");
+			$this->assertStringNotContainsString('bob@example.org', $response['body'], "{$path}: shows bob as a recipient");
+			if ($path !== '/') {
+				$this->assertStringContainsString("<div class='detail'>alice@example.org</div>", $response['body'], "{$path}: recipients");
+			}
+		}
+
+		$admin = self::client('admin');
+		foreach (['/admin/mail/9361', '/admin/detail/id/9361'] as $path) {
+			$response = $admin->get($path);
+			$this->assertSame(200, $response['status'], $path);
+			$this->assertStringContainsString('bob@example.org', $response['body'], "{$path}: admin misses bob");
+		}
+	}
+
 	public function testReportsAreScoped(): void {
 		$alice = self::client('alice');
 		$alice->get('/search/add_day');
