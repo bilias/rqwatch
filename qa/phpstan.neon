@@ -1,6 +1,9 @@
 includes:
 	- ../vendor/larastan/larastan/extension.neon
 	- ../vendor/yamadashy/phpstan-friendly-formatter/extension.neon
+	- ../vendor/phpstan/phpstan-deprecation-rules/rules.neon
+	- ../vendor/phpstan/phpstan-phpunit/extension.neon
+	- ../vendor/phpstan/phpstan-phpunit/rules.neon
 
 services:
 	# select()/selectOne() rows are stdClass, as the Psalm plugin says

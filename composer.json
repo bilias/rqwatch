@@ -78,7 +78,9 @@
         "ext-curl": "*",
         "ext-dom": "*",
         "ext-posix": "*",
-        "yamadashy/phpstan-friendly-formatter": "^1.5"
+        "yamadashy/phpstan-friendly-formatter": "^1.5",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.1"
     },
    "scripts": {
       "phpstan": "phpstan analyse -c qa/phpstan.neon --memory-limit=512M --error-format friendly",

@@ -357,7 +357,7 @@ abstract class IntegrationTestCase extends TestCase
 			}
 		}
 		$this->assertArrayHasKey('default-src', $directives, "{$what}: default-src");
-		$default = $directives['default-src'] ?? [];
+		$default = $directives['default-src'];
 		foreach (['default-src', 'img-src', 'style-src', 'font-src', 'media-src', 'frame-src', 'connect-src', 'object-src'] as $name) {
 			foreach ($directives[$name] ?? $default as $source) {
 				$this->assertContains($source, ["'self'", "'none'", "'unsafe-inline'", 'data:'], "{$what}: {$name} allows {$source}");

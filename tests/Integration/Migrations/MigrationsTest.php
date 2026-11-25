@@ -128,7 +128,7 @@ final class MigrationsTest extends IntegrationTestCase
 
 	#[TestDox('Every migration has a step here, in Migrations::MIGRATIONS order')]
 	public function testEveryMigrationCovered(): void {
-		$this->assertSame(Migrations::MIGRATIONS, array_keys(self::COMMANDS));
+		$this->assertSame(Migrations::MIGRATIONS, array_keys(self::COMMANDS)); // @phpstan-ignore method.alreadyNarrowedType (both are constants: PHPStan proves it here and reports a mismatch as method.impossibleType; the test keeps the runtime check)
 	}
 
 	#[TestDox('The mock data loaded into the v1.6.10 schema')]
