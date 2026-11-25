@@ -14,4 +14,4 @@ if ! command -v shellcheck >/dev/null 2>&1; then
 	echo "shellcheck not found: install it (dnf install ShellCheck; on EL9 from EPEL)" >&2
 	exit 127
 fi
-git ls-files -z '*.sh' | xargs -0 shellcheck -x "$@"
+git ls-files -z '*.sh' | xargs -0 shellcheck -a -x "$@"
