@@ -686,8 +686,8 @@ final class Helper {
 	public static function log_to_files(string $dir, string|false $symbols, array $web_headers, string $stringHeaders, array $arrayHeaders): bool {
 		if (!is_dir($dir)) {
 			self::logger()->warning("$dir does not exist");
-			if (!mkdir($dir, 0750, true)) {
-				self::logger()->error("Error creating directory $dir");
+			if (!@mkdir($dir, 0750, true)) {
+				self::logger()->error("Error creating directory $dir: " . (error_get_last()['message'] ?? 'unknown error'));
 				return false;
 			} else {
 				self::logger()->info("Created directory $dir");
@@ -705,8 +705,8 @@ final class Helper {
 		// no credentials on disk: Basic Auth and the .env secrets Dotenv puts in $_SERVER
 		$redact = fn(string $key, mixed $value): mixed => preg_match('/_PW$|PASS|SECRET|DSN|AUTHORIZATION/i', $key) ? '[redacted]' : $value;
 
-		if (!$fp_web_headers = fopen("{$dir}/web_headers", "w")) {
-			self::logger()->error("Cannot open file ({$dir}/web_headers)");
+		if (!$fp_web_headers = @fopen("{$dir}/web_headers", "w")) {
+			self::logger()->error("Cannot open file ({$dir}/web_headers): " . (error_get_last()['message'] ?? 'unknown error'));
 			return false;
 		}
 
@@ -715,8 +715,8 @@ final class Helper {
 		}
 		fclose($fp_web_headers);
 
-		if (!$fp_server = fopen("{$dir}/server", "w")) {
-			self::logger()->error("Cannot open file ({$dir}/server)");
+		if (!$fp_server = @fopen("{$dir}/server", "w")) {
+			self::logger()->error("Cannot open file ({$dir}/server): " . (error_get_last()['message'] ?? 'unknown error'));
 			return false;
 		}
 
@@ -728,24 +728,24 @@ final class Helper {
 		}
 		fclose($fp_server);
 
-		if (!$fp_symbols = fopen("{$dir}/symbols", "w")) {
-			self::logger()->error("Cannot open file ({$dir}/symbols)");
+		if (!$fp_symbols = @fopen("{$dir}/symbols", "w")) {
+			self::logger()->error("Cannot open file ({$dir}/symbols): " . (error_get_last()['message'] ?? 'unknown error'));
 			return false;
 		}
 
 		fwrite($fp_symbols, $symbols_array);
 		fclose($fp_symbols);
 
-		if (!$fp_headers = fopen("{$dir}/headers", "w")) {
-			self::logger()->error("Cannot open file ({$dir}/headers)");
+		if (!$fp_headers = @fopen("{$dir}/headers", "w")) {
+			self::logger()->error("Cannot open file ({$dir}/headers): " . (error_get_last()['message'] ?? 'unknown error'));
 			return false;
 		}
 
 		fwrite($fp_headers, $stringHeaders);
 		fclose($fp_headers);
 
-		if (!$fp_headers_ar = fopen("{$dir}/headers_ar", "w")) {
-			self::logger()->error("Cannot open file ({$dir}/headers_ar)");
+		if (!$fp_headers_ar = @fopen("{$dir}/headers_ar", "w")) {
+			self::logger()->error("Cannot open file ({$dir}/headers_ar): " . (error_get_last()['message'] ?? 'unknown error'));
 			return false;
 		}
 
@@ -1358,9 +1358,9 @@ Mail details:
 			return false;
 		}
 
-		$files = scandir($realDir);
+		$files = @scandir($realDir);
 		if ($files === false) {
-			self::logger()->warning("Quarantine $realDir scan problem");
+			self::logger()->warning("Quarantine $realDir scan problem: " . (error_get_last()['message'] ?? 'unknown error'));
 			return false;
 		}
 
@@ -1373,8 +1373,8 @@ Mail details:
 
 			// Never follow symlinks; just unlink them
 			if (is_link($path) || is_file($path)) {
-				if (!unlink($path)) {
-					self::logger()->warning("Cannot unlink file in quarantine: $path");
+				if (!@unlink($path)) {
+					self::logger()->warning("Cannot unlink file in quarantine: $path: " . (error_get_last()['message'] ?? 'unknown error'));
 					return false;
 				}
 				continue;
@@ -1393,8 +1393,8 @@ Mail details:
 			return false;
 		}
 
-		if (!rmdir($realDir)) {
-			self::logger()->warning("Cannot remove directory in quarantine: $realDir");
+		if (!@rmdir($realDir)) {
+			self::logger()->warning("Cannot remove directory in quarantine: $realDir: " . (error_get_last()['message'] ?? 'unknown error'));
 			return false;
 		}
 
