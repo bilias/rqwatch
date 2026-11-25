@@ -35,6 +35,9 @@
         "php": "^8.3",
         "ext-mysqlnd": "*",
         "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "ext-filter": "*",
+        "ext-session": "*",
         "ext-ldap": "*",
         "ext-redis": "*",
         "ext-mbstring": "*",
@@ -72,6 +75,9 @@
         "larastan/larastan": "^3.13",
         "vimeo/psalm": "^7.0",
         "phpunit/phpunit": "^12",
+        "ext-curl": "*",
+        "ext-dom": "*",
+        "ext-posix": "*",
         "yamadashy/phpstan-friendly-formatter": "^1.5"
     },
    "scripts": {
