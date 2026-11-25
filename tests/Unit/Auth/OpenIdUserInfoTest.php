@@ -13,7 +13,8 @@
  allows. The username and e-mail must be usable (a username may be a
  number, never true; an e-mail is text), else the login is denied; a
  display name of another type is left out and logged by claim, so it can
- no longer fail the login with a TypeError.
+ no longer fail the login with a TypeError. The username and e-mail are
+ trimmed and lowercased, and OPENIDC_ADMINS alone decides the admin flag.
 */
 
 namespace Tests\Unit\Auth;
@@ -92,6 +93,7 @@ final class OpenIdUserInfoTest extends UnitTestCase
 
 	public function testEmailUnverifiedDenied(): void {
 		$this->assertFalse(self::apply(new OpenIDConnectAuth($this->log), self::userInfo(['email_verified' => false])));
+		$this->assertLogged("OIDC user 'alice' email not verified (claim: false); login denied. Set OPENIDC_REQUIRE_VERIFIED_EMAIL=false to allow.");
 	}
 
 	// a structured name used to be a TypeError on the ?string property
@@ -101,6 +103,28 @@ final class OpenIdUserInfoTest extends UnitTestCase
 		$this->assertNull($auth->getLastName());
 		$this->assertSame('Alice', $auth->getFirstName());
 		$this->assertLogged("OIDC claim 'family_name' for user 'alice' is array, not text; ignored");
+	}
+
+	public function testAdminFromOpenidcAdmins(): void {
+		$_ENV['OPENIDC_ADMINS'] = 'bob, ALICE';
+		$auth = new OpenIDConnectAuth($this->log);
+		$this->assertTrue(self::apply($auth, self::userInfo()));
+		$this->assertTrue($auth->getIsAdmin());
+	}
+
+	public function testNotInOpenidcAdminsNotAdmin(): void {
+		$_ENV['OPENIDC_ADMINS'] = 'bob';
+		$auth = new OpenIDConnectAuth($this->log);
+		$this->assertTrue(self::apply($auth, self::userInfo()));
+		$this->assertFalse($auth->getIsAdmin());
+	}
+
+	// padded claims are the same user and address
+	public function testClaimsTrimmed(): void {
+		$auth = new OpenIDConnectAuth($this->log);
+		$this->assertTrue(self::apply($auth, self::userInfo(['preferred_username' => ' Alice ', 'email' => " Alice@Example.org\t"])));
+		$this->assertSame('alice', self::authenticatedUser($auth));
+		$this->assertSame('alice@example.org', $auth->getEmail());
 	}
 
 	/** @param array<string, mixed> $override */
