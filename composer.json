@@ -107,7 +107,7 @@
 			"Composer\\Config::disableProcessTimeout",
 			"sh qa/analyse.sh"
 		],
-      "analyse-all": "@analyse-all",
+      "analyze-all": "@analyse-all",
       "test-integration": [
          "Composer\\Config::disableProcessTimeout",
          "sh qa/each-php.sh bash qa/integration-tests.sh"
