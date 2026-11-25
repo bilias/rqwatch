@@ -18,6 +18,7 @@
 */
 
 use App\Models\MailLog;
+use App\Utils\Helper;
 use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment;
 
@@ -29,6 +30,13 @@ function taintSelfTest(MailLog $log, Environment $twig): void {
 	echo MailLog::query()->value('subject'); // expect TaintedHtml
 	echo MailLog::query()->value('qid'); // expect clean
 	echo $log->recipients->count(); // expect clean
+
+	// .env: Helper::env_string() reads the operator's settings; $_ENV itself is a source (Psalm 7.19)
+	echo Helper::env_string('PROBE') ?? ''; // expect clean
+	$env = $_ENV['PROBE'] ?? '';
+	if (is_string($env)) {
+		echo $env; // expect TaintedHtml
+	}
 
 	// Twig: attribute to property node, autoescape, request input, is_safe filters' escapes
 	new Response($twig->render('raw_subject.twig', ['log' => $log])); // expect TaintedHtml

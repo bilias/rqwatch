@@ -1033,7 +1033,14 @@ Mail details:
 		return $ret;
 	}
 
-	// a .env value, null when unset (Dotenv sets only strings)
+	/*
+	 a .env value, null when unset (Dotenv sets only strings).
+	 Not tainted: .env and the process environment are set by the operator,
+	 as the config files are (Config::decodeCachedConfig()). Psalm 7.19 makes
+	 $_ENV a source; this is the one place rqwatch reads it. Only the input
+	 kinds go: a secret in .env stays one.
+	*/
+	/** @psalm-taint-escape input */
 	public static function env_string(string $key): ?string {
 		$value = $_ENV[$key] ?? null;
 		return is_string($value) ? $value : null;
