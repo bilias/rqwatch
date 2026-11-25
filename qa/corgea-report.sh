@@ -6,9 +6,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 # Corgea report. Without an argument, runs a Corgea BLAST scan of HEAD: a
-# fresh clone of this checkout's current branch, with origin set to this
-# checkout's origin URL so Corgea files it under the GitHub repository's
-# project; uncommitted, untracked and ignored files (.env, config.local.php)
+# fresh clone of this checkout's current branch, with origin set to the URL
+# of this checkout's remote on github.com (or $CORGEA_REPO_URL) so Corgea
+# files it under the GitHub repository's project; uncommitted, untracked and
+# ignored files (.env, config.local.php)
 # are not uploaded. With SCAN_ID, fetches that existing scan (one run from the
 # web UI, say) and scans nothing. Either way, into $CORGEA_OUT (default
 # corgea-report/) go the HTML, SARIF and Markdown reports Corgea renders
@@ -65,8 +66,16 @@ if [ -z "$SCAN_ID" ]; then
 	if [ -n "$(git status --porcelain)" ]; then
 		echo "Note: uncommitted changes are not scanned; this scans HEAD"
 	fi
+	# the GitHub remote's URL, whatever the remote is called here: Corgea
+	# names and files the project by origin's URL, and other remotes may be
+	# private
+	repo_url="${CORGEA_REPO_URL:-$(git remote -v | awk '$2 ~ /github\.com[:\/]/ && $3 == "(fetch)" { print $2; exit }')}"
+	if [ -z "$repo_url" ]; then
+		echo "No remote on github.com: set CORGEA_REPO_URL" >&2
+		exit 1
+	fi
 	git clone -q --depth 1 "file://$(pwd)" "${WORK}/rqwatch"
-	git -C "${WORK}/rqwatch" remote set-url origin "$(git remote get-url origin)"
+	git -C "${WORK}/rqwatch" remote set-url origin "$repo_url"
 	echo "=== scan of $(git -C "${WORK}/rqwatch" log -1 --format='%h %s')"
 	(cd "${WORK}/rqwatch" && corgea scan --out-format sarif --out-file "${OUT}/rqwatch-corgea.sarif") \
 		| tee "${OUT}/corgea-scan.log"
