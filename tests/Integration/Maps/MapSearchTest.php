@@ -39,7 +39,7 @@ final class MapSearchTest extends IntegrationTestCase
 		parent::tearDown();
 	}
 
-	#[TestDox('A posted search redirects to the GET results, which list the matching entry')]
+	#[TestDox('A posted search redirects to the GET results, which list the matching entry and its owner')]
 	public function testPostedSearchFindsEntry(): void {
 		$admin = self::client('admin');
 		$response = $admin->post(self::PATH, [
@@ -56,6 +56,8 @@ final class MapSearchTest extends IntegrationTestCase
 		$page = $admin->get(self::PATH . '?' . $queryString);
 		$this->assertSame(200, $page['status']);
 		$this->assertStringContainsString(self::SENDER, $page['body']);
+		$this->assertStringContainsString("<td class='center'>admin</td>", $page['body'], 'owner');
+		$this->assertStringNotContainsString('Deleted user', $page['body']);
 	}
 
 	#[TestDox('A search field that is not a scalar is a 400, posted or in the query string')]

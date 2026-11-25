@@ -65,6 +65,21 @@ final class MapEntryScopingTest extends IntegrationTestCase
 		$this->assertStringNotContainsString('acl-admin@example.net', $bob);
 	}
 
+	// /user/map/all: her own entry with its owner and delete link, the admin entry for her address without one, not bob's
+	public function testUserListOfAllMapsShowsOwners(): void {
+		$response = self::client('alice')->get('/user/map/all');
+		$this->assertSame(200, $response['status']);
+		$body = $response['body'];
+		$this->assertStringContainsString('acl-alice@example.net', $body);
+		$this->assertStringContainsString('acl-admin@example.net', $body, 'admin entry for her address');
+		$this->assertStringNotContainsString('acl-bob@example.net', $body);
+		$this->assertStringContainsString("<td class='center'>alice</td>", $body, 'owner of A');
+		$this->assertStringContainsString("<td class='center'>admin</td>", $body, 'owner of M');
+		$this->assertStringNotContainsString('Deleted user', $body);
+		$this->assertMatchesRegularExpression("#/del/{$this->ids['A']}\\?_token=#", $body, 'no delete link for A');
+		$this->assertDoesNotMatchRegularExpression("#/del/{$this->ids['M']}\\?_token=#", $body, 'delete link for M');
+	}
+
 	public function testUserChangesOnlyHerOwnEntry(): void {
 		$alice = self::client('alice');
 		$base = '/user/map/' . self::MAP;
