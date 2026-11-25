@@ -8,7 +8,7 @@
 # Runs a test harness once per supported PHP version, with $PHP set to that
 # version's binary (qa/lib.sh uses it for every step), e.g.
 #   sh qa/each-php.sh bash qa/unit-tests.sh -v
-# QA_PHP lists the versions, default "8.3 8.4". Each is found as phpX.Y
+# QA_PHP lists the versions, default "8.4". Each is found as phpX.Y
 # (Debian/Ubuntu), phpXY (Remi), /opt/remi/phpXY/root/usr/bin/php or php,
 # whichever reports that version; an entry that is not X.Y is a binary used
 # as given (no spaces). A version not found is skipped with a warning, or
