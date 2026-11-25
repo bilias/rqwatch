@@ -35,9 +35,16 @@ function taintSelfTest(MailLog $log, Environment $twig): void {
 	new Response($twig->render('escaped_subject.twig', ['log' => $log])); // expect clean
 	new Response($twig->render('raw_input.twig', ['x' => $_GET['x']])); // expect TaintedHtml
 	// control: reported only if the analyzer has RqwatchExtension (a template with an
-	// unknown filter is skipped, which would leave the escape probes below trivially clean)
+	// unknown filter or function is skipped, which would leave the escape probes below
+	// trivially clean); truncate() returns text, so the taint goes through (nf() returns
+	// a number, which Psalm 7.19 lets carry no html taint)
 	new Response($twig->render('extension_loaded.twig', ['x' => $_GET['x']])); // expect TaintedHtml
 	new Response($twig->render('linkify.twig', ['x' => $_GET['x']])); // expect clean
+	// control for linkify's url_scheme escape: an href escaped for HTML only
+	$href = $_GET['x'] ?? '';
+	if (is_string($href)) {
+		echo '<a href="' . htmlspecialchars($href, ENT_QUOTES) . '">x</a>'; // expect TaintedUrlScheme
+	}
 	new Response($twig->render('js_json.twig', ['x' => $_GET['x']])); // expect clean
 	new Response($twig->render('mark_homoglyphs.twig', ['x' => $_GET['x']])); // expect clean
 }

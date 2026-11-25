@@ -168,6 +168,8 @@ final class RqwatchExtension extends AbstractExtension
 				continue;
 			}
 			$url = rtrim($part, '.,;:!?)');
+			// the split captures only http(s):// URLs: no other scheme reaches the href
+			/** @psalm-taint-escape url_scheme */
 			$e = htmlspecialchars($url, ENT_QUOTES);
 			$out .= '<a href="' . $e . '"' . $target . '>' . $e . '</a>'
 				. htmlspecialchars(substr($part, strlen($url)), ENT_QUOTES);
