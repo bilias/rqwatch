@@ -77,6 +77,29 @@ final class MailObjectTest extends UnitTestCase
 		$this->assertStringContainsString('cid:big@x', $html);
 	}
 
+	#[TestDox('The budget is what is left after each embedded image; an image of exactly the budget fits')]
+	public function testBudgetSpentPerImage(): void {
+		$second = str_repeat('x', 100);
+		$html = self::html(['<img src="cid:a@x">', '<img src="cid:b@x">'], [
+			['a@x', 'image/png', self::PNG],
+			['b@x', 'image/png', $second],
+		]);
+		$this->assertStringContainsString('data:image/png;base64,' . base64_encode($second), $html);
+
+		$html = self::html(['<img src="cid:full@x">'], [['full@x', 'image/png', str_repeat('x', 5 * 1024 * 1024)]]);
+		$this->assertStringNotContainsString('cid:full@x', $html);
+	}
+
+	#[TestDox('Of two parts with one Content-ID the first is embedded')]
+	public function testRepeatedContentId(): void {
+		$html = self::html(['<img src="cid:a@x">'], [
+			['a@x', 'image/png', self::PNG],
+			['a@x', 'image/png', 'second'],
+		]);
+		$this->assertStringContainsString('data:image/png;base64,' . base64_encode(self::PNG), $html);
+		$this->assertStringNotContainsString(base64_encode('second'), $html);
+	}
+
 	#[TestDox('An image part without Content-ID is not embedded, not even for cid:0')]
 	public function testNoContentId(): void {
 		$html = self::html([

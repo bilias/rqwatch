@@ -15,17 +15,28 @@
  getMapConfigs() throws; it returns the configs it checked. An unknown
  field definition throws too. And the IP or CIDR check of the ip map
  fields: host bits clear, with a suggestion, and the canonical form
- MapIpForm stores.
+ MapIpForm stores. The built-in maps (who may manage them) and the field
+ definitions are pinned as they are: a change is the prompt to review it.
 */
 
 namespace Tests\Unit\Inventory;
 
+use App\Forms\MapIpForm;
+use App\Forms\MapMailFromForm;
+use App\Forms\MapMailFromRcptToForm;
+use App\Forms\MapMimeFromForm;
+use App\Forms\MapMimeFromRcptToForm;
 use App\Forms\MapWithCustomFieldForm;
 use App\Inventory\MapInventory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;
 use RuntimeException;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Validator\Constraints\Callback;
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Validation;
 use Tests\Unit\UnitTestCase;
 
@@ -54,6 +65,52 @@ final class MapInventoryTest extends UnitTestCase
 				$this->assertNotSame('', MapInventory::fieldDefinition($field)['description'], "{$name}: {$field}");
 			}
 		}
+	}
+
+	// map => model, description, fields, form, roles that may manage it
+	public function testBuiltInMaps(): void {
+		$maps = [];
+		foreach (MapInventory::getMapConfigs(null, false) as $name => $config) {
+			$maps[$name] = [$config['model'], $config['description'], $config['fields'], $config['map_form'], $config['access']];
+		}
+		$this->assertSame([
+			'mail_from_rcpt_to_whitelist' => ['MapCombined', 'Mail From/RCPT_TO Whitelist', ['mail_from', 'rcpt_to'], MapMailFromRcptToForm::class, ['admin', 'user']],
+			'mail_from_rcpt_to_blacklist' => ['MapCombined', 'Mail From/RCPT_TO Blacklist', ['mail_from', 'rcpt_to'], MapMailFromRcptToForm::class, ['admin', 'user']],
+			'mime_from_rcpt_to_whitelist' => ['MapCombined', 'MIME From/RCPT_TO Whitelist', ['mime_from', 'rcpt_to'], MapMimeFromRcptToForm::class, ['admin', 'user']],
+			'mime_from_rcpt_to_blacklist' => ['MapCombined', 'MIME From/RCPT_TO Blacklist', ['mime_from', 'rcpt_to'], MapMimeFromRcptToForm::class, ['admin', 'user']],
+			'mail_from_whitelist' => ['MapCombined', 'Mail From Whitelist', ['mail_from'], MapMailFromForm::class, ['admin']],
+			'mail_from_blacklist' => ['MapCombined', 'Mail From Blacklist', ['mail_from'], MapMailFromForm::class, ['admin']],
+			'mime_from_whitelist' => ['MapCombined', 'MIME From Whitelist', ['mime_from'], MapMimeFromForm::class, ['admin']],
+			'mime_from_blacklist' => ['MapCombined', 'MIME From Blacklist', ['mime_from'], MapMimeFromForm::class, ['admin']],
+			'ip_whitelist' => ['MapCombined', 'IP Whitelist', ['ip'], MapIpForm::class, ['admin']],
+			'ip_blacklist' => ['MapCombined', 'IP Blacklist', ['ip'], MapIpForm::class, ['admin']],
+		], $maps);
+	}
+
+	// field => description, form type, label, required, attributes, constraint classes, help
+	public function testFieldDefinitions(): void {
+		$fields = [];
+		foreach (MapInventory::getFieldDefinitions() as $name => $definition) {
+			$options = $definition['field_options'];
+			$fields[$name] = [
+				$definition['description'],
+				$definition['type'],
+				$options['label'] ?? null,
+				$options['required'] ?? null,
+				$options['attr'] ?? [],
+				array_map(fn (object $constraint): string => $constraint::class, $options['constraints'] ?? []),
+				$options['help'] ?? null,
+			];
+		}
+		$this->assertSame([
+			'mail_from' => ['Mail From', EmailType::class, 'Mail From:', true, ['class' => 'uniform-input'], [NotBlank::class, Email::class], null],
+			'mime_from' => ['MIME From', EmailType::class, 'MIME From:', true, ['class' => 'uniform-input'], [NotBlank::class, Email::class], null],
+			'rcpt_to' => ['RCPT To', EmailType::class, 'RCPT To:', true, ['class' => 'uniform-input'], [NotBlank::class, Email::class], null],
+			'ip' => ['IP Address', TextType::class, 'IP Address:', true, ['class' => 'uniform-input'], [NotBlank::class, Callback::class], null],
+			'url' => ['URL', TextType::class, 'URL:', true, ['class' => 'uniform-input'], [NotBlank::class], null],
+			'email' => ['Email', TextType::class, 'Email:', true, ['class' => 'uniform-input'], [NotBlank::class, Email::class], null],
+			'custom' => ['Custom Field', TextareaType::class, 'Custom Field:', true, ['class' => 'uniform-input map-entries-input', 'rows' => 5], [NotBlank::class], "One entry per line\nLines starting with # are inserted as disabled entries"],
+		], $fields);
 	}
 
 	public function testUnknownFieldDefinitionThrows(): void {
@@ -112,11 +169,13 @@ final class MapInventoryTest extends UnitTestCase
 			'IPv4 host bits, not on a byte' => ['192.168.1.77/26', '192.168.1.77/26 is not a network address; did you mean 192.168.1.64/26?'],
 			'IPv4 /0 with host bits' => ['10.0.0.0/0', '10.0.0.0/0 is not a network address; did you mean 0.0.0.0/0?'],
 			'IPv6 host bits' => ['2001:db8::1/32', '2001:db8::1/32 is not a network address; did you mean 2001:db8::/32?'],
+			'IPv4 host bits, top bit of a byte' => ['10.128.0.0/8', '10.128.0.0/8 is not a network address; did you mean 10.0.0.0/8?'],
 			'IPv4 prefix too long' => ['10.0.0.0/33', $invalid],
 			'IPv6 prefix too long' => ['2001:db8::/129', $invalid],
 			'prefix with a leading zero' => ['10.0.0.0/08', $invalid],
 			'empty prefix' => ['10.0.0.0/', $invalid],
 			'prefix not a number' => ['10.0.0.0/x', $invalid],
+			'a second slash' => ['10.0.0.0/8/x', $invalid],
 			'prefix ending in a line feed' => ["10.0.0.0/8\n", $invalid],
 			'octet out of range' => ['300.1.1.1', $invalid],
 			'not an IP' => ['bad/8', $invalid],
@@ -147,6 +206,7 @@ final class MapInventoryTest extends UnitTestCase
 			'IPv6 network, prefix kept' => ['2001:0DB8:0000::/32', '2001:db8::/32'],
 			'IPv4-mapped IPv6' => ['::FFFF:192.0.2.1', '::ffff:192.0.2.1'],
 			'not an IP' => ['example.org', 'example.org'],
+			'a second slash, kept' => ['192.0.2.1/24/x', '192.0.2.1/24/x'],
 			'invalid IPv4' => ['192.0.2.300', '192.0.2.300'],
 			'empty' => ['', ''],
 		];
