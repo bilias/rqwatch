@@ -95,7 +95,7 @@ final class RspamdStatTest extends UnitTestCase
 			'warning Invalid Rspamd stats returned from Redis cache',
 			'debug Rspamd stats cached in Redis for 60 seconds',
 		], $this->log->lines);
-		$this->assertSame('[]', $cache->values[self::KEY]);
+		$this->assertSame('[]', $cache->get(self::KEY), 'the failure is cached in its place');
 	}
 
 	public function testRedisErrorAsksAgain(): void {
