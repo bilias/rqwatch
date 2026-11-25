@@ -34,6 +34,7 @@ use App\Models\User;
 use App\Utils\FormHelper;
 use App\Utils\Helper;
 
+use LogicException;
 use RuntimeException;
 use Throwable;
 
@@ -905,9 +906,8 @@ final class MapController extends ViewController
 					return new RedirectResponse($this->getMapEditEntryUrl($map, $id));
 				}
 			} else {
-				$this->fileLogger->warning("User {$this->username} tried to update map in " . $this->request->getPathInfo() . " with wrong model {$model} or non admin rights");
-				$this->flashbag->add('error', 'Error in map');
-				return new RedirectResponse($this->getMapShowUrl($map));
+				// unreachable: the check after findMapEntry()'s caller lets only MapCombined, or MapCustom for an admin, get here
+				throw new LogicException('editMapEntry(): reached the update with neither MapCombined nor an admin MapCustom');
 			}
 		}
 
