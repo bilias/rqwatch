@@ -13,7 +13,9 @@
  text fields and optional ones. What can only be a bug (no data, a required
  field that is not text) fails with the form or field named; it does not
  read as empty. The same for a form's own options: the CSS class merge, a
- text option and a list of text.
+ text option and a list of text. formCreator() names a form by form_name or
+ by its type, and reads the request into it. The search operators are
+ pinned.
 */
 
 namespace Tests\Unit\Helpers;
@@ -22,10 +24,31 @@ use App\Utils\FormHelper;
 use LogicException;
 use PHPUnit\Framework\MockObject\Stub;
 use App\Forms\LoginForm;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\Forms;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Tests\Unit\UnitTestCase;
+
+// a form type that takes form_name, as MapSelectForm does
+/** @extends AbstractType<array<string, mixed>> */
+final class NamedFormProbe extends AbstractType
+{
+	#[\Override]
+	public function buildForm(FormBuilderInterface $builder, array $options): void {
+		$builder->add('q', TextType::class);
+	}
+
+	#[\Override]
+	public function configureOptions(OptionsResolver $resolver): void {
+		$resolver->setDefined(['form_name']);
+	}
+}
 
 final class FormDataTest extends UnitTestCase
 {
@@ -35,8 +58,8 @@ final class FormDataTest extends UnitTestCase
 		 * @phpstan-var FormInterface&Stub $form
 		 */
 		$form = $this->createStub(FormInterface::class);
-		$form->method('getData')->willReturn(['username' => 'alice']);
-		$this->assertSame(['username' => 'alice'], FormHelper::submittedData($form));
+		$form->method('getData')->willReturn(['username' => 'alice', 'password' => 'x']);
+		$this->assertSame(['username' => 'alice', 'password' => 'x'], FormHelper::submittedData($form));
 	}
 
 	public function testSubmittedDataMissingFails(): void {
@@ -144,6 +167,44 @@ final class FormDataTest extends UnitTestCase
 		$this->expectException(LogicException::class);
 		$this->expectExceptionMessage("Submitted form 'search_form' has a field without a name");
 		FormHelper::submittedData($form);
+	}
+
+	public function testNamedForm(): void {
+		$request = Request::create('/', 'POST', ['probe' => ['q' => 'x']]);
+		$form = FormHelper::formCreator(self::requestFactory(), $request, NamedFormProbe::class, null, ['form_name' => 'probe']);
+		$this->assertSame('probe', $form->getName());
+		$this->assertTrue($form->isSubmitted());
+		$this->assertSame(['q' => 'x'], $form->getData());
+	}
+
+	// without form_name, or with an empty one, the form is named after its type
+	public function testUnnamedForm(): void {
+		foreach ([[], ['form_name' => '']] as $options) {
+			$request = Request::create('/', 'POST', ['named_form_probe' => ['q' => 'x']]);
+			$form = FormHelper::formCreator(self::requestFactory(), $request, NamedFormProbe::class, null, $options);
+			$this->assertSame('named_form_probe', $form->getName());
+			$this->assertTrue($form->isSubmitted());
+		}
+	}
+
+	public function testSearchOperators(): void {
+		$this->assertSame([
+			'is equal to' => '=',
+			'is not equal to' => '<>',
+			'contains' => 'LIKE',
+			'does not contain' => 'NOT LIKE',
+			'is greater than' => '>',
+			'is greater than or equal' => '>=',
+			'is less than' => '<',
+			'is less than or equal' => '<=',
+			'matches REGEXP' => 'REGEXP',
+			'not matches REGEXP' => 'NOT REGEXP',
+		], FormHelper::getChoices());
+	}
+
+	// a factory whose forms read a Request, as the app's does
+	private static function requestFactory(): FormFactoryInterface {
+		return Forms::createFormFactoryBuilder()->addExtension(new HttpFoundationExtension())->getFormFactory();
 	}
 
 	// used to be a TypeError inside Symfony

@@ -13,15 +13,44 @@
  listed fields the request holds, as sent, in the order listed. Absent
  fields are left out and unlisted ones not returned. The refusal of a
  field that is not a single value answers 400 and exits: covered by the
- integration tests (FuzzyApiTest, ApiReleaseTest).
+ integration tests (FuzzyApiTest, ApiReleaseTest). It is called from the
+ API classes themselves, as the probe here does.
 */
 
 namespace Tests\Unit\Api;
 
-use App\Api\FuzzyMailApi;
+use App\Api\RqwatchApi;
 use ReflectionClass;
-use ReflectionMethod;
 use Tests\Unit\UnitTestCase;
+
+// an API class that only reads its single values
+final class SingleValuesProbe extends RqwatchApi
+{
+	#[\Override]
+	public function handle(): void {
+	}
+
+	/** @return list<string> */
+	#[\Override]
+	protected function getAllowedIps(): array {
+		return [];
+	}
+
+	/** @return array{?string, ?string} */
+	#[\Override]
+	protected function getAuthCredentials(): array {
+		return [null, null];
+	}
+
+	/**
+	 * @param array<array-key, mixed> $post
+	 * @param list<string> $fields
+	 * @return array<string, string>
+	 */
+	public function read(array $post, array $fields): array {
+		return $this->requireSingleValues($post, $fields);
+	}
+}
 
 final class SingleValuesTest extends UnitTestCase
 {
@@ -47,7 +76,6 @@ final class SingleValuesTest extends UnitTestCase
 	 * @param list<string> $fields
 	 */
 	private function call(array $post, array $fields): mixed {
-		$api = (new ReflectionClass(FuzzyMailApi::class))->newInstanceWithoutConstructor();
-		return (new ReflectionMethod($api, 'requireSingleValues'))->invoke($api, $post, $fields);
+		return (new ReflectionClass(SingleValuesProbe::class))->newInstanceWithoutConstructor()->read($post, $fields);
 	}
 }

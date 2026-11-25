@@ -101,6 +101,13 @@ final class CliInputTest extends UnitTestCase
 		self::command()->readInt(self::input(['--batch' => $given]), 'batch');
 	}
 
+	// an option of another type (here --batch, an int by default) is no text
+	public function testTextOptionNotTextRefused(): void {
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('Option --batch must be text, not int');
+		self::command()->readText(self::input([]), 'batch');
+	}
+
 	public function testTextOptionAndArgument(): void {
 		$command = self::command();
 		$this->assertSame('mail_logs', $command->readText(self::input(['--table' => 'mail_logs']), 'table'));

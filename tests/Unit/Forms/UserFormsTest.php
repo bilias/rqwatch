@@ -129,6 +129,22 @@ final class UserFormsTest extends UnitTestCase
 		];
 	}
 
+	/** @return array<string, array{bool|null, string}> stored, shown */
+	public static function storedNotifications(): array {
+		return [
+			'default' => [null, 'default'],
+			'disabled' => [true, 'off'],
+			'enabled' => [false, 'on'],
+		];
+	}
+
+	// a stored choice shows as it was made
+	#[DataProvider('storedNotifications')]
+	public function testStoredNotificationsShown(?bool $disabled, string $choice): void {
+		$form = self::factory()->create(ProfileForm::class, ['disable_notifications' => $disabled]);
+		$this->assertSame($choice, $form->get('disable_notifications')->getViewData());
+	}
+
 	// stored as disable_notifications: null follows the default
 	#[DataProvider('notificationCases')]
 	public function testNotificationsChoice(string $choice, ?bool $disabled): void {

@@ -34,6 +34,8 @@ final class MailLogTest extends UnitTestCase
 			'empty: mail_from' => ['', 'envelope@example.org'],
 			'no address in it: mail_from' => ['"Only a name" <>', 'envelope@example.org'],
 			'quoted-pair comma in the name: the address' => ['"\\"Last, First\\"" (via List) <list@example.net>', 'list@example.net'],
+			'a second @: the next address' => ['<a@b@c>, real@example.net', 'real@example.net'],
+			'invalid UTF-8: the next address' => ["\xFF@example.net, real@example.net", 'real@example.net'],
 		];
 	}
 
@@ -41,6 +43,15 @@ final class MailLogTest extends UnitTestCase
 	public function testMimeFromDecoded(?string $mimeFrom, string $decoded): void {
 		$log = (new MailLog())->setRawAttributes(['id' => 7, 'qid' => 'Q7', 'mail_from' => 'envelope@example.org', 'mime_from' => $mimeFrom]);
 		$this->assertSame($decoded, $log->mime_from_decoded);
+	}
+
+	// no mime_from is not given to mailparse: nothing to warn about
+	public function testNoMimeFromNothingLogged(): void {
+		foreach ([null, ''] as $mimeFrom) {
+			$log = (new MailLog())->setRawAttributes(['id' => 7, 'qid' => 'Q7', 'mail_from' => 'envelope@example.org', 'mime_from' => $mimeFrom]);
+			$this->assertNull($log->mimeFromAddress());
+		}
+		$this->assertSame([], $this->log->lines);
 	}
 
 	public function testMimeFromAddressHasNoMailFromFallback(): void {
