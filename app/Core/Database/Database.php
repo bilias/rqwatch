@@ -62,6 +62,7 @@ final class Database {
 		// Web pages only: cap each statement so a runaway search fails fast.
 		$maxTime = (int) (Helper::env_string('DB_WEB_MAX_STATEMENT_TIME') ?? 30);
 		if (defined('WEB_MODE') && $maxTime > 0) {
+			/** @psalm-suppress DeprecatedConstant the PDO:: branch runs on PHP 8.3 only */
 			$db_config['options'] = [
 				// Pdo\Mysql's constant exists from PHP 8.4; PDO's is deprecated in 8.5.
 				// When PHP 8.3 support ends: Pdo\Mysql's only
