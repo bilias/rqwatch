@@ -186,6 +186,24 @@ final class QuarantineFileTest extends UnitTestCase
 		$this->assertDirectoryExists($this->q . '/day');
 	}
 
+	// only slashes strip to '', and realpath('') is the working directory: refused,
+	// not taken as the quarantine (here the working directory holds the mail)
+	public function testOnlySlashesRefused(): void {
+		mkdir($this->q . '/day', 0750);
+		$cwd = (string) getcwd();
+		chdir($this->root);
+		try {
+			foreach (['//', '///'] as $env) {
+				$_ENV['QUARANTINE_DIR'] = $env;
+				$this->assertFalse(Helper::deleteDirectory($this->q . '/day'), "QUARANTINE_DIR '{$env}'");
+			}
+		} finally {
+			chdir($cwd);
+		}
+		$this->assertDirectoryExists($this->q . '/day');
+		$this->assertLogged('QUARANTINE_DIR is empty or points to root /');
+	}
+
 	public function testMissingDirectory(): void {
 		$this->assertFalse(Helper::deleteDirectory($this->q . '/nope'));
 	}

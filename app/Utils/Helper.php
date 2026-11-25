@@ -1315,13 +1315,13 @@ Mail details:
 	}
 
 	public static function deleteDirectory(string $dir): bool {
-		$quarantineEnv = trim(self::env_string('QUARANTINE_DIR') ?? '');
-		if ($quarantineEnv === '' || $quarantineEnv === DIRECTORY_SEPARATOR) {
+		// checked after the strip: a QUARANTINE_DIR of only slashes ('//') leaves '',
+		// and realpath('') is the working directory, which would pass as the quarantine
+		$quarantineDir = rtrim(trim(self::env_string('QUARANTINE_DIR') ?? ''), DIRECTORY_SEPARATOR);
+		if ($quarantineDir === '') {
 			self::logger()->warning("QUARANTINE_DIR is empty or points to root /");
 			return false;
 		}
-
-		$quarantineDir = rtrim($quarantineEnv, DIRECTORY_SEPARATOR);
 
 		// Resolve real paths for security
 		$realQuarantine = realpath($quarantineDir);
