@@ -49,9 +49,9 @@
 				// a float return type converts an int anyway, strict_types or not
 				"App\\Configuration\\Config::getFloat::76",
 				// a SUM() string divides as a number without the cast
-				"App\\Utils\\Helper::formatSizeUnits::501",
-				"App\\Utils\\Helper::formatSizeUnits::503",
-				"App\\Utils\\Helper::formatSizeUnits::505",
+				"App\\Utils\\Helper::formatSizeUnits::500",
+				"App\\Utils\\Helper::formatSizeUnits::502",
+				"App\\Utils\\Helper::formatSizeUnits::504",
 				// an int or a SUM() string divides by a float as a float anyway
 				"App\\Charts\\ChartBuilder::createReportsDayChart::241"
 			]
@@ -64,19 +64,19 @@
 				// '8' and (int) '8' print the same; the prefix was checked to be digits
 				"App\\Inventory\\MapInventory::validateIpOrCidr::505",
 				// preg_match_all() false is not > 0 either
-				"App\\Utils\\Helper::extract_mail_relays::1192",
+				"App\\Utils\\Helper::extract_mail_relays::1132",
 				// a digits-only string compares with 0 as a number
-				"App\\Utils\\Helper::check_id_qid::810"
+				"App\\Utils\\Helper::check_id_qid::805"
 			]
 		},
 		"CastString": {
 			"ignore": [
 				// an int . 'B' is the same string
-				"App\\Utils\\Helper::formatSizeUnits::507",
+				"App\\Utils\\Helper::formatSizeUnits::506",
 				// json_encode() of a decoded value does not fail
-				"App\\Utils\\Helper::log_to_files::703",
+				"App\\Utils\\Helper::log_to_files::698",
 				// preg_replace() with this ASCII pattern does not fail
-				"App\\Utils\\Helper::oneLine::933",
+				"App\\Utils\\Helper::oneLine::873",
 				// json_encode() with JSON_PARTIAL_OUTPUT_ON_ERROR does not fail
 				"App\\Services\\FuzzyService::flags::112",
 				// inet_ntop() of a packed address does not fail
@@ -90,7 +90,7 @@
 				// checkSet() and checkInt() report the same for a missing or non-string value
 				"App\\Configuration\\EnvValidator::errors::96",
 				// mailparse always sets is_group; a group's ":;" is no address anyway
-				"App\\Utils\\Helper::getMailFromMime::1453",
+				"App\\Utils\\Helper::getMailFromMime::1385",
 				// the builders' charts always have datasets; without, both fail (the
 				// swap only adds an undefined-key warning, which still passes)
 				"App\\Charts\\ChartBuilder::addStoredRatio::307"
@@ -112,14 +112,14 @@
 				// a byte either side of no size rounds to 0.0 MB (-0.0 === 0.0)
 				"App\\Charts\\ChartBuilder::createReportsDayChart::241",
 				// a byte more or less in a MB is a millionth: no %.2f figure shows it
-				"App\\Utils\\Helper::getRuntime::446",
-				"App\\Utils\\Helper::getRuntime::447"
+				"App\\Utils\\Helper::getRuntime::445",
+				"App\\Utils\\Helper::getRuntime::446"
 			]
 		},
 		"FalseValue": {
 			"ignore": [
 				// mailparse always sets is_group
-				"App\\Utils\\Helper::getMailFromMime::1453",
+				"App\\Utils\\Helper::getMailFromMime::1385",
 				// inet_pton() of an address FILTER_VALIDATE_IP accepted does not fail
 				"App\\Inventory\\MapInventory::canonicalIpOrCidr::463"
 			]
@@ -129,11 +129,11 @@
 				// custom maps come from the database; Integration covers them
 				"App\\Inventory\\MapInventory::getMapConfigs::243",
 				// no addresses matched leaves the loop empty either way
-				"App\\Utils\\Helper::extract_mail_relays::1192",
+				"App\\Utils\\Helper::extract_mail_relays::1132",
 				// one second at the idle limit; a test would race the clock
 				"App\\Controllers\\QuarantineController::sessionToken::327",
 				// 1 byte is "1B" in either branch
-				"App\\Utils\\Helper::formatSizeUnits::506"
+				"App\\Utils\\Helper::formatSizeUnits::505"
 			]
 		},
 		"GreaterThanNegotiation": {
@@ -142,7 +142,7 @@
 		},
 		"Identical": {
 			// the reader is reused only after a database opened; a unit test has none
-			"ignore": ["App\\Utils\\Helper::geoipReader::1271"]
+			"ignore": ["App\\Utils\\Helper::geoipReader::1211"]
 		},
 		"IncrementInteger": {
 			"ignore": [
@@ -150,10 +150,10 @@
 				// 9 zero bytes differ from 8 only in the reserved ::/64
 				"App\\Core\\Auth\\LoginThrottle::keyFor::290",
 				// explode()'s limit: only [0] is read
-				"App\\Utils\\Helper::fuzzySymbolClass::203",
-				"App\\Utils\\Helper::get_symbol_class::323",
+				"App\\Utils\\Helper::fuzzySymbolClass::202",
+				"App\\Utils\\Helper::get_symbol_class::322",
 				// only frame [1] is read
-				"App\\Utils\\Helper::debugException::1561",
+				"App\\Utils\\Helper::debugException::1493",
 				// array_pad() to 3 leaves the two values destructured unchanged; the line's
 				// other mutant, explode() limit 3, is killed by the 'a second slash' cases
 				"App\\Inventory\\MapInventory::canonicalIpOrCidr::457",
@@ -161,8 +161,8 @@
 				// a byte either side of no size rounds to 0.0 MB
 				"App\\Charts\\ChartBuilder::createReportsDayChart::241",
 				// a byte more or less in a MB is a millionth: no %.2f figure shows it
-				"App\\Utils\\Helper::getRuntime::446",
-				"App\\Utils\\Helper::getRuntime::447"
+				"App\\Utils\\Helper::getRuntime::445",
+				"App\\Utils\\Helper::getRuntime::446"
 			]
 		},
 		"LogicalAnd": {
@@ -170,9 +170,9 @@
 				// the router attaches the session before any middleware runs
 				"App\\Core\\Middleware\\AuthMiddleware::handle::46",
 				// null and '' fall through the switch to the same "clean"
-				"App\\Utils\\Helper::get_row_class::373",
+				"App\\Utils\\Helper::get_row_class::372",
 				// every mailparse entry is an array
-				"App\\Utils\\Helper::getMailFromMime::1453"
+				"App\\Utils\\Helper::getMailFromMime::1385"
 			]
 		},
 		"LogicalNot": {
@@ -185,11 +185,11 @@
 		"LogicalOr": {
 			"ignore": [
 				// php-ip's isPrivate() or isReserved() already covers loopback and link-local
-				"App\\Utils\\Helper::isLocalOrReservedIp::1290",
+				"App\\Utils\\Helper::isLocalOrReservedIp::1230",
 				// valid UTF-8 comes out of toUtf8() unchanged
-				"App\\Utils\\Helper::normalizeToUtf8::1528",
+				"App\\Utils\\Helper::normalizeToUtf8::1460",
 				// the reader is reused only after a database opened; a unit test has none
-				"App\\Utils\\Helper::geoipReader::1271",
+				"App\\Utils\\Helper::geoipReader::1211",
 				// authenticate() returns true or answers and exits: either way the
 				// condition is false, || or &&
 				"App\\Api\\RqwatchApi::checkAuth::125"
@@ -205,7 +205,7 @@
 		},
 		"LogicalOrSingleSubExprNegation": {
 			// the reader is reused only after a database opened; a unit test has none
-			"ignore": ["App\\Utils\\Helper::geoipReader::1271"]
+			"ignore": ["App\\Utils\\Helper::geoipReader::1211"]
 		},
 		"MethodCallRemoval": {
 			"ignore": [
@@ -217,20 +217,20 @@
 		},
 		"NotIdentical": {
 			// the reader is reused only after a database opened; a unit test has none
-			"ignore": ["App\\Utils\\Helper::geoipReader::1271"]
+			"ignore": ["App\\Utils\\Helper::geoipReader::1211"]
 		},
 		"PregMatchRemoveCaret": {
 			"ignore": [
 				// the Y-m-d round trip refuses anything else
-				"App\\Utils\\Helper::check_date::652",
+				"App\\Utils\\Helper::check_date::651",
 				// no MimeCharset alias has these names past its start; unknown names become us-ascii
-				"App\\Utils\\Helper::mailCharset::1488"
+				"App\\Utils\\Helper::mailCharset::1420"
 			]
 		},
 		"PregMatchRemoveDollar": {
 			"ignore": [
 				// the Y-m-d round trip refuses anything else
-				"App\\Utils\\Helper::check_date::652",
+				"App\\Utils\\Helper::check_date::651",
 				// FILTER_VALIDATE_INT refuses trailing text anyway
 				"App\\Core\\Database\\Row::toInt::89"
 			]
@@ -238,13 +238,13 @@
 		"PregMatchRemoveFlags": {
 			"ignore": [
 				// the Y-m-d round trip refuses a trailing line feed
-				"App\\Utils\\Helper::check_date::652",
+				"App\\Utils\\Helper::check_date::651",
 				// the D flag: mailparse drops a trailing line feed; the line's u flag mutant
 				// is killed by MailLogTest's invalid UTF-8 case
 				"App\\Models\\MailLog::mimeFromAddress::260",
 				// the address is lowercased first; [^=]+ takes a trailing line feed either way
-				"App\\Utils\\Helper::convertSRSAddress::457",
-				"App\\Utils\\Helper::convertSRSAddress::469"
+				"App\\Utils\\Helper::convertSRSAddress::456",
+				"App\\Utils\\Helper::convertSRSAddress::468"
 			]
 		},
 		"PublicVisibility": {
@@ -252,8 +252,8 @@
 			"ignore": [
 				"App\\Models\\MailLog::getMimeFromDecodedAttribute::200",
 				"App\\Configuration\\Config::loadAndInit::152",
-				"App\\Utils\\Helper::checkForMap::260",
-				"App\\Utils\\Helper::convertSRSAddress::451"
+				"App\\Utils\\Helper::checkForMap::259",
+				"App\\Utils\\Helper::convertSRSAddress::450"
 			]
 		},
 		"ReturnRemoval": {
@@ -261,13 +261,13 @@
 				// a non-IPv6 value falls through to the same $ip
 				"App\\Core\\Auth\\LoginThrottle::keyFor::286",
 				// the Y-m-d round trip refuses it too
-				"App\\Utils\\Helper::check_date::653",
+				"App\\Utils\\Helper::check_date::652",
 				// 'unknown' fails IP::create() and returns true there
-				"App\\Utils\\Helper::isLocalOrReservedIp::1281",
+				"App\\Utils\\Helper::isLocalOrReservedIp::1221",
 				// the function ends in return null too
-				"App\\Utils\\Helper::getCountry::1262",
+				"App\\Utils\\Helper::getCountry::1202",
 				// an unknown action falls out of the switch to the same return "clean"
-				"App\\Utils\\Helper::get_row_class::389",
+				"App\\Utils\\Helper::get_row_class::388",
 				// nothing to embed: the HTML comes back as it is either way
 				"App\\Inventory\\MailObject::embedImages::93",
 				"App\\Inventory\\MailObject::embedImages::112",
@@ -277,14 +277,14 @@
 				"App\\Core\\Database\\MigrationStatus::warmCache::66",
 				"App\\Core\\Database\\MigrationStatus::warmCache::70",
 				// without a cache, the calls on it fail inside their try and the same lookup follows
-				"App\\Utils\\Helper::my_gethostbyaddr::1600",
-				"App\\Utils\\Helper::my_gethostbyname::1670"
+				"App\\Utils\\Helper::my_gethostbyaddr::1532",
+				"App\\Utils\\Helper::my_gethostbyname::1602"
 			]
 		},
 		"SharedCaseRemoval": {
 			// these cases fall to default; the line also holds the default's own
 			// mutant, which testGetDelivery's 'unknown action' kills
-			"ignore": ["App\\Utils\\Helper::getDelivery::399"]
+			"ignore": ["App\\Utils\\Helper::getDelivery::398"]
 		},
 		"SpreadOneItem": {
 			// one-key lists: [...$a][0] is $a
@@ -329,9 +329,9 @@
 				// in_array() does not need list keys
 				"App\\Core\\Auth\\LoginThrottle::__construct::80",
 				// only iterated
-				"App\\Utils\\Helper::symbolMatches::248",
+				"App\\Utils\\Helper::symbolMatches::247",
 				// vsprintf() reads the values in order, whatever their keys
-				"App\\Utils\\Helper::sqlWithBindings::1471"
+				"App\\Utils\\Helper::sqlWithBindings::1403"
 			]
 		},
 		"UnwrapStrRepeat": {
@@ -340,7 +340,7 @@
 		},
 		"UnwrapRtrim": {
 			// netdns2 gives the name without its trailing dot: the rtrim() is a guard
-			"ignore": ["App\\Utils\\Helper::lookupPtr::1654"]
+			"ignore": ["App\\Utils\\Helper::lookupPtr::1586"]
 		}
 	}
 }
