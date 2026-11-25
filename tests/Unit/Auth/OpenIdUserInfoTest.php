@@ -15,6 +15,7 @@
  display name of another type is left out and logged by claim, so it can
  no longer fail the login with a TypeError. The username and e-mail are
  trimmed and lowercased, and OPENIDC_ADMINS alone decides the admin flag.
+ A denial stops at its own check and logs only that reason.
 */
 
 namespace Tests\Unit\Auth;
@@ -69,7 +70,7 @@ final class OpenIdUserInfoTest extends UnitTestCase
 
 	public function testNotAnObject(): void {
 		$this->assertFalse(self::apply(new OpenIDConnectAuth($this->log), 'eyJ...'));
-		$this->assertLogged('OIDC userinfo is string, not an object');
+		$this->assertSame(['error OIDC userinfo is string, not an object'], $this->log->lines);
 	}
 
 	// true would have logged in as "1"
@@ -88,7 +89,13 @@ final class OpenIdUserInfoTest extends UnitTestCase
 		$info = self::userInfo();
 		unset($info->email);
 		$this->assertFalse(self::apply(new OpenIDConnectAuth($this->log), $info));
-		$this->assertLogged("OIDC user 'alice' has no email claim; login denied");
+		$this->assertSame(["error OIDC user 'alice' has no email claim; login denied"], $this->log->lines);
+	}
+
+	// an empty claim is no address: the login must not go through with e-mail ''
+	public function testEmailEmptyDenied(): void {
+		$this->assertFalse(self::apply(new OpenIDConnectAuth($this->log), self::userInfo(['email' => ''])));
+		$this->assertSame(["error OIDC user 'alice' has no email claim; login denied"], $this->log->lines);
 	}
 
 	public function testEmailUnverifiedDenied(): void {
