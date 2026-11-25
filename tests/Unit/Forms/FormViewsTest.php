@@ -144,7 +144,7 @@ final class FormViewsTest extends UnitTestCase
 		$this->assertSame($fields, self::fields($view));
 	}
 
-	/** @return array<string, list<mixed>> */
+	/** @return array<array-key, list<mixed>> */
 	private static function fields(FormView $view): array {
 		$fields = [];
 		foreach ($view->children as $name => $child) {
