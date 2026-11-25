@@ -11,12 +11,20 @@
 namespace Tests\Unit;
 
 use App\Core\Cache\CacheInterface;
+use RuntimeException;
 
-// an in-memory cache that keeps every key it is asked to read and every prefix it is asked to count or delete
+// an in-memory cache that keeps every key it is asked to read, the TTL of
+// every value set, and every prefix it is asked to count or delete; failing,
+// reads and writes throw, as Redis does when it is down
 final class RecordingCache implements CacheInterface
 {
 	/** @var array<string, string> */
 	public array $values = [];
+
+	/** @var array<string, int|null> key => the TTL it was set with */
+	public array $ttls = [];
+
+	public bool $failing = false;
 
 	/** @var list<string> */
 	public array $reads = [];
@@ -27,12 +35,19 @@ final class RecordingCache implements CacheInterface
 	#[\Override]
 	public function get(string $key): mixed {
 		$this->reads[] = $key;
+		if ($this->failing) {
+			throw new RuntimeException('Redis is down');
+		}
 		return $this->values[$key] ?? false;
 	}
 
 	#[\Override]
 	public function set(string $key, string $value, ?int $ttl = null): bool {
+		if ($this->failing) {
+			throw new RuntimeException('Redis is down');
+		}
 		$this->values[$key] = $value;
+		$this->ttls[$key] = $ttl;
 		return true;
 	}
 

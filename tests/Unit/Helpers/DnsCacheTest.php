@@ -11,7 +11,8 @@
 /*
  DNS cache count and flush work on dns_resolv_redis_key's prefix only: with
  the key unset or blank they never reach Redis, where an empty prefix would
- match every key.
+ match every key. Without Redis there is nothing to count or flush; with
+ Redis on but no cache, counting gives null and flushing fails.
 */
 
 namespace Tests\Unit\Helpers;
@@ -58,6 +59,23 @@ final class DnsCacheTest extends UnitTestCase
 			$this->assertSame('dns_resolv_redis_key is not set in config', $e->getMessage());
 		}
 		$this->assertSame([], $this->cache->prefixes);
+	}
+
+	public function testRedisOff(): void {
+		Config::set('dns_resolv_redis_key', 'rqwatch_dns_cache');
+		unset($_ENV['REDIS_ENABLE']);
+		$this->assertNull(Helper::count_dns_cache());
+		$this->assertSame(0, Helper::flush_dns_cache());
+		$this->assertSame([], $this->cache->prefixes);
+	}
+
+	public function testNoCache(): void {
+		Config::set('dns_resolv_redis_key', 'rqwatch_dns_cache');
+		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, null, null, null, false));
+		$this->assertNull(Helper::count_dns_cache());
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Redis cache is unavailable, cannot flush DNS cache');
+		Helper::flush_dns_cache();
 	}
 
 	public function testBlankKeyNeverReachesRedis(): void {

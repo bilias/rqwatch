@@ -154,9 +154,6 @@
 				"App\\Utils\\Helper::get_symbol_class::323",
 				// only frame [1] is read
 				"App\\Utils\\Helper::debugException::1561",
-				// a lookup without a cache is live DNS, which a unit test cannot make
-				"App\\Utils\\Helper::my_gethostbyaddr::1600",
-				"App\\Utils\\Helper::my_gethostbyname::1670",
 				// array_pad() to 3 leaves the two values destructured unchanged; the line's
 				// other mutant, explode() limit 3, is killed by the 'a second slash' cases
 				"App\\Inventory\\MapInventory::canonicalIpOrCidr::457",
@@ -279,7 +276,7 @@
 				// without a database a later check returns as well
 				"App\\Core\\Database\\MigrationStatus::warmCache::66",
 				"App\\Core\\Database\\MigrationStatus::warmCache::70",
-				// a lookup without a cache is live DNS, which a unit test cannot make
+				// without a cache, the calls on it fail inside their try and the same lookup follows
 				"App\\Utils\\Helper::my_gethostbyaddr::1600",
 				"App\\Utils\\Helper::my_gethostbyname::1670"
 			]
@@ -340,6 +337,10 @@
 		"UnwrapStrRepeat": {
 			// one leading zero byte differs from 8 only in the reserved ::/8
 			"ignore": ["App\\Core\\Auth\\LoginThrottle::keyFor::290"]
+		},
+		"UnwrapRtrim": {
+			// netdns2 gives the name without its trailing dot: the rtrim() is a guard
+			"ignore": ["App\\Utils\\Helper::lookupPtr::1654"]
 		}
 	}
 }
