@@ -59,7 +59,11 @@ final class RouteTableTest extends TestCase
 
 	public function testEveryPlaceholderHasARequirement(): void {
 		foreach ($this->routes() as $name => $route) {
-			$placeholders = $route->compile()->getPathVariables();
+			$placeholders = [];
+			foreach ($route->compile()->getPathVariables() as $variable) {
+				$this->assertIsString($variable);
+				$placeholders[] = $variable;
+			}
 			$constrained = array_values(array_diff($placeholders, self::UNCONSTRAINED[$name] ?? []));
 			$requirements = array_keys($route->getRequirements());
 			sort($constrained);
