@@ -314,7 +314,7 @@ abstract class EndToEndTestCase extends TestCase
 	protected static function fuzzyBody(string $seed): string {
 		$words = [];
 		for ($i = 0; count($words) < 300; $i++) {
-			$words[] = substr(sha1("{$seed}-{$i}"), 0, 4 + $i % 5);
+			$words[] = substr(hash('xxh3', "{$seed}-{$i}"), 0, 4 + $i % 5);
 		}
 		return wordwrap(implode(' ', $words), 72, "\r\n");
 	}
