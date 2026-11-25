@@ -59,20 +59,26 @@ final class ConfigValidatorTest extends UnitTestCase
 
 	// API_SERVERS entries: each failing key reported, after the top-level settings
 	public function testApiServerEntries(): void {
-		$vars = ['API_SERVERS' => [
+		$vars = ['MAP_FILE_PERM' => '0644', 'API_SERVERS' => [
+			0 => ['url' => 'https://mx5.example'],
 			'mx1' => ['url' => 'https://mx1.example', 'stat_url' => null, 'options' => ['verify_peer' => false]],
 			'mx2' => ['url' => ['https://mx2.example'], 'fuzzy_url' => 5],
 			'mx3' => 'https://mx3.example',
 			'mx4' => ['options' => ['verify_peer']],
-			0 => ['url' => 'https://mx5.example'],
 		]] + self::shipped();
 		$this->assertSame([
+			'MAP_FILE_PERM must be an integer, not string',
+			'API_SERVERS must be keyed by server name, not 0',
 			"API_SERVERS['mx2']['url'] must be a string, not array",
 			"API_SERVERS['mx2']['fuzzy_url'] must be a string, not int",
 			"API_SERVERS['mx3'] must be an array, not string",
 			"API_SERVERS['mx4']['options'] must be an array of HttpClient options by name",
-			'API_SERVERS must be keyed by server name, not 0',
 		], ConfigValidator::errors($vars));
+	}
+
+	// a type no setting declares matches nothing
+	public function testUnknownTypeMatchesNothing(): void {
+		$this->assertFalse(ConfigValidator::matches('x', 'text'));
 	}
 
 	public function testAcceptedForms(): void {

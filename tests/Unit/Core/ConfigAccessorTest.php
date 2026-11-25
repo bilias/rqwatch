@@ -63,7 +63,10 @@ final class ConfigAccessorTest extends UnitTestCase
 
 	public function testApiServers(): void {
 		$this->assertSame([], Config::apiServers(), 'unset');
-		$servers = ['mx1' => ['url' => 'https://mx1.example', 'options' => ['verify_peer' => false]]];
+		$servers = [
+			'mx1' => ['url' => 'https://mx1.example', 'options' => ['verify_peer' => false]],
+			'mx2' => ['url' => 'https://mx2.example'],
+		];
 		Config::set('API_SERVERS', $servers);
 		$this->assertSame($servers, Config::apiServers());
 	}
@@ -74,6 +77,11 @@ final class ConfigAccessorTest extends UnitTestCase
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage("API_SERVERS['mx1']['url'] must be a string, not array in config");
 		Config::apiServers();
+	}
+
+	public function testGetAll(): void {
+		Config::init(['a' => 1, 'b' => 'x']);
+		$this->assertSame(['a' => 1, 'b' => 'x'], Config::getAll());
 	}
 
 	public function testIntOr(): void {

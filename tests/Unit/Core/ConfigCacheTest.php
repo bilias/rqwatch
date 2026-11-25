@@ -60,6 +60,7 @@ final class ConfigCacheTest extends UnitTestCase
 		$this->assertSame('cached', Config::get('plain'));
 		$this->assertNull(Config::get('overridden'), 'files not read');
 		$this->assertSame(1, Config::get('extra'), 'extras on top of the cache');
+		$this->assertContains('debug Config [loadAndInitWithRedisCache]: Config is cached in Redis', $this->log->lines);
 	}
 
 	/** @return array<string, array{mixed}> the reply to GET; 'client' is the client itself */
@@ -73,6 +74,7 @@ final class ConfigCacheTest extends UnitTestCase
 			// used to read $data['APP_VERSION'] with a warning
 			'a list, not keyed by setting' => [json_encode(['plain', 'cached'])],
 			'no version' => [json_encode(['plain' => 'cached'])],
+			'a setting named by a number' => [json_encode(['0' => 'cached', 'APP_VERSION' => AppConfig::VERSION])],
 		];
 	}
 
@@ -112,6 +114,7 @@ final class ConfigCacheTest extends UnitTestCase
 		$redis->expects($this->once())->method('set')->willReturn(true);
 		$this->load($redis, [], forceReload: true);
 		$this->assertSame('file', Config::get('plain'));
+		$this->assertContains('debug Config [loadAndInitWithRedisCache]: Forced reload requested, skipping cache', $this->log->lines);
 	}
 
 	public function testRedisErrorFallsBackToTheFiles(): void {
@@ -138,14 +141,11 @@ final class ConfigCacheTest extends UnitTestCase
 	private function load(Redis $redis, array $extras = [], bool $forceReload = false): void {
 		$cache = new RedisCache($this->log);
 		(new ReflectionProperty(RedisCache::class, 'client'))->setValue($cache, $redis);
-		Config::loadAndInitWithRedisCache(
-			redis: $cache,
-			defaultConfigPath: $this->default,
-			localConfigPath: $this->local,
-			extras: $extras,
-			redisKey: self::KEY,
-			ttlSeconds: self::TTL,
-			forceReload: $forceReload,
-		);
+		if ($forceReload) {
+			Config::loadAndInitWithRedisCache($cache, $this->default, $this->local, $extras, self::KEY, self::TTL, true);
+		} else {
+			// forceReload left at its default, which must use the cache
+			Config::loadAndInitWithRedisCache($cache, $this->default, $this->local, $extras, self::KEY, self::TTL);
+		}
 	}
 }
