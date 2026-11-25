@@ -153,8 +153,8 @@ final class UserController extends ViewController
 				return new RedirectResponse($this->getAdminUsersUrl());
 			}
 			// a GET results page: Back, refresh and paging keep the search
-			return new RedirectResponse($this->url(RouteName::ADMIN_USERSEARCH) . '?' .
-				http_build_query(['q' => FormHelper::text($userSearchForm->get('user')->getData(), 'user')]));
+			return new RedirectResponse($this->urlWithQuery(RouteName::ADMIN_USERSEARCH,
+				['q' => FormHelper::text($userSearchForm->get('user')->getData(), 'user')]));
 		}
 
 		$search = trim($this->request->query->getString('q'));

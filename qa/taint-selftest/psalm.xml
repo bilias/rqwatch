@@ -22,6 +22,7 @@
 		<directory name="qa/taint-selftest" />
 		<file name="app/Twig/RqwatchExtension.php" />
 		<file name="app/Utils/Helper.php" />
+		<file name="app/Core/Routing/UrlBuilder.php" />
 		<ignoreFiles>
 			<directory name="vendor" />
 		</ignoreFiles>

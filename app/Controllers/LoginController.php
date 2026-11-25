@@ -57,7 +57,9 @@ final class LoginController extends ViewController
 		foreach ($trusted as $name) {
 			// on a PCRE failure compare the name unstripped: a name:port then fails closed
 			if ($host !== '' && strtolower(preg_replace('/:\d+$/', '', trim($name)) ?? trim($name)) === $host) {
-				/** @psalm-taint-escape header */
+				// http(s)://, a host on the trusted list (getHost() allows only host
+				// characters) and a numeric port: the origin of the URLs built on it
+				/** @psalm-taint-escape input */
 				$baseUrl = $this->request->getSchemeAndHttpHost();
 				return $baseUrl;
 			}

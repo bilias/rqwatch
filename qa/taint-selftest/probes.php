@@ -17,12 +17,16 @@
  Add a probe with every new source, flow rule, filter or escape.
 */
 
+use App\Core\Routing\RouteName;
+use App\Core\Routing\UrlBuilder;
 use App\Models\MailLog;
 use App\Utils\Helper;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Environment;
 
-function taintSelfTest(MailLog $log, Environment $twig): void {
+function taintSelfTest(MailLog $log, Environment $twig, UrlGeneratorInterface $router): void {
 	// MailTaintSources: property nodes, column reads, whole-model reads, collection flow
 	echo $log->subject; // expect TaintedHtml
 	echo $log->recipients->pluck('recipient_email')->all()[0]; // expect TaintedHtml
@@ -36,6 +40,13 @@ function taintSelfTest(MailLog $log, Environment $twig): void {
 	$env = $_ENV['PROBE'] ?? '';
 	if (is_string($env)) {
 		echo $env; // expect TaintedHtml
+	}
+
+	// redirects: a route's path with input only in its encoded query string; a raw target
+	$to = $_GET['to'] ?? '';
+	if (is_string($to)) {
+		new RedirectResponse(UrlBuilder::withQuery($router, RouteName::HOMEPAGE, ['q' => $to])); // expect clean
+		new RedirectResponse($to); // expect TaintedRedirect
 	}
 
 	// Twig: attribute to property node, autoescape, request input, is_safe filters' escapes

@@ -23,4 +23,16 @@ final class UrlBuilder
 		return $urlGenerator->generate($route->value, $parameters);
 	}
 
+	/**
+	 * $route's path on this app with $query as its query string, for a
+	 * redirect to a GET results page. http_build_query() encodes every name
+	 * and value (all but letters, digits and ._-), and the target stays
+	 * $route's path: a route, not a URL, so no caller can pass another host.
+	 * @param array<string, string> $query
+	 * @psalm-taint-escape redirect
+	 */
+	public static function withQuery(UrlGeneratorInterface $urlGenerator, RouteName $route, array $query): string {
+		return self::generate($urlGenerator, $route) . '?' . http_build_query($query);
+	}
+
 }

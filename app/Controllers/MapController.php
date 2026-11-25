@@ -1141,7 +1141,7 @@ final class MapController extends ViewController
 		// what the result pages carry, so Back, refresh and paging keep the search
 		$params = array_filter(['model' => $model, 'q' => $search, 'map' => $map_name], fn ($v) => $v !== null);
 		if ($posted) {
-			return new RedirectResponse($this->getMapSearchEntryUrl() . '?' . http_build_query($params));
+			return new RedirectResponse($this->urlWithQuery(RouteName::ADMIN_MAP_SEARCH_ENTRY, $params));
 		}
 		$search_map_name = $map_name;
 

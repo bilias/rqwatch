@@ -169,6 +169,11 @@ class Controller
 		return UrlBuilder::generate($this->urlGenerator, $route, $parameters);
 	}
 
+	/** @param array<string, string> $query */
+	protected function urlWithQuery(RouteName $route, array $query): string {
+		return UrlBuilder::withQuery($this->urlGenerator, $route, $query);
+	}
+
 	public function getRole(): string {
 		if ($this->is_admin) {
 			return 'admin';

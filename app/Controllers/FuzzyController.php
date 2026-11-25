@@ -81,8 +81,8 @@ final class FuzzyController extends ViewController
 				return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY));
 			}
 			// a GET results page: Back, refresh and paging keep the search
-			return new RedirectResponse($this->url(RouteName::ADMIN_FUZZY_SEARCH) . '?' .
-				http_build_query(['q' => FormHelper::text($form->get('search')->getData(), 'search')]));
+			return new RedirectResponse($this->urlWithQuery(RouteName::ADMIN_FUZZY_SEARCH,
+				['q' => FormHelper::text($form->get('search')->getData(), 'search')]));
 		}
 
 		$search = trim($this->request->query->getString('q'));
