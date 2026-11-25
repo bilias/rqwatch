@@ -20,3 +20,4 @@ gh-md-toc
 /psalm-taint.sarif
 /qa/.phpunit.result.cache
 /zap-report/
+/corgea-report/
