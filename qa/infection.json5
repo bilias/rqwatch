@@ -112,10 +112,19 @@
 		},
 		"LogicalAnd": {
 			"ignore": [
+				// the router attaches the session before any middleware runs
+				"App\\Core\\Middleware\\AuthMiddleware::handle::46",
 				// null and '' fall through the switch to the same "clean"
 				"App\\Utils\\Helper::get_row_class::373",
 				// every mailparse entry is an array
 				"App\\Utils\\Helper::getMailFromMime::1453"
+			]
+		},
+		"LogicalNot": {
+			// without a database warmCache() returns at once; Integration covers the warm-up
+			"ignore": [
+				"App\\Core\\Database\\MigrationStatus::getMigrationState::154",
+				"App\\Core\\Database\\MigrationStatus::warmCache::69"
 			]
 		},
 		"LogicalOr": {
@@ -145,8 +154,12 @@
 			]
 		},
 		"PregMatchRemoveDollar": {
-			// the Y-m-d round trip refuses anything else
-			"ignore": ["App\\Utils\\Helper::check_date::652"]
+			"ignore": [
+				// the Y-m-d round trip refuses anything else
+				"App\\Utils\\Helper::check_date::652",
+				// FILTER_VALIDATE_INT refuses trailing text anyway
+				"App\\Core\\Database\\Row::toInt::89"
+			]
 		},
 		"PregMatchRemoveFlags": {
 			"ignore": [
@@ -175,6 +188,8 @@
 				"App\\Utils\\Helper::isLocalOrReservedIp::1281",
 				// the function ends in return null too
 				"App\\Utils\\Helper::getCountry::1262",
+				// without a database the next check returns as well
+				"App\\Core\\Database\\MigrationStatus::warmCache::70",
 				// a lookup without a cache is live DNS, which a unit test cannot make
 				"App\\Utils\\Helper::my_gethostbyaddr::1600",
 				"App\\Utils\\Helper::my_gethostbyname::1673"
@@ -190,6 +205,13 @@
 			"ignore": [
 				"App\\Configuration\\EnvValidator::errors::90",
 				"App\\Configuration\\EnvValidator::errors::131"
+			]
+		},
+		"TrueValue": {
+			// without a database warmCache() returns before it could replace the loaded state
+			"ignore": [
+				"App\\Core\\Database\\MigrationStatus::loadPersistedState::211",
+				"App\\Core\\Database\\MigrationStatus::loadPersistedState::218"
 			]
 		},
 		"UnwrapArrayDiffKey": {
