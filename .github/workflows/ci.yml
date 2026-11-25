@@ -72,7 +72,8 @@ jobs:
   static:
     # each supported PHP version, run on that version and analysed for it;
     # locally composer analyse targets config.platform.php (the oldest).
-    # Taint, its self-test and the SARIF upload run once, on 8.3
+    # Taint and its self-test run for each version too; the SARIF upload only
+    # on 8.3, and the other versions fail on a finding of their own
     name: PHPStan + Psalm (PHP ${{ matrix.php }})
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
@@ -137,13 +138,26 @@ jobs:
       # report under GitHub Actions, Psalm exits 0 on taint findings, so the
       # step fails only when the analysis itself does
       - name: Psalm taint
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && matrix.php == '8.3' }}
-        run: composer psalm-taint -- --report=psalm-taint.sarif --report-show-info=false > /dev/null
+        id: taint
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: composer psalm-taint -- --php-version="$PHP_TARGET" --report=psalm-taint.sarif --report-show-info=false > /dev/null
+
+      # 8.3's findings go to the Security tab (below); another version has no
+      # upload, so a finding there fails the job, with the count only, as the
+      # log is public
+      - name: Taint findings
+        if: ${{ !cancelled() && steps.taint.outcome == 'success' && matrix.php != '8.3' }}
+        run: |
+          n=$(jq '[.runs[].results[]] | length' psalm-taint.sarif)
+          if [ "$n" -ne 0 ]; then
+            echo "::error::$n taint finding(s) for PHP $PHP_TARGET: run composer psalm-taint -- --php-version=$PHP_TARGET"
+            exit 1
+          fi
 
       # the taint setup still finds planted flows and honours its escapes
       - name: Taint self-test
-        if: ${{ !cancelled() && steps.install.outcome == 'success' && matrix.php == '8.3' }}
-        run: composer taint-selftest
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: composer taint-selftest -- --php-version="$PHP_TARGET"
 
       # push only: results uploaded for a pull request become annotations on
       # it, which anyone who can read the repository sees
