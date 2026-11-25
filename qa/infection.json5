@@ -11,6 +11,81 @@
 		"configDir": "infection"
 	},
 	"mutators": {
-		"@default": true
+		"@default": true,
+		// Reviewed escapes that no test can tell from the original, each by
+		// Class::method::line. When a line moves, its mutant is reported again
+		// for review.
+		"ArrayItemRemoval": {
+			// 'required' => true is the default
+			"ignore": [
+				"App\\Forms\\CustomMapConfigForm::buildForm::41",
+				"App\\Forms\\CustomMapConfigForm::buildForm::68",
+				"App\\Forms\\CustomMapConfigForm::buildForm::87",
+				"App\\Forms\\CustomMapConfigForm::buildForm::106",
+				"App\\Forms\\LoginForm::buildForm::38",
+				"App\\Forms\\LoginForm::buildForm::58",
+				"App\\Forms\\MailAliasForm::buildForm::36",
+				"App\\Forms\\MailAliasForm::buildForm::55",
+				"App\\Forms\\QidForm::buildForm::39",
+				"App\\Forms\\UserForm::buildForm::45",
+				"App\\Forms\\UserForm::buildForm::65"
+			]
+		},
+		"CastInt": {
+			// preg_match_all() false is not > 0 either
+			"ignore": ["App\\Utils\\Helper::extract_mail_relays::1192"]
+		},
+		"Coalesce": {
+			// checkSet() and checkInt() report the same for a missing or non-string value
+			"ignore": ["App\\Configuration\\EnvValidator::errors::96"]
+		},
+		"DecrementInteger": {
+			"ignore": [
+				// a missing seen time expires the handle either way
+				"App\\Controllers\\QuarantineController::sessionToken::323",
+				// an empty password is refused by NotBlank before Length
+				"App\\Forms\\LoginForm::buildForm::69",
+				// 7 zero bytes differ from 8 only in the reserved ::/56
+				"App\\Core\\Auth\\LoginThrottle::keyFor::290"
+			]
+		},
+		"GreaterThan": {
+			"ignore": [
+				// no addresses matched leaves the loop empty either way
+				"App\\Utils\\Helper::extract_mail_relays::1192",
+				// one second at the idle limit; a test would race the clock
+				"App\\Controllers\\QuarantineController::sessionToken::327"
+			]
+		},
+		"IncrementInteger": {
+			"ignore": [
+				"App\\Controllers\\QuarantineController::sessionToken::323",
+				// 9 zero bytes differ from 8 only in the reserved ::/64
+				"App\\Core\\Auth\\LoginThrottle::keyFor::290"
+			]
+		},
+		"ReturnRemoval": {
+			// a non-IPv6 value falls through to the same $ip
+			"ignore": ["App\\Core\\Auth\\LoginThrottle::keyFor::286"]
+		},
+		"SpreadOneItem": {
+			// one-key lists: [...$a][0] is $a
+			"ignore": [
+				"App\\Configuration\\EnvValidator::errors::90",
+				"App\\Configuration\\EnvValidator::errors::131"
+			]
+		},
+		"UnwrapArrayFilter": {
+			// an empty whitelist entry only matches an empty client IP, which is never throttled
+			"ignore": ["App\\Core\\Auth\\LoginThrottle::__construct::80"]
+		},
+		"UnwrapArrayValues": {
+			// in_array() does not need list keys
+			"ignore": ["App\\Core\\Auth\\LoginThrottle::__construct::80"]
+		},
+		"UnwrapStrRepeat": {
+			// one leading zero byte differs from 8 only in the reserved ::/8
+			"ignore": ["App\\Core\\Auth\\LoginThrottle::keyFor::290"]
+		}
 	}
 }
