@@ -130,7 +130,7 @@ final class MapFormsTest extends UnitTestCase
 			protected static string $firstFieldName = 'mail_from';
 		};
 		$this->expectException(RuntimeException::class);
-		$this->expectExceptionMessage('Field names must be defined in child class');
+		$this->expectExceptionMessage('Field names must be defined in child class: ' . $form::class);
 		self::factory()->createNamed('form', $form::class);
 	}
 
@@ -139,7 +139,7 @@ final class MapFormsTest extends UnitTestCase
 			protected static string $firstFieldName = 'mail_from';
 		};
 		$this->expectException(RuntimeException::class);
-		$this->expectExceptionMessage('Field names must be defined in child class');
+		$this->expectExceptionMessage('Field names must be defined in child class: ' . $form::class);
 		self::factory()->createNamed('form', $form::class);
 	}
 
