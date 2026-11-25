@@ -75,6 +75,7 @@ final class ActionClassTest extends UnitTestCase
 			'soft reject' => ['soft reject', null, 'greylist'],
 			'reject' => ['reject', null, 'reject'],
 			'discard' => ['discard', null, 'discard'],
+			'unknown action' => ['some new action', null, 'clean'],
 			'no action at all' => [null, null, 'clean'],
 			'empty action' => ['', [], 'clean'],
 			'other symbols' => ['reject', self::OTHER, 'reject'],
