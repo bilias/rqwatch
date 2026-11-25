@@ -115,7 +115,6 @@ jobs:
       # fail fast and visibly when the stub no longer matches vendor
       # (qa/psalm-taint.sh checks it again before the analysis)
       - name: Taint stub matches vendor
-        if: matrix.php == '8.3'
         run: sh qa/taint-stubs.sh --check
 
       # each check runs even if an earlier one failed, so one run reports all
