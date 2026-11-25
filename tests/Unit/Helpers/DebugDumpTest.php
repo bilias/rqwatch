@@ -84,7 +84,9 @@ final class DebugDumpTest extends UnitTestCase
 		} finally {
 			umask($umask);
 		}
-		$this->assertSame(0750, fileperms($this->dir) & 0777);
+		$perms = fileperms($this->dir);
+		$this->assertIsInt($perms);
+		$this->assertSame(0750, $perms & 0777);
 		$this->assertSame("{\n    \"A\": {\n        \"name\": \"x/ü\"\n    }\n}", (string) file_get_contents($this->dir . '/symbols'));
 		$this->assertSame("Subject: x\r\n", (string) file_get_contents($this->dir . '/headers'));
 		$this->assertSame("subject => x\r\nreceived [0] => a\r\nreceived [1] => b\r\n", (string) file_get_contents($this->dir . '/headers_ar'));
