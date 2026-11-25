@@ -32,8 +32,10 @@
 			]
 		},
 		"CastFloat": {
-			// a SUM() string divides as a number without the cast
 			"ignore": [
+				// a float return type converts an int anyway, strict_types or not
+				"App\\Configuration\\Config::getFloat::76",
+				// a SUM() string divides as a number without the cast
 				"App\\Utils\\Helper::formatSizeUnits::501",
 				"App\\Utils\\Helper::formatSizeUnits::503",
 				"App\\Utils\\Helper::formatSizeUnits::505"
@@ -156,8 +158,9 @@
 			]
 		},
 		"PublicVisibility": {
-			// public, but only called inside Helper
+			// public, but only called inside its class
 			"ignore": [
+				"App\\Configuration\\Config::loadAndInit::152",
 				"App\\Utils\\Helper::checkForMap::260",
 				"App\\Utils\\Helper::convertSRSAddress::451"
 			]
@@ -188,6 +191,10 @@
 				"App\\Configuration\\EnvValidator::errors::90",
 				"App\\Configuration\\EnvValidator::errors::131"
 			]
+		},
+		"UnwrapArrayDiffKey": {
+			// $before is a closure's get_defined_vars(), which is always []
+			"ignore": ["App\\Configuration\\Config::loadConfigFile::147"]
 		},
 		"UnwrapArrayFilter": {
 			// an empty whitelist entry only matches an empty client IP, which is never throttled
