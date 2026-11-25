@@ -45,6 +45,11 @@
 		},
 		"CastInt": {
 			"ignore": [
+				// a prefix of digits compares and subtracts as a number either way
+				"App\\Inventory\\MapInventory::validateIpOrCidr::486",
+				"App\\Inventory\\MapInventory::validateIpOrCidr::498",
+				// '8' and (int) '8' print the same; the prefix was checked to be digits
+				"App\\Inventory\\MapInventory::validateIpOrCidr::505",
 				// preg_match_all() false is not > 0 either
 				"App\\Utils\\Helper::extract_mail_relays::1192",
 				// a digits-only string compares with 0 as a number
@@ -60,7 +65,9 @@
 				// preg_replace() with this ASCII pattern does not fail
 				"App\\Utils\\Helper::oneLine::933",
 				// json_encode() with JSON_PARTIAL_OUTPUT_ON_ERROR does not fail
-				"App\\Services\\FuzzyService::flags::112"
+				"App\\Services\\FuzzyService::flags::112",
+				// inet_ntop() of a packed address does not fail
+				"App\\Inventory\\MapInventory::validateIpOrCidr::505"
 			]
 		},
 		"Coalesce": {
@@ -78,15 +85,23 @@
 				// an empty password is refused by NotBlank before Length
 				"App\\Forms\\LoginForm::buildForm::69",
 				// 7 zero bytes differ from 8 only in the reserved ::/56
-				"App\\Core\\Auth\\LoginThrottle::keyFor::290"
+				"App\\Core\\Auth\\LoginThrottle::keyFor::290",
+				// a shift by 9 masks the byte to 0, as a shift by 8 does
+				"App\\Inventory\\MapInventory::validateIpOrCidr::498"
 			]
 		},
 		"FalseValue": {
-			// mailparse always sets is_group
-			"ignore": ["App\\Utils\\Helper::getMailFromMime::1453"]
+			"ignore": [
+				// mailparse always sets is_group
+				"App\\Utils\\Helper::getMailFromMime::1453",
+				// inet_pton() of an address FILTER_VALIDATE_IP accepted does not fail
+				"App\\Inventory\\MapInventory::canonicalIpOrCidr::463"
+			]
 		},
 		"GreaterThan": {
 			"ignore": [
+				// custom maps come from the database; Integration covers them
+				"App\\Inventory\\MapInventory::getMapConfigs::243",
 				// no addresses matched leaves the loop empty either way
 				"App\\Utils\\Helper::extract_mail_relays::1192",
 				// one second at the idle limit; a test would race the clock
@@ -94,6 +109,10 @@
 				// 1 byte is "1B" in either branch
 				"App\\Utils\\Helper::formatSizeUnits::506"
 			]
+		},
+		"GreaterThanNegotiation": {
+			// custom maps come from the database; Integration covers them
+			"ignore": ["App\\Inventory\\MapInventory::getMapConfigs::243"]
 		},
 		"Identical": {
 			// the reader is reused only after a database opened; a unit test has none
@@ -111,7 +130,11 @@
 				"App\\Utils\\Helper::debugException::1561",
 				// a lookup without a cache is live DNS, which a unit test cannot make
 				"App\\Utils\\Helper::my_gethostbyaddr::1600",
-				"App\\Utils\\Helper::my_gethostbyname::1673"
+				"App\\Utils\\Helper::my_gethostbyname::1673",
+				// array_pad() to 3 leaves the two values destructured unchanged; the line's
+				// other mutant, explode() limit 3, is killed by the 'a second slash' cases
+				"App\\Inventory\\MapInventory::canonicalIpOrCidr::457",
+				"App\\Inventory\\MapInventory::validateIpOrCidr::481"
 			]
 		},
 		"LogicalAnd": {
@@ -204,6 +227,11 @@
 				"App\\Utils\\Helper::isLocalOrReservedIp::1281",
 				// the function ends in return null too
 				"App\\Utils\\Helper::getCountry::1262",
+				// nothing to embed: the HTML comes back as it is either way
+				"App\\Inventory\\MailObject::embedImages::93",
+				"App\\Inventory\\MailObject::embedImages::112",
+				// inet_pton() fails on what FILTER_VALIDATE_IP refused, and the next check returns $value
+				"App\\Inventory\\MapInventory::canonicalIpOrCidr::459",
 				// without a database a later check returns as well
 				"App\\Core\\Database\\MigrationStatus::warmCache::66",
 				"App\\Core\\Database\\MigrationStatus::warmCache::70",
@@ -225,8 +253,10 @@
 			]
 		},
 		"TrueValue": {
-			// without a database warmCache() returns before it could replace the loaded state
 			"ignore": [
+				// custom maps come from the database; Integration covers them
+				"App\\Inventory\\MapInventory::getMapConfigs::145",
+				// without a database warmCache() returns before it could replace the loaded state
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::211",
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::218"
 			]
@@ -238,6 +268,14 @@
 		"UnwrapArrayFilter": {
 			// an empty whitelist entry only matches an empty client IP, which is never throttled
 			"ignore": ["App\\Core\\Auth\\LoginThrottle::__construct::80"]
+		},
+		"UnwrapStrToLower": {
+			// mailparse gives the content type lowercased, without parameters
+			"ignore": ["App\\Inventory\\MailObject::embedImages::100"]
+		},
+		"UnwrapTrim": {
+			// mailparse gives the content type lowercased, without parameters
+			"ignore": ["App\\Inventory\\MailObject::embedImages::100"]
 		},
 		"UnwrapArrayValues": {
 			"ignore": [
