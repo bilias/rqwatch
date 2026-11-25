@@ -72,8 +72,8 @@ jobs:
   static:
     # each supported PHP version, run on that version and analysed for it;
     # locally composer analyse targets config.platform.php (the oldest).
-    # Taint and its self-test run for each version too; the SARIF upload only
-    # on 8.3, and the other versions fail on a finding of their own
+    # Taint, its self-test and the SARIF upload run for each version too, each
+    # version's findings under its own category
     name: PHPStan + Psalm (PHP ${{ matrix.php }})
     if: github.event_name != 'schedule'
     runs-on: ubuntu-24.04
@@ -138,21 +138,8 @@ jobs:
       # report under GitHub Actions, Psalm exits 0 on taint findings, so the
       # step fails only when the analysis itself does
       - name: Psalm taint
-        id: taint
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: composer psalm-taint -- --php-version="$PHP_TARGET" --report=psalm-taint.sarif --report-show-info=false > /dev/null
-
-      # 8.3's findings go to the Security tab (below); another version has no
-      # upload, so a finding there fails the job, with the count only, as the
-      # log is public
-      - name: Taint findings
-        if: ${{ !cancelled() && steps.taint.outcome == 'success' && matrix.php != '8.3' }}
-        run: |
-          n=$(jq '[.runs[].results[]] | length' psalm-taint.sarif)
-          if [ "$n" -ne 0 ]; then
-            echo "::error::$n taint finding(s) for PHP $PHP_TARGET: run composer psalm-taint -- --php-version=$PHP_TARGET"
-            exit 1
-          fi
 
       # the taint setup still finds planted flows and honours its escapes
       - name: Taint self-test
@@ -160,13 +147,14 @@ jobs:
         run: composer taint-selftest -- --php-version="$PHP_TARGET"
 
       # push only: results uploaded for a pull request become annotations on
-      # it, which anyone who can read the repository sees
+      # it, which anyone who can read the repository sees. One category per
+      # version: a finding on several versions shows once for each
       - name: Upload taint results to Security tab
-        if: ${{ !cancelled() && matrix.php == '8.3' && hashFiles('psalm-taint.sarif') != '' && github.actor != 'dependabot[bot]' && github.event_name == 'push' }}
+        if: ${{ !cancelled() && hashFiles('psalm-taint.sarif') != '' && github.actor != 'dependabot[bot]' && github.event_name == 'push' }}
         uses: github/codeql-action/upload-sarif@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
         with:
           sarif_file: psalm-taint.sarif
-          category: psalm-taint
+          category: psalm-taint-${{ matrix.php }}
 
   opengrep:
     name: Opengrep
