@@ -98,6 +98,10 @@
          "Composer\\Config::disableProcessTimeout",
          "sh qa/infection.sh"
       ],
+      "coverage": [
+         "Composer\\Config::disableProcessTimeout",
+         "bash qa/unit-coverage.sh"
+      ],
       "analyse": [
 			"@phpstan",
 			"@psalm"
@@ -156,6 +160,7 @@
       "shellcheck": "ShellCheck on every tracked shell script (qa/shellcheck.sh)",
       "betterleaks": "Betterleaks over the GitHub remote's history (as last fetched)",
       "infection": "Mutation testing of the unit suite (Infection, needs pcov or Xdebug); reports in infection-report/, not part of test (qa/infection.sh)",
+      "coverage": "Code coverage of the unit suite (needs pcov or Xdebug): clover.xml, coverage.txt and html/ in coverage-report/, not part of test (qa/unit-coverage.sh)",
       "taint-stubs": "Regenerate qa/taint-stubs.phpstub from vendor"
    }
 }
