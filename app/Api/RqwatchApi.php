@@ -79,7 +79,7 @@ abstract class RqwatchApi
 				static::class);
 		}
 
-		if (!in_array($this->clientIp, $allowedIps)) {
+		if (!in_array($this->clientIp, $allowedIps, true)) {
 			$logMsg = "{$this->clientIp} is not allowed to access this API";
 			$responseMsg = "Permission denied";
 			$this->dropLogResponse(

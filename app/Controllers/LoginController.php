@@ -500,7 +500,7 @@ final class LoginController extends ViewController
 		if (($auth_provider === 'LDAP' && Helper::env_bool('LDAP_UPDATE_NAME_ON_LOGIN')) ||
 		    ($auth_provider === 'OPENIDC' && Helper::env_bool('OPENIDC_UPDATE_NAME_ON_LOGIN'))) {
 				$update['firstname'] = $auth->getUserFirstName();
-				$update['lastname'] = $auth->getUserlastName();
+				$update['lastname'] = $auth->getUserLastName();
 		}
 
 		// update DB user info including last_login; email or provider changed
