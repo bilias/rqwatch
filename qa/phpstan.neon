@@ -50,6 +50,15 @@ parameters:
 			message: '#Controller::\$session #'
 			path: ../app/Controllers/Controller.php
 			reportUnmatched: false
+		# Database::boot() reads PDO::MYSQL_ATTR_INIT_COMMAND on PHP 8.3 only, where
+		# Pdo\Mysql does not exist yet (PHP_VERSION_ID check); PHP 8.5 deprecates it.
+		# Analysing for 8.3 or 8.4 matches nothing (reportUnmatched).
+		# When PHP 8.3 support ends: drop this and the PDO:: branch
+		-
+			identifier: classConstant.deprecated
+			message: '#^Fetching deprecated class constant MYSQL_ATTR_INIT_COMMAND of class PDO\.$#'
+			path: ../app/Core/Database/Database.php
+			reportUnmatched: false
 	friendly:
 		lineBefore: 0
 		lineAfter: 0
