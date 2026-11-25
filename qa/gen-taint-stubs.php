@@ -37,7 +37,7 @@ const TAINTS = [
 	'Symfony\Component\HttpFoundation\HeaderBag' => [
 		'all' => SOURCE, 'get' => SOURCE,
 	],
-	// request line, raw body and Host; LoginController::oidcBaseUrl() escapes the Host
+	// request line, raw body and Host
 	'Symfony\Component\HttpFoundation\Request' => [
 		'getContent' => SOURCE, 'getRequestUri' => SOURCE, 'getPathInfo' => SOURCE,
 		'getUri' => SOURCE, 'getQueryString' => SOURCE,

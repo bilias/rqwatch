@@ -10,6 +10,8 @@
 
 namespace App\Configuration;
 
+use App\Utils\Helper;
+
 /*
  Checks .env once at boot and reports every failing key at once. Values
  stay strings: code converts them where it reads them, and these checks
@@ -106,6 +108,11 @@ final class EnvValidator
 			$errors[] = 'WEB_SCHEME must be http or https';
 		}
 
+		// read by the web entry point only
+		if ($web) {
+			$errors[] = self::checkOrigins($env, 'OPENIDC_TRUSTED_HOSTS');
+		}
+
 		return array_values(array_filter($errors, fn(?string $error): bool => $error !== null));
 	}
 
@@ -157,6 +164,27 @@ final class EnvValidator
 			return "{$key} is not a boolean (true/false, yes/no, on/off, 1/0)";
 		}
 		return null;
+	}
+
+	// comma-separated origins (Helper::origin()), blank entries skipped; unset passes
+	/** @param array<array-key, mixed> $env */
+	private static function checkOrigins(array $env, string $key): ?string {
+		if (!array_key_exists($key, $env)) {
+			return null;
+		}
+		$value = $env[$key];
+		if (!is_string($value)) {
+			return "{$key} is not a string";
+		}
+		$bad = [];
+		foreach (explode(',', $value) as $entry) {
+			$entry = trim($entry);
+			if ($entry !== '' && Helper::origin($entry) === null) {
+				$bad[] = "'{$entry}'";
+			}
+		}
+		return $bad === [] ? null
+			: "{$key} takes origins such as https://host or https://host:8443, not " . implode(', ', $bad);
 	}
 
 	/** @param array<array-key, mixed> $env */

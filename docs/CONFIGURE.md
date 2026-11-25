@@ -627,15 +627,18 @@ System supports OpenID Connect Authentication.
 - `OPENIDC_URL` - Provider URL
 
 - `OPENIDC_CLIENT_ID` - Client ID\
-  Register `https://<name>/openidc/callback` as a redirect URI and `https://<name>/login`
-  as a post-logout redirect URI for every host name users browse Rqwatch with
-  (prefixed with `WEB_BASE` if set).
+  Register `<origin>/openidc/callback` as a redirect URI and `<origin>/login`
+  as a post-logout redirect URI for every origin users browse Rqwatch with
+  (e.g. `https://rqwatch.example.com/openidc/callback`; the path prefixed with `WEB_BASE` if set).
 
-- `OPENIDC_TRUSTED_HOSTS` - Other host names users browse Rqwatch with, comma-separated
-  (port is ignored)\
-  `WEB_HOST` and `WEB_HOST_NOTIFICATIONS` are always trusted. OIDC callback and logout
-  URLs use the requested host when it is trusted, so each name keeps its own session;
-  any other name is replaced by `WEB_HOST` and logged as `OPENIDC: untrusted host`.
+- `OPENIDC_TRUSTED_HOSTS` - Other origins users browse Rqwatch with, comma-separated:
+  `http(s)://host` or `http(s)://host:port`, e.g. `"https://rqwatch,https://rqwatch.example.com:8443"`\
+  Scheme, host and port must all match; the scheme's default port (443, 80) is the same as none.
+  `WEB_SCHEME://WEB_HOST` and `WEB_SCHEME://WEB_HOST_NOTIFICATIONS` are always trusted,
+  so a site served on another port lists its own origin here. OIDC callback and logout
+  URLs use the requested origin when it is trusted, so each name keeps its own session;
+  any other origin is replaced by `WEB_SCHEME://WEB_HOST` and logged as `OPENIDC: untrusted origin`.
+  A bare host name or anything else (a path, a trailing `/`) stops the web interface at boot.
 
 - `OPENIDC_CLIENT_SECRET` - Client Secret
 

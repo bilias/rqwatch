@@ -2,6 +2,12 @@
 
 ## Master Dev Branch
 
+### 2026-11-25
+- OIDC: `OPENIDC_TRUSTED_HOSTS` takes origins (`https://host`, `https://host:8443`) instead of
+  host names. Scheme, host and port must match; the port was ignored, and the request's `Host`
+  port went into the callback and logout URLs. They are now built on the `.env` origin, not on
+  the request's. A bare host name stops the web interface at boot
+
 ### 2026-11-24
 - Security: Update twig/twig
 

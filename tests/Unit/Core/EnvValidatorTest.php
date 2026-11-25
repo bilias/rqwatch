@@ -11,7 +11,8 @@
 /*
  The boot-time .env check: .env-example passes as shipped, every failing
  key is reported, values that (int) or env_bool() would silently misread are
- refused, and the WEB_* keys are required by the web entry point only.
+ refused, and the WEB_* keys and OPENIDC_TRUSTED_HOSTS are checked by the web
+ entry point only.
 */
 
 namespace Tests\Unit\Core;
@@ -112,6 +113,20 @@ final class EnvValidatorTest extends UnitTestCase
 			$this->assertSame(['WEB_SCHEME must be http or https'],
 				EnvValidator::errors(['WEB_SCHEME' => $scheme] + self::valid(), false), $scheme);
 		}
+	}
+
+	public function testTrustedOriginsCheckedForTheWeb(): void {
+		foreach (['', 'https://rq', ' https://rq:443, http://rq.internal:8080 ,'] as $value) {
+			$this->assertSame([], EnvValidator::errors(['OPENIDC_TRUSTED_HOSTS' => $value] + self::valid(), true), $value);
+		}
+		$env = ['OPENIDC_TRUSTED_HOSTS' => 'rq, https://ok, rq.internal:8443, https://rq/'] + self::valid();
+		$this->assertSame([
+			"OPENIDC_TRUSTED_HOSTS takes origins such as https://host or https://host:8443, not 'rq', 'rq.internal:8443', 'https://rq/'",
+		], EnvValidator::errors($env, true));
+		// other nodes do not read it
+		$this->assertSame([], EnvValidator::errors($env, false));
+		$this->assertSame(['OPENIDC_TRUSTED_HOSTS is not a string'],
+			EnvValidator::errors(['OPENIDC_TRUSTED_HOSTS' => ['x']] + self::valid(), true));
 	}
 
 	public function testNonStringRefused(): void {

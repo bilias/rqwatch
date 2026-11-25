@@ -45,29 +45,30 @@ final class LoginController extends ViewController
       return $this->loginUrl;
    }
 
-	// The request's own scheme and host if trusted, so OIDC returns users to the name they
-	// browsed (the session cookie is host-only); otherwise WEB_SCHEME://WEB_HOST
+	// The requested origin if trusted, so OIDC returns users to the name they browsed
+	// (the session cookie is host-only); otherwise WEB_SCHEME://WEB_HOST. The value
+	// returned is always the .env one, never the request's.
 	private function oidcBaseUrl(): string {
-		$host = $this->request->getHost();
+		// scheme, lower-case host, and the port unless it is the scheme's default
+		$requested = $this->request->getSchemeAndHttpHost();
+		$scheme = Helper::env_required('WEB_SCHEME');
 		$trusted = array_merge(
-			[Helper::env_string('WEB_HOST') ?? '', Helper::env_string('WEB_HOST_NOTIFICATIONS') ?? ''],
+			["{$scheme}://" . (Helper::env_string('WEB_HOST') ?? ''),
+				"{$scheme}://" . (Helper::env_string('WEB_HOST_NOTIFICATIONS') ?? '')],
 			explode(',', Helper::env_string('OPENIDC_TRUSTED_HOSTS') ?? '')
 		);
 
-		foreach ($trusted as $name) {
-			// on a PCRE failure compare the name unstripped: a name:port then fails closed
-			if ($host !== '' && strtolower(preg_replace('/:\d+$/', '', trim($name)) ?? trim($name)) === $host) {
-				// http(s)://, a host on the trusted list (getHost() allows only host
-				// characters) and a numeric port: the origin of the URLs built on it
-				/** @psalm-taint-escape input */
-				$baseUrl = $this->request->getSchemeAndHttpHost();
-				return $baseUrl;
+		foreach ($trusted as $entry) {
+			// null for a blank or invalid entry (EnvValidator reports those at boot)
+			$origin = Helper::origin(trim($entry));
+			if ($origin !== null && $origin === $requested) {
+				return $origin;
 			}
 		}
 
-		$this->fileLogger->warning("OPENIDC: untrusted host '{$host}' from "
+		$this->fileLogger->warning("OPENIDC: untrusted origin '{$requested}' from "
 			. ($this->request->getClientIp() ?? 'unknown') . ", using WEB_HOST");
-		return Helper::env_required('WEB_SCHEME') . '://' . Helper::env_required('WEB_HOST');
+		return "{$scheme}://" . Helper::env_required('WEB_HOST');
 	}
 
 	public function logout(): Response {

@@ -1051,6 +1051,29 @@ Mail details:
 		return self::env_string($key) ?? throw new RuntimeException("{$key} is not set in .env");
 	}
 
+	/*
+	 An origin as Request::getSchemeAndHttpHost() gives it: http(s)://host or
+	 http(s)://host:port, lower-case, without the scheme's default port, so
+	 https://rq:443 is https://rq. Null for anything else: a bare host, a path,
+	 user info, a port of 0 or past 65535, surrounding blanks.
+	*/
+	public static function origin(string $url): ?string {
+		$host = '[a-z0-9_-]+(?:\.[a-z0-9_-]+)*\.?|\[[0-9a-f:.]+\]';
+		if (preg_match("~^(https?)://({$host})(?::(\d{1,5}))?$~Di", $url, $m) !== 1) {
+			return null;
+		}
+		$scheme = strtolower($m[1]);
+		$origin = "{$scheme}://" . strtolower($m[2]);
+		if (!isset($m[3])) {
+			return $origin;
+		}
+		$port = (int) $m[3];
+		if ($port < 1 || $port > 65535) {
+			return null;
+		}
+		return $port === ($scheme === 'https' ? 443 : 80) ? $origin : "{$origin}:{$port}";
+	}
+
 	// this node's MY_API_SERVER_ALIAS; unset or blank is a configuration error
 	public static function serverAlias(): string {
 		$alias = self::env_required('MY_API_SERVER_ALIAS');
