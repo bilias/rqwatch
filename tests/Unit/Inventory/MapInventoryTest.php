@@ -89,16 +89,19 @@ final class MapInventoryTest extends UnitTestCase
 
 	// field => description, form type, label, required, attributes, constraint classes, help
 	public function testFieldDefinitions(): void {
+		/** @var array<string, list<mixed>> $fields */
 		$fields = [];
 		foreach (MapInventory::getFieldDefinitions() as $name => $definition) {
 			$options = $definition['field_options'];
+			$constraints = $options['constraints'] ?? [];
+			$this->assertIsArray($constraints);
 			$fields[$name] = [
 				$definition['description'],
 				$definition['type'],
 				$options['label'] ?? null,
 				$options['required'] ?? null,
 				$options['attr'] ?? [],
-				array_map(fn (object $constraint): string => $constraint::class, $options['constraints'] ?? []),
+				array_map(fn (mixed $constraint): string => get_debug_type($constraint), $constraints),
 				$options['help'] ?? null,
 			];
 		}
