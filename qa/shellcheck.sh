@@ -14,4 +14,12 @@ if ! command -v shellcheck >/dev/null 2>&1; then
 	echo "shellcheck not found: install it (dnf install ShellCheck; on EL9 from EPEL)" >&2
 	exit 127
 fi
-git ls-files -z '*.sh' | xargs -0 shellcheck -a -x "$@"
+echo "=== ShellCheck $(shellcheck --version | sed -n 's/^version: //p'), $(git ls-files '*.sh' | wc -l | tr -d ' ') scripts"
+status=0
+git ls-files -z '*.sh' | xargs -0 shellcheck -a -x "$@" || status=$?
+if [ "$status" -eq 0 ]; then
+	echo "=== ShellCheck: clean"
+else
+	echo "=== ShellCheck: failed (exit ${status})" >&2
+fi
+exit "$status"
