@@ -43,7 +43,7 @@ copy_tree
 ln -s "${ROOT}/.git" .git
 
 status=0
-"$PHP" vendor/bin/infection -c qa/infection.json5 --threads=max \
+"$PHP" vendor/bin/infection -c qa/infection.json5 --threads=max --no-progress \
 	--logger-html="${OUT}/infection.html" --logger-text="${OUT}/infection.log" \
 	--logger-json="${OUT}/infection.json" "${opts[@]}" "$@" || status=$?
 echo "Infection reports: ${OUT}"
