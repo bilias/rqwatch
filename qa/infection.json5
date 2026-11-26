@@ -352,7 +352,7 @@
 				"App\\Models\\MailLog::getSymbolsAttribute::446",
 				"App\\Models\\MailLog::getFuzzyHashesAttribute::456",
 				"App\\Models\\User::setDisableNotificationsAttribute::78",
-				"App\\Configuration\\Config::loadAndInit::152",
+				"App\\Configuration\\Config::loadAndInit::154",
 				"App\\Utils\\Helper::checkForMap::259",
 				"App\\Utils\\Helper::convertSRSAddress::450"
 			]
@@ -446,7 +446,7 @@
 		},
 		"UnwrapArrayDiffKey": {
 			// $before is a closure's get_defined_vars(), which is always []
-			"ignore": ["App\\Configuration\\Config::loadConfigFile::147"]
+			"ignore": ["App\\Configuration\\Config::loadConfigFile::149"]
 		},
 		"UnwrapArrayFilter": {
 			// an empty whitelist entry only matches an empty client IP, which is never throttled
