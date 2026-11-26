@@ -293,7 +293,7 @@
 				"App\\Core\\Auth\\AuthManager::startOpenIdConnectAuthentication::68",
 				"App\\Core\\Auth\\AuthManager::logoutOpenIdConnect::102",
 				// a new Response is 200
-				"App\\Api\\MetadataImporterMultipartApi::handle::582",
+				"App\\Api\\MetadataImporterMultipartApi::handle::578",
 				// without a database warmCache() returns at once; Integration covers the warm-up
 				"App\\Core\\Database\\MigrationStatus::getMigrationState::155",
 				// with the API on it does nothing; off, it answers and exits (Integration's ApiAccessTest)
