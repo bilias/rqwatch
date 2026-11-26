@@ -12,11 +12,7 @@ namespace App\Core\Auth;
 
 use Psr\Log\LoggerInterface;
 
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
 //use Jumbojett\OpenIDConnectClient;
-
-use App\Core\Routing\RouteName;
 
 use App\Utils\Helper;
 
@@ -33,7 +29,6 @@ final class OpenIDConnectAuth implements AuthInterface {
 	private ?string $authenticatedUser = null;
 	private ?string $firstname = null;
 	private ?string $lastname = null;
-	private ?UrlGeneratorInterface $urlGenerator = null;
 	private ?string $callbackUrl = null;
 	private ?string $postLogoutRedirectUrl = null;
 	private ?string $idToken = null;
@@ -249,22 +244,11 @@ final class OpenIDConnectAuth implements AuthInterface {
 		return $this->lastname;
 	}
 
-	public function setUrlGenerator(UrlGeneratorInterface $urlGenerator): void {
-		$this->urlGenerator = $urlGenerator;
-	}
-
 	public function setCallbackUrl(string $url): void {
 		$this->callbackUrl = $url;
 	}
 
 	private function getCallbackUrl(): string {
-		/*
-		return $this->urlGenerator->generate(
-			RouteName::OPENIDC_CALLBACK->value,
-			[],
-			UrlGeneratorInterface::ABSOLUTE_URL
-		);
-		*/
 		return $this->callbackUrl ?? throw new \LogicException('OPENIDC redirect URL not set');
 	}
 

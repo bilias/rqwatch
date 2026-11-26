@@ -121,7 +121,7 @@ final class LoginController extends ViewController
 		}
 
 		$postLogoutRedirectUrl = $this->oidcBaseUrl() . $this->url(RouteName::LOGIN);
-		$auth = new AuthManager($this->fileLogger, $this->urlGenerator, $postLogoutRedirectUrl);
+		$auth = new AuthManager($this->fileLogger, $postLogoutRedirectUrl);
 
 		try {
 			if (!$auth->logoutOpenIdConnect($idToken)) {
@@ -142,7 +142,7 @@ final class LoginController extends ViewController
 			 $this->request->query->get('openidc_session_active') === '1') {
 
 			$this->flashbag->add('warning', "You are logged out, but your '" . (Helper::env_string('OPENIDC_LABEL') ?? 'Login with OpenID Connect') . "' session is still active. Close your browser to delete the session or click the link bellow.");
-			$auth = new AuthManager($this->fileLogger, $this->urlGenerator);
+			$auth = new AuthManager($this->fileLogger);
 			$this->session->set(
 				'openidc_logout_url',
 				$auth->getOpenIdConnectLogoutUrl()
@@ -288,7 +288,7 @@ final class LoginController extends ViewController
 		SessionManager::checkSessionExpired();
 
 		$callbackUrl = $this->oidcBaseUrl() . $this->url(RouteName::OPENIDC_CALLBACK);
-		$auth = new AuthManager($this->fileLogger, $this->urlGenerator, $callbackUrl);
+		$auth = new AuthManager($this->fileLogger, $callbackUrl);
 
 		try {
 			$auth->startOpenIdConnectAuthentication();
@@ -329,7 +329,7 @@ final class LoginController extends ViewController
 		SessionManager::checkSessionExpired();
 
 		try {
-			$auth = new AuthManager($this->fileLogger, $this->urlGenerator);
+			$auth = new AuthManager($this->fileLogger);
 			if (!$auth->finishOpenIdConnectAuthentication()) {
 				$this->flashbag->add('error', "Authentication failed");
 				return new RedirectResponse($this->getLoginUrl());

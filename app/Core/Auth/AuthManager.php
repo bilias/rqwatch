@@ -10,8 +10,6 @@
 
 namespace App\Core\Auth;
 
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
 use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
@@ -26,7 +24,6 @@ final class AuthManager
 	private int $providerId = self::PROVIDER_DB;
 	private ?string $providerDescr = null;
 	private LoggerInterface $logger;
-	private ?UrlGeneratorInterface $urlGenerator = null;
 	private ?string $redirectUrl = null;
 
 	// keys of $authProviders, as stored in users.auth_provider
@@ -42,12 +39,10 @@ final class AuthManager
 	];
 
 	public function __construct(
-	   LoggerInterface $logger, 
-		?UrlGeneratorInterface $urlGenerator = null,
+		LoggerInterface $logger,
 		?string $redirectUrl = null
 	) {
 		$this->logger = $logger;
-		$this->urlGenerator = $urlGenerator;
 		$this->redirectUrl = $redirectUrl;
 	}
 
@@ -67,12 +62,6 @@ final class AuthManager
 
 	public function startOpenIdConnectAuthentication(): bool {
 		$provider = new OpenIDConnectAuth($this->logger);
-
-		if ($this->urlGenerator) {
-			$provider->setUrlGenerator($this->urlGenerator);
-		} else {
-			throw new RuntimeException("Logging interface problem");
-		}
 
 		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no URL: fail closed */
 		if ($this->redirectUrl) {
@@ -95,12 +84,6 @@ final class AuthManager
 
 		$provider = new OpenIDConnectAuth($this->logger);
 
-		if ($this->urlGenerator) {
-			$provider->setUrlGenerator($this->urlGenerator);
-		} else {
-			throw new RuntimeException("Logging interface problem");
-		}
-
 		$this->provider = $provider;
 		return $provider->finishAuthentication();
 	}
@@ -113,12 +96,6 @@ final class AuthManager
 		}
 
 		$provider = new OpenIDConnectAuth($this->logger);
-
-		if ($this->urlGenerator) {
-			$provider->setUrlGenerator($this->urlGenerator);
-		} else {
-			throw new RuntimeException("Logging interface problem");
-		}
 
 		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no URL: fail closed */
 		if ($this->redirectUrl) {
@@ -137,12 +114,6 @@ final class AuthManager
 
 	public function getOpenIdConnectLogoutUrl(): ?string {
 		$provider = new OpenIDConnectAuth($this->logger);
-		if ($this->urlGenerator) {
-			$provider->setUrlGenerator($this->urlGenerator);
-		} else {
-			throw new RuntimeException("Logging interface problem");
-		}
-
 		return $provider->getLogoutUrl();
 	}
 
