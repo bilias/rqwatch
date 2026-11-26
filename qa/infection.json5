@@ -67,6 +67,10 @@
 		},
 		"CastInt": {
 			"ignore": [
+				// entry ids are array keys of digits, which PHP already holds as ints
+				"App\\Services\\MapHitService::longestPrefix::358",
+				// a length of digits compares with an int as its number does
+				"App\\Services\\MapHitService::longestPrefix::347",
 				// numeric text compares as its number; the int is first needed past the database
 				"App\\Api\\FuzzyMailApi::handle::55",
 				"App\\Api\\FuzzyMailApi::handle::58",
@@ -141,6 +145,13 @@
 		},
 		"DecrementInteger": {
 			"ignore": [
+				// a prefix is 0 bits or more: starting below 0 at -2 credits the entries -1 does
+				"App\\Services\\MapHitService::longestPrefix::335",
+				// the mask's low bit is set only for an 8-bit remainder, which returns before it;
+				// the line's other mutants (0xFF << ..., 8 - $bits) are killed by the /25 and /29 cases
+				"App\\Services\\MapHitService::inPrefix::373",
+				// implode() ignores the keys array_fill() starts at
+				"App\\Services\\MapHitService::mapHitsSource::830",
 				// -1 is refused as 0 is, and the message names neither
 				"App\\Api\\FuzzyMailApi::handle::53",
 				"App\\Api\\FuzzyMailApi::handle::55",
@@ -207,10 +218,18 @@
 		},
 		"IncrementInteger": {
 			"ignore": [
+				// a prefix is 0 bits or more: starting at 0 credits the entries -1 does
+				"App\\Services\\MapHitService::longestPrefix::335",
+				// array_pad() to 3 leaves the two values destructured unchanged; the line's
+				// other mutant, explode() limit 3, is killed by the 'a second slash' case
+				"App\\Services\\MapHitService::longestPrefix::344",
+				// implode() ignores the keys array_fill() starts at
+				"App\\Services\\MapHitService::mapHitsSource::830",
 				"App\\Controllers\\QuarantineController::sessionToken::323",
 				// 9 zero bytes differ from 8 only in the reserved ::/64
 				"App\\Core\\Auth\\LoginThrottle::keyFor::290",
 				// explode()'s limit: only [0] is read
+				"App\\Services\\MapHitService::customIdentity::390",
 				"App\\Services\\Import\\MailLogSpool::aliasFromKey::144",
 				"App\\Utils\\Helper::fuzzySymbolClass::202",
 				"App\\Utils\\Helper::get_symbol_class::322",
