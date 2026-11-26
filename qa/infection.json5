@@ -289,13 +289,9 @@
 		},
 		"MethodCallRemoval": {
 			"ignore": [
-				// OpenIDConnectAuth keeps the URL generator but no longer reads it; the
-				// callback and post-logout URLs are read by the client, which needs the provider
-				"App\\Core\\Auth\\AuthManager::startOpenIdConnectAuthentication::72",
-				"App\\Core\\Auth\\AuthManager::startOpenIdConnectAuthentication::79",
-				"App\\Core\\Auth\\AuthManager::logoutOpenIdConnect::118",
-				"App\\Core\\Auth\\AuthManager::logoutOpenIdConnect::125",
-				"App\\Core\\Auth\\AuthManager::getOpenIdConnectLogoutUrl::141",
+				// the callback and post-logout URLs are read by the client, which needs the provider
+				"App\\Core\\Auth\\AuthManager::startOpenIdConnectAuthentication::68",
+				"App\\Core\\Auth\\AuthManager::logoutOpenIdConnect::102",
 				// a new Response is 200
 				"App\\Api\\MetadataImporterMultipartApi::handle::582",
 				// without a database warmCache() returns at once; Integration covers the warm-up
@@ -373,7 +369,7 @@
 				// a non-IPv6 value falls through to the same $ip
 				"App\\Core\\Auth\\LoginThrottle::keyFor::286",
 				// 'admin' has no '@': without the early return it reaches the same DbAuth
-				"App\\Core\\Auth\\AuthManager::selectAuthProvider::195",
+				"App\\Core\\Auth\\AuthManager::selectAuthProvider::166",
 				// a null count is below every limit: it falls through to the same false
 				"App\\Core\\Auth\\LoginThrottle::registerFailure::114",
 				// without a cache the call in the try throws, and its catch returns [] too
