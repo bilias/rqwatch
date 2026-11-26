@@ -293,6 +293,7 @@ abstract class EndToEndTestCase extends TestCase
 			'RQWATCH_SMTP_FROM_RCPT_TO_BLACKLIST' => [self::IP, 'pair-bl@sender.test', self::MIME_FROM, ['bob@rqwatch.test'], ''],
 			'RQWATCH_BODY_URL_HOST' => [self::IP, self::MAIL_FROM, self::MIME_FROM, [self::RCPT], 'See http://192.0.2.44/probe'],
 			'RQWATCH_BODY_URL_FULL' => [self::IP, self::MAIL_FROM, self::MIME_FROM, [self::RCPT], 'See http://[::ffff:d93c:ed72]/q9x-oml?lang=el'],
+			'RQWATCH_WHITE_URL_HOST' => [self::IP, self::MAIL_FROM, self::MIME_FROM, [self::RCPT], 'See https://white.example.org/probe'],
 		];
 		$deadline = microtime(true) + 60.0;
 		// for a probe that never hits: the URLs rspamd read in its last mail

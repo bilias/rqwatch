@@ -16,8 +16,10 @@
  written in any of its forms, must hit them, the symbol naming the stored
  text and the hit credited to the entry. A full-URL map (filter = "full")
  compares the URL as rspamd rewrites it: an IP host canonical, an IPv6 one
- in brackets, so its entries are stored that way too. If rspamd ever reads
- hosts or URLs differently, these fail.
+ in brackets, so its entries are stored that way too. A host name matches
+ only itself, not its subdomains; a score 0 rule (a mark for composites)
+ still fires and is credited. If rspamd ever reads hosts or URLs
+ differently, these fail.
 */
 
 namespace Tests\EndToEnd\Import;
@@ -38,6 +40,7 @@ final class UrlMapsTest extends EndToEndTestCase
 			'IPv6, copied from a browser' => ['[::ffff:d93c:ed72]', '::ffff:217.60.237.114'],
 			'IPv4 in brackets' => ['[192.0.2.44]', '192.0.2.44'],
 			'full URL, copied from a browser' => ['http://[::ffff:d93c:ed72]/q9x-oml?lang=el', 'http://[::ffff:217.60.237.114]/q9x-oml?lang=el'],
+			'host name' => ['white.example.org', 'white.example.org'],
 		];
 	}
 
@@ -84,11 +87,26 @@ final class UrlMapsTest extends EndToEndTestCase
 		$this->assertHit(self::colInt($row, 'id'), 'RQWATCH_BODY_URL_FULL', self::ENTRY_CUSTOM, self::entry('body_url_full', $stored));
 	}
 
+	#[TestDox('url map, host name at score 0: the host matched, hit credited with its score')]
+	public function testWhiteHostMarked(): void {
+		[, $reply, $row] = $this->import('clean', body: 'Please see https://white.example.org/a today.');
+		$this->assertSame(['white.example.org'], self::options($reply, 'RQWATCH_WHITE_URL_HOST'), 'the host rspamd matched');
+		$this->assertSame(0.0, self::symbolScores($reply)['RQWATCH_WHITE_URL_HOST'] ?? null);
+		$this->assertHit(self::colInt($row, 'id'), 'RQWATCH_WHITE_URL_HOST', self::ENTRY_CUSTOM, self::entry('white_url_host', 'white.example.org'), 0.0);
+	}
+
+	#[TestDox('url map, host name: a subdomain does not match')]
+	public function testSubdomainNotMatched(): void {
+		[, $reply] = $this->import('clean', body: 'Please see https://www.white.example.org/a today.');
+		$this->assertArrayNotHasKey('RQWATCH_WHITE_URL_HOST', self::symbols($reply));
+	}
+
 	#[TestDox('url map, host: another host does not match')]
 	public function testOtherHostNotMatched(): void {
 		[, $reply] = $this->import('clean', body: 'Please see http://[2001:db8::7]/x today.');
 		$this->assertArrayNotHasKey('RQWATCH_BODY_URL_HOST', self::symbols($reply));
 		$this->assertArrayNotHasKey('RQWATCH_BODY_URL_FULL', self::symbols($reply));
+		$this->assertArrayNotHasKey('RQWATCH_WHITE_URL_HOST', self::symbols($reply));
 	}
 
 	/**

@@ -121,7 +121,7 @@ seed_e2e() {
 	mkdir -p web/maps
 	"$PHP" bin/cli.php cron:updatemapfiles
 	local map
-	for map in ip_blacklist mail_from_blacklist mime_from_blacklist mail_from_whitelist mail_from_rcpt_to_blacklist body_url_full; do
+	for map in ip_blacklist mail_from_blacklist mime_from_blacklist mail_from_whitelist mail_from_rcpt_to_blacklist body_url_full white_url_host; do
 		[ "$(grep -vc '^#' "web/maps/${map}.txt" 2>/dev/null)" = 1 ] \
 			|| { echo "web/maps/${map}.txt: expected one entry" >&2; exit 1; }
 	done
