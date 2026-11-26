@@ -28,6 +28,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Redis;
 use RedisException;
 use ReflectionProperty;
+use RuntimeException;
 use Tests\Unit\CountingCache;
 use Tests\Unit\RecordingCache;
 use Tests\Unit\UnitTestCase;
@@ -212,6 +213,10 @@ final class LoginThrottleTest extends UnitTestCase
 	private function redis(array $ttls): RedisCache {
 		$redis = $this->createStub(Redis::class);
 		$redis->method('scan')->willReturnCallback(function (mixed &$iterator) use ($ttls): array {
+			// one batch: a scan past cursor 0 is a loop that never ends
+			if ($iterator === 0) {
+				throw new RuntimeException('SCAN called again after cursor 0');
+			}
 			$iterator = 0;
 			return array_keys($ttls);
 		});

@@ -92,6 +92,10 @@ final class SpoolDrainTest extends UnitTestCase
 			if ($this->failScan !== null) {
 				throw $this->failScan;
 			}
+			// one batch: a scan past cursor 0 is a loop that never ends
+			if ($iterator === 0) {
+				throw new RuntimeException('SCAN called again after cursor 0');
+			}
 			$iterator = 0;
 			$prefix = substr($pattern, 0, -1);
 			return array_values(array_filter(array_keys($this->store), fn (string $key): bool => str_starts_with($key, $prefix)));
