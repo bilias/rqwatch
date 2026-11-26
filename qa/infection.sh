@@ -17,6 +17,7 @@
 # arguments go to infection: --filter=app/Utils/Helper.php for one file
 # (deprecated, but 0.35 matches a positional path unresolved, so ../app/... finds nothing),
 # --git-diff-lines --git-diff-base=github/master for the lines changed since.
+# Infection runs with INFECTION_MEMORY_LIMIT (default 2G).
 # Needs a coverage driver: pcov (dnf install php-pecl-pcov) or Xdebug. Run
 # from the project root.
 set -euo pipefail
@@ -42,8 +43,10 @@ copy_tree
 # the repository, for --git-diff-* (Infection only reads it)
 ln -s "${ROOT}/.git" .git
 
+# Infection itself holds every file's mutants: a full run outgrows a 128M
+# php.ini default. The mutants' test runs are separate processes, under php.ini
 status=0
-"$PHP" vendor/bin/infection -c qa/infection.json5 --threads=max \
+"$PHP" -d memory_limit="${INFECTION_MEMORY_LIMIT:-2G}" vendor/bin/infection -c qa/infection.json5 --threads=max \
 	--logger-html="${OUT}/infection.html" --logger-text="${OUT}/infection.log" \
 	--logger-json="${OUT}/infection.json" "${opts[@]}" "$@" || status=$?
 echo "Infection reports: ${OUT}"
