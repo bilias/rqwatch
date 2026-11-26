@@ -89,9 +89,11 @@ abstract class RqwatchApi
 
 	private function checkAuth(): void {
 		[$username, $password] = $this->getAuthCredentials();
+		// as BasicAuth keeps them, trimmed: blanks are no credentials, nor are '' and '0': fail closed
+		$username = trim($username ?? '');
+		$password = trim($password ?? '');
 
-		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no credentials too: fail closed */
-		if (empty($username) || empty($password)) {
+		if (in_array($username, ['', '0'], true) || in_array($password, ['', '0'], true)) {
 			$msg = "getAuthCredentials() returned empty username or password in " . static::class;
 			$this->fileLogger->error($msg);
 			throw new RuntimeException("getAuthCredentials() returned empty username or password in " .

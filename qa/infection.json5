@@ -241,7 +241,7 @@
 				"App\\Utils\\Helper::normalizeToUtf8::1460",
 				// authenticate() returns true or answers and exits: either way the
 				// condition is false, || or &&
-				"App\\Api\\RqwatchApi::checkAuth::119"
+				"App\\Api\\RqwatchApi::checkAuth::121"
 			]
 		},
 		"LogicalOrAllSubExprNegation": {
@@ -265,8 +265,8 @@
 		"NotIdentical": {
 			// the test seams: negated, the unit tests' answers are sent for real and exit
 			"ignore": [
-				"App\\Core\\Auth\\BasicAuth::doBasicAuth::80",
-				"App\\Api\\RqwatchApi::respond::155"
+				"App\\Core\\Auth\\BasicAuth::doBasicAuth::83",
+				"App\\Api\\RqwatchApi::respond::157"
 			]
 		},
 		"PregMatchRemoveCaret": {

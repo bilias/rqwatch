@@ -29,12 +29,15 @@ final class BasicAuth implements AuthInterface {
 	protected ?string $authenticatedUser = null;
 
 	public function __construct(string $username, #[SensitiveParameter] string $password, LoggerInterface $logger) {
-		if (empty($username) || empty($password)) {
+		$username = trim($username);
+		$password = trim($password);
+		// blanks, '' and '0' are no credentials: fail closed
+		if (in_array($username, ['', '0'], true) || in_array($password, ['', '0'], true)) {
 			throw new HttpException(500, 'API credentials not configured');
 		}
 
-		$this->username = trim($username);
-		$this->password = trim($password);
+		$this->username = $username;
+		$this->password = $password;
 		$this->logger = $logger;
 	}
 
