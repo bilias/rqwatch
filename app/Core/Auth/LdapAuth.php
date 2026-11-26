@@ -58,7 +58,15 @@ final class LdapAuth implements AuthInterface {
 
 	#[\Override]
 	public function authenticate(): bool {
-		if (empty($this->username) || empty($this->password)) {
+		/*
+		 No username (blanks included) or no password: fail closed. An empty
+		 password would make the user bind below an unauthenticated bind,
+		 which LDAP servers accept. The password is checked as typed: blanks
+		 are characters in it. A NUL byte is refused: C code may end it there.
+		*/
+		if (in_array(trim($this->username), ['', '0'], true)
+			|| in_array($this->password, ['', '0'], true)
+			|| str_contains($this->password, "\0")) {
 			return false;
 		}
 		$ldap_uri = Helper::env_required('LDAP_URI');
