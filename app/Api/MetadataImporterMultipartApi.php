@@ -433,10 +433,6 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 			$mail_from = 'empty-mail-from@localhost';
 		}
 		
-		if ($fuzzy === 'unknown') {
-			$fuzzy = '[]';
-		}
-		
 		$data = array(
 			'qid' => $qid,
 			'server' => $server,
