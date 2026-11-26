@@ -13,6 +13,8 @@
  on and a cache to use; otherwise it reads the files. A missing file is
  no settings. The Redis key and TTL come from .env, AppConfig's defaults
  when unset (or blank, or not a number). A stub client stands in for Redis.
+ A config file that throws stops the load, with or without Redis: it is
+ read once, its output dropped and the output buffer closed.
 */
 
 namespace Tests\Unit\Core;
@@ -23,6 +25,7 @@ use App\Core\Cache\RedisCache;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Redis;
 use ReflectionProperty;
+use RuntimeException;
 use Tests\Unit\UnitTestCase;
 
 final class ConfigLoadTest extends UnitTestCase
@@ -79,6 +82,32 @@ final class ConfigLoadTest extends UnitTestCase
 		$this->load($this->cache($redis));
 		$this->assertSame(['cached', null, 1], [Config::get('plain'), Config::get('overridden'), Config::get('extra')]);
 		$this->assertSame(['debug Config [loadAndInitWithRedisCache]: Config is cached in Redis'], $this->log->lines);
+	}
+
+	/** @return array<string, array{string}> REDIS_ENABLE */
+	public static function redisModes(): array {
+		return ['files' => ['false'], 'Redis copy missing' => ['true']];
+	}
+
+	#[DataProvider('redisModes')]
+	public function testThrowingConfigFile(string $redis): void {
+		$this->setEnv('REDIS_ENABLE', $redis);
+		file_put_contents($this->default, "<?php\n\$GLOBALS['rqwatch_config_reads'] = (\$GLOBALS['rqwatch_config_reads'] ?? 0) + 1;\necho 'printed';\nthrow new RuntimeException('broken config');\n");
+		$redis = $this->createStub(Redis::class);
+		$redis->method('get')->willReturn(false);
+		$level = ob_get_level();
+		unset($GLOBALS['rqwatch_config_reads']);
+		$this->expectOutputString('');
+		try {
+			$this->load($this->cache($redis));
+			$this->fail('the load went on');
+		} catch (RuntimeException $e) {
+			$this->assertSame('broken config', $e->getMessage());
+		}
+		$this->assertSame($level, ob_get_level(), 'output buffer closed');
+		$this->assertSame(1, $GLOBALS['rqwatch_config_reads'] ?? null, 'read once');
+		$this->assertSame([], $this->log->lines);
+		unset($GLOBALS['rqwatch_config_reads']);
 	}
 
 	public function testMissingFileIsNoSettings(): void {
