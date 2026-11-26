@@ -241,7 +241,7 @@
 				"App\\Utils\\Helper::normalizeToUtf8::1460",
 				// authenticate() returns true or answers and exits: either way the
 				// condition is false, || or &&
-				"App\\Api\\RqwatchApi::checkAuth::125"
+				"App\\Api\\RqwatchApi::checkAuth::119"
 			]
 		},
 		"LogicalOrAllSubExprNegation": {
@@ -260,14 +260,14 @@
 				// without a database warmCache() returns at once; Integration covers the warm-up
 				"App\\Core\\Database\\MigrationStatus::getMigrationState::155",
 				// with the API on it does nothing; off, it answers and exits (Integration's ApiAccessTest)
-				"App\\Api\\RqwatchApi::__construct::48"
+				"App\\Api\\RqwatchApi::__construct::47"
 			]
 		},
 		"NotIdentical": {
 			// the test seams: negated, the unit tests' answers are sent for real and exit
 			"ignore": [
 				"App\\Core\\Auth\\BasicAuth::doBasicAuth::85",
-				"App\\Api\\RqwatchApi::respond::161"
+				"App\\Api\\RqwatchApi::respond::155"
 			]
 		},
 		"PregMatchRemoveCaret": {
@@ -380,7 +380,7 @@
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::211",
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::218",
 				// REMOTE_ADDR is an IP: no IP is a numeric string, so == matches as === does
-				"App\\Api\\RqwatchApi::checkIpAcl::82",
+				"App\\Api\\RqwatchApi::checkIpAcl::81",
 				// filter, migration and status names are no numeric strings: == matches as === does
 				"App\\Services\\VirusService::reportFilters::58",
 				"App\\Services\\VirusService::markIgnoredFilters::69",

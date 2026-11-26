@@ -15,7 +15,6 @@ use App\Core\App;
 use App\Core\Auth\BasicAuth;
 use App\Utils\Helper;
 
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -114,12 +113,7 @@ abstract class RqwatchApi
 			throw new RuntimeException($msg);
 		}
 
-		try {
-			$this->auth = new BasicAuth($username, $password, $this->fileLogger);
-		} catch (HttpException $e) {
-			$msg = $e->getMessage();
-			$this->dropLogResponse($e->getStatusCode(), $msg, $msg, 'warning');
-		}
+		$this->auth = new BasicAuth($username, $password, $this->fileLogger);
 
 		// Authenticate the remote system
 		if (!$this->auth->authenticate() || !$this->auth->getAuthenticatedUser()) {
