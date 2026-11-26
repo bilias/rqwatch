@@ -369,6 +369,9 @@
 		},
 		"ReturnRemoval": {
 			"ignore": [
+				// LoginThrottle's listBlocked() and listCounters() give [] for no cache, clearIp() false
+				"App\\Services\\UserService::getLoginThrottles::414",
+				"App\\Services\\UserService::clearLoginThrottle::435",
 				// no map config has an empty model: the loop returns [] too
 				"App\\Inventory\\MapInventory::getMapsByModel::432",
 				// past either, no row is left to insert, and an empty insert() runs no query
