@@ -96,7 +96,7 @@
       "betterleaks": "sh qa/betterleaks.sh",
       "infection": [
          "Composer\\Config::disableProcessTimeout",
-         "sh qa/infection.sh"
+         "bash qa/infection.sh"
       ],
       "coverage": [
          "Composer\\Config::disableProcessTimeout",

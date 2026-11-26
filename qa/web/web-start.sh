@@ -26,7 +26,7 @@ install_conf() {
 }
 
 # one Listen line per port, and the vhost on all of them
-read -ra ports <<< "$WEB_PORTS"
+read -ra ports <<< "${WEB_PORTS:?set by start_web_container}"
 listen=
 vhost=
 for port in "${ports[@]}"; do
@@ -39,9 +39,10 @@ install_conf /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.qa \
 mv /etc/httpd/conf/httpd.conf.qa /etc/httpd/conf/httpd.conf
 install_conf contrib/apache-rqwatch.conf /etc/httpd/conf.d/rqwatch.conf \
 	"<VirtualHost ${vhost}>" "s/^<VirtualHost \*:80>$/<VirtualHost ${vhost}>/"
+upload_tmp_dir=${UPLOAD_TMP_DIR:?set by start_web_container}
 install_conf qa/web/php-fpm-rqwatch.conf /etc/php-fpm.d/rqwatch.conf \
-	"php_admin_value[upload_tmp_dir] = ${UPLOAD_TMP_DIR}" \
-	"s#^php_admin_value\[upload_tmp_dir\] = .*#php_admin_value[upload_tmp_dir] = ${UPLOAD_TMP_DIR}#"
+	"php_admin_value[upload_tmp_dir] = ${upload_tmp_dir}" \
+	"s#^php_admin_value\[upload_tmp_dir\] = .*#php_admin_value[upload_tmp_dir] = ${upload_tmp_dir}#"
 
 # OPcache (always loaded from PHP 8.5) checks for changed files on every
 # request: the harnesses rewrite config.local.php between requests.

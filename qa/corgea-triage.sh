@@ -27,7 +27,7 @@ case "${2:-}" in
 	--apply) APPLY=1 ;;
 	*) GROUPS_FILE= ;;
 esac
-if [ -z "$GROUPS_FILE" ] || [ ! -f "$GROUPS_FILE" ]; then
+if [[ -z "${GROUPS_FILE}" ]] || [[ ! -f "${GROUPS_FILE}" ]]; then
 	echo "Usage: $0 GROUPS [--apply]" >&2
 	exit 2
 fi
@@ -40,7 +40,7 @@ TOKEN="${CORGEA_TOKEN:-$(config_value token)}"
 URL="${CORGEA_URL:-$(config_value url)}"
 URL="${URL:-https://www.corgea.app}"
 URL="${URL%/}"
-if [ -z "$TOKEN" ]; then
+if [[ -z "${TOKEN}" ]]; then
 	echo "No Corgea token: run corgea login or set CORGEA_TOKEN" >&2
 	exit 1
 fi
@@ -51,21 +51,21 @@ trap 'rm -rf "$WORK"' EXIT
 # The auth header as the CLI sends it, from a file so the token stays off the
 # command line
 umask 077
-if [[ "$TOKEN" =~ ^[^.]+\.[^.]+\.[^.]+$ ]]; then
-	printf 'Authorization: Bearer %s\n' "$TOKEN" > "${WORK}/headers"
+if [[ "${TOKEN}" =~ ^[^.]+\.[^.]+\.[^.]+$ ]]; then
+	printf 'Authorization: Bearer %s\n' "${TOKEN}" > "${WORK}/headers"
 else
-	printf 'CORGEA-TOKEN: %s\n' "$TOKEN" > "${WORK}/headers"
+	printf 'CORGEA-TOKEN: %s\n' "${TOKEN}" > "${WORK}/headers"
 fi
 printf 'CORGEA-SOURCE: cli\nContent-Type: application/json\n' >> "${WORK}/headers"
 umask 022
 
 # shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
-count=$("$PHP" -r 'echo count(json_decode((string) file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR));' "$GROUPS_FILE")
+count=$("${PHP}" -r 'echo count(json_decode((string) file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR));' "${GROUPS_FILE}")
 status=0
 for ((g = 0; g < count; g++)); do
 	# the request body of group $g, and its name on stdout
 	# shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
-	name=$("$PHP" -r '
+	name=$("${PHP}" -r '
 		$group = json_decode((string) file_get_contents($argv[1]), true, flags: JSON_THROW_ON_ERROR)[(int) $argv[2]];
 		file_put_contents($argv[4], json_encode([
 			"finding_ids" => $group["ids"],
@@ -74,10 +74,10 @@ for ((g = 0; g < count; g++)); do
 			"apply" => $argv[3] === "1",
 		], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
 		echo $group["name"], " (", count($group["ids"]), " ids)";
-	' "$GROUPS_FILE" "$g" "$APPLY" "${WORK}/body.json")
+	' "${GROUPS_FILE}" "${g}" "${APPLY}" "${WORK}/body.json")
 	code=$(curl -sS -X PATCH -H "@${WORK}/headers" --data-binary "@${WORK}/body.json" \
 		-o "${WORK}/response.json" -w '%{http_code}' "${URL}/api/v1/triage/findings") || code=000
-	if [ "$code" != 200 ] && [ "$code" != 202 ]; then
+	if [[ "${code}" != 200 ]] && [[ "${code}" != 202 ]]; then
 		echo "=== ${name}: HTTP ${code}" >&2
 		cat "${WORK}/response.json" >&2 2>/dev/null || true
 		echo >&2
@@ -86,13 +86,13 @@ for ((g = 0; g < count; g++)); do
 	fi
 	# action status, counts and unresolved ids, as Corgea reports them
 	# shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
-	"$PHP" -r '
+	"${PHP}" -r '
 		$r = json_decode((string) file_get_contents($argv[1]), true);
 		$a = $r["action"] ?? [];
 		echo "=== ", $argv[2], ": ", $a["status"] ?? "?", " ", json_encode($a["counts"] ?? null), "\n";
 		if (!empty($r["unresolved_ids"])) {
 			echo "    unresolved: ", implode(" ", $r["unresolved_ids"]), "\n";
 		}
-	' "${WORK}/response.json" "$name"
+	' "${WORK}/response.json" "${name}"
 done
-exit "$status"
+exit "${status}"

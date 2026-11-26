@@ -6,7 +6,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 # ShellCheck every tracked shell script (*.sh), from the project root, so -x
-# follows the harnesses' `. qa/lib.sh`. Extra arguments go to shellcheck.
+# follows the harnesses' `. qa/lib.sh`, with every optional check (-o all).
+# Extra arguments go to shellcheck.
 # Exits non-zero on any finding. Needs shellcheck (the CI runner image has
 # it; Fedora: dnf install ShellCheck).
 set -eu
@@ -14,12 +15,14 @@ if ! command -v shellcheck >/dev/null 2>&1; then
 	echo "shellcheck not found: install it (dnf install ShellCheck; on EL9 from EPEL)" >&2
 	exit 127
 fi
-echo "=== ShellCheck $(shellcheck --version | sed -n 's/^version: //p'), $(git ls-files '*.sh' | wc -l | tr -d ' ') scripts"
+version=$(shellcheck --version | sed -n 's/^version: //p')
+scripts=$(git ls-files '*.sh' | wc -l | tr -d ' ')
+echo "=== ShellCheck ${version}, ${scripts} scripts"
 status=0
-git ls-files -z '*.sh' | xargs -0 shellcheck -a -x "$@" || status=$?
-if [ "$status" -eq 0 ]; then
+git ls-files -z '*.sh' | xargs -0 shellcheck -a -x -o all "$@" || status=$?
+if [ "${status}" -eq 0 ]; then
 	echo "=== ShellCheck: clean"
 else
 	echo "=== ShellCheck: failed (exit ${status})" >&2
 fi
-exit "$status"
+exit "${status}"

@@ -21,23 +21,24 @@
 # against the release's checksums.txt.
 set -eu
 BETTERLEAKS="${BETTERLEAKS:-betterleaks}"
-if ! command -v "$BETTERLEAKS" >/dev/null 2>&1; then
+if ! command -v "${BETTERLEAKS}" >/dev/null 2>&1; then
 	echo "betterleaks not found: install it (https://github.com/betterleaks/betterleaks/releases) or set BETTERLEAKS" >&2
 	exit 127
 fi
 remote="${BETTERLEAKS_REMOTE:-$(git remote -v | awk '$2 ~ /github\.com[:\/]/ && $3 == "(fetch)" { print $1; exit }')}"
-if [ -z "$remote" ]; then
+if [ -z "${remote}" ]; then
 	echo "No remote on github.com: set BETTERLEAKS_REMOTE" >&2
 	exit 1
 fi
-echo "=== Betterleaks $("$BETTERLEAKS" version), history of ${remote}"
+version=$("${BETTERLEAKS}" version)
+echo "=== Betterleaks ${version}, history of ${remote}"
 status=0
-"$BETTERLEAKS" git --no-banner --redact --verbose --config .betterleaks.toml \
-	--gitleaks-ignore-path .betterleaksignore --platform=none --log-opts="--remotes=$remote" "$@" . \
+"${BETTERLEAKS}" git --no-banner --redact --verbose --config .betterleaks.toml \
+	--gitleaks-ignore-path .betterleaksignore --platform=none --log-opts="--remotes=${remote}" "$@" . \
 	|| status=$?
-if [ "$status" -eq 0 ]; then
+if [ "${status}" -eq 0 ]; then
 	echo "=== Betterleaks: clean"
 else
 	echo "=== Betterleaks: failed (exit ${status})" >&2
 fi
-exit "$status"
+exit "${status}"

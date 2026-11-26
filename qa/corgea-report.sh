@@ -28,7 +28,7 @@ set -euo pipefail
 PHP="${PHP:-php}"
 UUID_RE='^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
 SCAN_ID="${1:-}"
-if [ -n "$SCAN_ID" ] && ! [[ "$SCAN_ID" =~ $UUID_RE ]]; then
+if [[ -n "${SCAN_ID}" ]] && ! [[ "${SCAN_ID}" =~ ${UUID_RE} ]]; then
 	echo "Usage: $0 [SCAN_ID] (a UUID, from the scan's URL)" >&2
 	exit 2
 fi
@@ -41,7 +41,7 @@ TOKEN="${CORGEA_TOKEN:-$(config_value token)}"
 URL="${CORGEA_URL:-$(config_value url)}"
 URL="${URL:-https://www.corgea.app}"
 URL="${URL%/}"
-if [ -z "$TOKEN" ]; then
+if [[ -z "${TOKEN}" ]]; then
 	echo "No Corgea token: run corgea login or set CORGEA_TOKEN" >&2
 	exit 1
 fi
@@ -49,38 +49,40 @@ fi
 OUT=$(realpath -m "${CORGEA_OUT:-corgea-report}")
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
-mkdir -p "$OUT"
+mkdir -p "${OUT}"
 
 # The auth header as the CLI sends it (a JWT as a bearer token, any other
 # token as CORGEA-TOKEN), from a file so the token stays off the command line
 umask 077
-if [[ "$TOKEN" =~ ^[^.]+\.[^.]+\.[^.]+$ ]]; then
-	printf 'Authorization: Bearer %s\n' "$TOKEN" > "${WORK}/headers"
+if [[ "${TOKEN}" =~ ^[^.]+\.[^.]+\.[^.]+$ ]]; then
+	printf 'Authorization: Bearer %s\n' "${TOKEN}" > "${WORK}/headers"
 else
-	printf 'CORGEA-TOKEN: %s\n' "$TOKEN" > "${WORK}/headers"
+	printf 'CORGEA-TOKEN: %s\n' "${TOKEN}" > "${WORK}/headers"
 fi
 echo 'CORGEA-SOURCE: cli' >> "${WORK}/headers"
 umask 022
 
-if [ -z "$SCAN_ID" ]; then
-	if [ -n "$(git status --porcelain)" ]; then
+if [[ -z "${SCAN_ID}" ]]; then
+	changes=$(git status --porcelain)
+	if [[ -n "${changes}" ]]; then
 		echo "Note: uncommitted changes are not scanned; this scans HEAD"
 	fi
 	# the GitHub remote's URL, whatever the remote is called here: Corgea
 	# names and files the project by origin's URL, and other remotes may be
 	# private
 	repo_url="${CORGEA_REPO_URL:-$(git remote -v | awk '$2 ~ /github\.com[:\/]/ && $3 == "(fetch)" { print $2; exit }')}"
-	if [ -z "$repo_url" ]; then
+	if [[ -z "${repo_url}" ]]; then
 		echo "No remote on github.com: set CORGEA_REPO_URL" >&2
 		exit 1
 	fi
-	git clone -q "file://$(pwd)" "${WORK}/rqwatch"
-	git -C "${WORK}/rqwatch" remote set-url origin "$repo_url"
-	echo "=== scan of $(git -C "${WORK}/rqwatch" log -1 --format='%h %s')"
+	git clone -q "file://${PWD}" "${WORK}/rqwatch"
+	git -C "${WORK}/rqwatch" remote set-url origin "${repo_url}"
+	head=$(git -C "${WORK}/rqwatch" log -1 --format='%h %s')
+	echo "=== scan of ${head}"
 	(cd "${WORK}/rqwatch" && corgea scan --out-format sarif --out-file "${OUT}/rqwatch-corgea.sarif") \
 		| tee "${OUT}/corgea-scan.log"
 	SCAN_ID=$(sed -n 's/.*Scan has started with ID: \([0-9a-f-]*\)\..*/\1/p' "${OUT}/corgea-scan.log" | tail -n 1)
-	if ! [[ "$SCAN_ID" =~ $UUID_RE ]]; then
+	if ! [[ "${SCAN_ID}" =~ ${UUID_RE} ]]; then
 		echo "No scan id in the scan's output: ${OUT}/corgea-scan.log" >&2
 		exit 1
 	fi
@@ -94,7 +96,7 @@ fetch_report() {
 }
 fetch_report '' html
 # a scan has written the SARIF already
-if [ -n "${1:-}" ]; then
+if [[ -n "${1:-}" ]]; then
 	fetch_report '?format=sarif' sarif
 fi
 fetch_report '?format=markdown' md
@@ -103,17 +105,17 @@ echo "=== issues"
 page=1
 pages=1
 files=()
-while [ "$page" -le "$pages" ]; do
-	corgea ls --issues --scan-id "$SCAN_ID" --page "$page" --page-size 100 --json \
+while [[ "${page}" -le "${pages}" ]]; do
+	corgea ls --issues --scan-id "${SCAN_ID}" --page "${page}" --page-size 100 --json \
 		> "${WORK}/issues-${page}.json"
 	files+=("${WORK}/issues-${page}.json")
 	# shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
-	pages=$("$PHP" -r 'echo (int) (json_decode(file_get_contents($argv[1]), true)["total_pages"] ?? 1);' \
+	pages=$("${PHP}" -r 'echo (int) (json_decode(file_get_contents($argv[1]), true)["total_pages"] ?? 1);' \
 		"${WORK}/issues-${page}.json")
 	page=$((page + 1))
 done
 # shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
-"$PHP" -r '
+"${PHP}" -r '
 	$all = [];
 	foreach (array_slice($argv, 1) as $f) {
 		$all = array_merge($all, json_decode(file_get_contents($f), true)["results"] ?? []);

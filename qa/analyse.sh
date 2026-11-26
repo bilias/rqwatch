@@ -19,16 +19,16 @@ trap 'exit 130' INT TERM
 
 status=0
 for v in ${QA_ANALYSE_PHP:-8.3 8.4 8.5}; do
-	case $v in
+	case ${v} in
 		[0-9]*.[0-9]*) ;;
-		*) echo "analyse: not a version: $v" >&2; exit 2 ;;
+		*) echo "analyse: not a version: ${v}" >&2; exit 2 ;;
 	esac
-	id=$(echo "$v" | awk -F. '{ printf "%d%02d00", $1, $2 }')
+	id=$(echo "${v}" | awk -F. '{ printf "%d%02d00", $1, $2 }')
 	printf 'includes:\n\t- %s/qa/phpstan.neon\nparameters:\n\tphpVersion: %s\n' \
-		"$PWD" "$id" > "$tmp/phpstan.neon"
-	echo "=== PHPStan, PHP $v"
-	vendor/bin/phpstan analyse -c "$tmp/phpstan.neon" --memory-limit=512M --error-format friendly || status=1
-	echo "=== Psalm, PHP $v"
-	vendor/bin/psalm -c qa/psalm.xml --no-progress --no-cache --php-version="$v" || status=1
+		"${PWD}" "${id}" > "${tmp}/phpstan.neon"
+	echo "=== PHPStan, PHP ${v}"
+	vendor/bin/phpstan analyse -c "${tmp}/phpstan.neon" --memory-limit=512M --error-format friendly || status=1
+	echo "=== Psalm, PHP ${v}"
+	vendor/bin/psalm -c qa/psalm.xml --no-progress --no-cache --php-version="${v}" || status=1
 done
-exit $status
+exit "${status}"

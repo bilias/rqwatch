@@ -31,15 +31,15 @@ fi
 
 dir=$(mktemp -d)
 trap 'rm -rf "$dir"' EXIT
-config=$dir/psalm-taint.xml
+config=${dir}/psalm-taint.xml
 sed -e '/^\t\t<directory name="tests" \/>$/d' \
 	-e 's/^\tfindUnusedPsalmSuppress="true"$/&\n\tfindUnusedIssueHandlerSuppression="false"/' \
-	qa/psalm.xml > "$config"
+	qa/psalm.xml > "${config}"
 
 # a reworded qa/psalm.xml must fail here, not quietly analyse tests/ again
-if grep -q 'name="tests"' "$config" || ! grep -q 'findUnusedIssueHandlerSuppression="false"' "$config"; then
+if grep -q 'name="tests"' "${config}" || ! grep -q 'findUnusedIssueHandlerSuppression="false"' "${config}"; then
 	echo "psalm-taint: qa/psalm.xml changed, update the config edits in $0" >&2
 	exit 1
 fi
 
-vendor/bin/psalm -c "$config" --taint-analysis --no-cache --ignore-baseline --no-progress "$@"
+vendor/bin/psalm -c "${config}" --taint-analysis --no-cache --ignore-baseline --no-progress "$@"

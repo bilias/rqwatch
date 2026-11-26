@@ -16,11 +16,11 @@ set -eu
 
 dir=$(mktemp -d)
 trap 'rm -rf "$dir"' EXIT
-report=$dir/report.json  # Psalm picks the format by extension
+report=${dir}/report.json  # Psalm picks the format by extension
 
 # exits non-zero when it reports the probes, which it must; extra arguments
 # (--php-version=X.Y) go to psalm
 vendor/bin/psalm -c qa/taint-selftest/psalm.xml --taint-analysis --no-cache \
-	--no-progress --report="$report" --report-show-info=false "$@" >/dev/null || true
+	--no-progress --report="${report}" --report-show-info=false "$@" >/dev/null || true
 
-php qa/taint-selftest.php < "$report"
+php qa/taint-selftest.php < "${report}"

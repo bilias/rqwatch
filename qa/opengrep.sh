@@ -15,10 +15,10 @@ set -eu
 sh qa/opengrep-rules.sh
 
 # the binary qa/opengrep-verify.sh installs, else the one on PATH (CI)
-OPENGREP=${OPENGREP_BIN_DIR:-$HOME/.local/bin}/opengrep
-[ -x "$OPENGREP" ] || OPENGREP=opengrep
+OPENGREP=${OPENGREP_BIN_DIR:-${HOME}/.local/bin}/opengrep
+[ -x "${OPENGREP}" ] || OPENGREP=opengrep
 
-exec "$OPENGREP" scan --error \
+exec "${OPENGREP}" scan --error \
 	--config qa/opengrep.yml \
 	--config .semgrep-rules/php \
 	--config .semgrep-rules/generic/secrets \

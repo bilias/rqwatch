@@ -13,6 +13,9 @@
 # served by httpd and PHP-FPM in a container (start_web_container), locally
 # and in CI.
 
+# its pipelines fail on any failing part, as in every caller
+set -o pipefail
+
 PHP="${PHP:-php}"
 LIB_CIDS=()
 LIB_PIDS=()
@@ -21,12 +24,12 @@ WORK=
 lib_cleanup() {
 	local pid cid
 	for pid in "${LIB_PIDS[@]}"; do
-		kill "$pid" 2>/dev/null || true
+		kill "${pid}" 2>/dev/null || true
 	done
 	for cid in "${LIB_CIDS[@]}"; do
-		podman rm -f "$cid" >/dev/null 2>&1 || true
+		podman rm -f "${cid}" >/dev/null 2>&1 || true
 	done
-	[ -n "$WORK" ] && rm -rf "$WORK"
+	[[ -n "${WORK}" ]] && rm -rf "${WORK}"
 	return 0
 }
 
@@ -37,7 +40,7 @@ make_workdir() {
 
 free_port() {
 	# shellcheck disable=SC2016 # single-quoted PHP code: its $ are PHP's
-	"$PHP" -r '$s = stream_socket_server("tcp://127.0.0.1:0"); echo explode(":", stream_socket_get_name($s, false))[1];'
+	"${PHP}" -r '$s = stream_socket_server("tcp://127.0.0.1:0"); echo explode(":", stream_socket_get_name($s, false))[1];'
 }
 
 # start_container VAR PODMAN_RUN_ARGS...: podman run -d --rm --pull=newer,
@@ -47,8 +50,8 @@ start_container() {
 	local var=$1 cid
 	shift
 	cid=$(podman run -d --rm --pull=newer "$@")
-	LIB_CIDS+=("$cid")
-	printf -v "$var" '%s' "$cid"
+	LIB_CIDS+=("${cid}")
+	printf -v "${var}" '%s' "${cid}"
 }
 
 # start_mailpit IMAGE: a throwaway Mailpit on free loopback ports; sets
@@ -86,7 +89,7 @@ wait_redis() {
 		# a port forwarder may accept before Redis listens: resets are retried quietly
 		reply=$({ exec 3<>"/dev/tcp/127.0.0.1/${REDIS_PORT}" && printf 'PING\r\n' >&3 \
 			&& timeout 2 head -c 5 <&3; } 2>/dev/null) || reply=
-		[ "$reply" = "+PONG" ] && return 0
+		[[ "${reply}" = "+PONG" ]] && return 0
 		sleep 1
 	done
 	echo "Redis did not start" >&2
@@ -99,11 +102,12 @@ start_mariadb() {
 	local image=$1 pass=$2
 	shift 2
 	DB_PORT=$(free_port)
-	start_container DB_CID -e MARIADB_ROOT_PASSWORD="$pass" \
-		-p "127.0.0.1:${DB_PORT}:3306" --tmpfs /var/lib/mysql "$image" "$@"
-	DB_EXEC="podman exec -i $DB_CID mariadb -uroot -p$pass"
+	start_container DB_CID -e MARIADB_ROOT_PASSWORD="${pass}" \
+		-p "127.0.0.1:${DB_PORT}:3306" --tmpfs /var/lib/mysql "${image}" "$@"
+	# shellcheck disable=SC2154 # start_container sets it (printf -v)
+	DB_EXEC="podman exec -i ${DB_CID} mariadb -uroot -p${pass}"
 	for _ in $(seq 60); do
-		podman exec "$DB_CID" healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1 && return 0
+		podman exec "${DB_CID}" healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1 && return 0
 		sleep 1
 	done
 	echo "MariaDB did not start" >&2
@@ -113,9 +117,9 @@ start_mariadb() {
 # copy_tree: the working tree (including uncommitted changes) and vendor/
 # into $WORK, then cd there, with logs/ and q/ (the quarantine)
 copy_tree() {
-	git ls-files -co --exclude-standard -z | tar --null -T - -cf - | tar -xf - -C "$WORK"
-	cp -a vendor "$WORK/"
-	cd "$WORK" || exit 1
+	git ls-files -co --exclude-standard -z | tar --null -T - -cf - | tar -xf - -C "${WORK}"
+	cp -a vendor "${WORK}/"
+	cd "${WORK}" || exit 1
 	mkdir -p logs q
 }
 
@@ -144,25 +148,26 @@ write_env() {
 # so an image restored from a cache (CI: podman load) saves the build. Run
 # from the project root or the copy (needs qa/web).
 web_image() {
-	local old_image stamp key
-	PHP_STREAM="${PHP_STREAM:-remi-$("$PHP" -r 'echo PHP_MAJOR_VERSION, ".", PHP_MINOR_VERSION;')}"
+	local old_image new_image stamp key
+	PHP_STREAM="${PHP_STREAM:-remi-$("${PHP}" -r 'echo PHP_MAJOR_VERSION, ".", PHP_MINOR_VERSION;')}"
 	WEB_IMAGE="localhost/rqwatch-qa-web:${PHP_STREAM}"
-	if [ "${QA_WEB_UPDATE:-0}" = 1 ]; then
+	if [[ "${QA_WEB_UPDATE:-0}" = 1 ]]; then
 		stamp=$(date +%s)
 	else
 		stamp=$(date +%F)
 	fi
 	key="$(sha256sum qa/web/Containerfile | cut -c1-16):${PHP_STREAM}:${stamp}"
-	if [ "$(podman image inspect -f '{{index .Labels "rqwatch.qa-web"}}' "$WEB_IMAGE" 2>/dev/null || true)" = "$key" ]; then
+	if [[ "$(podman image inspect -f '{{index .Labels "rqwatch.qa-web"}}' "${WEB_IMAGE}" 2>/dev/null || true)" = "${key}" ]]; then
 		echo "=== Using ${WEB_IMAGE} (packages updated: ${stamp})"
 	else
 		echo "=== Building ${WEB_IMAGE} (packages updated: ${stamp})"
-		old_image=$(podman image inspect -f '{{.Id}}' "$WEB_IMAGE" 2>/dev/null || true)
-		podman build -q --pull=newer --force-rm -t "$WEB_IMAGE" --build-arg PHP_STREAM="$PHP_STREAM" \
-			--build-arg UPDATE_STAMP="$stamp" --label "rqwatch.qa-web=${key}" qa/web >/dev/null
+		old_image=$(podman image inspect -f '{{.Id}}' "${WEB_IMAGE}" 2>/dev/null || true)
+		podman build -q --pull=newer --force-rm -t "${WEB_IMAGE}" --build-arg PHP_STREAM="${PHP_STREAM}" \
+			--build-arg UPDATE_STAMP="${stamp}" --label "rqwatch.qa-web=${key}" qa/web >/dev/null
 		# the previous build, now untagged; kept if a concurrent run still uses it
-		if [ -n "$old_image" ] && [ "$old_image" != "$(podman image inspect -f '{{.Id}}' "$WEB_IMAGE")" ]; then
-			podman rmi "$old_image" >/dev/null 2>&1 || true
+		new_image=$(podman image inspect -f '{{.Id}}' "${WEB_IMAGE}")
+		if [[ -n "${old_image}" ]] && [[ "${old_image}" != "${new_image}" ]]; then
+			podman rmi "${old_image}" >/dev/null 2>&1 || true
 		fi
 	fi
 }
@@ -182,7 +187,7 @@ start_web_container() {
 	# user to the image's rqwatch user (uid 1000), so PHP writes the copy as the
 	# invoking user and the cleanup can remove it; the logs PHP-FPM's master
 	# opens as root are created here first for the same reason.
-	chmod 755 "$WORK"
+	chmod 755 "${WORK}"
 	mkdir -p q/tmp fpm/session
 	chmod 700 fpm
 	touch logs/php-slow.log logs/php-error.log
@@ -192,16 +197,16 @@ start_web_container() {
 		--userns=keep-id:uid=1000,gid=1000 \
 		-v "${WORK}:/var/www/html/rqwatch:Z" -v "${WORK}:${WORK}:Z" \
 		-e WEB_PORTS="$*" -e UPLOAD_TMP_DIR="${WORK}/q/tmp" \
-		"$WEB_IMAGE" bash /var/www/html/rqwatch/qa/web/web-start.sh)
-	LIB_CIDS+=("$WEB_CID")
-	podman logs -f "$WEB_CID" > "${WEB_SERVER_LOG:-logs/web-server.log}" 2>&1 &
+		"${WEB_IMAGE}" bash /var/www/html/rqwatch/qa/web/web-start.sh)
+	LIB_CIDS+=("${WEB_CID}")
+	podman logs -f "${WEB_CID}" > "${WEB_SERVER_LOG:-logs/web-server.log}" 2>&1 &
 	LIB_PIDS+=("$!")
 	for _ in $(seq 30); do
 		curl -fs -o /dev/null "http://127.0.0.1:${1}${probe}" && return 0
 		sleep 1
 	done
 	echo "Web server did not start" >&2
-	podman logs "$WEB_CID" >&2
+	podman logs "${WEB_CID}" >&2
 	exit 1
 }
 
@@ -212,10 +217,10 @@ phpunit_args() {
 	local arg
 	PHPUNIT_ARGS=()
 	for arg in "$@"; do
-		if [ "$arg" = -v ]; then
+		if [[ "${arg}" = -v ]]; then
 			PHPUNIT_ARGS+=(--testdox)
 		else
-			PHPUNIT_ARGS+=("$arg")
+			PHPUNIT_ARGS+=("${arg}")
 		fi
 	done
 }
@@ -227,12 +232,12 @@ phpunit_args() {
 # database is dropped first: db-init.sql's DROP TABLEs fail on a populated
 # one (foreign keys), so this is what lets a harness seed it again
 seed_test_data() {
-	$DB_EXEC -e 'DROP DATABASE IF EXISTS rqwatch'
-	$DB_EXEC < contrib/db-init.sql
-	"$PHP" bin/cli.php user:add -a -p pw-admin admin admin@example.org >/dev/null
-	"$PHP" bin/cli.php user:add -p pw-alice alice alice@example.org >/dev/null
-	"$PHP" bin/cli.php user:add -p pw-bob bob bob@example.org >/dev/null
-	sed "s#@Q@#${WORK}/q#g" tests/Integration/fixtures.sql | $DB_EXEC rqwatch
+	${DB_EXEC} -e 'DROP DATABASE IF EXISTS rqwatch'
+	${DB_EXEC} < contrib/db-init.sql
+	"${PHP}" bin/cli.php user:add -a -p pw-admin admin admin@example.org >/dev/null
+	"${PHP}" bin/cli.php user:add -p pw-alice alice alice@example.org >/dev/null
+	"${PHP}" bin/cli.php user:add -p pw-bob bob bob@example.org >/dev/null
+	sed "s#@Q@#${WORK}/q#g" tests/Integration/fixtures.sql | ${DB_EXEC} rqwatch
 	seed_mail 101 SUBJ-ALICE-101 alice@example.org
 	seed_mail 102 SUBJ-BOB-102 bob@example.org
 	seed_mail 103 SUBJ-ALIAS-103 alias-alice@example.org

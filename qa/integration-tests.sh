@@ -44,39 +44,38 @@ REDIS_IMAGE="${REDIS_IMAGE:-docker.io/library/redis:7}"
 make_workdir
 
 # database
-if [ -z "${INTEGRATION_DB_EXEC:-}" ]; then
+if [[ -z "${INTEGRATION_DB_EXEC:-}" ]]; then
 	DB_HOST=127.0.0.1
 	DB_PASS=integration-test
-	start_mariadb "$MARIADB_IMAGE" "$DB_PASS"
+	start_mariadb "${MARIADB_IMAGE}" "${DB_PASS}"
 else
-	DB_HOST="$INTEGRATION_DB_HOST"
-	DB_PORT="$INTEGRATION_DB_PORT"
-	DB_PASS="$INTEGRATION_DB_PASS"
-	DB_EXEC="$INTEGRATION_DB_EXEC"
+	DB_HOST="${INTEGRATION_DB_HOST:?set with INTEGRATION_DB_EXEC}"
+	DB_PORT="${INTEGRATION_DB_PORT:?set with INTEGRATION_DB_EXEC}"
+	DB_PASS="${INTEGRATION_DB_PASS:?set with INTEGRATION_DB_EXEC}"
+	DB_EXEC="${INTEGRATION_DB_EXEC}"
 fi
 
 # mail capture
-if [ -z "${INTEGRATION_MAILPIT_SMTP_PORT:-}" ]; then
-	start_mailpit "$MAILPIT_IMAGE"
+if [[ -z "${INTEGRATION_MAILPIT_SMTP_PORT:-}" ]]; then
+	start_mailpit "${MAILPIT_IMAGE}"
 else
-	MAILPIT_SMTP_PORT="$INTEGRATION_MAILPIT_SMTP_PORT"
-	# shellcheck disable=SC2153 # set by the caller together with INTEGRATION_MAILPIT_SMTP_PORT
-	MAILPIT_HTTP_PORT="$INTEGRATION_MAILPIT_HTTP_PORT"
+	MAILPIT_SMTP_PORT="${INTEGRATION_MAILPIT_SMTP_PORT}"
+	MAILPIT_HTTP_PORT="${INTEGRATION_MAILPIT_HTTP_PORT:?set with INTEGRATION_MAILPIT_SMTP_PORT}"
 	wait_mailpit
 fi
 
 # Redis legs: off, then on; INTEGRATION_REDIS=0 or 1 runs only that one
 LEGS="${INTEGRATION_REDIS:-0 1}"
-case $LEGS in
+case ${LEGS} in
 	0 | 1 | "0 1") ;;
 	*) echo "INTEGRATION_REDIS: 0, 1 or unset" >&2; exit 1 ;;
 esac
 REDIS_ENABLE=false
-if [ -n "${INTEGRATION_REDIS_PORT:-}" ]; then
-	REDIS_PORT="$INTEGRATION_REDIS_PORT"
+if [[ -n "${INTEGRATION_REDIS_PORT:-}" ]]; then
+	REDIS_PORT="${INTEGRATION_REDIS_PORT}"
 	wait_redis
-elif [ "$LEGS" != 0 ]; then
-	start_redis "$REDIS_IMAGE"
+elif [[ "${LEGS}" != 0 ]]; then
+	start_redis "${REDIS_IMAGE}"
 fi
 
 copy_tree
@@ -128,14 +127,14 @@ PHP
 # web server; WEB_LOG is where PHP's warnings and errors go. .env is read on
 # every request, so one server serves both legs
 start_web_server() {
-	start_web_container /login "$WEB_PORT" "$API_PORT"
+	start_web_container /login "${WEB_PORT}" "${API_PORT}"
 	WEB_LOG="${WORK}/logs/php-error.log"
 }
 
 status=0
 WEB_LOG=
-for leg in $LEGS; do
-	[ "$leg" = 1 ] && REDIS_ENABLE=true || REDIS_ENABLE=false
+for leg in ${LEGS}; do
+	[[ "${leg}" = 1 ]] && REDIS_ENABLE=true || REDIS_ENABLE=false
 	echo "=== Integration, REDIS_ENABLE=${REDIS_ENABLE}${REDIS_PORT:+, Redis at 127.0.0.1:${REDIS_PORT}}"
 	sed -i "s#^REDIS_ENABLE=.*#REDIS_ENABLE=${REDIS_ENABLE}#" .env
 	# each leg starts from the same state: an empty quarantine (but q/tmp, the
@@ -144,33 +143,39 @@ for leg in $LEGS; do
 	find q -mindepth 1 -maxdepth 1 ! -name tmp -exec rm -rf {} +
 	seed_test_data
 	curl -fsS -o /dev/null -X DELETE "http://127.0.0.1:${MAILPIT_HTTP_PORT}/api/v1/messages"
-	[ -f logs/rqwatch.log ] && : > logs/rqwatch.log
-	[ -n "$WEB_LOG" ] || start_web_server
+	[[ -f logs/rqwatch.log ]] && : > logs/rqwatch.log
+	[[ -n "${WEB_LOG}" ]] || start_web_server
 
 	leg_status=0
+	redis_port=
+	if [[ "${REDIS_ENABLE}" = true ]]; then
+		redis_port=${REDIS_PORT}
+	fi
+	rspamd_api_user=$(sed -n 's/^RSPAMD_API_USER=//p' .env)
+	mail_api_user=$(sed -n 's/^MAIL_API_USER=//p' .env)
 	INTEGRATION_BASE_URL="http://127.0.0.1:${WEB_PORT}" \
 	INTEGRATION_API_URL="http://127.0.0.1:${API_PORT}" \
 	INTEGRATION_MAILPIT_URL="http://127.0.0.1:${MAILPIT_HTTP_PORT}" \
-	INTEGRATION_ROOT="$WORK" \
-	INTEGRATION_REDIS_ENABLED="$REDIS_ENABLE" \
-	INTEGRATION_ADMIN_RCPT="$ADMIN_RCPT" \
-	INTEGRATION_REDIS_PORT="$([ "$REDIS_ENABLE" = true ] && echo "$REDIS_PORT")" \
-	INTEGRATION_WEB_LOG="$WEB_LOG" \
-	INTEGRATION_RSPAMD_API_USER="$(sed -n 's/^RSPAMD_API_USER=//p' .env)" \
-	INTEGRATION_RSPAMD_API_PASS="$RSPAMD_API_PASS" \
-	INTEGRATION_MAIL_API_USER="$(sed -n 's/^MAIL_API_USER=//p' .env)" \
-	INTEGRATION_MAIL_API_PASS="$MAIL_API_PASS" \
+	INTEGRATION_ROOT="${WORK}" \
+	INTEGRATION_REDIS_ENABLED="${REDIS_ENABLE}" \
+	INTEGRATION_ADMIN_RCPT="${ADMIN_RCPT}" \
+	INTEGRATION_REDIS_PORT="${redis_port}" \
+	INTEGRATION_WEB_LOG="${WEB_LOG}" \
+	INTEGRATION_RSPAMD_API_USER="${rspamd_api_user}" \
+	INTEGRATION_RSPAMD_API_PASS="${RSPAMD_API_PASS}" \
+	INTEGRATION_MAIL_API_USER="${mail_api_user}" \
+	INTEGRATION_MAIL_API_PASS="${MAIL_API_PASS}" \
 	INTEGRATION_DB_DSN="mysql:host=${DB_HOST};port=${DB_PORT};dbname=rqwatch" \
 	INTEGRATION_DB_USER=root \
-	INTEGRATION_DB_PASS="$DB_PASS" \
-		"$PHP" vendor/bin/phpunit -c qa/phpunit-integration.xml "${PHPUNIT_ARGS[@]}" || leg_status=$?
+	INTEGRATION_DB_PASS="${DB_PASS}" \
+		"${PHP}" vendor/bin/phpunit -c qa/phpunit-integration.xml "${PHPUNIT_ARGS[@]}" || leg_status=$?
 
-	if [ "$leg_status" != 0 ]; then
-		status=$leg_status
-		if [ -s logs/rqwatch.log ]; then
+	if [[ "${leg_status}" != 0 ]]; then
+		status=${leg_status}
+		if [[ -s logs/rqwatch.log ]]; then
 			echo "--- logs/rqwatch.log (REDIS_ENABLE=${REDIS_ENABLE}) ---" >&2
 			tail -50 logs/rqwatch.log >&2
 		fi
 	fi
 done
-exit "$status"
+exit "${status}"

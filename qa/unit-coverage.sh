@@ -18,12 +18,12 @@ set -euo pipefail
 . qa/lib.sh
 
 # a variable, not a pipe: grep -q would close it early and pipefail fail it
-modules=$("$PHP" -m)
+modules=$("${PHP}" -m)
 php_opts=()
-if grep -qix pcov <<< "$modules"; then
+if grep -qix pcov <<< "${modules}"; then
 	php_opts+=(-d pcov.enabled=1)
 	driver=pcov
-elif grep -qix xdebug <<< "$modules"; then
+elif grep -qix xdebug <<< "${modules}"; then
 	export XDEBUG_MODE=coverage
 	driver=Xdebug
 else
@@ -32,23 +32,24 @@ else
 fi
 
 OUT=$(realpath -m "${COVERAGE_OUT:-coverage-report}")
-mkdir -p "$OUT"
+mkdir -p "${OUT}"
 # the previous run's pages for classes since removed would linger
 rm -rf "${OUT}/html"
 
-echo "=== Unit coverage, PHP $("$PHP" -r 'echo PHP_VERSION;'), ${driver}"
+version=$("${PHP}" -r 'echo PHP_VERSION;')
+echo "=== Unit coverage, PHP ${version}, ${driver}"
 status=0
-"$PHP" "${php_opts[@]}" vendor/bin/phpunit -c qa/phpunit-unit.xml \
+"${PHP}" "${php_opts[@]}" vendor/bin/phpunit -c qa/phpunit-unit.xml \
 	--coverage-clover "${OUT}/clover.xml" --coverage-text="${OUT}/coverage.txt" \
 	--coverage-html "${OUT}/html" "$@" || status=$?
 # phpunit colours the file as it does the terminal
-if [ -f "${OUT}/coverage.txt" ]; then
+if [[ -f "${OUT}/coverage.txt" ]]; then
 	sed -i 's/\x1b\[[0-9;]*m//g' "${OUT}/coverage.txt"
 fi
-if [ "$status" -eq 0 ]; then
+if [[ "${status}" -eq 0 ]]; then
 	sed -n '/Summary:/,/^$/p' "${OUT}/coverage.txt"
 	echo "=== Unit coverage: reports in ${OUT}"
 else
 	echo "=== Unit coverage: failed (exit ${status}); reports in ${OUT}" >&2
 fi
-exit "$status"
+exit "${status}"

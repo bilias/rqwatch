@@ -38,22 +38,22 @@ ZAP_IMAGE="${ZAP_IMAGE:-ghcr.io/zaproxy/zaproxy:stable}"
 PHP_STREAM="${PHP_STREAM:-remi-8.4}"
 ZAP_ADDONS="${ZAP_ADDONS-ascanrulesBeta pscanrulesBeta}"
 addon_args=()
-for addon in $ZAP_ADDONS; do
-	addon_args+=(-addoninstall "$addon")
+for addon in ${ZAP_ADDONS}; do
+	addon_args+=(-addoninstall "${addon}")
 done
 OUT=$(realpath -m "${ZAP_OUT:-zap-report}")
 make_workdir
 
 # database
-if [ -z "${INTEGRATION_DB_EXEC:-}" ]; then
+if [[ -z "${INTEGRATION_DB_EXEC:-}" ]]; then
 	DB_HOST=127.0.0.1
 	DB_PASS=zap-scan
-	start_mariadb "$MARIADB_IMAGE" "$DB_PASS"
+	start_mariadb "${MARIADB_IMAGE}" "${DB_PASS}"
 else
-	DB_HOST="$INTEGRATION_DB_HOST"
-	DB_PORT="$INTEGRATION_DB_PORT"
-	DB_PASS="$INTEGRATION_DB_PASS"
-	DB_EXEC="$INTEGRATION_DB_EXEC"
+	DB_HOST="${INTEGRATION_DB_HOST:?set with INTEGRATION_DB_EXEC}"
+	DB_PORT="${INTEGRATION_DB_PORT:?set with INTEGRATION_DB_EXEC}"
+	DB_PASS="${INTEGRATION_DB_PASS:?set with INTEGRATION_DB_EXEC}"
+	DB_EXEC="${INTEGRATION_DB_EXEC}"
 fi
 
 copy_tree
@@ -82,87 +82,88 @@ PHP
 
 seed_test_data
 
-mkdir -p "$OUT"
+mkdir -p "${OUT}"
 # httpd's access and error logs and PHP-FPM's master log go straight to the
 # reports, so a cancelled run keeps them too
 WEB_SERVER_LOG="${OUT}/web-server.log"
-start_web_container /login "$WEB_PORT"
+start_web_container /login "${WEB_PORT}"
 # what serves the scan: PHP, httpd and the PHP packages with their versions
-podman exec "$WEB_CID" sh -c 'php-fpm -v; echo; httpd -v; echo; rpm -q rocky-release httpd; rpm -qa "php*" | sort' \
+podman exec "${WEB_CID}" sh -c 'php-fpm -v; echo; httpd -v; echo; rpm -q rocky-release httpd; rpm -qa "php*" | sort' \
 	> "${OUT}/web-versions.txt"
 
 # zap_login USER: logs USER (password pw-USER, from seed_test_data) in and
 # sets ZAP_SESSION and ZAP_SELF_ID (the user's id, kept off its own edit form)
 zap_login() {
 	local user=$1 jar="${WORK}/cookies-$1" token code
-	token=$(curl -fs -c "$jar" -b "$jar" "${BASE}/login" \
+	token=$(curl -fs -c "${jar}" -b "${jar}" "${BASE}/login" \
 		| sed -n 's/.*name="login_form\[_token\]"[^>]*value="\([^"]*\)".*/\1/p')
-	curl -fs -o /dev/null -c "$jar" -b "$jar" "${BASE}/login" \
+	curl -fs -o /dev/null -c "${jar}" -b "${jar}" "${BASE}/login" \
 		--data-urlencode "login_form[username]=${user}" \
 		--data-urlencode "login_form[password]=pw-${user}" \
 		--data-urlencode "login_form[_token]=${token}"
-	ZAP_SESSION=$(awk '$6 == "RQWATCHSESSID" { print $7 }' "$jar")
+	ZAP_SESSION=$(awk '$6 == "RQWATCHSESSID" { print $7 }' "${jar}")
 	# /profile answers every logged-in user; anyone else is redirected
 	code=$(curl -s -o /dev/null -w '%{http_code}' -b "RQWATCHSESSID=${ZAP_SESSION}" "${BASE}/profile")
-	if [ -z "$ZAP_SESSION" ] || [ "$code" != 200 ]; then
+	if [[ -z "${ZAP_SESSION}" ]] || [[ "${code}" != 200 ]]; then
 		echo "Login as ${user} failed (GET /profile: ${code})" >&2
 		exit 1
 	fi
-	ZAP_SELF_ID=$($DB_EXEC -N rqwatch -e "SELECT id FROM users WHERE username = '${user}'")
+	ZAP_SELF_ID=$(${DB_EXEC} -N rqwatch -e "SELECT id FROM users WHERE username = '${user}'")
 }
 
 # One pass per user: a plain user reaches the user routes and the scoped
 # queries, admin the admin routes. The plain user goes first: the admin
 # pass's active scan submits the user edit forms and may change its password.
 ZAP_USERS="${ZAP_USERS:-alice admin}"
-mkdir -p "$OUT"
+mkdir -p "${OUT}"
 # the copy's logs as they are written; replaced by a copy at the end
 ln -sfn "${WORK}/logs" "${OUT}/logs-live"
 status=0
-for user in $ZAP_USERS; do
+for user in ${ZAP_USERS}; do
 	echo "=== ZAP pass as ${user} (follow: ${OUT}/zap-home-${user}/zap.log)"
 	# rqwatch's log lines from here on, the login included, are this pass's
 	log_start=0
-	if [ -f logs/rqwatch.log ]; then
+	if [[ -f logs/rqwatch.log ]]; then
 		log_start=$(wc -l < logs/rqwatch.log)
 	fi
-	zap_login "$user"
+	zap_login "${user}"
 	# ZAP's home on the host, for zap.log while the pass runs
 	zap_home="${OUT}/zap-home-${user}"
-	rm -rf "$zap_home"
-	mkdir -p "$zap_home"
+	rm -rf "${zap_home}"
+	mkdir -p "${zap_home}"
 	rm -rf zap
 	mkdir zap
 	cp qa/zap/rqwatch.yaml zap/
 	# keep-id: ZAP's uid 1000 writes the reports as the invoking user;
 	# ZAP_AUTH_HEADER*: ZAP sets this Cookie header on every request it sends;
 	# no pids limit: ZAP's threads outgrow Podman's default
+	zap_port=$(free_port)
 	podman run --rm --pull=newer --network=host --userns=keep-id:uid=1000,gid=1000 \
 		--pids-limit=-1 -v "${WORK}/zap:/zap/wrk:Z" -v "${zap_home}:/home/zap/.ZAP:Z" \
-		-e ZAP_TARGET="$BASE" -e ZAP_SELF_ID="$ZAP_SELF_ID" \
+		-e ZAP_TARGET="${BASE}" -e ZAP_SELF_ID="${ZAP_SELF_ID}" \
 		-e ZAP_AUTH_HEADER=Cookie -e ZAP_AUTH_HEADER_VALUE="RQWATCHSESSID=${ZAP_SESSION}" \
-		"$ZAP_IMAGE" zap.sh -cmd -host 127.0.0.1 -port "$(free_port)" \
+		"${ZAP_IMAGE}" zap.sh -cmd -host 127.0.0.1 -port "${zap_port}" \
 		"${addon_args[@]}" -autorun /zap/wrk/rqwatch.yaml || status=$?
 	for report in zap/rqwatch-zap.*; do
-		if [ -e "$report" ]; then
-			cp "$report" "${OUT}/rqwatch-zap-${user}.${report##*.}"
+		if [[ -e "${report}" ]]; then
+			cp "${report}" "${OUT}/rqwatch-zap-${user}.${report##*.}"
 		fi
 	done
 	# the SARIF report, for GitHub's code scanning
-	if [ -e zap/rqwatch-zap-sarif.json ]; then
+	if [[ -e zap/rqwatch-zap-sarif.json ]]; then
 		cp zap/rqwatch-zap-sarif.json "${OUT}/rqwatch-zap-${user}.sarif"
 	fi
 	# keep zap.log; the rest of the home (session database, add-ons) is ZAP's scratch
-	if [ -f "${zap_home}/zap.log" ]; then
+	if [[ -f "${zap_home}/zap.log" ]]; then
 		cp "${zap_home}/zap.log" "${OUT}/zap-${user}.log"
 	fi
-	rm -rf "$zap_home"
-	if [ -f logs/rqwatch.log ]; then
+	rm -rf "${zap_home}"
+	if [[ -f logs/rqwatch.log ]]; then
 		tail -n "+$((log_start + 1))" logs/rqwatch.log > "${OUT}/rqwatch-${user}.log"
 	fi
 done
 
 rm -f "${OUT}/logs-live"
-cp -r logs "$OUT/"
+cp -r logs "${OUT}/"
 echo "ZAP reports and logs: ${OUT}"
-exit "$status"
+exit "${status}"

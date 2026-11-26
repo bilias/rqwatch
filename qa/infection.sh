@@ -24,11 +24,11 @@ set -euo pipefail
 . qa/lib.sh
 
 # a variable, not a pipe: grep -q would close it early and pipefail fail it
-modules=$("$PHP" -m)
+modules=$("${PHP}" -m)
 opts=()
-if grep -qix pcov <<< "$modules"; then
+if grep -qix pcov <<< "${modules}"; then
 	opts+=(--initial-tests-php-options='-d pcov.enabled=1')
-elif grep -qix xdebug <<< "$modules"; then
+elif grep -qix xdebug <<< "${modules}"; then
 	export XDEBUG_MODE=coverage
 else
 	echo "no coverage driver: install pcov (dnf install php-pecl-pcov) or Xdebug" >&2
@@ -36,7 +36,7 @@ else
 fi
 
 OUT=$(realpath -m "${INFECTION_OUT:-infection-report}")
-mkdir -p "$OUT"
+mkdir -p "${OUT}"
 ROOT=$(pwd)
 make_workdir
 copy_tree
@@ -46,8 +46,8 @@ ln -s "${ROOT}/.git" .git
 # Infection itself holds every file's mutants: a full run outgrows a 128M
 # php.ini default. The mutants' test runs are separate processes, under php.ini
 status=0
-"$PHP" -d memory_limit="${INFECTION_MEMORY_LIMIT:-1G}" vendor/bin/infection -c qa/infection.json5 --threads=max \
+"${PHP}" -d memory_limit="${INFECTION_MEMORY_LIMIT:-1G}" vendor/bin/infection -c qa/infection.json5 --threads=max \
 	--logger-html="${OUT}/infection.html" --logger-text="${OUT}/infection.log" \
 	--logger-json="${OUT}/infection.json" "${opts[@]}" "$@" || status=$?
 echo "Infection reports: ${OUT}"
-exit "$status"
+exit "${status}"

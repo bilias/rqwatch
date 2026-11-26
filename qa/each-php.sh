@@ -24,10 +24,11 @@ php_version() {
 # the first binary that reports version $1, empty if none
 find_php() {
 	nodot=$(echo "$1" | tr -d .)
-	for candidate in "php$1" "php$nodot" "/opt/remi/php$nodot/root/usr/bin/php" php; do
-		command -v "$candidate" >/dev/null 2>&1 || continue
-		if [ "$(php_version "$candidate")" = "$1" ]; then
-			echo "$candidate"
+	for candidate in "php$1" "php${nodot}" "/opt/remi/php${nodot}/root/usr/bin/php" php; do
+		command -v "${candidate}" >/dev/null 2>&1 || continue
+		version=$(php_version "${candidate}")
+		if [ "${version}" = "$1" ]; then
+			echo "${candidate}"
 			return
 		fi
 	done
@@ -36,31 +37,32 @@ find_php() {
 binaries=
 missing=
 for entry in ${QA_PHP:-8.4}; do
-	case $entry in
-		[0-9]*.[0-9]*) php=$(find_php "$entry") ;;
-		*) php=$entry; [ -n "$(php_version "$php")" ] || php= ;;
+	case ${entry} in
+		[0-9]*.[0-9]*) php=$(find_php "${entry}") ;;
+		*) php=${entry}; version=$(php_version "${php}"); [ -n "${version}" ] || php= ;;
 	esac
-	if [ -n "$php" ]; then
-		binaries="$binaries $php"
+	if [ -n "${php}" ]; then
+		binaries="${binaries} ${php}"
 	else
-		missing="$missing $entry"
+		missing="${missing} ${entry}"
 	fi
 done
 
-if [ -n "$missing" ]; then
-	echo "each-php: PHP not found, not tested here:$missing" >&2
+if [ -n "${missing}" ]; then
+	echo "each-php: PHP not found, not tested here:${missing}" >&2
 	[ "${QA_PHP_STRICT:-0}" = 1 ] && exit 1
 fi
-if [ -z "$binaries" ]; then
+if [ -z "${binaries}" ]; then
 	echo "each-php: no PHP to run; install one or set QA_PHP" >&2
 	exit 1
 fi
 
-for php in $binaries; do
-	echo "=== $("$php" -r 'echo "PHP ", PHP_VERSION;') ($php): $*"
-	PHP="$php" "$@"
+for php in ${binaries}; do
+	version=$("${php}" -r 'echo PHP_VERSION;')
+	echo "=== PHP ${version} (${php}): $*"
+	PHP="${php}" "$@"
 done
 
-if [ -n "$missing" ]; then
-	echo "each-php: not tested here:$missing (CI runs every version)" >&2
+if [ -n "${missing}" ]; then
+	echo "each-php: not tested here:${missing} (CI runs every version)" >&2
 fi
