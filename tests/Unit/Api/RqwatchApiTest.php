@@ -11,8 +11,9 @@
 /*
  An API class's construction: with the API on, the client in its IP ACL and
  the right Basic Auth it is built, the client authenticated. A setup error
- throws, logged: an empty ACL (checked first), empty credentials ('' and
- '0' included) or a published example password. The refusals that answer
+ throws, logged: an empty ACL (checked first), empty credentials ('', '0'
+ and blanks included) or a published example password. Credentials are
+ read trimmed. The refusals that answer
  the client (API off, client not in the ACL) are in ApiRefusalsTest, Basic
  Auth's in BasicAuthTest.
 */
@@ -100,6 +101,23 @@ final class RqwatchApiTest extends UnitTestCase
 		$this->assertSame([], $this->log->lines);
 	}
 
+	// only '0' itself is no credential: '00' is not compared as a number
+	public function testDoubleZero(): void {
+		$this->setServer('PHP_AUTH_USER', '00');
+		$this->setServer('PHP_AUTH_PW', '00');
+		$auth = (new ReflectionProperty(RqwatchApi::class, 'auth'))->getValue(new RqwatchApiProbe([self::CLIENT], ['00', '00']));
+		$this->assertInstanceOf(BasicAuth::class, $auth);
+		$this->assertSame('00', $auth->getAuthenticatedUser());
+	}
+
+	// .env values padded with blanks: trimmed, as the client's are not
+	public function testPaddedCredentials(): void {
+		$api = new RqwatchApiProbe([self::CLIENT], [' rspamd ', "s3cret-pass\t"]);
+		$auth = (new ReflectionProperty(RqwatchApi::class, 'auth'))->getValue($api);
+		$this->assertInstanceOf(BasicAuth::class, $auth);
+		$this->assertSame('rspamd', $auth->getAuthenticatedUser());
+	}
+
 	// before the credentials are even looked at
 	public function testEmptyAclThrows(): void {
 		$msg = 'getAllowedIps() returned empty IP ACL in ' . RqwatchApiProbe::class;
@@ -114,6 +132,10 @@ final class RqwatchApiTest extends UnitTestCase
 			'no password' => ['rspamd', null],
 			'empty user' => ['', 's3cret-pass'],
 			'password 0' => ['rspamd', '0'],
+			// BasicAuth trims them: blanks would be an empty username or password
+			'blank user' => ['  ', 's3cret-pass'],
+			'blank password' => ['rspamd', "\t "],
+			'padded 0' => ['rspamd', ' 0 '],
 		];
 	}
 

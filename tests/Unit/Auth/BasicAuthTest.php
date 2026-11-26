@@ -9,9 +9,10 @@
 */
 
 /*
- The API's Basic Auth needs both a username and a password ('0' is none),
- kept trimmed; the password never shows in a dump. No user is
- authenticated before authenticate(). A request without both, or with
+ The API's Basic Auth needs both a username and a password, trimmed
+ (blanks and '0' are none, '00' is one), and keeps them trimmed; the
+ password never shows in a dump. No user is authenticated before
+ authenticate(). A request without both, or with
  either one wrong, gets the 401 challenge; a wrong one is logged with the
  client's address, as an API failure. Here the challenge throws instead
  of exiting.
@@ -95,6 +96,9 @@ final class BasicAuthTest extends UnitTestCase
 			'username 0' => ['0', 'secret'],
 			'password 0' => ['api', '0'],
 			'neither' => ['', ''],
+			'blank username' => ['  ', 'secret'],
+			'blank password' => ['api', "\t"],
+			'padded 0' => [' 0 ', 'secret'],
 		];
 	}
 
@@ -108,6 +112,12 @@ final class BasicAuthTest extends UnitTestCase
 			return;
 		}
 		$this->fail('No HttpException');
+	}
+
+	// only '0' itself is none: '00' is not compared as a number
+	public function testDoubleZero(): void {
+		$this->assertSame(['username' => '00', 'password' => '***REDACTED***', 'authenticatedUser' => null],
+			(new BasicAuth('00', '00', $this->log))->__debugInfo());
 	}
 
 	public function testTrimmedAndRedacted(): void {
