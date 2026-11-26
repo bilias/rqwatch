@@ -466,6 +466,8 @@
 		},
 		"UnwrapArrayValues": {
 			"ignore": [
+				// implode() ignores the keys, and an empty array is [] with gaps or without
+				"App\\Services\\MapService::prepareSymbols::328",
 				// in_array() does not need list keys
 				"App\\Core\\Auth\\LoginThrottle::__construct::80",
 				// only iterated
