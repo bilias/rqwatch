@@ -14,8 +14,8 @@
  ID token. The client is built from OPENIDC_URL, OPENIDC_CLIENT_ID and
  OPENIDC_CLIENT_SECRET, each required: here one is missing, which stops
  the step before any client exists, and the logout URL is then none,
- logged. AuthManager refuses to start a step without its URL generator or
- the redirect URL, and logs out only an OpenID Connect login.
+ logged. AuthManager refuses to start a step without the redirect URL,
+ and logs out only an OpenID Connect login.
 */
 
 namespace Tests\Unit\Auth;
@@ -28,7 +28,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;
 use ReflectionProperty;
 use RuntimeException;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Tests\Unit\UnitTestCase;
 
 final class OpenIdFlowTest extends UnitTestCase
@@ -44,10 +43,6 @@ final class OpenIdFlowTest extends UnitTestCase
 
 	private function oidc(): OpenIDConnectAuth {
 		return new OpenIDConnectAuth($this->log);
-	}
-
-	private function urls(): UrlGeneratorInterface {
-		return $this->createStub(UrlGeneratorInterface::class);
 	}
 
 	public function testDisabled(): void {
@@ -113,12 +108,9 @@ final class OpenIdFlowTest extends UnitTestCase
 		} catch (LogicException $e) {
 			$this->assertSame('OPENIDC redirect URL not set', $e->getMessage());
 		}
-		$urls = $this->urls();
-		$oidc->setUrlGenerator($urls);
 		$oidc->setCallbackUrl('https://rq.example.org/login/openid/callback');
 		$oidc->setPostLogoutRedirectUrl('https://rq.example.org/');
 		$this->assertSame('https://rq.example.org/login/openid/callback', $callback->invoke($oidc));
-		$this->assertSame($urls, (new ReflectionProperty($oidc, 'urlGenerator'))->getValue($oidc));
 		$this->assertSame([
 			'is_admin' => false, 'email' => null, 'mail_aliases' => [], 'firstname' => null, 'lastname' => null,
 			'authenticatedUser' => null, 'callbackUrl' => 'https://rq.example.org/login/openid/callback',
@@ -126,40 +118,34 @@ final class OpenIdFlowTest extends UnitTestCase
 		], $oidc->__debugInfo());
 	}
 
-	// AuthManager: the URL generator first, then the redirect URL
-	public function testStartNeedsUrls(): void {
-		$this->assertThrows('Logging interface problem', fn (): bool => (new AuthManager($this->log))->startOpenIdConnectAuthentication());
-		$this->assertThrows('OPENIDC redirect URL problem', fn (): bool => (new AuthManager($this->log, $this->urls()))->startOpenIdConnectAuthentication());
-		$this->assertThrows('OPENIDC redirect URL problem', fn (): bool => (new AuthManager($this->log, $this->urls(), ''))->startOpenIdConnectAuthentication());
+	// AuthManager: the redirect URL
+	public function testStartNeedsUrl(): void {
+		$this->assertThrows('OPENIDC redirect URL problem', fn (): bool => (new AuthManager($this->log))->startOpenIdConnectAuthentication());
+		$this->assertThrows('OPENIDC redirect URL problem', fn (): bool => (new AuthManager($this->log, ''))->startOpenIdConnectAuthentication());
 	}
 
 	public function testStartDisabled(): void {
 		$this->setEnv('OPENIDC_AUTH_ENABLED', null);
-		$auth = new AuthManager($this->log, $this->urls(), 'https://rq.example.org/cb');
+		$auth = new AuthManager($this->log, 'https://rq.example.org/cb');
 		$this->assertFalse($auth->startOpenIdConnectAuthentication());
 		$this->assertNull($auth->getAuthenticatedUser(), 'no provider set');
 	}
 
 	public function testFinish(): void {
-		$this->assertThrows('Logging interface problem', fn (): bool => (new AuthManager($this->log))->finishOpenIdConnectAuthentication());
 		$this->setEnv('OPENIDC_AUTH_ENABLED', null);
-		$urls = $this->urls();
-		$auth = new AuthManager($this->log, $urls);
+		$auth = new AuthManager($this->log);
 		$this->assertFalse($auth->finishOpenIdConnectAuthentication());
 		$this->assertSame(['OPENIDC', 2], [$auth->getAuthProvider(), $auth->getAuthProviderId()]);
-		$provider = (new ReflectionProperty($auth, 'provider'))->getValue($auth);
-		$this->assertInstanceOf(OpenIDConnectAuth::class, $provider);
-		$this->assertSame($urls, (new ReflectionProperty($provider, 'urlGenerator'))->getValue($provider));
+		$this->assertInstanceOf(OpenIDConnectAuth::class, (new ReflectionProperty($auth, 'provider'))->getValue($auth));
 	}
 
 	public function testLogout(): void {
 		$this->assertFalse((new AuthManager($this->log))->logoutOpenIdConnect(''));
 		$this->assertSame(['error Empty OpenID ID Token'], $this->log->lines);
-		$this->assertThrows('Logging interface problem', fn (): bool => (new AuthManager($this->log))->logoutOpenIdConnect('token'));
-		$this->assertThrows('OPENIDC post logout redirect URL problem', fn (): bool => (new AuthManager($this->log, $this->urls()))->logoutOpenIdConnect('token'));
+		$this->assertThrows('OPENIDC post logout redirect URL problem', fn (): bool => (new AuthManager($this->log))->logoutOpenIdConnect('token'));
 
 		// not an OpenID Connect login
-		$auth = new AuthManager($this->log, $this->urls(), 'https://rq.example.org/');
+		$auth = new AuthManager($this->log, 'https://rq.example.org/');
 		$this->assertThrows('OPENIDC logout method missing', fn (): bool => $auth->logoutOpenIdConnect('token'));
 		(new ReflectionProperty($auth, 'provider'))->setValue($auth, new DbAuth('alice', 'secret'));
 		$this->assertThrows('OPENIDC logout method missing', fn (): bool => $auth->logoutOpenIdConnect('token'));
@@ -170,9 +156,8 @@ final class OpenIdFlowTest extends UnitTestCase
 	}
 
 	public function testLogoutUrl(): void {
-		$this->assertThrows('Logging interface problem', fn (): ?string => (new AuthManager($this->log))->getOpenIdConnectLogoutUrl());
 		$this->setEnv('OPENIDC_AUTH_ENABLED', null);
-		$this->assertNull((new AuthManager($this->log, $this->urls()))->getOpenIdConnectLogoutUrl());
+		$this->assertNull((new AuthManager($this->log))->getOpenIdConnectLogoutUrl());
 	}
 
 	/** @param \Closure(): mixed $call */
