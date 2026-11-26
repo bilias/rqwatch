@@ -2,6 +2,13 @@
 
 ## Master Dev Branch
 
+### 2026-11-26
+- Fix: get_mail.php answered a non-numeric mail id with an error 500 instead of a 400
+- Importer: the "Message saved/spooled" reply now declares its charset (`text/plain; charset=UTF-8`), like the other APIs
+- Security: API credentials in `.env` made only of blanks are refused at the first request, as empty ones already were
+- Security: LDAP logins with a blank username or a NUL byte in the password are refused before the directory is asked
+- Security: Components update
+
 ### 2026-11-25
 - Security: refuse published secrets at boot. A `CHANGE_ME_` placeholder, or an example value
   `.env-example` and `contrib/` shipped before v1.8.4 (still in the git history), in `DB_PASS`,
