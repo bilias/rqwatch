@@ -10,13 +10,19 @@
 
 /*
  LdapAuth attribute reading: getValue() and getValues() on an
- ldap_get_attributes() result, no directory needed.
+ ldap_get_attributes() result, no directory needed. Before it asks the
+ directory, authenticate() refuses a login without a username (blanks
+ and '0' included) or without a password ('' and '0'; an empty one would
+ be an unauthenticated bind), or with a NUL byte in the password. The
+ password is taken as typed, blanks and all. Past those checks the
+ directory's settings are read: here LDAP_URI is unset, which stops it.
 */
 
 namespace Tests\Unit\Auth;
 
 use App\Core\Auth\LdapAuth;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Tests\Unit\UnitTestCase;
 
 final class LdapAuthTest extends UnitTestCase
@@ -90,5 +96,44 @@ final class LdapAuthTest extends UnitTestCase
 
 	private function ldap(): LdapAuth {
 		return new LdapAuth('alice', 'unused', $this->log);
+	}
+
+	/** @return array<string, array{string, string}> username, password */
+	public static function refused(): array {
+		return [
+			'no username' => ['', 'secret'],
+			'blank username' => [" \t", 'secret'],
+			'username 0' => ['0', 'secret'],
+			'padded 0' => [' 0 ', 'secret'],
+			'no password' => ['alice', ''],
+			'password 0' => ['alice', '0'],
+			'NUL in the password' => ['alice', "\0secret"],
+		];
+	}
+
+	#[DataProvider('refused')]
+	public function testRefusedBeforeTheDirectory(string $username, string $password): void {
+		$this->setEnv('LDAP_URI', null);
+		$this->assertFalse((new LdapAuth($username, $password, $this->log))->authenticate());
+		$this->assertSame([], $this->log->lines);
+	}
+
+	/** @return array<string, array{string, string}> username, password */
+	public static function passed(): array {
+		return [
+			'plain' => ['alice', 'secret'],
+			'a blank password: its characters' => ['alice', '   '],
+			'a padded password' => ['alice', ' secret '],
+			'00' => ['00', '00'],
+		];
+	}
+
+	// on to the directory: its settings, here missing
+	#[DataProvider('passed')]
+	public function testOnToTheDirectory(string $username, string $password): void {
+		$this->setEnv('LDAP_URI', null);
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('LDAP_URI is not set in .env');
+		(new LdapAuth($username, $password, $this->log))->authenticate();
 	}
 }
