@@ -11,7 +11,8 @@
 /*
  RedisCache::ttl() for every reply phpredis can give: a TTL, -2 (no key),
  -1 (no expiry), false, the client itself (MULTI or pipeline mode) and an
- exception, and RedisCache::get() for a value, a missing key and MULTI mode.
+ exception, RedisCache::get() for a value, a missing key and MULTI mode,
+ and RedisCache::incr() for a count, MULTI mode and an exception.
  A stub client replaces the lazy connection.
 */
 
@@ -84,6 +85,26 @@ final class RedisCacheTest extends UnitTestCase
 		$this->assertFalse($this->cache($redis)->get('k'));
 		// a miss, but not a silent one
 		$this->assertSame(["warning RedisCache get got " . get_debug_type($redis) . " for key 'k'"], $this->log->lines);
+	}
+
+	// incr(): the new count; 0 for a reply that is not one, null when Redis fails
+	public function testIncr(): void {
+		$redis = $this->createStub(Redis::class);
+		$redis->method('incr')->willReturn(5);
+		$this->assertSame(5, $this->cache($redis)->incr('k'));
+	}
+
+	public function testIncrMultiMode(): void {
+		$redis = $this->createStub(Redis::class);
+		$redis->method('incr')->willReturnSelf();
+		$this->assertSame(0, $this->cache($redis)->incr('k'));
+	}
+
+	public function testIncrFails(): void {
+		$redis = $this->createStub(Redis::class);
+		$redis->method('incr')->willThrowException(new RedisException('Connection lost'));
+		$this->assertNull($this->cache($redis)->incr('k'));
+		$this->assertSame(['error RedisCache incr: Connection lost'], $this->log->lines);
 	}
 
 	// a key gone between SCAN and TTL (-2) is not listed; no expiry (-1) is
