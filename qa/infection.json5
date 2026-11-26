@@ -89,7 +89,9 @@
 				// json_encode() with JSON_PARTIAL_OUTPUT_ON_ERROR does not fail
 				"App\\Services\\FuzzyService::flags::112",
 				// inet_ntop() of a packed address does not fail
-				"App\\Inventory\\MapInventory::validateIpOrCidr::505"
+				"App\\Inventory\\MapInventory::validateIpOrCidr::505",
+				// preg_replace() with this ASCII pattern does not fail
+				"App\\Models\\MailLog::logUnparsableMimeFrom::275"
 			]
 		},
 		"Coalesce": {
@@ -113,6 +115,8 @@
 		},
 		"DecrementInteger": {
 			"ignore": [
+				// no attachments leave the list empty either way
+				"App\\Inventory\\MailObject::setAttached::123",
 				// a missing seen time expires the handle either way
 				"App\\Controllers\\QuarantineController::sessionToken::323",
 				// an empty password is refused by NotBlank before Length
@@ -148,6 +152,8 @@
 		},
 		"GreaterThan": {
 			"ignore": [
+				// no attachments leave the list empty either way
+				"App\\Inventory\\MailObject::setAttached::123",
 				// custom maps come from the database; Integration covers them
 				"App\\Inventory\\MapInventory::getMapConfigs::243",
 				// no addresses matched leaves the loop empty either way
@@ -256,9 +262,21 @@
 			]
 		},
 		"PublicVisibility": {
-			// public, but only called inside its class (Eloquent calls accessors from inside the model)
+			// public, but only called inside its class (Eloquent calls accessors,
+			// mutators and scopes from inside the model)
 			"ignore": [
 				"App\\Models\\MailLog::getMimeFromDecodedAttribute::200",
+				"App\\Models\\MailLog::getVirusFromSymbolAttribute::190",
+				"App\\Models\\MailLog::getMailRecipientsAttribute::315",
+				"App\\Models\\MailLog::getRcptToAttribute::341",
+				"App\\Models\\MailLog::getHeadersAttribute::436",
+				"App\\Models\\MailLog::getSymbolsAttribute::446",
+				"App\\Models\\MailLog::getFuzzyHashesAttribute::456",
+				"App\\Models\\User::setDisableNotificationsAttribute::78",
+				"App\\Models\\MapCombined::scopeForMap::89",
+				"App\\Models\\MapCombined::scopeMailFromRcptTo::97",
+				"App\\Models\\MapCombined::scopeMailFrom::105",
+				"App\\Models\\MapCustom::scopeForMap::66",
 				"App\\Configuration\\Config::loadAndInit::152",
 				"App\\Utils\\Helper::checkForMap::259",
 				"App\\Utils\\Helper::convertSRSAddress::450"
@@ -266,6 +284,8 @@
 		},
 		"ReturnRemoval": {
 			"ignore": [
+				// a column the row was loaded without reads as null anyway
+				"App\\Models\\MailLog::mailLogDataValue::407",
 				// a non-IPv6 value falls through to the same $ip
 				"App\\Core\\Auth\\LoginThrottle::keyFor::286",
 				// the Y-m-d round trip refuses it too
