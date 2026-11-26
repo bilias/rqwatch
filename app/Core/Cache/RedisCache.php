@@ -17,7 +17,6 @@ use Symfony\Component\Cache\Adapter\RedisAdapter;
 
 use Redis;
 
-use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
@@ -202,9 +201,6 @@ final class RedisCache implements CacheInterface
 				}
 				$this->client = $client;
 				$this->logger->debug('[RedisCache] Redis connection established');
-			} catch (InvalidArgumentException $e) {
-				$this->logger->error('[RedisCache]: ' . $e->getMessage());
-				throw $e;
 			} catch (Throwable $e) {
 				$this->logger->error('[RedisCache]: ' . $e->getMessage());
 				throw $e;
