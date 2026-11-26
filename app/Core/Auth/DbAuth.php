@@ -50,7 +50,14 @@ final class DbAuth implements AuthInterface {
 
 	#[\Override]
 	public function authenticate(): bool {
-		if (empty($this->username) || empty($this->password)) {
+		/*
+		 No username (blanks included) or no password: fail closed, as
+		 LdapAuth does. The password is checked as typed: blanks are
+		 characters in it. A NUL byte is refused: bcrypt may end it there.
+		*/
+		if (in_array(trim($this->username), ['', '0'], true)
+			|| in_array($this->password, ['', '0'], true)
+			|| str_contains($this->password, "\0")) {
 			return false;
 		}
 
