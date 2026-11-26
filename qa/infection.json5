@@ -21,6 +21,8 @@
 		},
 		"ArrayItemRemoval": {
 			"ignore": [
+				// the query selects its own columns: paginate()'s are only a default, and its count ignores them
+				"App\\Services\\MapService::getPaginatedMapCustom::536",
 				// Symfony's HttpClient verifies the peer by default too
 				"App\\Services\\ApiClient::__construct::27",
 				// 'required' => true is the default
@@ -120,6 +122,8 @@
 		},
 		"ConcatOperandRemoval": {
 			"ignore": [
+				// tempnam() leaves MAP_DIR only when MAP_DIR is unusable, which was refused just before
+				"App\\Services\\MapService::updateMapFile::745",
 				// the same default log file
 				"App\\Core\\Logging\\LoggerFactory::createFileLogger::38",
 				// Symfony's formatter styles an unclosed tag to the end of the line
@@ -270,6 +274,10 @@
 		},
 		"LogicalOr": {
 			"ignore": [
+				// tempnam() leaves MAP_DIR only when MAP_DIR is unusable, which was refused just before
+				"App\\Services\\MapService::updateMapFile::745",
+				// a local file write that fails short or flushes nothing: no test can make one
+				"App\\Services\\MapService::updateMapFile::820",
 				// php-ip's isPrivate() or isReserved() already covers loopback and link-local
 				"App\\Utils\\Helper::isLocalOrReservedIp::1230",
 				// valid UTF-8 comes out of toUtf8() unchanged
@@ -344,6 +352,8 @@
 			// public, but only called inside its class (Eloquent calls accessors
 			// and mutators from inside the model)
 			"ignore": [
+				"App\\Services\\MapService::getMapCombinedBasicQuery::120",
+				"App\\Services\\MapService::getMapCustomQuery::152",
 				"App\\Models\\MailLog::getMimeFromDecodedAttribute::200",
 				"App\\Models\\MailLog::getVirusFromSymbolAttribute::190",
 				"App\\Models\\MailLog::getMailRecipientsAttribute::315",
@@ -417,6 +427,8 @@
 		},
 		"TrueValue": {
 			"ignore": [
+				// the values are text, none of them numeric: == matches as === does
+				"App\\Services\\MapService::updateMapFile::779",
 				// resyncCounters() reads only the keys of the aliases seen
 				"App\\Services\\Import\\MailLogSpool::drain::323",
 				"App\\Services\\Import\\MailLogSpool::drain::410",
@@ -481,8 +493,14 @@
 			"ignore": ["App\\Core\\Auth\\LoginThrottle::keyFor::290"]
 		},
 		"UnwrapRtrim": {
-			// netdns2 gives the name without its trailing dot: the rtrim() is a guard
-			"ignore": ["App\\Utils\\Helper::lookupPtr::1586"]
+			"ignore": [
+				// netdns2 gives the name without its trailing dot: the rtrim() is a guard
+				"App\\Utils\\Helper::lookupPtr::1586",
+				// realpath() ends in a separator only for /, whose prefix is the same
+				"App\\Services\\MapService::updateMapFile::745",
+				// a trailing / in MAP_DIR makes the path's // , which the file system reads as /
+				"App\\Services\\MapService::updateMapFile::836",
+			]
 		},
 		"CatchBlockRemoval": {
 			"ignore": [
