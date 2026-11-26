@@ -10,12 +10,15 @@
 
 /*
  App's accessors: a migration status the context does not have is an
- exception that says so, never a value of another type.
+ exception that says so, never a value of another type. App is
+ initialized once; a second init() is refused.
 */
 
 namespace Tests\Unit\Core;
 
 use App\Core\App;
+use App\Core\AppContainer;
+use Tests\Unit\RecordingLogger;
 use RuntimeException;
 use Tests\Unit\UnitTestCase;
 
@@ -26,5 +29,22 @@ final class AppTest extends UnitTestCase
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage('MigrationStatus is not available in this context.');
 		App::migrationStatus();
+	}
+
+	public function testInitOnce(): void {
+		App::reset();
+		$logger = new RecordingLogger();
+		App::init(new AppContainer(0.0, 0, $logger, $logger, null, null, null, false));
+		$this->assertSame($logger, App::fileLogger());
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('App has already been initialized.');
+		App::init(new AppContainer(0.0, 0, $this->log, $this->log, null, null, null, false));
+	}
+
+	public function testNotInitialized(): void {
+		App::reset();
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('App::init() has not been called.');
+		App::fileLogger();
 	}
 }

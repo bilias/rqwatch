@@ -96,6 +96,14 @@
 				"App\\Services\\FuzzyService::learnLocal::315"
 			]
 		},
+		"Concat": {
+			// the default log file is the install's logs/: a test would write outside its temp dir
+			"ignore": ["App\\Core\\Logging\\LoggerFactory::createFileLogger::38"]
+		},
+		"ConcatOperandRemoval": {
+			// the same default log file
+			"ignore": ["App\\Core\\Logging\\LoggerFactory::createFileLogger::38"]
+		},
 		"Coalesce": {
 			"ignore": [
 				// the password goes only to a real controller; Integration's Smoke/RspamdStatTest
@@ -152,7 +160,10 @@
 				"App\\Inventory\\MapInventory::canonicalIpOrCidr::463",
 				// an answer found is cached for the full TTL whether or not it is called transient
 				"App\\Utils\\Helper::lookupPtr::1586",
-				"App\\Utils\\Helper::lookupA::1643"
+				"App\\Utils\\Helper::lookupA::1643",
+				// SafeLineFormatter replaces line breaks whatever allowInlineLineBreaks says
+				"App\\Core\\Logging\\LoggerFactory::createFileLogger::51",
+				"App\\Core\\Logging\\LoggerFactory::createSyslogLogger::92"
 			]
 		},
 		"GreaterThan": {

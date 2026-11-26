@@ -10,9 +10,9 @@
 
 /*
  Typed column reads of raw database rows: text is read as is, an integer
- as an int or its digits (native or emulated prepares); null only through
- the nullable readers; anything else, or a missing column, throws naming
- the column.
+ as an int or its digits (native or emulated prepares), a number as an
+ int, a float or numeric text (a DECIMAL); null only through the nullable
+ readers; anything else, or a missing column, throws naming the column.
 */
 
 namespace Tests\Unit\Core;
@@ -49,6 +49,25 @@ final class RowTest extends TestCase
 		$this->assertSame('', Row::string(self::row(), 'empty'));
 		$this->assertNull(Row::nullableString(self::row(), 'none'));
 		$this->assertSame('42', Row::string(self::row(), 'digits'), 'text is not converted');
+	}
+
+	public function testFloat(): void {
+		$this->assertSame(1.5, Row::float(self::row(), 'float'));
+		$this->assertSame(1.5, Row::float(self::row(), 'decimal'));
+		$this->assertSame(42.0, Row::float(self::row(), 'id'));
+		$this->assertSame(-3.0, Row::float(self::row(), 'negative'));
+	}
+
+	/** @return array<string, array{string, string}> column, its type */
+	public static function notNumbers(): array {
+		return ['text' => ['name', 'string'], 'null' => ['none', 'null'], 'bool' => ['bool', 'bool'], 'suffix' => ['suffix', 'string']];
+	}
+
+	#[DataProvider('notNumbers')]
+	public function testNotANumberRefused(string $column, string $type): void {
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage("Database column '{$column}' must be a number, not {$type}");
+		Row::float(self::row(), $column);
 	}
 
 	public function testIntegers(): void {

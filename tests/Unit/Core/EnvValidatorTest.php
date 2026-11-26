@@ -193,6 +193,7 @@ final class EnvValidatorTest extends UnitTestCase
 
 	public function testNonStringRefused(): void {
 		$this->assertSame(['DB_HOST is not a string'], EnvValidator::errors(['DB_HOST' => ['x']] + self::valid(), false));
+		$this->assertSame(['LOGIN_WINDOW is not a string'], EnvValidator::errors(['LOGIN_WINDOW' => 30] + self::valid(), false));
 	}
 
 	// every key the code reads with env_bool() is checked as a boolean
