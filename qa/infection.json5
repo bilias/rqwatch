@@ -251,8 +251,11 @@
 			]
 		},
 		"NotIdentical": {
-			// the test seam: negated, the unit tests' refusals send the real 401 and exit
-			"ignore": ["App\\Core\\Auth\\BasicAuth::doBasicAuth::85"]
+			// the test seams: negated, the unit tests' answers are sent for real and exit
+			"ignore": [
+				"App\\Core\\Auth\\BasicAuth::doBasicAuth::85",
+				"App\\Api\\RqwatchApi::respond::161"
+			]
 		},
 		"PregMatchRemoveCaret": {
 			"ignore": [

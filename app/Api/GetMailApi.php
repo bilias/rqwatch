@@ -85,7 +85,6 @@ final class GetMailApi extends RqwatchApi
 
 		$this->fileLogger->info("[{$this->logPrefix}] '{$remote_user}' via '{$this->clientIp}' requested mail {$log->qid}");
 		$this->syslogLogger->info("[{$this->logPrefix}] '{$remote_user}' via '{$this->clientIp}' requested mail {$log->qid}");
-		$response->send();
-		exit;
+		$this->respond($response);
 	}
 }

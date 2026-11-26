@@ -128,8 +128,7 @@ final class FuzzyMailApi extends RqwatchApi
 		$response->setCharset('UTF-8');
 		$response->setStatusCode(Response::HTTP_OK);
 		$response->prepare($this->request);
-		$response->send();
-		exit;
+		$this->respond($response);
 	}
 
 	// logged before the work, so the service's result line follows it

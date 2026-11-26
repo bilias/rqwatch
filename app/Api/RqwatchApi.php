@@ -147,7 +147,21 @@ abstract class RqwatchApi
 			$this->syslogLogger->$logLevel($fullLogMsg);
 		}
 
-		Helper::plainTextResponse($responseMsg, $httpCode)->send();
+		$this->respond(Helper::plainTextResponse($responseMsg, $httpCode));
+	}
+
+	/*
+	 Every answer of an API leaves through here: sent, then the request
+	 ends. A unit test sets $respond (it throws) to read the answer instead.
+	*/
+	/** @var (\Closure(Response): never)|null */
+	private static ?\Closure $respond = null; // @phpstan-ignore property.unusedType (the unit tests set it, through reflection)
+
+	protected function respond(Response $response): never {
+		if (self::$respond !== null) {
+			(self::$respond)($response);
+		}
+		$response->send();
 		exit;
 	}
 

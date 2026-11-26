@@ -128,8 +128,7 @@ final class ReleaseMailApi extends RqwatchApi
 			$response->setCharset('UTF-8');
 			$response->setStatusCode(Response::HTTP_OK);
 			$response->prepare($this->request);
-			$response->send();
-			exit;
+			$this->respond($response);
 		}
 		
 		// we're here only if send mail failed
