@@ -98,6 +98,8 @@
 				"App\\Api\\MetadataImporterMultipartApi::handle::258",
 				// an int . 'B' is the same string
 				"App\\Utils\\Helper::formatSizeUnits::506",
+				// with partial output json_encode() returns text; false would concatenate as '' anyway
+				"App\\Services\\MapService::mapSymbols::268",
 				// json_encode() of a decoded value does not fail
 				"App\\Utils\\Helper::log_to_files::698",
 				// preg_replace() with this ASCII pattern does not fail
@@ -156,6 +158,7 @@
 				"App\\Api\\FuzzyMailApi::handle::53",
 				"App\\Api\\FuzzyMailApi::handle::55",
 				"App\\Api\\FuzzyMailApi::handle::58",
+				"App\\Api\\GetMailApi::handle::43",
 				// an unset spool limit or TTL is unusable as -1 as it is as 0
 				"App\\Services\\Import\\MailLogSpool::push::199",
 				"App\\Services\\Import\\MailLogSpool::push::200",
@@ -253,7 +256,9 @@
 				// null and '' fall through the switch to the same "clean"
 				"App\\Utils\\Helper::get_row_class::372",
 				// every mailparse entry is an array
-				"App\\Utils\\Helper::getMailFromMime::1385"
+				"App\\Utils\\Helper::getMailFromMime::1385",
+				// an empty user context sets nothing: each value read from it is null, as it was
+				"App\\Services\\MailLogService::__construct::87"
 			]
 		},
 		"LogicalNot": {
