@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-11-26
+- maps: store IPv6 hosts of url map entries in rspamd's canonical form
 - Fix: get_mail.php answered a non-numeric mail id with an error 500 instead of a 400
 - Importer: the "Message saved/spooled" reply now declares its charset (`text/plain; charset=UTF-8`), like the other APIs
 - Security: API credentials in `.env` made only of blanks are refused at the first request, as empty ones already were
