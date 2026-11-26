@@ -11,15 +11,23 @@
 /*
  "Go to message" takes Postfix short (hex) and long (enable_long_queue_ids)
  queue IDs, up to the qid column's 30 characters, letters and digits only;
- an empty one is refused.
+ an empty one is refused. A valid one redirects to the mail's page, the
+ admin's for an admin; a form not submitted, or refused, does not.
 */
 
 namespace Tests\Unit\Forms;
 
+use App\Core\Routing\Routes;
 use App\Forms\QidForm;
+use App\Utils\FormHelper;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\Forms;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGenerator;
+use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Validator\Validation;
 use Tests\Unit\UnitTestCase;
 
@@ -44,13 +52,38 @@ final class QidFormTest extends UnitTestCase
 
 	#[DataProvider('qids')]
 	public function testQid(string $qid, bool $accepted): void {
-		$factory = Forms::createFormFactoryBuilder()
-			->addExtension(new ValidatorExtension(Validation::createValidator()))
-			->getFormFactory();
-		$form = $factory->create(QidForm::class);
+		$form = self::form();
 		$form->submit(['qid' => $qid]);
 
 		$this->assertTrue($form->isSubmitted());
 		$this->assertSame($accepted, $form->isValid(), (string) $form->getErrors(true));
+	}
+
+	public function testRedirect(): void {
+		$urls = new UrlGenerator(Routes::load()['routes'], new RequestContext());
+		$form = self::form();
+		$form->submit(['qid' => '4B3E020C949']);
+		$this->assertSame('/detail/qid/4B3E020C949', QidForm::check_form($form, $urls)?->getTargetUrl());
+		$this->assertSame('/admin/detail/qid/4B3E020C949', QidForm::check_form($form, $urls, true)?->getTargetUrl());
+	}
+
+	public function testNoRedirect(): void {
+		$urls = new UrlGenerator(Routes::load()['routes'], new RequestContext());
+		$this->assertNull(QidForm::check_form(self::form(), $urls, true), 'not submitted');
+		$form = self::form();
+		$form->submit(['qid' => '4B3E-20C949']);
+		$this->assertNull(QidForm::check_form($form, $urls, true), 'refused');
+	}
+
+	/**
+	 * @psalm-return FormInterface<array<string, mixed>>
+	 * @phpstan-return FormInterface
+	 */
+	private static function form(): FormInterface {
+		$factory = Forms::createFormFactoryBuilder()
+			->addExtension(new HttpFoundationExtension())
+			->addExtension(new ValidatorExtension(Validation::createValidator()))
+			->getFormFactory();
+		return FormHelper::formCreator($factory, Request::create('/'), QidForm::class);
 	}
 }

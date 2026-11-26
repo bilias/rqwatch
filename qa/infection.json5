@@ -34,7 +34,16 @@
 				"App\\Forms\\MailAliasForm::buildForm::55",
 				"App\\Forms\\QidForm::buildForm::39",
 				"App\\Forms\\UserForm::buildForm::45",
-				"App\\Forms\\UserForm::buildForm::65"
+				"App\\Forms\\UserForm::buildForm::65",
+				"App\\Forms\\FuzzySearchForm::buildForm::41",
+				"App\\Forms\\MailAliasSearchForm::buildForm::40",
+				"App\\Forms\\MapSearchForm::buildForm::38",
+				"App\\Forms\\UserSearchForm::buildForm::40",
+				"App\\Forms\\SearchForm::buildForm::43",
+				"App\\Forms\\SearchForm::buildForm::52",
+				// 'mapped' => true is the default
+				"App\\Forms\\MapSearchForm::buildForm::49",
+				"App\\Forms\\MapSearchForm::buildForm::52"
 			]
 		},
 		"BitwiseOr": {
@@ -93,7 +102,13 @@
 				"App\\Utils\\Helper::getMailFromMime::1385",
 				// the builders' charts always have datasets; without, both fail (the
 				// swap only adds an undefined-key warning, which still passes)
-				"App\\Charts\\ChartBuilder::addStoredRatio::307"
+				"App\\Charts\\ChartBuilder::addStoredRatio::307",
+				// the picker always has its hidden model field
+				"App\\Forms\\MapSelectForm::check_form_show::101",
+				// without data, or a username in it, the swap only adds an
+				// undefined-key warning, which still passes
+				"App\\Forms\\UserDeleteForm::buildForm::34",
+				"App\\Forms\\UserDeleteForm::buildForm::36"
 			]
 		},
 		"DecrementInteger": {
@@ -102,6 +117,10 @@
 				"App\\Controllers\\QuarantineController::sessionToken::323",
 				// an empty password is refused by NotBlank before Length
 				"App\\Forms\\LoginForm::buildForm::69",
+				// an empty search, the same
+				"App\\Forms\\FuzzySearchForm::buildForm::51",
+				"App\\Forms\\UserSearchForm::buildForm::50",
+				"App\\Forms\\SearchForm::buildForm::66",
 				// 7 zero bytes differ from 8 only in the reserved ::/56
 				"App\\Core\\Auth\\LoginThrottle::keyFor::290",
 				// a shift by 9 masks the byte to 0, as a shift by 8 does

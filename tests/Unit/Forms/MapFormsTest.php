@@ -13,8 +13,10 @@
  an IP or network with its host bits clear and stores it in canonical
  form, the URL field anything not blank. A user's form offers only the
  user's own addresses as RCPT To, each shown as itself; any other is
- refused. Every map form takes the role option the controllers pass, and a
- two-field form without both field names fails at build time.
+ refused; a user's form whose second field is not RCPT To keeps that
+ field as it is. Every map form takes the role option the controllers pass,
+ the custom map form its map and is_edit too, and a two-field form without
+ both field names fails at build time.
 */
 
 namespace Tests\Unit\Forms;
@@ -25,14 +27,17 @@ use App\Forms\MapMailFromForm;
 use App\Forms\MapMailFromRcptToForm;
 use App\Forms\MapMailFromRcptToUserForm;
 use App\Forms\MapUrlForm;
+use App\Forms\MapWithCustomFieldForm;
 use App\Forms\MapWithTwoFieldsForm;
 use App\Forms\MapWithTwoFieldsUserOverrideForm;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Component\Form\Forms;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Validation;
 use Tests\Unit\UnitTestCase;
 
@@ -123,6 +128,26 @@ final class MapFormsTest extends UnitTestCase
 	public function testRoleOptionAccepted(string $class, array $options): void {
 		$form = self::factory()->create($class, null, ['role' => 'admin'] + $options);
 		$this->assertTrue($form->has('submit'));
+	}
+
+	public function testUserFormOtherSecondFieldKept(): void {
+		$form = new class extends MapWithTwoFieldsUserOverrideForm {
+			protected static string $firstFieldName = 'mail_from';
+			protected static string $secondFieldName = 'mime_from';
+		};
+		$built = self::factory()->createNamed('form', $form::class, null, ['user_emails' => ['alice@example.org']]);
+		$config = $built->get('mime_from')->getConfig();
+		$this->assertInstanceOf(EmailType::class, $config->getType()->getInnerType());
+		$this->assertSame('MIME From:', $config->getOption('label'));
+		$built->submit(['mail_from' => 'spammer@example.org', 'mime_from' => 'news@example.org']);
+		$this->assertTrue($built->isValid(), (string) $built->getErrors(true));
+	}
+
+	// its fields come from the database: built by the integration tests
+	public function testCustomFieldFormOptions(): void {
+		$resolver = new OptionsResolver();
+		(new MapWithCustomFieldForm())->configureOptions($resolver);
+		$this->assertEqualsCanonicalizing(['role', 'map', 'is_edit'], $resolver->getDefinedOptions());
 	}
 
 	public function testTwoFieldFormNeedsBothNames(): void {

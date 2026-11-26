@@ -13,21 +13,28 @@
  attribute and the other HTML attributes (class, title, autocomplete,
  autofocus), with the buttons and the repeated password's two inputs. The
  login username label follows login_username_label, and an edit form does
- not require the password. A change here is the prompt to review the page.
+ not require the password; the hidden fields have no label. A change here
+ is the prompt to review the page.
 */
 
 namespace Tests\Unit\Forms;
 
 use App\Configuration\Config;
 use App\Forms\CustomMapConfigForm;
+use App\Forms\FuzzySearchForm;
 use App\Forms\LoginForm;
 use App\Forms\MailAliasForm;
+use App\Forms\MailAliasSearchForm;
+use App\Forms\MailReleaseForm;
 use App\Forms\MapMailFromForm;
 use App\Forms\MapMailFromRcptToForm;
 use App\Forms\MapMailFromRcptToUserForm;
+use App\Forms\MapSearchForm;
 use App\Forms\ProfileForm;
 use App\Forms\QidForm;
+use App\Forms\UserDeleteForm;
 use App\Forms\UserForm;
+use App\Forms\UserSearchForm;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
 use Symfony\Component\Form\FormTypeInterface;
@@ -121,6 +128,35 @@ final class FormViewsTest extends UnitTestCase
 				'mail_from' => ['Mail From:', true, ['class' => 'uniform-input']],
 				'rcpt_to' => ['RCPT To:', true, ['class' => 'uniform-input']],
 				'submit' => ['Submit', null, []],
+			]],
+			'fuzzy search' => [FuzzySearchForm::class, [], [], [
+				'search' => ['Fuzzy search: ', true, ['class' => 'field', 'title' => 'QID, learned by, server or hash prefix']],
+				'submit' => ['Search', null, []],
+			]],
+			'mail alias search' => [MailAliasSearchForm::class, [], [], [
+				'alias' => ['Mail Alias search: ', true, ['class' => 'field', 'title' => 'Search mail alias']],
+				'search' => ['Search', null, []],
+			]],
+			'user search' => [UserSearchForm::class, [], [], [
+				'user' => ['User search: ', true, ['class' => 'field', 'title' => 'Search user']],
+				'search' => ['Search', null, []],
+			]],
+			'map entry search' => [MapSearchForm::class, [], [], [
+				'field' => ['Entry search: ', true, ['class' => 'field', 'title' => 'Search entry in maps']],
+				'model' => [null, false, []],
+				'map_name' => [null, false, []],
+				'search' => ['Search', null, []],
+			]],
+			'mail release' => [MailReleaseForm::class, [], [], [
+				'email' => ['E-mail: ', false, ['class' => 'email', 'title' => 'E-mail for release']],
+				'email_alt' => ['Alternative E-mail: ', false, ['class' => 'email', 'title' => 'Enter alternative e-mail(s) for release, comma separated', 'multiple' => 'multiple']],
+				'release' => ['Release', false, ['class' => 'release', 'title' => 'Release mail to original recipient']],
+				'release_alt' => ['Release to alternate recipient', false, ['class' => 'release', 'title' => 'Release mail to alternate recipient']],
+				'submit' => ['Submit and Release Mail', null, []],
+			]],
+			'user delete, no user given' => [UserDeleteForm::class, [], [], [
+				'id' => [null, false, []],
+				'delete' => ['Delete User', null, ['class' => 'btn btn-danger', 'data-confirm' => 'Are you sure you want to delete user "this user"?']],
 			]],
 		];
 	}
