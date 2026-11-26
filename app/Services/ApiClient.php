@@ -21,6 +21,14 @@ final class ApiClient
 {
 	private HttpClientInterface $client;
 
+	/*
+	 The HTTP client: Symfony's; through $httpClient instead when a unit test
+	 has set one (a MockHttpClient), so the calls run without a network. It
+	 gets the same options.
+	*/
+	/** @var (\Closure(array<string, mixed>): HttpClientInterface)|null options => the client */
+	private static ?\Closure $httpClient = null; // @phpstan-ignore property.unusedType (the unit tests set it, through reflection)
+
 	/** @param array<string, mixed> $options Symfony HttpClient options */
 	public function __construct(array $options = []) {
 		// Set default options for secure communication
@@ -31,7 +39,9 @@ final class ApiClient
 		];
 		$mergedOptions = array_merge($defaultOptions, $options);
 
-		$this->client = HttpClient::create($mergedOptions);
+		$this->client = self::$httpClient !== null
+			? (self::$httpClient)($mergedOptions)
+			: HttpClient::create($mergedOptions);
 		//$this->client = new CurlHttpClient($mergedOptions);
 	}
 

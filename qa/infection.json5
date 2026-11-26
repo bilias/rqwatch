@@ -24,7 +24,7 @@
 				// the query selects its own columns: paginate()'s are only a default, and its count ignores them
 				"App\\Services\\MapService::getPaginatedMapCustom::536",
 				// Symfony's HttpClient verifies the peer by default too
-				"App\\Services\\ApiClient::__construct::27",
+				"App\\Services\\ApiClient::__construct::35",
 				// 'required' => true is the default
 				"App\\Forms\\CustomMapConfigForm::buildForm::37",
 				"App\\Forms\\CustomMapConfigForm::buildForm::64",
