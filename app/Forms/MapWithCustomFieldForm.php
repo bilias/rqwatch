@@ -12,6 +12,7 @@ namespace App\Forms;
 
 use Symfony\Component\Form\AbstractType;
 
+use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -94,6 +95,14 @@ final class MapWithCustomFieldForm extends AbstractType
 			->add('submit', SubmitType::class, [
 				'label' => 'Submit',
 			]);
+
+		// IPv6 hosts in rspamd's form, so they match what rspamd reports for the URL
+		if ($field_name === 'url') {
+			$builder->get($field_name)->addModelTransformer(new CallbackTransformer(
+				fn(?string $value): ?string => $value,
+				fn(?string $value): ?string => $value === null ? null : MapInventory::canonicalUrlHostEntries($value),
+			));
+		}
 	}
 
 	/**

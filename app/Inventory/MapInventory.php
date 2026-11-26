@@ -467,6 +467,25 @@ final class MapInventory
 		return $prefix === null ? $ip : "{$ip}/{$prefix}";
 	}
 
+	// 'url' map entries with an IPv6 host in rspamd's form (canonical, no brackets), so an address
+	// copied from a browser, e.g. [::ffff:d93c:ed72], matches ::ffff:217.60.237.114; other lines unchanged
+	public static function canonicalUrlHostEntries(string $text): string {
+		$lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $text));
+		return implode("\n", array_map(self::canonicalUrlHostEntry(...), $lines));
+	}
+
+	private static function canonicalUrlHostEntry(string $line): string {
+		// optional '#' (disabled entry), then one bare or [bracketed] address and nothing else
+		if (preg_match('/^(\s*#?\s*)(?:\[([^\[\]\s]+)\]|([^\[\]\s]+))(\s*)$/D', $line, $m) !== 1) {
+			return $line;
+		}
+
+		$addr = $m[2] !== '' ? $m[2] : $m[3];
+		$packed = filter_var($addr, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false ? inet_pton($addr) : false;
+		$canonical = $packed === false ? false : inet_ntop($packed);
+		return $canonical === false ? $line : $m[1] . $canonical . $m[4];
+	}
+
 	// IPv4/IPv6 address or network in CIDR notation, host bits clear
 	public static function validateIpOrCidr(mixed $value, ExecutionContextInterface $context): void {
 		if (!is_string($value) || $value === '') {

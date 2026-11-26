@@ -220,6 +220,30 @@ final class MapInventoryTest extends UnitTestCase
 		$this->assertSame($expected, MapInventory::canonicalIpOrCidr($value));
 	}
 
+	/** @return array<string, array{string, string}> */
+	public static function urlHostCases(): array {
+		return [
+			'bracketed, as copied from a browser' => ['[::ffff:d93c:ed72]', '::ffff:217.60.237.114'],
+			'bare hex form' => ['::ffff:d93c:ed72', '::ffff:217.60.237.114'],
+			'expanded and uppercase, as in a body' => ['[0000:0000:0000:0000:0000:FFFF:D93C:ED72]', '::ffff:217.60.237.114'],
+			'disabled entry keeps its #' => ['#[::FFFF:d93c:ed72]', '#::ffff:217.60.237.114'],
+			'surrounding spaces kept' => ['  [2001:DB8:0:0:0:0:0:1]  ', '  2001:db8::1  '],
+			'several lines, CRLF to LF' => ["evil.com\r\n[::1]\r\n\r\n#::FFFF:1.2.3.4", "evil.com\n::1\n\n#::ffff:1.2.3.4"],
+			'domain' => ['example.org', 'example.org'],
+			'full URL, kept' => ['http://[::ffff:d93c:ed72]/q9x-oml?lang=el', 'http://[::ffff:d93c:ed72]/q9x-oml?lang=el'],
+			'IPv4, kept' => ['1.2.3.4', '1.2.3.4'],
+			'IPv4 in brackets, kept' => ['[1.2.3.4]', '[1.2.3.4]'],
+			'unbalanced bracket, kept' => ['[::ffff:d93c:ed72', '[::ffff:d93c:ed72'],
+			'not an address, kept' => ['abc:def', 'abc:def'],
+			'empty' => ['', ''],
+		];
+	}
+
+	#[DataProvider('urlHostCases')]
+	public function testCanonicalUrlHostEntries(string $value, string $expected): void {
+		$this->assertSame($expected, MapInventory::canonicalUrlHostEntries($value));
+	}
+
 	/** @param array<string, array<string, mixed>> $configs */
 	private function check(array $configs): mixed {
 		return (new ReflectionMethod(MapInventory::class, 'checkMapConfigs'))->invoke(null, $configs);
