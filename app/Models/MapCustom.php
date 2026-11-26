@@ -12,7 +12,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Runtime-only attributes, set by MapController for the views (not columns):
@@ -56,15 +55,4 @@ final class MapCustom extends Model
 		'created_at',
 		'updated_at',
 	];
-
-	// scopes
-	/**
-	 * @param Builder<self> $query
-	 * @param string $map
-	 * @return Builder<self>
-	 */
-	public function scopeForMap($query, $map): Builder {
-		return $query->where('map_name', $map);
-	}
-
 }

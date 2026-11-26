@@ -14,8 +14,7 @@
  authenticated before authenticate(). A request without both, or with
  either one wrong, gets the 401 challenge; a wrong one is logged with the
  client's address, as an API failure. Here the challenge throws instead
- of exiting; API_MODE is defined in a process of its own, as the router
- reads it too.
+ of exiting.
 */
 
 namespace Tests\Unit\Auth;
@@ -24,8 +23,6 @@ use App\Core\Auth\BasicAuth;
 use App\Utils\Helper;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\PreserveGlobalState;
-use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use ReflectionProperty;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -159,11 +156,7 @@ final class BasicAuthTest extends UnitTestCase
 		return [['admin', 'secret'], ['api', 'nope'], ['admin', 'nope'], ['API', 'secret'], ['api', 'secret ']];
 	}
 
-	// API_MODE: only RqwatchApi builds a BasicAuth, from the API entry points
-	#[RunInSeparateProcess]
-	#[PreserveGlobalState(false)]
 	public function testWrong(): void {
-		define('API_MODE', true);
 		$expected = [];
 		foreach (self::wrong() as [$user, $password]) {
 			self::provide($user, $password);

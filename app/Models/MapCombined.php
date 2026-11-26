@@ -13,8 +13,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-use Illuminate\Database\Eloquent\Builder;
-
 use LogicException;
 
 /**
@@ -78,32 +76,6 @@ final class MapCombined extends Model
 	 */
 	public function user(): BelongsTo {
 		return $this->belongsTo(User::class);
-	}
-
-	// scopes
-	/**
-	 * @param Builder<self> $query
-	 * @param string $map
-	 * @return Builder<self>
-	 */
-	public function scopeForMap($query, $map): Builder {
-		return $query->where('map_name', $map);
-	}
-
-	/**
-	 * @param Builder<self> $query
-	 * @return Builder<self>
-	 */
-	public function scopeMailFromRcptTo($query): Builder {
-		return $query->whereNotNull('mail_from')->whereNotNull('rcpt_to');
-	}
-
-	/**
-	 * @param Builder<self> $query
-	 * @return Builder<self>
-	 */
-	public function scopeMailFrom($query): Builder {
-		return $query->whereNotNull('mail_from');
 	}
 
 	// one of the entry's map fields: text, or null when the entry has none

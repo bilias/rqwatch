@@ -26,12 +26,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
 /** @extends AbstractType<array<string, mixed>> */
@@ -91,22 +87,6 @@ final class SearchForm extends AbstractType
 			$data,
 			['is_admin' => $is_admin]
 		);
-	}
-
-	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
-		if ($form->isSubmitted() && $form->isValid()) {
-
-			$url = $urlGenerator->generate(RouteName::SEARCH->value);
-
-			return new RedirectResponse($url);
-			/*
-			$response = new RedirectResponse($url);
-			$response->prepare($this->request);
-			return $response->send();
-			*/
-		}
-
-		return null;
 	}
 
 	#[\Override]

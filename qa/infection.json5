@@ -24,23 +24,23 @@
 				// Symfony's HttpClient verifies the peer by default too
 				"App\\Services\\ApiClient::__construct::27",
 				// 'required' => true is the default
-				"App\\Forms\\CustomMapConfigForm::buildForm::41",
-				"App\\Forms\\CustomMapConfigForm::buildForm::68",
-				"App\\Forms\\CustomMapConfigForm::buildForm::87",
-				"App\\Forms\\CustomMapConfigForm::buildForm::106",
+				"App\\Forms\\CustomMapConfigForm::buildForm::37",
+				"App\\Forms\\CustomMapConfigForm::buildForm::64",
+				"App\\Forms\\CustomMapConfigForm::buildForm::83",
+				"App\\Forms\\CustomMapConfigForm::buildForm::102",
 				"App\\Forms\\LoginForm::buildForm::38",
 				"App\\Forms\\LoginForm::buildForm::58",
 				"App\\Forms\\MailAliasForm::buildForm::36",
 				"App\\Forms\\MailAliasForm::buildForm::55",
 				"App\\Forms\\QidForm::buildForm::39",
-				"App\\Forms\\UserForm::buildForm::45",
-				"App\\Forms\\UserForm::buildForm::65",
+				"App\\Forms\\UserForm::buildForm::42",
+				"App\\Forms\\UserForm::buildForm::62",
 				"App\\Forms\\FuzzySearchForm::buildForm::41",
 				"App\\Forms\\MailAliasSearchForm::buildForm::40",
 				"App\\Forms\\MapSearchForm::buildForm::38",
 				"App\\Forms\\UserSearchForm::buildForm::40",
-				"App\\Forms\\SearchForm::buildForm::43",
-				"App\\Forms\\SearchForm::buildForm::52",
+				"App\\Forms\\SearchForm::buildForm::39",
+				"App\\Forms\\SearchForm::buildForm::48",
 				// 'mapped' => true is the default
 				"App\\Forms\\MapSearchForm::buildForm::49",
 				"App\\Forms\\MapSearchForm::buildForm::52"
@@ -147,7 +147,7 @@
 				// an empty search, the same
 				"App\\Forms\\FuzzySearchForm::buildForm::51",
 				"App\\Forms\\UserSearchForm::buildForm::50",
-				"App\\Forms\\SearchForm::buildForm::66",
+				"App\\Forms\\SearchForm::buildForm::62",
 				// 7 zero bytes differ from 8 only in the reserved ::/56
 				"App\\Core\\Auth\\LoginThrottle::keyFor::290",
 				// a shift by 9 masks the byte to 0, as a shift by 8 does
@@ -265,7 +265,7 @@
 		"NotIdentical": {
 			// the test seams: negated, the unit tests' answers are sent for real and exit
 			"ignore": [
-				"App\\Core\\Auth\\BasicAuth::doBasicAuth::85",
+				"App\\Core\\Auth\\BasicAuth::doBasicAuth::80",
 				"App\\Api\\RqwatchApi::respond::155"
 			]
 		},
@@ -300,8 +300,8 @@
 			]
 		},
 		"PublicVisibility": {
-			// public, but only called inside its class (Eloquent calls accessors,
-			// mutators and scopes from inside the model)
+			// public, but only called inside its class (Eloquent calls accessors
+			// and mutators from inside the model)
 			"ignore": [
 				"App\\Models\\MailLog::getMimeFromDecodedAttribute::200",
 				"App\\Models\\MailLog::getVirusFromSymbolAttribute::190",
@@ -311,10 +311,6 @@
 				"App\\Models\\MailLog::getSymbolsAttribute::446",
 				"App\\Models\\MailLog::getFuzzyHashesAttribute::456",
 				"App\\Models\\User::setDisableNotificationsAttribute::78",
-				"App\\Models\\MapCombined::scopeForMap::89",
-				"App\\Models\\MapCombined::scopeMailFromRcptTo::97",
-				"App\\Models\\MapCombined::scopeMailFrom::105",
-				"App\\Models\\MapCustom::scopeForMap::66",
 				"App\\Configuration\\Config::loadAndInit::152",
 				"App\\Utils\\Helper::checkForMap::259",
 				"App\\Utils\\Helper::convertSRSAddress::450"

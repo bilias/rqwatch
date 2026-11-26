@@ -20,12 +20,8 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
 /** @extends AbstractType<array<string, mixed>> */
@@ -87,28 +83,5 @@ final class MailReleaseForm extends AbstractType
 			array $options = []): FormInterface {
 
 		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
-	}
-
-	/**
-	 * @psalm-param FormInterface<array<string, mixed>> $form
-	 * @phpstan-param FormInterface $form
-	 */
-	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
-		if ($form->isSubmitted() && $form->isValid()) {
-			$data = FormHelper::submittedData($form);
-			$username = FormHelper::text($data['username'], 'username');
-
-			$url = $urlGenerator->generate(RouteName::DETAIL->value, [
-				'type' => 'username',
-				'value' => $username,
-			]);
-			return new RedirectResponse($url);
-         /*
-         $response = new RedirectResponse($url);
-         $response->prepare($this->request);
-         return $response->send();
-         */
-      }
-		return null;
 	}
 }

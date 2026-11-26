@@ -57,13 +57,8 @@ final class BasicAuth implements AuthInterface {
 
 		if (!hash_equals($this->username, $providedUser) ||
 			!hash_equals($this->password, $providedPass)) {
-			/** @psalm-suppress RedundantCondition API_MODE is defined per entry point */
-			if (API_MODE) {
-				$mode = " API ";
-			} else {
-				$mode = "";
-			}
-			$this->logger->warning("Failed" . $mode . "Basic Auth user: '{$providedUser}' from '" . Helper::remote_addr() . "'");
+			// only RqwatchApi builds a BasicAuth: the failure is the API's
+			$this->logger->warning("Failed API Basic Auth user: '{$providedUser}' from '" . Helper::remote_addr() . "'");
 			//sleep((int)$_ENV['FAILED_LOGIN_TIMEOUT']);
 			$this->doBasicAuth(); // and exit
 		} else {

@@ -20,12 +20,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 
@@ -69,24 +65,6 @@ class MapWithTwoFieldsForm extends AbstractType
 		// Merge class with any existing class
 		$options = FormHelper::withClass($options, 'twofieldsform');
 		return FormHelper::formCreator($formFactory, $request, static::class, $data, $options);
-	}
-
-	/**
-	 * @psalm-param FormInterface<array<string, mixed>> $form
-	 * @phpstan-param FormInterface $form
-	 */
-	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
-		if ($form->isSubmitted() && $form->isValid()) {
-			$data = FormHelper::submittedData($form);
-			$map = FormHelper::text($data['map_name'], 'map_name');
-
-			$url = $urlGenerator->generate(RouteName::ADMIN_MAP_ADD_ENTRY->value, [
-				'map' => $map,
-			]);
-
-			return new RedirectResponse($url);
-		}
-		return null;
 	}
 
 	#[\Override]

@@ -24,12 +24,8 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use App\Core\Routing\RouteName;
 use App\Utils\FormHelper;
 
 /** @extends AbstractType<array<string, mixed>> */
@@ -172,19 +168,5 @@ final class CustomMapConfigForm extends AbstractType
 		// Merge class with any existing class
 		$options = FormHelper::withClass($options, 'onefieldform');
 		return FormHelper::formCreator($formFactory, $request, self::class, $data, $options);
-	}
-
-	public static function check_form(FormInterface $form, UrlGeneratorInterface $urlGenerator): ?RedirectResponse {
-		if ($form->isSubmitted() && $form->isValid()) {
-
-			$url = $urlGenerator->generate(RouteName::ADMIN_MAPS_CUSTOM_ADD->value);
-			return new RedirectResponse($url);
-         /*
-         $response = new RedirectResponse($url);
-         $response->prepare($this->request);
-         return $response->send();
-         */
-      }
-		return null;
 	}
 }

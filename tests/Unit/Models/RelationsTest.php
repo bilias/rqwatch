@@ -10,9 +10,9 @@
 
 /*
  The models' relations, by their keys (their types are PHPStan's to
- check), and the map scopes, by the SQL they build. A MySQL connection is
- configured but never opened: building a query does not connect, so
- nothing here needs a database. A map entry's field reads as text or null
+ check), and the order of the ordered ones, by the SQL they build. A MySQL
+ connection is configured but never opened: building a query does not
+ connect, so nothing here needs a database. A map entry's field reads as text or null
  and fails for any other type. A user's disable_notifications is stored as
  1 or 0; null (the default) is kept only once the migration making it
  nullable has run, before which it is 0.
@@ -32,7 +32,6 @@ use App\Models\MailLogFuzzy;
 use App\Models\MailLogRecipient;
 use App\Models\MailLogToken;
 use App\Models\MapCombined;
-use App\Models\MapCustom;
 use App\Models\User;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Model;
@@ -96,21 +95,6 @@ final class RelationsTest extends UnitTestCase
 		$entries = (new CustomMapConfig())->MapsCustom();
 		$this->assertSame(['map_name', 'map_name'], [$entries->getForeignKeyName(), $entries->getLocalKeyName()]);
 		$this->assertStringEndsWith(' order by `map_name` asc', $entries->toSql());
-	}
-
-	// called as Eloquent calls them (nothing in app/ uses them yet)
-	public function testScopes(): void {
-		$combined = new MapCombined();
-		$forMap = $combined->scopeForMap(MapCombined::query(), 'mail_from_blacklist');
-		$this->assertSame('select * from `maps_combined` where `map_name` = ?', $forMap->toSql());
-		$this->assertSame(['mail_from_blacklist'], $forMap->getBindings());
-		$this->assertSame('select * from `maps_combined` where `mail_from` is not null and `rcpt_to` is not null',
-			$combined->scopeMailFromRcptTo(MapCombined::query())->toSql());
-		$this->assertSame('select * from `maps_combined` where `mail_from` is not null', $combined->scopeMailFrom(MapCombined::query())->toSql());
-
-		$custom = (new MapCustom())->scopeForMap(MapCustom::query(), 'senders');
-		$this->assertSame('select * from `maps_custom` where `map_name` = ?', $custom->toSql());
-		$this->assertSame(['senders'], $custom->getBindings());
 	}
 
 	public function testFieldValue(): void {
