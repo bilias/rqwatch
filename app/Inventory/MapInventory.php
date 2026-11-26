@@ -467,8 +467,13 @@ final class MapInventory
 		return $prefix === null ? $ip : "{$ip}/{$prefix}";
 	}
 
-	// 'url' map entries with an IP host in rspamd's form (canonical, no brackets), so an address copied
-	// from a browser, e.g. [::ffff:d93c:ed72], matches ::ffff:217.60.237.114, and [192.0.2.1] 192.0.2.1
+	/*
+	 'url' map entries with an IP host in rspamd's form, so they match what rspamd reports.
+	 A host entry: canonical, no brackets ([::ffff:d93c:ed72] is ::ffff:217.60.237.114,
+	 [192.0.2.1] is 192.0.2.1). A full URL (filter = "full"): rspamd rewrites an IP host in
+	 the URL too, so http://[::ffff:d93c:ed72]/x is http://[::ffff:217.60.237.114]/x, an
+	 IPv4 one without its brackets. Other lines unchanged.
+	*/
 	public static function canonicalUrlHostEntries(string $text): string {
 		$lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $text));
 		return implode("\n", array_map(self::canonicalUrlHostEntry(...), $lines));
@@ -476,14 +481,27 @@ final class MapInventory
 
 	private static function canonicalUrlHostEntry(string $line): string {
 		// optional '#' (disabled entry), then one bare or [bracketed] address and nothing else
-		if (preg_match('/^(\s*#?\s*)(?:\[([^\[\]\s]+)\]|([^\[\]\s]+))(\s*)$/D', $line, $m) !== 1) {
-			return $line;
+		if (preg_match('/^(\s*#?\s*)(?:\[([^\[\]\s]+)\]|([^\[\]\s]+))(\s*)$/D', $line, $m) === 1) {
+			$canonical = self::canonicalIp($m[2] !== '' ? $m[2] : $m[3]);
+			return $canonical === null ? $line : $m[1] . $canonical . $m[4];
 		}
 
-		$addr = $m[2] !== '' ? $m[2] : $m[3];
+		// a full URL whose host is a [bracketed] address: scheme://[user@][host][:port][/path...]
+		if (preg_match('~^(\s*#?\s*[A-Za-z][A-Za-z0-9+.\-]*://(?:[^/?#@\s]*@)?)\[([^\[\]\s/]+)\](\S*\s*)$~D', $line, $m) === 1) {
+			$canonical = self::canonicalIp($m[2]);
+			if ($canonical !== null) {
+				return $m[1] . (str_contains($canonical, ':') ? "[{$canonical}]" : $canonical) . $m[3];
+			}
+		}
+
+		return $line;
+	}
+
+	// an IP address as inet_ntop() writes it, as rspamd does; null for anything else
+	private static function canonicalIp(string $addr): ?string {
 		$packed = filter_var($addr, FILTER_VALIDATE_IP) !== false ? inet_pton($addr) : false;
 		$canonical = $packed === false ? false : inet_ntop($packed);
-		return $canonical === false ? $line : $m[1] . $canonical . $m[4];
+		return $canonical === false ? null : $canonical;
 	}
 
 	// IPv4/IPv6 address or network in CIDR notation, host bits clear

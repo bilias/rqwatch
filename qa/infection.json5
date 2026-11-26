@@ -75,10 +75,10 @@
 				"App\\Api\\FuzzyMailApi::handle::55",
 				"App\\Api\\FuzzyMailApi::handle::58",
 				// a prefix of digits compares and subtracts as a number either way
-				"App\\Inventory\\MapInventory::validateIpOrCidr::505",
-				"App\\Inventory\\MapInventory::validateIpOrCidr::517",
+				"App\\Inventory\\MapInventory::validateIpOrCidr::523",
+				"App\\Inventory\\MapInventory::validateIpOrCidr::535",
 				// '8' and (int) '8' print the same; the prefix was checked to be digits
-				"App\\Inventory\\MapInventory::validateIpOrCidr::524",
+				"App\\Inventory\\MapInventory::validateIpOrCidr::542",
 				// preg_match_all() false is not > 0 either
 				"App\\Utils\\Helper::extract_mail_relays::1132",
 				// a digits-only string compares with 0 as a number
@@ -105,7 +105,7 @@
 				// json_encode() with JSON_PARTIAL_OUTPUT_ON_ERROR does not fail
 				"App\\Services\\FuzzyService::flags::112",
 				// inet_ntop() of a packed address does not fail
-				"App\\Inventory\\MapInventory::validateIpOrCidr::524",
+				"App\\Inventory\\MapInventory::validateIpOrCidr::542",
 				// preg_replace() with this ASCII pattern does not fail
 				"App\\Models\\MailLog::logUnparsableMimeFrom::275",
 				// a null qid reaches a string parameter only past the database lookup
@@ -172,7 +172,7 @@
 				// 7 zero bytes differ from 8 only in the reserved ::/56
 				"App\\Core\\Auth\\LoginThrottle::keyFor::290",
 				// a shift by 9 masks the byte to 0, as a shift by 8 does
-				"App\\Inventory\\MapInventory::validateIpOrCidr::517",
+				"App\\Inventory\\MapInventory::validateIpOrCidr::535",
 				// any total not above 0 is no total: no ratio
 				"App\\Charts\\ChartBuilder::createQuarantineChart::98",
 				"App\\Charts\\ChartBuilder::createQuarantinePerMonthChart::154",
@@ -238,7 +238,7 @@
 				// array_pad() to 3 leaves the two values destructured unchanged; the line's
 				// other mutant, explode() limit 3, is killed by the 'a second slash' cases
 				"App\\Inventory\\MapInventory::canonicalIpOrCidr::457",
-				"App\\Inventory\\MapInventory::validateIpOrCidr::500",
+				"App\\Inventory\\MapInventory::validateIpOrCidr::518",
 				// a byte either side of no size rounds to 0.0 MB
 				"App\\Charts\\ChartBuilder::createReportsDayChart::241",
 				// a byte more or less in a MB is a millionth: no %.2f figure shows it
