@@ -359,6 +359,8 @@
 		},
 		"ReturnRemoval": {
 			"ignore": [
+				// no map config has an empty model: the loop returns [] too
+				"App\\Inventory\\MapInventory::getMapsByModel::432",
 				// past either, no row is left to insert, and an empty insert() runs no query
 				"App\\Services\\Import\\MailLogWriter::insertMailRecipients::217",
 				"App\\Services\\Import\\MailLogWriter::insertMailRecipients::236",
