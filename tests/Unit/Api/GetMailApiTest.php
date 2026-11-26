@@ -19,6 +19,10 @@
 namespace Tests\Unit\Api;
 
 use App\Api\GetMailApi;
+use App\Core\App;
+use App\Core\AppContainer;
+use App\Core\Database\MigrationStatus;
+use Error;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Request;
@@ -80,5 +84,13 @@ final class GetMailApiTest extends ApiTestCase
 		$this->assertAnswer(400, 'Missing Required info', $this->answer(fn () => $this->handle($post)));
 		$line = "critical [GetMailApi] 192.0.2.7 requested GetMailApi with '{$field}' that is not a single value";
 		$this->assertSame([$line, $line], $this->log->lines);
+	}
+
+	// past every check, to the lookup with the id as a number: no database here
+	public function testValidGoesToTheLookup(): void {
+		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, null, new MigrationStatus(null, $this->log), null, false));
+		$this->expectException(Error::class);
+		$this->expectExceptionMessage('Call to a member function connection() on null');
+		$this->handle(['remote_user' => 'alice@example.org', 'id' => '5']);
 	}
 }
