@@ -45,8 +45,8 @@ final class MailLogSpoolTest extends UnitTestCase
 	/** @var list<array{?string, mixed}> what set() was given besides the key: the value if text, the options */
 	private array $sets = [];
 
-	// spooling on, 2 mails at most for 60 s, the client answering $count for the count key
-	private function stubbedSpool(string|false $count): MailLogSpool {
+	// spooling on, 2 mails at most for 60 s, the client answering $count for the count key, and $stored to a SET
+	private function stubbedSpool(string|false $count, bool $stored = true): MailLogSpool {
 		Config::set('import_spool', true);
 		Config::set('import_spool_max', 2);
 		Config::set('import_spool_ttl', 60);
@@ -57,10 +57,10 @@ final class MailLogSpoolTest extends UnitTestCase
 			$this->calls[] = ['get', $key, null];
 			return $count;
 		});
-		$redis->method('set')->willReturnCallback(function (string $key, mixed $value, mixed $options = null): bool {
+		$redis->method('set')->willReturnCallback(function (string $key, mixed $value, mixed $options = null) use ($stored): bool {
 			$this->calls[] = ['set', $key, null];
 			$this->sets[] = [is_string($value) ? $value : null, $options];
-			return true;
+			return $stored;
 		});
 		$redis->method('incr')->willReturnCallback(function (string $key): int {
 			$this->calls[] = ['incr', $key, null];
@@ -111,6 +111,14 @@ final class MailLogSpoolTest extends UnitTestCase
 		$this->assertFalse($this->stubbedSpool(false)->push(['qid' => 'Q1', 'size' => INF], []));
 		$this->assertSame([['get', self::COUNT, null]], $this->calls);
 		$this->assertSame(['error [MailLogSpool] cannot encode Q1: Inf and NaN cannot be JSON encoded'], $this->log->lines);
+	}
+
+	// Redis refusing the mail: logged, not counted, not spooled
+	public function testNotStored(): void {
+		$this->assertFalse($this->stubbedSpool(false, false)->push(['qid' => 'Q1'], []));
+		$key = $this->calls[1][1] ?? '';
+		$this->assertSame([['get', self::COUNT, null], ['set', $key, null]], $this->calls);
+		$this->assertSame(["error [MailLogSpool] cannot store {$key} for Q1"], $this->log->lines);
 	}
 
 	public function testFull(): void {

@@ -24,6 +24,7 @@ use App\Core\AppContainer;
 use App\Core\Database\MigrationStatus;
 use App\Forms\SearchForm;
 use App\Utils\FormHelper;
+use ArrayObject;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
 use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
@@ -68,6 +69,12 @@ final class SearchFormTest extends UnitTestCase
 		if (!$valid) {
 			$this->assertSame('Invalid regular expression.', (string) $violations->get(0)->getMessage());
 		}
+	}
+
+	// only the form's own array is checked, not another value that can be read by key
+	public function testRegexpValueNotAnArray(): void {
+		$value = new ArrayObject(['filter' => 'Subject', 'choice' => 'matches REGEXP', 'value' => '(unclosed']);
+		$this->assertCount(0, Validation::createValidator()->validate($value, new Callback([SearchForm::class, 'validateRegexpValue'])));
 	}
 
 	public function testFilters(): void {

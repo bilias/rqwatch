@@ -87,6 +87,16 @@ final class MapInventoryTest extends UnitTestCase
 		], $maps);
 	}
 
+	// the maps of one model, in config order; none for no model
+	public function testMapsByModel(): void {
+		$configs = MapInventory::getMapConfigs(null, false);
+		$configs['bad_words'] = ['model' => 'MapCustom', 'description' => 'Bad words', 'fields' => ['text'], 'map_form' => MapWithCustomFieldForm::class, 'access' => ['admin']];
+		$combined = array_values(array_diff(array_keys($configs), ['bad_words']));
+		$this->assertSame($combined, MapInventory::getMapsByModel('MapCombined', $configs));
+		$this->assertSame(['bad_words'], MapInventory::getMapsByModel('MapCustom', $configs));
+		$this->assertSame([], MapInventory::getMapsByModel('', $configs));
+	}
+
 	// field => description, form type, label, required, attributes, constraint classes, help
 	public function testFieldDefinitions(): void {
 		/** @var array<string, list<mixed>> $fields */

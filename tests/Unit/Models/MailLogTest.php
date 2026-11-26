@@ -26,9 +26,11 @@
 
 namespace Tests\Unit\Models;
 
+use App\Core\App;
 use App\Models\MailLog;
 use App\Models\MailLogData;
 use App\Models\MailLogRecipient;
+use Error;
 use Illuminate\Database\Eloquent\Collection;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -154,6 +156,41 @@ final class MailLogTest extends UnitTestCase
 		$log->setRelation('mailLogData', (new MailLogData())->setRawAttributes(['mail_log_id' => 7, 'symbols' => '[]']));
 		$this->assertNull($log->headers);
 		$this->assertSame(["error MailLog 7 (qid Q7): 'mailLogData' was not eager-loaded, lazy-loading it to read 'headers'"], $this->log->lines);
+	}
+
+	/** @return array<string, array{string, string, string}> attribute, relation, column */
+	public static function notLoaded(): array {
+		return [
+			'recipients' => ['mail_recipients', 'recipients', 'recipient_email'],
+			'mail_log_data' => ['headers', 'mailLogData', 'headers'],
+		];
+	}
+
+	// a relation not eager-loaded is logged, then lazy-loaded: no database here
+	#[DataProvider('notLoaded')]
+	public function testRelationNotLoadedLogged(string $attribute, string $relation, string $column): void {
+		$log = (new MailLog())->setRawAttributes(['id' => 7, 'qid' => 'Q7']);
+		try {
+			$log->getAttribute($attribute);
+			$this->fail('no lazy load');
+		} catch (Error $e) {
+			$this->assertSame('Call to a member function connection() on null', $e->getMessage());
+		}
+		$this->assertSame(["error MailLog 7 (qid Q7): '{$relation}' was not eager-loaded, lazy-loading it to read '{$column}'"], $this->log->lines);
+	}
+
+	// without the App container (a diagnostic has no logger) the reads still answer
+	public function testDiagnosticsWithoutApp(): void {
+		App::reset();
+		$mime = (new MailLog())->setRawAttributes(['id' => 7, 'qid' => 'Q7', 'mail_from' => 'envelope@example.org', 'mime_from' => '"unterminated <a@b.example>']);
+		$this->assertSame('envelope@example.org', $mime->mime_from_decoded, 'mailparse warning');
+		$legacy = (new MailLog())->setRawAttributes(['id' => 7, 'qid' => 'Q7']);
+		$legacy->setRelation('recipients', new Collection([new MailLogRecipient(['recipient_email' => 'bob@example.org'])]));
+		$this->assertSame('bob@example.org', $legacy->rcpt_to, 'legacy rcpt_to');
+		$data = (new MailLog())->setRawAttributes(['id' => 7, 'qid' => 'Q7']);
+		$data->setRelation('mailLogData', (new MailLogData())->setRawAttributes(['mail_log_id' => 7, 'symbols' => '[]']));
+		$this->assertNull($data->headers, 'column not loaded');
+		$this->assertSame([], $this->log->lines);
 	}
 
 	/** @return array<string, array{bool, string, string|null}> has_virus, symbols, the virus */

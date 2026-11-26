@@ -28,6 +28,7 @@ use App\Forms\MapMailFromRcptToForm;
 use App\Forms\MapMailFromRcptToUserForm;
 use App\Forms\MapUrlForm;
 use App\Forms\MapWithCustomFieldForm;
+use App\Forms\MapWithOneFieldForm;
 use App\Forms\MapWithTwoFieldsForm;
 use App\Forms\MapWithTwoFieldsUserOverrideForm;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -157,6 +158,12 @@ final class MapFormsTest extends UnitTestCase
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage('Field names must be defined in child class: ' . $form::class);
 		self::factory()->createNamed('form', $form::class);
+	}
+
+	public function testOneFieldFormNeedsItsName(): void {
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Field name must be defined in child class: ' . MapWithOneFieldForm::class);
+		self::factory()->createNamed('form', MapWithOneFieldForm::class);
 	}
 
 	public function testUserTwoFieldFormNeedsBothNames(): void {
