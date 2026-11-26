@@ -738,7 +738,11 @@ final class MapService
 			return false;
 		}
 
-		if (!str_starts_with($tmpfile, rtrim($map_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)) {
+		// tempnam() falls back to the system's temporary directory, and names
+		// the file by MAP_DIR's real path: compare with that, not $map_dir,
+		// which may be (or be under) a symlink
+		$real_dir = realpath($map_dir);
+		if ($real_dir === false || !str_starts_with($tmpfile, rtrim($real_dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)) {
 			$this->logger->error("tmpfile created outside MAP_DIR: {$tmpfile}");
 			@unlink($tmpfile);
 			return false;
