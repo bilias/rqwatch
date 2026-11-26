@@ -13,8 +13,8 @@
  the right Basic Auth it is built, the client authenticated. A setup error
  throws, logged: an empty ACL (checked first), empty credentials ('' and
  '0' included) or a published example password. The refusals that answer
- the client and exit (API off, client not in the ACL, wrong or no Basic
- Auth) are covered by the integration tests (ApiAccessTest).
+ the client (API off, client not in the ACL) are in ApiRefusalsTest, Basic
+ Auth's in BasicAuthTest.
 */
 
 namespace Tests\Unit\Api;

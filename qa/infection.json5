@@ -67,6 +67,9 @@
 		},
 		"CastInt": {
 			"ignore": [
+				// numeric text compares as its number; the int is first needed past the database
+				"App\\Api\\FuzzyMailApi::handle::55",
+				"App\\Api\\FuzzyMailApi::handle::58",
 				// a prefix of digits compares and subtracts as a number either way
 				"App\\Inventory\\MapInventory::validateIpOrCidr::486",
 				"App\\Inventory\\MapInventory::validateIpOrCidr::498",
@@ -80,6 +83,9 @@
 		},
 		"CastString": {
 			"ignore": [
+				// a form field is text, and an upload PHP stored is readable
+				"App\\Api\\MetadataImporterMultipartApi::handle::225",
+				"App\\Api\\MetadataImporterMultipartApi::handle::258",
 				// an int . 'B' is the same string
 				"App\\Utils\\Helper::formatSizeUnits::506",
 				// json_encode() of a decoded value does not fail
@@ -125,6 +131,10 @@
 		},
 		"DecrementInteger": {
 			"ignore": [
+				// -1 is refused as 0 is, and the message names neither
+				"App\\Api\\FuzzyMailApi::handle::53",
+				"App\\Api\\FuzzyMailApi::handle::55",
+				"App\\Api\\FuzzyMailApi::handle::58",
 				// an unset spool limit or TTL is unusable as -1 as it is as 0
 				"App\\Services\\Import\\MailLogSpool::push::199",
 				"App\\Services\\Import\\MailLogSpool::push::200",
@@ -244,6 +254,9 @@
 		},
 		"MethodCallRemoval": {
 			"ignore": [
+				// a new Response is 200, and without prepare() its charset is not sent
+				"App\\Api\\MetadataImporterMultipartApi::handle::580",
+				"App\\Api\\MetadataImporterMultipartApi::handle::582",
 				// without a database warmCache() returns at once; Integration covers the warm-up
 				"App\\Core\\Database\\MigrationStatus::getMigrationState::155",
 				// with the API on it does nothing; off, it answers and exits (Integration's ApiAccessTest)
@@ -275,6 +288,8 @@
 		},
 		"PregMatchRemoveFlags": {
 			"ignore": [
+				// the parser gives header values without a trailing line feed
+				"App\\Api\\MetadataImporterMultipartApi::handle::392",
 				// the Y-m-d round trip refuses a trailing line feed
 				"App\\Utils\\Helper::check_date::651",
 				// the D flag: mailparse drops a trailing line feed; the line's u flag mutant
@@ -392,8 +407,12 @@
 			"ignore": ["App\\Inventory\\MailObject::embedImages::100"]
 		},
 		"UnwrapTrim": {
-			// mailparse gives the content type lowercased, without parameters
-			"ignore": ["App\\Inventory\\MailObject::embedImages::100"]
+			"ignore": [
+				// the addresses are used past the database lookup
+				"App\\Api\\ReleaseMailApi::handle::93",
+				// mailparse gives the content type lowercased, without parameters
+				"App\\Inventory\\MailObject::embedImages::100"
+			]
 		},
 		"UnwrapArrayValues": {
 			"ignore": [
@@ -412,6 +431,24 @@
 		"UnwrapRtrim": {
 			// netdns2 gives the name without its trailing dot: the rtrim() is a guard
 			"ignore": ["App\\Utils\\Helper::lookupPtr::1586"]
+		},
+		"CatchBlockRemoval": {
+			"ignore": [
+				// their exceptions come from the database lookups; Integration's FuzzyApiTest covers them
+				"App\\Api\\FuzzyMailApi::handle::80"
+			]
+		},
+		"Identical": {
+			"ignore": [
+				// both lookups need the database, and fail alike without one; Integration covers them
+				"App\\Api\\FuzzyMailApi::handle::81"
+			]
+		},
+		"FunctionCallRemoval": {
+			"ignore": [
+				// UTF-8 is PHP's internal encoding by default already
+				"App\\Api\\MetadataImporterMultipartApi::handle::267"
+			]
 		},
 		"InstanceOf_": {
 			// a name defined() on the enum is one of its cases: always a RouteName

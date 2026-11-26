@@ -12,9 +12,9 @@
  The mail APIs' single-value fields: requireSingleValues() returns the
  listed fields the request holds, as sent, in the order listed. Absent
  fields are left out and unlisted ones not returned. The refusal of a
- field that is not a single value answers 400 and exits: covered by the
- integration tests (FuzzyApiTest, ApiReleaseTest). It is called from the
- API classes themselves, as the probe here does.
+ field that is not a single value (400) is in ReleaseMailApiTest and
+ FuzzyMailApiTest. It is called from the API classes themselves, as the
+ probe here does.
 */
 
 namespace Tests\Unit\Api;
