@@ -83,6 +83,10 @@
 		},
 		"CastString": {
 			"ignore": [
+				// an int concatenated is the same text
+				"App\\Services\\Import\\MailLogSpool::drain::349",
+				// a local drain's alias is already text
+				"App\\Services\\Import\\MailLogSpool::drain::410",
 				// route parameter and default names are never digits: the key is already a string
 				"App\\Core\\Routing\\Router::dispatch::79",
 				// a form field is text, and an upload PHP stored is readable
@@ -109,8 +113,12 @@
 			"ignore": ["App\\Core\\Logging\\LoggerFactory::createFileLogger::38"]
 		},
 		"ConcatOperandRemoval": {
-			// the same default log file
-			"ignore": ["App\\Core\\Logging\\LoggerFactory::createFileLogger::38"]
+			"ignore": [
+				// the same default log file
+				"App\\Core\\Logging\\LoggerFactory::createFileLogger::38",
+				// Symfony's formatter styles an unclosed tag to the end of the line
+				"App\\Services\\Import\\MailLogSpool::drain::311",
+			]
 		},
 		"Coalesce": {
 			"ignore": [
@@ -203,6 +211,7 @@
 				// 9 zero bytes differ from 8 only in the reserved ::/64
 				"App\\Core\\Auth\\LoginThrottle::keyFor::290",
 				// explode()'s limit: only [0] is read
+				"App\\Services\\Import\\MailLogSpool::aliasFromKey::144",
 				"App\\Utils\\Helper::fuzzySymbolClass::202",
 				"App\\Utils\\Helper::get_symbol_class::322",
 				// only frame [1] is read
@@ -327,6 +336,8 @@
 		},
 		"ReturnRemoval": {
 			"ignore": [
+				// past it, a non-array's ['data'] ?? null is null: the next check returns null
+				"App\\Services\\Import\\MailLogSpool::payload::427",
 				// a column the row was loaded without reads as null anyway
 				"App\\Models\\MailLog::mailLogDataValue::407",
 				// a non-IPv6 value falls through to the same $ip
@@ -378,6 +389,9 @@
 		},
 		"TrueValue": {
 			"ignore": [
+				// resyncCounters() reads only the keys of the aliases seen
+				"App\\Services\\Import\\MailLogSpool::drain::323",
+				"App\\Services\\Import\\MailLogSpool::drain::410",
 				// route names are no numeric strings: == matches as === does
 				"App\\Core\\Routing\\Router::dispatch::167",
 				// a column name is no numeric string: == matches as === does
