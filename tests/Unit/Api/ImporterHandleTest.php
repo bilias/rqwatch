@@ -86,12 +86,12 @@ final class ImporterHandleTest extends ApiTestCase
 	}
 
 	/** @param array<string, mixed>|null $meta null: no metadata field */
-	private function import(?array $meta, ?string $mail = self::MAIL, string $contentType = 'multipart/form-data; boundary=x', string $server = 'mail3'): Response {
+	private function import(?array $meta, ?string $mail = self::MAIL, string $contentType = 'multipart/form-data; boundary=x', string $server = 'mail3', int $uploadError = UPLOAD_ERR_OK): Response {
 		$files = [];
 		if ($mail !== null) {
 			$path = "{$this->root}/upload-" . $this->uploads++;
 			file_put_contents($path, $mail);
-			$files['message'] = new UploadedFile($path, 'message.eml', 'message/rfc822', UPLOAD_ERR_OK, true);
+			$files['message'] = new UploadedFile($path, 'message.eml', 'message/rfc822', $uploadError, true);
 		}
 		$post = $meta === null ? [] : ['metadata' => (string) json_encode($meta)];
 		$request = Request::create("/api/metadata_importer_multipart.php?server={$server}", 'POST', $post, [], $files,
@@ -333,6 +333,32 @@ final class ImporterHandleTest extends ApiTestCase
 			[$data['qid'], $data['mail_from'], $data['rcpt_to'], $data['mime_from'], $data['mime_to'], $data['headers']]);
 		$this->assertContains('error [MetadataImporterMultipartApi] unknown: no usable message part (Missing multipart file: message); importing the metadata without the mail', $this->log->lines);
 		$this->assertContains('error unknown: no usable message part (Missing multipart file: message); importing the metadata without the mail', $this->log->lines);
+	}
+
+	// a failed upload: the metadata alone, the PHP upload error logged
+	public function testUploadError(): void {
+		$this->assertAnswer(200, 'Message spooled', $this->import(['qid' => 'QID1', 'score' => 1, 'action' => 'no action'], uploadError: UPLOAD_ERR_PARTIAL));
+		$this->assertSame('', $this->record()['headers']);
+		$this->assertContains('error QID1: no usable message part (Upload error for message: 3); importing the metadata without the mail', $this->log->lines);
+	}
+
+	// a mistyped $mail_fallback_charset: 8-bit headers decoded with the default, logged with the qid
+	public function testFallbackCharsetMistyped(): void {
+		Config::set('mail_fallback_charset', 5);
+		$mail = "From: sender@example.org\r\nSubject: caf\xE9\r\n\r\nbody\r\n";
+		$this->assertAnswer(200, 'Message spooled', $this->import(['qid' => 'QID1', 'score' => 1, 'action' => 'no action'], $mail));
+		$this->assertSame('café', $this->record()['subject']);
+		$this->assertSame(1, $this->logged("/^error \\[MetadataImporterMultipartApi\\] QID1: mail_fallback_charset .+; decoding with Windows-1252$/"));
+		$this->assertSame(1, $this->logged("/^error QID1: mail_fallback_charset .+; decoding with Windows-1252$/"));
+	}
+
+	// an antivirus symbol marks the mail and stores it, whatever $store_settings says of its action
+	public function testVirusStored(): void {
+		$meta = ['qid' => 'QID1', 'score' => 1, 'action' => 'no action',
+			'symbols' => ['CLAM_VIRUS' => ['score' => 0, 'group' => 'antivirus', 'options' => ['Eicar-Signature']]]];
+		$this->assertAnswer(200, 'Message spooled', $this->import($meta));
+		$data = $this->record();
+		$this->assertSame([1, 1], [$data['has_virus'], $data['mail_stored']]);
 	}
 
 	public function testEmptyMessage(): void {
