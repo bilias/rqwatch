@@ -39,11 +39,11 @@ final class App
 		self::$instance = $container;
 	}
 
-	public static function startTime(): float {
+	private static function startTime(): float {
 		return self::instance()->startTime;
 	}
 
-	public static function startMemory(): int {
+	private static function startMemory(): int {
 		return self::instance()->startMemory;
 	}
 
