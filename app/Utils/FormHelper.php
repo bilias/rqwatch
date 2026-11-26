@@ -299,7 +299,7 @@ final class FormHelper
 	 * @param array<string, mixed> $ar
 	 * @return array<string, string>
 	 */
-	public static function getKeysToArr(array $ar): array {
+	private static function getKeysToArr(array $ar): array {
 		return array_combine(array_keys($ar), array_keys($ar));
 	}
 

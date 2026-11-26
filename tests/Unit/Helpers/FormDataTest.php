@@ -138,6 +138,11 @@ final class FormDataTest extends UnitTestCase
 			FormHelper::textListOption(['user_emails' => [0 => 'a@example.org', 2 => 'b@example.org']], 'user_emails'), 'a list, whatever the keys');
 	}
 
+	public function testTextListOptionNotAListFails(): void {
+		$this->expectExceptionMessage("Form option 'user_emails' must be a list of text, not string");
+		FormHelper::textListOption(['user_emails' => 'a@example.org'], 'user_emails');
+	}
+
 	public function testTextListOptionNotTextFails(): void {
 		$this->expectExceptionMessage("Form option 'user_emails' must be a list of text, not of int");
 		FormHelper::textListOption(['user_emails' => ['a@example.org', 5]], 'user_emails');

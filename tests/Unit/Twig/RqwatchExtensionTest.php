@@ -14,14 +14,31 @@
  mix scripts and every invisible format char (\p{Cf}), letter or not.
  A format char's dot comes from CSS, so the copied text has no dot.
  The linkify filter (is_safe html): escapes everything and links only
- http(s) URLs. jsJson: JSON for a <script> block, no tag can close it.
+ http(s) URLs, and only escapes when PCRE fails. jsJson: JSON for a
+ <script> block, no tag can close it. Through Twig: the functions and
+ filters registered, route() by RouteName case and get_route() by route
+ name, the logout token, fuzzy hits labelled from fuzzy_learn_flags read
+ once per extension, nf in the Greek format. The URL generator and CSRF
+ manager are fetched only when a template uses them.
 */
 
 namespace Tests\Unit\Twig;
 
+use App\Configuration\Config;
+use App\Core\Routing\Routes;
 use App\Twig\RqwatchExtension;
+use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Component\Routing\Generator\UrlGenerator;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Tests\Unit\UnitTestCase;
+use Twig\Environment;
+use Twig\Error\RuntimeError;
+use Twig\Loader\ArrayLoader;
+use Twig\TwigFilter;
+use Twig\TwigFunction;
 
 final class RqwatchExtensionTest extends UnitTestCase
 {
@@ -137,5 +154,114 @@ final class RqwatchExtensionTest extends UnitTestCase
 		$this->expectException(\LogicException::class);
 		$this->expectExceptionMessage('truncate: array is not text');
 		RqwatchExtension::truncate(['a'], 10);
+	}
+
+	// still escaped, the filter is is_safe
+	public function testLinkifyPcreFailure(): void {
+		$limit = (string) ini_get('pcre.backtrack_limit');
+		ini_set('pcre.backtrack_limit', '1');
+		try {
+			$this->assertSame('&lt;b&gt; https://example.org/page', RqwatchExtension::linkify('<b> https://example.org/page'));
+		} finally {
+			ini_set('pcre.backtrack_limit', $limit);
+		}
+	}
+
+	public function testNf(): void {
+		$this->assertSame('1.235', RqwatchExtension::nf(1234.5));
+		$this->assertSame('1.234,50', RqwatchExtension::nf(1234.5, 2));
+	}
+
+	public function testRegistered(): void {
+		$extension = self::extension();
+		$this->assertSame([
+			'get_route', 'route', 'logout_token', 'get_action_details', 'get_fuzzy_hits', 'get_row_class',
+			'get_symbol_class', 'decodeEmail', 'formatSizeUnits', 'gethostbyaddr', 'truncate', 'getDelivery', 'getAuthProvider',
+		], array_map(fn (TwigFunction $function): string => $function->getName(), $extension->getFunctions()));
+		$this->assertSame(['nf', 'linkify', 'mark_homoglyphs', 'js_json'],
+			array_map(fn (TwigFilter $filter): string => $filter->getName(), $extension->getFilters()));
+	}
+
+	/** @return array<string, array{string, string}> template, output */
+	public static function templates(): array {
+		return [
+			'route by case' => ["{{ route('ADMIN_FUZZY_SEARCH') }}", '/admin/fuzzy/search'],
+			'route by case, with parameters' => ["{{ route('ADMIN_DETAIL', {type: 'qid', value: 'ABC123'}) }}", '/admin/detail/qid/ABC123'],
+			'route by name' => ["{{ get_route('admin_fuzzy_search') }}", '/admin/fuzzy/search'],
+			'route by name, with parameters' => ["{{ get_route('admin_detail', {type: 'qid', value: 'ABC123'}) }}", '/admin/detail/qid/ABC123'],
+			'logout token' => ['{{ logout_token() }}', 'token-for-logout'],
+			'nf' => ['{{ 1234.5|nf }} {{ 1234.5|nf(1) }}', '1.235 1.234,5'],
+			'linkify, not escaped again' => ["{{ '<b> https://example.org'|linkify }}",
+				'&lt;b&gt; <a href="https://example.org" target="_blank" rel="noopener noreferrer">https://example.org</a>'],
+			'mark_homoglyphs, not escaped again' => ["{{ 'p\u{0430}y'|mark_homoglyphs }}", "p<mark class=\"homoglyph\" title=\"U+0430\">\u{0430}</mark>y"],
+			'js_json, not escaped again' => ["<script>{{ '</script>'|js_json }}</script>", '<script>"\\u003C\\/script\\u003E"</script>'],
+			'a Helper function' => ['{{ truncate("abcdefgh", 6) }}', 'abc...'],
+		];
+	}
+
+	#[DataProvider('templates')]
+	public function testTemplate(string $template, string $output): void {
+		$this->assertSame($output, self::render(self::extension(), $template));
+	}
+
+	public function testUnknownRouteFails(): void {
+		$this->expectException(RuntimeError::class);
+		$this->expectExceptionMessage('Unknown RouteName enum case: NOPE');
+		self::render(self::extension(), "{{ route('NOPE') }}");
+	}
+
+	public function testServicesFetchedOnlyWhenUsed(): void {
+		$extension = new RqwatchExtension(
+			fn (): never => throw new LogicException('URL generator fetched'),
+			fn (): never => throw new LogicException('CSRF manager fetched'),
+		);
+		$this->assertSame('1.235', self::render($extension, '{{ 1234.5|nf }}'));
+	}
+
+	// labelled from fuzzy_learn_flags, read once: the listing asks for every row
+	public function testFuzzyHits(): void {
+		$template = '{% for hit in get_fuzzy_hits(symbols) %}{{ hit.label }}/{{ hit.class }} {% endfor %}';
+		$symbols = [['name' => 'RQWATCH_FUZZY_DENIED'], ['name' => 'BAYES_SPAM'], ['name' => 'RQWATCH_FUZZY_WHITE']];
+		Config::set('fuzzy_learn_flags', [1 => ['label' => 'Spam', 'symbol' => 'RQWATCH_FUZZY_DENIED']]);
+		$extension = self::extension();
+		$this->assertSame('Spam/rqwatch_fuzzy RQWATCH_FUZZY_WHITE/rqwatch_fuzzy_white ', self::render($extension, $template, ['symbols' => $symbols]));
+		Config::set('fuzzy_learn_flags', [1 => ['label' => 'Changed', 'symbol' => 'RQWATCH_FUZZY_DENIED']]);
+		$this->assertSame('Spam/rqwatch_fuzzy RQWATCH_FUZZY_WHITE/rqwatch_fuzzy_white ', self::render($extension, $template, ['symbols' => $symbols]));
+		$this->assertSame('', self::render($extension, $template, ['symbols' => []]));
+		$this->assertSame('', self::render($extension, $template, ['symbols' => null]));
+	}
+
+	private static function extension(): RqwatchExtension {
+		return new RqwatchExtension(
+			fn (): UrlGenerator => new UrlGenerator(Routes::load()['routes'], new RequestContext()),
+			fn (): CsrfTokenManagerInterface => new class implements CsrfTokenManagerInterface {
+				#[\Override]
+				public function getToken(string $tokenId): CsrfToken {
+					return new CsrfToken($tokenId, "token-for-{$tokenId}");
+				}
+
+				#[\Override]
+				public function refreshToken(string $tokenId): CsrfToken {
+					return $this->getToken($tokenId);
+				}
+
+				#[\Override]
+				public function removeToken(string $tokenId): ?string {
+					return null;
+				}
+
+				#[\Override]
+				public function isTokenValid(CsrfToken $token): bool {
+					return false;
+				}
+			},
+		);
+	}
+
+	/** @param array<string, mixed> $context */
+	private static function render(RqwatchExtension $extension, string $template, array $context = []): string {
+		$twig = new Environment(new ArrayLoader(['t' => $template]), ['autoescape' => 'html', 'strict_variables' => true]);
+		$twig->addExtension($extension);
+		return $twig->render('t', $context);
 	}
 }

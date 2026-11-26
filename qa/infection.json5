@@ -305,6 +305,8 @@
 		},
 		"TrueValue": {
 			"ignore": [
+				// a column name is no numeric string: == matches as === does
+				"App\\Utils\\FormHelper::getFilters::250",
 				// custom maps come from the database; Integration covers them
 				"App\\Inventory\\MapInventory::getMapConfigs::145",
 				// without a database warmCache() returns before it could replace the loaded state
@@ -351,6 +353,10 @@
 		"UnwrapRtrim": {
 			// netdns2 gives the name without its trailing dot: the rtrim() is a guard
 			"ignore": ["App\\Utils\\Helper::lookupPtr::1586"]
+		},
+		"InstanceOf_": {
+			// a name defined() on the enum is one of its cases: always a RouteName
+			"ignore": ["App\\Twig\\RqwatchExtension::route::100"]
 		}
 	}
 }
