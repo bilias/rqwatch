@@ -58,6 +58,7 @@ final class UrlMapsTest extends EndToEndTestCase
 			'IPv6 expanded, upper case' => ['http://[0000:0000:0000:0000:0000:FFFF:D93C:ED72]/b', '::ffff:217.60.237.114'],
 			'IPv6 dotted' => ['http://[::ffff:217.60.237.114]/c', '::ffff:217.60.237.114'],
 			'IPv4' => ['http://192.0.2.44/d', '192.0.2.44'],
+			'IPv4 in brackets' => ['http://[192.0.2.44]/e', '192.0.2.44'],
 		];
 	}
 
