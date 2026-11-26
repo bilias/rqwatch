@@ -49,10 +49,12 @@
 			]
 		},
 		"BitwiseOr": {
-			// a word run holds only letters, marks and format chars: valid UTF-8, no quotes
 			"ignore": [
+				// a word run holds only letters, marks and format chars: valid UTF-8, no quotes
 				"App\\Twig\\RqwatchExtension::markHomoglyphs::216",
-				"App\\Twig\\RqwatchExtension::markHomoglyphs::218"
+				"App\\Twig\\RqwatchExtension::markHomoglyphs::218",
+				// a reply json_decode() gave: valid UTF-8, nothing it cannot encode
+				"App\\Services\\FuzzyService::fuzzyAdd::783"
 			]
 		},
 		"CastFloat": {
@@ -89,6 +91,12 @@
 		},
 		"CastString": {
 			"ignore": [
+				// an int header value goes out as its digits, Symfony makes it text
+				"App\\Services\\FuzzyService::deleteHashes::706",
+				"App\\Services\\FuzzyService::fuzzyAdd::776",
+				"App\\Services\\FuzzyService::fuzzyAdd::777",
+				// json_encode() of a decoded reply cannot fail
+				"App\\Services\\FuzzyService::fuzzyAdd::783",
 				// an int concatenated is the same text
 				"App\\Services\\Import\\MailLogSpool::drain::349",
 				// a local drain's alias is already text
@@ -430,6 +438,8 @@
 		},
 		"TrueValue": {
 			"ignore": [
+				// an int status against ints: == matches as === does
+				"App\\Services\\FuzzyService::callApi::690",
 				// the values are text, none of them numeric: == matches as === does
 				"App\\Services\\MapService::updateMapFile::779",
 				// resyncCounters() reads only the keys of the aliases seen
@@ -481,6 +491,8 @@
 		},
 		"UnwrapArrayValues": {
 			"ignore": [
+				// a header's values are sent in order, their keys not at all
+				"App\\Services\\FuzzyService::deleteHashes::707",
 				// implode() ignores the keys, and an empty array is [] with gaps or without
 				"App\\Services\\MapService::prepareSymbols::328",
 				// in_array() does not need list keys
