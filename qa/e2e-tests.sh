@@ -121,10 +121,12 @@ seed_e2e() {
 	mkdir -p web/maps
 	"$PHP" bin/cli.php cron:updatemapfiles
 	local map
-	for map in ip_blacklist mail_from_blacklist mime_from_blacklist mail_from_whitelist mail_from_rcpt_to_blacklist; do
+	for map in ip_blacklist mail_from_blacklist mime_from_blacklist mail_from_whitelist mail_from_rcpt_to_blacklist body_url_full; do
 		[ "$(grep -vc '^#' "web/maps/${map}.txt" 2>/dev/null)" = 1 ] \
 			|| { echo "web/maps/${map}.txt: expected one entry" >&2; exit 1; }
 	done
+	[ "$(grep -vc '^#' web/maps/body_url_host.txt 2>/dev/null)" = 2 ] \
+		|| { echo "web/maps/body_url_host.txt: expected two entries" >&2; exit 1; }
 }
 seed_e2e
 
@@ -146,6 +148,11 @@ for f in contrib/rspamd/local.d/multimap.conf contrib/rspamd/lua.local.d/rqwatch
 	sed "s#http://127.0.0.1/maps/#http://127.0.0.1:${WEB_PORT}/maps/#" "$f" > "$dest"
 	grep -q "127.0.0.1:${WEB_PORT}/maps/" "$dest" || { echo "${f}: map URL not found" >&2; exit 1; }
 done
+# the url maps of a site's own (custom) multimap rules
+sed "s#http://127.0.0.1/maps/#http://127.0.0.1:${WEB_PORT}/maps/#" \
+	tests/EndToEnd/rspamd/local.d/multimap-url.conf >> rspamd/local.d/multimap.conf
+grep -q "127.0.0.1:${WEB_PORT}/maps/body_url_full.txt" rspamd/local.d/multimap.conf \
+	|| { echo "tests/EndToEnd/rspamd/local.d/multimap-url.conf: map URL not found" >&2; exit 1; }
 sed "s#^\([[:space:]]*servers = \).*#\1\"127.0.0.1:${FUZZY_PORT}\";#" \
 	contrib/rspamd/local.d/fuzzy_check.conf > rspamd/local.d/fuzzy_check.conf
 grep -q "127.0.0.1:${FUZZY_PORT}" rspamd/local.d/fuzzy_check.conf \

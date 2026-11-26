@@ -10,3 +10,15 @@ FROM users u, (
 	UNION ALL SELECT 'mail_from_rcpt_to_blacklist', NULL, 'pair-bl@sender.test', 'bob@rqwatch.test', NULL
 ) m
 WHERE u.username = 'admin';
+
+-- A site's own url maps (custom maps, the rules in
+-- tests/EndToEnd/rspamd/local.d/multimap-url.conf), each entry as the map form
+-- stores it: MapInventory::canonicalUrlHostEntries() of what was typed.
+-- tests/EndToEnd/Import/UrlMapsTest.php checks both.
+INSERT INTO custom_map_config (map_name, map_description, field_name, field_label, symbols) VALUES
+	('body_url_host', 'Body URL (host)', 'url', 'URL', 'RQWATCH_BODY_URL_HOST'),
+	('body_url_full', 'Body URL (full)', 'url', 'URL', 'RQWATCH_BODY_URL_FULL');
+INSERT INTO maps_custom (map_name, pattern) VALUES
+	('body_url_host', '::ffff:217.60.237.114'),
+	('body_url_host', '192.0.2.44'),
+	('body_url_full', 'http://[::ffff:217.60.237.114]/q9x-oml?lang=el');

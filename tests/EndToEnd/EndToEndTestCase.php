@@ -284,27 +284,38 @@ abstract class EndToEndTestCase extends TestCase
 	 */
 	private static function waitForMaps(): void {
 		// not a literal to the checkers: the loop unsets probes as their symbols appear
-		/** @var array<string, array{string, string, string, list<string>}> $probes */
+		/** @var array<string, array{string, string, string, list<string>, string}> $probes */
 		$probes = [
-			'RQWATCH_IP_BLACKLIST' => ['198.51.100.7', self::MAIL_FROM, self::MIME_FROM, [self::RCPT]],
-			'RQWATCH_SMTP_FROM_BLACKLIST' => [self::IP, 'smtp-bl@sender.test', self::MIME_FROM, [self::RCPT]],
-			'RQWATCH_MIME_FROM_BLACKLIST' => [self::IP, self::MAIL_FROM, 'Listed <mime-bl@sender.test>', [self::RCPT]],
-			'RQWATCH_SMTP_FROM_WHITELIST' => [self::IP, 'smtp-wl@sender.test', self::MIME_FROM, [self::RCPT]],
-			'RQWATCH_SMTP_FROM_RCPT_TO_BLACKLIST' => [self::IP, 'pair-bl@sender.test', self::MIME_FROM, ['bob@rqwatch.test']],
+			'RQWATCH_IP_BLACKLIST' => ['198.51.100.7', self::MAIL_FROM, self::MIME_FROM, [self::RCPT], ''],
+			'RQWATCH_SMTP_FROM_BLACKLIST' => [self::IP, 'smtp-bl@sender.test', self::MIME_FROM, [self::RCPT], ''],
+			'RQWATCH_MIME_FROM_BLACKLIST' => [self::IP, self::MAIL_FROM, 'Listed <mime-bl@sender.test>', [self::RCPT], ''],
+			'RQWATCH_SMTP_FROM_WHITELIST' => [self::IP, 'smtp-wl@sender.test', self::MIME_FROM, [self::RCPT], ''],
+			'RQWATCH_SMTP_FROM_RCPT_TO_BLACKLIST' => [self::IP, 'pair-bl@sender.test', self::MIME_FROM, ['bob@rqwatch.test'], ''],
+			'RQWATCH_BODY_URL_HOST' => [self::IP, self::MAIL_FROM, self::MIME_FROM, [self::RCPT], 'See http://192.0.2.44/probe'],
+			'RQWATCH_BODY_URL_FULL' => [self::IP, self::MAIL_FROM, self::MIME_FROM, [self::RCPT], 'See http://[::ffff:d93c:ed72]/q9x-oml?lang=el'],
 		];
 		$deadline = microtime(true) + 60.0;
+		// for a probe that never hits: the URLs rspamd read in its last mail
+		$seen = [];
 		while ($probes !== []) {
-			foreach ($probes as $symbol => [$ip, $from, $mimeFrom, $rcpts]) {
+			foreach ($probes as $symbol => [$ip, $from, $mimeFrom, $rcpts, $body]) {
 				$qid = 'PROBE' . strtoupper(bin2hex(random_bytes(4)));
 				$headers = self::scanHeaders($qid, $ip, $from, $rcpts);
 				$headers[] = 'Settings: {symbols_disabled = ["EXPORT_METADATA_RQWATCH"]}';
-				$reply = self::scan(self::message($qid, 'Probe', 'clean', $mimeFrom), $headers);
+				$headers[] = 'URL-Format: extended';
+				$reply = self::scan(self::message($qid, 'Probe', 'clean', $mimeFrom, body: $body), $headers);
 				if (isset(self::symbols($reply)[$symbol])) {
 					unset($probes[$symbol]);
+				} elseif ($body !== '') {
+					$seen[$symbol] = json_encode($reply['urls'] ?? null, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 				}
 			}
 			if ($probes !== [] && microtime(true) > $deadline) {
-				throw new RuntimeException('rspamd did not load the maps for: ' . implode(', ', array_keys($probes)));
+				$detail = '';
+				foreach (array_keys($probes) as $symbol) {
+					$detail .= isset($seen[$symbol]) ? "; {$symbol}: rspamd read the URLs " . $seen[$symbol] : '';
+				}
+				throw new RuntimeException('rspamd did not load the maps for: ' . implode(', ', array_keys($probes)) . $detail);
 			}
 			usleep(500000);
 		}
