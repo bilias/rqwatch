@@ -176,6 +176,7 @@
 				"App\\Utils\\Helper::extract_mail_relays::1132",
 				// one second at the idle limit; a test would race the clock
 				"App\\Controllers\\QuarantineController::sessionToken::327",
+				"App\\Core\\SessionManager::checkSessionExpired::182",
 				// 1 byte is "1B" in either branch
 				"App\\Utils\\Helper::formatSizeUnits::505"
 			]
@@ -308,6 +309,14 @@
 				"App\\Models\\MailLog::mailLogDataValue::407",
 				// a non-IPv6 value falls through to the same $ip
 				"App\\Core\\Auth\\LoginThrottle::keyFor::286",
+				// a null count is below every limit: it falls through to the same false
+				"App\\Core\\Auth\\LoginThrottle::registerFailure::114",
+				// without a cache the call in the try throws, and its catch returns [] too
+				"App\\Core\\Auth\\LoginThrottle::listBlocked::178",
+				"App\\Core\\Auth\\LoginThrottle::listCounters::207",
+				// listByPrefix() returns every key or throws: nothing is collected before the catch
+				"App\\Core\\Auth\\LoginThrottle::listBlocked::192",
+				"App\\Core\\Auth\\LoginThrottle::listCounters::228",
 				// the Y-m-d round trip refuses it too
 				"App\\Utils\\Helper::check_date::652",
 				// 'unknown' fails IP::create() and returns true there

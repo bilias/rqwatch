@@ -15,13 +15,21 @@
  900 s and are at least 1, IPv6 clients share their /64 (IPv4, loopback and
  IPv4-mapped addresses stay exact), and nothing is counted while the
  throttle is off, without a cache, or for an unknown or whitelisted IP.
+ A failure the cache cannot count blocks nothing. The admin page lists the
+ blocked IPs and the counters by IP, sorted, from Redis (a stub client
+ here), nothing without a cache or when Redis fails, and clears one IP.
 */
 
 namespace Tests\Unit\Auth;
 
 use App\Core\Auth\LoginThrottle;
+use App\Core\Cache\RedisCache;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Redis;
+use RedisException;
+use ReflectionProperty;
 use Tests\Unit\CountingCache;
+use Tests\Unit\RecordingCache;
 use Tests\Unit\UnitTestCase;
 
 final class LoginThrottleTest extends UnitTestCase
@@ -30,6 +38,9 @@ final class LoginThrottleTest extends UnitTestCase
 	private const string BLOCK = 'rqwatch_throttle:block:';
 
 	private CountingCache $cache;
+
+	/** @var list<mixed> what DEL was given */
+	private array $deleted = [];
 
 	#[\Override]
 	protected function setUp(): void {
@@ -187,6 +198,79 @@ final class LoginThrottleTest extends UnitTestCase
 		$this->setEnv('REDIS_ENABLE', 'true');
 		$this->setEnv('LOGIN_THROTTLE_ENABLE', null);
 		$this->assertFalse(LoginThrottle::isEnabled());
+	}
+
+	// RecordingCache's incr() fails (null), as RedisCache's does when Redis does
+	public function testUncountedFailureBlocksNothing(): void {
+		$cache = new RecordingCache();
+		$throttle = new LoginThrottle('192.0.2.1', $cache, $this->log);
+		$this->assertFalse($throttle->registerFailure());
+		$this->assertSame([], $cache->values);
+	}
+
+	/** @param array<string, int> $ttls key => TTL, listed by one SCAN */
+	private function redis(array $ttls): RedisCache {
+		$redis = $this->createStub(Redis::class);
+		$redis->method('scan')->willReturnCallback(function (mixed &$iterator) use ($ttls): array {
+			$iterator = 0;
+			return array_keys($ttls);
+		});
+		$redis->method('ttl')->willReturnCallback(fn (string $key): int => $ttls[$key] ?? -2);
+		$redis->method('get')->willReturnCallback(fn (string $key): string|false => $key === self::COUNT . '192.0.2.9' ? '2' : false);
+		$cache = new RedisCache($this->log);
+		(new ReflectionProperty(RedisCache::class, 'client'))->setValue($cache, $redis);
+		return $cache;
+	}
+
+	public function testListBlocked(): void {
+		$cache = $this->redis([self::BLOCK . '192.0.2.9' => 300, self::BLOCK => 60, self::BLOCK . '192.0.2.10' => 900]);
+		$this->assertSame(['192.0.2.10' => 900, '192.0.2.9' => 300], LoginThrottle::listBlocked($cache));
+	}
+
+	// the count of a counter gone meanwhile reads 0
+	public function testListCounters(): void {
+		$cache = $this->redis([self::COUNT . '192.0.2.9' => 300, self::COUNT => 60, self::COUNT . '192.0.2.10' => 500]);
+		$this->assertSame([
+			'192.0.2.10' => ['count' => 0, 'ttl' => 500],
+			'192.0.2.9' => ['count' => 2, 'ttl' => 300],
+		], LoginThrottle::listCounters($cache));
+	}
+
+	public function testListsWithoutCache(): void {
+		$this->assertSame([], LoginThrottle::listBlocked(null));
+		$this->assertSame([], LoginThrottle::listCounters(null));
+	}
+
+	// Redis failing: logged by the cache, nothing listed
+	public function testListsRedisDown(): void {
+		$redis = $this->createStub(Redis::class);
+		$redis->method('scan')->willThrowException(new RedisException('Connection lost'));
+		$cache = new RedisCache($this->log);
+		(new ReflectionProperty(RedisCache::class, 'client'))->setValue($cache, $redis);
+		$this->assertSame([], LoginThrottle::listBlocked($cache));
+		$this->assertSame([], LoginThrottle::listCounters($cache));
+		$this->assertSame(['error RedisCache listByPrefix: Connection lost', 'error RedisCache listByPrefix: Connection lost'], $this->log->lines);
+	}
+
+	public function testClearIp(): void {
+		$redis = $this->createMock(Redis::class);
+		$redis->expects($this->exactly(2))->method('del')->willReturnCallback(function (mixed $key): int {
+			$this->deleted[] = $key;
+			return 1;
+		});
+		$cache = new RedisCache($this->log);
+		(new ReflectionProperty(RedisCache::class, 'client'))->setValue($cache, $redis);
+		$this->assertTrue(LoginThrottle::clearIp($cache, '192.0.2.9'));
+		$this->assertSame([self::COUNT . '192.0.2.9', self::BLOCK . '192.0.2.9'], $this->deleted);
+	}
+
+	public function testClearNothing(): void {
+		$redis = $this->createMock(Redis::class);
+		$redis->expects($this->never())->method('del');
+		$cache = new RedisCache($this->log);
+		(new ReflectionProperty(RedisCache::class, 'client'))->setValue($cache, $redis);
+		$this->assertFalse(LoginThrottle::clearIp($cache, ''));
+		$this->assertFalse(LoginThrottle::clearIp(null, '192.0.2.9'));
 	}
 
 	private function throttle(string $ip): LoginThrottle {
