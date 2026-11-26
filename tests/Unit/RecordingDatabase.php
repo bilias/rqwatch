@@ -9,11 +9,14 @@
 */
 
 /*
- A database for the unit tests that only takes INSERTs: the query builder
- builds them as usual, and each row is recorded by table instead of run.
- The id of a mail_logs row is 100 plus its number; a mail_logs row of a
- qid in $failInsert throws instead. The Capsule is set as global (the
- static Capsule::connection() reads it); forget() puts that back.
+ A database for the unit tests that runs nothing: the query builder builds
+ its statements as usual. Each INSERTed row is recorded by table; the id
+ of a mail_logs row is 100 plus its number, and a mail_logs row of a qid
+ in $failInsert throws instead. Each SELECT is recorded with its bindings
+ and answered by $answer, with no rows without one. The Capsule is set as
+ global (the static Capsule::connection() reads it); forget() puts that
+ back. Eloquent models need $capsule->bootEloquent() too, which a test
+ undoes with Model::unsetConnectionResolver().
 */
 
 namespace Tests\Unit;
@@ -37,12 +40,33 @@ final class RecordingDatabase
 	/** @var array<string, Throwable> qid => what its mail_logs insert throws */
 	public array $failInsert = [];
 
+	/** @var list<array{string, list<mixed>}> each SELECT run: its SQL and bindings */
+	public array $selects = [];
+
+	/** @var (Closure(string, list<mixed>): list<array<string, mixed>>)|null the rows a SELECT returns */
+	public ?Closure $answer = null;
+
 	public function __construct(PDO&Stub $pdo) {
 		$pdo->method('lastInsertId')->willReturnCallback(fn (): string => (string) (100 + count($this->rows['mail_logs'] ?? [])));
-		$connection = new class ($pdo, $this->record(...)) extends Connection {
-			/** @param Closure(string, array<array-key, mixed>): void $record */
-			public function __construct(PDO $pdo, private Closure $record) {
+		$connection = new class ($pdo, $this->record(...), $this->query(...)) extends Connection {
+			/**
+			 * @param Closure(string, array<array-key, mixed>): void $record
+			 * @param Closure(string, array<array-key, mixed>): list<object> $query
+			 */
+			public function __construct(PDO $pdo, private Closure $record, private Closure $query) {
 				parent::__construct($pdo);
+			}
+
+			/**
+			 * the statement the query builder made, recorded and answered, not run
+			 * @param string $query
+			 * @param array<array-key, mixed> $bindings
+			 * @param bool $useReadPdo
+			 * @return list<object>
+			 */
+			#[\Override]
+			public function select($query, $bindings = [], $useReadPdo = true): array {
+				return ($this->query)($query, $bindings);
 			}
 
 			/**
@@ -70,6 +94,17 @@ final class RecordingDatabase
 	/** @return list<array<string, mixed>> */
 	public function rows(string $table): array {
 		return $this->rows[$table] ?? [];
+	}
+
+	/**
+	 * @param array<array-key, mixed> $bindings
+	 * @return list<object>
+	 */
+	private function query(string $sql, array $bindings): array {
+		$bindings = array_values($bindings);
+		$this->selects[] = [$sql, $bindings];
+		$rows = $this->answer === null ? [] : ($this->answer)($sql, $bindings);
+		return array_map(fn (array $row): object => (object) $row, $rows);
 	}
 
 	/** @param array<array-key, mixed> $bindings */
