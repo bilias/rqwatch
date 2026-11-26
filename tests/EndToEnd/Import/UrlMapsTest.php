@@ -99,7 +99,10 @@ final class UrlMapsTest extends EndToEndTestCase
 	private static function options(array $reply, string $symbol): array {
 		$symbols = self::symbols($reply);
 		if (!isset($symbols[$symbol])) {
-			self::fail("{$symbol} not in rspamd's reply: " . implode(', ', array_keys($symbols)));
+			self::fail("{$symbol} not in rspamd's reply: " . json_encode(
+				array_map(static fn (array $s): mixed => $s['options'] ?? null, $symbols),
+				JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+			));
 		}
 		/** @var mixed $options */
 		$options = $symbols[$symbol]['options'] ?? [];

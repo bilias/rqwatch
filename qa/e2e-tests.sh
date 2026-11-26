@@ -233,6 +233,8 @@ for leg in $LEGS; do
 		fi
 		echo "--- rspamd (exporter, force_actions and task lines) ---" >&2
 		podman logs "$RSPAMD_CID" 2>&1 | grep -E 'metadata_exporter|force_actions|task_write_log' | tail -30 >&2 || true
+		echo "--- rspamd (multimap) ---" >&2
+		podman logs "$RSPAMD_CID" 2>&1 | grep -F multimap | grep -vF '/maps/' | tail -30 >&2 || true
 		echo "--- rspamd (map fetches) ---" >&2
 		podman logs "$RSPAMD_CID" 2>&1 | grep -F '/maps/' | grep -v rspamd_map_add | tail -40 >&2 || true
 	fi
