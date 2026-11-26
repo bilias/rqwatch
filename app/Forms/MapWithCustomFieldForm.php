@@ -96,8 +96,8 @@ final class MapWithCustomFieldForm extends AbstractType
 				'label' => 'Submit',
 			]);
 
-		// IPv6 hosts in rspamd's form, so they match what rspamd reports for the URL
-		if ($field_name === 'url') {
+		// IP hosts in rspamd's form, so they match what rspamd reports for the URL
+		if (strcasecmp($field_name, 'url') === 0) {
 			$builder->get($field_name)->addModelTransformer(new CallbackTransformer(
 				fn(?string $value): ?string => $value,
 				fn(?string $value): ?string => $value === null ? null : MapInventory::canonicalUrlHostEntries($value),

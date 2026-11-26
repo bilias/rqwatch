@@ -467,8 +467,8 @@ final class MapInventory
 		return $prefix === null ? $ip : "{$ip}/{$prefix}";
 	}
 
-	// 'url' map entries with an IPv6 host in rspamd's form (canonical, no brackets), so an address
-	// copied from a browser, e.g. [::ffff:d93c:ed72], matches ::ffff:217.60.237.114; other lines unchanged
+	// 'url' map entries with an IP host in rspamd's form (canonical, no brackets), so an address copied
+	// from a browser, e.g. [::ffff:d93c:ed72], matches ::ffff:217.60.237.114, and [192.0.2.1] 192.0.2.1
 	public static function canonicalUrlHostEntries(string $text): string {
 		$lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $text));
 		return implode("\n", array_map(self::canonicalUrlHostEntry(...), $lines));
@@ -481,7 +481,7 @@ final class MapInventory
 		}
 
 		$addr = $m[2] !== '' ? $m[2] : $m[3];
-		$packed = filter_var($addr, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false ? inet_pton($addr) : false;
+		$packed = filter_var($addr, FILTER_VALIDATE_IP) !== false ? inet_pton($addr) : false;
 		$canonical = $packed === false ? false : inet_ntop($packed);
 		return $canonical === false ? $line : $m[1] . $canonical . $m[4];
 	}

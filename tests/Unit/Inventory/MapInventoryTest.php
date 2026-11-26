@@ -232,7 +232,7 @@ final class MapInventoryTest extends UnitTestCase
 			'domain' => ['example.org', 'example.org'],
 			'full URL, kept' => ['http://[::ffff:d93c:ed72]/q9x-oml?lang=el', 'http://[::ffff:d93c:ed72]/q9x-oml?lang=el'],
 			'IPv4, kept' => ['1.2.3.4', '1.2.3.4'],
-			'IPv4 in brackets, kept' => ['[1.2.3.4]', '[1.2.3.4]'],
+			'IPv4 in brackets, as rspamd reads it' => ['[1.2.3.4]', '1.2.3.4'],
 			'unbalanced bracket, kept' => ['[::ffff:d93c:ed72', '[::ffff:d93c:ed72'],
 			'not an address, kept' => ['abc:def', 'abc:def'],
 			'an address and more, kept' => ['[::FFFF:d93c:ed72] note', '[::FFFF:d93c:ed72] note'],
