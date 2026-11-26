@@ -126,22 +126,24 @@ final class Config {
 			return [];
 		}
 
+		// a config file's output is dropped, also when it throws
 		ob_start();
+		try {
+			$before = (function () {
+				return get_defined_vars();
+			})();
 
-		$before = (function () {
-			return get_defined_vars();
-		})();
-
-		/** @var array<string, mixed> $after variable names => values */
-		$after = (function () use ($path) {
-			/** @psalm-suppress UnresolvableInclude the config file is chosen at runtime */
-			require $path;
-			$vars = get_defined_vars();
-			unset($vars['path']); // remove $path from variables
-			return $vars;
-		})();
-
-		ob_end_clean();
+			/** @var array<string, mixed> $after variable names => values */
+			$after = (function () use ($path) {
+				/** @psalm-suppress UnresolvableInclude the config file is chosen at runtime */
+				require $path;
+				$vars = get_defined_vars();
+				unset($vars['path']); // remove $path from variables
+				return $vars;
+			})();
+		} finally {
+			ob_end_clean();
+		}
 
 		// remove $_GLOBAL vars
 		return array_diff_key($after, $before);
@@ -261,20 +263,20 @@ final class Config {
 		// set logger
 		self::setLogger($fileLogger);
 
+		/*
+		 loadAndInitWithRedisCache() handles a Redis failure itself, falling
+		 back to the files; what it lets through is a config file that throws,
+		 which the files alone would throw again
+		*/
 		if (Helper::env_bool('REDIS_ENABLE') && $cache !== null) {
-			try {
-				self::loadAndInitWithRedisCache(
-					redis: $cache,
-					defaultConfigPath: $defaultConfigPath,
-					localConfigPath: $localConfigPath,
-					extras: $extras,
-					redisKey: $redisKey,
-					ttlSeconds: $ttlSeconds,
-				);
-			} catch (Throwable $e) {
-				$fileLogger->error('Config [loadConfig] Redis connection failed: ' . $e->getMessage());
-				self::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
-			}
+			self::loadAndInitWithRedisCache(
+				redis: $cache,
+				defaultConfigPath: $defaultConfigPath,
+				localConfigPath: $localConfigPath,
+				extras: $extras,
+				redisKey: $redisKey,
+				ttlSeconds: $ttlSeconds,
+			);
 		} else {
 			self::loadAndInit($defaultConfigPath, $localConfigPath, $extras);
 		}
