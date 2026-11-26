@@ -580,6 +580,8 @@ final class MetadataImporterMultipartApi extends RqwatchApi
 		$response->setCharset('UTF-8');
 		$response->headers->set('Content-Type', 'text/plain');
 		$response->setStatusCode(Response::HTTP_OK);
+		// adds the charset to the Content-Type, as the other APIs' answers have it
+		$response->prepare($this->request);
 		$this->respond($response);
 	}
 }

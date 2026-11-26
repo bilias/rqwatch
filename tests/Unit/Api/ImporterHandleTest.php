@@ -121,7 +121,7 @@ final class ImporterHandleTest extends ApiTestCase
 		];
 		$response = $this->import($meta);
 		$this->assertAnswer(200, 'Message spooled', $response);
-		$this->assertSame('text/plain', $response->headers->get('Content-Type'));
+		$this->assertSame('text/plain; charset=UTF-8', $response->headers->get('Content-Type'));
 		$data = $this->record();
 		$this->assertSame('QID1', $data['qid']);
 		$this->assertSame('mail3', $data['server']);

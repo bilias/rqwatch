@@ -254,8 +254,7 @@
 		},
 		"MethodCallRemoval": {
 			"ignore": [
-				// a new Response is 200, and without prepare() its charset is not sent
-				"App\\Api\\MetadataImporterMultipartApi::handle::580",
+				// a new Response is 200
 				"App\\Api\\MetadataImporterMultipartApi::handle::582",
 				// without a database warmCache() returns at once; Integration covers the warm-up
 				"App\\Core\\Database\\MigrationStatus::getMigrationState::155",
