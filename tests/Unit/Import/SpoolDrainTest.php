@@ -18,9 +18,9 @@
  the mail still counts). A local drain imports a mail whose raw file is
  gone as not stored. --show-only lists and imports nothing. After a pass,
  each node's counter is set to the entries it has left, with the TTL.
- A stub client stands in for Redis, and a stub connection for the
- database: its transaction() gets the writer's mail and returns an id or
- throws. With no migration completed, nothing else is queried.
+ A stub client stands in for Redis, and RecordingDatabase for the
+ database: the writer's rows are recorded, not run. With no migration
+ completed, nothing else is queried.
 */
 
 namespace Tests\Unit\Import;
@@ -31,10 +31,6 @@ use App\Core\AppContainer;
 use App\Core\Cache\RedisCache;
 use App\Core\Database\MigrationStatus;
 use App\Services\Import\MailLogSpool;
-use Closure;
-use Illuminate\Database\Capsule\Manager as Capsule;
-use Illuminate\Database\Connection;
-use LogicException;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Redis;
@@ -44,6 +40,7 @@ use RuntimeException;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
+use Tests\Unit\RecordingDatabase;
 use Tests\Unit\UnitTestCase;
 
 final class SpoolDrainTest extends UnitTestCase
@@ -68,15 +65,12 @@ final class SpoolDrainTest extends UnitTestCase
 
 	private ?RedisException $failSet = null;
 
-	/** @var array<string, list<array<string, mixed>>> the rows the writer inserted, by table */
-	private array $rows = [];
-
-	/** @var array<string, Throwable> qid => what its insert throws */
-	private array $failInsert = [];
+	private RecordingDatabase $db;
 
 	#[\Override]
 	protected function setUp(): void {
 		parent::setUp();
+		$this->db = new RecordingDatabase($this->createStub(PDO::class));
 		Config::set('import_spool_redis_key', 'rq_spool');
 		Config::set('import_spool_ttl', 60);
 		$this->setEnv('MY_API_SERVER_ALIAS', 'mx1');
@@ -88,7 +82,7 @@ final class SpoolDrainTest extends UnitTestCase
 	#[\Override]
 	protected function tearDown(): void {
 		restore_error_handler();
-		(new ReflectionProperty(Capsule::class, 'instance'))->setValue(null, null);
+		RecordingDatabase::forget();
 		parent::tearDown();
 	}
 
@@ -126,59 +120,13 @@ final class SpoolDrainTest extends UnitTestCase
 		$cache = new RedisCache($this->log);
 		(new ReflectionProperty(RedisCache::class, 'client'))->setValue($cache, $redis);
 
-		$pdo = $this->createStub(PDO::class);
-		$pdo->method('lastInsertId')->willReturnCallback(fn (): string => (string) (100 + count($this->rows['mail_logs'] ?? [])));
-		$connection = new class ($pdo, $this->insert(...)) extends Connection {
-			/** @param Closure(string, array<array-key, mixed>): void $record */
-			public function __construct(PDO $pdo, private Closure $record) {
-				parent::__construct($pdo);
-			}
-
-			/**
-			 * the statement the writer's query builder made, recorded and not run
-			 * @param string $query
-			 * @param array<array-key, mixed> $bindings
-			 */
-			#[\Override]
-			public function insert($query, $bindings = []): bool {
-				($this->record)($query, $bindings);
-				return true;
-			}
-		};
-		$capsule = new Capsule();
-		$capsule->addConnection(['driver' => 'rqwatch-stub']);
-		$capsule->getDatabaseManager()->extend('rqwatch-stub', fn (): Connection => $connection);
-		// MailLogWriter reaches its connection through the static Capsule::connection()
-		$capsule->setAsGlobal();
-
-		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, $capsule, new MigrationStatus(null, $this->log), $cache, false));
+		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, $this->db->capsule, new MigrationStatus(null, $this->log), $cache, false));
 		return new MailLogSpool();
-	}
-
-	/**
-	 * an INSERT the writer made: its rows by table; a mail_logs row of a qid in
-	 * $failInsert throws instead
-	 * @param array<array-key, mixed> $bindings
-	 */
-	private function insert(string $sql, array $bindings): void {
-		if (preg_match('/^insert into "(\w+)" \(([^)]*)\) values /D', $sql, $match) !== 1) {
-			throw new LogicException("Not an INSERT: {$sql}");
-		}
-		$columns = array_map(fn (string $column): string => trim($column, '"'), explode(', ', $match[2]));
-		foreach (array_chunk(array_values($bindings), count($columns)) as $values) {
-			$row = array_combine($columns, $values);
-			/** @var mixed $qid */
-			$qid = $row['qid'] ?? null;
-			if ($match[1] === 'mail_logs' && is_string($qid) && isset($this->failInsert[$qid])) {
-				throw $this->failInsert[$qid];
-			}
-			$this->rows[$match[1]][] = $row;
-		}
 	}
 
 	/** @return list<array<string, mixed>> the mail_logs rows written */
 	private function imported(): array {
-		return $this->rows['mail_logs'] ?? [];
+		return $this->db->rows('mail_logs');
 	}
 
 	/**
@@ -254,7 +202,7 @@ final class SpoolDrainTest extends UnitTestCase
 			['mail_log_id' => 102, 'recipient_email' => 'bob@example.org'],
 			['mail_log_id' => 103, 'recipient_email' => 'alice@example.org'],
 			['mail_log_id' => 103, 'recipient_email' => 'bob@example.org'],
-		], $this->rows['mail_log_recipients'] ?? []);
+		], $this->db->rows('mail_log_recipients'));
 		$this->assertSame([self::MX1 . 'b'], array_keys($this->store), 'the imported entries deleted');
 		$this->assertSame(['Imported Q3 as id 101', 'Imported Q4 as id 102', 'Imported Q1 as id 103'], self::written($output));
 		$this->assertSame([
@@ -361,7 +309,7 @@ final class SpoolDrainTest extends UnitTestCase
 		$this->spooled(self::MX1 . 'a', ['qid' => 'Q1']);
 		$this->spooled(self::MX1 . 'b', ['qid' => 'Q2']);
 		$this->spooled(self::MX1 . 'c', ['qid' => 'Q3']);
-		$this->failInsert['Q2'] = $thrown;
+		$this->db->failInsert['Q2'] = $thrown;
 		$output = self::console();
 		$this->assertSame(['found' => 3, 'inserted' => 1, 'skipped' => 0, 'stopped' => true], $this->spool()->drain(true, 10, false, $output));
 		$failed = 'import of Q2 failed, stopping (' . self::MX1 . "b): {$reason}";
@@ -426,7 +374,7 @@ final class SpoolDrainTest extends UnitTestCase
 		$this->store[self::MX1 . 'a'] = '{';
 		$this->spooled(self::MX1 . 'b', ['qid' => 'Q2']);
 		$this->spooled(self::MX1 . 'c', ['qid' => 'Q3']);
-		$this->failInsert['Q3'] = new RuntimeException('Duplicate entry');
+		$this->db->failInsert['Q3'] = new RuntimeException('Duplicate entry');
 		$this->assertSame(['found' => 3, 'inserted' => 0, 'skipped' => 1, 'stopped' => false], $this->spool()->drain(true, 10, true));
 		$this->assertSame(['found' => 3, 'inserted' => 1, 'skipped' => 1, 'stopped' => true], $this->spool()->drain(true, 10, false));
 	}

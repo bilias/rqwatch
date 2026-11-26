@@ -336,6 +336,9 @@
 		},
 		"ReturnRemoval": {
 			"ignore": [
+				// past either, no row is left to insert, and an empty insert() runs no query
+				"App\\Services\\Import\\MailLogWriter::insertMailRecipients::217",
+				"App\\Services\\Import\\MailLogWriter::insertMailRecipients::236",
 				// past it, a non-array's ['data'] ?? null is null: the next check returns null
 				"App\\Services\\Import\\MailLogSpool::payload::427",
 				// a column the row was loaded without reads as null anyway
