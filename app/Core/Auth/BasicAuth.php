@@ -74,7 +74,17 @@ final class BasicAuth implements AuthInterface {
 		return false;
 	}
 
+	/*
+	 The 401 and exit; through $challenge instead when a unit test has set
+	 one (it throws), so the refusals can be tested without ending the run.
+	*/
+	/** @var (\Closure(): never)|null */
+	private static ?\Closure $challenge = null; // @phpstan-ignore property.unusedType (the unit tests set it, through reflection)
+
 	private static function doBasicAuth(): never {
+		if (self::$challenge !== null) {
+			(self::$challenge)();
+		}
 		$response = new Response('Authentication required', 401,
 		   ['WWW-Authenticate' => 'Basic']);
 		$response->send();

@@ -91,7 +91,9 @@
 				// inet_ntop() of a packed address does not fail
 				"App\\Inventory\\MapInventory::validateIpOrCidr::505",
 				// preg_replace() with this ASCII pattern does not fail
-				"App\\Models\\MailLog::logUnparsableMimeFrom::275"
+				"App\\Models\\MailLog::logUnparsableMimeFrom::275",
+				// a null qid reaches a string parameter only past the database lookup
+				"App\\Services\\FuzzyService::learnLocal::315"
 			]
 		},
 		"Coalesce": {
@@ -115,6 +117,9 @@
 		},
 		"DecrementInteger": {
 			"ignore": [
+				// an unset spool limit or TTL is unusable as -1 as it is as 0
+				"App\\Services\\Import\\MailLogSpool::push::199",
+				"App\\Services\\Import\\MailLogSpool::push::200",
 				// no attachments leave the list empty either way
 				"App\\Inventory\\MailObject::setAttached::123",
 				// a missing seen time expires the handle either way
@@ -233,6 +238,10 @@
 				"App\\Api\\RqwatchApi::__construct::48"
 			]
 		},
+		"NotIdentical": {
+			// the test seam: negated, the unit tests' refusals send the real 401 and exit
+			"ignore": ["App\\Core\\Auth\\BasicAuth::doBasicAuth::85"]
+		},
 		"PregMatchRemoveCaret": {
 			"ignore": [
 				// the Y-m-d round trip refuses anything else
@@ -333,7 +342,14 @@
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::211",
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::218",
 				// REMOTE_ADDR is an IP: no IP is a numeric string, so == matches as === does
-				"App\\Api\\RqwatchApi::checkIpAcl::82"
+				"App\\Api\\RqwatchApi::checkIpAcl::82",
+				// filter, migration and status names are no numeric strings: == matches as === does
+				"App\\Services\\VirusService::reportFilters::58",
+				"App\\Services\\VirusService::markIgnoredFilters::69",
+				"App\\Core\\Database\\MigrationStatus::setMigrationState::135",
+				"App\\Core\\Database\\MigrationStatus::getMigrationState::150",
+				"App\\Core\\Database\\MigrationStatus::mailLogVirusesWritable::327",
+				"App\\Core\\Database\\MigrationStatus::mailLogFuzzyHitsMailsWritable::340"
 			]
 		},
 		"UnwrapFinally": {
