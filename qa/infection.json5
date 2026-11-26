@@ -83,6 +83,8 @@
 		},
 		"CastString": {
 			"ignore": [
+				// route parameter and default names are never digits: the key is already a string
+				"App\\Core\\Routing\\Router::dispatch::79",
 				// a form field is text, and an upload PHP stored is readable
 				"App\\Api\\MetadataImporterMultipartApi::handle::225",
 				"App\\Api\\MetadataImporterMultipartApi::handle::258",
@@ -376,6 +378,8 @@
 		},
 		"TrueValue": {
 			"ignore": [
+				// route names are no numeric strings: == matches as === does
+				"App\\Core\\Routing\\Router::dispatch::167",
 				// a column name is no numeric string: == matches as === does
 				"App\\Utils\\FormHelper::getFilters::250",
 				// custom maps come from the database; Integration covers them
