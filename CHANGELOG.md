@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-11-26
+- mail page: fuzzy row for admins, shared with the detail page
 - maps: url map entries with an IP host are stored as rspamd reads them: a host canonical and
   without brackets, a full URL with its IP canonical (an IPv6 one in brackets)
 - Fix: get_mail.php answered a non-numeric mail id with an error 500 instead of a 400
