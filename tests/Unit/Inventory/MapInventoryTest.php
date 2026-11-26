@@ -235,6 +235,8 @@ final class MapInventoryTest extends UnitTestCase
 			'IPv4 in brackets, kept' => ['[1.2.3.4]', '[1.2.3.4]'],
 			'unbalanced bracket, kept' => ['[::ffff:d93c:ed72', '[::ffff:d93c:ed72'],
 			'not an address, kept' => ['abc:def', 'abc:def'],
+			'an address and more, kept' => ['[::FFFF:d93c:ed72] note', '[::FFFF:d93c:ed72] note'],
+			'a bare address and more, kept' => ['::FFFF:d93c:ed72 note', '::FFFF:d93c:ed72 note'],
 			'empty' => ['', ''],
 		];
 	}
