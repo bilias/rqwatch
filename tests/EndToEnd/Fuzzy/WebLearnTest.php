@@ -11,7 +11,9 @@
  Fuzzy learning from the admin's mail detail page: learn with a weight, Add
  weight, unlearn, each checked in rspamd by scanning a copy. A mail stored on
  this node is learned here; one stored on mx2 goes through mx2's fuzzy API
- (qa/e2e-tests.sh points mx2 at this copy's own API). Identical content
+ (qa/e2e-tests.sh points mx2 at this copy's own API). The mail page offers
+ the same actions, its body of an mx2 mail read through mx2's GetMail API.
+ Identical content
  learned from two mails shares its digests: unlearn keeps them in rspamd
  until the last holder is unlearned. A mail that only resembles a learned one
  matched its digest on arrival and is learned with digests of its own.
@@ -86,7 +88,38 @@ final class WebLearnTest extends EndToEndTestCase
 		}
 	}
 
-	#[TestDox('Fuzzy, two mails with the same content in one list: the first unlearn keeps the shared digests, the last removes them')]
+	#[DataProvider('serverCases')]
+	#[TestDox('Fuzzy from the mail page: its learn form, Add weight form and Unlearn link work, each back on the detail page ($server)')]
+	public function testFromMailPage(string $server): void {
+		$body = self::fuzzyBody("mail-page-{$server}");
+		[$qid, , $row] = $this->import('spam', body: $body);
+		$id = self::colInt($row, 'id');
+		if ($server !== self::SERVER) {
+			self::db()->prepare('UPDATE mail_logs SET server = ? WHERE id = ?')->execute([$server, $id]);
+		}
+		$admin = self::admin();
+		$mail = "/admin/mail/{$id}";
+
+		[$action, $token] = self::form($admin->get($mail)['body'], '/fuzzy/learn/\d+/' . self::SPAM);
+		$page = self::follow($admin, $admin->get($action . '?' . http_build_query(['_token' => $token, 'weight' => '7'])), self::detail($id));
+		$this->assertStringContainsString("Mail {$qid} learned as fuzzy 'Spam' (weight 7)", $page);
+
+		$page = html_entity_decode($admin->get($mail)['body'], ENT_QUOTES | ENT_HTML5);
+		$this->assertStringContainsString('Learned as Spam (RQWATCH_FUZZY_DENIED), weight 7:', strip_tags($page));
+		[$action, $token] = self::form($page, '/fuzzy/boost/\d+');
+		$page = self::follow($admin, $admin->get($action . '?' . http_build_query(['_token' => $token, 'weight' => '20'])), self::detail($id));
+		$this->assertStringContainsString("Mail {$qid}: weight +20 added to fuzzy 'Spam', now 27", $page);
+
+		$page = html_entity_decode($admin->get($mail)['body'], ENT_QUOTES | ENT_HTML5);
+		if (!preg_match('~href="([^"]*/fuzzy/unlearn/\d+\?_token=[^"]+)"~', $page, $m)) {
+			throw new RuntimeException('Unlearn link not found on the mail page');
+		}
+		$page = self::follow($admin, $admin->get($m[1]), self::detail($id));
+		$this->assertStringContainsString("Mail {$qid} unlearned from fuzzy 'Spam'", $page);
+		$this->assertSame([], self::query('SELECT id FROM mail_log_fuzzy WHERE mail_log_id = ?', [$id]), 'record deleted');
+	}
+
+	#[TestDox('Fuzzy, two mails with the same content in one list:the first unlearn keeps the shared digests, the last removes them')]
 	public function testSharedDigestsInOneList(): void {
 		$body = self::fuzzyBody('shared-one-list');
 		[$qidA, , $rowA] = $this->import('spam', body: $body);

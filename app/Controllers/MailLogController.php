@@ -33,6 +33,7 @@ use App\Forms\SearchForm;
 use App\Forms\MailReleaseForm;
 
 use App\Models\MailLog;
+use App\Models\MailLogFuzzy;
 use App\Services\MailLogService;
 use App\Services\FuzzyService;
 use App\Services\UserService;
@@ -733,6 +734,54 @@ final class MailLogController extends ViewController
 
 
 
+	/**
+	 * Admin row variables of the fuzzy partial for $log: learning state, and whether Learn or Add weight is offered.
+	 *
+	 * @return array{
+	 *	fuzzy_enabled: bool,
+	 *	fuzzy: MailLogFuzzy|null,
+	 *	fuzzy_shared: list<array{id: int, qid: string|null, mail_log_id: int|null, flag: int}>,
+	 *	fuzzy_matched: list<array{id: int, mail_log_id: int|null, qid: string, flag: int}>,
+	 *	fuzzy_learnable: bool,
+	 *	fuzzy_boostable: bool,
+	 *	fuzzy_flags: array<int, array{label: string, symbol: string, weight: int}>,
+	 *	fuzzy_hits: bool,
+	 *	fuzzy_hit_mails: bool
+	 * }
+	 */
+	private function fuzzyView(MailLog $log): array {
+		$fuzzy_enabled = $this->is_admin && FuzzyService::isEnabled();
+		$fuzzy_service = $fuzzy_enabled ? new FuzzyService() : null;
+		$fuzzy = null;
+		$fuzzy_shared = [];
+		if ($fuzzy_service !== null) {
+			$fuzzy = $fuzzy_service->getByMailLogId($log->id);
+			if ($fuzzy !== null) {
+				$fuzzy_shared = $fuzzy_service->sharedWith([$fuzzy])[$fuzzy->id] ?? [];
+			}
+		}
+		$fuzzy_flags = $fuzzy_enabled ? FuzzyService::flags() : [];
+		$fuzzy_learnable = $fuzzy_enabled && $fuzzy === null && $fuzzy_flags !== []
+			&& $log->mail_stored
+			&& FuzzyService::serverEnabled($log->server);
+
+		$fuzzy_boostable = $fuzzy !== null && $fuzzy->weight < 65535
+			&& $log->mail_stored
+			&& FuzzyService::serverEnabled($log->server);
+
+		return [
+			'fuzzy_enabled' => $fuzzy_enabled,
+			'fuzzy' => $fuzzy,
+			'fuzzy_shared' => $fuzzy_shared,
+			'fuzzy_matched' => $fuzzy_service !== null ? $fuzzy_service->matchedBy($log->id) : [],
+			'fuzzy_learnable' => $fuzzy_learnable,
+			'fuzzy_boostable' => $fuzzy_boostable,
+			'fuzzy_flags' => $fuzzy_flags,
+			'fuzzy_hits' => $fuzzy_enabled && FuzzyService::hitsEnabled(),
+			'fuzzy_hit_mails' => $fuzzy_enabled && FuzzyService::hitMailsEnabled(),
+		];
+	}
+
 	public function detail(string $type, string|int $value): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
@@ -797,26 +846,6 @@ final class MailLogController extends ViewController
 			&& $ar['log']->admin_notified === false
 			&& $ar['log']->created_day->format('Y-m-d') < MailLogService::adminNotificationCutoff();
 
-		// admin row: fuzzy learning state, and whether Learn is offered
-		$fuzzy_enabled = $this->is_admin && FuzzyService::isEnabled();
-		$fuzzy_service = $fuzzy_enabled ? new FuzzyService() : null;
-		$fuzzy = null;
-		$fuzzy_shared = [];
-		if ($fuzzy_service !== null) {
-			$fuzzy = $fuzzy_service->getByMailLogId($ar['log']->id);
-			if ($fuzzy !== null) {
-				$fuzzy_shared = $fuzzy_service->sharedWith([$fuzzy])[$fuzzy->id] ?? [];
-			}
-		}
-		$fuzzy_flags = $fuzzy_enabled ? FuzzyService::flags() : [];
-		$fuzzy_learnable = $fuzzy_enabled && $fuzzy === null && $fuzzy_flags !== []
-			&& $ar['log']->mail_stored
-			&& FuzzyService::serverEnabled($ar['log']->server);
-
-		$fuzzy_boostable = $fuzzy !== null && $fuzzy->weight < 65535
-			&& $ar['log']->mail_stored
-			&& FuzzyService::serverEnabled($ar['log']->server);
-
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),
 			'mailreleaseform' => $mailreleaseform_t,
@@ -828,15 +857,7 @@ final class MailLogController extends ViewController
 			'admin_notifications' => $admin_notifications,
 			'admin_notifications_enabled' => !empty(Helper::adminNotificationRcpt()),
 			'admin_notified_expired' => $admin_notified_expired,
-			'fuzzy_enabled' => $fuzzy_enabled,
-			'fuzzy' => $fuzzy,
-			'fuzzy_shared' => $fuzzy_shared,
-			'fuzzy_matched' => $fuzzy_service !== null ? $fuzzy_service->matchedBy($ar['log']->id) : [],
-			'fuzzy_learnable' => $fuzzy_learnable,
-			'fuzzy_boostable' => $fuzzy_boostable,
-			'fuzzy_flags' => $fuzzy_flags,
-			'fuzzy_hits' => $fuzzy_enabled && FuzzyService::hitsEnabled(),
-			'fuzzy_hit_mails' => $fuzzy_enabled && FuzzyService::hitMailsEnabled(),
+			...$this->fuzzyView($ar['log']),
 			'ip_country' => $ip_country,
 			'stripped_mail_location' => $stripped_mail_location,
 			'error' => $error,
@@ -1094,6 +1115,7 @@ final class MailLogController extends ViewController
 			'log' => $mailobject->getMailLog(),
 			'virus_found' => $mailobject->getVirusFound(),
 			'symbols' => $mailobject->getSymbols(),
+			...$this->fuzzyView($mailobject->getMailLog()),
 			'mailreleaseform' => $mailreleaseform,
 			'mailreleaseform_disabled' => $mailreleaseform_disabled,
 			'error' => $error,
