@@ -225,6 +225,13 @@ For example:
 | Bad SMTP From | email | `multimap.conf`: `type = "from"; extract_from = "smtp";` |
 | White Dmarc | domain | `whitelist.conf`: `domains = [ "http://127.0.0.1/maps/whitelist_dmarc.txt" ];` |
 | White Virus | signature | `antivirus.conf`: `whitelist = "http://127.0.0.1/maps/antivirus_whitelist.txt";`|
+| Body URLs (host) | url | `multimap.conf`: `type = "url";` |
+| Body URLs (full) | url | `multimap.conf`: `type = "url"; filter = "full";` |
+
+In url maps, an entry with an IP host is stored as Rspamd reads it from a mail: a host
+canonical and without brackets (`[::FFFF:D93C:ED72]` is stored as `::ffff:217.60.237.114`),
+a full URL with its IP canonical, an IPv6 one in brackets
+(`http://[::ffff:217.60.237.114]/path`).
 
 Check [Rspamd documentation](https://docs.rspamd.com/) for details.
 
