@@ -36,11 +36,14 @@ final class GetMailApi extends RqwatchApi
 
 	#[\Override]
 	public function handle(): void {
-		$id = $this->request->request->getInt('id');
-		$remote_user = $this->request->request->get('remote_user');
+		$fields = $this->requireSingleValues($this->request->request->all(), ['remote_user', 'id']);
+		$remote_user = $fields['remote_user'] ?? '';
+		// digits only: getInt() throws on "abc" (a 500, not a 400), intval() reads "5abc" as 5
+		$id_param = $fields['id'] ?? '';
+		$id = ctype_digit($id_param) ? (int) $id_param : 0;
 
-		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no user too: fail closed */
-		if (empty($remote_user)) {
+		// '' and '0' are no user too: fail closed
+		if ($remote_user === '' || $remote_user === '0') {
 			$err_msg = "{$this->clientIp} requested mail without a calling user email";
 			$response_msg = "Missing Required info";
 			$this->dropLogResponse(
@@ -49,7 +52,7 @@ final class GetMailApi extends RqwatchApi
 		}
 
 		if ($id <= 0) {
-			$err_msg = "{$remote_user} via {$this->clientIp} requested mail with invalid mail id '{$id}'";
+			$err_msg = "{$remote_user} via {$this->clientIp} requested mail with invalid mail id '{$id_param}'";
 			$response_msg = "Missing Required info";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,

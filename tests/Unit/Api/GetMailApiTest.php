@@ -10,7 +10,8 @@
 
 /*
  The mail API's own checks, before it looks the mail up: a calling user
- and a mail id above 0, else 400 and a critical log line. Its ACL and
+ and a mail id of 1 or more in digits, each a single value, else 400 and a
+ critical log line naming the id as sent. Its ACL and
  credentials are MAIL_API_*. Looking the mail up needs the database: the
  integration tests cover it.
 */
@@ -24,7 +25,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 final class GetMailApiTest extends ApiTestCase
 {
-	/** @param array<string, string> $post */
+	/** @param array<string, mixed> $post */
 	private function handle(array $post): void {
 		(new GetMailApi(Request::create('/api/get_mail.php', 'POST', $post)))->handle();
 	}
@@ -52,9 +53,11 @@ final class GetMailApiTest extends ApiTestCase
 	/** @return array<string, array{array<string, string>, string}> */
 	public static function badIds(): array {
 		return [
-			'none' => [[], '0'],
+			'none' => [[], ''],
 			'zero' => [['id' => '0'], '0'],
 			'negative' => [['id' => '-3'], '-3'],
+			'not a number' => [['id' => 'abc'], 'abc'],
+			'trailing text' => [['id' => '5abc'], '5abc'],
 		];
 	}
 
@@ -63,6 +66,19 @@ final class GetMailApiTest extends ApiTestCase
 	public function testBadId(array $post, string $id): void {
 		$this->assertAnswer(400, 'Missing Required info', $this->answer(fn () => $this->handle($post + ['remote_user' => 'alice@example.org'])));
 		$line = "critical [GetMailApi] alice@example.org via 192.0.2.7 requested mail with invalid mail id '{$id}'";
+		$this->assertSame([$line, $line], $this->log->lines);
+	}
+
+	/** @return array<string, array{string}> */
+	public static function notSingle(): array {
+		return ['remote_user' => ['remote_user'], 'id' => ['id']];
+	}
+
+	#[DataProvider('notSingle')]
+	public function testNotSingleValue(string $field): void {
+		$post = [$field => ['x']] + ['remote_user' => 'alice@example.org', 'id' => '5'];
+		$this->assertAnswer(400, 'Missing Required info', $this->answer(fn () => $this->handle($post)));
+		$line = "critical [GetMailApi] 192.0.2.7 requested GetMailApi with '{$field}' that is not a single value";
 		$this->assertSame([$line, $line], $this->log->lines);
 	}
 }
