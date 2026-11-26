@@ -325,7 +325,8 @@
 		"PregMatchRemoveFlags": {
 			"ignore": [
 				// the lines are split on line feeds, after CR and CRLF became one: none ends with a line feed
-				"App\\Inventory\\MapInventory::canonicalUrlHostEntry::479",
+				"App\\Inventory\\MapInventory::canonicalUrlHostEntry::484",
+				"App\\Inventory\\MapInventory::canonicalUrlHostEntry::490",
 				// the parser gives header values without a trailing line feed
 				"App\\Api\\MetadataImporterMultipartApi::handle::392",
 				// the Y-m-d round trip refuses a trailing line feed
