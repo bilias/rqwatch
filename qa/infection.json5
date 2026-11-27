@@ -578,7 +578,9 @@
 				// the addresses are used past the database lookup
 				"App\\Api\\ReleaseMailApi::handle::93",
 				// mailparse gives the content type lowercased, without parameters
-				"App\\Inventory\\MailObject::embedImages::100"
+				"App\\Inventory\\MailObject::embedImages::100",
+				// the message starts with "error:" and ends with a quote: nothing to trim
+				"App\\Core\\Auth\\LdapAuth::getError::266"
 			]
 		},
 		"UnwrapArrayValues": {
@@ -646,12 +648,26 @@
 				// UTF-8 is PHP's internal encoding by default already
 				"App\\Api\\MetadataImporterMultipartApi::handle::267",
 				// the handle closes when the method returns
-				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::67"
+				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::67",
+				// a diagnostic needs a server's reply: without one it stays the '' it starts as
+				"App\\Core\\Auth\\LDAP\\PhpLdapDirectory::diagnosticMessage::81"
 			]
 		},
 		"InstanceOf_": {
 			// a name defined() on the enum is one of its cases: always a RouteName
 			"ignore": ["App\\Twig\\RqwatchExtension::route::100"]
+		},
+		"FunctionCall": {
+			// a search result and its entry come only from a server: a unit test reaches
+			// neither call (anything else is refused first)
+			"ignore": [
+				"App\\Core\\Auth\\LDAP\\PhpLdapDirectory::firstEntry::60",
+				"App\\Core\\Auth\\LDAP\\PhpLdapDirectory::getDn::65"
+			]
+		},
+		"Ternary": {
+			// a diagnostic needs a server's reply: without one it stays the '' it starts as
+			"ignore": ["App\\Core\\Auth\\LDAP\\PhpLdapDirectory::diagnosticMessage::82"]
 		}
 	}
 }
