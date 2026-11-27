@@ -606,7 +606,7 @@
 				"App\\Console\\CronQuarantine::namedMailDirs::282",
 				// only the keys of $hashes are read
 				"App\\Services\\FuzzyService::sharedWith::399",
-				// an address (or null) against a non-empty address, no numeric string: in_array() matches loosely as strictly
+				// a non-empty address against the user's (or ''), no numeric string: in_array() matches loosely as strictly
 				"App\\Services\\MapService::addMapCombinedEntry::891",
 				"App\\Services\\MapService::updateMapCombinedEntry::967",
 				// flags are ints both sides (the cast and Row::int()): in_array() matches loosely as strictly
@@ -626,10 +626,7 @@
 				// an empty whitelist entry only matches an empty client IP, which is never throttled
 				"App\\Core\\Auth\\LoginThrottle::__construct::80",
 				// http_build_query() leaves a null out of the page's url
-				"App\\Services\\FuzzyService::getLearnedPaginated::245",
-				// rcpt_to is never empty here: an empty address kept never matches it
-				"App\\Services\\MapService::addMapCombinedEntry::890",
-				"App\\Services\\MapService::updateMapCombinedEntry::966"
+				"App\\Services\\FuzzyService::getLearnedPaginated::245"
 			]
 		},
 		"UnwrapStrToLower": {
@@ -772,13 +769,6 @@
 		"ArrayOneItem": {
 			// with no ids the result is empty
 			"ignore": ["App\\Services\\MapHitService::entryHits::513"]
-		},
-		"UnwrapArrayUnique": {
-			// in_array() finds an address listed once as one listed twice
-			"ignore": [
-				"App\\Services\\MapService::addMapCombinedEntry::890",
-				"App\\Services\\MapService::updateMapCombinedEntry::966"
-			]
 		}
 	}
 }

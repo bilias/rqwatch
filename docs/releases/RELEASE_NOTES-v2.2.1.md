@@ -46,4 +46,7 @@ Rqwatch 2.x+ contains updates to the database schema.
 - `WEB_HOST` and `WEB_HOST_NOTIFICATIONS` are trusted with `WEB_SCHEME` and its default port only.
 - LDAP: .env LDAP_TIMEOUT (5 seconds by default)
 
+# Bug fixes
+- Users whose stored email had capitals could not add or edit map entries for their own address
+
 **Full Changelog**: https://github.com/bilias/rqwatch/compare/v2.2.0...v2.2.1

@@ -887,7 +887,7 @@ final class MapService
 				$this->logger->warning("[addMapCombinedEntry] Missing rcpt_to in data for user {$this->username}");
 				return false;
 			}
-			$allowedRcptTo = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
+			$allowedRcptTo = $this->ownAddresses();
 			if (!in_array($rcpt_to, $allowedRcptTo, true)) {
 				$this->logger->warning("rcpt_to value '{$rcpt_to}' is not allowed for user {$this->username}");
 				return false;
@@ -963,7 +963,7 @@ final class MapService
 				$this->logger->warning("[updateMapCombinedEntry] Missing rcpt_to in data for user {$this->username}");
 				return false;
 			}
-			$allowedRcptTo = array_unique(array_filter(array_merge([$this->email], $this->user_aliases ?? [])));
+			$allowedRcptTo = $this->ownAddresses();
 			if (!in_array($rcpt_to, $allowedRcptTo, true)) {
 				$this->logger->warning("rcpt_to value '{$rcpt_to}' is not allowed for user {$this->username}");
 				return false;
@@ -1450,6 +1450,15 @@ final class MapService
 		}
 
 		return true;
+	}
+
+	// the user's addresses as trimLower() leaves rcpt_to: a stored email may have capitals
+	/** @return array<int, string> */
+	private function ownAddresses(): array {
+		return array_map(
+			fn (string $address): string => strtolower(trim($address)),
+			array_merge([(string) $this->email], $this->user_aliases ?? [])
+		);
 	}
 
 }

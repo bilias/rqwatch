@@ -17,7 +17,8 @@
  any of its lines. Adding, changing, deleting or toggling an entry marks
  the map changed and writes its file; any failure is false. A combined
  entry's values are trimmed and lower case; a user's must name one of
- their addresses as rcpt_to, and a user changes their own entries only.
+ their addresses as rcpt_to (in any case or spacing, as stored), and a
+ user changes their own entries only.
  Changing an entry's key detaches its hits. A custom map is given one entry
  per line, '#' first for a disabled one. A user deletes or toggles an
  admin's entry only with USER_CAN_DEL_ADMIN_MAP_ENTRIES; deleting all of a
@@ -156,6 +157,32 @@ final class MapEntriesTest extends MapDatabaseTestCase
 	public function testAddMapCombinedEntryOwnAddress(): void {
 		$this->assertTrue(self::user()->addMapCombinedEntry(self::MAP, self::FIELDS, ['mail_from' => 'a@example.net', 'rcpt_to' => 'alice@example.org']));
 		$this->assertSame('alice@example.org', $this->db->rows('maps_combined')[0]['rcpt_to'] ?? null);
+	}
+
+	/** @return array<string, array{?string, list<string>, string}> email, aliases, the rcpt_to given */
+	public static function storedAddresses(): array {
+		return [
+			'email with capitals' => [' Alice@Example.ORG', [], 'Alice@example.org'],
+			'alias with capitals' => ['alice@example.org', ['Alias@Example.org '], 'alias@example.org '],
+			'no email, an alias' => [null, ['alias@example.org'], 'alias@example.org'],
+		];
+	}
+
+	/** @param list<string> $aliases */
+	#[DataProvider('storedAddresses')]
+	public function testAddMapCombinedEntryStoredAddress(?string $email, array $aliases, string $rcptTo): void {
+		$service = new MapService(['is_admin' => false, 'username' => 'alice', 'user_id' => 7, 'email' => $email, 'user_aliases' => $aliases]);
+		$this->assertTrue($service->addMapCombinedEntry(self::MAP, self::FIELDS, ['mail_from' => 'a@example.net', 'rcpt_to' => $rcptTo]));
+		$this->assertSame([], $this->log->lines);
+	}
+
+	/** @param list<string> $aliases */
+	#[DataProvider('storedAddresses')]
+	public function testUpdateMapCombinedEntryStoredAddress(?string $email, array $aliases, string $rcptTo): void {
+		$this->answers[] = ['where `id` = ? limit 1', [['mail_from' => 'a@example.net', 'rcpt_to' => 'x@example.org']]];
+		$service = new MapService(['is_admin' => false, 'username' => 'alice', 'user_id' => 7, 'email' => $email, 'user_aliases' => $aliases]);
+		$this->assertTrue($service->updateMapCombinedEntry(self::MAP, self::FIELDS, self::entry(), ['mail_from' => 'a@example.net', 'rcpt_to' => $rcptTo]));
+		$this->assertSame(strtolower(trim($rcptTo)), $this->db->changes[0][1][1] ?? null);
 	}
 
 	// an admin's for any rcpt_to
