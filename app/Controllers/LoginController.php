@@ -271,7 +271,6 @@ final class LoginController extends ViewController
 			'loginform' => $loginform->createView(),
 			'openidc_enabled' => Helper::env_bool('OPENIDC_AUTH_ENABLED'),
 			'openidc_logout_url' => $openidcLogoutUrl,
-			'runtime' => $this->getRuntime(),
 			'flashes' => $this->flashbag->all(),
 		]),
 		$statusCode);

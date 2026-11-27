@@ -94,8 +94,6 @@ final class UserController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -186,8 +184,6 @@ final class UserController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -228,8 +224,6 @@ final class UserController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -270,8 +264,6 @@ final class UserController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -375,8 +367,6 @@ final class UserController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -446,8 +436,6 @@ final class UserController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -577,7 +565,6 @@ final class UserController extends ViewController
 		}
 
 		return new Response($this->twig->render('user_edit.twig', [
-			'edit' => true,
 			'error' => $error,
 			'qidform' => $qidform->createView(),
 			'userform' => $userform->createView(),
@@ -585,8 +572,6 @@ final class UserController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'user_auth_provider' => $user->auth_provider,
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),

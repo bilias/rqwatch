@@ -135,8 +135,6 @@ final class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -250,8 +248,6 @@ final class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'queryParams' => $queryParams,
@@ -324,14 +320,10 @@ final class MailLogController extends ViewController
 			'logs' => $logs,
 			'sum' => $sum,
 			'filters' => $filters,
-			'items_per_page' => $this->items_per_page,
 			'max_items' => Config::getIntOr('top_reports', 30),
 			'runtime' => $this->getRuntime(),
-			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'chart' => $chart,
@@ -392,8 +384,6 @@ final class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -440,8 +430,6 @@ final class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -499,8 +487,6 @@ final class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -540,8 +526,6 @@ final class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -581,8 +565,6 @@ final class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -627,8 +609,6 @@ final class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -675,8 +655,6 @@ final class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'quarantine_days' => (int) Helper::env_required('QUARANTINE_DAYS'),
@@ -724,8 +702,6 @@ final class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'quarantine_days' => (int) Helper::env_required('QUARANTINE_DAYS'),
@@ -871,8 +847,6 @@ final class MailLogController extends ViewController
 			'subject_privacy' => $this->subject_privacy,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -1085,7 +1059,6 @@ final class MailLogController extends ViewController
 		// enable form rendering support
 		$this->twigFormView($this->request);
 
-		$error = null;
 		$service = $this->getMailLogService();
 
 		try {
@@ -1118,14 +1091,7 @@ final class MailLogController extends ViewController
 			...$this->fuzzyView($mailobject->getMailLog()),
 			'mailreleaseform' => $mailreleaseform,
 			'mailreleaseform_disabled' => $mailreleaseform_disabled,
-			'error' => $error,
-			'runtime' => $this->getRuntime(),
-			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
-			'current_route' => $this->request->getPathInfo(),
-			'rspamd_stats' => $this->getRspamdStat(),
 		]));
 		// the HTML preview's srcdoc iframe inherits this page's policy: the
 		// mail's inline styles are allowed here, and only here
@@ -1287,8 +1253,6 @@ final class MailLogController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'redis_config_ttl' => $configTTLData['ttl_human'],

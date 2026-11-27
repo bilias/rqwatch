@@ -81,8 +81,6 @@ final class MapHitController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -186,8 +184,6 @@ final class MapHitController extends ViewController
 			'subject_privacy' => Config::getBool('subject_privacy') ?? false,
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -257,8 +253,6 @@ final class MapHitController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));

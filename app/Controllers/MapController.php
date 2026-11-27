@@ -138,8 +138,6 @@ final class MapController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -246,8 +244,6 @@ final class MapController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'maps_url_base' => $this->getMapsUrlBase(),
@@ -303,8 +299,6 @@ final class MapController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'maps_url_base' => $this->getMapsUrlBase(),
@@ -328,11 +322,11 @@ final class MapController extends ViewController
 			return $response;
 		}
 
-		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		[, $response] = $this->handleMapSelectForm('MapCombined');
 		if ($response !== null) {
 			return $response;
 		}
-		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
+		[, $response] = $this->handleMapSelectForm('MapCustom');
 		if ($response !== null) {
 			return $response;
 		}
@@ -374,15 +368,10 @@ final class MapController extends ViewController
 
 		return new Response($this->twig->render('maps_custom_config_add.twig', [
 			'qidform' => $qidform->createView(),
-			'mapselectform' => $mapCombinedSelectForm->createView(),
-			'mapselectcustomform' => $mapCustomSelectForm->createView(),
-			'items_per_page' => $this->items_per_page,
 			'mapform' => $mapform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -420,11 +409,11 @@ final class MapController extends ViewController
 			return $response;
 		}
 
-		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		[, $response] = $this->handleMapSelectForm('MapCombined');
 		if ($response !== null) {
 			return $response;
 		}
-		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
+		[, $response] = $this->handleMapSelectForm('MapCustom');
 		if ($response !== null) {
 			return $response;
 		}
@@ -473,15 +462,10 @@ final class MapController extends ViewController
 
 		return new Response($this->twig->render('maps_custom_config_add.twig', [
 			'qidform' => $qidform->createView(),
-			'mapselectform' => $mapCombinedSelectForm->createView(),
-			'mapselectcustomform' => $mapCustomSelectForm->createView(),
-			'items_per_page' => $this->items_per_page,
 			'mapform' => $mapform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -607,8 +591,6 @@ final class MapController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'maps_url_base' => $this->getMapsUrlBase(),
@@ -627,11 +609,11 @@ final class MapController extends ViewController
 			return $response;
 		}
 
-		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		[, $response] = $this->handleMapSelectForm('MapCombined');
 		if ($response !== null) {
 			return $response;
 		}
-		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
+		[, $response] = $this->handleMapSelectForm('MapCustom');
 		if ($response !== null) {
 			return $response;
 		}
@@ -755,15 +737,11 @@ final class MapController extends ViewController
 
 		return new Response($this->twig->render('map_add.twig', [
 			'qidform' => $qidform->createView(),
-			'mapselectform' => $mapCombinedSelectForm->createView(),
-			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'mapdescr' => $mapdescr,
 			'mapform' => $mapform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -791,12 +769,12 @@ final class MapController extends ViewController
 			return $response;
 		}
 
-		[$mapCombinedSelectForm, $response] = $this->handleMapSelectForm('MapCombined');
+		[, $response] = $this->handleMapSelectForm('MapCombined');
 		if ($response !== null) {
 			return $response;
 		}
 
-		[$mapCustomSelectForm, $response] = $this->handleMapSelectForm('MapCustom');
+		[, $response] = $this->handleMapSelectForm('MapCustom');
 		if ($response !== null) {
 			return $response;
 		}
@@ -913,15 +891,11 @@ final class MapController extends ViewController
 
 		return new Response($this->twig->render('map_edit.twig', [
 			'qidform' => $qidform->createView(),
-			'mapselectform' => $mapCombinedSelectForm->createView(),
-			'mapselectcustomform' => $mapCustomSelectForm->createView(),
 			'mapdescr' => $mapdescr,
 			'mapform' => $mapform->createView(),
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 		]));
@@ -1224,8 +1198,6 @@ final class MapController extends ViewController
 			'runtime' => $this->getRuntime(),
 			'flashes' => $this->getFlashes(),
 			'is_admin' => $this->is_admin,
-			'username' => $this->username,
-			'auth_provider' => $this->session->get('auth_provider'),
 			'current_route' => $this->request->getPathInfo(),
 			'rspamd_stats' => $this->getRspamdStat(),
 			'maps_url_base' => $this->getMapsUrlBase(),
