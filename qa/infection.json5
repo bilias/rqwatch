@@ -184,6 +184,7 @@
 				// the line's other mutants (0xFF << ..., 8 - $bits) are killed by the /25 and /29 cases
 				"App\\Services\\MapHitService::inPrefix::373",
 				// implode() ignores the keys array_fill() starts at
+				"App\\Services\\FuzzyService::recordHits::475",
 				"App\\Services\\MapHitService::mapHitsSource::830",
 				// -1 is refused as 0 is, and the message names neither
 				"App\\Api\\FuzzyMailApi::handle::53",
@@ -272,6 +273,7 @@
 				// other mutant, explode() limit 3, is killed by the 'a second slash' case
 				"App\\Services\\MapHitService::longestPrefix::344",
 				// implode() ignores the keys array_fill() starts at
+				"App\\Services\\FuzzyService::recordHits::475",
 				"App\\Services\\MapHitService::mapHitsSource::830",
 				"App\\Controllers\\QuarantineController::sessionToken::323",
 				// 9 zero bytes differ from 8 only in the reserved ::/64
@@ -622,6 +624,7 @@
 				"App\\Services\\MailLogService::markNotificationsSkipped::2162",
 				"App\\Services\\MailLogService::filterDisabledRecipients::2276",
 				// pluck() gives the ids as a list already
+				"App\\Services\\FuzzyService::recordHits::471",
 				"App\\Services\\MapHitService::combinedEntries::251",
 				// the entries are only iterated, never read by key
 				"App\\Services\\MapHitService::optionEntries::231",
