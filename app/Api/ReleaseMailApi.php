@@ -99,7 +99,7 @@ final class ReleaseMailApi extends RqwatchApi
 			// findMailLog throws InvalidArgumentException when no mail found
 			$maillog  = $service->findMailLog($id);
 		} catch (InvalidArgumentException $e) {
-			$err_msg = "{$remote_user} via {$this->clientIp} requested release of mail with id {$id} which does no exist";
+			$err_msg = "{$remote_user} via {$this->clientIp} requested release of mail with id {$id} which does not exist";
 			$response_msg = "Message not found";
 			$this->dropLogResponse(
 				Response::HTTP_BAD_REQUEST, $response_msg,
