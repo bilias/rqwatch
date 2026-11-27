@@ -13,15 +13,15 @@
  QUARANTINE_DIR of its own and MailerService's transport seam. Every page
  is kept out of caches and referrers. With NOTIFICATION_RELEASE_LINKS off
  each says links are off, logged. The landing page posts the token from
- the fragment, with a CSRF token; link() trades a valid token for a
- random handle in a renewed session (the last 10 kept) and goes on to the
- confirm page, which needs the handle. view() and release() need their
- CSRF token and the handle: the first use of a one-time link rotates its
- hash (logged); the mail is read in the recipient's scope. The view shows
- the mail, its inline styles allowed; the release sends it to the token's
- recipient only, logs it (and to syslog) and deletes the token; without a
- mailer it is refused first, keeping the token. Any failure is the same
- page, whatever went wrong.
+ the fragment, with a CSRF token; link() trades a valid token for a random
+ handle in a renewed session, the old one destroyed (the last 10 kept), and
+ goes on to the confirm page, which needs the handle. view() and release()
+ need their CSRF token and the handle: the first use of a one-time link
+ rotates its hash (logged); the mail is read in the recipient's scope. The
+ view shows the mail, its inline styles allowed; the release sends it to
+ the token's recipient only, logs it (and to syslog) and deletes the token;
+ without a mailer it is refused first, keeping the token. Any failure is
+ the same page, whatever went wrong.
 */
 
 namespace Tests\Unit\Controllers;
@@ -37,6 +37,8 @@ use ReflectionProperty;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\AbstractTransport;
 use Symfony\Component\Mailer\Transport\TransportInterface;
@@ -207,6 +209,17 @@ final class QuarantineControllerTest extends ControllerTestCase
 
 	public function testLink(): void {
 		$request = self::session();
+		$storage = new class extends MockArraySessionStorage {
+			/** @var list<bool> the $destroy of each regenerate() */
+			public array $regenerated = [];
+
+			#[\Override]
+			public function regenerate(bool $destroy = false, ?int $lifetime = null): bool {
+				$this->regenerated[] = $destroy;
+				return parent::regenerate($destroy, $lifetime);
+			}
+		};
+		$request->setSession(new Session($storage));
 		$before = $request->getSession()->getId();
 		[$response] = $this->link(['token' => ' ' . self::TOKEN . ' '], null, $request);
 		$this->assertTokenPage($response);
@@ -222,6 +235,7 @@ final class QuarantineControllerTest extends ControllerTestCase
 		$this->assertEqualsWithDelta(time(), $entry['seen'] ?? 0, 2);
 		$this->assertRedirect($this->url(RouteName::TOKEN_CONFIRM, $handle), $response);
 		$this->assertNotSame($before, $request->getSession()->getId());
+		$this->assertSame([true], $storage->regenerated);
 		$this->assertSame([hash('sha256', self::TOKEN), 1], $this->selected('from `mail_log_tokens`')[1] ?? null);
 	}
 
