@@ -367,6 +367,7 @@
 			"ignore": [
 				"App\\Services\\MapService::getMapCombinedBasicQuery::120",
 				"App\\Services\\MapService::getMapCustomQuery::152",
+				"App\\Services\\MailLogService::getSqlFromQuery::103",
 				"App\\Models\\MailLog::getMimeFromDecodedAttribute::200",
 				"App\\Models\\MailLog::getVirusFromSymbolAttribute::190",
 				"App\\Models\\MailLog::getMailRecipientsAttribute::315",
@@ -379,6 +380,17 @@
 				"App\\Utils\\Helper::checkForMap::259",
 				"App\\Utils\\Helper::convertSRSAddress::450"
 			]
+		},
+		"ProtectedVisibility": {
+			// MailLogService is final: protected is private
+			"ignore": [
+				"App\\Services\\MailLogService::applyUserScope::1753",
+				"App\\Services\\MailLogService::applyRecipientScope::1786"
+			]
+		},
+		"CloneRemoval": {
+			// the query's last use: changing it changes nothing after
+			"ignore": ["App\\Services\\MailLogService::collectStats::1253"]
 		},
 		"ReturnRemoval": {
 			"ignore": [
@@ -487,7 +499,12 @@
 				"App\\Services\\MailLogService::filterByRecipient::359",
 				"App\\Services\\MailLogService::filterByMailLogData::408",
 				"App\\Services\\MailLogService::filterByVirus::454",
-				"App\\Services\\MailLogService::filterByLocalSymbol::501"
+				"App\\Services\\MailLogService::filterByLocalSymbol::501",
+				// report field and mode names are no numeric strings: == matches as === does
+				"App\\Services\\MailLogService::getReports::1076",
+				"App\\Services\\MailLogService::getReports::1077",
+				"App\\Services\\MailLogService::getReports::1132",
+				"App\\Services\\MailLogService::getReports::1140"
 			]
 		},
 		"UnwrapFinally": {
