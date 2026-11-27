@@ -616,7 +616,8 @@ final class UserController extends ViewController
 			)
 		);
 
-		$sessionAliases = array_map(
+		// the session's aliases (the provider's, at login) are its own user's: not on another's page
+		$sessionAliases = $user->id !== $this->user_id ? [] : array_map(
 			'strtolower',
 			array_filter(
 				SessionManager::getStringList($this->session, 'user_aliases'),

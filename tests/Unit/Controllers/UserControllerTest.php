@@ -184,10 +184,18 @@ final class UserControllerTest extends ControllerTestCase
 		$this->assertSame(['error' => ['The value can only contain letters, numbers and ._+-@']], self::flashes($request));
 	}
 
+	// the admin's own session aliases are not the user's
 	public function testOne(): void {
-		$html = $this->html($this->users(self::request('/admin/user/9', self::ADMIN))->showOne(9));
+		$html = $this->html($this->users(self::request('/admin/user/9', ['user_aliases' => ['root2@example.org']] + self::ADMIN))->showOne(9));
 		$this->assertStringContainsString("<div class='detail'>bob</div>", $html);
 		$this->assertStringContainsString('b.builder@example.org', $html);
+		$this->assertStringNotContainsString('root2@example.org', $html);
+	}
+
+	// one's own page has the session's aliases too, as the profile does
+	public function testOneSelf(): void {
+		$html = $this->html($this->users(self::request('/admin/user/9', ['user_id' => 9, 'user_aliases' => ['Bob@IdP.example.org']] + self::ADMIN))->showOne(9));
+		$this->assertStringContainsString('b.builder@example.org, bob@idp.example.org', $html);
 	}
 
 	public function testOneNotFound(): void {
