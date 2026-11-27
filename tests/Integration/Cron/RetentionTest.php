@@ -20,6 +20,7 @@
 namespace Tests\Integration\Cron;
 
 use PHPUnit\Framework\Attributes\TestDox;
+use RuntimeException;
 use Tests\Integration\IntegrationTestCase;
 
 final class RetentionTest extends IntegrationTestCase
@@ -175,7 +176,13 @@ final class RetentionTest extends IntegrationTestCase
 	public function testCleanupDbRefusesUnsafeDays(): void {
 		$old = self::row(self::databaseDays() + 20);
 		self::withEnv(['DATABASE_DAYS' => (string) self::quarantineDays()], function (): void {
-			$this->assertStringContainsString('DATABASE_DAYS must by higher', self::cli('cron:cleanupdb', '-d'));
+			try {
+				self::cli('cron:cleanupdb', '-d');
+				$this->fail('cron:cleanupdb ran');
+			} catch (RuntimeException $e) {
+				$this->assertStringContainsString('exited 1:', $e->getMessage());
+				$this->assertStringContainsString('DATABASE_DAYS must be higher than QUARANTINE_DAYS', $e->getMessage());
+			}
 		});
 		$this->assertSame(1, self::valueInt('SELECT COUNT(*) FROM mail_logs WHERE id = ?', $old));
 	}

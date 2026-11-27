@@ -65,9 +65,10 @@ final class CronCleanupDb extends RqwatchCliCommand
 		$qdays = (int) Helper::env_required('QUARANTINE_DAYS');
 
 		if (empty($qdays) || ($days <= $qdays)) {
-			$output->writeln("<comment>DATABASE_DAYS must by higher that QUARANTINE_DAYS</comment>",
+			$output->writeln("<error>DATABASE_DAYS must be higher than QUARANTINE_DAYS</error>",
 				OutputInterface::VERBOSITY_NORMAL);
-			return Command::SUCCESS;
+			$this->fileLogger->error("{$this->app_name} DATABASE_DAYS must be higher than QUARANTINE_DAYS");
+			return Command::FAILURE;
 		}
 
 		//$param = $input->getArgument('param');
@@ -104,7 +105,7 @@ final class CronCleanupDb extends RqwatchCliCommand
 		if (($count = (clone $query)->count()) < 1) {
 			$output->writeln("<info>No entries found in database before {$del_time}{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
-			$this->fileLogger->debug("{$this->app_name} No entries found in database before {$del_time} {$local}");
+			$this->fileLogger->debug("{$this->app_name} No entries found in database before {$del_time}{$local}");
 			$this->printRuntime($output);
 			return Command::SUCCESS;
 		} else {

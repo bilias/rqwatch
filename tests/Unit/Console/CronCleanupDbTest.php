@@ -180,7 +180,7 @@ final class CronCleanupDbTest extends UnitTestCase
 		$this->assertSame(Command::SUCCESS, $status);
 		$cutoff = $this->cutoff($display);
 		$this->assertSame("No entries found in database before {$cutoff} on server: mx1\n", $display);
-		$this->assertSame(["debug cron:cleanupdb No entries found in database before {$cutoff}  on server: mx1"], $this->log->lines);
+		$this->assertSame(["debug cron:cleanupdb No entries found in database before {$cutoff} on server: mx1"], $this->log->lines);
 		$this->assertSame([], $this->db->changes);
 	}
 
@@ -200,7 +200,8 @@ final class CronCleanupDbTest extends UnitTestCase
 		$this->setEnv('QUARANTINE_DAYS', $quarantine);
 		$this->old = [3];
 		[$status, $display] = $this->cron(['-d' => true]);
-		$this->assertSame([Command::SUCCESS, "DATABASE_DAYS must by higher that QUARANTINE_DAYS\n"], [$status, $display]);
+		$this->assertSame([Command::FAILURE, "DATABASE_DAYS must be higher than QUARANTINE_DAYS\n"], [$status, $display]);
+		$this->assertSame(['error cron:cleanupdb DATABASE_DAYS must be higher than QUARANTINE_DAYS'], $this->log->lines);
 		$this->assertSame([], $this->db->selects);
 	}
 
