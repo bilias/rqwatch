@@ -13,18 +13,23 @@
  a flag is on or off; a whole-number option is its default, the digits
  given, or null when given without a value, and anything else is refused
  rather than cut to its leading digits; text options and arguments are
- text.
+ text. A command's runtime is shown only very verbosely, and its debug SQL
+ is the query with its bindings.
 */
 
 namespace Tests\Unit\Core;
 
 use App\Console\RqwatchCliCommand;
+use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
+use Tests\Unit\RecordingDatabase;
 use Tests\Unit\UnitTestCase;
 
 // a command with one option or argument of each kind, its readers made public
@@ -113,5 +118,34 @@ final class CliInputTest extends UnitTestCase
 		$this->assertSame('mail_logs', $command->readText(self::input(['--table' => 'mail_logs']), 'table'));
 		$this->assertNull($command->readText(self::input([]), 'table'));
 		$this->assertSame('alice', $command->readArgument(self::input([]), 'username'));
+	}
+
+	public function testArgumentNotTextRefused(): void {
+		$this->expectException(InvalidArgumentException::class);
+		$this->expectExceptionMessage('Argument username must be text, not array');
+		self::command()->readArgument(self::input(['username' => ['alice']]), 'username');
+	}
+
+	private const string RUNTIME = '/^Execution time: \d+\.\d{3} sec \| Memory used: -?\d+\.\d{2} MB \| Peak memory: \d+\.\d{2} MB$/D';
+
+	public function testRuntime(): void {
+		$command = self::command();
+		$this->assertMatchesRegularExpression(self::RUNTIME, $command->getRuntime());
+		$veryVerbose = new BufferedOutput(OutputInterface::VERBOSITY_VERY_VERBOSE);
+		$verbose = new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE);
+		$command->printRuntime($veryVerbose);
+		$command->printRuntime($verbose);
+		$this->assertMatchesRegularExpression(self::RUNTIME, rtrim($veryVerbose->fetch(), "\n"));
+		$this->assertSame('', $verbose->fetch());
+	}
+
+	public function testSqlFromQuery(): void {
+		$db = new RecordingDatabase($this->createStub(PDO::class));
+		try {
+			$query = $db->capsule->getConnection()->table('mail_logs')->where('qid', 'Q1')->where('size', '>', 100);
+			$this->assertSame('select * from "mail_logs" where "qid" = "Q1" and "size" > "100"', RqwatchCliCommand::getSqlFromQuery($query));
+		} finally {
+			RecordingDatabase::forget();
+		}
 	}
 }

@@ -16,8 +16,13 @@
  fails at the request, before any connection; a refused connection when the
  reply is read. The Redis cache: stats and a cached failure are used, an
  invalid copy or a Redis error falls back to asking, and a total failure is
- cached for the shorter failure TTL. Replies from a real controller are left
- to the integration suite (Smoke/RspamdStatTest).
+ cached for the shorter failure TTL. Replies, through ApiClient's seam: each
+ server's JSON object is its stats, under its name; a reply that is no JSON
+ object, an error status or another 2xx is logged with the server and left
+ out. Each is asked with RSPAMD_CONTROLLER_PASS as its Password header.
+ Stats that cannot be cached are still shown, the error logged. Replies
+ from a real controller are left to the integration suite
+ (Smoke/RspamdStatTest).
 */
 
 namespace Tests\Unit\Controllers;
@@ -28,9 +33,13 @@ use App\Controllers\MapController;
 use App\Core\App;
 use App\Core\AppContainer;
 use App\Core\Cache\CacheInterface;
+use App\Services\ApiClient;
 use ReflectionClass;
 use ReflectionProperty;
 use RuntimeException;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Tests\Unit\CountingCache;
 use Tests\Unit\UnitTestCase;
 
@@ -55,6 +64,7 @@ final class RspamdStatTest extends UnitTestCase
 		} else {
 			$_ENV['RSPAMD_CONTROLLER_PASS'] = $this->password;
 		}
+		(new ReflectionProperty(ApiClient::class, 'httpClient'))->setValue(null, null);
 		parent::tearDown();
 	}
 
@@ -138,6 +148,71 @@ final class RspamdStatTest extends UnitTestCase
 		$this->assertSame([], $this->controller(true)->getRspamdStat());
 		$this->assertLogged("API server 'mx1' has an empty stat_url");
 		$this->assertLogged("Stat request to 'mx2' failed: Malformed URL");
+	}
+
+	/** @var list<string> each request: method, URL and its Password header */
+	private array $requests = [];
+
+	/** @param array<string, MockResponse> $replies stat_url => its reply */
+	private function replies(array $replies): void {
+		(new ReflectionProperty(ApiClient::class, 'httpClient'))->setValue(null, fn (array $options): HttpClientInterface => new MockHttpClient(
+			function (string $method, string $url, array $options) use ($replies): MockResponse {
+				$headers = $options['normalized_headers'] ?? null;
+				$this->assertIsArray($headers);
+				$this->requests[] = "{$method} {$url} " . json_encode($headers['password'] ?? null, JSON_THROW_ON_ERROR);
+				return $replies[$url] ?? throw new \LogicException("No reply for {$url}");
+			}
+		));
+	}
+
+	/*
+	 An error status never reaches "failed with error code": getContent()
+	 throws on it first, so the reply's body is not logged (reported).
+	*/
+	public function testReplies(): void {
+		$cache = $this->cache();
+		Config::set('API_SERVERS', [
+			'mx1' => ['stat_url' => 'http://192.0.2.1:11334/stat'],
+			'mx2' => ['stat_url' => 'http://192.0.2.2:11334/stat'],
+			'mx3' => ['stat_url' => 'http://192.0.2.3:11334/stat'],
+			'mx4' => ['stat_url' => 'http://192.0.2.4:11334/stat'],
+			'mx5' => ['stat_url' => 'http://192.0.2.5:11334/stat'],
+		]);
+		$_ENV['RSPAMD_CONTROLLER_PASS'] = 'secret';
+		$this->replies([
+			'http://192.0.2.1:11334/stat' => new MockResponse('{"scanned":5,"learned":1}'),
+			'http://192.0.2.2:11334/stat' => new MockResponse('"5"'),
+			'http://192.0.2.3:11334/stat' => new MockResponse('Unauthorized', ['http_code' => 403]),
+			'http://192.0.2.4:11334/stat' => new MockResponse('queued', ['http_code' => 202]),
+			'http://192.0.2.5:11334/stat' => new MockResponse('{"scanned":9}'),
+		]);
+		$this->assertSame(['mx1' => ['scanned' => 5, 'learned' => 1], 'mx5' => ['scanned' => 9]], $this->controller(true)->getRspamdStat());
+		$this->assertSame([
+			"error Stat request to 'mx2' returned no JSON object",
+			"error Stat request to 'mx3' failed: HTTP 403 returned for \"http://192.0.2.3:11334/stat\".",
+			"error Stat request to 'mx4' failed with error code 202: queued",
+			'debug Rspamd stats cached in Redis for 300 seconds',
+		], $this->log->lines);
+		$this->assertSame([
+			'GET http://192.0.2.1:11334/stat ["Password: secret"]',
+			'GET http://192.0.2.2:11334/stat ["Password: secret"]',
+			'GET http://192.0.2.3:11334/stat ["Password: secret"]',
+			'GET http://192.0.2.4:11334/stat ["Password: secret"]',
+			'GET http://192.0.2.5:11334/stat ["Password: secret"]',
+		], $this->requests);
+		$this->assertSame(['{"mx1":{"scanned":5,"learned":1},"mx5":{"scanned":9}}', 300], [$cache->values[self::KEY] ?? null, $cache->ttls[self::KEY] ?? null]);
+	}
+
+	public function testStatsNotCached(): void {
+		$cache = $this->createStub(CacheInterface::class);
+		$cache->method('get')->willReturn(false);
+		$cache->method('set')->willThrowException(new RuntimeException('READONLY replica'));
+		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, null, null, $cache, false));
+		Config::set('API_SERVERS', ['mx1' => ['stat_url' => 'http://192.0.2.1:11334/stat']]);
+		$_ENV['RSPAMD_CONTROLLER_PASS'] = 'secret';
+		$this->replies(['http://192.0.2.1:11334/stat' => new MockResponse('{"scanned":5}')]);
+		$this->assertSame(['mx1' => ['scanned' => 5]], $this->controller(true)->getRspamdStat());
+		$this->assertSame(['error Rspamd stats not cached in Redis: READONLY replica'], $this->log->lines);
 	}
 
 	public function testEmptyStatUrl(): void {

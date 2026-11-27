@@ -15,10 +15,6 @@
 		// Reviewed escapes that no test can tell from the original, each by
 		// Class::method::line. When a line moves, its mutant is reported again
 		// for review.
-		"ArrayOneItem": {
-			// stats come only from a real controller; Integration's Smoke/RspamdStatTest
-			"ignore": ["App\\Controllers\\Controller::getRspamdStat::310"]
-		},
 		"ArrayItemRemoval": {
 			"ignore": [
 				// the query selects its own columns: paginate()'s are only a default, and its count ignores them
@@ -49,7 +45,10 @@
 				"App\\Forms\\MapSearchForm::buildForm::52",
 				// the EXISTS subquery has no bindings of its own; dropping $v is killed
 				"App\\Services\\MailLogService::filterByFuzzyHit::286",
-				"App\\Services\\MailLogService::filterByMapHit::328"
+				"App\\Services\\MailLogService::filterByMapHit::328",
+				// Twig's default is no cache, as on a command line; the web's cache dir is
+				// untested (LogicalAnd, twigView::71)
+				"App\\Controllers\\ViewController::twigView::84"
 			]
 		},
 		"BitwiseOr": {
@@ -151,8 +150,6 @@
 		},
 		"Coalesce": {
 			"ignore": [
-				// the password goes only to a real controller; Integration's Smoke/RspamdStatTest
-				"App\\Controllers\\Controller::getRspamdStat::257",
 				// checkSet() and checkInt() report the same for a missing or non-string value
 				"App\\Configuration\\EnvValidator::errors::96",
 				// mailparse always sets is_group; a group's ":;" is no address anyway
@@ -214,7 +211,9 @@
 				"App\\Services\\MailLogService::getPaginatedDay::1293",
 				"App\\Services\\MailLogService::getPaginatedQuarantineDay::1317",
 				"App\\Services\\MailLogService::getPaginatedQuarantine::1381",
-				"App\\Services\\MailLogService::getPaginatedQuarantinePerMonth::1403"
+				"App\\Services\\MailLogService::getPaginatedQuarantinePerMonth::1403",
+				// RedisCache::ttl() gives null for a key without expiry (-1) or gone (-2), never below 0
+				"App\\Controllers\\Controller::getRedisConfigTTLData::324"
 			]
 		},
 		"FalseValue": {
@@ -296,7 +295,10 @@
 				// an empty user context sets nothing: each value read from it is null, as it was
 				"App\\Services\\MailLogService::__construct::87",
 				// without ALLOW_DEGRADED_DB the boot exits: no unit test sees the difference
-				"App\\Core\\Kernel::refuseOnErrors::180"
+				"App\\Core\\Kernel::refuseOnErrors::180",
+				// only a command line defines CLI_MODE; without it the view makes the web's cache
+				// dir in the checkout, which no unit test may
+				"App\\Controllers\\ViewController::twigView::71"
 			]
 		},
 		"LogicalNot": {
@@ -324,7 +326,9 @@
 				// @rmdir() refuses a link, and a directory that is not empty, by itself
 				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::352",
 				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::358",
-				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::372"
+				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::372",
+				// a query value is text or missing; missing and empty are both an invalid empty token
+				"App\\Controllers\\Controller::csrfValid::104"
 			]
 		},
 		"LogicalOrAllSubExprNegation": {
@@ -471,7 +475,9 @@
 				"App\\Core\\Database\\MigrationStatus::warmCache::70",
 				// without a cache, the calls on it fail inside their try and the same lookup follows
 				"App\\Utils\\Helper::my_gethostbyaddr::1532",
-				"App\\Utils\\Helper::my_gethostbyname::1602"
+				"App\\Utils\\Helper::my_gethostbyname::1602",
+				// a missing or empty _token is the empty token CsrfToken makes of null: never valid
+				"App\\Controllers\\Controller::csrfValid::105"
 			]
 		},
 		"SharedCaseRemoval": {
