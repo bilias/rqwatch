@@ -51,6 +51,10 @@
 		<testsuite name="services">
 			<directory>../tests/Unit/Services</directory>
 		</testsuite>
+		<!-- console commands: the crons and db:optimize_table, on a temp quarantine and RecordingDatabase -->
+		<testsuite name="console">
+			<directory>../tests/Unit/Console</directory>
+		</testsuite>
 		<!-- parsed mail objects (MailObject) -->
 		<testsuite name="inventory">
 			<directory>../tests/Unit/Inventory</directory>
