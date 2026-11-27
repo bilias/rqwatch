@@ -16,6 +16,8 @@
  leaves out the Date filter, its windows being the dates; for display it
  marks it. Recording a mail's viruses waits for their table (its migration
  RUNNING), skips a mail with none, and never throws: a failure is logged.
+ On RecordingDatabase: the rows go in (as INSERT IGNORE) on the mail's own
+ day, as stored; a mail that is gone is logged, nothing recorded.
 */
 
 namespace Tests\Unit\Services;
@@ -25,7 +27,9 @@ use App\Core\AppContainer;
 use App\Core\Database\MigrationStatus;
 use App\Inventory\Migrations;
 use App\Services\VirusService;
+use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Unit\RecordingDatabase;
 use Tests\Unit\UnitTestCase;
 
 final class VirusServiceTest extends UnitTestCase
@@ -107,10 +111,42 @@ final class VirusServiceTest extends UnitTestCase
 
 	private const string VIRUS = '[{"name":"CLAM_VIRUS","group":"antivirus","options":["Eicar"]}]';
 
-	private function withState(?string $state): void {
+	private function withState(?string $state, ?RecordingDatabase $db = null): void {
 		$status = new MigrationStatus(null, $this->log);
 		$status->setMigrationState(Migrations::MAIL_LOG_VIRUSES, $state);
-		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, null, $status, null, false));
+		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, $db?->capsule, $status, null, false));
+	}
+
+	#[\Override]
+	protected function tearDown(): void {
+		RecordingDatabase::forget();
+		parent::tearDown();
+	}
+
+	/** @param list<array<string, mixed>> $mails the mail_logs rows the day's lookup finds */
+	private function database(array $mails): RecordingDatabase {
+		$db = new RecordingDatabase($this->createStub(PDO::class));
+		$db->answer = fn (): array => $mails;
+		$this->withState(Migrations::STATUS_RUNNING, $db);
+		return $db;
+	}
+
+	// on the mail's own day, each scanner and name once
+	public function testRecorded(): void {
+		$db = $this->database([['created_day' => '2026-11-20']]);
+		(new VirusService())->recordViruses(7, '[{"name":"CLAM_VIRUS","group":"antivirus","options":["Eicar","Eicar"]},{"name":"SOPHOS","group":"antivirus"}]', 'Q1');
+		$this->assertSame([['select `created_day` from `mail_logs` where `id` = ? limit 1', [7]]], $db->selects);
+		$this->assertSame([
+			['av' => 'CLAM_VIRUS', 'created_day' => '2026-11-20', 'mail_log_id' => 7, 'name' => 'Eicar'],
+			['av' => 'SOPHOS', 'created_day' => '2026-11-20', 'mail_log_id' => 7, 'name' => ''],
+		], $db->rows('mail_log_viruses'));
+		$this->assertSame([[], []], [$db->changes, $this->log->lines]);
+	}
+
+	public function testMailGone(): void {
+		$db = $this->database([]);
+		(new VirusService())->recordViruses(7, self::VIRUS, 'Q1');
+		$this->assertSame([[], ['error [VirusService_recordViruses] Q1 mail id 7 not found']], [$db->rows('mail_log_viruses'), $this->log->lines]);
 	}
 
 	// no database here: reaching it would be logged
