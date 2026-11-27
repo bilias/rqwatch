@@ -45,7 +45,10 @@
 				"App\\Forms\\SearchForm::buildForm::48",
 				// 'mapped' => true is the default
 				"App\\Forms\\MapSearchForm::buildForm::49",
-				"App\\Forms\\MapSearchForm::buildForm::52"
+				"App\\Forms\\MapSearchForm::buildForm::52",
+				// the EXISTS subquery has no bindings of its own; dropping $v is killed
+				"App\\Services\\MailLogService::filterByFuzzyHit::286",
+				"App\\Services\\MailLogService::filterByMapHit::328"
 			]
 		},
 		"BitwiseOr": {
@@ -435,7 +438,17 @@
 			// one-key lists: [...$a][0] is $a
 			"ignore": [
 				"App\\Configuration\\EnvValidator::errors::90",
-				"App\\Configuration\\EnvValidator::errors::131"
+				"App\\Configuration\\EnvValidator::errors::131",
+				// the EXISTS subquery has no bindings of its own
+				"App\\Services\\MailLogService::filterByFuzzyHit::286",
+				"App\\Services\\MailLogService::filterByMapHit::328"
+			]
+		},
+		"SpreadRemoval": {
+			// whereRaw()'s bindings are flattened (Arr::flatten): a nested list binds as its items
+			"ignore": [
+				"App\\Services\\MailLogService::filterByFuzzyHit::286",
+				"App\\Services\\MailLogService::filterByMapHit::328"
 			]
 		},
 		"TrueValue": {
@@ -464,7 +477,17 @@
 				"App\\Core\\Database\\MigrationStatus::setMigrationState::135",
 				"App\\Core\\Database\\MigrationStatus::getMigrationState::150",
 				"App\\Core\\Database\\MigrationStatus::mailLogVirusesWritable::327",
-				"App\\Core\\Database\\MigrationStatus::mailLogFuzzyHitsMailsWritable::340"
+				"App\\Core\\Database\\MigrationStatus::mailLogFuzzyHitsMailsWritable::340",
+				// operators are no numeric strings: in_array() matches loosely as strictly; the
+				// 0/1 value's strict in_array() on 253, 279 and 325 is killed (01 and 00)
+				"App\\Services\\MailLogService::filterByNotificationSkipped::253",
+				"App\\Services\\MailLogService::filterByFuzzyHit::279",
+				"App\\Services\\MailLogService::filterByMapHit::325",
+				"App\\Services\\MailLogService::filterByMapHit::337",
+				"App\\Services\\MailLogService::filterByRecipient::359",
+				"App\\Services\\MailLogService::filterByMailLogData::408",
+				"App\\Services\\MailLogService::filterByVirus::454",
+				"App\\Services\\MailLogService::filterByLocalSymbol::501"
 			]
 		},
 		"UnwrapFinally": {
