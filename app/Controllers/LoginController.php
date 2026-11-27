@@ -308,7 +308,7 @@ final class LoginController extends ViewController
 			throw new \LogicException('OPENIDC authenticate() returned unexpectedly.');
 		} catch (OpenIDConnectClientException $e) {
 			$this->fileLogger->warning("OPENIDC startOpenIdConnectAuthentication() failed with error: " . $e->getMessage());
-			$this->flashbag->add('error', "The '" . (Helper::env_string('OPENIDC_LABEL') ?? 'Login with OpenID Connect') . "' service is currently unavailable");
+			$this->flashbag->add('error', "The '" . (Helper::env_string('OPENIDC_LABEL') ?? 'OpenID Connect') . "' service is currently unavailable");
 			return new RedirectResponse($this->getLoginUrl());
 		} catch (\Throwable $e) {
 			$this->fileLogger->warning("OPENIDC startOpenIdConnectAuthentication() failed with error: " . $e->getMessage());
