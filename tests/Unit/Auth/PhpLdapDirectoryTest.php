@@ -10,10 +10,11 @@
 
 /*
  PhpLdapDirectory without a server. connect() only parses the URI, so a
- good one gives a directory and the options can be set; a malformed one
- gives none (PHP warns). Nothing listens on port 1: a bind and a search
- fail there, with ldap_error()'s message and no diagnostic. A result or
- entry it did not give is refused before any ldap_* call.
+ good one gives a directory and the options LdapAuth sets (protocol
+ version, timeouts) can be set; a malformed one gives none (PHP warns).
+ Nothing listens on port 1: a bind and a search fail there, with
+ ldap_error()'s message and no diagnostic. A result or entry it did not
+ give is refused before any ldap_* call.
 */
 
 namespace Tests\Unit\Auth;
@@ -32,8 +33,14 @@ final class PhpLdapDirectoryTest extends UnitTestCase
 		return $directory;
 	}
 
+	// the options LdapAuth sets, as the library takes them
 	public function testConnect(): void {
-		$this->assertTrue(self::directory()->setOption(LDAP_OPT_PROTOCOL_VERSION, 3));
+		$directory = self::directory();
+		$this->assertSame([true, true, true], [
+			$directory->setOption(LDAP_OPT_PROTOCOL_VERSION, 3),
+			$directory->setOption(LDAP_OPT_NETWORK_TIMEOUT, 5),
+			$directory->setOption(LDAP_OPT_TIMEOUT, 5),
+		]);
 	}
 
 	public function testMalformedUri(): void {

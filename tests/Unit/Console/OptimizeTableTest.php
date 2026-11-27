@@ -38,7 +38,8 @@ final class OptimizeTableTest extends UnitTestCase
 
 	#[\Override]
 	protected function tearDown(): void {
-		foreach (glob("{$this->dir}/*") ?: [] as $file) {
+		$files = glob("{$this->dir}/*");
+		foreach ($files === false ? [] : $files as $file) {
 			unlink($file);
 		}
 		rmdir($this->dir);

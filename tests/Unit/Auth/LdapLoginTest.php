@@ -10,11 +10,12 @@
 
 /*
  LdapAuth's login on FakeLdapDirectory. The directory at LDAP_URI is asked
- for LDAP version 3, bound as LDAP_BIND_DN (anonymous without one), and
- searched under LDAP_BASE by LDAP_LOGIN_ATTR (mail by default), the
- username escaped, for the mail, surname and given name attributes (mail,
- sn, givenName by default), and the alias and fallback ones when set; then
- its one entry is bound as with the password. The user is the username
+ for LDAP version 3 and LDAP_TIMEOUT seconds (5 by default; none set
+ with 0) to connect and to answer, bound as LDAP_BIND_DN (anonymous
+ without one), and searched under LDAP_BASE by LDAP_LOGIN_ATTR (mail by
+ default), the username escaped, for the mail, surname and given name
+ attributes (mail, sn, givenName by default), and the alias and fallback
+ ones when set; then its one entry is bound as with the password. The user is the username
  trimmed in lower case, an admin when in LDAP_ADMINS. The mail is the first
  of the mail values in sort order, trimmed and in lower case; the others
  and the alias values are aliases, in lower case, once, without blanks or
@@ -55,7 +56,7 @@ final class LdapLoginTest extends UnitTestCase
 		$this->setEnv('LDAP_BIND_DN', 'cn=rqwatch,dc=example,dc=org');
 		$this->setEnv('LDAP_BIND_PASS', 'service-secret');
 		foreach (['LDAP_LOGIN_ATTR', 'LDAP_MAIL_ATTR', 'LDAP_MAIL_ALIAS_ATTR', 'LDAP_SN_ATTR', 'LDAP_GIVENNAME_ATTR',
-			'LDAP_SN_ATTR_FALLBACK', 'LDAP_GIVENNAME_ATTR_FALLBACK', 'LDAP_MAIL_ATTR_MULTIVALUE', 'LDAP_ADMINS'] as $setting) {
+			'LDAP_SN_ATTR_FALLBACK', 'LDAP_GIVENNAME_ATTR_FALLBACK', 'LDAP_MAIL_ATTR_MULTIVALUE', 'LDAP_ADMINS', 'LDAP_TIMEOUT'] as $setting) {
 			$this->setEnv($setting, null);
 		}
 	}
@@ -100,6 +101,8 @@ final class LdapLoginTest extends UnitTestCase
 		$this->assertSame(['ldaps://ldap.example.org'], $this->opened);
 		$this->assertSame([
 			'setOption ' . LDAP_OPT_PROTOCOL_VERSION . ' 3',
+			'setOption ' . LDAP_OPT_NETWORK_TIMEOUT . ' 5',
+			'setOption ' . LDAP_OPT_TIMEOUT . ' 5',
 			'bind cn=rqwatch,dc=example,dc=org service-secret',
 			'search ou=people,dc=example,dc=org (mail= Alice@Example.org) mail,sn,givenName',
 			'countEntries',
@@ -174,8 +177,8 @@ final class LdapLoginTest extends UnitTestCase
 		$auth = new LdapAuth('asmith', 'user-secret', $this->log);
 		$this->assertTrue($auth->authenticate());
 		$this->assertSame(['asmith', false, 'alice@example.org', ['a.smith@example.org'], 'Alice', 'Smith'], self::user($auth));
-		$this->assertSame('bind  ', $this->directory->calls[1] ?? null);
-		$this->assertSame('search ou=people,dc=example,dc=org (uid=asmith) mailPrimaryAddress,sn;lang-el,givenName;lang-el,mailAlternateAddress,sn,givenName', $this->directory->calls[2] ?? null);
+		$this->assertSame('bind  ', $this->directory->calls[3] ?? null);
+		$this->assertSame('search ou=people,dc=example,dc=org (uid=asmith) mailPrimaryAddress,sn;lang-el,givenName;lang-el,mailAlternateAddress,sn,givenName', $this->directory->calls[4] ?? null);
 	}
 
 	// set but empty: not asked for
@@ -187,7 +190,7 @@ final class LdapLoginTest extends UnitTestCase
 		$auth = new LdapAuth('alice@example.org', 'user-secret', $this->log);
 		$this->assertTrue($auth->authenticate());
 		$this->assertSame(['alice@example.org', false, 'alice@example.org', [], null, null], self::user($auth));
-		$this->assertSame('search ou=people,dc=example,dc=org (mail=alice@example.org) mail,sn,givenName', $this->directory->calls[2] ?? null);
+		$this->assertSame('search ou=people,dc=example,dc=org (mail=alice@example.org) mail,sn,givenName', $this->directory->calls[4] ?? null);
 	}
 
 	// the names given, though blank: no fallback asked
@@ -206,10 +209,28 @@ final class LdapLoginTest extends UnitTestCase
 		$this->assertSame([null, null], [$blank->getFirstName(), $blank->getLastName()]);
 	}
 
+	/** @return array<string, array{string, list<string>}> LDAP_TIMEOUT, the options set before the service's bind */
+	public static function timeouts(): array {
+		$version = 'setOption ' . LDAP_OPT_PROTOCOL_VERSION . ' 3';
+		return [
+			'given' => ['30', [$version, 'setOption ' . LDAP_OPT_NETWORK_TIMEOUT . ' 30', 'setOption ' . LDAP_OPT_TIMEOUT . ' 30']],
+			'one second' => ['1', [$version, 'setOption ' . LDAP_OPT_NETWORK_TIMEOUT . ' 1', 'setOption ' . LDAP_OPT_TIMEOUT . ' 1']],
+			'0: the library\'s own' => ['0', [$version]],
+		];
+	}
+
+	/** @param list<string> $options */
+	#[DataProvider('timeouts')]
+	public function testTimeout(string $timeout, array $options): void {
+		$this->setEnv('LDAP_TIMEOUT', $timeout);
+		$this->assertTrue((new LdapAuth('alice@example.org', 'user-secret', $this->log))->authenticate());
+		$this->assertSame([...$options, 'bind cn=rqwatch,dc=example,dc=org service-secret'], array_slice($this->directory->calls, 0, count($options) + 1));
+	}
+
 	public function testFilterEscaped(): void {
 		$this->directory->count = 0;
 		(new LdapAuth('a*)(uid=*\\', 'user-secret', $this->log))->authenticate();
-		$this->assertSame('search ou=people,dc=example,dc=org (mail=a\\2a\\29\\28uid=\\2a\\5c) mail,sn,givenName', $this->directory->calls[2] ?? null);
+		$this->assertSame('search ou=people,dc=example,dc=org (mail=a\\2a\\29\\28uid=\\2a\\5c) mail,sn,givenName', $this->directory->calls[4] ?? null);
 	}
 
 	/** @return array<string, array{?bool, bool, list<string>}> LDAP_MAIL_ATTR_MULTIVALUE, accepted, the log */
@@ -230,7 +251,7 @@ final class LdapLoginTest extends UnitTestCase
 		$this->assertSame($log, $this->log->lines);
 		if (!$accepted) {
 			$this->assertSame([['values' => ['bob@example.org', 'alice@example.org'], 'hint' => 'Set LDAP_MAIL_ATTR_MULTIVALUE=true in .env to allow and treat additional values as aliases.']], $this->log->contexts);
-			$this->assertCount(7, $this->directory->calls);
+			$this->assertCount(9, $this->directory->calls);
 		}
 	}
 
@@ -245,18 +266,20 @@ final class LdapLoginTest extends UnitTestCase
 	public static function failures(): array {
 		$error = "error: 'Invalid credentials'. diag: '80090308: LdapErr: DSID-0C09044E'";
 		return [
-			'no protocol version 3' => [fn (FakeLdapDirectory $d) => $d->option = false, 1, 'error ldap_set_option(LDAP_OPT_PROTOCOL_VERSION) failed'],
-			'the service refused' => [fn (FakeLdapDirectory $d) => $d->binds = [false], 2, "error ldap_bind failed: {$error}. Check LDAP_BIND_DN and LDAP_BIND_PASS"],
-			'search failed' => [fn (FakeLdapDirectory $d) => $d->found = false, 3, "error ldap_search failed: {$error}"],
-			'count failed' => [fn (FakeLdapDirectory $d) => $d->count = -1, 4, "error ldap_count_entries failed: {$error}"],
-			'not found' => [fn (FakeLdapDirectory $d) => $d->count = 0, 4, "warning User 'alice' not found in LDAP"],
-			'two found' => [fn (FakeLdapDirectory $d) => $d->count = 2, 4, "error LDAP search for mail 'alice' returned 2 users"],
-			'no entry' => [fn (FakeLdapDirectory $d) => $d->entry = false, 5, "error ldap_first_entry failed: {$error}"],
-			'no dn' => [fn (FakeLdapDirectory $d) => $d->dn = false, 6, "error ldap_get_dn failed: {$error}"],
-			'no attributes' => [fn (FakeLdapDirectory $d) => $d->attributes = [], 7, "error ldap_get_attributes returned empty attributes: {$error}"],
-			'no mail' => [fn (FakeLdapDirectory $d) => $d->attributes = self::attributes(['mail' => [' '], 'sn' => ['Smith']]), 7, "error Empty mail attribute for LDAP user 'alice'"],
-			'a wrong password' => [fn (FakeLdapDirectory $d) => $d->binds = [true, false], 8, "warning LDAP Authentication for user 'alice' failed: {$error}"],
-			'mail 0' => [fn (FakeLdapDirectory $d) => $d->attributes = self::attributes(['mail' => ['0']]), 8, "error LDAP user 'alice' has empty 'mail' attribute after authentication"],
+			'no protocol version 3' => [fn (FakeLdapDirectory $d) => $d->refused = [LDAP_OPT_PROTOCOL_VERSION], 1, 'error ldap_set_option(LDAP_OPT_PROTOCOL_VERSION) failed'],
+			'no connect timeout' => [fn (FakeLdapDirectory $d) => $d->refused = [LDAP_OPT_NETWORK_TIMEOUT], 2, 'error ldap_set_option(LDAP_OPT_NETWORK_TIMEOUT) failed'],
+			'no answer timeout' => [fn (FakeLdapDirectory $d) => $d->refused = [LDAP_OPT_TIMEOUT], 3, 'error ldap_set_option(LDAP_OPT_TIMEOUT) failed'],
+			'the service refused' => [fn (FakeLdapDirectory $d) => $d->binds = [false], 4, "error ldap_bind failed: {$error}. Check LDAP_BIND_DN and LDAP_BIND_PASS"],
+			'search failed' => [fn (FakeLdapDirectory $d) => $d->found = false, 5, "error ldap_search failed: {$error}"],
+			'count failed' => [fn (FakeLdapDirectory $d) => $d->count = -1, 6, "error ldap_count_entries failed: {$error}"],
+			'not found' => [fn (FakeLdapDirectory $d) => $d->count = 0, 6, "warning User 'alice' not found in LDAP"],
+			'two found' => [fn (FakeLdapDirectory $d) => $d->count = 2, 6, "error LDAP search for mail 'alice' returned 2 users"],
+			'no entry' => [fn (FakeLdapDirectory $d) => $d->entry = false, 7, "error ldap_first_entry failed: {$error}"],
+			'no dn' => [fn (FakeLdapDirectory $d) => $d->dn = false, 8, "error ldap_get_dn failed: {$error}"],
+			'no attributes' => [fn (FakeLdapDirectory $d) => $d->attributes = [], 9, "error ldap_get_attributes returned empty attributes: {$error}"],
+			'no mail' => [fn (FakeLdapDirectory $d) => $d->attributes = self::attributes(['mail' => [' '], 'sn' => ['Smith']]), 9, "error Empty mail attribute for LDAP user 'alice'"],
+			'a wrong password' => [fn (FakeLdapDirectory $d) => $d->binds = [true, false], 10, "warning LDAP Authentication for user 'alice' failed: {$error}"],
+			'mail 0' => [fn (FakeLdapDirectory $d) => $d->attributes = self::attributes(['mail' => ['0']]), 10, "error LDAP user 'alice' has empty 'mail' attribute after authentication"],
 		];
 	}
 

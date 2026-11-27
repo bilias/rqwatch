@@ -44,5 +44,6 @@ Rqwatch 2.x+ contains updates to the database schema.
 - `OPENIDC_TRUSTED_HOSTS` takes origins instead of host names. See **Upgrade** and
   [OPENIDC_TRUSTED_HOSTS](https://github.com/bilias/rqwatch/blob/master/docs/CONFIGURE.md#openid-connect-settings).
 - `WEB_HOST` and `WEB_HOST_NOTIFICATIONS` are trusted with `WEB_SCHEME` and its default port only.
+- LDAP: .env LDAP_TIMEOUT (5 seconds by default)
 
 **Full Changelog**: https://github.com/bilias/rqwatch/compare/v2.2.0...v2.2.1

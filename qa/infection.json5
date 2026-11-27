@@ -577,7 +577,7 @@
 				// mailparse gives the content type lowercased, without parameters
 				"App\\Inventory\\MailObject::embedImages::100",
 				// the message starts with "error:" and ends with a quote: nothing to trim
-				"App\\Core\\Auth\\LdapAuth::getError::266"
+				"App\\Core\\Auth\\LdapAuth::getError::285"
 			]
 		},
 		"UnwrapArrayValues": {

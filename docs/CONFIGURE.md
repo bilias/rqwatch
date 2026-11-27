@@ -623,6 +623,9 @@ System supports LDAP Authentication.
 
 - `LDAP_UPDATE_NAME_ON_LOGIN` - Update user's first/last name on every login
 
+- `LDAP_TIMEOUT` - Seconds to wait for the LDAP server: to connect, and for each answer (bind, search).\
+  Defaults to `5`, so an LDAP server that does not answer cannot hold a login. `0` leaves it to the LDAP library, which may wait without limit.
+
 - `LDAP_TLS_CACERTDIR` - (**unused**; use `/etc/openldap/ldap.conf` for now)\
   Specifies the path of the directory containing CA certificates for LDAP server TLS verification
 

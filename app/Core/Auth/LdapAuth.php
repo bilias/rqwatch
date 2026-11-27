@@ -22,6 +22,9 @@ use App\Utils\Helper;
 use RuntimeException;
 
 final class LdapAuth implements AuthInterface {
+	// seconds, when LDAP_TIMEOUT is not set
+	private const int DEFAULT_TIMEOUT = 5;
+
 	private string $username;
 	private string $password;
 	private LoggerInterface $logger;
@@ -88,6 +91,9 @@ final class LdapAuth implements AuthInterface {
 		$ldap_givenname_attr = Helper::env_string('LDAP_GIVENNAME_ATTR') ?? 'givenName';
 		$ldap_sn_attr_fallback = Helper::env_string('LDAP_SN_ATTR_FALLBACK');
 		$ldap_givenname_attr_fallback = Helper::env_string('LDAP_GIVENNAME_ATTR_FALLBACK');
+		// a whole number when set (EnvValidator)
+		$ldap_timeout_setting = Helper::env_string('LDAP_TIMEOUT');
+		$ldap_timeout = $ldap_timeout_setting === null ? self::DEFAULT_TIMEOUT : (int) $ldap_timeout_setting;
 		$ldap_attrs = [
 			$ldap_mail_attr,
 			$ldap_sn_attr,
@@ -115,6 +121,19 @@ final class LdapAuth implements AuthInterface {
 		if ($ldap->setOption(LDAP_OPT_PROTOCOL_VERSION, 3) === false) {
 			$this->logger->error("ldap_set_option(LDAP_OPT_PROTOCOL_VERSION) failed");
 			return false;
+		}
+
+		// a directory that does not answer must not hold the login (and its web worker):
+		// LDAP_TIMEOUT seconds to connect, and for each answer; 0 for the library's own
+		if ($ldap_timeout > 0) {
+			if ($ldap->setOption(LDAP_OPT_NETWORK_TIMEOUT, $ldap_timeout) === false) {
+				$this->logger->error("ldap_set_option(LDAP_OPT_NETWORK_TIMEOUT) failed");
+				return false;
+			}
+			if ($ldap->setOption(LDAP_OPT_TIMEOUT, $ldap_timeout) === false) {
+				$this->logger->error("ldap_set_option(LDAP_OPT_TIMEOUT) failed");
+				return false;
+			}
 		}
 
 		if ($ldap->bind($ldap_bind_dn, $ldap_bind_pass) === false) {

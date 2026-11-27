@@ -26,7 +26,8 @@ final class FakeLdapDirectory implements LdapDirectory
 	/** @var list<string> each call: its name and arguments */
 	public array $calls = [];
 
-	public bool $option = true;
+	/** @var list<int> the options it refuses to set */
+	public array $refused = [];
 
 	/** @var list<bool> each bind's answer in turn: the service's, then the user's */
 	public array $binds = [true, true];
@@ -58,7 +59,7 @@ final class FakeLdapDirectory implements LdapDirectory
 	#[\Override]
 	public function setOption(int $option, int $value): bool {
 		$this->calls[] = "setOption {$option} {$value}";
-		return $this->option;
+		return !in_array($option, $this->refused, true);
 	}
 
 	#[\Override]
