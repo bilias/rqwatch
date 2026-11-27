@@ -156,6 +156,12 @@ final class MapConfigTest extends MapDatabaseTestCase
 		$this->assertSame("error Error updating map file for 'phish' in addCustomMapConfig", $this->log->lines[1] ?? null);
 	}
 
+	public function testAddCustomMapConfigFails(): void {
+		$this->db->failInsertInto['custom_map_config'] = new RuntimeException('server has gone away');
+		$this->assertFalse(self::admin()->addCustomMapConfig(self::CONFIG));
+		$this->assertSame([[], ["error [addCustomMapConfig] Query insert error: server has gone away\n"]], [$this->changedMaps(), $this->log->lines]);
+	}
+
 	private function storedConfig(string $name = 'phish'): void {
 		$this->answers = [['`custom_map_config`.`id` = ?', [['id' => 5, 'map_name' => $name, 'map_description' => 'Phishing', 'field_name' => 'url', 'field_label' => 'URL']]]];
 	}

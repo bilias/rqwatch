@@ -1173,7 +1173,12 @@ final class MapService
 
 		$data = self::prepareSymbols($data);
 		$customMapConfig->fill($data);
-		if (!$customMapConfig->save()) {
+		try {
+			if (!$customMapConfig->save()) {
+				return false;
+			}
+		} catch (Throwable $e) {
+			$this->logger->error("[addCustomMapConfig] Query insert error: " . $e->getMessage() . PHP_EOL);
 			return false;
 		}
 

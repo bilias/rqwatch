@@ -45,9 +45,10 @@ final class CustomMapConfigForm extends AbstractType
 					 ],
 					 'constraints' => [
 						new NotBlank(),
+						// the size of the map_name columns (VARCHAR(64))
 						new Assert\Length(
 							min: 3,
-							max: 128,
+							max: 64,
 						),
 						new Assert\Regex(
 							pattern: '/^[a-z0-9_\-]+$/D',
