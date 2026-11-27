@@ -16,6 +16,7 @@ use App\Utils\Helper;
 use Psr\Log\LoggerInterface;
 
 use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Part\DataPart;
@@ -34,6 +35,14 @@ final class MailerService
 	private Environment $twig;
 	private LoggerInterface $logger;
 
+	/*
+	 The transport: MAILER_DSN's; through $transport instead when a unit test
+	 has set one (a recording transport), so a mail another service builds
+	 and sends is seen by the test and goes nowhere.
+	*/
+	/** @var (\Closure(string): TransportInterface)|null MAILER_DSN => the transport */
+	private static ?\Closure $transport = null; // @phpstan-ignore property.unusedType (the unit tests set it, through reflection)
+
 	// this node can send mail: both MAILER_DSN and MAILER_FROM are set
 	public static function isConfigured(): bool {
 		/** @psalm-suppress RiskyTruthyFalsyComparison '' and '0' are no DSN or address: not configured */
@@ -50,7 +59,9 @@ final class MailerService
 			throw new RuntimeException('MAILER_DSN is not set in .env');
 		}
 
-		$transport = Transport::fromDsn($dsn);
+		$transport = self::$transport !== null
+			? (self::$transport)($dsn)
+			: Transport::fromDsn($dsn);
 		$this->mailer = new Mailer($transport);
 		if (!$twig) {
 			// create a new twig view
