@@ -285,7 +285,7 @@ class Controller
 						$this->fileLogger->error("Stat request to '{$api_server}' returned no JSON object");
 					}
 				} else {
-					$this->fileLogger->error("Stat request to '{$api_server}' failed with error code " . $responseCode . ": " . $response->getContent());
+					$this->fileLogger->error("Stat request to '{$api_server}' failed with error code " . $responseCode . ": " . $response->getContent(false));
 				}
 			} catch (Exception $e) {
 				$this->fileLogger->error("Stat request to '{$api_server}' failed: " . $e->getMessage());

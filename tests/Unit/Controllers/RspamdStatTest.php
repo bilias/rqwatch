@@ -165,10 +165,6 @@ final class RspamdStatTest extends UnitTestCase
 		));
 	}
 
-	/*
-	 An error status never reaches "failed with error code": getContent()
-	 throws on it first, so the reply's body is not logged (reported).
-	*/
 	public function testReplies(): void {
 		$cache = $this->cache();
 		Config::set('API_SERVERS', [
@@ -189,7 +185,7 @@ final class RspamdStatTest extends UnitTestCase
 		$this->assertSame(['mx1' => ['scanned' => 5, 'learned' => 1], 'mx5' => ['scanned' => 9]], $this->controller(true)->getRspamdStat());
 		$this->assertSame([
 			"error Stat request to 'mx2' returned no JSON object",
-			"error Stat request to 'mx3' failed: HTTP 403 returned for \"http://192.0.2.3:11334/stat\".",
+			"error Stat request to 'mx3' failed with error code 403: Unauthorized",
 			"error Stat request to 'mx4' failed with error code 202: queued",
 			'debug Rspamd stats cached in Redis for 300 seconds',
 		], $this->log->lines);
