@@ -12,14 +12,15 @@
 # coverage.txt (per class) and html/ (browse it); the summary is printed.
 # coverage.txt lists only classes with some coverage: the rest have none.
 # Extra arguments go to phpunit (--testsuite helpers, say). Needs a coverage
-# driver: pcov (dnf install php-pecl-pcov) or Xdebug. Run from the project
-# root.
+# driver: pcov (dnf install php-pecl-pcov) or Xdebug. The HTML report needs
+# more than php.ini's usual 128M: phpunit runs with COVERAGE_MEMORY_LIMIT
+# (default 1G). Run from the project root.
 set -euo pipefail
 . qa/lib.sh
 
 # a variable, not a pipe: grep -q would close it early and pipefail fail it
 modules=$("${PHP}" -m)
-php_opts=()
+php_opts=(-d memory_limit="${COVERAGE_MEMORY_LIMIT:-1G}")
 if grep -qix pcov <<< "${modules}"; then
 	php_opts+=(-d pcov.enabled=1)
 	driver=pcov
