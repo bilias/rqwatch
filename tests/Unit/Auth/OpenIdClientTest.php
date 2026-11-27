@@ -180,13 +180,11 @@ final class OpenIdClientTest extends UnitTestCase
 		$this->assertSame('signOut eyJ.id.token null', $this->client->calls[1] ?? null);
 	}
 
-	// AuthManager logs out an OpenID Connect login, to its redirect URL
+	// AuthManager logs out to its redirect URL; LoginController's logout builds
+	// a new one, which holds no login (the session does)
 	public function testLogoutThroughAuthManager(): void {
-		$auth = new AuthManager($this->log, 'https://rq.example.org/');
-		$this->assertTrue($auth->finishOpenIdConnectAuthentication());
-		$this->client = new FakeOidcClient();
-		$this->assertTrue($auth->logoutOpenIdConnect('eyJ.id.token'));
-		$this->assertSame('signOut eyJ.id.token https://rq.example.org/', $this->client->calls[1] ?? null);
+		$this->assertTrue((new AuthManager($this->log, 'https://rq.example.org/'))->logoutOpenIdConnect('eyJ.id.token'));
+		$this->assertSame(['setCodeChallengeMethod S256', 'signOut eyJ.id.token https://rq.example.org/'], $this->client->calls);
 	}
 
 	public function testLogoutUrl(): void {

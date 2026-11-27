@@ -445,7 +445,7 @@
 				// a non-IPv6 value falls through to the same $ip
 				"App\\Core\\Auth\\LoginThrottle::keyFor::286",
 				// 'admin' has no '@': without the early return it reaches the same DbAuth
-				"App\\Core\\Auth\\AuthManager::selectAuthProvider::166",
+				"App\\Core\\Auth\\AuthManager::selectAuthProvider::163",
 				// a null count is below every limit: it falls through to the same false
 				"App\\Core\\Auth\\LoginThrottle::registerFailure::114",
 				// without a cache the call in the try throws, and its catch returns [] too

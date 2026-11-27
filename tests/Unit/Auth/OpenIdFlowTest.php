@@ -14,14 +14,13 @@
  ID token. The client is built from OPENIDC_URL, OPENIDC_CLIENT_ID and
  OPENIDC_CLIENT_SECRET, each required: here one is missing, which stops
  the step before any client exists, and the logout URL is then none,
- logged. AuthManager refuses to start a step without the redirect URL,
- and logs out only an OpenID Connect login.
+ logged. AuthManager refuses to start a step or a logout without the
+ redirect URL.
 */
 
 namespace Tests\Unit\Auth;
 
 use App\Core\Auth\AuthManager;
-use App\Core\Auth\DbAuth;
 use App\Core\Auth\OpenIDConnectAuth;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -144,15 +143,8 @@ final class OpenIdFlowTest extends UnitTestCase
 		$this->assertSame(['error Empty OpenID ID Token'], $this->log->lines);
 		$this->assertThrows('OPENIDC post logout redirect URL problem', fn (): bool => (new AuthManager($this->log))->logoutOpenIdConnect('token'));
 
-		// not an OpenID Connect login
-		$auth = new AuthManager($this->log, 'https://rq.example.org/');
-		$this->assertThrows('OPENIDC logout method missing', fn (): bool => $auth->logoutOpenIdConnect('token'));
-		(new ReflectionProperty($auth, 'provider'))->setValue($auth, new DbAuth('alice', 'secret'));
-		$this->assertThrows('OPENIDC logout method missing', fn (): bool => $auth->logoutOpenIdConnect('token'));
-
 		$this->setEnv('OPENIDC_AUTH_ENABLED', null);
-		(new ReflectionProperty($auth, 'provider'))->setValue($auth, $this->oidc());
-		$this->assertFalse($auth->logoutOpenIdConnect('token'));
+		$this->assertFalse((new AuthManager($this->log, 'https://rq.example.org/'))->logoutOpenIdConnect('token'));
 	}
 
 	public function testLogoutUrl(): void {

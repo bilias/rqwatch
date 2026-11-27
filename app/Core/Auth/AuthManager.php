@@ -104,12 +104,9 @@ final class AuthManager
 			throw new RuntimeException("OPENIDC post logout redirect URL problem");
 		}
 
-		if ($this->provider instanceof OpenIDConnectAuth) {
-			return $provider->logout($idToken);
-		}
-
-		// unreachable
-		throw new RuntimeException("OPENIDC logout method missing");
+		// the login is in the session, not in this AuthManager: the logout
+		// page builds a new one, so its provider is not looked at
+		return $provider->logout($idToken);
 	}
 
 	public function getOpenIdConnectLogoutUrl(): ?string {
