@@ -526,7 +526,6 @@ final class UserController extends ViewController
 					$newHash = Helper::passwordHash($newPassword);
 				}
 				// a null hash leaves the password as it is ("Password not changed")
-				$pass_changed = $newHash !== null;
 
 				try {
 					//DB::connection()->enableQueryLog();
@@ -547,7 +546,7 @@ final class UserController extends ViewController
 					if ($saved === true) {
 						$this->flashbag->add('success', "User '{$user->username}' updated");
 						/*
-						if ($pass_changed) {
+						if ($newHash !== null) {
 							$this->flashbag->add('info', "Password changed");
 						} else {
 							$this->flashbag->add('info', "Password not changed");

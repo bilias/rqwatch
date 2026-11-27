@@ -29,7 +29,6 @@ final class Database {
 
 	/** @var array<string, list<string>> table => columns */
 	private static array $schema = [];
-	private static bool $schemaLoaded = false;
 
 	// Every REQUIRED migration needs a schema check below, or an explicit
 	// entry here saying there is nothing to verify. A new one with neither
@@ -202,7 +201,6 @@ final class Database {
 
 	private static function refreshDbSchema(Capsule $capsule): void {
 		self::$schema = [];
-		self::$schemaLoaded = false;
 
 		self::getDbSchema($capsule);
 	}
@@ -211,11 +209,6 @@ final class Database {
 	private static function getDbSchema(
 		Capsule $capsule
 	): array {
-		// might be cached
-		if (self::$schemaLoaded) {
-			return self::$schema;
-		}
-
 		$rows = $capsule->getConnection()
 			->select("SELECT TABLE_NAME, COLUMN_NAME
 			          FROM information_schema.COLUMNS
@@ -231,7 +224,6 @@ final class Database {
 		}
 
 		self::$schema = $schema;
-		self::$schemaLoaded = true;
 
 		return self::$schema;
 	}

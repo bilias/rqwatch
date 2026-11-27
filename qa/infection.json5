@@ -32,9 +32,9 @@
 				"App\\Services\\ApiClient::__construct::35",
 				// 'required' => true is the default
 				"App\\Forms\\CustomMapConfigForm::buildForm::37",
-				"App\\Forms\\CustomMapConfigForm::buildForm::64",
-				"App\\Forms\\CustomMapConfigForm::buildForm::83",
-				"App\\Forms\\CustomMapConfigForm::buildForm::102",
+				"App\\Forms\\CustomMapConfigForm::buildForm::65",
+				"App\\Forms\\CustomMapConfigForm::buildForm::84",
+				"App\\Forms\\CustomMapConfigForm::buildForm::103",
 				"App\\Forms\\LoginForm::buildForm::38",
 				"App\\Forms\\LoginForm::buildForm::58",
 				"App\\Forms\\MailAliasForm::buildForm::36",
@@ -281,7 +281,7 @@
 		},
 		"GreaterThanOrEqualTo": {
 			// PHP 8.4.0 has Pdo\\Mysql as well: the same constant either way
-			"ignore": ["App\\Core\\Database\\Database::boot::69"]
+			"ignore": ["App\\Core\\Database\\Database::boot::68"]
 		},
 		"IncrementInteger": {
 			"ignore": [
@@ -370,11 +370,11 @@
 		"MethodCallRemoval": {
 			"ignore": [
 				// requireColumn() checks the table first, with the same message
-				"App\\Core\\Database\\Database::verifyMailLogTokens::164",
-				"App\\Core\\Database\\Database::verifyMailRecipients::182",
-				"App\\Core\\Database\\Database::verifyMailLogData::193",
+				"App\\Core\\Database\\Database::verifyMailLogTokens::163",
+				"App\\Core\\Database\\Database::verifyMailRecipients::181",
+				"App\\Core\\Database\\Database::verifyMailLogData::192",
 				// every caller has checked the table already (mail_logs in verifySchema())
-				"App\\Core\\Database\\Database::requireColumn::248",
+				"App\\Core\\Database\\Database::requireColumn::240",
 				// a required migration pending ends the boot (exit): Integration's BootTest
 				"App\\Core\\Kernel::verifyRequiredMigrations::262",
 				// a new Response is 200
@@ -556,8 +556,6 @@
 		},
 		"TrueValue": {
 			"ignore": [
-				// getDbSchema() is called only by refreshDbSchema(), which clears the flag first
-				"App\\Core\\Database\\Database::getDbSchema::234",
 				// an int status against ints: == matches as === does
 				"App\\Services\\FuzzyService::callApi::690",
 				// the values are text, none of them numeric: == matches as === does
@@ -637,8 +635,8 @@
 		"UnwrapTrim": {
 			"ignore": [
 				// Symfony's TextType and EmailType trim what is submitted
-				"App\\Controllers\\MailAliasController::add::188",
-				"App\\Controllers\\MailAliasController::add::189",
+				"App\\Controllers\\MailAliasController::add::184",
+				"App\\Controllers\\MailAliasController::add::185",
 				// the addresses are used past the database lookup
 				"App\\Api\\ReleaseMailApi::handle::93",
 				// mailparse gives the content type lowercased, without parameters
@@ -762,7 +760,7 @@
 				// a diagnostic needs a server's reply: without one it stays the '' it starts as
 				"App\\Core\\Auth\\LDAP\\PhpLdapDirectory::diagnosticMessage::82",
 				// symfony/polyfill-php84 gives PHP 8.3 Pdo\\Mysql, its ATTR_INIT_COMMAND the same 1002
-				"App\\Core\\Database\\Database::boot::69"
+				"App\\Core\\Database\\Database::boot::68"
 			]
 		},
 		"Continue_": {
