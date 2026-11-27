@@ -93,7 +93,11 @@
 				// a digits-only string compares with 0 as a number
 				"App\\Utils\\Helper::check_id_qid::805",
 				// limit() casts to int itself, and paginate() replaces that limit
-				"App\\Services\\MailLogService::getPaginatedQuarantine::1388"
+				"App\\Services\\MailLogService::getPaginatedQuarantine::1388",
+				// the ids key the plucked rows: PHP makes them ints already
+				"App\\Services\\MapHitService::virusSkipEntries::151",
+				"App\\Services\\MapHitService::customEntries::285",
+				"App\\Services\\MapHitService::ownSymbolEntries::321"
 			]
 		},
 		"CastString": {
@@ -134,8 +138,12 @@
 			]
 		},
 		"Concat": {
-			// the default log file is the install's logs/: a test would write outside its temp dir
-			"ignore": ["App\\Core\\Logging\\LoggerFactory::createFileLogger::38"]
+			"ignore": [
+				// the default log file is the install's logs/: a test would write outside its temp dir
+				"App\\Core\\Logging\\LoggerFactory::createFileLogger::38",
+				// the entry model is one digit: model and id, in any order around ':', stay one key per entry
+				"App\\Services\\MapHitService::optionEntries::226"
+			]
 		},
 		"ConcatOperandRemoval": {
 			"ignore": [
@@ -146,6 +154,9 @@
 				// Symfony's formatter styles an unclosed tag to the end of the line
 				"App\\Services\\Import\\MailLogSpool::drain::311",
 				"App\\Console\\OptimizeTable::execute::66",
+				// without the ':', model (one digit) and id still make one key per entry; the
+				// line's other two removals (model or id alone) are killed by MapHitRecordTest
+				"App\\Services\\MapHitService::optionEntries::226",
 			]
 		},
 		"Coalesce": {
@@ -392,7 +403,9 @@
 				"App\\Utils\\Helper::convertSRSAddress::456",
 				"App\\Utils\\Helper::convertSRSAddress::468",
 				// the line is trimmed: no newline is left for $ to stop before
-				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::75"
+				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::75",
+				// the option is trimmed too
+				"App\\Services\\MapHitService::optionEntries::217"
 			]
 		},
 		"PublicVisibility": {
@@ -426,7 +439,14 @@
 		},
 		"CloneRemoval": {
 			// the query's last use: changing it changes nothing after
-			"ignore": ["App\\Services\\MailLogService::collectStats::1253"]
+			"ignore": [
+				"App\\Services\\MailLogService::collectStats::1253",
+				"App\\Services\\MapHitService::combinedEntries::258",
+				"App\\Services\\MapHitService::customEntries::295",
+				"App\\Services\\MapHitService::symbolIds::883",
+				// an insert adds no condition: the lookup after it clones the same query
+				"App\\Services\\MapHitService::symbolIds::882"
+			]
 		},
 		"ReturnRemoval": {
 			"ignore": [
@@ -600,7 +620,13 @@
 				"App\\Services\\MailLogService::releaseHtmlMail::1842",
 				"App\\Services\\MailLogService::notifyHtmlMail::1976",
 				"App\\Services\\MailLogService::markNotificationsSkipped::2162",
-				"App\\Services\\MailLogService::filterDisabledRecipients::2276"
+				"App\\Services\\MailLogService::filterDisabledRecipients::2276",
+				// pluck() gives the ids as a list already
+				"App\\Services\\MapHitService::combinedEntries::251",
+				// the entries are only iterated, never read by key
+				"App\\Services\\MapHitService::optionEntries::231",
+				// insertOrIgnore() and whereIn() take the names in order, whatever their keys
+				"App\\Services\\MapHitService::symbolIds::880"
 			]
 		},
 		"UnwrapStrRepeat": {
@@ -665,6 +691,11 @@
 		"Ternary": {
 			// a diagnostic needs a server's reply: without one it stays the '' it starts as
 			"ignore": ["App\\Core\\Auth\\LDAP\\PhpLdapDirectory::diagnosticMessage::82"]
+		},
+		"Continue_": {
+			// a key's second form is the first without its ":<check>:<+|->", so has as many
+			// "|" parts: when the first is skipped, so is the second
+			"ignore": ["App\\Services\\MapHitService::combinedEntries::245"]
 		}
 	}
 }
