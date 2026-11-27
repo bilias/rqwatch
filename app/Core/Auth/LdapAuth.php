@@ -174,7 +174,7 @@ final class LdapAuth implements AuthInterface {
 
 		if (empty($attrs)) {
 			$error = $this->getError($ldap);
-			$this->logger->error("ldap_get_attributes returned empty attributes");
+			$this->logger->error("ldap_get_attributes returned empty attributes: {$error}");
 			return false;
 		}
 

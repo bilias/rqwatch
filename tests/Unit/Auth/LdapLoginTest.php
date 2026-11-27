@@ -253,7 +253,7 @@ final class LdapLoginTest extends UnitTestCase
 			'two found' => [fn (FakeLdapDirectory $d) => $d->count = 2, 4, "error LDAP search for mail 'alice' returned 2 users"],
 			'no entry' => [fn (FakeLdapDirectory $d) => $d->entry = false, 5, "error ldap_first_entry failed: {$error}"],
 			'no dn' => [fn (FakeLdapDirectory $d) => $d->dn = false, 6, "error ldap_get_dn failed: {$error}"],
-			'no attributes' => [fn (FakeLdapDirectory $d) => $d->attributes = [], 7, 'error ldap_get_attributes returned empty attributes'],
+			'no attributes' => [fn (FakeLdapDirectory $d) => $d->attributes = [], 7, "error ldap_get_attributes returned empty attributes: {$error}"],
 			'no mail' => [fn (FakeLdapDirectory $d) => $d->attributes = self::attributes(['mail' => [' '], 'sn' => ['Smith']]), 7, "error Empty mail attribute for LDAP user 'alice'"],
 			'a wrong password' => [fn (FakeLdapDirectory $d) => $d->binds = [true, false], 8, "warning LDAP Authentication for user 'alice' failed: {$error}"],
 			'mail 0' => [fn (FakeLdapDirectory $d) => $d->attributes = self::attributes(['mail' => ['0']]), 8, "error LDAP user 'alice' has empty 'mail' attribute after authentication"],
