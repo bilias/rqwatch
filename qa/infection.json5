@@ -23,6 +23,7 @@
 			"ignore": [
 				// the query selects its own columns: paginate()'s are only a default, and its count ignores them
 				"App\\Services\\MapService::getPaginatedMapCustom::536",
+				"App\\Services\\MailLogService::getPaginatedQuarantine::1398",
 				// Symfony's HttpClient verifies the peer by default too
 				"App\\Services\\ApiClient::__construct::35",
 				// 'required' => true is the default
@@ -69,7 +70,9 @@
 				"App\\Utils\\Helper::formatSizeUnits::502",
 				"App\\Utils\\Helper::formatSizeUnits::504",
 				// an int or a SUM() string divides by a float as a float anyway
-				"App\\Charts\\ChartBuilder::createReportsDayChart::241"
+				"App\\Charts\\ChartBuilder::createReportsDayChart::241",
+				// the score is a float sum: it divides by an int as a float
+				"App\\Services\\MailLogService::getSymbolsReport::876"
 			]
 		},
 		"CastInt": {
@@ -89,7 +92,9 @@
 				// preg_match_all() false is not > 0 either
 				"App\\Utils\\Helper::extract_mail_relays::1132",
 				// a digits-only string compares with 0 as a number
-				"App\\Utils\\Helper::check_id_qid::805"
+				"App\\Utils\\Helper::check_id_qid::805",
+				// limit() casts to int itself, and paginate() replaces that limit
+				"App\\Services\\MailLogService::getPaginatedQuarantine::1388"
 			]
 		},
 		"CastString": {
@@ -124,7 +129,9 @@
 				// preg_replace() with this ASCII pattern does not fail
 				"App\\Models\\MailLog::logUnparsableMimeFrom::275",
 				// a null qid reaches a string parameter only past the database lookup
-				"App\\Services\\FuzzyService::learnLocal::315"
+				"App\\Services\\FuzzyService::learnLocal::315",
+				// null interpolates as '' as well
+				"App\\Services\\MailLogService::detailByQid::1492"
 			]
 		},
 		"Concat": {
@@ -198,7 +205,15 @@
 				"App\\Charts\\ChartBuilder::createReportsDayChart::241",
 				// a byte more or less in a MB is a millionth: no %.2f figure shows it
 				"App\\Utils\\Helper::getRuntime::445",
-				"App\\Utils\\Helper::getRuntime::446"
+				"App\\Utils\\Helper::getRuntime::446",
+				// -1 is below 1 as 0 is: no limit, or the default
+				"App\\Services\\MailLogService::notificationCutoff::2229",
+				"App\\Services\\MailLogService::adminNotificationCutoff::2241",
+				// page 0 is page 1: paginate() and the paginator take a falsy page as the current one (1, with no resolver set), and forPage() starts at offset 0
+				"App\\Services\\MailLogService::getPaginatedDay::1293",
+				"App\\Services\\MailLogService::getPaginatedQuarantineDay::1317",
+				"App\\Services\\MailLogService::getPaginatedQuarantine::1381",
+				"App\\Services\\MailLogService::getPaginatedQuarantinePerMonth::1403"
 			]
 		},
 		"FalseValue": {
@@ -504,7 +519,12 @@
 				"App\\Services\\MailLogService::getReports::1076",
 				"App\\Services\\MailLogService::getReports::1077",
 				"App\\Services\\MailLogService::getReports::1132",
-				"App\\Services\\MailLogService::getReports::1140"
+				"App\\Services\\MailLogService::getReports::1140",
+				// a column name or an address is no numeric string: == matches as === does
+				"App\\Services\\MailLogService::markNotificationsSkipped::2159",
+				"App\\Services\\MailLogService::filterDisabledRecipients::2300",
+				// only the keys of $seen are read
+				"App\\Services\\MailLogService::getSymbolsReport::868"
 			]
 		},
 		"UnwrapFinally": {
@@ -542,7 +562,16 @@
 				// only iterated
 				"App\\Utils\\Helper::symbolMatches::247",
 				// vsprintf() reads the values in order, whatever their keys
-				"App\\Utils\\Helper::sqlWithBindings::1403"
+				"App\\Utils\\Helper::sqlWithBindings::1403",
+				// pluck() gives a list, and array_merge() renumbers
+				"App\\Services\\MailLogService::getSymbolsReport::889",
+				"App\\Services\\MailLogService::getVirusMailIds::976",
+				// rsort() and array_chunk() renumber; the recipients are only iterated, or spread into to() by position
+				"App\\Services\\MailLogService::getPaginatedQuarantineMonth::1362",
+				"App\\Services\\MailLogService::releaseHtmlMail::1842",
+				"App\\Services\\MailLogService::notifyHtmlMail::1976",
+				"App\\Services\\MailLogService::markNotificationsSkipped::2162",
+				"App\\Services\\MailLogService::filterDisabledRecipients::2276"
 			]
 		},
 		"UnwrapStrRepeat": {
@@ -562,7 +591,11 @@
 		"CatchBlockRemoval": {
 			"ignore": [
 				// their exceptions come from the database lookups; Integration's FuzzyApiTest covers them
-				"App\\Api\\FuzzyMailApi::handle::80"
+				"App\\Api\\FuzzyMailApi::handle::80",
+				// failRequest() exits: no unit test sees which catch took a non-query error
+				"App\\Services\\MailLogService::getPaginatedAll::1032",
+				// a TransportException is an Exception, and both catches do the same
+				"App\\Services\\MailLogService::getMailObjectViaApi::1648"
 			]
 		},
 		"Identical": {
