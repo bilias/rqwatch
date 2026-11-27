@@ -186,6 +186,8 @@
 		},
 		"DecrementInteger": {
 			"ignore": [
+				// a two-field map form's config has two fields, so [0] is set whenever [1] is
+				"App\\Inventory\\MapInventory::getAvailableMapConfigs::407",
 				// a prefix is 0 bits or more: starting below 0 at -2 credits the entries -1 does
 				"App\\Services\\MapHitService::longestPrefix::335",
 				// the mask's low bit is set only for an 8-bit remainder, which returns before it;
@@ -264,7 +266,7 @@
 			"ignore": [
 				// no attachments leave the list empty either way
 				"App\\Inventory\\MailObject::setAttached::123",
-				// custom maps come from the database; Integration covers them
+				// no custom maps: the loop builds nothing and nothing is merged
 				"App\\Inventory\\MapInventory::getMapConfigs::243",
 				// no addresses matched leaves the loop empty either way
 				"App\\Utils\\Helper::extract_mail_relays::1132",
@@ -277,9 +279,9 @@
 				"App\\Console\\CronQuarantine::cleanOldMail::124"
 			]
 		},
-		"GreaterThanNegotiation": {
-			// custom maps come from the database; Integration covers them
-			"ignore": ["App\\Inventory\\MapInventory::getMapConfigs::243"]
+		"GreaterThanOrEqualTo": {
+			// PHP 8.4.0 has Pdo\\Mysql as well: the same constant either way
+			"ignore": ["App\\Core\\Database\\Database::boot::69"]
 		},
 		"IncrementInteger": {
 			"ignore": [
@@ -336,13 +338,6 @@
 				"App\\Controllers\\ViewController::twigView::71"
 			]
 		},
-		"LogicalNot": {
-			// without a database warmCache() returns at once; Integration covers the warm-up
-			"ignore": [
-				"App\\Core\\Database\\MigrationStatus::getMigrationState::154",
-				"App\\Core\\Database\\MigrationStatus::warmCache::69"
-			]
-		},
 		"LogicalOr": {
 			"ignore": [
 				// tempnam() leaves MAP_DIR only when MAP_DIR is unusable, which was refused just before
@@ -369,17 +364,21 @@
 		"LogicalOrAllSubExprNegation": {
 			"ignore": [
 				// a code is an int or a string, never both, so the negation is always true, as the original is
-				"App\\Services\\Import\\MailLogWriter::describe::77",
-				// a usable password goes on to the database; Integration's UserAdminTest adds users
-				"App\\Services\\UserService::userAdd::294"
+				"App\\Services\\Import\\MailLogWriter::describe::77"
 			]
 		},
 		"MethodCallRemoval": {
 			"ignore": [
+				// requireColumn() checks the table first, with the same message
+				"App\\Core\\Database\\Database::verifyMailLogTokens::164",
+				"App\\Core\\Database\\Database::verifyMailRecipients::182",
+				"App\\Core\\Database\\Database::verifyMailLogData::193",
+				// every caller has checked the table already (mail_logs in verifySchema())
+				"App\\Core\\Database\\Database::requireColumn::248",
+				// a required migration pending ends the boot (exit): Integration's BootTest
+				"App\\Core\\Kernel::verifyRequiredMigrations::262",
 				// a new Response is 200
 				"App\\Api\\MetadataImporterMultipartApi::handle::578",
-				// without a database warmCache() returns at once; Integration covers the warm-up
-				"App\\Core\\Database\\MigrationStatus::getMigrationState::155",
 				// with the API on it does nothing; off, it answers and exits (Integration's ApiAccessTest)
 				"App\\Api\\RqwatchApi::__construct::47"
 			]
@@ -481,6 +480,10 @@
 		},
 		"ReturnRemoval": {
 			"ignore": [
+				// a session's version is an int (logins store ?? 0) and users.session_version is NOT NULL:
+				// a user gone, or no version in the session, fails the comparison that follows as well
+				"App\\Core\\Middleware\\AuthMiddleware::sessionStillValid::99",
+				"App\\Core\\Middleware\\AuthMiddleware::sessionStillValid::104",
 				// an empty pattern ('' or '0') leaves no line either: false all the same, logged once
 				"App\\Services\\MapService::addMapCustomEntry::1029",
 				// LoginThrottle's listBlocked() and listCounters() give [] for no cache, clearIp() false
@@ -522,9 +525,6 @@
 				"App\\Inventory\\MailObject::embedImages::112",
 				// inet_pton() fails on what FILTER_VALIDATE_IP refused, and the next check returns $value
 				"App\\Inventory\\MapInventory::canonicalIpOrCidr::459",
-				// without a database a later check returns as well
-				"App\\Core\\Database\\MigrationStatus::warmCache::66",
-				"App\\Core\\Database\\MigrationStatus::warmCache::70",
 				// without a cache, the calls on it fail inside their try and the same lookup follows
 				"App\\Utils\\Helper::my_gethostbyaddr::1532",
 				"App\\Utils\\Helper::my_gethostbyname::1602",
@@ -556,6 +556,8 @@
 		},
 		"TrueValue": {
 			"ignore": [
+				// getDbSchema() is called only by refreshDbSchema(), which clears the flag first
+				"App\\Core\\Database\\Database::getDbSchema::234",
 				// an int status against ints: == matches as === does
 				"App\\Services\\FuzzyService::callApi::690",
 				// the values are text, none of them numeric: == matches as === does
@@ -567,8 +569,6 @@
 				"App\\Core\\Routing\\Router::dispatch::167",
 				// a column name is no numeric string: == matches as === does
 				"App\\Utils\\FormHelper::getFilters::250",
-				// custom maps come from the database; Integration covers them
-				"App\\Inventory\\MapInventory::getMapConfigs::145",
 				// without a database warmCache() returns before it could replace the loaded state
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::211",
 				"App\\Core\\Database\\MigrationStatus::loadPersistedState::218",
@@ -636,6 +636,9 @@
 		},
 		"UnwrapTrim": {
 			"ignore": [
+				// Symfony's TextType and EmailType trim what is submitted
+				"App\\Controllers\\MailAliasController::add::188",
+				"App\\Controllers\\MailAliasController::add::189",
 				// the addresses are used past the database lookup
 				"App\\Api\\ReleaseMailApi::handle::93",
 				// mailparse gives the content type lowercased, without parameters
@@ -755,8 +758,12 @@
 			]
 		},
 		"Ternary": {
-			// a diagnostic needs a server's reply: without one it stays the '' it starts as
-			"ignore": ["App\\Core\\Auth\\LDAP\\PhpLdapDirectory::diagnosticMessage::82"]
+			"ignore": [
+				// a diagnostic needs a server's reply: without one it stays the '' it starts as
+				"App\\Core\\Auth\\LDAP\\PhpLdapDirectory::diagnosticMessage::82",
+				// symfony/polyfill-php84 gives PHP 8.3 Pdo\\Mysql, its ATTR_INIT_COMMAND the same 1002
+				"App\\Core\\Database\\Database::boot::69"
+			]
 		},
 		"Continue_": {
 			// a key's second form is the first without its ":<check>:<+|->", so has as many
