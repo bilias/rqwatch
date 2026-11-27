@@ -224,6 +224,8 @@
 				"App\\Services\\MailLogService::getPaginatedQuarantineDay::1317",
 				"App\\Services\\MailLogService::getPaginatedQuarantine::1381",
 				"App\\Services\\MailLogService::getPaginatedQuarantinePerMonth::1403",
+				"App\\Services\\MailAliasService::getPaginatedAll::147",
+				"App\\Services\\MailAliasService::searchPaginatedAll::169",
 				// RedisCache::ttl() gives null for a key without expiry (-1) or gone (-2), never below 0
 				"App\\Controllers\\Controller::getRedisConfigTTLData::324"
 			]
@@ -417,6 +419,7 @@
 				"App\\Services\\MapService::getMapCombinedBasicQuery::120",
 				"App\\Services\\MapService::getMapCustomQuery::152",
 				"App\\Services\\MailLogService::getSqlFromQuery::103",
+				"App\\Services\\MailAliasService::getSqlFromQuery::48",
 				"App\\Models\\MailLog::getMimeFromDecodedAttribute::200",
 				"App\\Models\\MailLog::getVirusFromSymbolAttribute::190",
 				"App\\Models\\MailLog::getMailRecipientsAttribute::315",
@@ -447,7 +450,9 @@
 				"App\\Services\\MapHitService::customEntries::295",
 				"App\\Services\\MapHitService::symbolIds::883",
 				// an insert adds no condition: the lookup after it clones the same query
-				"App\\Services\\MapHitService::symbolIds::882"
+				"App\\Services\\MapHitService::symbolIds::882",
+				// distinct() is all the lookup leaves on the query (pluck() puts the columns back), and a DELETE has no DISTINCT
+				"App\\Services\\MailAliasService::aliasDel::112"
 			]
 		},
 		"ReturnRemoval": {
@@ -628,6 +633,8 @@
 				"App\\Services\\MapHitService::combinedEntries::251",
 				// the entries are only iterated, never read by key
 				"App\\Services\\MapHitService::optionEntries::231",
+				// pluck() gives the map names as a list already, and updateMapActivityLogs() only iterates them
+				"App\\Services\\MailAliasService::aliasDel::112",
 				// insertOrIgnore() and whereIn() take the names in order, whatever their keys
 				"App\\Services\\MapHitService::symbolIds::880"
 			]
