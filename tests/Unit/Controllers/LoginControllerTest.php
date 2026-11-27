@@ -392,7 +392,7 @@ final class LoginControllerTest extends ControllerTestCase
 		$this->oidc->failure = new OpenIDConnectClientException('no discovery');
 		$request = self::request('https://rq.example.org/login/openid');
 		$this->assertRedirect($this->url(RouteName::LOGIN), $this->login($request)->login_openidc());
-		$this->assertSame(['error' => ["The 'Login with OpenID Connect' service is currently unavailable"]], self::flashes($request));
+		$this->assertSame(['error' => ["The 'OpenID Connect' service is currently unavailable"]], self::flashes($request));
 		$this->assertSame(['warning OPENIDC startOpenIdConnectAuthentication() failed with error: no discovery'], $this->log->lines);
 	}
 
