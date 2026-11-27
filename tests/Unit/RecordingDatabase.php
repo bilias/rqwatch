@@ -14,11 +14,13 @@
  MariaDB 10.11 as the server (the grammar asks for some SQL). Each
  INSERTed row is recorded by table, an INSERT IGNORE reporting them all
  inserted; the id of a mail_logs row is 100 plus its number, and a row
- of a qid in $failInsert (in any table), or any row of a table in
- $failInsertInto, throws instead. Each SELECT is
+ of a qid in $failInsert (in any table) throws instead, once, as does any
+ row of a table in $failInsertInto. Each SELECT is
  recorded with its bindings and answered by $answer, with no rows without
  one. Each UPDATE and DELETE is recorded with its bindings, in order, and
- reports the rows $affect gives, none without one. Bindings must be a
+ reports the rows $affect gives, none without one. Any other statement
+ (SET, DDL, OPTIMIZE) is recorded in $statements, after $onStatement, which
+ may throw. Bindings must be a
  list, as PDO binds them by key: a gap or a name throws. The Capsule is set as
  global (the static Capsule::connection() reads it); forget() puts that
  back. Eloquent models need $capsule->bootEloquent() too, which a test
@@ -44,7 +46,7 @@ final class RecordingDatabase
 	/** @var array<string, list<array<string, mixed>>> the rows inserted, by table */
 	public array $rows = [];
 
-	/** @var array<string, Throwable> qid => what an insert of a row with it throws */
+	/** @var array<string, Throwable> qid => what the next insert of a row with it throws */
 	public array $failInsert = [];
 
 	/** @var array<string, Throwable> table => what an insert into it throws */
@@ -62,21 +64,49 @@ final class RecordingDatabase
 	/** @var (Closure(string, list<mixed>): int)|null the rows an UPDATE or DELETE changes */
 	public ?Closure $affect = null;
 
+	/** @var list<array{string, list<mixed>}> each other statement run, in order: its SQL and bindings */
+	public array $statements = [];
+
+	/** @var (Closure(string, list<mixed>): void)|null called before a statement is recorded; may throw */
+	public ?Closure $onStatement = null;
+
 	// as MariaDB reports itself over the MySQL protocol
 	public const string SERVER_VERSION = '5.5.5-10.11.6-MariaDB';
 
 	public function __construct(PDO&Stub $pdo) {
 		$pdo->method('getAttribute')->willReturnCallback(fn (int $attribute): ?string => $attribute === PDO::ATTR_SERVER_VERSION ? self::SERVER_VERSION : null);
 		$lastId = fn (): int => 100 + count($this->rows['mail_logs'] ?? []);
-		$connection = new class ($pdo, $this->record(...), $this->query(...), $this->change(...), $lastId) extends MySqlConnection {
+		$connection = new class ($pdo, $this->record(...), $this->query(...), $this->change(...), $lastId, $this->statement(...)) extends MySqlConnection {
 			/**
 			 * @param Closure(string, array<array-key, mixed>): int $record
 			 * @param Closure(string, array<array-key, mixed>): list<object> $query
 			 * @param Closure(string, array<array-key, mixed>): int $change
 			 * @param Closure(): int $lastId
+			 * @param Closure(string, array<array-key, mixed>): void $statement
 			 */
-			public function __construct(PDO $pdo, private Closure $record, private Closure $query, private Closure $change, private Closure $lastId) {
+			public function __construct(PDO $pdo, private Closure $record, private Closure $query, private Closure $change, private Closure $lastId, private Closure $statement) {
 				parent::__construct($pdo);
+			}
+
+			/**
+			 * any other statement (SET, DDL, OPTIMIZE), recorded and not run
+			 * @param string $query
+			 * @param array<array-key, mixed> $bindings
+			 */
+			#[\Override]
+			public function statement($query, $bindings = []): bool {
+				($this->statement)($query, $bindings);
+				return true;
+			}
+
+			/**
+			 * a statement without bindings, recorded and not run
+			 * @param string $query
+			 */
+			#[\Override]
+			public function unprepared($query): bool {
+				($this->statement)($query, []);
+				return true;
 			}
 
 			/**
@@ -158,6 +188,15 @@ final class RecordingDatabase
 	}
 
 	/** @param array<array-key, mixed> $bindings */
+	private function statement(string $sql, array $bindings): void {
+		$bindings = self::bindings($sql, $bindings);
+		if ($this->onStatement !== null) {
+			($this->onStatement)($sql, $bindings);
+		}
+		$this->statements[] = [$sql, $bindings];
+	}
+
+	/** @param array<array-key, mixed> $bindings */
 	private function change(string $sql, array $bindings): int {
 		$bindings = self::bindings($sql, $bindings);
 		$this->changes[] = [$sql, $bindings];
@@ -182,7 +221,9 @@ final class RecordingDatabase
 			/** @var mixed $qid */
 			$qid = $row['qid'] ?? null;
 			if (is_string($qid) && isset($this->failInsert[$qid])) {
-				throw $this->failInsert[$qid];
+				$failure = $this->failInsert[$qid];
+				unset($this->failInsert[$qid]);
+				throw $failure;
 			}
 			$this->rows[$match[1]][] = $row;
 		}
