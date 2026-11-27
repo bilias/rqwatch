@@ -57,7 +57,9 @@ parameters:
 		-
 			identifier: classConstant.deprecated
 			message: '#^Fetching deprecated class constant MYSQL_ATTR_INIT_COMMAND of class PDO\.$#'
-			path: ../app/Core/Database/Database.php
+			paths:
+				- ../app/Core/Database/Database.php
+				- ../tests/Unit/Core/DatabaseTest.php
 			reportUnmatched: false
 	friendly:
 		lineBefore: 0
