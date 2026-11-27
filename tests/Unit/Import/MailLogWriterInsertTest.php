@@ -16,7 +16,10 @@
  After the commit the fuzzy, map and virus records run (a virus record only
  for a virus mail); what they cannot read is logged and the id still
  returned. With no migration completed they query nothing; with map hits
- completed, the map record asks for the custom maps.
+ completed, the map record asks for the custom maps. With the fuzzy hits
+ and virus migrations done, the learned mails matching the mail's fuzzy
+ hashes (a list, or keyed) get a hit at the mail's time, and its viruses
+ are recorded, both under the new id.
 */
 
 namespace Tests\Unit\Import;
@@ -26,7 +29,9 @@ use App\Core\AppContainer;
 use App\Core\Database\MigrationStatus;
 use App\Inventory\Migrations;
 use App\Services\Import\MailLogWriter;
+use Illuminate\Database\Eloquent\Model;
 use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Tests\Unit\RecordingDatabase;
 use Tests\Unit\UnitTestCase;
@@ -47,6 +52,7 @@ final class MailLogWriterInsertTest extends UnitTestCase
 
 	#[\Override]
 	protected function tearDown(): void {
+		Model::unsetConnectionResolver();
 		RecordingDatabase::forget();
 		parent::tearDown();
 	}
@@ -109,5 +115,40 @@ final class MailLogWriterInsertTest extends UnitTestCase
 		$this->status->setMigrationState(Migrations::MAP_HITS, Migrations::STATUS_COMPLETED);
 		$this->assertSame(101, (new MailLogWriter())->insert(['qid' => 'Q1', 'symbols' => '{}'], []));
 		$this->assertSame(['error [MapHitService_recordHits] Q1 could not record map hits: Call to a member function connection() on null'], $this->log->lines);
+	}
+
+	/** @return array<string, array{bool}> */
+	public static function hashForms(): array {
+		return ['a list' => [true], 'keyed' => [false]];
+	}
+
+	// fuzzy hashes as a list, or keyed (a JSON object): their values
+	#[DataProvider('hashForms')]
+	public function testHitsAndVirusesRecorded(bool $list): void {
+		$this->db->capsule->bootEloquent();
+		$this->db->answer = fn (string $sql): array => str_contains($sql, 'from `mail_log_fuzzy`')
+			? [['id' => 4, 'qid' => 'L4']]
+			: [['created_day' => '2026-11-20']];
+		$this->status->setMigrationState(Migrations::MAIL_LOG_FUZZY_HITS, Migrations::STATUS_COMPLETED);
+		$this->status->setMigrationState(Migrations::MAIL_LOG_FUZZY_HITS_MAILS, Migrations::STATUS_COMPLETED);
+		$this->status->setMigrationState(Migrations::MAIL_LOG_VIRUSES, Migrations::STATUS_COMPLETED);
+		$hash = str_repeat('a1', 64);
+		$id = (new MailLogWriter())->insert([
+			'qid' => 'Q1',
+			'has_virus' => 1,
+			'created_at' => '2026-11-20 10:00:00',
+			'symbols' => '[{"name":"CLAM_VIRUS","group":"antivirus","options":["Eicar"]}]',
+			'fuzzy_hashes' => json_encode($list ? [$hash] : ['h' => $hash], JSON_THROW_ON_ERROR),
+		], []);
+		$this->assertSame(101, $id);
+		$this->assertSame([$hash], $this->db->selects[0][1] ?? null);
+		$this->assertSame(['2026-11-20 10:00:00', '2026-11-20 10:00:00', 4], $this->db->changes[0][1] ?? null);
+		$this->assertSame([['fuzzy_id' => 4, 'mail_log_id' => 101]], $this->db->rows('mail_log_fuzzy_hits'));
+		$this->assertSame([[101]], array_slice(array_column($this->db->selects, 1), 1));
+		$this->assertSame([['av' => 'CLAM_VIRUS', 'created_day' => '2026-11-20', 'mail_log_id' => 101, 'name' => 'Eicar']], $this->db->rows('mail_log_viruses'));
+		$this->assertSame([
+			'info Q1 fuzzy hit on learned mail(s) L4',
+			'info Q1 fuzzy hit on learned mail(s) L4',
+		], $this->log->lines);
 	}
 }
