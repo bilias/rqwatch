@@ -311,6 +311,19 @@ final class MailLogLookupTest extends UnitTestCase
 		$this->assertSame($read, $this->db->selects[0] ?? []);
 	}
 
+	/** @return array<string, array{int}> */
+	public static function belowFirstPage(): array {
+		return ['zero' => [0], 'negative' => [-1]];
+	}
+
+	// ?page=0 or below is the first page, not one counted from the end
+	#[DataProvider('belowFirstPage')]
+	public function testPaginatedByIdsBelowFirstPage(int $page): void {
+		Config::set('items_per_page', 2);
+		$this->mails = [['id' => 9], ['id' => 8], ['id' => 7]];
+		$this->assertSame([[9, 8], 3, 2, 1, '/hits'], self::page(self::admin()->getPaginatedByIds([9, 8, 7], '/hits', $page)));
+	}
+
 	// the first page by default
 	public function testPaginatedByIdsFirstPage(): void {
 		Config::set('items_per_page', 2);
@@ -426,6 +439,13 @@ final class MailLogLookupTest extends UnitTestCase
 		$this->assertSame($ids === [] ? null : [self::fields() . ' where `id` in (' . implode(', ', array_fill(0, count($ids), '?')) . ') order by `id` desc', $ids], $this->db->selects[1] ?? null);
 		$this->assertSame(['info select `id` from `mail_logs` where `created_day` >= "2026-12-01" and `created_day` < "2027-01-01" and (`mail_stored` = "1" or (`mail_location` is not null and `mail_location` <> "0")) and '
 			. str_replace('(?)', '("alice@example.org")', self::OWN)], $this->log->lines);
+	}
+
+	#[DataProvider('belowFirstPage')]
+	public function testPaginatedQuarantineMonthBelowFirstPage(int $page): void {
+		Config::set('items_per_page', 2);
+		$this->mails = [['id' => 7], ['id' => 9], ['id' => 8]];
+		$this->assertSame([[9, 8], 3, 2, 1, '/q/month'], self::page(self::admin()->getPaginatedQuarantineMonth('2026-12', '/q/month', $page)));
 	}
 
 	public function testPaginatedQuarantineMonthFirstPage(): void {

@@ -186,6 +186,28 @@
 		},
 		"DecrementInteger": {
 			"ignore": [
+				// ?page defaults to 1; 0 is read as 1 too, by paginate(), Collection::forPage() and
+				// MailLogService's own pages (max(1, $page))
+				"App\\Controllers\\FuzzyController::showAll::52",
+				"App\\Controllers\\FuzzyController::search::93",
+				"App\\Controllers\\FuzzyController::showHitMails::137",
+				"App\\Controllers\\MailAliasController::showAll::73",
+				"App\\Controllers\\MailAliasController::searchAlias::130",
+				"App\\Controllers\\MailLogController::showAll::117",
+				"App\\Controllers\\MailLogController::showResults::229",
+				"App\\Controllers\\MailLogController::showVirusMails::472",
+				"App\\Controllers\\MailLogController::showDay::511",
+				"App\\Controllers\\MailLogController::showQuarantineDay::546",
+				"App\\Controllers\\MailLogController::showQuarantineMonth::585",
+				"App\\Controllers\\MailLogController::showQuarantine::631",
+				"App\\Controllers\\MailLogController::showQuarantinePerMonth::678",
+				"App\\Controllers\\MapController::showAllMaps::167",
+				"App\\Controllers\\MapController::showCustomMapsConfig::281",
+				"App\\Controllers\\MapController::showMap::531",
+				"App\\Controllers\\MapController::searchMapEntry::1122",
+				"App\\Controllers\\MapHitController::showMails::164",
+				"App\\Controllers\\UserController::searchUser::164",
+				"App\\Controllers\\UserController::showAll::210",
 				// a two-field map form's config has two fields, so [0] is set whenever [1] is
 				"App\\Inventory\\MapInventory::getAvailableMapConfigs::407",
 				// a prefix is 0 bits or more: starting below 0 at -2 credits the entries -1 does

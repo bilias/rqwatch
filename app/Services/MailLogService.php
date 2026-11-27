@@ -730,10 +730,10 @@ final class MailLogService
 	private function paginateIds(array $ids, string $url, int $page): LengthAwarePaginator {
 		// already capped by the caller's limit
 		$total = count($ids);
-
+		// below 1 is page 1, as paginate() reads 0: array_slice() counts a negative offset from the end
 		$pageIds = array_slice(
 			$ids,
-			($page - 1) * $this->items_per_page,
+			(max(1, $page) - 1) * $this->items_per_page,
 			$this->items_per_page
 		);
 
@@ -1361,8 +1361,8 @@ final class MailLogService
 
 		$ids = array_values(Row::intValues($idQuery->pluck('id')->all(), 'id'));
 		rsort($ids, SORT_NUMERIC);
-
-		$pageIds = array_slice($ids, ($page - 1) * $this->items_per_page, $this->items_per_page);
+		// below 1 is page 1, as paginate() reads 0: array_slice() counts a negative offset from the end
+		$pageIds = array_slice($ids, (max(1, $page) - 1) * $this->items_per_page, $this->items_per_page);
 
 		/** @var Collection<int, MailLog> $items */
 		$items = empty($pageIds)
