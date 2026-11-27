@@ -21,12 +21,15 @@
  the mail. Several mail values are refused when LDAP_MAIL_ATTR_MULTIVALUE
  is false. A blank surname or given name falls back to its *_FALLBACK
  attribute. Each failure on the way is logged, with the directory's error
- and diagnostic where it has one, and refuses the login.
+ and diagnostic where it has one, and refuses the login. AuthManager
+ logs in here with LDAP_AUTH_ENABLED and a username with @, else in the
+ database, and keeps an LDAP login, not a refused one.
 */
 
 namespace Tests\Unit\Auth;
 
 use App\Core\Auth\LDAP\LdapDirectory;
+use App\Core\Auth\AuthManager;
 use App\Core\Auth\LdapAuth;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionProperty;
@@ -106,6 +109,39 @@ final class LdapLoginTest extends UnitTestCase
 			'bind uid=alice,ou=people,dc=example,dc=org user-secret',
 		], $this->directory->calls);
 		$this->assertSame([], $this->log->lines);
+	}
+
+	// AuthManager: with LDAP_AUTH_ENABLED, a username with @ logs in here, and the login is kept
+	public function testThroughAuthManager(): void {
+		$this->setEnv('LDAP_AUTH_ENABLED', 'true');
+		$auth = new AuthManager($this->log);
+		$this->assertTrue($auth->authenticate('alice@example.org', 'user-secret'));
+		$this->assertSame(['LDAP', 1, 'alice@example.org', 'alice@example.org'], [$auth->getAuthProvider(), $auth->getAuthProviderId(), $auth->getAuthenticatedUser(), $auth->getUserEmail()]);
+		// refused: no login kept
+		$this->directory->binds = [true, false];
+		$refused = new AuthManager($this->log);
+		$this->assertFalse($refused->authenticate('alice@example.org', 'wrong'));
+		$this->assertNull($refused->getAuthenticatedUser());
+	}
+
+	/** @return array<string, array{?string, string}> LDAP_AUTH_ENABLED, the username */
+	public static function databaseLogins(): array {
+		return [
+			'LDAP off' => [null, 'alice@example.org'],
+			'no @' => ['true', 'alice'],
+		];
+	}
+
+	// the database's login instead (no database here: its lookup fails), the directory not asked
+	#[DataProvider('databaseLogins')]
+	public function testDatabaseLogin(?string $enabled, string $username): void {
+		$this->setEnv('LDAP_AUTH_ENABLED', $enabled);
+		$auth = new AuthManager($this->log);
+		try {
+			$auth->authenticate($username, 'user-secret');
+		} catch (\Throwable) {
+		}
+		$this->assertSame(['DB', [], []], [$auth->getAuthProvider(), $this->opened, $this->directory->calls]);
 	}
 
 	public function testAdmin(): void {

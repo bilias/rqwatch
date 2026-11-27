@@ -343,9 +343,6 @@
 		},
 		"MethodCallRemoval": {
 			"ignore": [
-				// the callback and post-logout URLs are read by the client, which needs the provider
-				"App\\Core\\Auth\\AuthManager::startOpenIdConnectAuthentication::68",
-				"App\\Core\\Auth\\AuthManager::logoutOpenIdConnect::102",
 				// a new Response is 200
 				"App\\Api\\MetadataImporterMultipartApi::handle::578",
 				// without a database warmCache() returns at once; Integration covers the warm-up
