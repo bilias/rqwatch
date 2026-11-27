@@ -134,6 +134,8 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 		// delete from activity log and map files if not found in config
 		$service->syncMaps();
 
+		// a map file not written fails the run, after the others are written
+		$failed = 0;
 		foreach ($configs as $mapName => $config) {
 
 			// map missing from MapActivityLog
@@ -159,6 +161,7 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 				} else {
 					$output->writeln("<error>Map file '{$mapName}' update FAILED - check logs</error>", OutputInterface::VERBOSITY_NORMAL);
 					$this->fileLogger->error("{$this->app_name} Map file '{$mapName}' update FAILED (model '{$model}')");
+					$failed++;
 				}
 			} else {
 					$output->writeln("<comment>Map file '{$mapName}' does not need update</comment>", OutputInterface::VERBOSITY_VERBOSE);
@@ -166,7 +169,7 @@ final class CronUpdateMapFiles extends RqwatchCliCommand
 			}
 		}
 
-		return Command::SUCCESS;
+		return $failed > 0 ? Command::FAILURE : Command::SUCCESS;
 	}
 
 }

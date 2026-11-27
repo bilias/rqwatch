@@ -97,12 +97,12 @@ final class CronUpdateMapFilesRunTest extends MapDatabaseTestCase
 		$this->assertContains("debug cron:updatemapfiles Map file 'ip_whitelist' does not need update", $this->log->lines);
 	}
 
-	// a map whose name cannot be a file name: failed, the others written
+	// a map whose name cannot be a file name: the run fails, the others written
 	public function testWriteFails(): void {
 		$this->activity = array_fill_keys(self::BUILT_IN, '2026-11-20 10:00:00') + ['Bad.Map' => '2026-11-20 10:00:00'];
 		$this->answers[] = ['from `custom_map_config`', [['map_name' => 'Bad.Map', 'map_description' => 'Bad', 'field_name' => 'pattern']]];
 		[$status, $display] = $this->cron();
-		$this->assertSame(Command::SUCCESS, $status);
+		$this->assertSame(Command::FAILURE, $status);
 		$this->assertStringContainsString("Map file 'Bad.Map' update FAILED - check logs\n", $display);
 		$this->assertStringContainsString("Map file 'ip_blacklist' updated\n", $display);
 		$this->assertContains("error cron:updatemapfiles Map file 'Bad.Map' update FAILED (model 'MapCustom')", $this->log->lines);
