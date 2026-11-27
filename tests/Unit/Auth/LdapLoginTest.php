@@ -139,7 +139,9 @@ final class LdapLoginTest extends UnitTestCase
 		$auth = new AuthManager($this->log);
 		try {
 			$auth->authenticate($username, 'user-secret');
-		} catch (\Throwable) {
+			$this->fail('no exception');
+		} catch (\Error $e) {
+			$this->assertSame('Call to a member function connection() on null', $e->getMessage());
 		}
 		$this->assertSame(['DB', [], []], [$auth->getAuthProvider(), $this->opened, $this->directory->calls]);
 	}

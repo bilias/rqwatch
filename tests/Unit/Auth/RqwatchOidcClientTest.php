@@ -11,7 +11,9 @@
 /*
  RqwatchOpenIDConnectClient without an identity provider: the redirect
  URL, PKCE method and ID token it is given are the library's, and the
- end_session_endpoint is the provider's, refused when not text. The userinfo request and the sign-out need the provider.
+ end_session_endpoint is the provider's, refused when not text.
+ OpenIDConnectAuth builds one when no test client is set: a provider that
+ cannot be reached gives no logout URL, logged. The userinfo request and the sign-out need the provider.
  The jumbojett library (1.0) declares parameters implicitly nullable,
  which PHP 8.4 deprecates as the file loads: those deprecations, not
  rqwatch's, are ignored here.
@@ -20,6 +22,7 @@
 namespace Tests\Unit\Auth;
 
 use App\Core\Auth\OIDC\RqwatchOpenIDConnectClient;
+use App\Core\Auth\OpenIDConnectAuth;
 use Jumbojett\OpenIDConnectClientException;
 use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use Tests\Unit\UnitTestCase;
@@ -55,5 +58,17 @@ final class RqwatchOidcClientTest extends UnitTestCase
 		$this->expectException(OpenIDConnectClientException::class);
 		$this->expectExceptionMessage('end_session_endpoint is not a string');
 		$client->getEndSessionEndpoint();
+	}
+
+	// OpenIDConnectAuth's own client when no test sets one: nothing listens on port 1
+	public function testUnreachableProvider(): void {
+		$this->setEnv('OPENIDC_AUTH_ENABLED', 'true');
+		$this->setEnv('OPENIDC_URL', 'http://127.0.0.1:1');
+		$this->setEnv('OPENIDC_CLIENT_ID', 'rqwatch');
+		$this->setEnv('OPENIDC_CLIENT_SECRET', 'client-secret');
+		$this->assertNull((new OpenIDConnectAuth($this->log))->getLogoutUrl());
+		$this->assertCount(1, $this->log->lines);
+		// curl's code 7 (could not connect); its wording varies by curl version
+		$this->assertStringStartsWith('warning OPENIDC end_session_endpoint unavailable: Curl error: (7) ', $this->log->lines[0]);
 	}
 }
