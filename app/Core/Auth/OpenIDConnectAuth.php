@@ -14,6 +14,9 @@ use Psr\Log\LoggerInterface;
 
 //use Jumbojett\OpenIDConnectClient;
 
+use App\Core\Auth\OIDC\OidcClient;
+use App\Core\Auth\OIDC\RqwatchOpenIDConnectClient;
+
 use App\Utils\Helper;
 
 use RuntimeException;
@@ -32,6 +35,14 @@ final class OpenIDConnectAuth implements AuthInterface {
 	private ?string $callbackUrl = null;
 	private ?string $postLogoutRedirectUrl = null;
 	private ?string $idToken = null;
+
+	/*
+	 The client: the jumbojett one, for the provider at OPENIDC_URL; through
+	 $client instead when a unit test has set one, so a login runs without
+	 an identity provider.
+	*/
+	/** @var (\Closure(string, string, string): OidcClient)|null OPENIDC_URL, client id and secret => the client */
+	private static ?\Closure $client = null; // @phpstan-ignore property.unusedType (the unit tests set it, through reflection)
 
 	public function __construct(LoggerInterface $logger) {
 		$this->logger = $logger;
@@ -260,16 +271,18 @@ final class OpenIDConnectAuth implements AuthInterface {
 		return $this->idToken;
 	}
 
-	private function createClient(): RqwatchOpenIDConnectClient {
+	private function createClient(): OidcClient {
 		$openidc_url = Helper::env_required('OPENIDC_URL');
 		$openidc_client_id = Helper::env_required('OPENIDC_CLIENT_ID');
 		$openidc_client_secret = Helper::env_required('OPENIDC_CLIENT_SECRET');
 
-		$oidc = new RqwatchOpenIDConnectClient(
-			$openidc_url,
-			$openidc_client_id,
-			$openidc_client_secret
-		);
+		$oidc = self::$client !== null
+			? (self::$client)($openidc_url, $openidc_client_id, $openidc_client_secret)
+			: new RqwatchOpenIDConnectClient(
+				$openidc_url,
+				$openidc_client_id,
+				$openidc_client_secret
+			);
 
 		if (Helper::env_bool('OPENIDC_REQUIRE_PKCE', true)) {
 			$oidc->setCodeChallengeMethod('S256');

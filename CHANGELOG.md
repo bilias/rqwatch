@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-11-27
+- OpenIDConnectAuth: Client through an OidcClient
 - LdapAuth: LDAP calls through an LdapDirectory
 
 ### 2026-11-26
