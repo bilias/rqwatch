@@ -2,6 +2,9 @@
 
 ## Master Dev Branch
 
+### 2026-11-27
+- LdapAuth: LDAP calls through an LdapDirectory
+
 ### 2026-11-26
 - mail page: fuzzy row for admins, shared with the detail page
 - maps: url map entries with an IP host are stored as rspamd reads them: a host canonical and

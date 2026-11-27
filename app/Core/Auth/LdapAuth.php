@@ -14,7 +14,8 @@ use SensitiveParameter; // For method params
 
 use Psr\Log\LoggerInterface;
 
-use LDAP\Connection as LdapConnection;
+use App\Core\Auth\LDAP\LdapDirectory;
+use App\Core\Auth\LDAP\PhpLdapDirectory;
 
 use App\Utils\Helper;
 
@@ -32,6 +33,13 @@ final class LdapAuth implements AuthInterface {
 	private ?string $authenticatedUser = null;
 	private ?string $firstname = null;
 	private ?string $lastname = null;
+
+	/*
+	 The directory: PHP's ldap functions on LDAP_URI; through $directory
+	 instead when a unit test has set one, so a login runs without a server.
+	*/
+	/** @var (\Closure(string): (LdapDirectory|null))|null LDAP_URI => its directory, null when the URI is refused */
+	private static ?\Closure $directory = null; // @phpstan-ignore property.unusedType (the unit tests set it, through reflection)
 
 	public function __construct(
 		string $username,
@@ -98,18 +106,18 @@ final class LdapAuth implements AuthInterface {
 			$ldap_attrs[] = $ldap_givenname_attr_fallback;
 		}
 
-		$ldap = ldap_connect($ldap_uri);
-		if ($ldap === false) {
+		$ldap = self::$directory !== null ? (self::$directory)($ldap_uri) : PhpLdapDirectory::connect($ldap_uri);
+		if ($ldap === null) {
 			$this->logger->error("ldap_connect failed. Check LDAP_URI");
 			return false;
 		}
 
-		if (ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3) === false) {
+		if ($ldap->setOption(LDAP_OPT_PROTOCOL_VERSION, 3) === false) {
 			$this->logger->error("ldap_set_option(LDAP_OPT_PROTOCOL_VERSION) failed");
 			return false;
 		}
 
-		if (ldap_bind($ldap, $ldap_bind_dn, $ldap_bind_pass) === false) {
+		if ($ldap->bind($ldap_bind_dn, $ldap_bind_pass) === false) {
 			$error = $this->getError($ldap);
 			$this->logger->error("ldap_bind failed: {$error}. Check LDAP_BIND_DN and LDAP_BIND_PASS");
 			return false;
@@ -119,8 +127,7 @@ final class LdapAuth implements AuthInterface {
 		// mail by default
 		$filter = "({$ldap_login_attr}=".ldap_escape($this->username, "", LDAP_ESCAPE_FILTER).")";
 
-		/** @var \LDAP\Result|false $res one connection, so never the parallel-search array */
-		$res = ldap_search($ldap, $ldap_base, $filter, $ldap_attrs);
+		$res = $ldap->search($ldap_base, $filter, $ldap_attrs);
 
 		if ($res === false) {
 			$error = $this->getError($ldap);
@@ -128,7 +135,7 @@ final class LdapAuth implements AuthInterface {
 			return false;
 		}
 
-		$count = ldap_count_entries($ldap, $res);
+		$count = $ldap->countEntries($res);
 		if ($count === -1) {
 			$error = $this->getError($ldap);
 			$this->logger->error("ldap_count_entries failed: {$error}");
@@ -146,7 +153,7 @@ final class LdapAuth implements AuthInterface {
 			return false;
 		}
 
-		$entry = ldap_first_entry($ldap, $res);
+		$entry = $ldap->firstEntry($res);
 
 		if ($entry === false) {
 			$error = $this->getError($ldap);
@@ -155,7 +162,7 @@ final class LdapAuth implements AuthInterface {
 		}
 
 		// search for user DN
-		$user_dn = ldap_get_dn($ldap, $entry);
+		$user_dn = $ldap->getDn($entry);
 
 		if ($user_dn === false) {
 			$error = $this->getError($ldap);
@@ -163,7 +170,7 @@ final class LdapAuth implements AuthInterface {
 			return false;
 		}
 
-		$attrs = ldap_get_attributes($ldap, $entry);
+		$attrs = $ldap->getAttributes($entry);
 
 		if (empty($attrs)) {
 			$error = $this->getError($ldap);
@@ -209,7 +216,7 @@ final class LdapAuth implements AuthInterface {
 		)));
 
 		// we now have a user DN to bind with
-		if (ldap_bind($ldap, $user_dn, $this->password) === false) {
+		if ($ldap->bind($user_dn, $this->password) === false) {
 			$error = $this->getError($ldap);
 			$this->logger->warning("LDAP Authentication for user '{$this->username}' failed: {$error}");
 			return false;
@@ -253,12 +260,9 @@ final class LdapAuth implements AuthInterface {
 		return true;
 	}
 
-	private static function getError(LdapConnection $ldap): string {
-		$ldap_error = ldap_error($ldap);
-
-		$ldap_diag = '';
-		ldap_get_option($ldap, LDAP_OPT_DIAGNOSTIC_MESSAGE, $ldap_diag);
-		$ldap_diag = is_string($ldap_diag) ? $ldap_diag : '';
+	private static function getError(LdapDirectory $ldap): string {
+		$ldap_error = $ldap->error();
+		$ldap_diag = $ldap->diagnosticMessage();
 		return trim("error: '{$ldap_error}'. diag: '{$ldap_diag}'");
 	}
 
