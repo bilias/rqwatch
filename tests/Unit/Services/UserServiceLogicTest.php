@@ -18,8 +18,9 @@
  silenced when every one is; no addresses are not. A user exists by
  username, trimmed and lower case. The login throttle's blocks and counters
  are listed, an IP's cleared, only with Redis; an IP that is not one is
- refused, logged. RecordingDatabase answers the queries, a stub client
- stands in for Redis.
+ refused, logged. A user's sessions are not ended before the
+ SESSION_VERSION migration. RecordingDatabase answers the queries, a stub
+ client stands in for Redis.
 */
 
 namespace Tests\Unit\Services;
@@ -240,6 +241,11 @@ final class UserServiceLogicTest extends UnitTestCase
 		$this->db->answer = static fn (): array => [['exists' => $exists]];
 		$this->assertSame($expected, (new UserService())->userExists(' Alice '));
 		$this->assertSame([['select exists(select * from "users" where "username" = ?) as "exists"', ['alice']]], $this->db->selects);
+	}
+
+	public function testNoSessionsEndedBeforeTheMigration(): void {
+		UserService::endSessions(7);
+		$this->assertSame([[], []], [$this->db->changes, $this->db->selects]);
 	}
 
 	public function testThrottlesWithoutRedis(): void {

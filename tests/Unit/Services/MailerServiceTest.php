@@ -17,7 +17,8 @@
  it as a message/rfc822 attachment, 8bit, under the name given; a path
  outside QUARANTINE_DIR sends nothing. A mail that cannot be built or sent
  is logged and reported as not sent. A recording transport stands in for
- MAILER_DSN's.
+ MAILER_DSN's. Without a Twig environment of its own, a mail is rendered
+ with the application's views (the cron's: uncached).
 */
 
 namespace Tests\Unit\Services;
@@ -25,11 +26,14 @@ namespace Tests\Unit\Services;
 use App\Services\MailerService;
 use Closure;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use ReflectionProperty;
 use RuntimeException;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\AbstractTransport;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Tests\Unit\UnitTestCase;
@@ -230,6 +234,47 @@ final class MailerServiceTest extends UnitTestCase
 	public function testUnusableSender(bool $templated): void {
 		$this->assertFalse($this->send($this->mailer(), $templated, 'not an address'));
 		$this->assertSame([[], ['error [MailerService] Email failed: Email "not an address" does not comply with addr-spec of RFC 2822.']], [$this->sent, $this->log->lines]);
+	}
+
+	// the application's own views, as a cron renders them
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
+	public function testApplicationViews(): void {
+		define('CLI_MODE', true);
+		$transport = new class ($this->record(...)) extends AbstractTransport {
+			/** @param Closure(SentMessage): void $record */
+			public function __construct(private Closure $record) {
+				parent::__construct();
+			}
+
+			#[\Override]
+			protected function doSend(SentMessage $message): void {
+				($this->record)($message);
+			}
+
+			#[\Override]
+			public function __toString(): string {
+				return 'recording://';
+			}
+		};
+		(new ReflectionProperty(MailerService::class, 'transport'))->setValue(null, fn (string $dsn): TransportInterface => $transport);
+		$this->assertTrue((new MailerService($this->log))->sendTemplatedEmail(
+			from: 'rqwatch@example.org',
+			recipients: ['alice@example.org'],
+			subject: 'Released',
+			template: 'mail/release.html.twig',
+			text: 'Released',
+			context: [
+				'created_at' => '2026-11-26 10:00:00', 'subject' => 'Invoice', 'qid' => 'Q7', 'message_id' => '<m1@example.net>',
+				'score' => 15.5, 'has_virus' => false, 'virus_name' => null, 'mime_from' => 'a@example.net',
+				'rcpt_to' => 'alice@example.org', 'action' => 'reject', 'signature' => 'The postmaster',
+			],
+		));
+		$html = (string) $this->email()->getHtmlBody();
+		foreach (['Rqwatch', 'released from quarantine', 'a@example.net', "'Invoice'", 'Q7', '&lt;m1@example.net&gt;', '15.5', 'The postmaster'] as $part) {
+			$this->assertStringContainsString($part, $html);
+		}
+		$this->assertSame([], $this->log->lines);
 	}
 
 	public function testUnknownTemplate(): void {

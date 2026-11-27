@@ -13,9 +13,11 @@
  user's context as given to the constructor): an admin every entry; a user
  without an email none; a user their own entries for their own address,
  or for any of their aliases, and with USER_CAN_SEE_ADMIN_MAP_ENTRIES also
- the admins' entries, each with its user. A page of a custom map holds
- items_per_page entries (default 50), or the one asked for, and links to
- the URL given. DEBUG_SEARCH_SQL logs each query. The queries are only
+ the admins' entries, each with its user; the CLI every entry. A page of
+ a custom map holds items_per_page entries (default 50), or the one asked
+ for, and links to the URL given; idle only, with map hits on, it lists the
+ entries without a hit in the longest window. DEBUG_SEARCH_SQL logs each
+ query. The queries are only
  built, or answered by RecordingDatabase.
 */
 
@@ -30,6 +32,8 @@ use App\Services\MapService;
 use Illuminate\Database\Eloquent\Model;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Tests\Unit\RecordingDatabase;
 use Tests\Unit\UnitTestCase;
 
@@ -96,6 +100,14 @@ final class MapScopeTest extends UnitTestCase
 		);
 	}
 
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
+	public function testCliScope(): void {
+		define('CLI_MODE', true);
+		$query = (new MapService(['is_admin' => false, 'user_id' => 7, 'email' => 'alice@example.org']))->getMapCombinedQuery('mail_from_whitelist', ['mail_from', 'rcpt_to']);
+		$this->assertSame([self::ENTRIES . self::ORDER, ['mail_from_whitelist']], [$query->toSql(), $query->getBindings()]);
+	}
+
 	public function testScopeDebugSql(): void {
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		(new MapService(['is_admin' => true]))->getMapCombinedQuery('mail_from_whitelist', ['mail_from']);
@@ -114,6 +126,8 @@ final class MapScopeTest extends UnitTestCase
 			'map hits on, not idle only' => [20, null, false, true, '', [], 'limit 20 offset 20'],
 			// no hits recorded yet: idle is not known, every entry listed
 			'idle only, map hits off' => [20, null, true, false, '', [], 'limit 20 offset 20'],
+			'idle only' => [20, 9, true, true, ' and "id" = ? and not exists (select 1 from "mail_log_symbol_hits" where "entry_model" = ? and "entry_id" = "maps_custom"."id"'
+				. ' and created_day >= CURDATE() - INTERVAL ? DAY)', [9, 2, 30], 'limit 20 offset 20'],
 		];
 	}
 

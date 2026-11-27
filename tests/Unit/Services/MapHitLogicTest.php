@@ -16,7 +16,8 @@
  malformed and other-family entries never. wantedSymbols(): the symbols
  of a mail worth recording, those a map names or the local rule patterns
  match, not fuzzy ones, with a numeric score and the scalar options. The
- SQL pieces of the map hit reports, and entryModel(). With map hits off,
+ SQL pieces of the map hit reports (a window of days ends today), and
+ entryModel(). With map hits off,
  recordHits() looks nothing up.
 */
 
@@ -27,9 +28,11 @@ use App\Core\App;
 use App\Core\AppContainer;
 use App\Core\Database\MigrationStatus;
 use App\Services\MapHitService;
+use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;
 use stdClass;
+use Tests\Unit\RecordingDatabase;
 use Tests\Unit\UnitTestCase;
 
 final class MapHitLogicTest extends UnitTestCase
@@ -181,6 +184,32 @@ final class MapHitLogicTest extends UnitTestCase
 		$row->d7 = '5';
 		$row->d31 = null;
 		$this->assertSame([[1 => 0, 7 => 0, 31 => 0], [1 => 2, 7 => 5, 31 => 0]], [self::call('windowValues', null), self::call('windowValues', $row)]);
+	}
+
+	/** @return array<string, array{?int, list<string>, string, list<int>}> days, the column given, where, bindings */
+	public static function dayWindows(): array {
+		return [
+			'no window' => [null, [], '', []],
+			'today' => [1, [], ' where created_day >= CURDATE() - INTERVAL ? DAY', [0]],
+			'7 days' => [7, [], ' where created_day >= CURDATE() - INTERVAL ? DAY', [6]],
+			'on a column' => [31, ['h.created_day'], ' where h.created_day >= CURDATE() - INTERVAL ? DAY', [30]],
+		];
+	}
+
+	/**
+	 * @param list<string> $column
+	 * @param list<int> $bindings
+	 */
+	#[DataProvider('dayWindows')]
+	public function testDayWindow(?int $days, array $column, string $where, array $bindings): void {
+		$db = new RecordingDatabase($this->createStub(PDO::class));
+		try {
+			$query = $db->capsule->getConnection()->table('mail_log_symbol_hits');
+			(new ReflectionMethod(MapHitService::class, 'dayWindow'))->invoke(null, $query, $days, ...$column);
+			$this->assertSame(['select * from "mail_log_symbol_hits"' . $where, $bindings], [$query->toSql(), $query->getBindings()]);
+		} finally {
+			RecordingDatabase::forget();
+		}
 	}
 
 	/** @return array<string, array{string, list<int>, ?int, ?string, string, list<int|string>}> model, symbol ids, days, day, SQL, bindings */

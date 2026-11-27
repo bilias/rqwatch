@@ -11,7 +11,7 @@
 /*
  MapService's static logic around its queries. The virus skip map is
  active once named (trimmed) and migrated; only that map, in any case and
- spacing, is protected. mappedSymbolSet() is every symbol a map names,
+ spacing, is protected; without one it has no patterns, unread. mappedSymbolSet() is every symbol a map names,
  read once per process; a failure to read is logged and gives none.
  prepareSymbols() keeps a custom map's symbols only with map hits on,
  trimmed and deduplicated, case kept, none as null. lines() splits at any
@@ -88,6 +88,13 @@ final class MapServiceLogicTest extends UnitTestCase
 		Config::set('notification_skip_virus_map', ' virus_skip ');
 		$this->migrate(Migrations::VIRUS_SKIP_MAP);
 		$this->assertSame('virus_skip', MapService::activeVirusSkipMap());
+	}
+
+	// no database: a query would fail
+	public function testNoVirusSkipPatternsWithoutTheMap(): void {
+		$this->assertSame([[], []], [MapService::getVirusSkipPatterns(), $this->log->lines]);
+		Config::set('notification_skip_virus_map', 'virus_skip');
+		$this->assertSame([[], []], [MapService::getVirusSkipPatterns(), $this->log->lines]);
 	}
 
 	public function testProtectedMap(): void {
