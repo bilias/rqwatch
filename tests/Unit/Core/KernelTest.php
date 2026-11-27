@@ -11,17 +11,25 @@
 /*
  Which CLI commands boot on an unmigrated database: the command name is
  the first non-option argv token, as Symfony resolves it, and only the
- 'db:migrate*' commands, help and the command list are let through.
+ 'db:migrate*' commands, help and the command list are let through. The
+ boot's smaller steps: Redis is used only with REDIS_ENABLE (connected on
+ first use), the migration status gets the database and cache, a setting
+ error is logged and lets only the metadata importer go on, and that one
+ entry point may boot without a database only with Redis and the spool.
 */
 
 namespace Tests\Unit\Core;
 
+use App\Configuration\Config;
+use App\Core\Cache\RedisCache;
+use App\Core\Database\MigrationStatus;
 use App\Core\Kernel;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionProperty;
 use Tests\Unit\UnitTestCase;
 
 final class KernelTest extends UnitTestCase
@@ -100,5 +108,90 @@ final class KernelTest extends UnitTestCase
 	private function call(string $method): mixed {
 		$kernel = (new ReflectionClass(Kernel::class))->newInstanceWithoutConstructor();
 		return (new ReflectionMethod(Kernel::class, $method))->invoke($kernel);
+	}
+
+	// a kernel past its loggers, with the cache given
+	private function kernel(?RedisCache $cache = null): Kernel {
+		$kernel = (new ReflectionClass(Kernel::class))->newInstanceWithoutConstructor();
+		(new ReflectionProperty(Kernel::class, 'fileLogger'))->setValue($kernel, $this->log);
+		(new ReflectionProperty(Kernel::class, 'cache'))->setValue($kernel, $cache);
+		return $kernel;
+	}
+
+	private static function invoke(Kernel $kernel, string $method, mixed ...$arguments): mixed {
+		return (new ReflectionMethod(Kernel::class, $method))->invoke($kernel, ...$arguments);
+	}
+
+	private static function property(object $object, string $name): mixed {
+		return (new ReflectionProperty($object, $name))->getValue($object);
+	}
+
+	public function testRedisCacheDisabled(): void {
+		$this->setEnv('REDIS_ENABLE', null);
+		$kernel = $this->kernel();
+		self::invoke($kernel, 'createRedisCache');
+		$this->assertSame([null, ['debug Redis cache disabled']], [self::property($kernel, 'cache'), $this->log->lines]);
+	}
+
+	// connected on first use, so nothing is logged yet
+	public function testRedisCacheEnabled(): void {
+		$this->setEnv('REDIS_ENABLE', 'true');
+		$kernel = $this->kernel();
+		self::invoke($kernel, 'createRedisCache');
+		$this->assertInstanceOf(RedisCache::class, self::property($kernel, 'cache'));
+		$this->assertSame([], $this->log->lines);
+	}
+
+	public function testMigrationStatus(): void {
+		$cache = new RedisCache($this->log);
+		$kernel = $this->kernel($cache);
+		self::invoke($kernel, 'createMigrationStatus');
+		$status = self::property($kernel, 'migrationStatus');
+		$this->assertInstanceOf(MigrationStatus::class, $status);
+		$this->assertSame([null, $this->log, $cache], [self::property($status, 'capsule'), self::property($status, 'fileLogger'), self::property($status, 'cache')]);
+	}
+
+	public function testNoErrorsToRefuse(): void {
+		self::invoke($this->kernel(), 'refuseOnErrors', 'config', []);
+		$this->assertSame([], $this->log->lines);
+	}
+
+	// the metadata importer logs the errors and carries on
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
+	public function testErrorsLoggedForTheImporter(): void {
+		define('ALLOW_DEGRADED_DB', true);
+		self::invoke($this->kernel(), 'refuseOnErrors', '.env', ['MAIL_API_USER is missing', 'REDIS_ENABLE is not a boolean']);
+		$this->assertSame(['critical .env: MAIL_API_USER is missing; REDIS_ENABLE is not a boolean'], $this->log->lines);
+	}
+
+	// only the entry point that declares it may boot without a database
+	public function testNoDegradedBoot(): void {
+		Config::set('import_spool', true);
+		$this->assertFalse(self::invoke($this->kernel(new RedisCache($this->log)), 'degradedDbAllowed'));
+	}
+
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
+	public function testDegradedBootDeclaredOff(): void {
+		define('ALLOW_DEGRADED_DB', false);
+		Config::set('import_spool', true);
+		$this->assertFalse(self::invoke($this->kernel(new RedisCache($this->log)), 'degradedDbAllowed'));
+	}
+
+	// with Redis and the spool, or a spool setting that cannot be read (logged, spooling)
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
+	public function testDegradedBoot(): void {
+		define('ALLOW_DEGRADED_DB', true);
+		$redis = new RedisCache($this->log);
+		Config::set('import_spool', true);
+		$this->assertSame([true, false], [self::invoke($this->kernel($redis), 'degradedDbAllowed'), self::invoke($this->kernel(), 'degradedDbAllowed')]);
+		Config::set('import_spool', false);
+		$this->assertFalse(self::invoke($this->kernel($redis), 'degradedDbAllowed'));
+		Config::set('import_spool', 'yes');
+		$this->assertTrue(self::invoke($this->kernel($redis), 'degradedDbAllowed'));
+		$this->assertCount(1, $this->log->lines);
+		$this->assertStringStartsWith('error [MailLogSpool] boot: ', $this->log->lines[0]);
 	}
 }

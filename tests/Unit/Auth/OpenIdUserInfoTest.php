@@ -15,12 +15,15 @@
  display name of another type is left out and logged by claim, so it can
  no longer fail the login with a TypeError. The username and e-mail are
  trimmed and lowercased, and OPENIDC_ADMINS alone decides the admin flag.
- A denial stops at its own check and logs only that reason.
+ A denial stops at its own check and logs only that reason. An unverified
+ e-mail is allowed, with a warning, under OPENIDC_REQUIRE_VERIFIED_EMAIL=
+ false; OPENIDC_DEBUG_CLAIMS logs the claims that decide the login.
 */
 
 namespace Tests\Unit\Auth;
 
 use App\Core\Auth\OpenIDConnectAuth;
+use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;
 use ReflectionProperty;
 use stdClass;
@@ -56,6 +59,7 @@ final class OpenIdUserInfoTest extends UnitTestCase
 		$auth = new OpenIDConnectAuth($this->log);
 		$this->assertTrue(self::apply($auth, self::userInfo()));
 		$this->assertSame('alice', self::authenticatedUser($auth));
+		$this->assertSame('alice', $auth->getAuthenticatedUser());
 		$this->assertSame('alice@example.org', $auth->getEmail());
 		$this->assertSame('Alice', $auth->getFirstName());
 		$this->assertSame('Liddell', $auth->getLastName());
@@ -66,6 +70,58 @@ final class OpenIdUserInfoTest extends UnitTestCase
 		$auth = new OpenIDConnectAuth($this->log);
 		$this->assertTrue(self::apply($auth, self::userInfo(['preferred_username' => 12345])));
 		$this->assertSame('12345', self::authenticatedUser($auth));
+	}
+
+	/** @return array<string, array{mixed}> */
+	public static function noUsername(): array {
+		return [
+			'empty' => [''],
+			"'0'" => ['0'],
+			'none' => [null],
+		];
+	}
+
+	#[DataProvider('noUsername')]
+	public function testNoUsername(mixed $username): void {
+		$info = self::userInfo(['preferred_username' => $username]);
+		if ($username === null) {
+			unset($info->preferred_username);
+		}
+		$this->assertFalse(self::apply(new OpenIDConnectAuth($this->log), $info));
+		$this->assertSame(['error Empty userinfo or preferred_username from OIDC. Check OPENIDC_PREFERRED_USERNAME_ATTR in .env'], $this->log->lines);
+	}
+
+	public function testEmailUnverifiedAllowed(): void {
+		$_ENV['OPENIDC_REQUIRE_VERIFIED_EMAIL'] = 'false';
+		$auth = new OpenIDConnectAuth($this->log);
+		$this->assertTrue(self::apply($auth, self::userInfo(['email_verified' => 'no'])));
+		$this->assertSame(['alice', 'alice@example.org'], [self::authenticatedUser($auth), $auth->getEmail()]);
+		$this->assertSame(["warning OIDC user 'alice' email not verified; allowed by OPENIDC_REQUIRE_VERIFIED_EMAIL=false"], $this->log->lines);
+	}
+
+	public function testDebugClaims(): void {
+		$_ENV['OPENIDC_DEBUG_CLAIMS'] = 'true';
+		$this->assertTrue(self::apply(new OpenIDConnectAuth($this->log), self::userInfo()));
+		$this->assertSame([['info OIDC claims'], [[
+			'all_claims' => ['sub', 'preferred_username', 'email', 'email_verified', 'given_name', 'family_name'],
+			'sub' => 'a1b2',
+			'username_attr' => 'preferred_username',
+			'username_value' => 'Alice',
+			'email' => 'Alice@Example.org',
+			'email_verified' => true,
+		]]], [$this->log->lines, $this->log->contexts]);
+	}
+
+	// none of the claims that decide: each logged as null, then the login denied
+	public function testDebugMissingClaims(): void {
+		$_ENV['OPENIDC_DEBUG_CLAIMS'] = 'true';
+		$info = new stdClass();
+		$info->nickname = 'alice';
+		$this->assertFalse(self::apply(new OpenIDConnectAuth($this->log), $info));
+		$this->assertSame([
+			'all_claims' => ['nickname'], 'sub' => null, 'username_attr' => 'preferred_username',
+			'username_value' => null, 'email' => null, 'email_verified' => null,
+		], $this->log->contexts[0]);
 	}
 
 	public function testNotAnObject(): void {

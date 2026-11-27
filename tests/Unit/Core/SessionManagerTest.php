@@ -15,15 +15,22 @@
  expired. Sessions in Redis need the app's cache to be a RedisCache: else
  the problem is logged and no session is made. The cookie is Secure over
  https, 'auto' over http. A stored session stands in for a started one
- here: starting one in PHPUnit would send headers.
+ here; a real one is started only in a process of its own: an HttpOnly,
+ SameSite=Lax, strict session cookie named RQWATCHSESSID that ends with the
+ browser, the session in Redis under rqwatch_sess: for IDLE_TIMEOUT
+ seconds, or in PHP's own storage without Redis.
 */
 
 namespace Tests\Unit\Core;
 
 use App\Core\App;
 use App\Core\AppContainer;
+use App\Core\Cache\RedisCache;
 use App\Core\SessionManager;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+use Redis;
 use ReflectionMethod;
 use ReflectionProperty;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -116,6 +123,66 @@ final class SessionManagerTest extends UnitTestCase
 		$this->assertSame($timeout, self::timeout());
 		$this->assertTrue(SessionManager::checkSessionExpired(), 'no session');
 		$this->assertSame(['error [SessionManager] Redis conection problem: RedisSessionHandler requires RedisCache'], $this->log->lines);
+	}
+
+	/** @return array<string, string> the session cookie's settings */
+	private static function cookie(): array {
+		$ini = [];
+		foreach (['name', 'cookie_httponly', 'cookie_samesite', 'cookie_secure', 'cookie_lifetime', 'use_strict_mode'] as $key) {
+			$ini[$key] = (string) ini_get("session.{$key}");
+		}
+		return $ini;
+	}
+
+	private const array COOKIE = [
+		'name' => 'RQWATCHSESSID', 'cookie_httponly' => '1', 'cookie_samesite' => 'lax',
+		'cookie_secure' => '1', 'cookie_lifetime' => '0', 'use_strict_mode' => '1',
+	];
+
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
+	public function testNativeSession(): void {
+		$this->setEnv('WEB_SCHEME', 'https');
+		$this->setEnv('REDIS_ENABLE', null);
+		SessionManager::newSession();
+		$session = SessionManager::getSession();
+		$this->assertSame([true, self::COOKIE], [$session->isStarted(), self::cookie()]);
+	}
+
+	/** @return array<string, array{?string, int}> IDLE_TIMEOUT, the session's TTL in Redis */
+	public static function redisTtls(): array {
+		return ['set' => ['600', 600], 'unset' => [null, 0]];
+	}
+
+	// the session written to Redis under its prefix, for the idle timeout
+	#[DataProvider('redisTtls')]
+	#[RunInSeparateProcess]
+	#[PreserveGlobalState(false)]
+	public function testRedisSession(?string $idle, int $ttl): void {
+		$this->setEnv('WEB_SCHEME', 'https');
+		$this->setEnv('REDIS_ENABLE', 'true');
+		$this->setEnv('IDLE_TIMEOUT', $idle);
+		/** @var list<array{string, int, string}> $written */
+		$written = [];
+		$client = $this->createStub(Redis::class);
+		$client->method('get')->willReturn(false);
+		$client->method('setEx')->willReturnCallback(function (string $key, int $expire, string $value) use (&$written): bool {
+			$written[] = [$key, $expire, $value];
+			return true;
+		});
+		$cache = new RedisCache($this->log);
+		(new ReflectionProperty(RedisCache::class, 'client'))->setValue($cache, $client);
+		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, null, null, $cache, false));
+		SessionManager::newSession();
+		$session = SessionManager::getSession();
+		$this->assertSame([true, self::COOKIE], [$session->isStarted(), self::cookie()]);
+		$session->set('username', 'alice');
+		$session->save();
+		$this->assertCount(1, $written);
+		[$key, $expire, $value] = $written[0];
+		$this->assertSame(['rqwatch_sess:' . $session->getId(), $ttl], [$key, $expire]);
+		$this->assertStringContainsString('alice', $value);
+		$this->assertSame([], $this->log->lines);
 	}
 
 	/** @return array<string, array{string, string}> */

@@ -146,6 +146,7 @@
 				"App\\Core\\Logging\\LoggerFactory::createFileLogger::38",
 				// Symfony's formatter styles an unclosed tag to the end of the line
 				"App\\Services\\Import\\MailLogSpool::drain::311",
+				"App\\Console\\OptimizeTable::execute::66",
 			]
 		},
 		"Coalesce": {
@@ -278,7 +279,10 @@
 				"App\\Charts\\ChartBuilder::createReportsDayChart::241",
 				// a byte more or less in a MB is a millionth: no %.2f figure shows it
 				"App\\Utils\\Helper::getRuntime::445",
-				"App\\Utils\\Helper::getRuntime::446"
+				"App\\Utils\\Helper::getRuntime::446",
+				// @rmdir() refuses a link, and a directory that is not empty, by itself
+				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::358",
+				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::372"
 			]
 		},
 		"LogicalAnd": {
@@ -290,7 +294,9 @@
 				// every mailparse entry is an array
 				"App\\Utils\\Helper::getMailFromMime::1385",
 				// an empty user context sets nothing: each value read from it is null, as it was
-				"App\\Services\\MailLogService::__construct::87"
+				"App\\Services\\MailLogService::__construct::87",
+				// without ALLOW_DEGRADED_DB the boot exits: no unit test sees the difference
+				"App\\Core\\Kernel::refuseOnErrors::180"
 			]
 		},
 		"LogicalNot": {
@@ -312,7 +318,13 @@
 				"App\\Utils\\Helper::normalizeToUtf8::1460",
 				// authenticate() returns true or answers and exits: either way the
 				// condition is false, || or &&
-				"App\\Api\\RqwatchApi::checkAuth::121"
+				"App\\Api\\RqwatchApi::checkAuth::121",
+				// '.' and '..' fail the date pattern as well
+				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::320",
+				// @rmdir() refuses a link, and a directory that is not empty, by itself
+				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::352",
+				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::358",
+				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::372"
 			]
 		},
 		"LogicalOrAllSubExprNegation": {
@@ -356,7 +368,9 @@
 				// the Y-m-d round trip refuses anything else
 				"App\\Utils\\Helper::check_date::651",
 				// FILTER_VALIDATE_INT refuses trailing text anyway
-				"App\\Core\\Database\\Row::toInt::89"
+				"App\\Core\\Database\\Row::toInt::89",
+				// the line is trimmed, and .+ runs to its end
+				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::75"
 			]
 		},
 		"PregMatchRemoveFlags": {
@@ -373,7 +387,9 @@
 				"App\\Models\\MailLog::mimeFromAddress::260",
 				// the address is lowercased first; [^=]+ takes a trailing line feed either way
 				"App\\Utils\\Helper::convertSRSAddress::456",
-				"App\\Utils\\Helper::convertSRSAddress::468"
+				"App\\Utils\\Helper::convertSRSAddress::468",
+				// the line is trimmed: no newline is left for $ to stop before
+				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::75"
 			]
 		},
 		"PublicVisibility": {
@@ -400,7 +416,9 @@
 			// MailLogService is final: protected is private
 			"ignore": [
 				"App\\Services\\MailLogService::applyUserScope::1753",
-				"App\\Services\\MailLogService::applyRecipientScope::1786"
+				"App\\Services\\MailLogService::applyRecipientScope::1786",
+				// CronUpdateMapFiles is final: protected is private
+				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::54"
 			]
 		},
 		"CloneRemoval": {
@@ -524,7 +542,9 @@
 				"App\\Services\\MailLogService::markNotificationsSkipped::2159",
 				"App\\Services\\MailLogService::filterDisabledRecipients::2300",
 				// only the keys of $seen are read
-				"App\\Services\\MailLogService::getSymbolsReport::868"
+				"App\\Services\\MailLogService::getSymbolsReport::868",
+				// table names are no numeric strings: == matches as === does
+				"App\\Console\\OptimizeTable::execute::63"
 			]
 		},
 		"UnwrapFinally": {
@@ -586,7 +606,14 @@
 				"App\\Services\\MapService::updateMapFile::745",
 				// a trailing / in MAP_DIR makes the path's // , which the file system reads as /
 				"App\\Services\\MapService::updateMapFile::836",
+				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::56",
+				// a name from scandir() ends in no separator
+				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::337",
 			]
+		},
+		"Break_": {
+			// below 1024 the size stays below: the rest of the loop changes nothing
+			"ignore": ["App\\Console\\OptimizeTable::humanBytes::135"]
 		},
 		"CatchBlockRemoval": {
 			"ignore": [
@@ -607,7 +634,9 @@
 		"FunctionCallRemoval": {
 			"ignore": [
 				// UTF-8 is PHP's internal encoding by default already
-				"App\\Api\\MetadataImporterMultipartApi::handle::267"
+				"App\\Api\\MetadataImporterMultipartApi::handle::267",
+				// the handle closes when the method returns
+				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::67"
 			]
 		},
 		"InstanceOf_": {
