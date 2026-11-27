@@ -39,12 +39,12 @@ use Tests\Unit\UnitTestCase;
 
 final class MapScopeTest extends UnitTestCase
 {
-	private const string ENTRIES = 'select "id", "user_id", "disabled", "created_at", "updated_at", "mail_from", "rcpt_to"'
-		. ' from "maps_combined" where "map_name" = ? and "mail_from" is not null and "rcpt_to" is not null';
-	private const string ORDER = ' order by "updated_at" desc';
+	private const string ENTRIES = 'select `id`, `user_id`, `disabled`, `created_at`, `updated_at`, `mail_from`, `rcpt_to`'
+		. ' from `maps_combined` where `map_name` = ? and `mail_from` is not null and `rcpt_to` is not null';
+	private const string ORDER = ' order by `updated_at` desc';
 
-	private const string CUSTOM = 'select "id", "map_name", "pattern", "disabled", "score", "created_at", "updated_at"'
-		. ' from "maps_custom" where "map_name" = ?';
+	private const string CUSTOM = 'select `id`, `map_name`, `pattern`, `disabled`, `score`, `created_at`, `updated_at`'
+		. ' from `maps_custom` where `map_name` = ?';
 
 	private RecordingDatabase $db;
 
@@ -74,14 +74,14 @@ final class MapScopeTest extends UnitTestCase
 		$user = ['is_admin' => false, 'username' => 'alice', 'user_id' => 7, 'email' => 'alice@example.org'];
 		return [
 			'an admin' => [['is_admin' => true, 'user_id' => 1, 'email' => 'root@example.org'], false, '', []],
-			'no email' => [['is_admin' => false, 'user_id' => 7], false, ' and "id" is null', []],
-			"'0' as email" => [['is_admin' => false, 'user_id' => 7, 'email' => '0'], false, ' and "id" is null', []],
-			'own address' => [$user, false, ' and "user_id" = ? and "rcpt_to" = ?', [7, 'alice@example.org']],
-			'no aliases' => [$user + ['user_aliases' => []], false, ' and "user_id" = ? and "rcpt_to" = ?', [7, 'alice@example.org']],
+			'no email' => [['is_admin' => false, 'user_id' => 7], false, ' and `id` is null', []],
+			"'0' as email" => [['is_admin' => false, 'user_id' => 7, 'email' => '0'], false, ' and `id` is null', []],
+			'own address' => [$user, false, ' and `user_id` = ? and `rcpt_to` = ?', [7, 'alice@example.org']],
+			'no aliases' => [$user + ['user_aliases' => []], false, ' and `user_id` = ? and `rcpt_to` = ?', [7, 'alice@example.org']],
 			'aliases' => [$user + ['user_aliases' => ['alias@example.org', '', 'alice@example.org']], false,
-				' and "user_id" = ? and "rcpt_to" in (?, ?)', [7, 'alice@example.org', 'alias@example.org']],
+				' and `user_id` = ? and `rcpt_to` in (?, ?)', [7, 'alice@example.org', 'alias@example.org']],
 			'and the admins\' entries' => [$user, true,
-				' and ("user_id" = ? or "user_id" in (select "id" from "users" where "is_admin" = ?)) and "rcpt_to" = ?',
+				' and (`user_id` = ? or `user_id` in (select `id` from `users` where `is_admin` = ?)) and `rcpt_to` = ?',
 				[7, 1, 'alice@example.org']],
 		];
 	}
@@ -112,8 +112,8 @@ final class MapScopeTest extends UnitTestCase
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		(new MapService(['is_admin' => true]))->getMapCombinedQuery('mail_from_whitelist', ['mail_from']);
 		$this->assertSame([
-			'info select "id", "user_id", "disabled", "created_at", "updated_at", "mail_from" from "maps_combined"'
-			. ' where "map_name" = "mail_from_whitelist" and "mail_from" is not null order by "updated_at" desc',
+			'info select `id`, `user_id`, `disabled`, `created_at`, `updated_at`, `mail_from` from `maps_combined`'
+			. ' where `map_name` = "mail_from_whitelist" and `mail_from` is not null order by `updated_at` desc',
 		], $this->log->lines);
 	}
 
@@ -122,11 +122,11 @@ final class MapScopeTest extends UnitTestCase
 		return [
 			'default size' => [null, null, false, false, '', [], 'limit 50 offset 50'],
 			'configured size' => [20, null, false, false, '', [], 'limit 20 offset 20'],
-			'one entry' => [20, 9, false, false, ' and "id" = ?', [9], 'limit 20 offset 20'],
+			'one entry' => [20, 9, false, false, ' and `id` = ?', [9], 'limit 20 offset 20'],
 			'map hits on, not idle only' => [20, null, false, true, '', [], 'limit 20 offset 20'],
 			// no hits recorded yet: idle is not known, every entry listed
 			'idle only, map hits off' => [20, null, true, false, '', [], 'limit 20 offset 20'],
-			'idle only' => [20, 9, true, true, ' and "id" = ? and not exists (select 1 from "mail_log_symbol_hits" where "entry_model" = ? and "entry_id" = "maps_custom"."id"'
+			'idle only' => [20, 9, true, true, ' and `id` = ? and not exists (select 1 from `mail_log_symbol_hits` where `entry_model` = ? and `entry_id` = `maps_custom`.`id`'
 				. ' and created_day >= CURDATE() - INTERVAL ? DAY)', [9, 2, 30], 'limit 20 offset 20'],
 		];
 	}
@@ -143,8 +143,8 @@ final class MapScopeTest extends UnitTestCase
 		$this->db->answer = static fn (string $sql): array => str_starts_with($sql, 'select count(*)') ? [['aggregate' => 45]] : [];
 		$page = (new MapService())->getPaginatedMapCustom('body_url_host', 2, '/admin/map/body_url_host', $idle, $entry);
 		$this->assertSame([
-			['select count(*) as aggregate from "maps_custom" where "map_name" = ?' . $where, ['body_url_host', ...$bindings]],
-			[self::CUSTOM . $where . ' order by "updated_at" desc ' . $limit, ['body_url_host', ...$bindings]],
+			['select count(*) as aggregate from `maps_custom` where `map_name` = ?' . $where, ['body_url_host', ...$bindings]],
+			[self::CUSTOM . $where . ' order by `updated_at` desc ' . $limit, ['body_url_host', ...$bindings]],
 		], $this->db->selects);
 		$this->assertSame(['/admin/map/body_url_host', 45, []], [$page->path(), $page->total(), $this->log->lines]);
 	}
@@ -154,12 +154,12 @@ final class MapScopeTest extends UnitTestCase
 		$this->status->setMigrationState(Migrations::MAP_HITS, Migrations::STATUS_COMPLETED);
 		(new MapService())->getPaginatedMapCustom('body_url_host', 1, '/admin/map/body_url_host');
 		// no entries: the count alone, without an idle filter
-		$this->assertSame([['select count(*) as aggregate from "maps_custom" where "map_name" = ?', ['body_url_host']]], $this->db->selects);
+		$this->assertSame([['select count(*) as aggregate from `maps_custom` where `map_name` = ?', ['body_url_host']]], $this->db->selects);
 	}
 
 	public function testPageDebugSql(): void {
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		(new MapService())->getPaginatedMapCustom('body_url_host', 1, '/admin/map/body_url_host');
-		$this->assertSame(['info ' . str_replace('?', '"body_url_host"', self::CUSTOM) . ' order by "updated_at" desc'], $this->log->lines);
+		$this->assertSame(['info ' . str_replace('?', '"body_url_host"', self::CUSTOM) . ' order by `updated_at` desc'], $this->log->lines);
 	}
 }

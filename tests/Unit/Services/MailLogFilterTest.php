@@ -51,14 +51,14 @@ use Tests\Unit\UnitTestCase;
 
 final class MailLogFilterTest extends UnitTestCase
 {
-	private const string ALL = 'select * from "mail_logs"';
-	private const string RCPT = 'exists (select * from "mail_log_recipients" where "mail_logs"."id" = "mail_log_recipients"."mail_log_id" and "recipient_email" ';
-	private const string DATA = 'exists (select * from "mail_log_data" where "mail_logs"."id" = "mail_log_data"."mail_log_id" and `mail_log_data`.`';
-	private const string VIRUS = 'exists (select 1 from "mail_log_viruses" as "vf" where "vf"."mail_log_id" = "mail_logs"."id"';
-	private const string SYMBOL = 'exists (select 1 from "mail_log_symbol_hits" as "sh" where "sh"."mail_log_id" = "mail_logs"."id" and "sh"."symbol_id" in (4, 9)';
-	private const string FUZZY = 'select 1 from "mail_log_fuzzy_hits" as "fh" where "fh"."mail_log_id" = "mail_logs"."id"';
-	private const string HITS = 'select 1 from "mail_log_symbol_hits" as "sh" where "sh"."mail_log_id" = "mail_logs"."id" and (`sh`.`entry_model` <> 0';
-	private const string IDS = ' or "sh"."symbol_id" in (4, 9))';
+	private const string ALL = 'select * from `mail_logs`';
+	private const string RCPT = 'exists (select * from `mail_log_recipients` where `mail_logs`.`id` = `mail_log_recipients`.`mail_log_id` and `recipient_email` ';
+	private const string DATA = 'exists (select * from `mail_log_data` where `mail_logs`.`id` = `mail_log_data`.`mail_log_id` and `mail_log_data`.`';
+	private const string VIRUS = 'exists (select 1 from `mail_log_viruses` as `vf` where `vf`.`mail_log_id` = `mail_logs`.`id`';
+	private const string SYMBOL = 'exists (select 1 from `mail_log_symbol_hits` as `sh` where `sh`.`mail_log_id` = `mail_logs`.`id` and `sh`.`symbol_id` in (4, 9)';
+	private const string FUZZY = 'select 1 from `mail_log_fuzzy_hits` as `fh` where `fh`.`mail_log_id` = `mail_logs`.`id`';
+	private const string HITS = 'select 1 from `mail_log_symbol_hits` as `sh` where `sh`.`mail_log_id` = `mail_logs`.`id` and (`sh`.`entry_model` <> 0';
+	private const string IDS = ' or `sh`.`symbol_id` in (4, 9))';
 	private const string COLLATE = ' COLLATE utf8mb4_general_ci';
 	private const array SINCE = ['filter' => 'Date', 'choice' => 'is greater than or equal', 'value' => '2026-11-01'];
 
@@ -72,7 +72,7 @@ final class MailLogFilterTest extends UnitTestCase
 		$this->db = new RecordingDatabase($this->createStub(PDO::class));
 		$this->db->capsule->bootEloquent();
 		// symbol ids for every name looked up
-		$this->db->answer = fn (string $sql): array => str_contains($sql, '"symbol_names"') ? [['id' => 4], ['id' => 9]] : [];
+		$this->db->answer = fn (string $sql): array => str_contains($sql, '`symbol_names`') ? [['id' => 4], ['id' => 9]] : [];
 		$this->status = new MigrationStatus(null, $this->log);
 		foreach ([Migrations::MAIL_LOG_VIRUSES, Migrations::MAIL_LOG_FUZZY, Migrations::MAIL_LOG_FUZZY_HITS_MAILS, Migrations::MAP_HITS] as $migration) {
 			$this->status->setMigrationState($migration, Migrations::STATUS_COMPLETED);
@@ -125,7 +125,7 @@ final class MailLogFilterTest extends UnitTestCase
 	private function symbolLookups(): array {
 		return array_values(array_map(
 			fn (array $select): string => $select[0] . ' ' . json_encode($select[1], JSON_THROW_ON_ERROR),
-			array_filter($this->db->selects, fn (array $select): bool => str_contains($select[0], '"symbol_names"'))
+			array_filter($this->db->selects, fn (array $select): bool => str_contains($select[0], '`symbol_names`'))
 		));
 	}
 
@@ -138,14 +138,14 @@ final class MailLogFilterTest extends UnitTestCase
 	/** @return array<string, array{string, string, string, string, list<string>}> label, choice, value, where, bindings */
 	public static function columns(): array {
 		return [
-			'contains' => ['Subject', 'contains', 'invoice', '"subject" LIKE ?', ['%invoice%']],
-			'does not contain' => ['Subject', 'does not contain', 'invoice', '"subject" NOT LIKE ?', ['%invoice%']],
-			'is equal to' => ['Subject', 'is equal to', 'invoice', '"subject" = ?', ['invoice']],
-			'is not equal to' => ['Action', 'is not equal to', 'reject', '"action" <> ?', ['reject']],
-			'is greater than' => ['Score', 'is greater than', '5', '"score" > ?', ['5']],
-			'is less than or equal' => ['Size', 'is less than or equal', '1000', '"size" <= ?', ['1000']],
-			'matches REGEXP' => ['MAIL From', 'matches REGEXP', '^a', '"mail_from" REGEXP ?', ['^a']],
-			'the date' => ['Date', 'is equal to', '2026-11-26', '"created_day" = ?', ['2026-11-26']],
+			'contains' => ['Subject', 'contains', 'invoice', '`subject` LIKE ?', ['%invoice%']],
+			'does not contain' => ['Subject', 'does not contain', 'invoice', '`subject` NOT LIKE ?', ['%invoice%']],
+			'is equal to' => ['Subject', 'is equal to', 'invoice', '`subject` = ?', ['invoice']],
+			'is not equal to' => ['Action', 'is not equal to', 'reject', '`action` <> ?', ['reject']],
+			'is greater than' => ['Score', 'is greater than', '5', '`score` > ?', ['5']],
+			'is less than or equal' => ['Size', 'is less than or equal', '1000', '`size` <= ?', ['1000']],
+			'matches REGEXP' => ['MAIL From', 'matches REGEXP', '^a', '`mail_from` REGEXP ?', ['^a']],
+			'the date' => ['Date', 'is equal to', '2026-11-26', '`created_day` = ?', ['2026-11-26']],
 		];
 	}
 
@@ -161,7 +161,7 @@ final class MailLogFilterTest extends UnitTestCase
 			'RCPT To' => ['RCPT To', 'is equal to', 'Bob@Example.org', self::RCPT . '= ?)', ['bob@example.org']],
 			'Headers' => ['Headers', 'contains', 'X-Spam', self::DATA . 'headers`' . self::COLLATE . ' LIKE ?)', ['%X-Spam%']],
 			'Rspamd symbols' => ['Rspamd symbols', 'is equal to', 'BAYES', self::DATA . 'symbols`' . self::COLLATE . ' LIKE ?)', ['%BAYES%']],
-			'Virus' => ['Virus', 'is equal to', 'Eicar', self::VIRUS . ' and (`vf`.`name` = ? or ("vf"."name" = ? and `vf`.`av` = ?)))', ['Eicar', '', 'Eicar']],
+			'Virus' => ['Virus', 'is equal to', 'Eicar', self::VIRUS . ' and (`vf`.`name` = ? or (`vf`.`name` = ? and `vf`.`av` = ?)))', ['Eicar', '', 'Eicar']],
 			'Local symbol' => ['Local symbol', 'is equal to', 'WL_FROM', self::SYMBOL . ')', []],
 			'Notification skipped, contains' => ['Notification skipped (0/1)', 'contains', '1', '(`notified` IS NULL) LIKE ?', ['%1%']],
 			'Fuzzy hit, does not contain' => ['Fuzzy hit (0/1)', 'does not contain', '1', '(EXISTS (' . self::FUZZY . ')) NOT LIKE ?', ['%1%']],
@@ -176,7 +176,7 @@ final class MailLogFilterTest extends UnitTestCase
 	#[DataProvider('pseudoColumns')]
 	public function testPseudoColumn(string $label, string $choice, string $value, string $where, array $bindings): void {
 		$this->assertSame(
-			[self::ALL . " where {$where} and \"subject\" LIKE ?", [...$bindings, '%invoice%']],
+			[self::ALL . " where {$where} and `subject` LIKE ?", [...$bindings, '%invoice%']],
 			self::filtered(self::admin(), [
 				['filter' => $label, 'choice' => $choice, 'value' => $value],
 				['filter' => 'Subject', 'choice' => 'contains', 'value' => 'invoice'],
@@ -199,7 +199,7 @@ final class MailLogFilterTest extends UnitTestCase
 	 */
 	#[DataProvider('dropped')]
 	public function testDropped(array $context, array $filter): void {
-		$this->assertSame([self::ALL . ' where "score" > ?', ['5']], self::filtered(new MailLogService($context), [
+		$this->assertSame([self::ALL . ' where `score` > ?', ['5']], self::filtered(new MailLogService($context), [
 			$filter,
 			['filter' => 'Score', 'choice' => 'is greater than', 'value' => '5'],
 		]));
@@ -209,9 +209,9 @@ final class MailLogFilterTest extends UnitTestCase
 	public function testDatesForTheChildTables(): void {
 		$this->assertSame(
 			[
-				self::ALL . ' where "created_day" >= ? and ' . self::VIRUS . ' and "vf"."created_day" >= ? and "vf"."created_day" LIKE ? and "vf"."created_day" NOT LIKE ?'
-					. ' and (`vf`.`name` = ? or ("vf"."name" = ? and `vf`.`av` = ?)))'
-					. ' and "subject" = ? and "created_day" LIKE ? and "created_day" NOT LIKE ?',
+				self::ALL . ' where `created_day` >= ? and ' . self::VIRUS . ' and `vf`.`created_day` >= ? and `vf`.`created_day` LIKE ? and `vf`.`created_day` NOT LIKE ?'
+					. ' and (`vf`.`name` = ? or (`vf`.`name` = ? and `vf`.`av` = ?)))'
+					. ' and `subject` = ? and `created_day` LIKE ? and `created_day` NOT LIKE ?',
 				['2026-11-01', '2026-11-01', '%2026-11%', '%11-3%', 'Eicar', '', 'Eicar', 'invoice', '%2026-11%', '%11-3%'],
 			],
 			self::filtered(self::admin(), [
@@ -231,7 +231,7 @@ final class MailLogFilterTest extends UnitTestCase
 	public function testCliSearchesAsAdmin(): void {
 		define('CLI_MODE', true);
 		$this->assertSame(
-			[self::ALL . ' where "server" = ? and ' . self::RCPT . '= ?)', ['mx1', 'bob@example.org']],
+			[self::ALL . ' where `server` = ? and ' . self::RCPT . '= ?)', ['mx1', 'bob@example.org']],
 			self::filtered(new MailLogService(['is_admin' => false, 'email' => 'alice@example.org']), [
 				['filter' => 'Server', 'choice' => 'is equal to', 'value' => 'mx1'],
 				['filter' => 'RCPT To', 'choice' => 'is equal to', 'value' => 'bob@example.org'],
@@ -266,8 +266,8 @@ final class MailLogFilterTest extends UnitTestCase
 		return [
 			'an admin' => [['is_admin' => true, 'email' => 'root@example.org'], '', []],
 			'no user context (mail APIs)' => [null, '', []],
-			'a user' => [['is_admin' => false, 'email' => ' Alice@Example.org'], ' and "recipient_email" in (?)', ['alice@example.org']],
-			'a user with aliases' => [['is_admin' => false, 'email' => 'alice@example.org', 'user_aliases' => ['Al@Example.org']], ' and "recipient_email" in (?, ?)', ['alice@example.org', 'al@example.org']],
+			'a user' => [['is_admin' => false, 'email' => ' Alice@Example.org'], ' and `recipient_email` in (?)', ['alice@example.org']],
+			'a user with aliases' => [['is_admin' => false, 'email' => 'alice@example.org', 'user_aliases' => ['Al@Example.org']], ' and `recipient_email` in (?, ?)', ['alice@example.org', 'al@example.org']],
 		];
 	}
 
@@ -323,8 +323,8 @@ final class MailLogFilterTest extends UnitTestCase
 	public function testVirus(string $choice, bool $negated, string $collate, string $op, string $value): void {
 		$this->assertSame(
 			[
-				self::ALL . ' where ' . ($negated ? 'not ' : '') . self::VIRUS . ' and "vf"."created_day" > ?'
-					. " and (`vf`.`name`{$collate} {$op} ? or (\"vf\".\"name\" = ? and `vf`.`av`{$collate} {$op} ?)))",
+				self::ALL . ' where ' . ($negated ? 'not ' : '') . self::VIRUS . ' and `vf`.`created_day` > ?'
+					. " and (`vf`.`name`{$collate} {$op} ? or (`vf`.`name` = ? and `vf`.`av`{$collate} {$op} ?)))",
 				['2026-11-01', $value, '', $value],
 			],
 			self::apply(self::admin(), 'filterByVirus', $choice, 'Eicar', [['>', '2026-11-01']])
@@ -348,10 +348,10 @@ final class MailLogFilterTest extends UnitTestCase
 	#[DataProvider('symbolChoices')]
 	public function testLocalSymbol(string $choice, bool $negated, string $lookup, string $value): void {
 		$this->assertSame(
-			[self::ALL . ' where ' . ($negated ? 'not ' : '') . self::SYMBOL . ' and "sh"."created_day" LIKE ?)', ['%2026-11%']],
+			[self::ALL . ' where ' . ($negated ? 'not ' : '') . self::SYMBOL . ' and `sh`.`created_day` LIKE ?)', ['%2026-11%']],
 			self::apply(self::admin(), 'filterByLocalSymbol', $choice, 'WL_FROM', [['LIKE', '2026-11']])
 		);
-		$this->assertSame(["select \"id\" from \"symbol_names\" where {$lookup} " . json_encode([$value], JSON_THROW_ON_ERROR)], $this->symbolLookups());
+		$this->assertSame(["select `id` from `symbol_names` where {$lookup} " . json_encode([$value], JSON_THROW_ON_ERROR)], $this->symbolLookups());
 	}
 
 	/** @return array<string, array{string, string}> choice, where */
@@ -371,10 +371,10 @@ final class MailLogFilterTest extends UnitTestCase
 	/** @return array<string, array{string, string, string, list<string>}> choice, value, where, bindings */
 	public static function skipped(): array {
 		return [
-			'= 1' => ['=', '1', '"notified" is null', []],
-			'= 0' => ['=', '0', '"notified" is not null', []],
-			'<> 1' => ['<>', '1', '"notified" is not null', []],
-			'<> 0' => ['<>', '0', '"notified" is null', []],
+			'= 1' => ['=', '1', '`notified` is null', []],
+			'= 0' => ['=', '0', '`notified` is not null', []],
+			'<> 1' => ['<>', '1', '`notified` is not null', []],
+			'<> 0' => ['<>', '0', '`notified` is null', []],
 			'= 01, not 0/1' => ['=', '01', '(`notified` IS NULL) = ?', ['01']],
 			'<> 00, not 0/1' => ['<>', '00', '(`notified` IS NULL) <> ?', ['00']],
 			'> 0' => ['>', '0', '(`notified` IS NULL) > ?', ['0']],
@@ -424,7 +424,7 @@ final class MailLogFilterTest extends UnitTestCase
 	#[DataProvider('mapHit')]
 	public function testMapHit(string $choice, string $value, string $where, array $bindings): void {
 		$this->assertSame([self::ALL . " where {$where}", $bindings], self::apply(self::admin(), 'filterByMapHit', $choice, $value, []));
-		$this->assertSame(['select "id" from "symbol_names" where "name" in (?, ?) ["WL_FROM","WL_IP"]'], $this->symbolLookups());
+		$this->assertSame(['select `id` from `symbol_names` where `name` in (?, ?) ["WL_FROM","WL_IP"]'], $this->symbolLookups());
 	}
 
 	/** @return array<string, array{string, bool}> the Date filter's choice, a range */
@@ -452,7 +452,7 @@ final class MailLogFilterTest extends UnitTestCase
 	public static function mapHitSymbols(): array {
 		return [
 			'no mapped symbols: no lookup' => [[], [['id' => 4]], []],
-			'mapped symbols without ids' => [['whitelist' => ['WL_FROM']], null, ['select "id" from "symbol_names" where "name" in (?) ["WL_FROM"]']],
+			'mapped symbols without ids' => [['whitelist' => ['WL_FROM']], null, ['select `id` from `symbol_names` where `name` in (?) ["WL_FROM"]']],
 		];
 	}
 
@@ -501,9 +501,9 @@ final class MailLogFilterTest extends UnitTestCase
 	/** @return array<string, array{?string, string, list<mixed>}> EVER_STORED's state, where, bindings */
 	public static function everStored(): array {
 		return [
-			'migrated' => [Migrations::STATUS_COMPLETED, '"ever_stored" = ?', [1]],
-			'running' => [Migrations::STATUS_RUNNING, '("mail_stored" = ? or ("mail_location" is not null and "mail_location" <> ?))', [1, '0']],
-			'never run' => [null, '("mail_stored" = ? or ("mail_location" is not null and "mail_location" <> ?))', [1, '0']],
+			'migrated' => [Migrations::STATUS_COMPLETED, '`ever_stored` = ?', [1]],
+			'running' => [Migrations::STATUS_RUNNING, '(`mail_stored` = ? or (`mail_location` is not null and `mail_location` <> ?))', [1, '0']],
+			'never run' => [null, '(`mail_stored` = ? or (`mail_location` is not null and `mail_location` <> ?))', [1, '0']],
 		];
 	}
 

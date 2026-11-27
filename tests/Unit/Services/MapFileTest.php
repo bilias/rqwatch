@@ -40,11 +40,11 @@ final class MapFileTest extends UnitTestCase
 	private const string UPDATED = '2026-11-26 10:00:00 +02:00';
 	private const int MTIME = 1795680000;
 	private const string HEADER = '# Last-Modified: Thu, 26 Nov 2026 08:00:00 GMT';
-	private const string COMBINED_SQL = 'select "id", "user_id", "disabled", "created_at", "updated_at", "mail_from", "rcpt_to"'
-		. ' from "maps_combined" where "map_name" = ? and "mail_from" is not null and "rcpt_to" is not null and "disabled" = ?'
-		. ' order by "updated_at" desc';
-	private const string CUSTOM_SQL = 'select "id", "map_name", "pattern", "disabled", "score", "created_at", "updated_at"'
-		. ' from "maps_custom" where "map_name" = ? and "disabled" = ? order by "updated_at" desc';
+	private const string COMBINED_SQL = 'select `id`, `user_id`, `disabled`, `created_at`, `updated_at`, `mail_from`, `rcpt_to`'
+		. ' from `maps_combined` where `map_name` = ? and `mail_from` is not null and `rcpt_to` is not null and `disabled` = ?'
+		. ' order by `updated_at` desc';
+	private const string CUSTOM_SQL = 'select `id`, `map_name`, `pattern`, `disabled`, `score`, `created_at`, `updated_at`'
+		. ' from `maps_custom` where `map_name` = ? and `disabled` = ? order by `updated_at` desc';
 
 	private RecordingDatabase $db;
 
@@ -156,8 +156,8 @@ final class MapFileTest extends UnitTestCase
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		$this->assertTrue((new MapService())->updateMapFile('MapCustom', 'body_url_host', self::UPDATED));
 		$this->assertSame([
-			'info select "id", "map_name", "pattern", "disabled", "score", "created_at", "updated_at" from "maps_custom"'
-			. ' where "map_name" = "body_url_host" and "disabled" = "0" order by "updated_at" desc',
+			'info select `id`, `map_name`, `pattern`, `disabled`, `score`, `created_at`, `updated_at` from `maps_custom`'
+			. ' where `map_name` = "body_url_host" and `disabled` = "0" order by `updated_at` desc',
 		], $this->log->lines);
 	}
 

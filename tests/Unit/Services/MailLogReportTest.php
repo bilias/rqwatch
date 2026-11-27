@@ -50,9 +50,9 @@ use Throwable;
 
 final class MailLogReportTest extends UnitTestCase
 {
-	private const string TOTALS = ', COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored from "mail_logs"';
-	private const string JOIN = ' inner join "mail_log_recipients" as "mlr" on "mlr"."mail_log_id" = "mail_logs"."id"';
-	private const string OWN = 'exists (select 1 from "mail_log_recipients" as "r" where "r"."mail_log_id" = "mail_logs"."id" and "r"."recipient_email" in (?, ?))';
+	private const string TOTALS = ', COUNT(*) AS total, SUM(size) as total_size, SUM(mail_stored) AS total_stored from `mail_logs`';
+	private const string JOIN = ' inner join `mail_log_recipients` as `mlr` on `mlr`.`mail_log_id` = `mail_logs`.`id`';
+	private const string OWN = 'exists (select 1 from `mail_log_recipients` as `r` where `r`.`mail_log_id` = `mail_logs`.`id` and `r`.`recipient_email` in (?, ?))';
 	private const string ALICE = 'alice@example.org';
 	private const string ALIAS = 'al@example.org';
 
@@ -110,8 +110,8 @@ final class MailLogReportTest extends UnitTestCase
 	public static function userScopes(): array {
 		return [
 			'an admin' => [['is_admin' => true, 'email' => 'root@example.org'], '', []],
-			'no email' => [['is_admin' => true], ' and "id" is null', []],
-			"'0' as email" => [['is_admin' => false, 'email' => '0'], ' and "id" is null', []],
+			'no email' => [['is_admin' => true], ' and `id` is null', []],
+			"'0' as email" => [['is_admin' => false, 'email' => '0'], ' and `id` is null', []],
 			'a user: own addresses' => [['is_admin' => false, 'email' => self::ALICE, 'user_aliases' => [self::ALIAS]], ' and ' . self::OWN, [self::ALICE, self::ALIAS]],
 		];
 	}
@@ -125,7 +125,7 @@ final class MailLogReportTest extends UnitTestCase
 		$this->answer(fn (): array => [['day' => '2026-11-02', 'total' => 4], ['day' => '2026-11-03', 'total' => '1']]);
 		$this->assertSame(['2026-11-02' => 4, '2026-11-03' => 1], (new MailLogService($context))->getDailyTotals('2026-11-01', '2026-11-30'));
 		$this->assertSame(
-			[['select created_day AS day, COUNT(*) AS total from "mail_logs" where "created_day" between ? and ?' . $where . ' group by "created_day"', ['2026-11-01', '2026-11-30', ...$bindings]]],
+			[['select created_day AS day, COUNT(*) AS total from `mail_logs` where `created_day` between ? and ?' . $where . ' group by `created_day`', ['2026-11-01', '2026-11-30', ...$bindings]]],
 			$this->selects()
 		);
 		$this->assertSame([], $this->log->lines);
@@ -134,16 +134,16 @@ final class MailLogReportTest extends UnitTestCase
 	public function testDailyTotalsDebug(): void {
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		$this->assertSame([], self::admin()->getDailyTotals('2026-11-01', '2026-11-30'));
-		$this->assertSame(['info select created_day AS day, COUNT(*) AS total from "mail_logs" where "created_day" between "2026-11-01" and "2026-11-30" group by "created_day"'], $this->log->lines);
+		$this->assertSame(['info select created_day AS day, COUNT(*) AS total from `mail_logs` where `created_day` between "2026-11-01" and "2026-11-30" group by `created_day`'], $this->log->lines);
 	}
 
 	/** @return array<string, array{array{is_admin?: bool, email?: string, user_aliases?: array<int, string>}, string, list<string>}> context, where, bindings */
 	public static function recipientScopes(): array {
 		return [
 			'an admin' => [['is_admin' => true, 'email' => 'root@example.org'], '', []],
-			"'0' as email" => [['is_admin' => false, 'email' => '0'], ' where "id" is null and "id" is null', []],
+			"'0' as email" => [['is_admin' => false, 'email' => '0'], ' where `id` is null and `id` is null', []],
 			'a user: own addresses only' => [['is_admin' => false, 'email' => self::ALICE, 'user_aliases' => [self::ALIAS]],
-				' where ' . self::OWN . ' and "mlr"."recipient_email" in (?, ?)', [self::ALICE, self::ALIAS, self::ALICE, self::ALIAS]],
+				' where ' . self::OWN . ' and `mlr`.`recipient_email` in (?, ?)', [self::ALICE, self::ALIAS, self::ALICE, self::ALIAS]],
 		];
 	}
 
@@ -155,7 +155,7 @@ final class MailLogReportTest extends UnitTestCase
 	public function testRecipientReportScope(array $context, string $where, array $bindings): void {
 		(new MailLogService($context))->getReports([], 'mail_recipients');
 		$this->assertSame(
-			[['select mlr.recipient_email AS mail_recipients' . self::TOTALS . self::JOIN . $where . ' group by "mlr"."recipient_email" order by "total" desc limit 30', $bindings]],
+			[['select mlr.recipient_email AS mail_recipients' . self::TOTALS . self::JOIN . $where . ' group by `mlr`.`recipient_email` order by `total` desc limit 30', $bindings]],
 			$this->selects()
 		);
 	}
@@ -164,8 +164,8 @@ final class MailLogReportTest extends UnitTestCase
 		self::alice()->getReports([], 'mail_recipients_domain');
 		$this->assertSame(
 			[["select LOWER(TRIM(TRAILING '>' FROM SUBSTRING_INDEX(mlr.recipient_email, '@', -1))) AS mail_recipients_domain" . self::TOTALS . self::JOIN
-				. ' where "mlr"."recipient_email" LIKE ? and ' . self::OWN . ' and "mlr"."recipient_email" in (?, ?)'
-				. ' group by "mail_recipients_domain" order by "total" desc limit 30', ['%@%', self::ALICE, self::ALIAS, self::ALICE, self::ALIAS]]],
+				. ' where `mlr`.`recipient_email` LIKE ? and ' . self::OWN . ' and `mlr`.`recipient_email` in (?, ?)'
+				. ' group by `mail_recipients_domain` order by `total` desc limit 30', ['%@%', self::ALICE, self::ALIAS, self::ALICE, self::ALIAS]]],
 			$this->selects()
 		);
 	}
@@ -174,7 +174,7 @@ final class MailLogReportTest extends UnitTestCase
 	public function testUserReportScope(): void {
 		self::alice()->getReports([['filter' => 'Subject', 'choice' => 'contains', 'value' => 'invoice']], 'ip');
 		$this->assertSame(
-			[['select ip AS ip' . self::TOTALS . ' where "subject" LIKE ? and ' . self::OWN . ' group by "ip" order by "total" desc limit 30', ['%invoice%', self::ALICE, self::ALIAS]]],
+			[['select ip AS ip' . self::TOTALS . ' where `subject` LIKE ? and ' . self::OWN . ' group by `ip` order by `total` desc limit 30', ['%invoice%', self::ALICE, self::ALIAS]]],
 			$this->selects()
 		);
 	}
@@ -189,9 +189,9 @@ final class MailLogReportTest extends UnitTestCase
 		$alice->getReports([], 'mail_recipients');
 		$alice->getDailyTotals('2026-11-01', '2026-11-30');
 		$this->assertSame([
-			['select server AS server' . self::TOTALS . ' group by "server" order by "total" desc limit 30', []],
-			['select mlr.recipient_email AS mail_recipients' . self::TOTALS . self::JOIN . ' group by "mlr"."recipient_email" order by "total" desc limit 30', []],
-			['select created_day AS day, COUNT(*) AS total from "mail_logs" where "created_day" between ? and ? group by "created_day"', ['2026-11-01', '2026-11-30']],
+			['select server AS server' . self::TOTALS . ' group by `server` order by `total` desc limit 30', []],
+			['select mlr.recipient_email AS mail_recipients' . self::TOTALS . self::JOIN . ' group by `mlr`.`recipient_email` order by `total` desc limit 30', []],
+			['select created_day AS day, COUNT(*) AS total from `mail_logs` where `created_day` between ? and ? group by `created_day`', ['2026-11-01', '2026-11-30']],
 		], $this->selects());
 	}
 
@@ -199,15 +199,15 @@ final class MailLogReportTest extends UnitTestCase
 	public static function reportFields(): array {
 		$domain = fn (string $column, string $field): string => "select LOWER(TRIM(TRAILING '>' FROM SUBSTRING_INDEX({$column}, '@', -1))) AS {$field}";
 		return [
-			'mail_from_domain' => ['mail_from_domain', $domain('mail_from', 'mail_from_domain') . self::TOTALS . ' where "mail_from" LIKE ? group by "mail_from_domain"', ['%@%']],
-			'mime_from_domain' => ['mime_from_domain', $domain('mime_from', 'mime_from_domain') . self::TOTALS . ' where "mime_from" LIKE ? group by "mime_from_domain"', ['%@%']],
-			'mime_to_domain' => ['mime_to_domain', $domain('mime_to', 'mime_to_domain') . self::TOTALS . ' where "mime_to" LIKE ? group by "mime_to_domain"', ['%@%']],
-			'mail_recipients' => ['mail_recipients', 'select mlr.recipient_email AS mail_recipients' . self::TOTALS . self::JOIN . ' group by "mlr"."recipient_email"', []],
+			'mail_from_domain' => ['mail_from_domain', $domain('mail_from', 'mail_from_domain') . self::TOTALS . ' where `mail_from` LIKE ? group by `mail_from_domain`', ['%@%']],
+			'mime_from_domain' => ['mime_from_domain', $domain('mime_from', 'mime_from_domain') . self::TOTALS . ' where `mime_from` LIKE ? group by `mime_from_domain`', ['%@%']],
+			'mime_to_domain' => ['mime_to_domain', $domain('mime_to', 'mime_to_domain') . self::TOTALS . ' where `mime_to` LIKE ? group by `mime_to_domain`', ['%@%']],
+			'mail_recipients' => ['mail_recipients', 'select mlr.recipient_email AS mail_recipients' . self::TOTALS . self::JOIN . ' group by `mlr`.`recipient_email`', []],
 			'mail_recipients_domain' => ['mail_recipients_domain', $domain('mlr.recipient_email', 'mail_recipients_domain') . self::TOTALS . self::JOIN
-				. ' where "mlr"."recipient_email" LIKE ? group by "mail_recipients_domain"', ['%@%']],
-			'date' => ['date', 'select created_day AS date' . self::TOTALS . ' group by "created_day"', []],
-			'ip' => ['ip', 'select ip AS ip' . self::TOTALS . ' group by "ip"', []],
-			'an admin field' => ['server', 'select server AS server' . self::TOTALS . ' group by "server"', []],
+				. ' where `mlr`.`recipient_email` LIKE ? group by `mail_recipients_domain`', ['%@%']],
+			'date' => ['date', 'select created_day AS date' . self::TOTALS . ' group by `created_day`', []],
+			'ip' => ['ip', 'select ip AS ip' . self::TOTALS . ' group by `ip`', []],
+			'an admin field' => ['server', 'select server AS server' . self::TOTALS . ' group by `server`', []],
 		];
 	}
 
@@ -215,19 +215,19 @@ final class MailLogReportTest extends UnitTestCase
 	#[DataProvider('reportFields')]
 	public function testReportField(string $field, string $sql, array $bindings): void {
 		self::admin()->getReports([], $field);
-		$this->assertSame([[$sql . ' order by "total" desc limit 30', $bindings]], $this->selects());
+		$this->assertSame([[$sql . ' order by `total` desc limit 30', $bindings]], $this->selects());
 	}
 
 	/** @return array<string, array{string, string, string}> field, mode, order */
 	public static function orders(): array {
 		return [
-			'volume' => ['ip', 'volume', '"total_size" desc'],
-			'stored' => ['ip', 'stored', '"total_stored" desc'],
-			'count' => ['ip', 'count', '"total" desc'],
-			'by day, not the date' => ['ip', 'day', '"total" desc'],
-			'the date by day' => ['date', 'day', '"date" desc'],
-			'the date by count' => ['date', 'count', '"total" desc'],
-			'the date by volume' => ['date', 'volume', '"total_size" desc'],
+			'volume' => ['ip', 'volume', '`total_size` desc'],
+			'stored' => ['ip', 'stored', '`total_stored` desc'],
+			'count' => ['ip', 'count', '`total` desc'],
+			'by day, not the date' => ['ip', 'day', '`total` desc'],
+			'the date by day' => ['date', 'day', '`date` desc'],
+			'the date by count' => ['date', 'count', '`total` desc'],
+			'the date by volume' => ['date', 'volume', '`total_size` desc'],
 		];
 	}
 
@@ -251,8 +251,8 @@ final class MailLogReportTest extends UnitTestCase
 		$this->status->setMigrationState(Migrations::EVER_STORED, $state);
 		self::admin()->getReports([], 'date', 'month');
 		$this->assertSame([[
-			"select DATE_FORMAT(MIN(created_day), '%Y-%m') AS date, COUNT(*) AS total, SUM(size) as total_size, SUM({$stored}) AS total_stored from \"mail_logs\""
-				. ' group by EXTRACT(YEAR_MONTH FROM created_day) order by "date" desc limit 30',
+			"select DATE_FORMAT(MIN(created_day), '%Y-%m') AS date, COUNT(*) AS total, SUM(size) as total_size, SUM({$stored}) AS total_stored from `mail_logs`"
+				. ' group by EXTRACT(YEAR_MONTH FROM created_day) order by `date` desc limit 30',
 			[],
 		]], $this->selects());
 	}
@@ -270,7 +270,7 @@ final class MailLogReportTest extends UnitTestCase
 			],
 			self::admin()->getReports([['filter' => 'Subject', 'choice' => 'contains', 'value' => 'invoice']], 'ip')
 		);
-		$this->assertSame(['info select ip AS ip' . self::TOTALS . ' where "subject" LIKE "%invoice%" group by "ip" order by "total" desc limit 30'], $this->log->lines);
+		$this->assertSame(['info select ip AS ip' . self::TOTALS . ' where `subject` LIKE "%invoice%" group by `ip` order by `total` desc limit 30'], $this->log->lines);
 	}
 
 	/** @return array<string, array{array{is_admin?: bool, email?: string}, string}> context, field */
@@ -289,18 +289,18 @@ final class MailLogReportTest extends UnitTestCase
 		$this->assertSame([["error MailLogService_getReports rejected field: {$field}"], []], [$this->log->lines, $this->selects()]);
 	}
 
-	private const string MATCHING = 'from "mail_logs" where "subject" LIKE ? and ' . self::OWN;
+	private const string MATCHING = 'from `mail_logs` where `subject` LIKE ? and ' . self::OWN;
 
 	public function testStats(): void {
 		$this->setEnv('DEBUG_SEARCH_SQL', 'yes');
 		$this->answer(function (string $sql): array {
 			return match (true) {
 				str_contains($sql, 'MIN(id)') => [['cnt' => 4, 'first_id' => 10, 'last_id' => 20]],
-				str_contains($sql, '"created_at", "id"') => [['created_at' => '2026-11-02 08:00:00', 'id' => 10], ['created_at' => '2026-11-26 17:30:00', 'id' => 20]],
+				str_contains($sql, '`created_at`, `id`') => [['created_at' => '2026-11-02 08:00:00', 'id' => 10], ['created_at' => '2026-11-26 17:30:00', 'id' => 20]],
 				str_contains($sql, 'aggregate') => [['aggregate' => match (true) {
-					str_ends_with($sql, '"mail_stored" = ?') => 3,
-					str_ends_with($sql, '"notified" = ?') => 2,
-					str_ends_with($sql, '"released" = ?') => 1,
+					str_ends_with($sql, '`mail_stored` = ?') => 3,
+					str_ends_with($sql, '`notified` = ?') => 2,
+					str_ends_with($sql, '`released` = ?') => 1,
 					default => 0,
 				}]],
 				str_contains($sql, 'action, COUNT(*)') => [['action' => 'reject', 'cnt' => 2], ['action' => null, 'cnt' => 1], ['action' => 'greylist', 'cnt' => 1]],
@@ -323,16 +323,16 @@ final class MailLogReportTest extends UnitTestCase
 		$own = ['%invoice%', self::ALICE, self::ALIAS];
 		$this->assertSame([
 			['select COUNT(*) AS cnt, MIN(id) AS first_id, MAX(id) AS last_id ' . self::MATCHING . ' limit 1', $own],
-			['select "created_at", "id" from "mail_logs" where "id" in (?, ?)', [10, 20]],
-			['select count(*) as aggregate ' . self::MATCHING . ' and "mail_stored" = ?', [...$own, 1]],
-			['select count(*) as aggregate ' . self::MATCHING . ' and "notified" = ?', [...$own, 1]],
-			['select count(*) as aggregate ' . self::MATCHING . ' and "released" = ?', [...$own, 1]],
-			['select count(*) as aggregate ' . self::MATCHING . ' and "has_virus" = ?', [...$own, 1]],
-			['select "id", action, COUNT(*) as cnt ' . self::MATCHING . ' group by "action" order by "cnt" desc, "action" asc', $own],
+			['select `created_at`, `id` from `mail_logs` where `id` in (?, ?)', [10, 20]],
+			['select count(*) as aggregate ' . self::MATCHING . ' and `mail_stored` = ?', [...$own, 1]],
+			['select count(*) as aggregate ' . self::MATCHING . ' and `notified` = ?', [...$own, 1]],
+			['select count(*) as aggregate ' . self::MATCHING . ' and `released` = ?', [...$own, 1]],
+			['select count(*) as aggregate ' . self::MATCHING . ' and `has_virus` = ?', [...$own, 1]],
+			['select `id`, action, COUNT(*) as cnt ' . self::MATCHING . ' group by `action` order by `cnt` desc, `action` asc', $own],
 		], $this->selects());
 		$this->assertSame([
-			'info select "id" from "mail_logs" where "subject" LIKE "%invoice%" and exists (select 1 from "mail_log_recipients" as "r" where "r"."mail_log_id" = "mail_logs"."id"'
-				. ' and "r"."recipient_email" in ("alice@example.org", "al@example.org"))',
+			'info select `id` from `mail_logs` where `subject` LIKE "%invoice%" and exists (select 1 from `mail_log_recipients` as `r` where `r`.`mail_log_id` = `mail_logs`.`id`'
+				. ' and `r`.`recipient_email` in ("alice@example.org", "al@example.org"))',
 		], $this->log->lines);
 	}
 
@@ -366,7 +366,7 @@ final class MailLogReportTest extends UnitTestCase
 			],
 			self::admin()->getStats([])
 		);
-		$this->assertSame([['select COUNT(*) AS cnt, MIN(id) AS first_id, MAX(id) AS last_id from "mail_logs" limit 1', []]], $this->selects());
+		$this->assertSame([['select COUNT(*) AS cnt, MIN(id) AS first_id, MAX(id) AS last_id from `mail_logs` limit 1', []]], $this->selects());
 		$this->assertSame([], $this->log->lines);
 	}
 

@@ -126,11 +126,11 @@ final class MailLogCleanupTest extends UnitTestCase
 		};
 		$this->assertSame(5, self::admin()->cleanDb(MailLog::select('id')->where('created_day', '<', '2025-01-01'), $batch));
 		$this->assertSame(
-			array_fill(0, count($passes) + 1, ['select "id" from "mail_logs" where "created_day" < ? order by "id" asc limit ' . $limit, ['2025-01-01']]),
+			array_fill(0, count($passes) + 1, ['select `id` from `mail_logs` where `created_day` < ? order by `id` asc limit ' . $limit, ['2025-01-01']]),
 			$this->db->selects
 		);
 		$this->assertSame(
-			array_map(fn (array $ids): array => ['delete from "mail_logs" where "id" in (' . implode(', ', array_fill(0, count($ids), '?')) . ')', $ids], $passes),
+			array_map(fn (array $ids): array => ['delete from `mail_logs` where `id` in (' . implode(', ', array_fill(0, count($ids), '?')) . ')', $ids], $passes),
 			$this->db->changes
 		);
 	}
@@ -163,7 +163,7 @@ final class MailLogCleanupTest extends UnitTestCase
 		$this->setEnv('DATABASE_DAYS', $days);
 		$query = self::admin()->getCleanUpDb(null, 'mx2');
 		$this->assertSame(
-			['select "id", "qid" from "mail_logs" where "created_day" < ? and "server" = ?', [self::daysAgo($used), 'mx2']],
+			['select `id`, `qid` from `mail_logs` where `created_day` < ? and `server` = ?', [self::daysAgo($used), 'mx2']],
 			[$query->toSql(), $query->getBindings()]
 		);
 	}
@@ -171,7 +171,7 @@ final class MailLogCleanupTest extends UnitTestCase
 	public function testCleanUpDbScope(): void {
 		$query = (new MailLogService(['is_admin' => false, 'email' => 'alice@example.org']))->getCleanUpDb();
 		$this->assertSame(
-			'select "id", "qid" from "mail_logs" where "created_day" < ? and exists (select 1 from "mail_log_recipients" as "r" where "r"."mail_log_id" = "mail_logs"."id" and "r"."recipient_email" in (?))',
+			'select `id`, `qid` from `mail_logs` where `created_day` < ? and exists (select 1 from `mail_log_recipients` as `r` where `r`.`mail_log_id` = `mail_logs`.`id` and `r`.`recipient_email` in (?))',
 			$query->toSql()
 		);
 	}
@@ -189,7 +189,7 @@ final class MailLogCleanupTest extends UnitTestCase
 		self::admin()->getCleanUpDb($verbose);
 		self::admin()->getCleanUpDb($quiet);
 		self::admin()->getCleanUpDb();
-		$sql = 'select "id", "qid" from "mail_logs" where "created_day" < "' . self::daysAgo(366) . '"';
+		$sql = 'select `id`, `qid` from `mail_logs` where `created_day` < "' . self::daysAgo(366) . '"';
 		$this->assertSame(["{$sql}\n", '', ["info {$sql}"]], [$verbose->fetch(), $quiet->fetch(), $this->log->lines]);
 	}
 
@@ -205,12 +205,12 @@ final class MailLogCleanupTest extends UnitTestCase
 	#[DataProvider('quarantineDays')]
 	public function testQuarantine(?string $days, int $used): void {
 		$this->setEnv('QUARANTINE_DAYS', $days);
-		$this->db->answer = fn (string $sql): array => str_contains($sql, 'from "mail_logs"') ? [['id' => 7, 'qid' => 'Q7']] : [];
+		$this->db->answer = fn (string $sql): array => str_contains($sql, 'from `mail_logs`') ? [['id' => 7, 'qid' => 'Q7']] : [];
 		$this->assertSame([7], self::admin()->getQuarantine(null, 'mx2')->pluck('id')->all());
-		$fields = 'select "' . implode('", "', MailLog::SELECT_FIELDS) . '" from "mail_logs"';
+		$fields = 'select `' . implode('`, `', MailLog::SELECT_FIELDS) . '` from `mail_logs`';
 		$this->assertSame([
-			[$fields . ' where "mail_stored" = ? and "created_day" < ? and "server" = ?', [1, self::daysAgo($used), 'mx2']],
-			['select * from "mail_log_recipients" where "mail_log_recipients"."mail_log_id" in (7)', []],
+			[$fields . ' where `mail_stored` = ? and `created_day` < ? and `server` = ?', [1, self::daysAgo($used), 'mx2']],
+			['select * from `mail_log_recipients` where `mail_log_recipients`.`mail_log_id` in (7)', []],
 		], $this->db->selects);
 	}
 
@@ -222,8 +222,8 @@ final class MailLogCleanupTest extends UnitTestCase
 		$alice->getQuarantine($verbose);
 		$alice->getQuarantine($quiet);
 		$alice->getQuarantine();
-		$sql = 'select "' . implode('", "', MailLog::SELECT_FIELDS) . '" from "mail_logs" where "mail_stored" = "1" and "created_day" < "' . self::daysAgo(366) . '"'
-			. ' and exists (select 1 from "mail_log_recipients" as "r" where "r"."mail_log_id" = "mail_logs"."id" and "r"."recipient_email" in ("alice@example.org"))';
+		$sql = 'select `' . implode('`, `', MailLog::SELECT_FIELDS) . '` from `mail_logs` where `mail_stored` = "1" and `created_day` < "' . self::daysAgo(366) . '"'
+			. ' and exists (select 1 from `mail_log_recipients` as `r` where `r`.`mail_log_id` = `mail_logs`.`id` and `r`.`recipient_email` in ("alice@example.org"))';
 		$this->assertSame(["{$sql}\n", '', ["info {$sql}"]], [$verbose->fetch(), $quiet->fetch(), $this->log->lines]);
 	}
 
@@ -267,8 +267,8 @@ final class MailLogCleanupTest extends UnitTestCase
 		$q = "{$this->dir}/q";
 		$this->assertSame([false, true, true], [is_dir("{$q}/2026-01-02/Q1"), is_dir("{$q}/2026-01-02"), is_dir("{$this->dir}/outside/Q5")]);
 		$this->assertSame([
-			['update "mail_logs" set "mail_stored" = ?, "mail_logs"."updated_at" = ? where "id" in (?, ?)', 0, [1, 4]],
-			['delete from "mail_log_tokens" where "mail_log_id" in (?, ?)', null, [1, 4]],
+			['update `mail_logs` set `mail_stored` = ?, `mail_logs`.`updated_at` = ? where `id` in (?, ?)', 0, [1, 4]],
+			['delete from `mail_log_tokens` where `mail_log_id` in (?, ?)', null, [1, 4]],
 		], [
 			[$this->db->changes[0][0], $this->db->changes[0][1][0], array_slice($this->db->changes[0][1], 2)],
 			[$this->db->changes[1][0] ?? '', null, $this->db->changes[1][1] ?? []],

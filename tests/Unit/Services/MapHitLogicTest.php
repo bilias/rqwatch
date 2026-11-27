@@ -206,7 +206,7 @@ final class MapHitLogicTest extends UnitTestCase
 		try {
 			$query = $db->capsule->getConnection()->table('mail_log_symbol_hits');
 			(new ReflectionMethod(MapHitService::class, 'dayWindow'))->invoke(null, $query, $days, ...$column);
-			$this->assertSame(['select * from "mail_log_symbol_hits"' . $where, $bindings], [$query->toSql(), $query->getBindings()]);
+			$this->assertSame(['select * from `mail_log_symbol_hits`' . $where, $bindings], [$query->toSql(), $query->getBindings()]);
 		} finally {
 			RecordingDatabase::forget();
 		}

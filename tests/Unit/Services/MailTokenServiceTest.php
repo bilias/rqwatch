@@ -88,7 +88,7 @@ final class MailTokenServiceTest extends UnitTestCase
 		$this->assertIsString($token);
 		$this->assertMatchesRegularExpression(self::HEX, $token);
 		$this->assertSame(
-			[['select * from "mail_log_tokens" where ("mail_log_id" = ? and "recipient_email" = ?) limit 1', [1, 'alice@example.org']]],
+			[['select * from `mail_log_tokens` where (`mail_log_id` = ? and `recipient_email` = ?) limit 1', [1, 'alice@example.org']]],
 			$this->db->selects
 		);
 		$this->assertSame([['mail_log_id' => 1, 'recipient_email' => 'alice@example.org', 'token_hash' => hash('sha256', $token)]], $this->db->rows('mail_log_tokens'));
@@ -103,7 +103,7 @@ final class MailTokenServiceTest extends UnitTestCase
 		$token = (new MailTokenService())->issueToken(7, 'alice@example.org');
 		$this->assertIsString($token);
 		$this->assertSame([], $this->db->rows('mail_log_tokens'));
-		$this->assertSame([['update "mail_log_tokens" set "token_hash" = ? where "token_hash" = ?', [hash('sha256', $token), 'a1b2']]], $this->db->changes);
+		$this->assertSame([['update `mail_log_tokens` set `token_hash` = ? where `token_hash` = ?', [hash('sha256', $token), 'a1b2']]], $this->db->changes);
 	}
 
 	/** @return array<string, array{int, string}> */
@@ -130,7 +130,7 @@ final class MailTokenServiceTest extends UnitTestCase
 
 	public function testFind(): void {
 		$hash = hash('sha256', self::TOKEN);
-		$this->db->answer = fn (string $sql): array => str_contains($sql, 'from "mail_log_tokens"')
+		$this->db->answer = fn (string $sql): array => str_contains($sql, 'from `mail_log_tokens`')
 			? [['token_hash' => $hash, 'mail_log_id' => 7, 'recipient_email' => 'alice@example.org']]
 			: [['id' => 7, 'qid' => 'Q7', 'mail_stored' => 1]];
 		$found = (new MailTokenService())->findValidToken(' ' . self::TOKEN . "\n");
@@ -140,8 +140,8 @@ final class MailTokenServiceTest extends UnitTestCase
 		$this->assertInstanceOf(MailLog::class, $found->mailLog);
 		$this->assertSame('Q7', $found->mailLog->qid);
 		$this->assertSame([
-			['select * from "mail_log_tokens" where "token_hash" = ? and exists (select * from "mail_logs" where "mail_log_tokens"."mail_log_id" = "mail_logs"."id" and "mail_stored" = ?) limit 1', [$hash, 1]],
-			['select * from "mail_logs" where "mail_logs"."id" in (7)', []],
+			['select * from `mail_log_tokens` where `token_hash` = ? and exists (select * from `mail_logs` where `mail_log_tokens`.`mail_log_id` = `mail_logs`.`id` and `mail_stored` = ?) limit 1', [$hash, 1]],
+			['select * from `mail_logs` where `mail_logs`.`id` in (7)', []],
 		], $this->db->selects);
 	}
 
@@ -186,7 +186,7 @@ final class MailTokenServiceTest extends UnitTestCase
 		$hash = (new MailTokenService())->redeemToken(self::token());
 		$this->assertIsString($hash);
 		$this->assertMatchesRegularExpression(self::HEX, $hash);
-		$this->assertSame([['update "mail_log_tokens" set "token_hash" = ? where "token_hash" = ?', [$hash, 'a1b2']]], $this->db->changes);
+		$this->assertSame([['update `mail_log_tokens` set `token_hash` = ? where `token_hash` = ?', [$hash, 'a1b2']]], $this->db->changes);
 	}
 
 	// another request redeemed it first
@@ -207,7 +207,7 @@ final class MailTokenServiceTest extends UnitTestCase
 		$deleted = $service->deleteToken(self::token());
 		$this->db->affect = null;
 		$this->assertSame([true, false], [$deleted, $service->deleteToken(self::token())]);
-		$this->assertSame(array_fill(0, 2, ['delete from "mail_log_tokens" where "token_hash" = ?', ['a1b2']]), $this->db->changes);
+		$this->assertSame(array_fill(0, 2, ['delete from `mail_log_tokens` where `token_hash` = ?', ['a1b2']]), $this->db->changes);
 	}
 
 	public function testDeleteFailed(): void {
@@ -220,7 +220,7 @@ final class MailTokenServiceTest extends UnitTestCase
 		$this->db->affect = fn (): int => 3;
 		$service = new MailTokenService();
 		$this->assertSame([3, 0], [$service->deleteTokensForMails([4, 9]), $service->deleteTokensForMails([])]);
-		$this->assertSame([['delete from "mail_log_tokens" where "mail_log_id" in (?, ?)', [4, 9]]], $this->db->changes);
+		$this->assertSame([['delete from `mail_log_tokens` where `mail_log_id` in (?, ?)', [4, 9]]], $this->db->changes);
 	}
 
 	public function testDeleteForMailsFailed(): void {

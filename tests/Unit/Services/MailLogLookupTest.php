@@ -49,11 +49,11 @@ use Tests\Unit\UnitTestCase;
 final class MailLogLookupTest extends UnitTestCase
 {
 	private const string ALICE = 'alice@example.org';
-	private const string OWN = 'exists (select 1 from "mail_log_recipients" as "r" where "r"."mail_log_id" = "mail_logs"."id" and "r"."recipient_email" in (?))';
-	private const string RCPT_ALL = 'select * from "mail_log_recipients" where "mail_log_recipients"."mail_log_id" in (7)';
-	private const string RCPT_OWN = self::RCPT_ALL . ' and "recipient_email" in (?)';
-	private const string SYMBOLS = 'select "mail_log_id", "symbols" from "mail_log_data" where "mail_log_data"."mail_log_id" in (7)';
-	private const string DATA = 'select * from "mail_log_data" where "mail_log_data"."mail_log_id" in (7)';
+	private const string OWN = 'exists (select 1 from `mail_log_recipients` as `r` where `r`.`mail_log_id` = `mail_logs`.`id` and `r`.`recipient_email` in (?))';
+	private const string RCPT_ALL = 'select * from `mail_log_recipients` where `mail_log_recipients`.`mail_log_id` in (7)';
+	private const string RCPT_OWN = self::RCPT_ALL . ' and `recipient_email` in (?)';
+	private const string SYMBOLS = 'select `mail_log_id`, `symbols` from `mail_log_data` where `mail_log_data`.`mail_log_id` in (7)';
+	private const string DATA = 'select * from `mail_log_data` where `mail_log_data`.`mail_log_id` in (7)';
 	private const string HEADERS = "Received: from mx.example.net (mx.example.net [192.0.2.25])\r\n\tby mx1 with ESMTP\r\nSubject: hi";
 
 	private RecordingDatabase $db;
@@ -87,10 +87,10 @@ final class MailLogLookupTest extends UnitTestCase
 	private function rows(string $sql, array $bindings): array {
 		return match (true) {
 			str_contains($sql, 'aggregate') => [['aggregate' => count($this->mails)]],
-			str_contains($sql, 'from "mail_log_recipients" where') => [['mail_log_id' => 7, 'recipient_email' => self::ALICE]],
-			str_contains($sql, 'from "mail_log_data"') => [['mail_log_id' => 7, 'symbols' => '[{"name":"BAYES_SPAM","score":5.1},{"name":"R_DUMMY","score":0}]', 'headers' => self::HEADERS]],
-			str_starts_with($sql, 'select "id" from "mail_logs"') => array_map(fn (array $mail): array => ['id' => $mail['id']], $this->mails),
-			str_contains($sql, '"id" in (') => array_values(array_filter($this->mails, fn (array $mail): bool => in_array($mail['id'], $bindings, true))),
+			str_contains($sql, 'from `mail_log_recipients` where') => [['mail_log_id' => 7, 'recipient_email' => self::ALICE]],
+			str_contains($sql, 'from `mail_log_data`') => [['mail_log_id' => 7, 'symbols' => '[{"name":"BAYES_SPAM","score":5.1},{"name":"R_DUMMY","score":0}]', 'headers' => self::HEADERS]],
+			str_starts_with($sql, 'select `id` from `mail_logs`') => array_map(fn (array $mail): array => ['id' => $mail['id']], $this->mails),
+			str_contains($sql, '`id` in (') => array_values(array_filter($this->mails, fn (array $mail): bool => in_array($mail['id'], $bindings, true))),
 			default => $this->mails,
 		};
 	}
@@ -104,7 +104,7 @@ final class MailLogLookupTest extends UnitTestCase
 	}
 
 	private static function fields(): string {
-		return 'select "' . implode('", "', MailLog::SELECT_FIELDS) . '" from "mail_logs"';
+		return 'select `' . implode('`, `', MailLog::SELECT_FIELDS) . '` from `mail_logs`';
 	}
 
 	/** @return list<string> the log, each caller's file and line cut */
@@ -138,11 +138,11 @@ final class MailLogLookupTest extends UnitTestCase
 		$this->assertInstanceOf(MailLog::class, $log);
 		$this->assertSame([7, true, true], [$log->id, $log->relationLoaded('recipients'), $log->relationLoaded('mailLogData')]);
 		$this->assertSame([
-			[self::fields() . ' where "id" = ? and ' . self::OWN . ' limit 1', [7, self::ALICE]],
+			[self::fields() . ' where `id` = ? and ' . self::OWN . ' limit 1', [7, self::ALICE]],
 			[self::RCPT_OWN, [self::ALICE]],
 			[self::SYMBOLS, []],
 		], $this->db->selects);
-		$this->assertSame(['info ' . self::fields() . ' where "id" = "7" and ' . str_replace('(?)', '("alice@example.org")', self::OWN)], $this->log->lines);
+		$this->assertSame(['info ' . self::fields() . ' where `id` = "7" and ' . str_replace('(?)', '("alice@example.org")', self::OWN)], $this->log->lines);
 	}
 
 	public function testGetMailLogNotFound(): void {
@@ -160,11 +160,11 @@ final class MailLogLookupTest extends UnitTestCase
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		$this->assertSame(7, self::alice()->findMailLog(7)->id);
 		$this->assertSame([
-			['select * from "mail_logs" where "mail_logs"."id" = ? limit 1', [7]],
+			['select * from `mail_logs` where `mail_logs`.`id` = ? limit 1', [7]],
 			[self::RCPT_OWN, [self::ALICE]],
 			[self::SYMBOLS, []],
 		], $this->db->selects);
-		$this->assertSame(['info select * from "mail_logs"'], $this->log->lines);
+		$this->assertSame(['info select * from `mail_logs`'], $this->log->lines);
 	}
 
 	public function testFindMailLogNotFound(): void {
@@ -176,11 +176,11 @@ final class MailLogLookupTest extends UnitTestCase
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		$this->assertSame(7, self::admin()->getQuarantinedMailLog(7)->id);
 		$this->assertSame([
-			[self::fields() . ' where "id" = ? and "mail_stored" = ? limit 1', [7, 1]],
+			[self::fields() . ' where `id` = ? and `mail_stored` = ? limit 1', [7, 1]],
 			[self::RCPT_ALL, []],
 			[self::SYMBOLS, []],
 		], $this->db->selects);
-		$this->assertSame(['info ' . self::fields() . ' where "id" = "7" and "mail_stored" = "1"'], $this->log->lines);
+		$this->assertSame(['info ' . self::fields() . ' where `id` = "7" and `mail_stored` = "1"'], $this->log->lines);
 	}
 
 	public function testQuarantinedMailLogNotFound(): void {
@@ -192,11 +192,11 @@ final class MailLogLookupTest extends UnitTestCase
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		$this->assertSame(7, self::alice()->detailById(7)->id);
 		$this->assertSame([
-			['select * from "mail_logs" where "id" = ? and ' . self::OWN . ' limit 1', [7, self::ALICE]],
+			['select * from `mail_logs` where `id` = ? and ' . self::OWN . ' limit 1', [7, self::ALICE]],
 			[self::RCPT_OWN, [self::ALICE]],
 			[self::DATA, []],
 		], $this->db->selects);
-		$this->assertSame(['info select * from "mail_logs" where "id" = "7" and ' . str_replace('(?)', '("alice@example.org")', self::OWN)], $this->log->lines);
+		$this->assertSame(['info select * from `mail_logs` where `id` = "7" and ' . str_replace('(?)', '("alice@example.org")', self::OWN)], $this->log->lines);
 	}
 
 	public function testDetailByIdNotFound(): void {
@@ -208,11 +208,11 @@ final class MailLogLookupTest extends UnitTestCase
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		$this->assertSame(7, self::admin()->detailByQid('Q7')->id);
 		$this->assertSame([
-			['select * from "mail_logs" where "qid" = ? limit 1', ['Q7']],
+			['select * from `mail_logs` where `qid` = ? limit 1', ['Q7']],
 			[self::RCPT_ALL, []],
 			[self::DATA, []],
 		], $this->db->selects);
-		$this->assertSame(['info select * from "mail_logs" where "qid" = "Q7"'], $this->log->lines);
+		$this->assertSame(['info select * from `mail_logs` where `qid` = "Q7"'], $this->log->lines);
 	}
 
 	public function testDetailByQidNotFound(): void {
@@ -223,9 +223,9 @@ final class MailLogLookupTest extends UnitTestCase
 	/** @return array<string, array{string, string|int, string}> type, value, the mail's where */
 	public static function details(): array {
 		return [
-			'by id' => ['id', '7', '"id" = ?'],
-			'by id, an int' => ['id', 7, '"id" = ?'],
-			'by qid' => ['qid', 'Q7', '"qid" = ?'],
+			'by id' => ['id', '7', '`id` = ?'],
+			'by id, an int' => ['id', 7, '`id` = ?'],
+			'by qid' => ['qid', 'Q7', '`qid` = ?'],
 		];
 	}
 
@@ -237,7 +237,7 @@ final class MailLogLookupTest extends UnitTestCase
 			[['BAYES_SPAM:5.1', 'R_DUMMY:0'], null, [['ip' => '192.0.2.25', 'host' => 'mx.example.net', 'country' => null]]],
 			[$detail['symbols'], $detail['virus_found'], $detail['received']]
 		);
-		$this->assertSame("select * from \"mail_logs\" where {$where} limit 1", $this->db->selects[0][0]);
+		$this->assertSame("select * from `mail_logs` where {$where} limit 1", $this->db->selects[0][0]);
 	}
 
 	/** @return array<string, array{?string}> */
@@ -250,7 +250,7 @@ final class MailLogLookupTest extends UnitTestCase
 
 	#[DataProvider('noHeaders')]
 	public function testDetailWithoutHeaders(?string $headers): void {
-		$this->db->answer = fn (string $sql, array $bindings): array => str_contains($sql, 'from "mail_log_data"')
+		$this->db->answer = fn (string $sql, array $bindings): array => str_contains($sql, 'from `mail_log_data`')
 			? [['mail_log_id' => 7, 'symbols' => null, 'headers' => $headers]]
 			: $this->rows($sql, array_values($bindings));
 		$detail = self::admin()->detail('id', 7);
@@ -307,7 +307,7 @@ final class MailLogLookupTest extends UnitTestCase
 		Config::set('items_per_page', 2);
 		$this->mails = [['id' => 9], ['id' => 8], ['id' => 7]];
 		$this->assertSame([$ids, 3, 2, $page, '/hits'], self::page(self::admin()->getPaginatedByIds([9, 8, 7], '/hits', $page)));
-		$read = $ids === [] ? [] : [self::fields() . ' where "id" in (' . implode(', ', array_fill(0, count($ids), '?')) . ') order by "id" desc', $ids];
+		$read = $ids === [] ? [] : [self::fields() . ' where `id` in (' . implode(', ', array_fill(0, count($ids), '?')) . ') order by `id` desc', $ids];
 		$this->assertSame($read, $this->db->selects[0] ?? []);
 	}
 
@@ -323,8 +323,8 @@ final class MailLogLookupTest extends UnitTestCase
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		$this->mails = [['id' => 9], ['id' => 7]];
 		$this->assertSame([[9, 7], 2, 50, 1, '/hits'], self::page(self::alice()->getPaginatedByIds([9, 8, 7], '/hits')));
-		$this->assertSame(['select "id" from "mail_logs" where "id" in (?, ?, ?) and ' . self::OWN . ' order by "id" desc', [9, 8, 7, self::ALICE]], $this->db->selects[0]);
-		$this->assertSame(['info ' . self::fields() . ' where "id" in ("9", "7") order by "id" desc'], $this->log->lines);
+		$this->assertSame(['select `id` from `mail_logs` where `id` in (?, ?, ?) and ' . self::OWN . ' order by `id` desc', [9, 8, 7, self::ALICE]], $this->db->selects[0]);
+		$this->assertSame(['info ' . self::fields() . ' where `id` in ("9", "7") order by `id` desc'], $this->log->lines);
 		$this->db->selects = [];
 		$this->assertSame([[], 0, 50, 1, '/hits'], self::page(self::alice()->getPaginatedByIds([], '/hits')));
 		$this->assertSame([], $this->db->selects);
@@ -336,8 +336,8 @@ final class MailLogLookupTest extends UnitTestCase
 		Config::set('items_per_page', 1);
 		$this->mails = [['id' => 9], ['id' => 8]];
 		$this->assertSame([[8], 2, 1, 2, '/search'], self::page(self::alice()->getPaginatedAll([['filter' => 'Subject', 'choice' => 'contains', 'value' => 'x']], '/search', 2)));
-		$this->assertSame(['select "id" from "mail_logs" where "subject" LIKE ? and ' . self::OWN . ' order by "id" desc limit 500', ['%x%', self::ALICE]], $this->db->selects[0]);
-		$this->assertSame('info select "id" from "mail_logs" where "subject" LIKE "%x%" and ' . str_replace('(?)', '("alice@example.org")', self::OWN) . ' order by "id" desc limit 500', $this->log->lines[0]);
+		$this->assertSame(['select `id` from `mail_logs` where `subject` LIKE ? and ' . self::OWN . ' order by `id` desc limit 500', ['%x%', self::ALICE]], $this->db->selects[0]);
+		$this->assertSame('info select `id` from `mail_logs` where `subject` LIKE "%x%" and ' . str_replace('(?)', '("alice@example.org")', self::OWN) . ' order by `id` desc limit 500', $this->log->lines[0]);
 	}
 
 	public function testPaginatedAllFirstPage(): void {
@@ -373,32 +373,32 @@ final class MailLogLookupTest extends UnitTestCase
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		Config::set('items_per_page', 5);
 		$this->assertSame([[7], 1, 5, 2, '/day'], self::page(self::alice()->getPaginatedDay('2026-11-26', '/day', 2)));
-		$where = ' where "created_day" = ? and ' . self::OWN;
+		$where = ' where `created_day` = ? and ' . self::OWN;
 		$this->assertSame([
-			['select count(*) as aggregate from "mail_logs"' . $where, ['2026-11-26', self::ALICE]],
-			[self::fields() . $where . ' order by "id" desc limit 5 offset 5', ['2026-11-26', self::ALICE]],
+			['select count(*) as aggregate from `mail_logs`' . $where, ['2026-11-26', self::ALICE]],
+			[self::fields() . $where . ' order by `id` desc limit 5 offset 5', ['2026-11-26', self::ALICE]],
 			[self::RCPT_OWN, [self::ALICE]],
 			[self::SYMBOLS, []],
 		], $this->db->selects);
-		$this->assertSame(['info ' . self::fields() . ' where "created_day" = "2026-11-26" and ' . str_replace('(?)', '("alice@example.org")', self::OWN) . ' order by "id" desc'], $this->log->lines);
+		$this->assertSame(['info ' . self::fields() . ' where `created_day` = "2026-11-26" and ' . str_replace('(?)', '("alice@example.org")', self::OWN) . ' order by `id` desc'], $this->log->lines);
 	}
 
 	public function testPaginatedDayFirstPage(): void {
 		self::admin()->getPaginatedDay('2026-11-26', '/day');
-		$this->assertStringEndsWith(' order by "id" desc limit 50 offset 0', $this->db->selects[1][0] ?? '');
+		$this->assertStringEndsWith(' order by `id` desc limit 50 offset 0', $this->db->selects[1][0] ?? '');
 	}
 
 	public function testPaginatedQuarantineDay(): void {
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
 		$this->assertSame([[7], 1, 50, 1, '/q/day'], self::page(self::admin()->getPaginatedQuarantineDay('2026-11-26', '/q/day')));
-		$where = ' where "created_day" = ? and "mail_stored" = ?';
+		$where = ' where `created_day` = ? and `mail_stored` = ?';
 		$this->assertSame([
-			['select count(*) as aggregate from "mail_logs"' . $where, ['2026-11-26', 1]],
-			[self::fields() . $where . ' order by "id" desc limit 50 offset 0', ['2026-11-26', 1]],
+			['select count(*) as aggregate from `mail_logs`' . $where, ['2026-11-26', 1]],
+			[self::fields() . $where . ' order by `id` desc limit 50 offset 0', ['2026-11-26', 1]],
 			[self::RCPT_ALL, []],
 			[self::SYMBOLS, []],
 		], $this->db->selects);
-		$this->assertSame(['info ' . self::fields() . ' where "created_day" = "2026-11-26" and "mail_stored" = "1" order by "id" desc'], $this->log->lines);
+		$this->assertSame(['info ' . self::fields() . ' where `created_day` = "2026-11-26" and `mail_stored` = "1" order by `id` desc'], $this->log->lines);
 	}
 
 	/** @return array<string, array{int, list<int>}> page, its ids */
@@ -418,13 +418,13 @@ final class MailLogLookupTest extends UnitTestCase
 		Config::set('items_per_page', 2);
 		$this->mails = [['id' => 7], ['id' => 9], ['id' => 8]];
 		$this->assertSame([$ids, 3, 2, $page, '/q/month'], self::page(self::alice()->getPaginatedQuarantineMonth('2026-12', '/q/month', $page)));
-		$stored = '("mail_stored" = ? or ("mail_location" is not null and "mail_location" <> ?))';
+		$stored = '(`mail_stored` = ? or (`mail_location` is not null and `mail_location` <> ?))';
 		$this->assertSame(
-			['select "id" from "mail_logs" where "created_day" >= ? and "created_day" < ? and ' . $stored . ' and ' . self::OWN, ['2026-12-01', '2027-01-01', 1, '0', self::ALICE]],
+			['select `id` from `mail_logs` where `created_day` >= ? and `created_day` < ? and ' . $stored . ' and ' . self::OWN, ['2026-12-01', '2027-01-01', 1, '0', self::ALICE]],
 			$this->db->selects[0]
 		);
-		$this->assertSame($ids === [] ? null : [self::fields() . ' where "id" in (' . implode(', ', array_fill(0, count($ids), '?')) . ') order by "id" desc', $ids], $this->db->selects[1] ?? null);
-		$this->assertSame(['info select "id" from "mail_logs" where "created_day" >= "2026-12-01" and "created_day" < "2027-01-01" and ("mail_stored" = "1" or ("mail_location" is not null and "mail_location" <> "0")) and '
+		$this->assertSame($ids === [] ? null : [self::fields() . ' where `id` in (' . implode(', ', array_fill(0, count($ids), '?')) . ') order by `id` desc', $ids], $this->db->selects[1] ?? null);
+		$this->assertSame(['info select `id` from `mail_logs` where `created_day` >= "2026-12-01" and `created_day` < "2027-01-01" and (`mail_stored` = "1" or (`mail_location` is not null and `mail_location` <> "0")) and '
 			. str_replace('(?)', '("alice@example.org")', self::OWN)], $this->log->lines);
 	}
 
@@ -464,12 +464,12 @@ final class MailLogLookupTest extends UnitTestCase
 		$this->mails = [['day' => '2026-11-26', 'cnt' => 3]];
 		$days = self::alice()->getPaginatedQuarantine('/q', 2);
 		$this->assertSame([1, 7, 2, '/q'], [$days->total(), $days->perPage(), $days->currentPage(), $days->path()]);
-		$query = 'select created_day as day, COUNT(*) as cnt from "mail_logs" where "mail_stored" = ? and ' . self::OWN . ' group by day';
+		$query = 'select created_day as day, COUNT(*) as cnt from `mail_logs` where `mail_stored` = ? and ' . self::OWN . ' group by day';
 		$this->assertSame([
-			['select count(*) as aggregate from (' . $query . ') as "aggregate_table"', [1, self::ALICE]],
-			[$query . ' order by "day" desc limit 7 offset 7', [1, self::ALICE]],
+			['select count(*) as aggregate from (' . $query . ') as `aggregate_table`', [1, self::ALICE]],
+			[$query . ' order by `day` desc limit 7 offset 7', [1, self::ALICE]],
 		], $this->db->selects);
-		$this->assertSame(['info ' . str_replace(['= ?', '(?)'], ['= "1"', '("alice@example.org")'], $query) . ' order by "day" desc limit 30'], $this->log->lines);
+		$this->assertSame(['info ' . str_replace(['= ?', '(?)'], ['= "1"', '("alice@example.org")'], $query) . ' order by `day` desc limit 30'], $this->log->lines);
 	}
 
 	public function testPaginatedQuarantineDefaultPage(): void {
@@ -486,9 +486,9 @@ final class MailLogLookupTest extends UnitTestCase
 			[[['month' => '2026-09', 'cnt' => 1]], 3, 2, 2, '/q/months'],
 			[array_map(fn (MailLog $m): array => $m->getAttributes(), $months->items()), $months->total(), $months->perPage(), $months->currentPage(), $months->path()]
 		);
-		$query = "select DATE_FORMAT(created_day, '%Y-%m') AS month, COUNT(*) as cnt from \"mail_logs\" where (\"mail_stored\" = ? or (\"mail_location\" is not null and \"mail_location\" <> ?)) and " . self::OWN . ' group by month order by "month" desc';
+		$query = "select DATE_FORMAT(created_day, '%Y-%m') AS month, COUNT(*) as cnt from `mail_logs` where (`mail_stored` = ? or (`mail_location` is not null and `mail_location` <> ?)) and " . self::OWN . ' group by month order by `month` desc';
 		$this->assertSame([[$query, [1, '0', self::ALICE]]], $this->db->selects);
-		$this->assertSame(['info ' . str_replace(['"mail_stored" = ?', '<> ?', '(?)'], ['"mail_stored" = "1"', '<> "0"', '("alice@example.org")'], $query)], $this->log->lines);
+		$this->assertSame(['info ' . str_replace(['`mail_stored` = ?', '<> ?', '(?)'], ['`mail_stored` = "1"', '<> "0"', '("alice@example.org")'], $query)], $this->log->lines);
 	}
 
 	public function testPaginatedQuarantinePerMonthFirstPage(): void {

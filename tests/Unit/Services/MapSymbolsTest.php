@@ -77,7 +77,7 @@ final class MapSymbolsTest extends UnitTestCase
 				'mail_from_whitelist' => ['RQWATCH_FROM'],
 				'url_hosts' => ['RQWATCH_URL', 'RQWATCH_URL2'],
 			], MapService::mapSymbols());
-			$this->assertSame([['select "symbols", "map_name" from "custom_map_config" where "symbols" is not null', []]], $db->selects);
+			$this->assertSame([['select `symbols`, `map_name` from `custom_map_config` where `symbols` is not null', []]], $db->selects);
 			$this->assertSame([], $this->log->lines);
 		} finally {
 			Model::unsetConnectionResolver();

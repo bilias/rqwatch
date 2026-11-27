@@ -42,7 +42,7 @@ use Tests\Unit\UnitTestCase;
 
 final class MailLogSymbolsReportTest extends UnitTestCase
 {
-	private const string OWN = 'exists (select 1 from "mail_log_recipients" as "r" where "r"."mail_log_id" = "mail_logs"."id" and "r"."recipient_email" in (?))';
+	private const string OWN = 'exists (select 1 from `mail_log_recipients` as `r` where `r`.`mail_log_id` = `mail_logs`.`id` and `r`.`recipient_email` in (?))';
 	private const string CELLS = 'SELECT {name} AS name, ml.action, COUNT(*) AS mails, SUM(COALESCE(jt.score, 0) <> 0) AS scored, SUM(COALESCE(jt.score, 0)) AS score FROM ';
 	private const string WINDOWS = 'COUNT(DISTINCT IF(v.created_day = CURDATE(), v.mail_log_id, NULL)) AS today, COUNT(DISTINCT IF(v.created_day = CURDATE() - INTERVAL 1 DAY, v.mail_log_id, NULL)) AS yesterday, '
 		. 'COUNT(DISTINCT IF(v.created_day >= CURDATE() - INTERVAL 6 DAY, v.mail_log_id, NULL)) AS week, COUNT(DISTINCT IF(v.created_day >= CURDATE() - INTERVAL 30 DAY, v.mail_log_id, NULL)) AS month';
@@ -171,7 +171,7 @@ final class MailLogSymbolsReportTest extends UnitTestCase
 			],
 			self::alice()->getSymbolsReport([['filter' => 'Subject', 'choice' => 'contains', 'value' => 'x']], true, 'score', 10)
 		);
-		$ids = 'select "id" from "mail_logs" where "subject" LIKE ? and ' . self::OWN . ' order by "id" desc limit 500';
+		$ids = 'select `id` from `mail_logs` where `subject` LIKE ? and ' . self::OWN . ' order by `id` desc limit 500';
 		$this->assertSame([
 			["SELECT COUNT(*) AS n FROM ({$ids}) ids", ['%x%', 'alice@example.org']],
 			[
@@ -185,7 +185,7 @@ final class MailLogSymbolsReportTest extends UnitTestCase
 	// no filters: the last 7 days by the database's date; only the recorded symbols
 	public function testLocalSymbolsOfTheWeek(): void {
 		$this->assertSame([12, [], [], '2026-11-20'], self::admin()->getSymbolsReport([], false, 'score', 10, true));
-		$ids = 'select "id" from "mail_logs" where "created_day" >= ? order by "id" desc limit 500';
+		$ids = 'select `id` from `mail_logs` where `created_day` >= ? order by `id` desc limit 500';
 		$this->assertSame([
 			['SELECT CURDATE() - INTERVAL 6 DAY AS d', []],
 			["SELECT COUNT(*) AS n FROM ({$ids}) ids", ['2026-11-20']],
@@ -236,7 +236,7 @@ final class MailLogSymbolsReportTest extends UnitTestCase
 		);
 		$this->assertSame([[
 			"select RIGHT(v.av, 5) = '_FAIL' AS fail, IF(v.name = '', v.av, v.name) AS virus, GROUP_CONCAT(DISTINCT v.av ORDER BY v.av SEPARATOR ', ') AS engines, " . self::WINDOWS
-				. ' from "mail_log_viruses" as "v" where v.created_day >= CURDATE() - INTERVAL 30 DAY group by "fail", "virus"',
+				. ' from `mail_log_viruses` as `v` where v.created_day >= CURDATE() - INTERVAL 30 DAY group by `fail`, `virus`',
 			[],
 		]], $this->db->selects);
 	}
@@ -262,8 +262,8 @@ final class MailLogSymbolsReportTest extends UnitTestCase
 		return [
 			'an admin, no filters' => [$admin, [], '', []],
 			'an admin, only a date' => [$admin, [$date], '', []],
-			'an admin, a filter' => [$admin, [$date, $subject], ' and "v"."mail_log_id" in (select "id" from "mail_logs" where "subject" LIKE ?)', ['%x%']],
-			'a user' => [['is_admin' => false, 'email' => 'alice@example.org'], [], ' and "v"."mail_log_id" in (select "id" from "mail_logs" where ' . self::OWN . ')', ['alice@example.org']],
+			'an admin, a filter' => [$admin, [$date, $subject], ' and `v`.`mail_log_id` in (select `id` from `mail_logs` where `subject` LIKE ?)', ['%x%']],
+			'a user' => [['is_admin' => false, 'email' => 'alice@example.org'], [], ' and `v`.`mail_log_id` in (select `id` from `mail_logs` where ' . self::OWN . ')', ['alice@example.org']],
 		];
 	}
 
@@ -276,8 +276,8 @@ final class MailLogSymbolsReportTest extends UnitTestCase
 	public function testVirusScope(array $context, array $filters, string $scope, array $bindings): void {
 		(new MailLogService($context))->getVirusReport($filters, 10);
 		(new MailLogService($context))->getVirusMailIds($filters, 'Eicar', 'today', false);
-		$this->assertSame([$scope, $bindings], [substr($this->db->selects[0][0], (int) strrpos($this->db->selects[0][0], ' INTERVAL 30 DAY') + 16, -strlen(' group by "fail", "virus"')), $this->db->selects[0][1]]);
-		$this->assertSame([$scope, ['Eicar', '', 'Eicar', ...$bindings]], [substr($this->db->selects[1][0], (int) strpos($this->db->selects[1][0], "'_FAIL'") + 7, -strlen(' order by "v"."mail_log_id" desc limit 500')), $this->db->selects[1][1]]);
+		$this->assertSame([$scope, $bindings], [substr($this->db->selects[0][0], (int) strrpos($this->db->selects[0][0], ' INTERVAL 30 DAY') + 16, -strlen(' group by `fail`, `virus`')), $this->db->selects[0][1]]);
+		$this->assertSame([$scope, ['Eicar', '', 'Eicar', ...$bindings]], [substr($this->db->selects[1][0], (int) strpos($this->db->selects[1][0], "'_FAIL'") + 7, -strlen(' order by `v`.`mail_log_id` desc limit 500')), $this->db->selects[1][1]]);
 	}
 
 	/** @return array<string, array{string, bool, string, string}> window, failures, its condition, the kind */
@@ -295,8 +295,8 @@ final class MailLogSymbolsReportTest extends UnitTestCase
 		$this->cells = [['mail_log_id' => 9], ['mail_log_id' => '7']];
 		$this->assertSame([9, 7], self::admin()->getVirusMailIds([], 'Eicar', $window, $fail));
 		$this->assertSame([[
-			'select distinct "v"."mail_log_id" from "mail_log_viruses" as "v" where ("v"."name" = ? or ("v"."name" = ? and "v"."av" = ?))'
-				. " and v.created_day {$condition} and RIGHT(v.av, 5) {$kind} '_FAIL' order by \"v\".\"mail_log_id\" desc limit 500",
+			'select distinct `v`.`mail_log_id` from `mail_log_viruses` as `v` where (`v`.`name` = ? or (`v`.`name` = ? and `v`.`av` = ?))'
+				. " and v.created_day {$condition} and RIGHT(v.av, 5) {$kind} '_FAIL' order by `v`.`mail_log_id` desc limit 500",
 			['Eicar', '', 'Eicar'],
 		]], $this->db->selects);
 	}

@@ -42,8 +42,8 @@ use Tests\Unit\UnitTestCase;
 
 final class UserServiceLogicTest extends UnitTestCase
 {
-	private const string HOLDERS = 'select "id", "disable_notifications" from "users" where "email" = ?'
-		. ' or "id" in (select "user_id" from "mail_aliases" where "alias" = ?)';
+	private const string HOLDERS = 'select `id`, `disable_notifications` from `users` where `email` = ?'
+		. ' or `id` in (select `user_id` from `mail_aliases` where `alias` = ?)';
 	private const string NOT_MIGRATED = 'warning user_notifications_default is off but migration'
 		. ' 20261005_user_notifications_default is not completed, notifying by default';
 
@@ -240,7 +240,7 @@ final class UserServiceLogicTest extends UnitTestCase
 	public function testUserExists(int $exists, bool $expected): void {
 		$this->db->answer = static fn (): array => [['exists' => $exists]];
 		$this->assertSame($expected, (new UserService())->userExists(' Alice '));
-		$this->assertSame([['select exists(select * from "users" where "username" = ?) as "exists"', ['alice']]], $this->db->selects);
+		$this->assertSame([['select exists(select * from `users` where `username` = ?) as `exists`', ['alice']]], $this->db->selects);
 	}
 
 	public function testNoSessionsEndedBeforeTheMigration(): void {

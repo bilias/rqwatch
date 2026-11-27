@@ -10,12 +10,13 @@
 
 /*
  A database for the unit tests that runs nothing: the query builder builds
- its statements as usual. Each INSERTed row is recorded by table; the id
- of a mail_logs row is 100 plus its number, and a mail_logs row of a qid
- in $failInsert throws instead. Each SELECT is recorded with its bindings
- and answered by $answer, with no rows without one. Each UPDATE and DELETE
- is recorded with its bindings, in order, and reports the rows $affect
- gives, none without one. The Capsule is set as
+ its statements as usual, with the MySQL grammar production uses. Each
+ INSERTed row is recorded by table, an INSERT IGNORE reporting them all
+ inserted; the id of a mail_logs row is 100 plus its number, and a
+ mail_logs row of a qid in $failInsert throws instead. Each SELECT is
+ recorded with its bindings and answered by $answer, with no rows without
+ one. Each UPDATE and DELETE is recorded with its bindings, in order, and
+ reports the rows $affect gives, none without one. The Capsule is set as
  global (the static Capsule::connection() reads it); forget() puts that
  back. Eloquent models need $capsule->bootEloquent() too, which a test
  undoes with Model::unsetConnectionResolver().
@@ -26,6 +27,7 @@ namespace Tests\Unit;
 use Closure;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Connection;
+use Illuminate\Database\MySqlConnection;
 use LogicException;
 use PDO;
 use PHPUnit\Framework\MockObject\Stub;
@@ -55,14 +57,15 @@ final class RecordingDatabase
 	public ?Closure $affect = null;
 
 	public function __construct(PDO&Stub $pdo) {
-		$pdo->method('lastInsertId')->willReturnCallback(fn (): string => (string) (100 + count($this->rows['mail_logs'] ?? [])));
-		$connection = new class ($pdo, $this->record(...), $this->query(...), $this->change(...)) extends Connection {
+		$lastId = fn (): int => 100 + count($this->rows['mail_logs'] ?? []);
+		$connection = new class ($pdo, $this->record(...), $this->query(...), $this->change(...), $lastId) extends MySqlConnection {
 			/**
-			 * @param Closure(string, array<array-key, mixed>): void $record
+			 * @param Closure(string, array<array-key, mixed>): int $record
 			 * @param Closure(string, array<array-key, mixed>): list<object> $query
 			 * @param Closure(string, array<array-key, mixed>): int $change
+			 * @param Closure(): int $lastId
 			 */
-			public function __construct(PDO $pdo, private Closure $record, private Closure $query, private Closure $change) {
+			public function __construct(PDO $pdo, private Closure $record, private Closure $query, private Closure $change, private Closure $lastId) {
 				parent::__construct($pdo);
 			}
 
@@ -82,10 +85,12 @@ final class RecordingDatabase
 			 * the statement the query builder made, recorded and not run
 			 * @param string $query
 			 * @param array<array-key, mixed> $bindings
+			 * @param string|null $sequence unused
 			 */
 			#[\Override]
-			public function insert($query, $bindings = []): bool {
+			public function insert($query, $bindings = [], $sequence = null): bool {
 				($this->record)($query, $bindings);
+				$this->lastInsertId = ($this->lastId)();
 				return true;
 			}
 
@@ -96,6 +101,9 @@ final class RecordingDatabase
 			 */
 			#[\Override]
 			public function affectingStatement($query, $bindings = []): int {
+				if (str_starts_with($query, 'insert ignore ')) {
+					return ($this->record)($query, $bindings);
+				}
 				return ($this->change)($query, $bindings);
 			}
 		};
@@ -133,13 +141,17 @@ final class RecordingDatabase
 		return $this->affect === null ? 0 : ($this->affect)($sql, $bindings);
 	}
 
-	/** @param array<array-key, mixed> $bindings */
-	private function record(string $sql, array $bindings): void {
-		if (preg_match('/^insert into "(\w+)" \(([^)]*)\) values /D', $sql, $match) !== 1) {
+	/**
+	 * @param array<array-key, mixed> $bindings
+	 * @return int the rows inserted
+	 */
+	private function record(string $sql, array $bindings): int {
+		if (preg_match('/^insert (?:ignore )?into `(\w+)` \(([^)]*)\) values /D', $sql, $match) !== 1) {
 			throw new LogicException("Not an INSERT: {$sql}");
 		}
-		$columns = array_map(fn (string $column): string => trim($column, '"'), explode(', ', $match[2]));
-		foreach (array_chunk(array_values($bindings), count($columns)) as $values) {
+		$columns = array_map(fn (string $column): string => trim($column, '`'), explode(', ', $match[2]));
+		$chunks = array_chunk(array_values($bindings), count($columns));
+		foreach ($chunks as $values) {
 			$row = array_combine($columns, $values);
 			/** @var mixed $qid */
 			$qid = $row['qid'] ?? null;
@@ -148,5 +160,6 @@ final class RecordingDatabase
 			}
 			$this->rows[$match[1]][] = $row;
 		}
+		return count($chunks);
 	}
 }

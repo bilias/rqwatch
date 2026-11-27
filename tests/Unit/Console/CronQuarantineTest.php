@@ -64,13 +64,13 @@ final class CronQuarantineTest extends UnitTestCase
 		$this->db->capsule->bootEloquent();
 		$this->db->affect = fn (): int => 1;
 		$this->db->answer = function (string $sql, array $bindings): array {
-			if (str_starts_with($sql, 'select "mail_location" from "mail_logs"')) {
+			if (str_starts_with($sql, 'select `mail_location` from `mail_logs`')) {
 				/** @var mixed $like */
 				$like = $bindings[0] ?? null;
 				$day = is_string($like) ? trim($like, '%/') : '';
 				return array_map(fn (?string $location): array => ['mail_location' => $location], $this->locations[$day] ?? throw new RuntimeException("Lost connection reading {$day}"));
 			}
-			return str_contains($sql, 'from "mail_logs"') ? $this->quarantined : [];
+			return str_contains($sql, 'from `mail_logs`') ? $this->quarantined : [];
 		};
 		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, $this->db->capsule, new MigrationStatus(null, $this->log), null, false));
 		$this->dir = sys_get_temp_dir() . '/rqwatch-cqd-' . bin2hex(random_bytes(4));
@@ -138,7 +138,7 @@ final class CronQuarantineTest extends UnitTestCase
 	}
 
 	private static function quarantineQuery(): string {
-		return 'select "' . implode('", "', MailLog::SELECT_FIELDS) . '" from "mail_logs" where "mail_stored" = ? and "created_day" < ?';
+		return 'select `' . implode('`, `', MailLog::SELECT_FIELDS) . '` from `mail_logs` where `mail_stored` = ? and `created_day` < ?';
 	}
 
 	public function testAlreadyRunning(): void {
@@ -175,7 +175,7 @@ final class CronQuarantineTest extends UnitTestCase
 		$this->assertSame(self::daysAgo(30), substr($cutoff, 0, 10));
 		$this->assertSame("No entries found in quarantine before {$cutoff} on server: mx1\n", $display);
 		$this->assertSame(["debug cron:quarantine No entries found in quarantine before {$cutoff}  on server: mx1"], $this->log->lines);
-		$this->assertSame([[self::quarantineQuery() . ' and "server" = ?', [1, self::daysAgo(30), 'mx1']]], $this->db->selects);
+		$this->assertSame([[self::quarantineQuery() . ' and `server` = ?', [1, self::daysAgo(30), 'mx1']]], $this->db->selects);
 	}
 
 	public function testNoLocation(): void {
@@ -233,7 +233,7 @@ final class CronQuarantineTest extends UnitTestCase
 			. "Setting mail_stored to 0 on 1 entries\n",
 		], [$status, $display]);
 		$this->assertFalse(is_dir($q1));
-		$this->assertSame([['update "mail_logs" set "mail_stored" = ?, "mail_logs"."updated_at" = ? where "id" in (?)', 1]], array_map(fn (array $change): array => [$change[0], count($change[1]) - 2], $this->db->changes));
+		$this->assertSame([['update `mail_logs` set `mail_stored` = ?, `mail_logs`.`updated_at` = ? where `id` in (?)', 1]], array_map(fn (array $change): array => [$change[0], count($change[1]) - 2], $this->db->changes));
 	}
 
 	/** @return list<string> the date directories and mail directories left under the quarantine */
@@ -276,7 +276,7 @@ final class CronQuarantineTest extends UnitTestCase
 		);
 		$this->assertSame([self::daysAgo(500), self::daysAgo(450), $old, "{$old}/Q1", "{$old}/Q3-0abc", self::daysAgo(366), self::daysAgo(366) . '/Q4', 'elsewhere', 'elsewhere/Q6', 'not-a-date', 'not-a-date/Q5'], $this->left());
 		$this->assertTrue(is_file("{$kept}/mail.eml"));
-		$this->assertSame(['select "mail_location" from "mail_logs" where "mail_location" like ?', ["%/{$old}/%"]], $this->db->selects[1] ?? null);
+		$this->assertSame(['select `mail_location` from `mail_logs` where `mail_location` like ?', ["%/{$old}/%"]], $this->db->selects[1] ?? null);
 		$this->assertCount(2, $this->db->selects);
 		$this->assertSame([
 			"info cron:quarantine removed unreferenced quarantine directory {$q}/{$old}/Q2",

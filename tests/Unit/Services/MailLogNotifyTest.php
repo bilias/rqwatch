@@ -235,7 +235,7 @@ final class MailLogNotifyTest extends UnitTestCase
 		}
 		$this->assertCount(1, $this->db->changes);
 		[$sql, $bindings] = $this->db->changes[0];
-		$this->assertSame(['update "mail_logs" set "released" = ?, "release_date" = ?, "mail_logs"."updated_at" = ? where "id" = ?', 1, 7], [$sql, $bindings[0], $bindings[3]]);
+		$this->assertSame(['update `mail_logs` set `released` = ?, `release_date` = ?, `mail_logs`.`updated_at` = ? where `id` = ?', 1, 7], [$sql, $bindings[0], $bindings[3]]);
 		$this->assertDated($bindings, 1, 2);
 		$this->assertSame([], $this->log->lines);
 	}
@@ -305,7 +305,7 @@ final class MailLogNotifyTest extends UnitTestCase
 		$this->assertStringNotContainsString('alice@example.org', $mails[1][3]);
 		$this->assertSame([['detail', ['type' => 'id', 'value' => 7], UrlGeneratorInterface::ABSOLUTE_URL]], $this->links);
 		[$sql, $bindings] = $this->db->changes[0];
-		$this->assertSame(['update "mail_logs" set "notified" = ?, "notify_date" = ?, "mail_logs"."updated_at" = ? where "mail_logs"."id" = ?', 1, 7], [$sql, $bindings[0], $bindings[3]]);
+		$this->assertSame(['update `mail_logs` set `notified` = ?, `notify_date` = ?, `mail_logs`.`updated_at` = ? where `mail_logs`.`id` = ?', 1, 7], [$sql, $bindings[0], $bindings[3]]);
 		$this->assertDated($bindings, 1, 2);
 		$this->assertCount(1, $this->db->changes);
 		$this->assertSame([], $this->log->lines);
@@ -386,7 +386,7 @@ final class MailLogNotifyTest extends UnitTestCase
 		}
 		$this->assertSame([['detail', ['type' => 'id', 'value' => 7], UrlGeneratorInterface::ABSOLUTE_URL]], $this->links);
 		[$sql, $bindings] = $this->db->changes[0];
-		$this->assertSame(['update "mail_logs" set "admin_notified" = ?, "admin_notify_date" = ?, "mail_logs"."updated_at" = ? where "mail_logs"."id" = ?', 1, 7], [$sql, $bindings[0], $bindings[3]]);
+		$this->assertSame(['update `mail_logs` set `admin_notified` = ?, `admin_notify_date` = ?, `mail_logs`.`updated_at` = ? where `mail_logs`.`id` = ?', 1, 7], [$sql, $bindings[0], $bindings[3]]);
 		$this->assertDated($bindings, 1, 2);
 		$this->assertCount(1, $this->db->changes);
 	}
@@ -429,9 +429,9 @@ final class MailLogNotifyTest extends UnitTestCase
 		$this->assertSame(1002, (new MailLogService())->markNotificationsSkipped($ids));
 		$this->assertCount(2, $this->db->changes);
 		[$sql, $bindings] = $this->db->changes[0];
-		$this->assertSame(['update "mail_logs" set "notified" = ?, "mail_logs"."updated_at" = ? where "id" in (' . implode(', ', array_fill(0, 1000, '?')) . ') and "notified" = ?', null, range(1, 1000), 0],
+		$this->assertSame(['update `mail_logs` set `notified` = ?, `mail_logs`.`updated_at` = ? where `id` in (' . implode(', ', array_fill(0, 1000, '?')) . ') and `notified` = ?', null, range(1, 1000), 0],
 			[$sql, $bindings[0], array_slice($bindings, 2, 1000), $bindings[1002]]);
-		$this->assertSame(['update "mail_logs" set "notified" = ?, "mail_logs"."updated_at" = ? where "id" in (?, ?) and "notified" = ?', [null, 1001, 1002, 0]],
+		$this->assertSame(['update `mail_logs` set `notified` = ?, `mail_logs`.`updated_at` = ? where `id` in (?, ?) and `notified` = ?', [null, 1001, 1002, 0]],
 			[$this->db->changes[1][0], [$this->db->changes[1][1][0], ...array_slice($this->db->changes[1][1], 2)]]);
 	}
 
@@ -439,7 +439,7 @@ final class MailLogNotifyTest extends UnitTestCase
 	public function testMarkAdminSkipped(): void {
 		$this->assertSame(1, (new MailLogService())->markNotificationsSkipped([3], 'admin_notified'));
 		[$sql, $bindings] = $this->db->changes[0];
-		$this->assertSame(['update "mail_logs" set "admin_notified" = ?, "admin_notify_date" = ?, "mail_logs"."updated_at" = ? where "id" in (?) and "admin_notified" = ?', null, 3, 0],
+		$this->assertSame(['update `mail_logs` set `admin_notified` = ?, `admin_notify_date` = ?, `mail_logs`.`updated_at` = ? where `id` in (?) and `admin_notified` = ?', null, 3, 0],
 			[$sql, $bindings[0], $bindings[3], $bindings[4]]);
 		$this->assertDated($bindings, 1, 2);
 	}
@@ -502,21 +502,21 @@ final class MailLogNotifyTest extends UnitTestCase
 	}
 
 	private static function fields(): string {
-		return 'select "' . implode('", "', MailLog::SELECT_FIELDS) . '" from "mail_logs"';
+		return 'select `' . implode('`, `', MailLog::SELECT_FIELDS) . '` from `mail_logs`';
 	}
 
 	public function testUnnotified(): void {
 		Config::set('notification_days', 7);
-		$this->db->answer = fn (string $sql): array => str_contains($sql, 'from "mail_logs"') ? [['id' => 7, 'qid' => 'Q7']] : [];
+		$this->db->answer = fn (string $sql): array => str_contains($sql, 'from `mail_logs`') ? [['id' => 7, 'qid' => 'Q7']] : [];
 		$mails = self::admin()->getUnnotified(null, 'mx2');
 		$this->assertSame([7], $mails->pluck('id')->all());
-		$this->assertSame([self::fields() . ' where "notification_pending" = ? and "created_day" >= ? and "server" = ?', [1, self::daysAgo(7), 'mx2']], $this->db->selects[0]);
+		$this->assertSame([self::fields() . ' where `notification_pending` = ? and `created_day` >= ? and `server` = ?', [1, self::daysAgo(7), 'mx2']], $this->db->selects[0]);
 	}
 
 	// in the user's scope, every server, no day limit
 	public function testUnnotifiedAll(): void {
 		(new MailLogService(['is_admin' => false, 'email' => 'alice@example.org']))->getUnnotified();
-		$this->assertSame([self::fields() . ' where "notification_pending" = ? and exists (select 1 from "mail_log_recipients" as "r" where "r"."mail_log_id" = "mail_logs"."id" and "r"."recipient_email" in (?))', [1, 'alice@example.org']], $this->db->selects[0]);
+		$this->assertSame([self::fields() . ' where `notification_pending` = ? and exists (select 1 from `mail_log_recipients` as `r` where `r`.`mail_log_id` = `mail_logs`.`id` and `r`.`recipient_email` in (?))', [1, 'alice@example.org']], $this->db->selects[0]);
 	}
 
 	public function testUnnotifiedDebug(): void {
@@ -527,17 +527,17 @@ final class MailLogNotifyTest extends UnitTestCase
 		$service->getUnnotified($output);
 		$quiet = new BufferedOutput(OutputInterface::VERBOSITY_NORMAL);
 		$service->getUnnotified($quiet);
-		$sql = self::fields() . ' where "notification_pending" = "1"';
+		$sql = self::fields() . ' where `notification_pending` = "1"';
 		$this->assertSame([["info {$sql}"], "{$sql}\n", ''], [$this->log->lines, $output->fetch(), $quiet->fetch()]);
 	}
 
 	public function testAdminUnnotified(): void {
 		Config::set('admin_notification_days', 2);
-		$this->db->answer = fn (string $sql): array => str_contains($sql, 'from "mail_logs"') ? [['id' => 7, 'qid' => 'Q7']] : [];
+		$this->db->answer = fn (string $sql): array => str_contains($sql, 'from `mail_logs`') ? [['id' => 7, 'qid' => 'Q7']] : [];
 		$this->assertSame([7], self::admin()->getAdminUnnotified('mx2')->pluck('id')->all());
-		$this->assertSame([self::fields() . ' where "admin_notified" = ? and "created_day" >= ? and "server" = ? order by "id" asc', [0, self::daysAgo(2), 'mx2']], $this->db->selects[0]);
+		$this->assertSame([self::fields() . ' where `admin_notified` = ? and `created_day` >= ? and `server` = ? order by `id` asc', [0, self::daysAgo(2), 'mx2']], $this->db->selects[0]);
 		self::admin()->getAdminUnnotified();
-		$this->assertSame([self::fields() . ' where "admin_notified" = ? and "created_day" >= ? order by "id" asc', [0, self::daysAgo(2)]], array_values(array_filter($this->db->selects, fn (array $select): bool => str_contains($select[0], 'from "mail_logs"')))[1] ?? null);
+		$this->assertSame([self::fields() . ' where `admin_notified` = ? and `created_day` >= ? order by `id` asc', [0, self::daysAgo(2)]], array_values(array_filter($this->db->selects, fn (array $select): bool => str_contains($select[0], 'from `mail_logs`')))[1] ?? null);
 	}
 
 	// recipients with notifications off are dropped from the mail (a list again), listed in disabled_rcpt_to

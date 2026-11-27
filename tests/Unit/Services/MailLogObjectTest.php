@@ -77,8 +77,8 @@ final class MailLogObjectTest extends UnitTestCase
 		$this->db = new RecordingDatabase($this->createStub(PDO::class));
 		$this->db->capsule->bootEloquent();
 		$this->db->answer = fn (string $sql): array => match (true) {
-			str_contains($sql, 'from "mail_logs"') => $this->mail === null ? [] : [$this->mail],
-			str_contains($sql, 'from "mail_log_data"') => [['mail_log_id' => 7, 'symbols' => null, 'headers' => null]],
+			str_contains($sql, 'from `mail_logs`') => $this->mail === null ? [] : [$this->mail],
+			str_contains($sql, 'from `mail_log_data`') => [['mail_log_id' => 7, 'symbols' => null, 'headers' => null]],
 			default => [],
 		};
 		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, $this->db->capsule, new MigrationStatus(null, $this->log), null, false));

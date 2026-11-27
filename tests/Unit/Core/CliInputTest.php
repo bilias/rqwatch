@@ -143,7 +143,7 @@ final class CliInputTest extends UnitTestCase
 		$db = new RecordingDatabase($this->createStub(PDO::class));
 		try {
 			$query = $db->capsule->getConnection()->table('mail_logs')->where('qid', 'Q1')->where('size', '>', 100);
-			$this->assertSame('select * from "mail_logs" where "qid" = "Q1" and "size" > "100"', RqwatchCliCommand::getSqlFromQuery($query));
+			$this->assertSame('select * from `mail_logs` where `qid` = "Q1" and `size` > "100"', RqwatchCliCommand::getSqlFromQuery($query));
 		} finally {
 			RecordingDatabase::forget();
 		}
