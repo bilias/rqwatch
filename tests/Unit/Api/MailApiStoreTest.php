@@ -11,10 +11,10 @@
 /*
  The release and get-mail APIs past their checks, on RecordingDatabase,
  MailerService's transport seam recording the mail sent. Release: a mail
- not found is a 400 "Message not found"; no mailer is a 503 "Mail release
+ not found is a 422 "Message not found"; no mailer is a 503 "Mail release
  not configured"; the stored mail released to the addresses given (trimmed)
  is "Message Released", logged with who asked and the addresses; a release
- that fails is a 500. Get: a mail not found is a 400 "Message not found";
+ that fails is a 500. Get: a mail not found is a 422 "Message not found";
  one whose file is not a file under QUARANTINE_DIR a 400 "File not found";
  else the file is the answer, logged.
 */
@@ -139,7 +139,7 @@ final class MailApiStoreTest extends ApiTestCase
 
 	public function testReleaseNotFound(): void {
 		$this->mails = [];
-		$this->assertAnswer(400, 'Message not found', $this->release());
+		$this->assertAnswer(422, 'Message not found', $this->release());
 		$this->assertContains('warning [ReleaseMailApi] alice@example.org via 192.0.2.7 requested release of mail with id 7 which does not exist', $this->log->lines);
 	}
 
@@ -167,7 +167,7 @@ final class MailApiStoreTest extends ApiTestCase
 
 	public function testGetNotFound(): void {
 		$this->mails = [];
-		$this->assertAnswer(400, 'Message not found', $this->get());
+		$this->assertAnswer(422, 'Message not found', $this->get());
 		$line = 'warning [GetMailApi] alice@example.org via 192.0.2.7 requested mail with id 7 which does not exist';
 		$this->assertSame([$line, $line], array_slice($this->log->lines, -2));
 	}

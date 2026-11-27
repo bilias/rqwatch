@@ -58,9 +58,17 @@ final class ReleaseMailApi extends RqwatchApi
 				Response::HTTP_BAD_REQUEST, $response_msg,
 				$err_msg, 'critical');
 		}
-		// digits only: intval() would read "5abc" as 5; 0 is not found below
+		// digits only: intval() would read "5abc" as 5
 		$id_param = $fields['id'];
 		$id = ctype_digit($id_param) ? (int) $id_param : 0;
+
+		if ($id <= 0) {
+			$err_msg = "{$remote_user} via {$this->clientIp} requested mail release with invalid mail id '{$id_param}'";
+			$response_msg = "Missing Required info";
+			$this->dropLogResponse(
+				Response::HTTP_BAD_REQUEST, $response_msg,
+				$err_msg, 'critical');
+		}
 
 		if (!array_key_exists('email', $post)) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested mail release of mail with id {$id} without a destination email";
@@ -101,8 +109,9 @@ final class ReleaseMailApi extends RqwatchApi
 		} catch (InvalidArgumentException $e) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested release of mail with id {$id} which does not exist";
 			$response_msg = "Message not found";
+			// not 404: the caller could not tell it from a missing API path
 			$this->dropLogResponse(
-				Response::HTTP_BAD_REQUEST, $response_msg,
+				Response::HTTP_UNPROCESSABLE_ENTITY, $response_msg,
 				$err_msg, 'warning');
 		}
 		

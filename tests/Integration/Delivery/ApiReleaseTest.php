@@ -55,13 +55,13 @@ final class ApiReleaseTest extends IntegrationTestCase
 		$this->assertNotReleased(9403);
 	}
 
-	#[TestDox('Release of a mail that does not exist: refused (400), nothing sent')]
+	#[TestDox('Release of a mail that does not exist: refused (422), nothing sent')]
 	public function testReleaseOfMissingMailIsRefused(): void {
 		$count = self::mailCount();
 		// MAX(id) of the INT UNSIGNED column is an int; COALESCE() with a signed 0 made it a DECIMAL
 		$id = self::valueInt('SELECT MAX(id) FROM mail_logs') + 1000;
 
-		$this->assertSame([400, 'Message not found'], self::release($id, [self::address('release')]));
+		$this->assertSame([422, 'Message not found'], self::release($id, [self::address('release')]));
 		$this->assertSame($count, self::mailCount(), 'mail sent');
 	}
 
@@ -89,8 +89,7 @@ final class ApiReleaseTest extends IntegrationTestCase
 			'user as an array' => ['remote_user' => ['integration-test'], 'id' => '9405', 'email' => [$rcpt]],
 		];
 		foreach ($cases as $case => $fields) {
-			$expected = $case === 'id with trailing text' ? [400, 'Message not found'] : [400, 'Missing Required info'];
-			$this->assertSame($expected, self::mailApi('release_mail.php', $fields), $case);
+			$this->assertSame([400, 'Missing Required info'], self::mailApi('release_mail.php', $fields), $case);
 		}
 		$this->assertSame($count, self::mailCount(), 'mail sent');
 		$this->assertNotReleased(9405);

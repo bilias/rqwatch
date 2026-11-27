@@ -67,8 +67,9 @@ final class GetMailApi extends RqwatchApi
 		} catch (InvalidArgumentException $e) {
 			$err_msg = "{$remote_user} via {$this->clientIp} requested mail with id {$id} which does not exist";
 			$response_msg = "Message not found";
+			// not 404: the caller could not tell it from a missing API path
 			$this->dropLogResponse(
-				Response::HTTP_BAD_REQUEST, $response_msg,
+				Response::HTTP_UNPROCESSABLE_ENTITY, $response_msg,
 				$err_msg, 'warning');
 		}
 

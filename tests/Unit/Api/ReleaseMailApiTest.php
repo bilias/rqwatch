@@ -12,7 +12,7 @@
  The release API's own checks, before it looks the mail up, each refused
  400 with a critical log line: the calling user (it may be empty: a web
  user without an e-mail) and the mail id as single values, the mail id
- present, and a list of valid destination addresses (blanks around one
+ present and of 1 or more in digits, and a list of valid destination addresses (blanks around one
  allowed). Looking the mail up and releasing it need the database and a
  mailer: the integration tests cover those.
 */
@@ -60,6 +60,18 @@ final class ReleaseMailApiTest extends ApiTestCase
 			'alice via 192.0.2.7 requested mail release without a mail id');
 	}
 
+	// digits only: intval() would read "5abc" as 5
+	/** @return array<string, array{string}> */
+	public static function badIds(): array {
+		return ['trailing text' => ['5abc'], 'zero' => ['0'], 'negative' => ['-5'], 'empty' => ['']];
+	}
+
+	#[DataProvider('badIds')]
+	public function testBadId(string $id): void {
+		$this->refused(['remote_user' => 'alice', 'id' => $id, 'email' => ['a@example.org']], 'Missing Required info',
+			"alice via 192.0.2.7 requested mail release with invalid mail id '{$id}'");
+	}
+
 	// an empty calling user passes: a web user without an e-mail
 	public function testNoDestination(): void {
 		$this->refused(['remote_user' => '', 'id' => '5'], 'Missing Required info',
@@ -91,12 +103,6 @@ final class ReleaseMailApiTest extends ApiTestCase
 	public function testInvalidAddress(array $email): void {
 		$this->refused(['remote_user' => 'alice', 'id' => '5', 'email' => $email], 'Invalid destination email',
 			'alice via 192.0.2.7 requested mail release of mail with id 5 with an invalid destination email');
-	}
-
-	// digits only: "5abc" is no id (0), not 5
-	public function testIdDigitsOnly(): void {
-		$this->refused(['remote_user' => 'alice', 'id' => '5abc', 'email' => []], 'Missing Required info',
-			'alice via 192.0.2.7 requested mail release of mail with id 0 with a non-array destination email');
 	}
 
 	// past every check, to the lookup: no database here
