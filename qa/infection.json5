@@ -244,7 +244,9 @@
 				"App\\Controllers\\QuarantineController::sessionToken::327",
 				"App\\Core\\SessionManager::checkSessionExpired::182",
 				// 1 byte is "1B" in either branch
-				"App\\Utils\\Helper::formatSizeUnits::505"
+				"App\\Utils\\Helper::formatSizeUnits::505",
+				// no rows without a location leave the loop empty either way
+				"App\\Console\\CronQuarantine::cleanOldMail::124"
 			]
 		},
 		"GreaterThanNegotiation": {
@@ -550,7 +552,9 @@
 				// only the keys of $seen are read
 				"App\\Services\\MailLogService::getSymbolsReport::868",
 				// table names are no numeric strings: == matches as === does
-				"App\\Console\\OptimizeTable::execute::63"
+				"App\\Console\\OptimizeTable::execute::63",
+				// only the keys of $named are read (isset() of false is true too)
+				"App\\Console\\CronQuarantine::namedMailDirs::282"
 			]
 		},
 		"UnwrapFinally": {
