@@ -142,7 +142,7 @@ final class LoginController extends ViewController
 		if (Helper::env_bool('OPENIDC_AUTH_ENABLED') &&
 			 $this->request->query->get('openidc_session_active') === '1') {
 
-			$this->flashbag->add('warning', "You are logged out, but your '" . (Helper::env_string('OPENIDC_LABEL') ?? 'OpenID Connect') . "' session is still active. Close your browser to delete the session or click the link bellow.");
+			$this->flashbag->add('warning', "You are logged out, but your '" . (Helper::env_string('OPENIDC_LABEL') ?? 'OpenID Connect') . "' session is still active. Close your browser to delete the session or click the link below.");
 			$auth = new AuthManager($this->fileLogger);
 			$this->session->set(
 				'openidc_logout_url',
