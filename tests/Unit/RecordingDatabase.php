@@ -10,7 +10,8 @@
 
 /*
  A database for the unit tests that runs nothing: the query builder builds
- its statements as usual, with the MySQL grammar production uses. Each
+ its statements as usual, with the MySQL grammar production uses, on a
+ MariaDB 10.11 as the server (the grammar asks for some SQL). Each
  INSERTed row is recorded by table, an INSERT IGNORE reporting them all
  inserted; the id of a mail_logs row is 100 plus its number, and a
  mail_logs row of a qid in $failInsert throws instead. Each SELECT is
@@ -56,7 +57,11 @@ final class RecordingDatabase
 	/** @var (Closure(string, list<mixed>): int)|null the rows an UPDATE or DELETE changes */
 	public ?Closure $affect = null;
 
+	// as MariaDB reports itself over the MySQL protocol
+	public const string SERVER_VERSION = '5.5.5-10.11.6-MariaDB';
+
 	public function __construct(PDO&Stub $pdo) {
+		$pdo->method('getAttribute')->willReturnCallback(fn (int $attribute): ?string => $attribute === PDO::ATTR_SERVER_VERSION ? self::SERVER_VERSION : null);
 		$lastId = fn (): int => 100 + count($this->rows['mail_logs'] ?? []);
 		$connection = new class ($pdo, $this->record(...), $this->query(...), $this->change(...), $lastId) extends MySqlConnection {
 			/**
