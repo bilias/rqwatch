@@ -161,7 +161,7 @@ final class CronQuarantineTest extends UnitTestCase
 		$this->assertGreaterThanOrEqual($before, $cutoff);
 		$this->assertLessThanOrEqual($after, $cutoff);
 		$this->assertSame([Command::SUCCESS, "No entries found in quarantine before {$cutoff}\n"], [$status, $display]);
-		$this->assertSame(["debug cron:quarantine No entries found in quarantine before {$cutoff} "], $this->log->lines);
+		$this->assertSame(["debug cron:quarantine No entries found in quarantine before {$cutoff}"], $this->log->lines);
 		$this->assertSame([[self::quarantineQuery(), [1, self::daysAgo(366)]]], $this->db->selects);
 		// the runtime, very verbosely
 		$this->assertMatchesRegularExpression('/\nExecution time: [^\n]+\n$/D', self::cron([], OutputInterface::VERBOSITY_VERY_VERBOSE)[1]);
@@ -174,7 +174,7 @@ final class CronQuarantineTest extends UnitTestCase
 		$cutoff = $this->cutoff($display);
 		$this->assertSame(self::daysAgo(30), substr($cutoff, 0, 10));
 		$this->assertSame("No entries found in quarantine before {$cutoff} on server: mx1\n", $display);
-		$this->assertSame(["debug cron:quarantine No entries found in quarantine before {$cutoff}  on server: mx1"], $this->log->lines);
+		$this->assertSame(["debug cron:quarantine No entries found in quarantine before {$cutoff} on server: mx1"], $this->log->lines);
 		$this->assertSame([[self::quarantineQuery() . ' and `server` = ?', [1, self::daysAgo(30), 'mx1']]], $this->db->selects);
 	}
 

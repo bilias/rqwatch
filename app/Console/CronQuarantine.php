@@ -108,7 +108,7 @@ final class CronQuarantine extends RqwatchCliCommand
 		if (($count = count($logs)) < 1) {
 			$output->writeln("<info>No entries found in quarantine before {$qtime}{$local}</info>",
 				OutputInterface::VERBOSITY_VERBOSE);
-			$this->fileLogger->debug("{$this->app_name} No entries found in quarantine before {$qtime} {$local}");
+			$this->fileLogger->debug("{$this->app_name} No entries found in quarantine before {$qtime}{$local}");
 			return;
 		} else {
 			$output->writeln("<info>{$count} entries found in quarantine before {$qtime}{$local}</info>",
