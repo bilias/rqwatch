@@ -144,7 +144,7 @@ final class ViewControllerTest extends UnitTestCase
 			'FOOTER_VERSION' => AppConfig::APP_NAME,
 			'WEB_BASE' => '',
 			'NOTIFICATION_SCORE' => 1000,
-			'OPENIDC_LABEL' => 'Login with OpenID Connect',
+			'OPENIDC_LABEL' => 'OpenID Connect',
 		], array_intersect_key($globals, array_flip(['APP_NAME', 'APP_INFO', 'APP_LOGO_PATH', 'APP_LOGO_ALT', 'FOOTER_NAME', 'FOOTER_URL', 'FOOTER_VERSION', 'WEB_BASE', 'NOTIFICATION_SCORE', 'OPENIDC_LABEL'])));
 	}
 
