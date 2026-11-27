@@ -290,13 +290,35 @@ final class UserControllerTest extends ControllerTestCase
 		$this->assertStringContainsString('`session_version` = `session_version` + 1', $this->db->changes[1][0] ?? '');
 	}
 
+	// trimmed, as the login does
 	public function testEditPassword(): void {
-		[$response] = $this->postUser('edit', ['username' => 'bob', 'email' => 'bob@example.org', 'password' => ['first' => 'n3w-pass', 'second' => 'n3w-pass']]);
+		[$response] = $this->postUser('edit', ['username' => 'bob', 'email' => 'bob@example.org', 'password' => ['first' => ' n3w-pass ', 'second' => ' n3w-pass ']]);
 		$this->assertRedirect($this->url(RouteName::ADMIN_USERS), $response);
 		$update = $this->db->changes[0] ?? null;
 		$this->assertNotNull($update);
 		$this->assertStringContainsString('`password` = ?', $update[0]);
+		$this->assertTrue(password_verify('n3w-pass', self::hashIn($update[1])));
 		$this->assertCount(2, $this->db->changes);
+	}
+
+	// blanks only are no new password, as an empty field is
+	public function testEditBlankPassword(): void {
+		[$response, $request] = $this->postUser('edit', ['username' => 'bob', 'email' => 'bob@example.org', 'password' => ['first' => '        ', 'second' => '        ']]);
+		$this->assertRedirect($this->url(RouteName::ADMIN_USERS), $response);
+		$this->assertSame(['success' => ["User 'bob' updated"]], self::flashes($request));
+		$this->assertCount(1, $this->db->changes);
+		$this->assertStringNotContainsString('`password`', $this->db->changes[0][0] ?? '');
+	}
+
+	/** @param list<mixed> $bindings */
+	private static function hashIn(array $bindings): string {
+		/** @var mixed $binding */
+		foreach ($bindings as $binding) {
+			if (is_string($binding) && password_get_info($binding)['algo'] !== null) {
+				return $binding;
+			}
+		}
+		self::fail('no password hash bound');
 	}
 
 	public function testEditNothingKeptChanged(): void {
@@ -398,11 +420,13 @@ final class UserControllerTest extends ControllerTestCase
 		$this->assertStringNotContainsString('password', $this->db->changes[0][0] ?? '');
 	}
 
+	// both trimmed, as the login does
 	public function testProfilePassword(): void {
-		[$response, $request] = $this->postProfile(['current_password' => 'old-pass', 'password' => ['first' => 'n3w-pass', 'second' => 'n3w-pass']]);
+		[$response, $request] = $this->postProfile(['current_password' => ' old-pass ', 'password' => ['first' => ' n3w-pass ', 'second' => ' n3w-pass ']]);
 		$this->assertRedirect($this->url(RouteName::DAY_LOGS), $response);
 		$this->assertSame(['success' => ['Profile updated']], self::flashes($request));
 		$this->assertStringContainsString('`password` = ?', $this->db->changes[0][0] ?? '');
+		$this->assertTrue(password_verify('n3w-pass', self::hashIn($this->db->changes[0][1] ?? [])));
 		$this->assertStringContainsString('`session_version` = `session_version` + 1', $this->db->changes[1][0] ?? '');
 		// this session is kept: the version read back
 		$this->assertSame(5, $request->getSession()->get('session_version'));

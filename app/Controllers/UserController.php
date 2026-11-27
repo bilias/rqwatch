@@ -311,10 +311,11 @@ final class UserController extends ViewController
 			$pass_changed = false;
 			$newHash = null;
 			if ($user->auth_provider === 0) {
-				$newPassword = FormHelper::optionalText($profileform->get('password')->getData(), 'password');
-				if ($newPassword !== null && $newPassword !== '') {
+				// trimmed, as the login does
+				$newPassword = trim(FormHelper::optionalText($profileform->get('password')->getData(), 'password') ?? '');
+				if ($newPassword !== '') {
 					// a new password requires the current one
-					$current = FormHelper::optionalText($profileform->get('current_password')->getData(), 'current_password') ?? '';
+					$current = trim(FormHelper::optionalText($profileform->get('current_password')->getData(), 'current_password') ?? '');
 					// one column: no model needed; a missing hash fails the check, as '' always did
 					/** @var mixed $stored */
 					$stored = User::whereKey($user->id)->toBase()->value('password');
@@ -530,8 +531,9 @@ final class UserController extends ViewController
 				$this->flashbag->add('error', "Username '{$username}' already exists.");
 			} else {
 				$newHash = null;
-				$newPassword = FormHelper::optionalText($userform->get('password')->getData(), 'password');
-				if ($newPassword !== null && $newPassword !== '') {
+				// trimmed, as the login does
+				$newPassword = trim(FormHelper::optionalText($userform->get('password')->getData(), 'password') ?? '');
+				if ($newPassword !== '') {
 					$newHash = Helper::passwordHash($newPassword);
 				}
 				// a null hash leaves the password as it is ("Password not changed")
