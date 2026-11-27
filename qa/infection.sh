@@ -46,7 +46,8 @@ ln -s "${ROOT}/.git" .git
 # Infection itself holds every file's mutants: a full run outgrows a 128M
 # php.ini default. The mutants' test runs are separate processes, under php.ini
 status=0
-"${PHP}" -d memory_limit="${INFECTION_MEMORY_LIMIT:-1G}" vendor/bin/infection -c qa/infection.json5 --threads=max \
+"${PHP}" -d memory_limit="${INFECTION_MEMORY_LIMIT:-1G}" vendor/bin/infection -c qa/infection.json5 \
+	--threads=max --dots-per-row=max \
 	--logger-html="${OUT}/infection.html" --logger-text="${OUT}/infection.log" \
 	--logger-json="${OUT}/infection.json" "${opts[@]}" "$@" || status=$?
 echo "Infection reports: ${OUT}"
