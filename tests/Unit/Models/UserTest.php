@@ -11,7 +11,8 @@
 /*
  User: session_version reads as an int whether the driver returns the
  column as an int or as its digits, and as null before the migration adds
- the column.
+ the column. An email is kept trimmed and lower case, however it is set;
+ none stays none.
 */
 
 namespace Tests\Unit\Models;
@@ -26,6 +27,17 @@ final class UserTest extends UnitTestCase
 	public function testSessionVersionInt(): void {
 		$this->assertSame(3, (new User())->setRawAttributes(['id' => 1, 'session_version' => 3])->session_version);
 		$this->assertSame(3, (new User())->setRawAttributes(['id' => 1, 'session_version' => '3'])->session_version);
+	}
+
+	#[TestDox('an email is kept trimmed and lower case')]
+	public function testEmailNormalized(): void {
+		$user = new User();
+		$user->email = ' Alice@Example.ORG ';
+		$this->assertSame('alice@example.org', $user->getAttributes()['email'] ?? null);
+		$this->assertSame('bob@example.org', (new User())->fill(['email' => "Bob@Example.org\t"])->getAttributes()['email'] ?? null);
+		$user->email = null;
+		$this->assertArrayHasKey('email', $user->getAttributes());
+		$this->assertNull($user->getAttributes()['email']);
 	}
 
 	#[TestDox('session_version is null when NULL or not selected')]

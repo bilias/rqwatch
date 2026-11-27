@@ -11,7 +11,8 @@
 /*
  DbAuth's lookup on RecordingDatabase: the user is looked up by username,
  and the password checked against the stored hash. The login gives the
- user's name, e-mail, admin flag and id as stored. A wrong password, an
+ user's name, admin flag and id as stored, the e-mail trimmed and lower
+ case (one saved before may have capitals), or none. A wrong password, an
  unknown user, and an external account (EXTERNAL_AUTH, no hash) are
  refused, and give no user.
 */
@@ -62,6 +63,19 @@ final class DbAuthTest extends UnitTestCase
 		$this->assertTrue($auth->authenticate());
 		$this->assertSame(['Alice', 'alice@example.org', true, 7], [$auth->getAuthenticatedUser(), $auth->getEmail(), $auth->getIsAdmin(), $auth->getId()]);
 		$this->assertSame([['select `id`, `username`, `password`, `email`, `is_admin` from `users` where `username` = ? limit 1', ['Alice']]], $this->db->selects);
+	}
+
+	/** @return array<string, array{?string, ?string}> the stored e-mail, the one given */
+	public static function emails(): array {
+		return ['capitals and spaces' => [' Alice@Example.ORG ', 'alice@example.org'], 'none' => [null, null]];
+	}
+
+	#[DataProvider('emails')]
+	public function testLoginEmail(?string $stored, ?string $email): void {
+		$this->users = [['email' => $stored] + self::user(password_hash('secret', PASSWORD_BCRYPT, ['cost' => 4]))];
+		$auth = new DbAuth('Alice', 'secret');
+		$this->assertTrue($auth->authenticate());
+		$this->assertSame($email, $auth->getEmail());
 	}
 
 	/** @return array<string, array{?string, string}> the stored password (null: no such user), the one given */

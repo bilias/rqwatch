@@ -446,7 +446,8 @@
 				"App\\Models\\MailLog::getHeadersAttribute::436",
 				"App\\Models\\MailLog::getSymbolsAttribute::446",
 				"App\\Models\\MailLog::getFuzzyHashesAttribute::456",
-				"App\\Models\\User::setDisableNotificationsAttribute::78",
+				"App\\Models\\User::setEmailAttribute::78",
+				"App\\Models\\User::setDisableNotificationsAttribute::85",
 				"App\\Configuration\\Config::loadAndInit::154",
 				"App\\Utils\\Helper::checkForMap::259",
 				"App\\Utils\\Helper::convertSRSAddress::450"

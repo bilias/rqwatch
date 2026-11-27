@@ -20,8 +20,8 @@
  once) in the maps a user may manage are deleted, logged, those maps
  marked changed; the rest of their entries move to the acting user,
  logged; then the user goes. A failure is logged, the user kept. A user
- added is stored with its username trimmed and lower case; a failure is
- logged. DEBUG_SEARCH_SQL logs each query.
+ added is stored with its username and email trimmed and lower case; a
+ failure is logged. DEBUG_SEARCH_SQL logs each query.
 */
 
 namespace Tests\Unit\Services;
@@ -276,9 +276,9 @@ final class UserServiceAccountsTest extends UnitTestCase
 		$this->assertSame(["error userDel error: delete of 'alice' by 'admin' failed: server has gone away"], $this->log->lines);
 	}
 
-	// stored with its username trimmed and lower case, the password as given
+	// stored with its username and email trimmed and lower case, the password as given
 	public function testUserAdd(): void {
-		$this->assertTrue((new UserService())->userAdd(['username' => ' Bob ', 'password' => 'EXTERNAL_AUTH', 'email' => 'bob@example.org', 'disable_notifications' => null]));
+		$this->assertTrue((new UserService())->userAdd(['username' => ' Bob ', 'password' => 'EXTERNAL_AUTH', 'email' => ' Bob@Example.org', 'disable_notifications' => null]));
 		$row = $this->db->rows('users')[0] ?? [];
 		$this->assertSame(['bob', 'EXTERNAL_AUTH', 'bob@example.org', 0], [$row['username'] ?? null, $row['password'] ?? null, $row['email'] ?? null, $row['disable_notifications'] ?? null]);
 		$this->assertSame([], $this->log->lines);

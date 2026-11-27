@@ -75,7 +75,8 @@ final class DbAuth implements AuthInterface {
 		}
 
 		$this->authenticatedUser = $user->username;
-		$this->email = $user->email;
+		// trimmed and lower case, as saving it now gives it: a user saved before may have capitals
+		$this->email = $user->email === null ? null : strtolower(trim($user->email));
 		$this->is_admin = $user->is_admin;
 		$this->user_id = $user->id;
 		return true; // AUTH OK

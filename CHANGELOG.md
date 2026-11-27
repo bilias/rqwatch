@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-11-27
+- Users' email addresses are stored and used in lower case; existing addresses are normalized when the user is next saved or logs in
 - Fix: users whose stored email had capitals could not add or edit map entries for their own address
 - LDAP: a server failure is no failed login
 - LDAP: .env LDAP_TIMEOUT (5 seconds by default)

@@ -72,6 +72,13 @@ final class User extends Model
 		'auth_provider',
 	];
 
+	// trimmed and lower case, as LDAP and OIDC logins give it and map entries
+	// compare it, whichever form, command or login saves it
+	/** @param string|null $value */
+	public function setEmailAttribute($value): void {
+		$this->attributes['email'] = $value === null ? null : strtolower(trim($value));
+	}
+
 	// NULL follows user_notifications_default. Until its migration is
 	// completed the column is NOT NULL, and 0 means the same thing.
 	/** @param bool|null $value from the profile/user forms and user:add */
