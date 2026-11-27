@@ -13,11 +13,13 @@
  its statements as usual, with the MySQL grammar production uses, on a
  MariaDB 10.11 as the server (the grammar asks for some SQL). Each
  INSERTed row is recorded by table, an INSERT IGNORE reporting them all
- inserted; the id of a mail_logs row is 100 plus its number, and a
- mail_logs row of a qid in $failInsert throws instead. Each SELECT is
+ inserted; the id of a mail_logs row is 100 plus its number, and a row
+ of a qid in $failInsert (in any table), or any row of a table in
+ $failInsertInto, throws instead. Each SELECT is
  recorded with its bindings and answered by $answer, with no rows without
  one. Each UPDATE and DELETE is recorded with its bindings, in order, and
- reports the rows $affect gives, none without one. The Capsule is set as
+ reports the rows $affect gives, none without one. Bindings must be a
+ list, as PDO binds them by key: a gap or a name throws. The Capsule is set as
  global (the static Capsule::connection() reads it); forget() puts that
  back. Eloquent models need $capsule->bootEloquent() too, which a test
  undoes with Model::unsetConnectionResolver().
@@ -42,8 +44,11 @@ final class RecordingDatabase
 	/** @var array<string, list<array<string, mixed>>> the rows inserted, by table */
 	public array $rows = [];
 
-	/** @var array<string, Throwable> qid => what its mail_logs insert throws */
+	/** @var array<string, Throwable> qid => what an insert of a row with it throws */
 	public array $failInsert = [];
+
+	/** @var array<string, Throwable> table => what an insert into it throws */
+	public array $failInsertInto = [];
 
 	/** @var list<array{string, list<mixed>}> each SELECT run: its SQL and bindings */
 	public array $selects = [];
@@ -129,11 +134,24 @@ final class RecordingDatabase
 	}
 
 	/**
+	 * Connection::bindValues() binds a key n as placeholder n + 1, a name as
+	 * a named parameter: anything but a list leaves a ? unbound
+	 * @param array<array-key, mixed> $bindings
+	 * @return list<mixed>
+	 */
+	private static function bindings(string $sql, array $bindings): array {
+		if (!array_is_list($bindings)) {
+			throw new LogicException("Bindings not a list: {$sql}");
+		}
+		return $bindings;
+	}
+
+	/**
 	 * @param array<array-key, mixed> $bindings
 	 * @return list<object>
 	 */
 	private function query(string $sql, array $bindings): array {
-		$bindings = array_values($bindings);
+		$bindings = self::bindings($sql, $bindings);
 		$this->selects[] = [$sql, $bindings];
 		$rows = $this->answer === null ? [] : ($this->answer)($sql, $bindings);
 		return array_map(fn (array $row): object => (object) $row, $rows);
@@ -141,7 +159,7 @@ final class RecordingDatabase
 
 	/** @param array<array-key, mixed> $bindings */
 	private function change(string $sql, array $bindings): int {
-		$bindings = array_values($bindings);
+		$bindings = self::bindings($sql, $bindings);
 		$this->changes[] = [$sql, $bindings];
 		return $this->affect === null ? 0 : ($this->affect)($sql, $bindings);
 	}
@@ -154,13 +172,16 @@ final class RecordingDatabase
 		if (preg_match('/^insert (?:ignore )?into `(\w+)` \(([^)]*)\) values /D', $sql, $match) !== 1) {
 			throw new LogicException("Not an INSERT: {$sql}");
 		}
+		if (isset($this->failInsertInto[$match[1]])) {
+			throw $this->failInsertInto[$match[1]];
+		}
 		$columns = array_map(fn (string $column): string => trim($column, '`'), explode(', ', $match[2]));
-		$chunks = array_chunk(array_values($bindings), count($columns));
+		$chunks = array_chunk(self::bindings($sql, $bindings), count($columns));
 		foreach ($chunks as $values) {
 			$row = array_combine($columns, $values);
 			/** @var mixed $qid */
 			$qid = $row['qid'] ?? null;
-			if ($match[1] === 'mail_logs' && is_string($qid) && isset($this->failInsert[$qid])) {
+			if (is_string($qid) && isset($this->failInsert[$qid])) {
 				throw $this->failInsert[$qid];
 			}
 			$this->rows[$match[1]][] = $row;

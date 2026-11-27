@@ -19,6 +19,14 @@
 			"ignore": [
 				// the query selects its own columns: paginate()'s are only a default, and its count ignores them
 				"App\\Services\\MapService::getPaginatedMapCustom::536",
+				"App\\Services\\MapService::searchPaginatedMapCombined::398",
+				"App\\Services\\MapService::getPaginatedAllMapCombined::430",
+				"App\\Services\\MapService::searchPaginatedMapCustom::466",
+				"App\\Services\\MapService::getPaginatedAllMapCustom::487",
+				"App\\Services\\MapService::getPaginatedCustomMapConfigs::509",
+				"App\\Services\\MapService::getPaginatedMapCombined::562",
+				// the loop sets every id's counts again: the defaults only reach an empty result
+				"App\\Services\\MapHitService::entryHits::511",
 				"App\\Services\\MailLogService::getPaginatedQuarantine::1398",
 				// Symfony's HttpClient verifies the peer by default too
 				"App\\Services\\ApiClient::__construct::35",
@@ -185,7 +193,11 @@
 				"App\\Services\\MapHitService::inPrefix::373",
 				// implode() ignores the keys array_fill() starts at
 				"App\\Services\\FuzzyService::recordHits::475",
+				"App\\Services\\FuzzyService::sharedWith::411",
+				"App\\Services\\FuzzyService::orphanedSlotHolders::538",
 				"App\\Services\\MapHitService::mapHitsSource::830",
+				// the loop sets every id's counts again: the defaults only reach an empty result
+				"App\\Services\\MapHitService::entryHits::511",
 				// -1 is refused as 0 is, and the message names neither
 				"App\\Api\\FuzzyMailApi::handle::53",
 				"App\\Api\\FuzzyMailApi::handle::55",
@@ -219,6 +231,7 @@
 				// -1 is below 1 as 0 is: no limit, or the default
 				"App\\Services\\MailLogService::notificationCutoff::2229",
 				"App\\Services\\MailLogService::adminNotificationCutoff::2241",
+				"App\\Services\\MapService::userMapQuotaReached::176",
 				// page 0 is page 1: paginate() and the paginator take a falsy page as the current one (1, with no resolver set), and forPage() starts at offset 0
 				"App\\Services\\MailLogService::getPaginatedDay::1293",
 				"App\\Services\\MailLogService::getPaginatedQuarantineDay::1317",
@@ -226,6 +239,7 @@
 				"App\\Services\\MailLogService::getPaginatedQuarantinePerMonth::1403",
 				"App\\Services\\MailAliasService::getPaginatedAll::147",
 				"App\\Services\\MailAliasService::searchPaginatedAll::169",
+				"App\\Services\\UserService::getPaginatedAll::135",
 				// RedisCache::ttl() gives null for a key without expiry (-1) or gone (-2), never below 0
 				"App\\Controllers\\Controller::getRedisConfigTTLData::324"
 			]
@@ -276,7 +290,11 @@
 				"App\\Services\\MapHitService::longestPrefix::344",
 				// implode() ignores the keys array_fill() starts at
 				"App\\Services\\FuzzyService::recordHits::475",
+				"App\\Services\\FuzzyService::sharedWith::411",
+				"App\\Services\\FuzzyService::orphanedSlotHolders::538",
 				"App\\Services\\MapHitService::mapHitsSource::830",
+				// the loop sets every id's counts again: the defaults only reach an empty result
+				"App\\Services\\MapHitService::entryHits::511",
 				"App\\Controllers\\QuarantineController::sessionToken::323",
 				// 9 zero bytes differ from 8 only in the reserved ::/64
 				"App\\Core\\Auth\\LoginThrottle::keyFor::290",
@@ -419,6 +437,7 @@
 				"App\\Services\\MapService::getMapCombinedBasicQuery::120",
 				"App\\Services\\MapService::getMapCustomQuery::152",
 				"App\\Services\\MailLogService::getSqlFromQuery::103",
+				"App\\Services\\UserService::getSqlFromQuery::66",
 				"App\\Services\\MailAliasService::getSqlFromQuery::48",
 				"App\\Models\\MailLog::getMimeFromDecodedAttribute::200",
 				"App\\Models\\MailLog::getVirusFromSymbolAttribute::190",
@@ -449,14 +468,20 @@
 				"App\\Services\\MapHitService::combinedEntries::258",
 				"App\\Services\\MapHitService::customEntries::295",
 				"App\\Services\\MapHitService::symbolIds::883",
+				"App\\Services\\MapHitService::entryHits::523",
 				// an insert adds no condition: the lookup after it clones the same query
 				"App\\Services\\MapHitService::symbolIds::882",
 				// distinct() is all the lookup leaves on the query (pluck() puts the columns back), and a DELETE has no DISTINCT
-				"App\\Services\\MailAliasService::aliasDel::112"
+				"App\\Services\\MailAliasService::aliasDel::112",
+				"App\\Services\\UserService::reassignMapEntries::347",
+				// get() leaves the query as it was: the columns put back, no scopes to apply
+				"App\\Services\\FuzzyService::purgeExpired::194"
 			]
 		},
 		"ReturnRemoval": {
 			"ignore": [
+				// an empty pattern ('' or '0') leaves no line either: false all the same, logged once
+				"App\\Services\\MapService::addMapCustomEntry::1029",
 				// LoginThrottle's listBlocked() and listCounters() give [] for no cache, clearIp() false
 				"App\\Services\\UserService::getLoginThrottles::414",
 				"App\\Services\\UserService::clearLoginThrottle::435",
@@ -578,7 +603,14 @@
 				// table names are no numeric strings: == matches as === does
 				"App\\Console\\OptimizeTable::execute::63",
 				// only the keys of $named are read (isset() of false is true too)
-				"App\\Console\\CronQuarantine::namedMailDirs::282"
+				"App\\Console\\CronQuarantine::namedMailDirs::282",
+				// only the keys of $hashes are read
+				"App\\Services\\FuzzyService::sharedWith::399",
+				// an address (or null) against a non-empty address, no numeric string: in_array() matches loosely as strictly
+				"App\\Services\\MapService::addMapCombinedEntry::891",
+				"App\\Services\\MapService::updateMapCombinedEntry::967",
+				// flags are ints both sides (the cast and Row::int()): in_array() matches loosely as strictly
+				"App\\Services\\FuzzyService::orphanedSlotHolders::551"
 			]
 		},
 		"UnwrapFinally": {
@@ -590,8 +622,15 @@
 			"ignore": ["App\\Configuration\\Config::loadConfigFile::149"]
 		},
 		"UnwrapArrayFilter": {
-			// an empty whitelist entry only matches an empty client IP, which is never throttled
-			"ignore": ["App\\Core\\Auth\\LoginThrottle::__construct::80"]
+			"ignore": [
+				// an empty whitelist entry only matches an empty client IP, which is never throttled
+				"App\\Core\\Auth\\LoginThrottle::__construct::80",
+				// http_build_query() leaves a null out of the page's url
+				"App\\Services\\FuzzyService::getLearnedPaginated::245",
+				// rcpt_to is never empty here: an empty address kept never matches it
+				"App\\Services\\MapService::addMapCombinedEntry::890",
+				"App\\Services\\MapService::updateMapCombinedEntry::966"
+			]
 		},
 		"UnwrapStrToLower": {
 			// mailparse gives the content type lowercased, without parameters
@@ -604,7 +643,10 @@
 				// mailparse gives the content type lowercased, without parameters
 				"App\\Inventory\\MailObject::embedImages::100",
 				// the message starts with "error:" and ends with a quote: nothing to trim
-				"App\\Core\\Auth\\LdapAuth::getError::292"
+				"App\\Core\\Auth\\LdapAuth::getError::292",
+				// each line is trimmed, and blank lines dropped, after
+				"App\\Services\\MapService::mapEntryExists::586",
+				"App\\Services\\MapService::addMapCustomEntry::1050"
 			]
 		},
 		"UnwrapArrayValues": {
@@ -630,7 +672,23 @@
 				"App\\Services\\MailLogService::filterDisabledRecipients::2276",
 				// pluck() gives the ids as a list already
 				"App\\Services\\FuzzyService::recordHits::471",
+				"App\\Services\\FuzzyService::getHitMailIds::497",
 				"App\\Services\\MapHitService::combinedEntries::251",
+				"App\\Services\\MapHitService::entryHitMailIds::542",
+				"App\\Services\\MapHitService::symbolHitMailIds::795",
+				// array_column() gives the ids as a list already
+				"App\\Services\\MapHitService::mapHitMailIds::711",
+				// array_fill_keys(), whereIn() and the loop read the ids only
+				"App\\Services\\MapHitService::entryHits::510",
+				// whereIn() and whereNotIn() bind the values in order, whatever their keys
+				"App\\Services\\UserService::reassignMapEntries::332",
+				"App\\Services\\MapHitService::unmappedHits::662",
+				"App\\Services\\MapHitService::existingSymbolIds::862",
+				// deleteHashes() sends the hashes as a list; implode() and the [] check ignore the keys
+				"App\\Services\\FuzzyService::learnLocal::358",
+				"App\\Services\\FuzzyService::unlearnLocal::566",
+				// array_merge() renumbers the bindings; implode() and count() ignore the keys
+				"App\\Services\\FuzzyService::orphanedSlotHolders::528",
 				// the entries are only iterated, never read by key
 				"App\\Services\\MapHitService::optionEntries::231",
 				// pluck() gives the map names as a list already, and updateMapActivityLogs() only iterates them
@@ -706,6 +764,21 @@
 			// a key's second form is the first without its ":<check>:<+|->", so has as many
 			// "|" parts: when the first is skipped, so is the second
 			"ignore": ["App\\Services\\MapHitService::combinedEntries::245"]
+		},
+		"CastBool": {
+			// the user was found, so delete() gives true
+			"ignore": ["App\\Services\\UserService::userDel::396"]
+		},
+		"ArrayOneItem": {
+			// with no ids the result is empty
+			"ignore": ["App\\Services\\MapHitService::entryHits::513"]
+		},
+		"UnwrapArrayUnique": {
+			// in_array() finds an address listed once as one listed twice
+			"ignore": [
+				"App\\Services\\MapService::addMapCombinedEntry::890",
+				"App\\Services\\MapService::updateMapCombinedEntry::966"
+			]
 		}
 	}
 }
