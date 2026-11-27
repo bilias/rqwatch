@@ -27,6 +27,7 @@ use App\Services\UserService;
 use Illuminate\Database\Capsule\Manager as DB;
 
 use App\Core\Auth\AuthManager;
+use App\Core\Auth\AuthUnavailableException;
 use Jumbojett\OpenIDConnectClientException;
 use App\Utils\FormHelper;
 use App\Core\Database\Row;
@@ -199,7 +200,17 @@ final class LoginController extends ViewController
 
 			$auth = new AuthManager($this->fileLogger);
 
-			if (!$auth->authenticate($username, $password)) {
+			try {
+				$authenticated = $auth->authenticate($username, $password);
+			} catch (AuthUnavailableException) {
+				// the server's fault, not the user's: not a failed login for the throttle
+				$auth_provider = $auth->getAuthProvider();
+				$this->fileLogger->warning("($auth_provider) Login service unavailable for user: '{$username}' via IP:{$client_ip}");
+				$this->flashbag->add('error', 'The login service is unavailable. Please try again later.');
+				return new RedirectResponse($this->getLoginUrl());
+			}
+
+			if (!$authenticated) {
 				$auth_provider = $auth->getAuthProvider();
 				$this->fileLogger->warning("($auth_provider) Login failed for user: '{$username}' via IP:{$client_ip}");
 

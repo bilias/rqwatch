@@ -3,6 +3,7 @@
 ## Master Dev Branch
 
 ### 2026-11-27
+- LDAP: a server failure is no failed login
 - LDAP: .env LDAP_TIMEOUT (5 seconds by default)
 - OpenIDConnectAuth: Client through an OidcClient
 - LdapAuth: LDAP calls through an LdapDirectory

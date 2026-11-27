@@ -22,7 +22,10 @@
  the mail. Several mail values are refused when LDAP_MAIL_ATTR_MULTIVALUE
  is false. A blank surname or given name falls back to its *_FALLBACK
  attribute. Each failure on the way is logged, with the directory's error
- and diagnostic where it has one, and refuses the login. AuthManager
+ and diagnostic where it has one. The server's before the user is found
+ (no connection, an option refused, the service's bind, the search) leave
+ the login unchecked: AuthUnavailableException. Any other refuses it, as
+ not found does, so no answer tells which usernames exist. AuthManager
  logs in here with LDAP_AUTH_ENABLED and a username with @, else in the
  database, and keeps an LDAP login, not a refused one.
 */
@@ -31,6 +34,7 @@ namespace Tests\Unit\Auth;
 
 use App\Core\Auth\LDAP\LdapDirectory;
 use App\Core\Auth\AuthManager;
+use App\Core\Auth\AuthUnavailableException;
 use App\Core\Auth\LdapAuth;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionProperty;
@@ -125,6 +129,15 @@ final class LdapLoginTest extends UnitTestCase
 		$refused = new AuthManager($this->log);
 		$this->assertFalse($refused->authenticate('alice@example.org', 'wrong'));
 		$this->assertNull($refused->getAuthenticatedUser());
+		// the server down: no login kept either, and the caller is told
+		$this->directory->binds = [false];
+		$down = new AuthManager($this->log);
+		try {
+			$down->authenticate('alice@example.org', 'user-secret');
+			$this->fail('no exception');
+		} catch (AuthUnavailableException) {
+		}
+		$this->assertSame(['LDAP', null], [$down->getAuthProvider(), $down->getAuthenticatedUser()]);
 	}
 
 	/** @return array<string, array{?string, string}> LDAP_AUTH_ENABLED, the username */
@@ -262,43 +275,53 @@ final class LdapLoginTest extends UnitTestCase
 		$this->assertTrue((new LdapAuth('alice', 'user-secret', $this->log))->authenticate());
 	}
 
-	/** @return array<string, array{\Closure(FakeLdapDirectory): mixed, int, string}> the directory's answer, the calls made, what is logged */
+	/** @return array<string, array{\Closure(FakeLdapDirectory): mixed, int, string, bool}> the directory's answer, the calls made, what is logged, the server to blame */
 	public static function failures(): array {
 		$error = "error: 'Invalid credentials'. diag: '80090308: LdapErr: DSID-0C09044E'";
 		return [
-			'no protocol version 3' => [fn (FakeLdapDirectory $d) => $d->refused = [LDAP_OPT_PROTOCOL_VERSION], 1, 'error ldap_set_option(LDAP_OPT_PROTOCOL_VERSION) failed'],
-			'no connect timeout' => [fn (FakeLdapDirectory $d) => $d->refused = [LDAP_OPT_NETWORK_TIMEOUT], 2, 'error ldap_set_option(LDAP_OPT_NETWORK_TIMEOUT) failed'],
-			'no answer timeout' => [fn (FakeLdapDirectory $d) => $d->refused = [LDAP_OPT_TIMEOUT], 3, 'error ldap_set_option(LDAP_OPT_TIMEOUT) failed'],
-			'the service refused' => [fn (FakeLdapDirectory $d) => $d->binds = [false], 4, "error ldap_bind failed: {$error}. Check LDAP_BIND_DN and LDAP_BIND_PASS"],
-			'search failed' => [fn (FakeLdapDirectory $d) => $d->found = false, 5, "error ldap_search failed: {$error}"],
-			'count failed' => [fn (FakeLdapDirectory $d) => $d->count = -1, 6, "error ldap_count_entries failed: {$error}"],
-			'not found' => [fn (FakeLdapDirectory $d) => $d->count = 0, 6, "warning User 'alice' not found in LDAP"],
-			'two found' => [fn (FakeLdapDirectory $d) => $d->count = 2, 6, "error LDAP search for mail 'alice' returned 2 users"],
-			'no entry' => [fn (FakeLdapDirectory $d) => $d->entry = false, 7, "error ldap_first_entry failed: {$error}"],
-			'no dn' => [fn (FakeLdapDirectory $d) => $d->dn = false, 8, "error ldap_get_dn failed: {$error}"],
-			'no attributes' => [fn (FakeLdapDirectory $d) => $d->attributes = [], 9, "error ldap_get_attributes returned empty attributes: {$error}"],
-			'no mail' => [fn (FakeLdapDirectory $d) => $d->attributes = self::attributes(['mail' => [' '], 'sn' => ['Smith']]), 9, "error Empty mail attribute for LDAP user 'alice'"],
-			'a wrong password' => [fn (FakeLdapDirectory $d) => $d->binds = [true, false], 10, "warning LDAP Authentication for user 'alice' failed: {$error}"],
-			'mail 0' => [fn (FakeLdapDirectory $d) => $d->attributes = self::attributes(['mail' => ['0']]), 10, "error LDAP user 'alice' has empty 'mail' attribute after authentication"],
+			'no protocol version 3' => [fn (FakeLdapDirectory $d) => $d->refused = [LDAP_OPT_PROTOCOL_VERSION], 1, 'error ldap_set_option(LDAP_OPT_PROTOCOL_VERSION) failed', true],
+			'no connect timeout' => [fn (FakeLdapDirectory $d) => $d->refused = [LDAP_OPT_NETWORK_TIMEOUT], 2, 'error ldap_set_option(LDAP_OPT_NETWORK_TIMEOUT) failed', true],
+			'no answer timeout' => [fn (FakeLdapDirectory $d) => $d->refused = [LDAP_OPT_TIMEOUT], 3, 'error ldap_set_option(LDAP_OPT_TIMEOUT) failed', true],
+			'the service refused' => [fn (FakeLdapDirectory $d) => $d->binds = [false], 4, "error ldap_bind failed: {$error}. Check LDAP_BIND_DN and LDAP_BIND_PASS", true],
+			'search failed' => [fn (FakeLdapDirectory $d) => $d->found = false, 5, "error ldap_search failed: {$error}", true],
+			'count failed' => [fn (FakeLdapDirectory $d) => $d->count = -1, 6, "error ldap_count_entries failed: {$error}", true],
+			'not found' => [fn (FakeLdapDirectory $d) => $d->count = 0, 6, "warning User 'alice' not found in LDAP", false],
+			'two found' => [fn (FakeLdapDirectory $d) => $d->count = 2, 6, "error LDAP search for mail 'alice' returned 2 users", false],
+			'no entry' => [fn (FakeLdapDirectory $d) => $d->entry = false, 7, "error ldap_first_entry failed: {$error}", false],
+			'no dn' => [fn (FakeLdapDirectory $d) => $d->dn = false, 8, "error ldap_get_dn failed: {$error}", false],
+			'no attributes' => [fn (FakeLdapDirectory $d) => $d->attributes = [], 9, "error ldap_get_attributes returned empty attributes: {$error}", false],
+			'no mail' => [fn (FakeLdapDirectory $d) => $d->attributes = self::attributes(['mail' => [' '], 'sn' => ['Smith']]), 9, "error Empty mail attribute for LDAP user 'alice'", false],
+			'a wrong password' => [fn (FakeLdapDirectory $d) => $d->binds = [true, false], 10, "warning LDAP Authentication for user 'alice' failed: {$error}", false],
+			'mail 0' => [fn (FakeLdapDirectory $d) => $d->attributes = self::attributes(['mail' => ['0']]), 10, "error LDAP user 'alice' has empty 'mail' attribute after authentication", false],
 		];
 	}
 
 	/** @param \Closure(FakeLdapDirectory): mixed $answer the change to its answers (what the assignment gives is unused) */
 	#[DataProvider('failures')]
-	public function testFailure(\Closure $answer, int $calls, string $logged): void {
+	public function testFailure(\Closure $answer, int $calls, string $logged, bool $unavailable): void {
 		$answer($this->directory);
 		$this->directory->diagnostic = '80090308: LdapErr: DSID-0C09044E';
 		$auth = new LdapAuth('alice', 'user-secret', $this->log);
-		$this->assertFalse($auth->authenticate());
+		$this->assertSame($unavailable ? 'unavailable' : 'refused', self::outcome($auth));
 		$this->assertSame([$logged], $this->log->lines);
 		$this->assertCount($calls, $this->directory->calls);
 		$this->expectException(RuntimeException::class);
 		$auth->getAuthenticatedUser();
 	}
 
+	// refused or unavailable, the login is not let through
+	private static function outcome(LdapAuth $auth): string {
+		try {
+			return $auth->authenticate() ? 'authenticated' : 'refused';
+		} catch (AuthUnavailableException $e) {
+			self::assertSame('LDAP server unavailable', $e->getMessage());
+			return 'unavailable';
+		}
+	}
+
 	public function testUriRefused(): void {
 		$this->open(fn (): ?LdapDirectory => null);
-		$this->assertFalse((new LdapAuth('alice', 'user-secret', $this->log))->authenticate());
+		$this->assertSame('unavailable', self::outcome(new LdapAuth('alice', 'user-secret', $this->log)));
 		$this->assertSame(['error ldap_connect failed. Check LDAP_URI'], $this->log->lines);
 		$this->assertSame(['ldaps://ldap.example.org'], $this->opened);
 	}
@@ -314,7 +337,7 @@ final class LdapLoginTest extends UnitTestCase
 	public function testErrorWithoutDiagnostic(): void {
 		$this->directory->binds = [false];
 		$this->directory->error = "Can't contact LDAP server";
-		(new LdapAuth('alice', 'user-secret', $this->log))->authenticate();
+		$this->assertSame('unavailable', self::outcome(new LdapAuth('alice', 'user-secret', $this->log)));
 		$this->assertSame(["error ldap_bind failed: error: 'Can't contact LDAP server'. diag: ''. Check LDAP_BIND_DN and LDAP_BIND_PASS"], $this->log->lines);
 	}
 }

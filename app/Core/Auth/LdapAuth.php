@@ -115,12 +115,12 @@ final class LdapAuth implements AuthInterface {
 		$ldap = self::$directory !== null ? (self::$directory)($ldap_uri) : PhpLdapDirectory::connect($ldap_uri);
 		if ($ldap === null) {
 			$this->logger->error("ldap_connect failed. Check LDAP_URI");
-			return false;
+			throw self::unavailable();
 		}
 
 		if ($ldap->setOption(LDAP_OPT_PROTOCOL_VERSION, 3) === false) {
 			$this->logger->error("ldap_set_option(LDAP_OPT_PROTOCOL_VERSION) failed");
-			return false;
+			throw self::unavailable();
 		}
 
 		// a directory that does not answer must not hold the login (and its web worker):
@@ -128,18 +128,18 @@ final class LdapAuth implements AuthInterface {
 		if ($ldap_timeout > 0) {
 			if ($ldap->setOption(LDAP_OPT_NETWORK_TIMEOUT, $ldap_timeout) === false) {
 				$this->logger->error("ldap_set_option(LDAP_OPT_NETWORK_TIMEOUT) failed");
-				return false;
+				throw self::unavailable();
 			}
 			if ($ldap->setOption(LDAP_OPT_TIMEOUT, $ldap_timeout) === false) {
 				$this->logger->error("ldap_set_option(LDAP_OPT_TIMEOUT) failed");
-				return false;
+				throw self::unavailable();
 			}
 		}
 
 		if ($ldap->bind($ldap_bind_dn, $ldap_bind_pass) === false) {
 			$error = $this->getError($ldap);
 			$this->logger->error("ldap_bind failed: {$error}. Check LDAP_BIND_DN and LDAP_BIND_PASS");
-			return false;
+			throw self::unavailable();
 		}
 
 		// search for user based on ldap_login_attr,
@@ -151,14 +151,14 @@ final class LdapAuth implements AuthInterface {
 		if ($res === false) {
 			$error = $this->getError($ldap);
 			$this->logger->error("ldap_search failed: {$error}");
-			return false;
+			throw self::unavailable();
 		}
 
 		$count = $ldap->countEntries($res);
 		if ($count === -1) {
 			$error = $this->getError($ldap);
 			$this->logger->error("ldap_count_entries failed: {$error}");
-			return false;
+			throw self::unavailable();
 		}
 
 		if ($count === 0) {
@@ -172,6 +172,8 @@ final class LdapAuth implements AuthInterface {
 			return false;
 		}
 
+		// from here the user exists: a failure counts as a refused login, so that
+		// another message cannot tell an attacker which usernames exist
 		$entry = $ldap->firstEntry($res);
 
 		if ($entry === false) {
@@ -277,6 +279,11 @@ final class LdapAuth implements AuthInterface {
 		}
 
 		return true;
+	}
+
+	// the server failed, or LDAP is set up wrong: the user's login could not be checked
+	private static function unavailable(): AuthUnavailableException {
+		return new AuthUnavailableException('LDAP server unavailable');
 	}
 
 	private static function getError(LdapDirectory $ldap): string {

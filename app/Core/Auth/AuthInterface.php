@@ -11,6 +11,8 @@
 namespace App\Core\Auth;
 
 interface AuthInterface {
+	// true: logged in; false: checked and refused (wrong password, unknown user);
+	// throws AuthUnavailableException only when the login could not be checked (the server failed)
 	public function authenticate(): bool;
 	public function getAuthenticatedUser(): ?string;
 }
