@@ -523,7 +523,8 @@ final class UserController extends ViewController
 			//$data = $userform->getData()->toArray();
 			$data = FormHelper::submittedData($userform);
 			$service = $this->getUserService();
-			$username = FormHelper::optionalText($data['username'] ?? null, 'username') ?? '';
+			// stored in lower case: one's own name retyped in another case is no change (the form trims)
+			$username = strtolower(FormHelper::optionalText($data['username'] ?? null, 'username') ?? '');
 			// username change and new username exists; what empty() meant: '' and '0' are no username
 			if ($username === '' || $username === '0') {
 				$this->flashbag->add('error', "Username empty");
@@ -541,7 +542,7 @@ final class UserController extends ViewController
 
 				try {
 					//DB::connection()->enableQueryLog();
-					$data['username'] = strtolower(trim(FormHelper::text($data['username'], 'username')));
+					$data['username'] = $username;
 					$user->fill($data);
 					if ($newHash !== null) {
 						$user->password = $newHash;

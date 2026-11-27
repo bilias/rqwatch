@@ -326,6 +326,20 @@ final class UserControllerTest extends ControllerTestCase
 		$this->assertCount(1, $this->db->changes);
 	}
 
+	// stored in lower case: one's own name in capitals is no change
+	public function testEditUsernameInCapitals(): void {
+		[$response, $request] = $this->postUser('edit', ['username' => 'BOB', 'email' => 'bob@example.org']);
+		$this->assertRedirect($this->url(RouteName::ADMIN_USERS), $response);
+		$this->assertSame(['success' => ["User 'bob' updated"]], self::flashes($request));
+		$this->assertStringNotContainsString('`username`', $this->db->changes[0][0] ?? '');
+	}
+
+	public function testEditToTakenUsernameInCapitals(): void {
+		[$response] = $this->postUser('edit', ['username' => 'Carol', 'email' => 'bob@example.org']);
+		$this->assertStringContainsString("Username &#039;carol&#039; already exists.", $this->html($response));
+		$this->assertSame([], $this->db->changes);
+	}
+
 	public function testEditToTakenUsername(): void {
 		[$response] = $this->postUser('edit', ['username' => 'carol', 'email' => 'bob@example.org']);
 		$this->assertStringContainsString("Username &#039;carol&#039; already exists.", $this->html($response));
