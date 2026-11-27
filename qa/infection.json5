@@ -209,7 +209,9 @@
 				"App\\Utils\\Helper::lookupA::1643",
 				// SafeLineFormatter replaces line breaks whatever allowInlineLineBreaks says
 				"App\\Core\\Logging\\LoggerFactory::createFileLogger::51",
-				"App\\Core\\Logging\\LoggerFactory::createSyslogLogger::92"
+				"App\\Core\\Logging\\LoggerFactory::createSyslogLogger::92",
+				// the status is already 200: getContent(true) throws only for 3xx-5xx
+				"App\\Services\\MailLogService::releaseMailViaApi::1929"
 			]
 		},
 		"GreaterThan": {
