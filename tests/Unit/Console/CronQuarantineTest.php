@@ -10,7 +10,7 @@
 
 /*
  cron:quarantine on RecordingDatabase and a temp QUARANTINE_DIR. Only one
- run at a time. The mail stored longer than QUARANTINE_DAYS (366 by
+ run at a time (the lock kept in the temp dir: see PrivateLock). The mail stored longer than QUARANTINE_DAYS (366 by
  default), of this server only with -l, is listed with -s and its files
  deleted with -d; a row without a mail_location is logged and left alone,
  and without -d nothing is deleted. With -p, the mail directories of the
@@ -38,6 +38,7 @@ use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use Tests\Unit\PrivateLock;
 use Tests\Unit\RecordingDatabase;
 use Tests\Unit\UnitTestCase;
 
@@ -123,8 +124,8 @@ final class CronQuarantineTest extends UnitTestCase
 	 * @param array<string, true> $options
 	 * @return array{int, string}
 	 */
-	private static function cron(array $options, int $verbosity = OutputInterface::VERBOSITY_VERBOSE): array {
-		$tester = new CommandTester(new CronQuarantine());
+	private function cron(array $options, int $verbosity = OutputInterface::VERBOSITY_VERBOSE): array {
+		$tester = new CommandTester(PrivateLock::give(new CronQuarantine(), $this->dir));
 		$status = $tester->execute($options, ['verbosity' => $verbosity]);
 		return [$status, $tester->getDisplay()];
 	}
@@ -142,10 +143,10 @@ final class CronQuarantineTest extends UnitTestCase
 	}
 
 	public function testAlreadyRunning(): void {
-		$running = new CronQuarantine();
+		$running = PrivateLock::give(new CronQuarantine(), $this->dir);
 		$this->assertTrue((new ReflectionMethod($running, 'lock'))->invoke($running));
 		try {
-			$this->assertSame([Command::FAILURE, "Already running in another process.\n"], self::cron([]));
+			$this->assertSame([Command::FAILURE, "Already running in another process.\n"], $this->cron([]));
 		} finally {
 			(new ReflectionMethod($running, 'release'))->invoke($running);
 		}
@@ -155,7 +156,7 @@ final class CronQuarantineTest extends UnitTestCase
 
 	public function testNothingToClean(): void {
 		$before = date('Y-m-d H:i:s', (int) strtotime('-366 days'));
-		[$status, $display] = self::cron([]);
+		[$status, $display] = $this->cron([]);
 		$after = date('Y-m-d H:i:s', (int) strtotime('-366 days'));
 		$cutoff = $this->cutoff($display);
 		$this->assertGreaterThanOrEqual($before, $cutoff);
@@ -164,13 +165,13 @@ final class CronQuarantineTest extends UnitTestCase
 		$this->assertSame(["debug cron:quarantine No entries found in quarantine before {$cutoff}"], $this->log->lines);
 		$this->assertSame([[self::quarantineQuery(), [1, self::daysAgo(366)]]], $this->db->selects);
 		// the runtime, very verbosely
-		$this->assertMatchesRegularExpression('/\nExecution time: [^\n]+\n$/D', self::cron([], OutputInterface::VERBOSITY_VERY_VERBOSE)[1]);
+		$this->assertMatchesRegularExpression('/\nExecution time: [^\n]+\n$/D', $this->cron([], OutputInterface::VERBOSITY_VERY_VERBOSE)[1]);
 	}
 
 	// this server's only, QUARANTINE_DAYS ago
 	public function testLocal(): void {
 		$this->setEnv('QUARANTINE_DAYS', '30');
-		[, $display] = self::cron(['-l' => true]);
+		[, $display] = $this->cron(['-l' => true]);
 		$cutoff = $this->cutoff($display);
 		$this->assertSame(self::daysAgo(30), substr($cutoff, 0, 10));
 		$this->assertSame("No entries found in quarantine before {$cutoff} on server: mx1\n", $display);
@@ -180,7 +181,7 @@ final class CronQuarantineTest extends UnitTestCase
 
 	public function testNoLocation(): void {
 		$this->quarantined = [['id' => 3, 'qid' => 'Q3', 'server' => 'mx1', 'mail_location' => null], ['id' => 4, 'qid' => 'Q4', 'server' => 'mx2', 'mail_location' => null]];
-		[$status, $display] = self::cron(['-d' => true, '-l' => true]);
+		[$status, $display] = $this->cron(['-d' => true, '-l' => true]);
 		$cutoff = $this->cutoff($display);
 		$this->assertSame([Command::SUCCESS,
 			"2 entries found in quarantine before {$cutoff} on server: mx1\n"
@@ -195,7 +196,7 @@ final class CronQuarantineTest extends UnitTestCase
 			'warning cron:quarantine No entries remain with a valid mail_location on server: mx1',
 		], $this->log->lines);
 		$this->assertSame([], $this->db->changes);
-		$this->assertSame([Command::SUCCESS, ''], self::cron(['-d' => true], OutputInterface::VERBOSITY_NORMAL));
+		$this->assertSame([Command::SUCCESS, ''], $this->cron(['-d' => true], OutputInterface::VERBOSITY_NORMAL));
 	}
 
 	public function testShowWithoutDelete(): void {
@@ -205,7 +206,7 @@ final class CronQuarantineTest extends UnitTestCase
 			['id' => 2, 'qid' => 'Q2', 'server' => 'mx1', 'mail_location' => null],
 			['id' => 5, 'qid' => 'Q5', 'server' => 'mx2', 'mail_location' => '/var/quarantine/2025-01-02/Q5/mail.eml'],
 		];
-		[$status, $display] = self::cron(['-s' => true, '-l' => true]);
+		[$status, $display] = $this->cron(['-s' => true, '-l' => true]);
 		$cutoff = $this->cutoff($display);
 		$this->assertSame([Command::SUCCESS,
 			"3 entries found in quarantine before {$cutoff} on server: mx1\n"
@@ -217,14 +218,14 @@ final class CronQuarantineTest extends UnitTestCase
 		$this->assertSame("info cron:quarantine 2 entries remain with a valid mail_location on server: mx1", $this->log->lines[2] ?? null);
 		$this->assertSame([true, []], [is_file("{$q1}/mail.eml"), $this->db->changes]);
 		// the list is shown at the normal verbosity, nothing else
-		[, $quiet] = self::cron(['-s' => true], OutputInterface::VERBOSITY_NORMAL);
+		[, $quiet] = $this->cron(['-s' => true], OutputInterface::VERBOSITY_NORMAL);
 		$this->assertSame("Quarantine pending delete:\nQID: Q1\nQID: Q5\n", $quiet);
 	}
 
 	public function testDelete(): void {
 		$q1 = $this->mail('2025-01-02/Q1');
 		$this->quarantined = [['id' => 1, 'qid' => 'Q1', 'server' => 'mx1', 'mail_location' => "{$q1}/mail.eml"]];
-		[$status, $display] = self::cron(['-d' => true]);
+		[$status, $display] = $this->cron(['-d' => true]);
 		$cutoff = $this->cutoff($display);
 		$this->assertSame([Command::SUCCESS,
 			"1 entries found in quarantine before {$cutoff}\n"
@@ -265,7 +266,7 @@ final class CronQuarantineTest extends UnitTestCase
 		// the rows of the day: with no location, through a link to the quarantine, by a file now gone, or elsewhere
 		symlink("{$this->dir}/q", "{$this->dir}/link");
 		$this->locations[$old] = [null, "{$this->dir}/link/{$old}/Q1/mail.eml", "{$moved}/gone.eml", "{$this->dir}/none/{$old}/Q9/mail.eml"];
-		[$status, $display] = self::cron(['-d' => true, '-p' => true]);
+		[$status, $display] = $this->cron(['-d' => true, '-p' => true]);
 		$q = "{$this->dir}/q";
 		$this->assertSame(Command::SUCCESS, $status);
 		$this->assertStringEndsWith(
@@ -291,8 +292,8 @@ final class CronQuarantineTest extends UnitTestCase
 		$this->mail("{$old}/Q3");
 		$this->locations[$old] = ["{$this->dir}/q/{$old}/Q1/mail.eml"];
 		$q = "{$this->dir}/q";
-		[, $shown] = self::cron(['-p' => true, '-s' => true], OutputInterface::VERBOSITY_NORMAL);
-		[, $quiet] = self::cron(['-p' => true], OutputInterface::VERBOSITY_VERBOSE);
+		[, $shown] = $this->cron(['-p' => true, '-s' => true], OutputInterface::VERBOSITY_NORMAL);
+		[, $quiet] = $this->cron(['-p' => true], OutputInterface::VERBOSITY_VERBOSE);
 		$this->assertSame(["Unreferenced, would remove: {$q}/{$old}/Q2\nUnreferenced, would remove: {$q}/{$old}/Q3\n", 1], [$shown, substr_count($quiet, "\n")]);
 		$this->assertSame([$old, "{$old}/Q1", "{$old}/Q2", "{$old}/Q3"], $this->left());
 	}
@@ -313,7 +314,7 @@ final class CronQuarantineTest extends UnitTestCase
 		$this->mail(self::daysAgo($swept) . '/Q2');
 		$this->locations[self::daysAgo($kept)] = [];
 		$this->locations[self::daysAgo($swept)] = [];
-		self::cron(['-d' => true, '-p' => true]);
+		$this->cron(['-d' => true, '-p' => true]);
 		$this->assertSame([self::daysAgo($kept), self::daysAgo($kept) . '/Q1'], $this->left());
 	}
 
@@ -325,7 +326,7 @@ final class CronQuarantineTest extends UnitTestCase
 		$this->mail("{$next}/Q2");
 		$this->locations[$next] = [];
 		// what was removed is said only verbosely
-		$this->assertSame([Command::SUCCESS, ''], self::cron(['-d' => true, '-p' => true], OutputInterface::VERBOSITY_NORMAL));
+		$this->assertSame([Command::SUCCESS, ''], $this->cron(['-d' => true, '-p' => true], OutputInterface::VERBOSITY_NORMAL));
 		$this->assertSame([$first, "{$first}/Q1"], $this->left());
 		$this->assertSame("error cron:quarantine cannot read the mail locations of {$first}, not sweeping it: Lost connection reading {$first}", $this->log->lines[1] ?? null);
 	}
@@ -339,7 +340,7 @@ final class CronQuarantineTest extends UnitTestCase
 	public function testSweepWithoutRoot(?string $root): void {
 		$this->setEnv('QUARANTINE_DIR', $root === null ? null : str_replace('{dir}', $this->dir, $root));
 		$this->mail(self::daysAgo(400) . '/Q1');
-		[$status] = self::cron(['-d' => true, '-p' => true]);
+		[$status] = $this->cron(['-d' => true, '-p' => true]);
 		$this->assertSame([Command::SUCCESS, [self::daysAgo(400), self::daysAgo(400) . '/Q1']], [$status, $this->left()]);
 		$this->assertCount(1, $this->db->selects);
 	}

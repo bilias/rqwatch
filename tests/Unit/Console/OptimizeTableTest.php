@@ -22,12 +22,36 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionMethod;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+use Tests\Unit\PrivateLock;
 use Tests\Unit\UnitTestCase;
 
 final class OptimizeTableTest extends UnitTestCase
 {
+	private string $dir = '';
+
+	#[\Override]
+	protected function setUp(): void {
+		parent::setUp();
+		$this->dir = sys_get_temp_dir() . '/rqwatch-ot-' . bin2hex(random_bytes(4));
+		mkdir($this->dir);
+	}
+
+	#[\Override]
+	protected function tearDown(): void {
+		foreach (glob("{$this->dir}/*") ?: [] as $file) {
+			unlink($file);
+		}
+		rmdir($this->dir);
+		parent::tearDown();
+	}
+
+	// the lock in the temp dir: see PrivateLock
+	private function command(): OptimizeTable {
+		return PrivateLock::give(new OptimizeTable(), $this->dir);
+	}
+
 	public function testUnknownTable(): void {
-		$tester = new CommandTester(new OptimizeTable());
+		$tester = new CommandTester($this->command());
 		$this->assertSame(Command::FAILURE, $tester->execute(['--table' => 'users']));
 		$this->assertSame("Unknown table 'users'\nKnown tables: mail_logs, mail_log_data, mail_log_recipients, mail_log_tokens\n", $tester->getDisplay());
 		$this->assertSame([], $this->log->lines);
@@ -35,7 +59,7 @@ final class OptimizeTableTest extends UnitTestCase
 
 	// the refusal in red, the list in yellow
 	public function testUnknownTableStyled(): void {
-		$tester = new CommandTester(new OptimizeTable());
+		$tester = new CommandTester($this->command());
 		$tester->execute(['--table' => 'users'], ['decorated' => true]);
 		$this->assertSame(
 			"\e[37;41mUnknown table 'users'\e[39;49m\n\e[33mKnown tables: mail_logs, mail_log_data, mail_log_recipients, mail_log_tokens\e[39m\n",
@@ -44,9 +68,9 @@ final class OptimizeTableTest extends UnitTestCase
 	}
 
 	public function testAlreadyRunning(): void {
-		$running = new OptimizeTable();
+		$running = $this->command();
 		$this->assertTrue((new ReflectionMethod($running, 'lock'))->invoke($running));
-		$tester = new CommandTester(new OptimizeTable());
+		$tester = new CommandTester($this->command());
 		$this->assertSame(Command::FAILURE, $tester->execute(['--table' => 'users']));
 		$this->assertSame("Already running in another process.\n", $tester->getDisplay());
 		$this->assertSame(['warning db:optimize_table Already running in another process'], $this->log->lines);
