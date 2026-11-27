@@ -13,7 +13,9 @@
  its statements as usual. Each INSERTed row is recorded by table; the id
  of a mail_logs row is 100 plus its number, and a mail_logs row of a qid
  in $failInsert throws instead. Each SELECT is recorded with its bindings
- and answered by $answer, with no rows without one. The Capsule is set as
+ and answered by $answer, with no rows without one. Each UPDATE and DELETE
+ is recorded with its bindings, in order, and reports the rows $affect
+ gives, none without one. The Capsule is set as
  global (the static Capsule::connection() reads it); forget() puts that
  back. Eloquent models need $capsule->bootEloquent() too, which a test
  undoes with Model::unsetConnectionResolver().
@@ -46,14 +48,21 @@ final class RecordingDatabase
 	/** @var (Closure(string, list<mixed>): list<array<string, mixed>>)|null the rows a SELECT returns */
 	public ?Closure $answer = null;
 
+	/** @var list<array{string, list<mixed>}> each UPDATE and DELETE run, in order: its SQL and bindings */
+	public array $changes = [];
+
+	/** @var (Closure(string, list<mixed>): int)|null the rows an UPDATE or DELETE changes */
+	public ?Closure $affect = null;
+
 	public function __construct(PDO&Stub $pdo) {
 		$pdo->method('lastInsertId')->willReturnCallback(fn (): string => (string) (100 + count($this->rows['mail_logs'] ?? [])));
-		$connection = new class ($pdo, $this->record(...), $this->query(...)) extends Connection {
+		$connection = new class ($pdo, $this->record(...), $this->query(...), $this->change(...)) extends Connection {
 			/**
 			 * @param Closure(string, array<array-key, mixed>): void $record
 			 * @param Closure(string, array<array-key, mixed>): list<object> $query
+			 * @param Closure(string, array<array-key, mixed>): int $change
 			 */
-			public function __construct(PDO $pdo, private Closure $record, private Closure $query) {
+			public function __construct(PDO $pdo, private Closure $record, private Closure $query, private Closure $change) {
 				parent::__construct($pdo);
 			}
 
@@ -78,6 +87,16 @@ final class RecordingDatabase
 			public function insert($query, $bindings = []): bool {
 				($this->record)($query, $bindings);
 				return true;
+			}
+
+			/**
+			 * an UPDATE or DELETE the query builder made, recorded and not run
+			 * @param string $query
+			 * @param array<array-key, mixed> $bindings
+			 */
+			#[\Override]
+			public function affectingStatement($query, $bindings = []): int {
+				return ($this->change)($query, $bindings);
 			}
 		};
 		$this->capsule = new Capsule();
@@ -105,6 +124,13 @@ final class RecordingDatabase
 		$this->selects[] = [$sql, $bindings];
 		$rows = $this->answer === null ? [] : ($this->answer)($sql, $bindings);
 		return array_map(fn (array $row): object => (object) $row, $rows);
+	}
+
+	/** @param array<array-key, mixed> $bindings */
+	private function change(string $sql, array $bindings): int {
+		$bindings = array_values($bindings);
+		$this->changes[] = [$sql, $bindings];
+		return $this->affect === null ? 0 : ($this->affect)($sql, $bindings);
 	}
 
 	/** @param array<array-key, mixed> $bindings */
