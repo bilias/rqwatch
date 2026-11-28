@@ -33,6 +33,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+use Closure;
 use Exception;
 use Throwable;
 use RuntimeException;
@@ -868,6 +869,28 @@ final class MapService
 		return $this->mapFileBehind;
 	}
 
+	/**
+	 * A map's change with its activity log, in one transaction: both are
+	 * saved, or neither. A change saved without its log would leave the map
+	 * file behind with nothing to tell cron:updatemapfiles. $change makes the
+	 * change; false from it means nothing changed, and the log is left alone.
+	 * A query error, in the change or in the log, rolls both back and is
+	 * thrown to the caller.
+	 * @param Closure(): bool $change
+	 * @return bool what $change returned
+	 */
+	private function withActivityLog(string $map_name, string $last_update, Closure $change): bool {
+		return App::capsule()->connection()->transaction(function () use ($map_name, $last_update, $change): bool {
+			if (!$change()) {
+				return false;
+			}
+			if (!$this->updateMapActivityLog($map_name, $last_update)) {
+				throw new RuntimeException("Activity log of map '{$map_name}' not saved");
+			}
+			return true;
+		});
+	}
+
 	/** @return non-empty-list<string> the lines of $text, split at CRLF, CR or LF */
 	private static function lines(string $text): array {
 		return explode("\n", str_replace(["\r\n", "\r"], "\n", $text));
@@ -922,8 +945,11 @@ final class MapService
 		$mapcombined = new MapCombined();
 		$mapcombined->fill($data);
 
+		$last_update = date("Y-m-d H:i:s");
+
 		try {
-			$success = $mapcombined->save();
+			// with the Activity log table in DB: both saved, or neither
+			$success = $this->withActivityLog($map_name, $last_update, fn (): bool => $mapcombined->save());
 
 			if (!$success) {
 				// Insert did not throw an error, but still failed
@@ -939,13 +965,6 @@ final class MapService
 			return false;
 		}
 		*/
-
-		$last_update = date("Y-m-d H:i:s");
-
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
-			return false;
-		}
 
 		// update map file: one not written does not fail the saved change
 		$this->refreshMapFile('MapCombined', $map_name, $last_update, $map_fields);
@@ -1004,6 +1023,8 @@ final class MapService
 			return false;
 		}
 
+		$last_update = date("Y-m-d H:i:s");
+
 		try {
 			// the old key, to detach its hits if the edit changes it
 			$old = MapCombined::where('id', $id)->first($map_fields);
@@ -1012,10 +1033,14 @@ final class MapService
 				return false;
 			}
 
-			// update() counts changed rows, not matched ones: 0 when the values
-			// and the second-resolution updated_at are unchanged (the same form
-			// submitted twice in a second), which is not a failure
-			MapCombined::where('id', $id)->update($new_data);
+			// with the Activity log table in DB: both saved, or neither
+			$this->withActivityLog($map_name, $last_update, function () use ($id, $new_data): bool {
+				// update() counts changed rows, not matched ones: 0 when the values
+				// and the second-resolution updated_at are unchanged (the same form
+				// submitted twice in a second), which is not a failure
+				MapCombined::where('id', $id)->update($new_data);
+				return true;
+			});
 		} catch (Throwable $e) {
 			$this->logger->error("[updateMapCombinedEntry] Query save error: " . $e->getMessage() . PHP_EOL);
 			return false;
@@ -1026,13 +1051,6 @@ final class MapService
 				(new MapHitService())->detachEntry(MapHitService::ENTRY_COMBINED, $id);
 				break;
 			}
-		}
-
-		$last_update = date("Y-m-d H:i:s");
-
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
-			return false;
 		}
 
 		// update map file: one not written does not fail the saved change
@@ -1086,8 +1104,11 @@ final class MapService
 			];
 		}
 
+		$last_update = date("Y-m-d H:i:s");
+
 		try {
-			$success = MapCustom::insert($rows);
+			// with the Activity log table in DB: both saved, or neither
+			$success = $this->withActivityLog($map_name, $last_update, fn (): bool => MapCustom::insert($rows));
 
 			if (!$success) {
 				// Insert did not throw an error, but still failed
@@ -1104,13 +1125,6 @@ final class MapService
 			return false;
 		}
 		*/
-
-		$last_update = date("Y-m-d H:i:s");
-
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
-			return false;
-		}
 
 		// update map file: one not written does not fail the saved change
 		$this->refreshMapFile('MapCustom', $map_name, $last_update);
@@ -1139,6 +1153,8 @@ final class MapService
 			}
 		}
 
+		$last_update = date("Y-m-d H:i:s");
+
 		try {
 			// the old key, to detach its hits if the edit changes it
 			/** @var string|null $old the entry's pattern, null if it is gone */
@@ -1148,14 +1164,18 @@ final class MapService
 				return false;
 			}
 
-			// update() counts changed rows, not matched ones: 0 when the values
-			// and the second-resolution updated_at are unchanged (the same form
-			// submitted twice in a second), which is not a failure
-			MapCustom::where('id', $id)
-			         ->update([
-			            'pattern' => $value,
-			            'disabled' => $disabled,
-			         ]);
+			// with the Activity log table in DB: both saved, or neither
+			$this->withActivityLog($map_name, $last_update, function () use ($id, $value, $disabled): bool {
+				// update() counts changed rows, not matched ones: 0 when the values
+				// and the second-resolution updated_at are unchanged (the same form
+				// submitted twice in a second), which is not a failure
+				MapCustom::where('id', $id)
+				         ->update([
+				            'pattern' => $value,
+				            'disabled' => $disabled,
+				         ]);
+				return true;
+			});
 
 		} catch (Throwable $e) {
 			$this->logger->error("[updateMapCustomEntry] Query update error: " . $e->getMessage() . PHP_EOL);
@@ -1164,13 +1184,6 @@ final class MapService
 
 		if (MapHitService::customIdentity($old) !== MapHitService::customIdentity($value)) {
 			(new MapHitService())->detachEntry(MapHitService::ENTRY_CUSTOM, $id);
-		}
-
-		$last_update = date("Y-m-d H:i:s");
-
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
-			return false;
 		}
 
 		// update map file: one not written does not fail the saved change
@@ -1187,20 +1200,16 @@ final class MapService
 
 		$data = self::prepareSymbols($data);
 		$customMapConfig->fill($data);
+
+		$last_update = date("Y-m-d H:i:s");
+
 		try {
-			if (!$customMapConfig->save()) {
+			// with the Activity log table in DB: both saved, or neither
+			if (!$this->withActivityLog($map_name, $last_update, fn (): bool => $customMapConfig->save())) {
 				return false;
 			}
 		} catch (Throwable $e) {
 			$this->logger->error("[addCustomMapConfig] Query insert error: " . $e->getMessage() . PHP_EOL);
-			return false;
-		}
-
-		$last_update = date("Y-m-d H:i:s");
-
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
-			$this->logger->error("Error updating map activity log for '{$map_name}' in addCustomMapConfig");
 			return false;
 		}
 
@@ -1231,8 +1240,32 @@ final class MapService
 		// Update custom_map_config
 		$data = self::prepareSymbols($data);
 		$customMapConfig->fill($data);
+
+		$last_update = date("Y-m-d H:i:s");
+
 		try {
-			$success = $customMapConfig->save();
+			// the config, a rename's entries and the Activity log table in DB: all saved, or none
+			$success = $this->withActivityLog($map_name, $last_update, function () use ($customMapConfig, $org_map_name, $map_name): bool {
+				if (!$customMapConfig->save()) {
+					return false;
+				}
+
+				// map_name change
+				if ($org_map_name !== $map_name) {
+
+					$this->logger->info("Map '{$org_map_name}' rename to '{$map_name}' requested. Updating MapCustom entries and MapActivityLog");
+					// Update map_name in maps_custom entries
+					MapCustom::where('map_name', $org_map_name)
+					         ->update(['map_name' => $map_name]);
+
+					// Delete old Activity log table in DB
+					MapActivityLog::where('map_name', $org_map_name)->delete();
+
+					// old map file will be deleted by syncMaps() from CronUpdateMapFiles
+				}
+
+				return true;
+			});
 
 			if (!$success) {
 				// Update did not throw an error, but still failed
@@ -1244,29 +1277,7 @@ final class MapService
 			return false;
 		}
 
-		// map_name change
-		if ($org_map_name !== $map_name) {
-
-			$this->logger->info("Map '{$org_map_name}' rename to '{$map_name}' requested. Updating MapCustom entries and MapActivityLog");
-			// Update map_name in maps_custom entries
-			MapCustom::where('map_name', $org_map_name)
-			         ->update(['map_name' => $map_name]);
-
-			// Delete old Activity log table in DB
-			MapActivityLog::where('map_name', $org_map_name)->delete();
-
-			// old map file will be deleted by syncMaps() from CronUpdateMapFiles
-		}
-
-		$last_update = date("Y-m-d H:i:s");
-
-		// 3. update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
-			$this->logger->error("Error updating map activity log for '{$map_name}' in updateCustomMapConfig");
-			return false;
-		}
-
-		// 4. update map file: one not written does not fail the saved change
+		// update map file: one not written does not fail the saved change
 		$this->refreshMapFile('MapCustom', $map_name, $last_update);
 
 		return true;
@@ -1331,6 +1342,8 @@ final class MapService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
+		$last_update = date("Y-m-d H:i:s");
+
 		try {
 			$map_entry = $query->first();
 
@@ -1340,14 +1353,8 @@ final class MapService
 			}
 
 			// delete map entry from db
-			if (!$map_entry->delete()) {
-				return false;
-			}
-
-			$last_update = date("Y-m-d H:i:s");
-
-			// update Activity log table in DB
-			if (!self::updateMapActivityLog($map_name, $last_update)) {
+			// with the Activity log table in DB: both saved, or neither
+			if (!$this->withActivityLog($map_name, $last_update, fn (): bool => $map_entry->delete() === true)) {
 				return false;
 			}
 		} catch (Throwable $e) {
@@ -1391,20 +1398,20 @@ final class MapService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
+		$last_update = date("Y-m-d H:i:s");
+
 		try {
 			// delete all entries matched by the query
 			// what Eloquent's delete() runs when no onDelete is set, typed
-			$deletedRows = $query->toBase()->delete();
+			// with the Activity log table in DB: both saved, or neither
+			$deletedRows = 0;
+			$deleted = $this->withActivityLog($map_name, $last_update, function () use ($query, &$deletedRows): bool {
+				$deletedRows = $query->toBase()->delete();
+				return $deletedRows > 0;
+			});
 
-			if ($deletedRows === 0) {
+			if (!$deleted) {
 				return 0;
-			}
-
-			$last_update = date("Y-m-d H:i:s");
-
-			// update Activity log table in DB
-			if (!self::updateMapActivityLog($map_name, $last_update)) {
-				return false;
 			}
 		} catch (Throwable $e) {
 			$this->logger->error("[delMapAllEntries] Query error: " . $e->getMessage());
@@ -1445,6 +1452,8 @@ final class MapService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
+		$last_update = date("Y-m-d H:i:s");
+
 		try {
 			/** @var MapCombined|MapCustom|null $map_entry */
 			$map_entry = $query->first();
@@ -1456,14 +1465,8 @@ final class MapService
 
 			// toggle disabled field in db
 			$map_entry->disabled = !$map_entry->disabled;
-			if (!$map_entry->save()) {
-				return false;
-			}
-
-			$last_update = date("Y-m-d H:i:s");
-
-			// update Activity log table in DB
-			if (!self::updateMapActivityLog($map_name, $last_update)) {
+			// with the Activity log table in DB: both saved, or neither
+			if (!$this->withActivityLog($map_name, $last_update, fn (): bool => $map_entry->save())) {
 				return false;
 			}
 		} catch (Throwable $e) {

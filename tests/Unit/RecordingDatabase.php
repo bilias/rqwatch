@@ -20,7 +20,8 @@
  one. Each UPDATE and DELETE is recorded with its bindings, in order, and
  reports the rows $affect gives, none without one. Any other statement
  (SET, DDL, OPTIMIZE) is recorded in $statements, after $onStatement, which
- may throw. Bindings must be a
+ may throw. A transaction rolled back is recorded in $rolledBack; what it
+ undid stays recorded. Bindings must be a
  list, as PDO binds them by key: a gap or a name throws. The Capsule is set as
  global (the static Capsule::connection() reads it); forget() puts that
  back. Eloquent models need $capsule->bootEloquent() too, which a test
@@ -64,6 +65,13 @@ final class RecordingDatabase
 	/** @var (Closure(string, list<mixed>): int)|null the rows an UPDATE or DELETE changes */
 	public ?Closure $affect = null;
 
+	/** @var list<int> each transaction rolled back: the INSERTs, UPDATEs and DELETEs it undid (one not nested) */
+	public array $rolledBack = [];
+
+	// the INSERTs, UPDATEs and DELETEs recorded, and how many of them before the open transaction
+	private int $writes = 0;
+	private int $writesBefore = 0;
+
 	/** @var list<array{string, list<mixed>}> each other statement run, in order: its SQL and bindings */
 	public array $statements = [];
 
@@ -76,16 +84,41 @@ final class RecordingDatabase
 	public function __construct(PDO&Stub $pdo) {
 		$pdo->method('getAttribute')->willReturnCallback(fn (int $attribute): ?string => $attribute === PDO::ATTR_SERVER_VERSION ? self::SERVER_VERSION : null);
 		$lastId = fn (): int => 100 + count($this->rows['mail_logs'] ?? []);
-		$connection = new class ($pdo, $this->record(...), $this->query(...), $this->change(...), $lastId, $this->statement(...)) extends MySqlConnection {
+		$began = function (): void {
+			$this->writesBefore = $this->writes;
+		};
+		$undone = function (): void {
+			$this->rolledBack[] = $this->writes - $this->writesBefore;
+		};
+		$connection = new class ($pdo, $this->record(...), $this->query(...), $this->change(...), $lastId, $this->statement(...), $began, $undone) extends MySqlConnection {
 			/**
 			 * @param Closure(string, array<array-key, mixed>): int $record
 			 * @param Closure(string, array<array-key, mixed>): list<object> $query
 			 * @param Closure(string, array<array-key, mixed>): int $change
 			 * @param Closure(): int $lastId
 			 * @param Closure(string, array<array-key, mixed>): void $statement
+			 * @param Closure(): void $began
+			 * @param Closure(): void $undone
 			 */
-			public function __construct(PDO $pdo, private Closure $record, private Closure $query, private Closure $change, private Closure $lastId, private Closure $statement) {
+			public function __construct(PDO $pdo, private Closure $record, private Closure $query, private Closure $change, private Closure $lastId, private Closure $statement, private Closure $began, private Closure $undone) {
 				parent::__construct($pdo);
+			}
+
+			// a transaction begun: transaction() and the caller's own begin here
+			#[\Override]
+			public function beginTransaction(): void {
+				parent::beginTransaction();
+				($this->began)();
+			}
+
+			/**
+			 * a transaction rolled back, recorded
+			 * @param int|null $toLevel
+			 */
+			#[\Override]
+			public function rollBack($toLevel = null): void {
+				parent::rollBack($toLevel);
+				($this->undone)();
 			}
 
 			/**
@@ -200,7 +233,9 @@ final class RecordingDatabase
 	private function change(string $sql, array $bindings): int {
 		$bindings = self::bindings($sql, $bindings);
 		$this->changes[] = [$sql, $bindings];
-		return $this->affect === null ? 0 : ($this->affect)($sql, $bindings);
+		$changed = $this->affect === null ? 0 : ($this->affect)($sql, $bindings);
+		$this->writes++;
+		return $changed;
 	}
 
 	/**
@@ -227,6 +262,7 @@ final class RecordingDatabase
 			}
 			$this->rows[$match[1]][] = $row;
 		}
+		$this->writes++;
 		return count($chunks);
 	}
 }

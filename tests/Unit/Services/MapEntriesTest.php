@@ -483,6 +483,7 @@ final class MapEntriesTest extends MapDatabaseTestCase
 		$this->assertFalse(self::admin()->delMapEntry('MapOther', 'phish', ['pattern'], 11));
 		$this->assertSame([[], []], [$this->db->changes, $this->changedMaps()]);
 		$this->assertCount(1, $this->db->selects);
+		$this->assertSame([], $this->log->lines);
 	}
 
 	public function testDelMapEntryNoFile(): void {
