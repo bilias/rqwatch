@@ -91,7 +91,9 @@ final class CronUpdateMapFilesRunTest extends MapDatabaseTestCase
 		$this->assertSame(Command::SUCCESS, $status);
 		$this->assertStringContainsString("Map file 'ip_whitelist' does not need update\n", $display);
 		$this->assertStringContainsString("Map file 'ip_blacklist' updated\n", $display);
-		// syncMaps() logs it first; the run, having read the log before, again
+		// syncMaps() logs it first; the run, having read the log before, again.
+		// Twice here only: a real database finds the first row, and a time
+		// set again within the same second is no query
 		$this->assertSame(['ip_blacklist', 'ip_blacklist'], $this->changedMaps());
 		$this->assertSame(['192.0.2.7'], $this->mapFile('ip_blacklist'));
 		$this->assertContains("debug cron:updatemapfiles Map file 'ip_whitelist' does not need update", $this->log->lines);

@@ -25,6 +25,7 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Symfony\Component\HttpFoundation\Request;
 
+use App\Core\Exception\MapConfigGoneException;
 use App\Utils\FormHelper;
 use App\Inventory\MapInventory;
 use App\Services\MapService;
@@ -43,8 +44,14 @@ final class MapWithCustomFieldForm extends AbstractType
 		$field = MapInventory::fieldDefinition(static::$fieldName);
 
 		// Override defaults with field options from custom_map_config
-		$field_db = MapService::getCustomField(FormHelper::textOption($options, 'map'));
+		$map = FormHelper::textOption($options, 'map');
+		$field_db = MapService::getCustomField($map);
 		$field_name = $field_db['field_name'];
+		// no config row (getCustomField() logged it): the map was deleted
+		// after the controller read its config. A field needs a name
+		if ($field_name === '') {
+			throw new MapConfigGoneException("Custom map '{$map}' has no config");
+		}
 		$field_label = $field_db['field_label'];
 		$field['description'] = $field_label;
 		$field['field_options']['label'] = "{$field_label}:";

@@ -15,19 +15,19 @@
  the model. The custom map form has the map's field, labelled as
  configured: several lines to add; one line to edit, the entry's pattern
  (# in front when disabled) as the field's value unless the entry has
- it. An edit without the entry or its pattern is a bug; so is a map no longer
- in custom_map_config (a field with no name, which Symfony refuses). A URL field
- stores IP hosts canonical. Both are created through FormHelper, the
+ it. An edit without the entry or its pattern is a bug; a map no longer in
+ custom_map_config (deleted since the caller read its config) is a
+ MapConfigGoneException. A URL field stores IP hosts canonical. Both are created through FormHelper, the
  custom map form with the onefieldform class.
 */
 
 namespace Tests\Unit\Forms;
 
+use App\Core\Exception\MapConfigGoneException;
 use App\Forms\MapSelectForm;
 use App\Forms\MapWithCustomFieldForm;
 use LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Symfony\Component\Form\Exception\LogicException as FormLogicException;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
@@ -162,13 +162,13 @@ final class MapCustomFormsTest extends MapDatabaseTestCase
 		$this->assertSame(['class' => 'wide onefieldform'], $form->getConfig()->getOption('attr'));
 	}
 
-	// a map gone from custom_map_config: a field with no name, which Symfony refuses
+	// a map gone from custom_map_config has no field to build the form with
 	public function testUnknownMapRefused(): void {
 		try {
 			self::custom('nosuch');
 			$this->fail('built');
-		} catch (FormLogicException $e) {
-			$this->assertSame('A form with an empty name cannot have a parent form.', $e->getMessage());
+		} catch (MapConfigGoneException $e) {
+			$this->assertSame("Custom map 'nosuch' has no config", $e->getMessage());
 		}
 		$this->assertSame(["error getCustomField: no custom_map_config row for map 'nosuch'"], $this->log->lines);
 	}

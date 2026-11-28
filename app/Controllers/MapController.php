@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 
+use App\Core\Exception\MapConfigGoneException;
 use App\Core\Routing\RouteName;
 use App\Configuration\Config;
 
@@ -679,7 +680,13 @@ final class MapController extends ViewController
 				'user_emails' => $this->getUserEmailAddresses(),
 			];
 		}
-		$mapform = $mapFormClass::create($this->formFactory, $this->request, $data, $options);
+		try {
+			$mapform = $mapFormClass::create($this->formFactory, $this->request, $data, $options);
+		} catch (MapConfigGoneException $e) {
+			// a custom map deleted since its config was read above
+			$this->flashbag->add('error', 'Invalid map selected');
+			return new RedirectResponse($this->getMapsUrl());
+		}
 
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();
@@ -844,7 +851,13 @@ final class MapController extends ViewController
 
 		/** @var array<string, mixed> $entryData Eloquent's toArray() is keyed by attribute name */
 		$entryData = $map_entry->toArray();
-		$mapform = $mapFormClass::create($this->formFactory, $this->request, $entryData, $options);
+		try {
+			$mapform = $mapFormClass::create($this->formFactory, $this->request, $entryData, $options);
+		} catch (MapConfigGoneException $e) {
+			// a custom map deleted since its config was read above
+			$this->flashbag->add('error', 'Invalid map selected');
+			return new RedirectResponse($this->getMapsUrl());
+		}
 
 		if ($mapform->isSubmitted() && $mapform->isValid()) {
 			$data = $mapform->getData();

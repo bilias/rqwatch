@@ -223,9 +223,9 @@
 				// an id that is not digits is refused either way ($id <= 0)
 				"App\\Api\\ReleaseMailApi::handle::63",
 				// showMap(): ?entry= of 0 or below is no entry either way ($entry_filter > 0)
-				"App\\Controllers\\MapController::showMap::554",
+				"App\\Controllers\\MapController::showMap::555",
 				// the quota is reached only with USER_MAP_MAX_ENTRIES set above 0, so the fallback never shows
-				"App\\Controllers\\MapController::addMapEntry::722",
+				"App\\Controllers\\MapController::addMapEntry::729",
 				// showMails(): ?entry= of 0 or below is no entry either way ($entry > 0)
 				"App\\Controllers\\MapHitController::showMails::94",
 				// ?page defaults to 1; 0 is read as 1 too, by paginate(), Collection::forPage() and
@@ -246,10 +246,10 @@
 				"App\\Controllers\\MailLogController::showQuarantineMonth::587",
 				"App\\Controllers\\MailLogController::showQuarantine::633",
 				"App\\Controllers\\MailLogController::showQuarantinePerMonth::680",
-				"App\\Controllers\\MapController::showAllMaps::182",
-				"App\\Controllers\\MapController::showCustomMapsConfig::296",
-				"App\\Controllers\\MapController::showMap::548",
-				"App\\Controllers\\MapController::searchMapEntry::1143",
+				"App\\Controllers\\MapController::showAllMaps::183",
+				"App\\Controllers\\MapController::showCustomMapsConfig::297",
+				"App\\Controllers\\MapController::showMap::549",
+				"App\\Controllers\\MapController::searchMapEntry::1156",
 				"App\\Controllers\\MapHitController::showMails::164",
 				"App\\Controllers\\UserController::searchUser::164",
 				"App\\Controllers\\UserController::showAll::210",
@@ -361,7 +361,7 @@
 		"IncrementInteger": {
 			"ignore": [
 				// the quota is reached only with USER_MAP_MAX_ENTRIES set above 0, so the fallback never shows
-				"App\\Controllers\\MapController::addMapEntry::722",
+				"App\\Controllers\\MapController::addMapEntry::729",
 				// a prefix is 0 bits or more: starting at 0 credits the entries -1 does
 				"App\\Services\\MapHitService::longestPrefix::335",
 				// array_pad() to 3 leaves the two values destructured unchanged; the line's
@@ -401,9 +401,9 @@
 		"LogicalAnd": {
 			"ignore": [
 				// no user loaded has an empty username; without one, both read as a deleted user
-				"App\\Controllers\\MapController::getMapUser::1345",
+				"App\\Controllers\\MapController::getMapUser::1358",
 				// the MapCombined branch is taken first, and a user never reaches the update with MapCustom
-				"App\\Controllers\\MapController::editMapEntry::879",
+				"App\\Controllers\\MapController::editMapEntry::892",
 				// the router attaches the session before any middleware runs
 				"App\\Core\\Middleware\\AuthMiddleware::handle::46",
 				// null and '' fall through the switch to the same "clean"
@@ -422,8 +422,8 @@
 		"LogicalOr": {
 			"ignore": [
 				// a valid map form's data is an array holding its required fields: never anything else, never empty
-				"App\\Controllers\\MapController::addMapEntry::687",
-				"App\\Controllers\\MapController::editMapEntry::852",
+				"App\\Controllers\\MapController::addMapEntry::694",
+				"App\\Controllers\\MapController::editMapEntry::865",
 				// no row has no others; with none shared the checks below find nothing to warn about
 				"App\\Controllers\\FuzzyController::warnShared::405",
 				// tempnam() leaves MAP_DIR only when MAP_DIR is unusable, which was refused just before
@@ -584,7 +584,7 @@
 				"App\\Services\\MapService::addCustomMapConfig::1192",
 				"App\\Services\\MapService::updateCustomMapConfig::1240",
 				// the map pages test is_admin before user_can_delete
-				"App\\Controllers\\MapController::getUserCanDelete::1322",
+				"App\\Controllers\\MapController::getUserCanDelete::1335",
 				// the same redirect follows the try
 				"App\\Controllers\\LoginController::logout_openidc::130",
 				// no row has no others; with none shared the checks below find nothing to warn about
@@ -666,7 +666,7 @@
 		"TrueValue": {
 			"ignore": [
 				// the map pages test is_admin before user_can_delete
-				"App\\Controllers\\MapController::getUserCanDelete::1322",
+				"App\\Controllers\\MapController::getUserCanDelete::1335",
 				// an int status against ints: == matches as === does
 				"App\\Services\\FuzzyService::callApi::690",
 				// the values are text, none of them numeric: == matches as === does
@@ -737,7 +737,7 @@
 				"App\\Controllers\\MailLogController::releaseMail::970",
 				"App\\Controllers\\MailLogController::releaseMail::1003",
 				// http_build_query() leaves null values out anyway (the redirect and the page links)
-				"App\\Controllers\\MapController::searchMapEntry::1137",
+				"App\\Controllers\\MapController::searchMapEntry::1150",
 				// an empty whitelist entry only matches an empty client IP, which is never throttled
 				"App\\Core\\Auth\\LoginThrottle::__construct::80",
 				// http_build_query() leaves a null out of the page's url
@@ -752,19 +752,19 @@
 				// mailparse gives the content type lowercased, without parameters
 				"App\\Inventory\\MailObject::embedImages::100",
 				// the form allows only lowercase map names
-				"App\\Controllers\\MapController::customMapConfigValues::79",
+				"App\\Controllers\\MapController::customMapConfigValues::80",
 			]
 		},
 		"UnwrapTrim": {
 			"ignore": [
 				// the custom field is a TextType on edit, which trims already
-				"App\\Controllers\\MapController::editMapEntry::868",
-				"App\\Controllers\\MapController::editMapEntry::895",
+				"App\\Controllers\\MapController::editMapEntry::881",
+				"App\\Controllers\\MapController::editMapEntry::908",
 				// the custom map config form's text fields trim already
-				"App\\Controllers\\MapController::customMapConfigValues::70",
-				"App\\Controllers\\MapController::customMapConfigValues::74",
-				"App\\Controllers\\MapController::customMapConfigValues::81",
+				"App\\Controllers\\MapController::customMapConfigValues::71",
+				"App\\Controllers\\MapController::customMapConfigValues::75",
 				"App\\Controllers\\MapController::customMapConfigValues::82",
+				"App\\Controllers\\MapController::customMapConfigValues::83",
 				// the form's text field trims the username already
 				"App\\Controllers\\LoginController::login::181",
 				// Symfony's TextType and EmailType trim what is submitted

@@ -806,6 +806,23 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertSame(['error' => ["Entry 'URL: worse.example' update in Map Phishing URLs failed"]], self::flashes($request));
 	}
 
+	/** @return array<string, array{int}> the entry's id, 0 to add one */
+	public static function customEntryForms(): array {
+		return ['add' => [0], 'edit' => [9]];
+	}
+
+	// a custom map deleted between the action reading its config and its form reading its field
+	#[DataProvider('customEntryForms')]
+	public function testCustomMapDeletedMeanwhile(int $id): void {
+		array_unshift($this->answers, ['select `field_name`, `field_label` from `custom_map_config` where `map_name` = ?', []]);
+		[$response, $request] = $this->postEntry('phish', 'map_with_custom_field_form', ['url' => 'bad.example'], self::ADMIN, [], $id);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS), $response);
+		$this->assertSame(['error' => ['Invalid map selected']], self::flashes($request));
+		$this->assertSame(["error getCustomField: no custom_map_config row for map 'phish'"], $this->log->lines);
+		$this->assertSame([], $this->db->rows('maps_custom'));
+		$this->assertSame([], $this->db->changes);
+	}
+
 	public function testEditEntryNotFound(): void {
 		$this->entries = [];
 		$request = self::request('/', self::ADMIN);
