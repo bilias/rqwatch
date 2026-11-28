@@ -364,15 +364,12 @@ final class MapControllerTest extends ControllerTestCase
 		];
 	}
 
-	/*
-	 A change whose map file cannot be written (no MAP_DIR): it is saved, so
-	 it is a success, back to where a success goes, with a warning that the
-	 file is behind.
-	*/
-	#[DataProvider('savedChanges')]
-	public function testSavedWithItsMapFileBehind(string $change, string $success): void {
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		[$response, $request] = match ($change) {
+	/**
+	 * One of the nine changes of savedChanges(), by an admin.
+	 * @return array{Response, Request}
+	 */
+	private function change(string $change): array {
+		return match ($change) {
 			'add config' => $this->postConfig(['map_name' => 'senders']),
 			'edit config' => $this->postConfig(['map_name' => 'phishing'], 1),
 			'add entry' => $this->postEntry('ip_blacklist', 'map_ip_form', ['ip' => '192.0.2.0/24']),
@@ -381,6 +378,17 @@ final class MapControllerTest extends ControllerTestCase
 			'edit custom entry' => $this->postEntry('phish', 'map_with_custom_field_form', ['url' => 'worse.example'], self::ADMIN, [], 9),
 			default => $this->entryAction($change),
 		};
+	}
+
+	/*
+	 A change whose map file cannot be written (no MAP_DIR): it is saved, so
+	 it is a success, back to where a success goes, with a warning that the
+	 file is behind.
+	*/
+	#[DataProvider('savedChanges')]
+	public function testSavedWithItsMapFileBehind(string $change, string $success): void {
+		Config::set('MAP_DIR', "{$this->dir}/none");
+		[$response, $request] = $this->change($change);
 		$this->assertSame(['success' => [$success], 'warning' => [self::FILE_BEHIND]], self::flashes($request));
 		$this->assertRedirect(match ($change) {
 			'add config', 'edit config' => $this->url(RouteName::ADMIN_MAPS_CUSTOM_SHOW),
@@ -388,6 +396,46 @@ final class MapControllerTest extends ControllerTestCase
 			'add custom entry', 'edit custom entry' => $this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'phish']),
 			default => $this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'mail_from_rcpt_to_whitelist']),
 		}, $response);
+	}
+
+	/** @return array<string, array{string, string, string, int}> the change, its failure message, what is logged, the statements undone */
+	public static function changesNotLogged(): array {
+		return [
+			'a custom map added' => ['add config', "Custom map 'senders' creation problem. Check logs.", '[addCustomMapConfig] Query insert error', 1],
+			'a custom map renamed' => ['edit config', "Custom map 'phishing' update problem. Check logs.", '[updateCustomMapConfig] Query update error', 3],
+			'an entry added' => ['add entry', "Entry 'IP Address: 192.0.2.0/24' creation in Map IP Blacklist failed", '[addMapCombinedEntry] Query save error', 1],
+			'a custom entry added' => ['add custom entry', "Entry 'URL: bad.example' creation in Map Phishing URLs failed", '[addMapCustomEntry] Query insert error', 1],
+			'an entry updated' => ['edit entry', "Entry 'Mail From: new@example.net, RCPT To: alice@example.org' update in Map Mail From/RCPT_TO Whitelist failed", '[updateMapCombinedEntry] Query save error', 1],
+			'a custom entry updated' => ['edit custom entry', "Entry 'URL: worse.example' update in Map Phishing URLs failed", '[updateMapCustomEntry] Query update error', 1],
+			'an entry deleted' => ['del', 'Map entry Mail From: friend@example.net, RCPT To: alice@example.org failed to be deleted from Map Mail From/RCPT_TO Whitelist', '[delMapEntry] Query error', 1],
+			'all entries deleted' => ['delall', 'All entries failed to be deleted from Map Mail From/RCPT_TO Whitelist', '[delMapAllEntries] Query error', 1],
+			'an entry toggled' => ['toggle', 'Map entry Mail From: friend@example.net, RCPT To: alice@example.org failed to be disabled in Map Mail From/RCPT_TO Whitelist', '[toggleMapEntry] Query error', 1],
+		];
+	}
+
+	/*
+	 A change whose activity log cannot be written: the change is undone
+	 with it (one transaction), so it is a failure, logged, and no map file
+	 is written.
+	*/
+	#[DataProvider('changesNotLogged')]
+	public function testUndoneWithoutItsActivityLog(string $change, string $error, string $logged, int $undone): void {
+		$this->db->failInsertInto['map_activity_logs'] = new RuntimeException('gone away');
+		[, $request] = $this->change($change);
+		$this->assertSame(['error' => [$error]], self::flashes($request));
+		$this->assertSame([$undone], $this->db->rolledBack);
+		$this->assertContains("error {$logged}: gone away", array_map(trim(...), $this->log->lines));
+		$this->assertSame([], glob("{$this->dir}/*"));
+	}
+
+	// a change that is saved rolls nothing back
+	#[DataProvider('savedChanges')]
+	public function testSavedWithItsActivityLog(string $change, string $success): void {
+		[, $request] = $this->change($change);
+		$this->assertSame(['success' => [$success]], self::flashes($request));
+		$this->assertSame([], $this->db->rolledBack);
+		$this->assertCount(1, $this->db->rows('map_activity_logs'));
+		$this->assertCount(1, (array) glob("{$this->dir}/*"));
 	}
 
 	// a user is told without the admin's details
@@ -902,6 +950,9 @@ final class MapControllerTest extends ControllerTestCase
 		[$response, $request] = $this->entryAction('delall');
 		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'mail_from_rcpt_to_whitelist']), $response);
 		$this->assertSame(['info' => ["No entries to delete in Map 'Mail From/RCPT_TO Whitelist'"]], self::flashes($request));
+		// nothing changed: no activity logged, no map file written
+		$this->assertSame([], $this->db->rows('map_activity_logs'));
+		$this->assertSame([], glob("{$this->dir}/*"));
 	}
 
 	public function testToggleNotFound(): void {

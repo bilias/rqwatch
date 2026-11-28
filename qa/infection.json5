@@ -38,13 +38,13 @@
 				// username is set again just below
 				"App\\Controllers\\LoginController::finalizeAuthenticatedUser::550",
 				// the query selects its own columns: paginate()'s are only a default, and its count ignores them
-				"App\\Services\\MapService::getPaginatedMapCustom::539",
-				"App\\Services\\MapService::searchPaginatedMapCombined::401",
-				"App\\Services\\MapService::getPaginatedAllMapCombined::433",
-				"App\\Services\\MapService::searchPaginatedMapCustom::469",
-				"App\\Services\\MapService::getPaginatedAllMapCustom::490",
-				"App\\Services\\MapService::getPaginatedCustomMapConfigs::512",
-				"App\\Services\\MapService::getPaginatedMapCombined::565",
+				"App\\Services\\MapService::getPaginatedMapCustom::540",
+				"App\\Services\\MapService::searchPaginatedMapCombined::402",
+				"App\\Services\\MapService::getPaginatedAllMapCombined::434",
+				"App\\Services\\MapService::searchPaginatedMapCustom::470",
+				"App\\Services\\MapService::getPaginatedAllMapCustom::491",
+				"App\\Services\\MapService::getPaginatedCustomMapConfigs::513",
+				"App\\Services\\MapService::getPaginatedMapCombined::566",
 				// the loop sets every id's counts again: the defaults only reach an empty result
 				"App\\Services\\MapHitService::entryHits::511",
 				"App\\Services\\MailLogService::getPaginatedQuarantine::1398",
@@ -160,7 +160,7 @@
 				// an int . 'B' is the same string
 				"App\\Utils\\Helper::formatSizeUnits::506",
 				// with partial output json_encode() returns text; false would concatenate as '' anyway
-				"App\\Services\\MapService::mapSymbols::271",
+				"App\\Services\\MapService::mapSymbols::272",
 				// json_encode() of a decoded value does not fail
 				"App\\Utils\\Helper::log_to_files::698",
 				// preg_replace() with this ASCII pattern does not fail
@@ -188,7 +188,7 @@
 		"ConcatOperandRemoval": {
 			"ignore": [
 				// tempnam() leaves MAP_DIR only when MAP_DIR is unusable, which was refused just before
-				"App\\Services\\MapService::updateMapFile::748",
+				"App\\Services\\MapService::updateMapFile::749",
 				// the same default log file
 				"App\\Core\\Logging\\LoggerFactory::createFileLogger::38",
 				// Symfony's formatter styles an unclosed tag to the end of the line
@@ -218,6 +218,8 @@
 		},
 		"DecrementInteger": {
 			"ignore": [
+				// the closure sets it before it is read
+				"App\\Services\\MapService::delMapAllEntries::1407",
 				// $m[0] is the whole 'Y-m', which (int) reads as its year
 				"App\\Controllers\\MailLogController::showResults::211",
 				// an id that is not digits is refused either way ($id <= 0)
@@ -300,7 +302,7 @@
 				// -1 is below 1 as 0 is: no limit, or the default
 				"App\\Services\\MailLogService::notificationCutoff::2229",
 				"App\\Services\\MailLogService::adminNotificationCutoff::2241",
-				"App\\Services\\MapService::userMapQuotaReached::179",
+				"App\\Services\\MapService::userMapQuotaReached::180",
 				// page 0 is page 1: paginate() and the paginator take a falsy page as the current one (1, with no resolver set), and forPage() starts at offset 0
 				"App\\Services\\MailLogService::getPaginatedDay::1293",
 				"App\\Services\\MailLogService::getPaginatedQuarantineDay::1317",
@@ -315,14 +317,17 @@
 		},
 		"FalseValue": {
 			"ignore": [
+				// Eloquent's save()/delete() is false only when a model event cancels it (none on these models); a failing query throws
+				"App\\Services\\MapService::delMapEntry::1358",
+				"App\\Services\\MapService::toggleMapEntry::1470",
 				// with a row id the reply is 'saved': spooled is read only without one
 				"App\\Api\\MetadataImporterMultipartApi::save::125",
 				"App\\Api\\MetadataImporterMultipartApi::save::142",
 				// Eloquent's save()/insert() is false only when a model event cancels it (none on these models); a failing query throws
-				"App\\Services\\MapService::addMapCombinedEntry::931",
-				"App\\Services\\MapService::addMapCustomEntry::1095",
-				"App\\Services\\MapService::addCustomMapConfig::1192",
-				"App\\Services\\MapService::updateCustomMapConfig::1240",
+				"App\\Services\\MapService::addMapCombinedEntry::957",
+				"App\\Services\\MapService::addMapCustomEntry::1116",
+				"App\\Services\\MapService::addCustomMapConfig::1209",
+				"App\\Services\\MapService::updateCustomMapConfig::1273",
 				// mailparse always sets is_group
 				"App\\Utils\\Helper::getMailFromMime::1385",
 				// inet_pton() of an address FILTER_VALIDATE_IP accepted does not fail
@@ -427,9 +432,9 @@
 				// no row has no others; with none shared the checks below find nothing to warn about
 				"App\\Controllers\\FuzzyController::warnShared::405",
 				// tempnam() leaves MAP_DIR only when MAP_DIR is unusable, which was refused just before
-				"App\\Services\\MapService::updateMapFile::748",
+				"App\\Services\\MapService::updateMapFile::749",
 				// a local file write that fails short or flushes nothing: no test can make one
-				"App\\Services\\MapService::updateMapFile::823",
+				"App\\Services\\MapService::updateMapFile::824",
 				// php-ip's isPrivate() or isReserved() already covers loopback and link-local
 				"App\\Utils\\Helper::isLocalOrReservedIp::1230",
 				// valid UTF-8 comes out of toUtf8() unchanged
@@ -529,8 +534,8 @@
 			// public, but only called inside its class (Eloquent calls accessors
 			// and mutators from inside the model)
 			"ignore": [
-				"App\\Services\\MapService::getMapCombinedBasicQuery::123",
-				"App\\Services\\MapService::getMapCustomQuery::155",
+				"App\\Services\\MapService::getMapCombinedBasicQuery::124",
+				"App\\Services\\MapService::getMapCustomQuery::156",
 				"App\\Services\\MailLogService::getSqlFromQuery::103",
 				"App\\Services\\UserService::getSqlFromQuery::66",
 				"App\\Services\\MailAliasService::getSqlFromQuery::48",
@@ -576,13 +581,16 @@
 		},
 		"ReturnRemoval": {
 			"ignore": [
+				// Eloquent's save()/delete() is false only when a model event cancels it (none on these models); a failing query throws
+				"App\\Services\\MapService::delMapEntry::1358",
+				"App\\Services\\MapService::toggleMapEntry::1470",
 				// the same redirect follows the try
 				"App\\Controllers\\LoginController::logout_openidc::134",
 				// Eloquent's save()/insert() is false only when a model event cancels it (none on these models); a failing query throws
-				"App\\Services\\MapService::addMapCombinedEntry::931",
-				"App\\Services\\MapService::addMapCustomEntry::1095",
-				"App\\Services\\MapService::addCustomMapConfig::1192",
-				"App\\Services\\MapService::updateCustomMapConfig::1240",
+				"App\\Services\\MapService::addMapCombinedEntry::957",
+				"App\\Services\\MapService::addMapCustomEntry::1116",
+				"App\\Services\\MapService::addCustomMapConfig::1209",
+				"App\\Services\\MapService::updateCustomMapConfig::1273",
 				// the map pages test is_admin before user_can_delete
 				"App\\Controllers\\MapController::getUserCanDelete::1335",
 				// the same redirect follows the try
@@ -594,7 +602,7 @@
 				"App\\Core\\Middleware\\AuthMiddleware::sessionStillValid::99",
 				"App\\Core\\Middleware\\AuthMiddleware::sessionStillValid::104",
 				// an empty pattern ('' or '0') leaves no line either: false all the same, logged once
-				"App\\Services\\MapService::addMapCustomEntry::1047",
+				"App\\Services\\MapService::addMapCustomEntry::1065",
 				// LoginThrottle's listBlocked() and listCounters() give [] for no cache, clearIp() false
 				"App\\Services\\UserService::getLoginThrottles::414",
 				"App\\Services\\UserService::clearLoginThrottle::435",
@@ -670,7 +678,7 @@
 				// an int status against ints: == matches as === does
 				"App\\Services\\FuzzyService::callApi::690",
 				// the values are text, none of them numeric: == matches as === does
-				"App\\Services\\MapService::updateMapFile::782",
+				"App\\Services\\MapService::updateMapFile::783",
 				// resyncCounters() reads only the keys of the aliases seen
 				"App\\Services\\Import\\MailLogSpool::drain::323",
 				"App\\Services\\Import\\MailLogSpool::drain::410",
@@ -717,8 +725,8 @@
 				// only the keys of $hashes are read
 				"App\\Services\\FuzzyService::sharedWith::399",
 				// a non-empty address against the user's (or ''), no numeric string: in_array() matches loosely as strictly
-				"App\\Services\\MapService::addMapCombinedEntry::913",
-				"App\\Services\\MapService::updateMapCombinedEntry::987",
+				"App\\Services\\MapService::addMapCombinedEntry::936",
+				"App\\Services\\MapService::updateMapCombinedEntry::1006",
 				// flags are ints both sides (the cast and Row::int()): in_array() matches loosely as strictly
 				"App\\Services\\FuzzyService::orphanedSlotHolders::551"
 			]
@@ -777,8 +785,8 @@
 				// the message starts with "error:" and ends with a quote: nothing to trim
 				"App\\Core\\Auth\\LdapAuth::getError::292",
 				// each line is trimmed, and blank lines dropped, after
-				"App\\Services\\MapService::mapEntryExists::589",
-				"App\\Services\\MapService::addMapCustomEntry::1068"
+				"App\\Services\\MapService::mapEntryExists::590",
+				"App\\Services\\MapService::addMapCustomEntry::1086"
 			]
 		},
 		"UnwrapArrayValues": {
@@ -791,7 +799,7 @@
 				// a header's values are sent in order, their keys not at all
 				"App\\Services\\FuzzyService::deleteHashes::707",
 				// implode() ignores the keys, and an empty array is [] with gaps or without
-				"App\\Services\\MapService::prepareSymbols::331",
+				"App\\Services\\MapService::prepareSymbols::332",
 				// in_array() does not need list keys
 				"App\\Core\\Auth\\LoginThrottle::__construct::80",
 				// only iterated
@@ -843,9 +851,9 @@
 				// netdns2 gives the name without its trailing dot: the rtrim() is a guard
 				"App\\Utils\\Helper::lookupPtr::1586",
 				// realpath() ends in a separator only for /, whose prefix is the same
-				"App\\Services\\MapService::updateMapFile::748",
+				"App\\Services\\MapService::updateMapFile::749",
 				// a trailing / in MAP_DIR makes the path's // , which the file system reads as /
-				"App\\Services\\MapService::updateMapFile::839",
+				"App\\Services\\MapService::updateMapFile::840",
 				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::56",
 				// a name from scandir() ends in no separator
 				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::337",
