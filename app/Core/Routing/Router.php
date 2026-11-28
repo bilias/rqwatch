@@ -315,6 +315,8 @@ final class Router
 		$router = new self();
 		$response = $router->dispatch($routes, $defaultMiddlewareClasses);
 		self::applySecurityHeaders($response);
+		// before send(): under PHP-FPM the client has the response before the request ends
+		SessionManager::save();
 		$response->send();
 		exit();
 	}

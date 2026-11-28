@@ -153,6 +153,25 @@ final class SessionManager
 		self::$session->start();
 	}
 
+	/*
+	 Writes the session, before the response is sent. Left to PHP it is
+	 written when the request ends, but under PHP-FPM Response::send() hands
+	 the response to the client first (fastcgi_finish_request()). A session
+	 in Redis has no lock: after a redirect the browser's next request could
+	 arrive before the write and find no login and no flash message. One
+	 that cannot be written is logged; the response is sent all the same.
+	*/
+	public static function save(): void {
+		if (self::$session === null) {
+			return;
+		}
+		try {
+			self::$session->save();
+		} catch (Throwable $e) {
+			App::fileLogger()->error("[SessionManager] Session not saved: " . $e->getMessage());
+		}
+	}
+
 	// clears username and flashbag from session
 	public static function destroy(): void {
 		if (self::$session) {

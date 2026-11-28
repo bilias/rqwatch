@@ -352,7 +352,7 @@
 				"App\\Utils\\Helper::extract_mail_relays::1132",
 				// one second at the idle limit; a test would race the clock
 				"App\\Controllers\\QuarantineController::sessionToken::327",
-				"App\\Core\\SessionManager::checkSessionExpired::182",
+				"App\\Core\\SessionManager::checkSessionExpired::201",
 				// 1 byte is "1B" in either branch
 				"App\\Utils\\Helper::formatSizeUnits::505",
 				// no rows without a location leave the loop empty either way

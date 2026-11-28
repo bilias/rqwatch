@@ -103,6 +103,30 @@ final class SessionManagerTest extends UnitTestCase
 		$this->assertSame(['error' => ['Session expired']], $session->getFlashBag()->peekAll());
 	}
 
+	// written and closed before the response is sent, with what the request put in it
+	public function testSave(): void {
+		$session = self::stored(10, 60);
+		SessionManager::save();
+		$this->assertFalse($session->isStarted());
+		$this->assertSame('alice', $session->get('username'));
+		$this->assertSame([], $this->log->lines);
+	}
+
+	public function testSaveWithoutSession(): void {
+		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, null, null, new RecordingCache(), false));
+		SessionManager::save();
+		$this->assertSame([], $this->log->lines);
+	}
+
+	// a session that cannot be written (here: closed already) is logged, not thrown
+	public function testSaveFails(): void {
+		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, null, null, new RecordingCache(), false));
+		$session = self::stored(10, 60);
+		$session->save();
+		SessionManager::save();
+		$this->assertSame(['error [SessionManager] Session not saved: Trying to save a session that was not started yet or was already closed.'], $this->log->lines);
+	}
+
 	public function testDestroyWithoutSession(): void {
 		SessionManager::destroy();
 		$this->assertTrue(SessionManager::checkSessionExpired());
