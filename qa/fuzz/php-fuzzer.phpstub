@@ -1,0 +1,21 @@
+<?php
+// Rqwatch
+// Copyright (C) 2026 Giannis Kapetanakis
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+// For PHPStan (scanFiles) and Psalm (stubs) only: the part of nikic/php-fuzzer's
+// PhpFuzzer\Config the targets in qa/fuzz/ use. The tool is not in vendor/
+// (qa/fuzz.sh installs it apart); it hands each target this object as $config.
+
+namespace PhpFuzzer;
+
+class Config {
+	/** @param \Closure(string): void $target */
+	public function setTarget(\Closure $target): void {}
+
+	public function setMaxLen(int $maxLen): void {}
+
+	public function addDictionary(string $path): void {}
+}

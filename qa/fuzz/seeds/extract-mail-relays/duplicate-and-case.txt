@@ -1,0 +1,4 @@
+received: from a.example.com (a.example.com [203.0.113.1]) by b.example.com
+Received: from b.example.com (b.example.com [203.0.113.1])
+	by c.example.com
+X-Header: [203.0.113.9]

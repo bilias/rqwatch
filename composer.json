@@ -98,6 +98,10 @@
          "Composer\\Config::disableProcessTimeout",
          "bash qa/infection.sh"
       ],
+      "fuzz": [
+         "Composer\\Config::disableProcessTimeout",
+         "bash qa/fuzz.sh"
+      ],
       "coverage": [
          "Composer\\Config::disableProcessTimeout",
          "bash qa/unit-coverage.sh"

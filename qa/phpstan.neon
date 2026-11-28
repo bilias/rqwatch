@@ -29,6 +29,9 @@ parameters:
 		- ALLOW_DEGRADED_DB
 	stubFiles:
 		- phpstan-form.stub
+	# PhpFuzzer\Config for the fuzz targets: the tool is not in vendor/
+	scanFiles:
+		- fuzz/php-fuzzer.phpstub
 	bootstrapFiles:
 		- ../app/Configuration/AppConfig.php
 		- phpstan-bootstrap.php

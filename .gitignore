@@ -23,3 +23,5 @@ gh-md-toc
 /infection-report/
 /corgea-report/
 /coverage-report/
+/fuzz-work/
+/.php-fuzzer/

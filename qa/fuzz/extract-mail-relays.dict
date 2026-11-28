@@ -1,0 +1,13 @@
+# Words the fuzzer splices into inputs for qa/fuzz/extract-mail-relays.php:
+# header syntax, address forms, line ends (CRLF, folding). The seeds use LF.
+"Received: "
+"from "
+"by "
+" with ESMTPS"
+"[IPv6:"
+"::"
+"2001:db8::1"
+"192.0.2.1"
+".example.org"
+"\x0d\x0a\x09"
+"\x0a "
