@@ -666,9 +666,7 @@ final class MapController extends ViewController
 		// the map's form class; every one has a static create()
 		$mapFormClass = $config['map_form'];
 
-		$options = [
-			'role' => $this->getRole(),
-		];
+		$options = [];
 
 		if ($config['model'] === 'MapCustom') {
 			$options['map'] = $map;
@@ -700,7 +698,7 @@ final class MapController extends ViewController
 			// generate entry string for logs/flashbag
 			$pairs = [];
 			if ($config['model'] === 'MapCustom') {
-				/** @var array{role: string, map: string} $options MapCustom maps are admin-only (getAvailableMapConfigs) */
+				/** @var array{map: non-falsy-string} $options MapCustom maps are admin-only (getAvailableMapConfigs) */
 				$field_db = MapService::getCustomField($options['map']);
 				$pairs[] = $field_db['field_label'] . ": " . $values[$fields[0]];
 			} else {
@@ -829,9 +827,7 @@ final class MapController extends ViewController
 		// the map's form class; every one has a static create()
 		$mapFormClass = $config['map_form'];
 
-		$options = [
-			'role' => $this->getRole(),
-		];
+		$options = [];
 
 		if ($model === 'MapCustom') {
 			$options['map'] = $map;
@@ -867,7 +863,7 @@ final class MapController extends ViewController
 			// generate entry string for logs/flashbag
 			$pairs = [];
 			if ($model === 'MapCustom') {
-				/** @var array{role: string, map: string, is_edit: true} $options MapCustom maps are admin-only (getAvailableMapConfigs) */
+				/** @var array{map: non-falsy-string, is_edit: true} $options MapCustom maps are admin-only (getAvailableMapConfigs) */
 				$field_db = MapService::getCustomField($options['map']);
 				$pairs[] = $field_db['field_label'] . ": " . trim($values[$fields[0]]);
 			} else {

@@ -65,7 +65,6 @@ class MapWithTwoFieldsUserOverrideForm extends MapWithTwoFieldsForm
 	#[\Override]
 	public function configureOptions(OptionsResolver $resolver): void {
 		// Define allowed custom options
-		$resolver->setDefined(['role']);
 		$resolver->setDefined(['user_emails']);
 	}
 }

@@ -389,7 +389,6 @@ final class UserController extends ViewController
 			return $response;
 		}
 
-		$error = null;
 		$userform = UserForm::create(
 			$this->formFactory,
 			$this->request,
@@ -430,7 +429,6 @@ final class UserController extends ViewController
 		}
 
 		return new Response($this->twig->render('user_add.twig', [
-			'error' => $error,
 			'qidform' => $qidform->createView(),
 			'userform' => $userform->createView(),
 			'runtime' => $this->getRuntime(),

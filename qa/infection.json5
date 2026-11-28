@@ -18,13 +18,13 @@
 		"UnwrapArrayMerge": {
 			"ignore": [
 				// $release_to is still empty there
-				"App\\Controllers\\MailLogController::releaseMail::1002"
+				"App\\Controllers\\MailLogController::releaseMail::1001"
 			]
 		},
 		"UnwrapArrayUnique": {
 			"ignore": [
 				// a repeated address does not change array_intersect()'s count
-				"App\\Controllers\\MailLogController::releaseMail::969"
+				"App\\Controllers\\MailLogController::releaseMail::968"
 			]
 		},
 		"Catch_": {
@@ -35,17 +35,8 @@
 		},
 		"ArrayItemRemoval": {
 			"ignore": [
-				// MailReleaseForm has no id field: the data's id is never read
-				"App\\Controllers\\MailLogController::releaseMail::942",
 				// username is set again just below
 				"App\\Controllers\\LoginController::finalizeAuthenticatedUser::550",
-				// MailReleaseForm has no id field: the data's id is never read
-				"App\\Controllers\\MailLogController::releaseFormView::1621",
-				// the map forms define a 'role' option but never read it
-				"App\\Controllers\\MapController::addMapEntry::669",
-				"App\\Controllers\\MapController::editMapEntry::832",
-				// add() never sets $error: always null, as a missing key is in Twig
-				"App\\Controllers\\UserController::add::432",
 				// the query selects its own columns: paginate()'s are only a default, and its count ignores them
 				"App\\Services\\MapService::getPaginatedMapCustom::539",
 				"App\\Services\\MapService::searchPaginatedMapCombined::401",
@@ -147,8 +138,8 @@
 		"CastString": {
 			"ignore": [
 				// a logged-in session always holds the user's email
-				"App\\Controllers\\MailLogController::releaseMail::969",
-				"App\\Controllers\\MailLogController::releaseMail::992",
+				"App\\Controllers\\MailLogController::releaseMail::968",
+				"App\\Controllers\\MailLogController::releaseMail::991",
 				// a numeric map name as an int key: isset(), array_unique() and the URL read it as its text
 				"App\\Controllers\\MailLogController::symbolLinks::878",
 				// an int header value goes out as its digits, Symfony makes it text
@@ -234,7 +225,7 @@
 				// showMap(): ?entry= of 0 or below is no entry either way ($entry_filter > 0)
 				"App\\Controllers\\MapController::showMap::554",
 				// the quota is reached only with USER_MAP_MAX_ENTRIES set above 0, so the fallback never shows
-				"App\\Controllers\\MapController::addMapEntry::724",
+				"App\\Controllers\\MapController::addMapEntry::722",
 				// showMails(): ?entry= of 0 or below is no entry either way ($entry > 0)
 				"App\\Controllers\\MapHitController::showMails::94",
 				// ?page defaults to 1; 0 is read as 1 too, by paginate(), Collection::forPage() and
@@ -258,7 +249,7 @@
 				"App\\Controllers\\MapController::showAllMaps::182",
 				"App\\Controllers\\MapController::showCustomMapsConfig::296",
 				"App\\Controllers\\MapController::showMap::548",
-				"App\\Controllers\\MapController::searchMapEntry::1147",
+				"App\\Controllers\\MapController::searchMapEntry::1143",
 				"App\\Controllers\\MapHitController::showMails::164",
 				"App\\Controllers\\UserController::searchUser::164",
 				"App\\Controllers\\UserController::showAll::210",
@@ -370,7 +361,7 @@
 		"IncrementInteger": {
 			"ignore": [
 				// the quota is reached only with USER_MAP_MAX_ENTRIES set above 0, so the fallback never shows
-				"App\\Controllers\\MapController::addMapEntry::724",
+				"App\\Controllers\\MapController::addMapEntry::722",
 				// a prefix is 0 bits or more: starting at 0 credits the entries -1 does
 				"App\\Services\\MapHitService::longestPrefix::335",
 				// array_pad() to 3 leaves the two values destructured unchanged; the line's
@@ -410,9 +401,9 @@
 		"LogicalAnd": {
 			"ignore": [
 				// no user loaded has an empty username; without one, both read as a deleted user
-				"App\\Controllers\\MapController::getMapUser::1349",
+				"App\\Controllers\\MapController::getMapUser::1345",
 				// the MapCombined branch is taken first, and a user never reaches the update with MapCustom
-				"App\\Controllers\\MapController::editMapEntry::883",
+				"App\\Controllers\\MapController::editMapEntry::879",
 				// the router attaches the session before any middleware runs
 				"App\\Core\\Middleware\\AuthMiddleware::handle::46",
 				// null and '' fall through the switch to the same "clean"
@@ -431,8 +422,8 @@
 		"LogicalOr": {
 			"ignore": [
 				// a valid map form's data is an array holding its required fields: never anything else, never empty
-				"App\\Controllers\\MapController::addMapEntry::689",
-				"App\\Controllers\\MapController::editMapEntry::856",
+				"App\\Controllers\\MapController::addMapEntry::687",
+				"App\\Controllers\\MapController::editMapEntry::852",
 				// no row has no others; with none shared the checks below find nothing to warn about
 				"App\\Controllers\\FuzzyController::warnShared::405",
 				// tempnam() leaves MAP_DIR only when MAP_DIR is unusable, which was refused just before
@@ -472,8 +463,8 @@
 				"App\\Controllers\\LoginController::login::240",
 				// loginAs(): setSessionVars() sets every var again and refreshUrls() runs at the end, and nothing
 				// between reads a URL or var: each of unsetSessionVars() and the final refreshUrls() covers the other
-				"App\\Controllers\\UserController::loginAs::639",
-				"App\\Controllers\\UserController::loginAs::665",
+				"App\\Controllers\\UserController::loginAs::637",
+				"App\\Controllers\\UserController::loginAs::663",
 				// requireColumn() checks the table first, with the same message
 				"App\\Core\\Database\\Database::verifyMailLogTokens::163",
 				"App\\Core\\Database\\Database::verifyMailRecipients::181",
@@ -587,15 +578,13 @@
 			"ignore": [
 				// the same redirect follows the try
 				"App\\Controllers\\LoginController::logout_openidc::134",
-				// $stats is that null
-				"App\\Controllers\\MailLogController::getMailStats::1542",
 				// Eloquent's save()/insert() is false only when a model event cancels it (none on these models); a failing query throws
 				"App\\Services\\MapService::addMapCombinedEntry::931",
 				"App\\Services\\MapService::addMapCustomEntry::1095",
 				"App\\Services\\MapService::addCustomMapConfig::1192",
 				"App\\Services\\MapService::updateCustomMapConfig::1240",
 				// the map pages test is_admin before user_can_delete
-				"App\\Controllers\\MapController::getUserCanDelete::1326",
+				"App\\Controllers\\MapController::getUserCanDelete::1322",
 				// the same redirect follows the try
 				"App\\Controllers\\LoginController::logout_openidc::130",
 				// no row has no others; with none shared the checks below find nothing to warn about
@@ -677,7 +666,7 @@
 		"TrueValue": {
 			"ignore": [
 				// the map pages test is_admin before user_can_delete
-				"App\\Controllers\\MapController::getUserCanDelete::1326",
+				"App\\Controllers\\MapController::getUserCanDelete::1322",
 				// an int status against ints: == matches as === does
 				"App\\Services\\FuzzyService::callApi::690",
 				// the values are text, none of them numeric: == matches as === does
@@ -745,10 +734,10 @@
 		"UnwrapArrayFilter": {
 			"ignore": [
 				// no recipient is blank: blanks and repeats change neither array_intersect()'s count nor the release list (mail_recipients is checked not empty first)
-				"App\\Controllers\\MailLogController::releaseMail::969",
-				"App\\Controllers\\MailLogController::releaseMail::1002",
+				"App\\Controllers\\MailLogController::releaseMail::968",
+				"App\\Controllers\\MailLogController::releaseMail::1001",
 				// http_build_query() leaves null values out anyway (the redirect and the page links)
-				"App\\Controllers\\MapController::searchMapEntry::1141",
+				"App\\Controllers\\MapController::searchMapEntry::1137",
 				// an empty whitelist entry only matches an empty client IP, which is never throttled
 				"App\\Core\\Auth\\LoginThrottle::__construct::80",
 				// http_build_query() leaves a null out of the page's url
@@ -758,8 +747,8 @@
 		"UnwrapStrToLower": {
 			"ignore": [
 				// mail_recipients is lowercased already, and the disabled form field holds it
-				"App\\Controllers\\MailLogController::releaseMail::971",
-				"App\\Controllers\\MailLogController::releaseMail::973",
+				"App\\Controllers\\MailLogController::releaseMail::970",
+				"App\\Controllers\\MailLogController::releaseMail::972",
 				// mailparse gives the content type lowercased, without parameters
 				"App\\Inventory\\MailObject::embedImages::100",
 				// the form allows only lowercase map names
@@ -769,8 +758,8 @@
 		"UnwrapTrim": {
 			"ignore": [
 				// the custom field is a TextType on edit, which trims already
-				"App\\Controllers\\MapController::editMapEntry::872",
-				"App\\Controllers\\MapController::editMapEntry::899",
+				"App\\Controllers\\MapController::editMapEntry::868",
+				"App\\Controllers\\MapController::editMapEntry::895",
 				// the custom map config form's text fields trim already
 				"App\\Controllers\\MapController::customMapConfigValues::70",
 				"App\\Controllers\\MapController::customMapConfigValues::74",
@@ -798,7 +787,7 @@
 				"App\\Controllers\\MailLogController::showResults::178",
 				"App\\Controllers\\MailLogController::showResults::210",
 				// its callers only implode() the list
-				"App\\Controllers\\UserController::getMailAliases::611",
+				"App\\Controllers\\UserController::getMailAliases::609",
 				// a header's values are sent in order, their keys not at all
 				"App\\Services\\FuzzyService::deleteHashes::707",
 				// implode() ignores the keys, and an empty array is [] with gaps or without

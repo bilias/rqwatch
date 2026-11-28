@@ -124,7 +124,6 @@ final class MapWithCustomFieldForm extends AbstractType
 
 	#[\Override]
 	public function configureOptions(OptionsResolver $resolver): void {
-		$resolver->setDefined(['role']);
 		$resolver->setDefined(['map']);
 		$resolver->setDefined(['is_edit']);
 	}

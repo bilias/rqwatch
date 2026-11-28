@@ -16,8 +16,6 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 
-use Symfony\Component\OptionsResolver\OptionsResolver;
-
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -65,18 +63,6 @@ class MapWithTwoFieldsForm extends AbstractType
 		// Merge class with any existing class
 		$options = FormHelper::withClass($options, 'twofieldsform');
 		return FormHelper::formCreator($formFactory, $request, static::class, $data, $options);
-	}
-
-	#[\Override]
-	public function configureOptions(OptionsResolver $resolver): void {
-		/*
-		$resolver->setDefaults([
-			$resolver->setDefault('foo', 'default_value');
-		]);
-		*/
-
-		// Define allowed custom options
-		$resolver->setDefined(['role']);
 	}
 
 }

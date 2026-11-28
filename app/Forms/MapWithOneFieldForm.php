@@ -16,8 +16,6 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 
-use Symfony\Component\OptionsResolver\OptionsResolver;
-
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 use Symfony\Component\HttpFoundation\Request;
@@ -62,10 +60,5 @@ class MapWithOneFieldForm extends AbstractType
 		// Merge class with any existing class
 		$options = FormHelper::withClass($options, 'onefieldform');
 		return FormHelper::formCreator($formFactory, $request, static::class, $data, $options);
-	}
-
-	#[\Override]
-	public function configureOptions(OptionsResolver $resolver): void {
-		$resolver->setDefined(['role']);
 	}
 }

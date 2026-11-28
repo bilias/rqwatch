@@ -142,7 +142,7 @@ final class MapCustomFormsTest extends MapDatabaseTestCase
 	 * @phpstan-return FormInterface
 	 */
 	private static function custom(string $map, ?array $data = null, array $options = [], ?Request $request = null): FormInterface {
-		return MapWithCustomFieldForm::create(self::factory(), $request ?? Request::create('/'), $data, ['map' => $map, 'role' => 'admin'] + $options);
+		return MapWithCustomFieldForm::create(self::factory(), $request ?? Request::create('/'), $data, ['map' => $map] + $options);
 	}
 
 	public function testAdd(): void {

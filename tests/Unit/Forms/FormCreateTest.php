@@ -107,15 +107,15 @@ final class FormCreateTest extends UnitTestCase
 				'', 'onefieldform', ['map_name' => 'senders'], 'map_name', 'senders',
 			],
 			'one-field map' => [
-				fn (FormFactoryInterface $f, Request $r, UrlGeneratorInterface $u): FormInterface => MapMailFromForm::create($f, $r, null, ['role' => 'admin']),
+				fn (FormFactoryInterface $f, Request $r, UrlGeneratorInterface $u): FormInterface => MapMailFromForm::create($f, $r),
 				'', 'onefieldform', ['mail_from' => 'spammer@example.org'], 'mail_from', 'spammer@example.org',
 			],
 			'two-field map' => [
-				fn (FormFactoryInterface $f, Request $r, UrlGeneratorInterface $u): FormInterface => MapMailFromRcptToForm::create($f, $r, null, ['role' => 'admin']),
+				fn (FormFactoryInterface $f, Request $r, UrlGeneratorInterface $u): FormInterface => MapMailFromRcptToForm::create($f, $r),
 				'', 'twofieldsform', ['mail_from' => 'spammer@example.org', 'rcpt_to' => 'bob@example.org'], 'rcpt_to', 'bob@example.org',
 			],
 			"two-field map, a user's" => [
-				fn (FormFactoryInterface $f, Request $r, UrlGeneratorInterface $u): FormInterface => MapMailFromRcptToUserForm::create($f, $r, null, ['role' => 'user', 'user_emails' => ['alice@example.org']]),
+				fn (FormFactoryInterface $f, Request $r, UrlGeneratorInterface $u): FormInterface => MapMailFromRcptToUserForm::create($f, $r, null, ['user_emails' => ['alice@example.org']]),
 				'', 'twofieldsform', ['mail_from' => 'spammer@example.org', 'rcpt_to' => 'alice@example.org'], 'rcpt_to', 'alice@example.org',
 			],
 		];

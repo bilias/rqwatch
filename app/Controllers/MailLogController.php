@@ -940,7 +940,6 @@ final class MailLogController extends ViewController
 		$this->twigFormView($this->request);
 
 		$form_data = array(
-			'id' => $maillog->id,
 			'email' => $maillog->mail_recipients,
 		);
 
@@ -1355,16 +1354,8 @@ final class MailLogController extends ViewController
 	/**
 	 * @return array<string, array{model: 'MapCombined'|'MapCustom', description: string, fields: non-empty-list<non-empty-string>, map_form: MapForm, access: list<string>, add_url: string}> map name => config, plus its add_url
 	 */
-	private function getMapConfigsWithAddUrls(MailLog $log, ?string $map = null): array {
-		if ($map === null) {
-			$configs = MapInventory::getAvailableMapConfigs($this->getRole());
-		} else {
-			$config = MapInventory::getAvailableMapConfigs($this->getRole(), $map);
-			if ($config === null) {
-				return [];
-			}
-			$configs = [$map => $config];
-		}
+	private function getMapConfigsWithAddUrls(MailLog $log): array {
+		$configs = MapInventory::getAvailableMapConfigs($this->getRole());
 
 		$address = $log->mimeFromAddress();
 		$log->mime_from_normalized = $address === null ? null : mb_strtolower($address);
@@ -1539,7 +1530,6 @@ final class MailLogController extends ViewController
 				// disabled: both render no block, only one is an error
 				$this->flashbag->add('error',
 					"Statistics unavailable - query error. Check the logs, and remove the filter if it persists.");
-				return null;
 			}
 
 			return $stats;
@@ -1618,7 +1608,7 @@ final class MailLogController extends ViewController
 			$form = MailReleaseForm::create(
 				$this->formFactory,
 				$this->request,
-				['id' => $log->id, 'email' => $log->mail_recipients],
+				['email' => $log->mail_recipients],
 				['action' => $this->getReleaseUrl($log->id)]
 			);
 			$view = $form->createView();

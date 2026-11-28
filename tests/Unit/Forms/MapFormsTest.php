@@ -112,25 +112,6 @@ final class MapFormsTest extends UnitTestCase
 		$this->assertSame(array_combine($mine, $mine), $form->get('rcpt_to')->getConfig()->getOption('choices'));
 	}
 
-	/** @return array<string, array{class-string<FormTypeInterface<array<string, mixed>>>, array<string, mixed>}> form, other options */
-	public static function roleForms(): array {
-		return [
-			'one field' => [MapMailFromForm::class, []],
-			'two fields' => [MapMailFromRcptToForm::class, []],
-			"two fields, a user's" => [MapMailFromRcptToUserForm::class, ['user_emails' => ['alice@example.org']]],
-		];
-	}
-
-	/**
-	 * @param class-string<FormTypeInterface<array<string, mixed>>> $class
-	 * @param array<string, mixed> $options
-	 */
-	#[DataProvider('roleForms')]
-	public function testRoleOptionAccepted(string $class, array $options): void {
-		$form = self::factory()->create($class, null, ['role' => 'admin'] + $options);
-		$this->assertTrue($form->has('submit'));
-	}
-
 	public function testUserFormOtherSecondFieldKept(): void {
 		$form = new class extends MapWithTwoFieldsUserOverrideForm {
 			protected static string $firstFieldName = 'mail_from';
@@ -148,7 +129,7 @@ final class MapFormsTest extends UnitTestCase
 	public function testCustomFieldFormOptions(): void {
 		$resolver = new OptionsResolver();
 		(new MapWithCustomFieldForm())->configureOptions($resolver);
-		$this->assertEqualsCanonicalizing(['role', 'map', 'is_edit'], $resolver->getDefinedOptions());
+		$this->assertEqualsCanonicalizing(['map', 'is_edit'], $resolver->getDefinedOptions());
 	}
 
 	public function testTwoFieldFormNeedsBothNames(): void {
