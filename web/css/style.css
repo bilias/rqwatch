@@ -166,6 +166,22 @@ table.mail td {
 	padding: 1px 2px 1px 2px;
 }
 
+/*
+ The white lines between rows and columns are borders, not the 1px gap of
+ the tables' cellspacing='1': a browser may round a 1px gap away when the
+ page is zoomed out (Chromium does), but draws a border at least one device
+ pixel wide. Direct cells only, so a table inside a cell is left alone.
+*/
+table.mail {
+	border-spacing: 0;
+}
+
+table.mail > * > tr > th,
+table.mail > * > tr > td {
+	border-right: 1px solid white;
+	border-bottom: 1px solid white;
+}
+
 table.mail .date {
 	max-width: 10%;
 	white-space: nowrap;
