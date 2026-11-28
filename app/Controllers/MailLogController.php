@@ -208,7 +208,11 @@ final class MailLogController extends ViewController
 		// ?month=Y-m: that calendar month, from Reports -> Mails by Month;
 		// replaces any Date filter, as ?date= does
 		$month = $this->request->query->getString('month');
-		if (preg_match('/^(\d{4})-(\d{2})$/D', $month, $m) && checkdate((int) $m[2], 1, (int) $m[1])) {
+		if (preg_match('/^(\d{4})-(\d{2})$/D', $month, $m) && checkdate(
+			(int) $m[2],
+			1,
+			(int) $m[1]
+		)) {
 			$filters = array_values(array_filter(
 				$filters,
 				static fn(array $filter): bool =>
@@ -739,7 +743,9 @@ final class MailLogController extends ViewController
 			}
 		}
 		$fuzzy_flags = $fuzzy_enabled ? FuzzyService::flags() : [];
-		$fuzzy_learnable = $fuzzy_enabled && $fuzzy === null && $fuzzy_flags !== []
+		// there are flags only while fuzzy is enabled, and the template reads
+		// this only for a mail that is not learned yet
+		$fuzzy_learnable = $fuzzy_flags !== []
 			&& $log->mail_stored
 			&& FuzzyService::serverEnabled($log->server);
 
@@ -812,17 +818,17 @@ final class MailLogController extends ViewController
 			? Helper::virusSkipMatch($ar['log']->symbols ?? [], MapService::getVirusSkipPatterns() ?? [])
 			: null;
 
-		// still pending, but past notification_days: the cron will not retry it
+		// past notification_days: the cron will not retry it. The template
+		// reads this only for a notification that is still pending
 		$notification_cutoff = MailLogService::notificationCutoff();
-		$notified_expired = $ar['log']->notification_pending
-			&& $notification_cutoff !== null
+		$notified_expired = $notification_cutoff !== null
 			&& $ar['log']->created_day->format('Y-m-d') < $notification_cutoff;
 
-		// admin row: only once the admin_notified columns exist
+		// admin row: only once the admin_notified columns exist. Past
+		// admin_notification_days: the template reads this only for that
+		// row, and only for a mail the admin is not notified of yet
 		$admin_notifications = App::migrationStatus()->adminNotifiedCompleted();
-		$admin_notified_expired = $admin_notifications
-			&& $ar['log']->admin_notified === false
-			&& $ar['log']->created_day->format('Y-m-d') < MailLogService::adminNotificationCutoff();
+		$admin_notified_expired = $ar['log']->created_day->format('Y-m-d') < MailLogService::adminNotificationCutoff();
 
 		return new Response($this->twig->render('detail.twig', [
 			'qidform' => $qidform->createView(),
@@ -1451,7 +1457,8 @@ final class MailLogController extends ViewController
 		}
 
 		$from = min($keys) . '-01';
-		$to = (new DateTimeImmutable(max($keys) . '-01'))->format('Y-m-t');
+		// a Y-m alone is the first of that month
+		$to = (new DateTimeImmutable(max($keys)))->format('Y-m-t');
 
 		$totals = [];
 		foreach ($service->getDailyTotals($from, $to) as $day => $total) {

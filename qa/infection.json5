@@ -18,13 +18,13 @@
 		"UnwrapArrayMerge": {
 			"ignore": [
 				// $release_to is still empty there
-				"App\\Controllers\\MailLogController::releaseMail::1003"
+				"App\\Controllers\\MailLogController::releaseMail::1009"
 			]
 		},
 		"UnwrapArrayUnique": {
 			"ignore": [
 				// a repeated address does not change array_intersect()'s count
-				"App\\Controllers\\MailLogController::releaseMail::970"
+				"App\\Controllers\\MailLogController::releaseMail::976"
 			]
 		},
 		"Catch_": {
@@ -76,7 +76,7 @@
 				"App\\Services\\MailLogService::filterByMapHit::328",
 				// Twig's default is no cache, as on a command line; the web's cache dir is
 				// untested (LogicalAnd, twigView::71)
-				"App\\Controllers\\ViewController::twigView::84"
+				"App\\Controllers\\ViewController::twigView::92"
 			]
 		},
 		"BitwiseOr": {
@@ -105,8 +105,8 @@
 		"CastInt": {
 			"ignore": [
 				// the page prints it through |nf, which formats '30' as 30
-				"App\\Controllers\\MailLogController::showQuarantine::662",
-				"App\\Controllers\\MailLogController::showQuarantinePerMonth::709",
+				"App\\Controllers\\MailLogController::showQuarantine::666",
+				"App\\Controllers\\MailLogController::showQuarantinePerMonth::713",
 				// a weight checked to be digits compares and adds as its number
 				"App\\Controllers\\FuzzyController::learn::187",
 				"App\\Controllers\\FuzzyController::boost::281",
@@ -138,10 +138,10 @@
 		"CastString": {
 			"ignore": [
 				// a logged-in session always holds the user's email
-				"App\\Controllers\\MailLogController::releaseMail::970",
-				"App\\Controllers\\MailLogController::releaseMail::993",
+				"App\\Controllers\\MailLogController::releaseMail::976",
+				"App\\Controllers\\MailLogController::releaseMail::999",
 				// a numeric map name as an int key: isset(), array_unique() and the URL read it as its text
-				"App\\Controllers\\MailLogController::symbolLinks::880",
+				"App\\Controllers\\MailLogController::symbolLinks::886",
 				// an int header value goes out as its digits, Symfony makes it text
 				"App\\Services\\FuzzyService::deleteHashes::706",
 				"App\\Services\\FuzzyService::fuzzyAdd::776",
@@ -221,7 +221,7 @@
 				// the closure sets it before it is read
 				"App\\Services\\MapService::delMapAllEntries::1407",
 				// $m[0] is the whole 'Y-m', which (int) reads as its year
-				"App\\Controllers\\MailLogController::showResults::211",
+				"App\\Controllers\\MailLogController::showResults::214",
 				// an id that is not digits is refused either way ($id <= 0)
 				"App\\Api\\ReleaseMailApi::handle::63",
 				// showMap(): ?entry= of 0 or below is no entry either way ($entry_filter > 0)
@@ -241,13 +241,13 @@
 				"App\\Controllers\\MailAliasController::showAll::73",
 				"App\\Controllers\\MailAliasController::searchAlias::130",
 				"App\\Controllers\\MailLogController::showAll::117",
-				"App\\Controllers\\MailLogController::showResults::231",
-				"App\\Controllers\\MailLogController::showVirusMails::474",
-				"App\\Controllers\\MailLogController::showDay::513",
-				"App\\Controllers\\MailLogController::showQuarantineDay::548",
-				"App\\Controllers\\MailLogController::showQuarantineMonth::587",
-				"App\\Controllers\\MailLogController::showQuarantine::633",
-				"App\\Controllers\\MailLogController::showQuarantinePerMonth::680",
+				"App\\Controllers\\MailLogController::showResults::235",
+				"App\\Controllers\\MailLogController::showVirusMails::478",
+				"App\\Controllers\\MailLogController::showDay::517",
+				"App\\Controllers\\MailLogController::showQuarantineDay::552",
+				"App\\Controllers\\MailLogController::showQuarantineMonth::591",
+				"App\\Controllers\\MailLogController::showQuarantine::637",
+				"App\\Controllers\\MailLogController::showQuarantinePerMonth::684",
 				"App\\Controllers\\MapController::showAllMaps::183",
 				"App\\Controllers\\MapController::showCustomMapsConfig::297",
 				"App\\Controllers\\MapController::showMap::549",
@@ -365,6 +365,8 @@
 		},
 		"IncrementInteger": {
 			"ignore": [
+				// every month has a day 2: checkdate() only tells whether the month and year are real
+				"App\\Controllers\\MailLogController::showResults::213",
 				// the quota is reached only with USER_MAP_MAX_ENTRIES set above 0, so the fallback never shows
 				"App\\Controllers\\MapController::addMapEntry::729",
 				// a prefix is 0 bits or more: starting at 0 credits the entries -1 does
@@ -423,7 +425,7 @@
 				"App\\Core\\Kernel::refuseOnErrors::180",
 				// only a command line defines CLI_MODE; without it the view makes the web's cache
 				// dir in the checkout, which no unit test may
-				"App\\Controllers\\ViewController::twigView::71"
+				"App\\Controllers\\ViewController::twigView::83"
 			]
 		},
 		"LogicalOr": {
@@ -744,8 +746,8 @@
 		"UnwrapArrayFilter": {
 			"ignore": [
 				// no recipient is blank: blanks and repeats change neither array_intersect()'s count nor the release list (mail_recipients is checked not empty first)
-				"App\\Controllers\\MailLogController::releaseMail::970",
-				"App\\Controllers\\MailLogController::releaseMail::1003",
+				"App\\Controllers\\MailLogController::releaseMail::976",
+				"App\\Controllers\\MailLogController::releaseMail::1009",
 				// http_build_query() leaves null values out anyway (the redirect and the page links)
 				"App\\Controllers\\MapController::searchMapEntry::1150",
 				// an empty whitelist entry only matches an empty client IP, which is never throttled
@@ -757,8 +759,8 @@
 		"UnwrapStrToLower": {
 			"ignore": [
 				// mail_recipients is lowercased already, and the disabled form field holds it
-				"App\\Controllers\\MailLogController::releaseMail::972",
-				"App\\Controllers\\MailLogController::releaseMail::974",
+				"App\\Controllers\\MailLogController::releaseMail::978",
+				"App\\Controllers\\MailLogController::releaseMail::980",
 				// mailparse gives the content type lowercased, without parameters
 				"App\\Inventory\\MailObject::embedImages::100",
 				// the form allows only lowercase map names
@@ -795,7 +797,7 @@
 			"ignore": [
 				// the filters are only iterated, and appended to after: their keys show nowhere
 				"App\\Controllers\\MailLogController::showResults::180",
-				"App\\Controllers\\MailLogController::showResults::212",
+				"App\\Controllers\\MailLogController::showResults::216",
 				// its callers only implode() the list
 				"App\\Controllers\\UserController::getMailAliases::610",
 				// a header's values are sent in order, their keys not at all

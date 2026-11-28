@@ -62,21 +62,29 @@ class ViewController extends Controller
 		$this->max_items      = Config::getIntOr('max_items', 10000);
 	}
 
+	// The Twig cache directory, made when it is missing; false, logged, when
+	// it cannot be made or written to: the views then run uncached
+	private static function twigCacheDir(string $cache): string|false {
+		if (!is_dir($cache) && !@mkdir($cache, 0750, true)) {
+			App::fileLogger()->warning("Twig cache dir not creatable: {$cache}; running uncached");
+			return false;
+		}
+		if (!is_writable($cache)) {
+			App::fileLogger()->warning("Twig cache dir not writable: {$cache}; running uncached");
+			return false;
+		}
+		return $cache;
+	}
+
 	final public function twigView(): Environment {
 		/** @psalm-suppress RedundantPropertyInitializationCheck $twig is built lazily here, not in the constructor */
 		if (!isset($this->twig)) {
-			$cache = AppConfig::TWIG_CACHE_PATH;
-
 			/** @psalm-suppress RedundantCondition CLI_MODE is defined per entry point */
 			if (defined('CLI_MODE') && CLI_MODE) {
 				// crons run as root: never create root-owned dirs in the shared web cache
 				$cache = false;
-			} elseif (!is_dir($cache) && !@mkdir($cache, 0750, true)) {
-				App::fileLogger()->warning("Twig cache dir not creatable: {$cache}; running uncached");
-				$cache = false;
-			} elseif (!is_writable($cache)) {
-				App::fileLogger()->warning("Twig cache dir not writable: {$cache}; running uncached");
-				$cache = false;
+			} else {
+				$cache = self::twigCacheDir(AppConfig::TWIG_CACHE_PATH);
 			}
 
 			$loader = new FilesystemLoader(AppConfig::VIEWS_PATH);
