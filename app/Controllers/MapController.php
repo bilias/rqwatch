@@ -1063,7 +1063,9 @@ final class MapController extends ViewController
 
 		// has applyUseScope for MapCombined
 		$delete = $service->delMapAllEntries($model, $map, $fields);
-		if ($delete) {
+		if ($delete === 0) {
+			$this->flashbag->add('info', "No entries to delete in Map '{$mapdescr}'");
+		} elseif ($delete !== false) {
 			$this->flashbag->add('success', "All entries from Map '{$mapdescr}' deleted");
 			$this->warnMapFileBehind();
 		} else {

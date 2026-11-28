@@ -426,13 +426,13 @@ final class LoginController extends ViewController
 
 	// update last_login and user information
 	// if user does not exists it is created
+	// false: logged here, and the caller tells the user
 	private function finalizeAuthenticatedUser(AuthManager $auth): bool {
 		$username = $auth->getAuthenticatedUser();
 		$auth_provider = $auth->getAuthProvider();
 		// called only after a successful authenticate(), so a provider has a user
 		if ($username === null) {
 			$this->fileLogger->warning("($auth_provider) authenticated without a username from IP:" . Helper::remote_addr());
-			$this->flashbag->add('error', "Authentication problem. Contact admin");
 			return false;
 		}
 
@@ -451,7 +451,6 @@ final class LoginController extends ViewController
 				"($auth_provider) login refused for reserved local account 'admin' from IP:" .
 				Helper::remote_addr()
 			);
-			$this->flashbag->add('error', "Authentication problem. Contact admin");
 			return false;
 		}
 
@@ -473,7 +472,6 @@ final class LoginController extends ViewController
 		// DB user missing
 		if (!$user) {
 			$this->fileLogger->warning("Authenticated user '$username' not found in DB.");
-			$this->flashbag->add('error', "Authentication problem. Contact admin");
 			return false;
 		}
 

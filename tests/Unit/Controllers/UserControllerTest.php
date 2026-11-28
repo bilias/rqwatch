@@ -422,8 +422,12 @@ final class UserControllerTest extends ControllerTestCase
 		$this->db->affect = function (): int {
 			throw new RuntimeException('gone away');
 		};
-		[$response] = $this->postUser('edit', ['username' => 'bob', 'email' => 'robert@example.org']);
-		$this->assertStringContainsString('gone away', $this->html($response));
+		[$response, $request] = $this->postUser('edit', ['username' => 'bob', 'email' => 'robert@example.org']);
+		// said once, in the form's error box
+		$html = $this->html($response);
+		$this->assertMatchesRegularExpression("#<div class='user_errors'>\\s*[^<]*gone away#", $html);
+		$this->assertSame(1, substr_count($html, 'gone away'));
+		$this->assertSame([], self::flashes($request));
 	}
 
 	public function testDelete(): void {

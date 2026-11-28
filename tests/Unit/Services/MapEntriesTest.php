@@ -498,7 +498,7 @@ final class MapEntriesTest extends MapDatabaseTestCase
 	public function testDelMapAllEntries(): void {
 		$this->db->affect = fn (): int => 2;
 		$this->setEnv('DEBUG_SEARCH_SQL', 'true');
-		$this->assertTrue(self::user()->delMapAllEntries('MapCombined', self::MAP, self::FIELDS));
+		$this->assertSame(2, self::user()->delMapAllEntries('MapCombined', self::MAP, self::FIELDS));
 		$this->assertSame([[
 			'delete from `maps_combined` where `map_name` = ? and `mail_from` is not null and `rcpt_to` is not null' . self::USER_SCOPE . ' and `user_id` = ?' . self::ORDER,
 			[self::MAP, ...self::USER_BINDINGS, 7],
@@ -525,14 +525,14 @@ final class MapEntriesTest extends MapDatabaseTestCase
 		Config::set('USER_CAN_DEL_ADMIN_MAP_ENTRIES', $userCanDel);
 		$service = $admin ? self::admin() : self::user();
 		$this->db->affect = fn (): int => 1;
-		$this->assertTrue($service->delMapAllEntries($model, self::MAP, self::FIELDS));
+		$this->assertSame(1, $service->delMapAllEntries($model, self::MAP, self::FIELDS));
 		$this->assertSame([[$sql, $bindings]], $this->db->changes);
 		$this->assertSame([], $this->log->lines);
 	}
 
-	// none deleted, a user's custom map, an unknown model: false, no map changed
+	// no entries: 0; a user's custom map, an unknown model: false; no map changed
 	public function testDelMapAllEntriesNone(): void {
-		$this->assertFalse(self::admin()->delMapAllEntries('MapCombined', self::MAP, self::FIELDS));
+		$this->assertSame(0, self::admin()->delMapAllEntries('MapCombined', self::MAP, self::FIELDS));
 		$this->assertFalse(self::user()->delMapAllEntries('MapCustom', 'phish', ['pattern']));
 		$this->assertFalse(self::admin()->delMapAllEntries('MapOther', 'phish', ['pattern']));
 		$this->assertSame([1, []], [count($this->db->changes), $this->changedMaps()]);
@@ -542,7 +542,7 @@ final class MapEntriesTest extends MapDatabaseTestCase
 		$this->db->affect = fn (): int => 1;
 		$log = $this->noMapDir(self::MAP);
 		$service = self::admin();
-		$this->assertTrue($service->delMapAllEntries('MapCombined', self::MAP, self::FIELDS));
+		$this->assertSame(1, $service->delMapAllEntries('MapCombined', self::MAP, self::FIELDS));
 		$this->assertTrue($service->mapFileBehind());
 		$this->assertSame([self::MAP], $this->changedMaps());
 		$this->assertSame($log, $this->log->lines);

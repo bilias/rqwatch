@@ -208,6 +208,7 @@ final class MapControllerTest extends ControllerTestCase
 		$this->entries[] = ['id' => 6] + $this->entries[0];
 		$html = $this->html($this->maps(self::request('/maps/all', self::USER))->showAllMaps());
 		$this->assertStringContainsString($this->url(RouteName::MAP_SHOW_ALL) . '?page=2', $html);
+		$this->assertStringContainsString("Total: 2 entries\n| Displaying 1/page", $html);
 	}
 
 	// the pickers, the search, the hits column and the map file links; the first page
@@ -226,7 +227,7 @@ final class MapControllerTest extends ControllerTestCase
 		Config::set('items_per_page', 1);
 		$this->customEntries[] = ['id' => 10, 'map_name' => 'phish', 'pattern' => 'worse.example', 'disabled' => 0, 'user_id' => 1, 'created_at' => null, 'updated_at' => null];
 		$html = $this->html($this->maps(self::request('/admin/maps/all/MapCustom', self::ADMIN))->showAllMaps('MapCustom'));
-		foreach (['name="map_search_form[model]" value="MapCustom"', '<th>Hits (', $this->url(RouteName::ADMIN_MAP_SHOW_ALL, ['model' => 'MapCustom']) . '?page=2'] as $shown) {
+		foreach (['name="map_search_form[model]" value="MapCustom"', '<th>Hits (', $this->url(RouteName::ADMIN_MAP_SHOW_ALL, ['model' => 'MapCustom']) . '?page=2', "Total: 2 entries\n| Displaying 1/page"] as $shown) {
 			$this->assertStringContainsString($shown, $html);
 		}
 		$this->assertSame([], $this->log->lines);
@@ -878,11 +879,12 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertSame(["error [{$method}] Query error: gone away"], $this->log->lines);
 	}
 
-	// nothing to delete: said as a failure
+	// nothing to delete: said so, no failure
 	public function testDelAllOfAnEmptyMap(): void {
 		$this->db->affect = fn (): int => 0;
-		[, $request] = $this->entryAction('delall');
-		$this->assertSame(['error' => ['All entries failed to be deleted from Map Mail From/RCPT_TO Whitelist']], self::flashes($request));
+		[$response, $request] = $this->entryAction('delall');
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'mail_from_rcpt_to_whitelist']), $response);
+		$this->assertSame(['info' => ["No entries to delete in Map 'Mail From/RCPT_TO Whitelist'"]], self::flashes($request));
 	}
 
 	public function testToggleNotFound(): void {
@@ -972,6 +974,23 @@ final class MapControllerTest extends ControllerTestCase
 			$this->assertStringContainsString($shown, $html);
 		}
 		$this->assertStringEndsWith('offset 0', $this->selected('select * from `maps_combined`')[0] ?? '');
+		// one page: its size is not said
+		$this->assertStringNotContainsString('| Displaying', $html);
+	}
+
+	/** @return array<string, array{string}> */
+	public static function searchedModels(): array {
+		return ['basic and combined' => ['MapCombined'], 'custom' => ['MapCustom']];
+	}
+
+	// more results than a page holds: the page size is said
+	#[DataProvider('searchedModels')]
+	public function testSearchPages(string $model): void {
+		Config::set('items_per_page', 1);
+		$this->entries[] = ['id' => 6] + $this->entries[0];
+		$this->customEntries[] = ['id' => 10] + $this->customEntries[0];
+		$html = $this->html($this->maps(self::request('/admin/maps/search', self::ADMIN, ['model' => $model, 'q' => 'e']))->searchMapEntry());
+		$this->assertStringContainsString("Total: 2 entries\n| Displaying 1/page", $html);
 	}
 
 	public function testSearchCustom(): void {

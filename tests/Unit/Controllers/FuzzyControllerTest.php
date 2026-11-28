@@ -418,9 +418,9 @@ final class FuzzyControllerTest extends ControllerTestCase
 		$b = str_repeat('b2', 64);
 		$this->learnedWith([], [['id' => 3, 'qid' => 'Q1', 'mail_log_id' => 7, 'flag' => 2], ['id' => 5, 'qid' => 'Q5', 'mail_log_id' => 8, 'flag' => 2]], false);
 		$this->answers = array_merge([
-			// the learned row has two digests, the first stored twice; only the second is held by another
+			// the learned row has two digests, the first stored twice; only that one is held by another
 			['from `mail_log_fuzzy` where `mail_log_id` = ?', fn (): array => $this->db->rows('mail_log_fuzzy') === [] ? [] : [['id' => 3, 'flag' => 2, 'hashes' => '["' . self::A . '","' . $b . '","' . self::A . '"]'] + $this->fuzzy]],
-			['select exists(', fn (array $bindings): array => [['exists' => ($bindings[0] ?? null) === $b ? 1 : 0]]],
+			['select exists(', fn (array $bindings): array => [['exists' => ($bindings[0] ?? null) === self::A ? 1 : 0]]],
 		], $this->answers);
 		[, $request] = $this->act('learn');
 		$this->assertSame(['1 of its 2 hashes was already learned via Q5: this learn added its weight to the existing entry'], self::flashes($request)['warning'] ?? null);

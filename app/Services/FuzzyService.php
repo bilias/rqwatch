@@ -384,7 +384,7 @@ final class FuzzyService
 	// digests of $row that other learned mails also have
 	/** @return list<string> */
 	public function sharedHashes(MailLogFuzzy $row): array {
-		return $this->hashesHeldByOthers($row->hashes, $row->id);
+		return $this->hashesHeldByOthers(array_unique($row->hashes), $row->id);
 	}
 
 	// per row id: the other learned mails sharing any of its hashes, oldest first

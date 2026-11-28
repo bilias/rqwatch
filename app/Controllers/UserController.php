@@ -558,7 +558,6 @@ final class UserController extends ViewController
 					return new RedirectResponse($this->getAdminUsersUrl());
 				} catch (Exception $e) {
 					$error = $e->getMessage();
-					$this->flashbag->add('error', $error);
 				}
 			}
 		}

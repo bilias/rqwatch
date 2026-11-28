@@ -314,10 +314,8 @@ final class LoginControllerTest extends ControllerTestCase
 		}]], $this->answers);
 		[$response, $request] = $this->postLogin('alice');
 		$this->assertRedirect($this->url(RouteName::LOGIN), $response);
-		// said twice today (finalizeAuthenticatedUser() and login() both flash it): queued
-		$errors = self::flashes($request)['error'] ?? [];
-		$this->assertIsArray($errors);
-		$this->assertContains('Authentication problem. Contact admin', $errors);
+		// said once
+		$this->assertSame(['error' => ['Authentication problem. Contact admin']], self::flashes($request));
 		$this->assertSame(["warning Authenticated user 'alice' not found in DB.", "error Authenticated user 'alice' not found in DB after auth"], $this->log->lines);
 		$this->assertFalse($request->getSession()->has('username'));
 	}
@@ -659,6 +657,7 @@ final class LoginControllerTest extends ControllerTestCase
 		$this->assertRedirect($this->url(RouteName::LOGIN), $this->login($request)->login_openidc_callback());
 		$this->assertContains('warning (OPENIDC) login refused for reserved local account \'admin\' from IP:192.0.2.7', $this->log->lines);
 		$this->assertContains("error Authenticated user 'admin' not found in DB after auth", $this->log->lines);
+		$this->assertSame(['error' => ['Authentication problem. Contact admin']], self::flashes($request));
 		$this->assertSame([[], []], [$this->db->rows('users'), $this->db->changes]);
 		$this->assertFalse($request->getSession()->has('username'));
 	}

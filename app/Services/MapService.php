@@ -1361,8 +1361,11 @@ final class MapService
 		return true;
 	}
 
-	/** @param list<string> $map_fields */
-	public function delMapAllEntries(string $model, string $map_name, array $map_fields): bool {
+	/**
+	 * @param list<string> $map_fields
+	 * @return int|false the entries deleted, 0 when there were none; false when it failed
+	 */
+	public function delMapAllEntries(string $model, string $map_name, array $map_fields): int|false {
 
 		if ($model === 'MapCombined') {
 			$query = $this->getMapCombinedBasicQuery($map_name, $map_fields);
@@ -1394,7 +1397,7 @@ final class MapService
 			$deletedRows = $query->toBase()->delete();
 
 			if ($deletedRows === 0) {
-				return false;
+				return 0;
 			}
 
 			$last_update = date("Y-m-d H:i:s");
@@ -1411,7 +1414,7 @@ final class MapService
 		// update map file: one not written does not fail the saved change
 		$this->refreshMapFile($model, $map_name, $last_update, $map_fields);
 
-		return true;
+		return $deletedRows;
 	}
 
 	/** @param list<string> $map_fields */

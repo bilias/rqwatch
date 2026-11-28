@@ -38,7 +38,7 @@
 				// MailReleaseForm has no id field: the data's id is never read
 				"App\\Controllers\\MailLogController::releaseMail::942",
 				// username is set again just below
-				"App\\Controllers\\LoginController::finalizeAuthenticatedUser::552",
+				"App\\Controllers\\LoginController::finalizeAuthenticatedUser::550",
 				// MailReleaseForm has no id field: the data's id is never read
 				"App\\Controllers\\MailLogController::releaseFormView::1621",
 				// the map forms define a 'role' option but never read it
@@ -258,7 +258,7 @@
 				"App\\Controllers\\MapController::showAllMaps::182",
 				"App\\Controllers\\MapController::showCustomMapsConfig::296",
 				"App\\Controllers\\MapController::showMap::548",
-				"App\\Controllers\\MapController::searchMapEntry::1145",
+				"App\\Controllers\\MapController::searchMapEntry::1147",
 				"App\\Controllers\\MapHitController::showMails::164",
 				"App\\Controllers\\UserController::searchUser::164",
 				"App\\Controllers\\UserController::showAll::210",
@@ -410,7 +410,7 @@
 		"LogicalAnd": {
 			"ignore": [
 				// no user loaded has an empty username; without one, both read as a deleted user
-				"App\\Controllers\\MapController::getMapUser::1347",
+				"App\\Controllers\\MapController::getMapUser::1349",
 				// the MapCombined branch is taken first, and a user never reaches the update with MapCustom
 				"App\\Controllers\\MapController::editMapEntry::883",
 				// the router attaches the session before any middleware runs
@@ -472,8 +472,8 @@
 				"App\\Controllers\\LoginController::login::240",
 				// loginAs(): setSessionVars() sets every var again and refreshUrls() runs at the end, and nothing
 				// between reads a URL or var: each of unsetSessionVars() and the final refreshUrls() covers the other
-				"App\\Controllers\\UserController::loginAs::640",
-				"App\\Controllers\\UserController::loginAs::666",
+				"App\\Controllers\\UserController::loginAs::639",
+				"App\\Controllers\\UserController::loginAs::665",
 				// requireColumn() checks the table first, with the same message
 				"App\\Core\\Database\\Database::verifyMailLogTokens::163",
 				"App\\Core\\Database\\Database::verifyMailRecipients::181",
@@ -595,7 +595,7 @@
 				"App\\Services\\MapService::addCustomMapConfig::1192",
 				"App\\Services\\MapService::updateCustomMapConfig::1240",
 				// the map pages test is_admin before user_can_delete
-				"App\\Controllers\\MapController::getUserCanDelete::1324",
+				"App\\Controllers\\MapController::getUserCanDelete::1326",
 				// the same redirect follows the try
 				"App\\Controllers\\LoginController::logout_openidc::130",
 				// no row has no others; with none shared the checks below find nothing to warn about
@@ -677,7 +677,7 @@
 		"TrueValue": {
 			"ignore": [
 				// the map pages test is_admin before user_can_delete
-				"App\\Controllers\\MapController::getUserCanDelete::1324",
+				"App\\Controllers\\MapController::getUserCanDelete::1326",
 				// an int status against ints: == matches as === does
 				"App\\Services\\FuzzyService::callApi::690",
 				// the values are text, none of them numeric: == matches as === does
@@ -748,7 +748,7 @@
 				"App\\Controllers\\MailLogController::releaseMail::969",
 				"App\\Controllers\\MailLogController::releaseMail::1002",
 				// http_build_query() leaves null values out anyway (the redirect and the page links)
-				"App\\Controllers\\MapController::searchMapEntry::1139",
+				"App\\Controllers\\MapController::searchMapEntry::1141",
 				// an empty whitelist entry only matches an empty client IP, which is never throttled
 				"App\\Core\\Auth\\LoginThrottle::__construct::80",
 				// http_build_query() leaves a null out of the page's url
@@ -798,7 +798,7 @@
 				"App\\Controllers\\MailLogController::showResults::178",
 				"App\\Controllers\\MailLogController::showResults::210",
 				// its callers only implode() the list
-				"App\\Controllers\\UserController::getMailAliases::612",
+				"App\\Controllers\\UserController::getMailAliases::611",
 				// a header's values are sent in order, their keys not at all
 				"App\\Services\\FuzzyService::deleteHashes::707",
 				// implode() ignores the keys, and an empty array is [] with gaps or without
