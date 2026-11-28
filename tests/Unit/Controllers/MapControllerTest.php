@@ -834,6 +834,17 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertSame(['error' => [$error]], self::flashes($request));
 	}
 
+	// the database refusing the change: logged, said as a failure, no error page
+	#[DataProvider('failedEntryActions')]
+	public function testEntryActionDatabaseError(string $action, string $error): void {
+		$this->db->affect = fn (): never => throw new RuntimeException('gone away');
+		[$response, $request] = $this->entryAction($action);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'mail_from_rcpt_to_whitelist']), $response);
+		$this->assertSame(['error' => [$error]], self::flashes($request));
+		$method = ['del' => 'delMapEntry', 'delall' => 'delMapAllEntries', 'toggle' => 'toggleMapEntry'][$action];
+		$this->assertSame(["error [{$method}] Query error: gone away"], $this->log->lines);
+	}
+
 	// nothing to delete: said as a failure
 	public function testDelAllOfAnEmptyMap(): void {
 		$this->db->affect = fn (): int => 0;

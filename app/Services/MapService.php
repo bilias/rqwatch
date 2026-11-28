@@ -1323,22 +1323,27 @@ final class MapService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		$map_entry = $query->first();
+		try {
+			$map_entry = $query->first();
 
-		// entry not found
-		if (!$map_entry) {
-			return false;
-		}
+			// entry not found
+			if (!$map_entry) {
+				return false;
+			}
 
-		// delete map entry from db
-		if (!$map_entry->delete()) {
-			return false;
-		}
+			// delete map entry from db
+			if (!$map_entry->delete()) {
+				return false;
+			}
 
-		$last_update = date("Y-m-d H:i:s");
+			$last_update = date("Y-m-d H:i:s");
 
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			// update Activity log table in DB
+			if (!self::updateMapActivityLog($map_name, $last_update)) {
+				return false;
+			}
+		} catch (Throwable $e) {
+			$this->logger->error("[delMapEntry] Query error: " . $e->getMessage());
 			return false;
 		}
 
@@ -1377,18 +1382,23 @@ final class MapService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		// delete all entries matched by the query
-		// what Eloquent's delete() runs when no onDelete is set, typed
-		$deletedRows = $query->toBase()->delete();
+		try {
+			// delete all entries matched by the query
+			// what Eloquent's delete() runs when no onDelete is set, typed
+			$deletedRows = $query->toBase()->delete();
 
-		if ($deletedRows === 0) {
-			return false;
-		}
+			if ($deletedRows === 0) {
+				return false;
+			}
 
-		$last_update = date("Y-m-d H:i:s");
+			$last_update = date("Y-m-d H:i:s");
 
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			// update Activity log table in DB
+			if (!self::updateMapActivityLog($map_name, $last_update)) {
+				return false;
+			}
+		} catch (Throwable $e) {
+			$this->logger->error("[delMapAllEntries] Query error: " . $e->getMessage());
 			return false;
 		}
 
@@ -1428,24 +1438,29 @@ final class MapService
 			$this->logger->info(self::getSqlFromQuery($query));
 		}
 
-		/** @var MapCombined|MapCustom|null $map_entry */
-		$map_entry = $query->first();
+		try {
+			/** @var MapCombined|MapCustom|null $map_entry */
+			$map_entry = $query->first();
 
-		// entry not found
-		if (!$map_entry) {
-			return false;
-		}
+			// entry not found
+			if (!$map_entry) {
+				return false;
+			}
 
-		// toggle disabled field in db
-		$map_entry->disabled = !$map_entry->disabled;
-		if (!$map_entry->save()) {
-			return false;
-		}
+			// toggle disabled field in db
+			$map_entry->disabled = !$map_entry->disabled;
+			if (!$map_entry->save()) {
+				return false;
+			}
 
-		$last_update = date("Y-m-d H:i:s");
+			$last_update = date("Y-m-d H:i:s");
 
-		// update Activity log table in DB
-		if (!self::updateMapActivityLog($map_name, $last_update)) {
+			// update Activity log table in DB
+			if (!self::updateMapActivityLog($map_name, $last_update)) {
+				return false;
+			}
+		} catch (Throwable $e) {
+			$this->logger->error("[toggleMapEntry] Query error: " . $e->getMessage());
 			return false;
 		}
 
