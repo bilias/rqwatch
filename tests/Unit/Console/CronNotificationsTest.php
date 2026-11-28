@@ -146,6 +146,9 @@ final class CronNotificationsTest extends UnitTestCase
 		parent::tearDown();
 	}
 
+	/** @var list<string> the HTML body of each mail sent */
+	private array $bodies = [];
+
 	private function record(SentMessage $message): void {
 		$email = $message->getOriginalMessage();
 		$this->assertInstanceOf(Email::class, $email);
@@ -154,6 +157,8 @@ final class CronNotificationsTest extends UnitTestCase
 			throw new RuntimeException('550 rejected');
 		}
 		$this->sent[] = [$to, (string) $email->getSubject()];
+		$body = $email->getHtmlBody();
+		$this->bodies[] = is_string($body) ? $body : '';
 	}
 
 	/**
@@ -352,6 +357,18 @@ final class CronNotificationsTest extends UnitTestCase
 		$this->assertSame([Command::FAILURE, "Already running in another process.\n"], [$status, $display]);
 		$this->assertSame(['warning cron:notifications Already running in another process'], $this->log->lines);
 		$lock->release();
+	}
+
+	// a virus no skip map entry matches: notified, named, to the user and the admins
+	public function testVirusNamed(): void {
+		Config::set('admin_notification_rcpt', 'admin@example.org');
+		$this->pending = [4 => self::mail('Q4', symbols: self::VIRUS)];
+		$this->adminPending = [4 => self::mail('Q4', symbols: self::VIRUS)];
+		$this->cron(['-m' => true]);
+		$this->assertCount(2, $this->bodies);
+		foreach ($this->bodies as $body) {
+			$this->assertStringContainsString('<td>Yes [CLAM_VIRUS: Eicar-Test]</td>', $body);
+		}
 	}
 
 	// the admins get each pending mail fit to notify; the rest marked skipped (dated)

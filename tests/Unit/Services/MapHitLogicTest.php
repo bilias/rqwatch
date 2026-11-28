@@ -98,6 +98,7 @@ final class MapHitLogicTest extends UnitTestCase
 			// past 32 on the address itself: never compared beyond its bytes
 			'malformed' => ['192.0.2.7', [20 => 'example.org', 21 => '192.0.2.0', 22 => '192.0.2.7/33', 23 => '192.0.2.0/x', 24 => '192.0.2.0/-1', 25 => '192.0.2.0/'], []],
 			'a second slash' => ['192.0.2.7', [31 => '192.0.2.0/24/8'], []],
+			'malformed, then one holding it' => ['192.0.2.7', [20 => 'example.org', 11 => '192.0.2.0/24'], [11]],
 			'another family' => ['192.0.2.7', [26 => '2001:db8::/32', 27 => '::/0'], []],
 			'IPv6' => ['2001:db8::1', [26 => '2001:db8::/32', 28 => '2001:db8::/64', 29 => '2001:db8::1/128', 30 => '2001:db8::1/129'], [29]],
 			'not an IP' => ['example.org', [14 => '0.0.0.0/0'], []],

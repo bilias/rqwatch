@@ -82,6 +82,16 @@ final class MailObjectTest extends UnitTestCase
 		$this->assertStringContainsString('cid:big@x', $html);
 	}
 
+	#[TestDox('An image past the budget does not stop the ones after it')]
+	public function testBudgetSkipsOnlyThePastOne(): void {
+		$html = self::html(['<img src="cid:big@x">', '<img src="cid:small@x">'], [
+			['big@x', 'image/png', str_repeat('x', 5 * 1024 * 1024 + 1)],
+			['small@x', 'image/png', self::PNG],
+		]);
+		$this->assertStringContainsString('cid:big@x', $html);
+		$this->assertStringContainsString('data:image/png;base64,' . base64_encode(self::PNG), $html);
+	}
+
 	#[TestDox('The budget is what is left after each embedded image; an image of exactly the budget fits')]
 	public function testBudgetSpentPerImage(): void {
 		$second = str_repeat('x', 100);

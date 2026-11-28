@@ -54,6 +54,11 @@ final class SymbolTest extends UnitTestCase
 			['name' => 'V', 'group' => 'antivirus', 'options' => [['nested']]],
 		];
 		$this->assertNull(Helper::virusSkipMatch($symbols, ['nameless', 'nested']));
+		// a nameless one first: the symbols after it are still read
+		$this->assertSame('eicar-*', Helper::virusSkipMatch(
+			[['group' => 'antivirus', 'options' => ['x']], ['name' => 'V', 'group' => 'antivirus', 'options' => ['Eicar-Test']]],
+			['eicar-*']
+		));
 		$this->assertSame('single.*', Helper::virusSkipMatch(
 			[['name' => 'V', 'group' => 'antivirus', 'options' => 'Single.Opt']],
 			['single.*']

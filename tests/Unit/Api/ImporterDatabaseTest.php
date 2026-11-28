@@ -128,12 +128,26 @@ final class ImporterDatabaseTest extends ApiTestCase
 		$this->assertContains('critical QID1 DB error: SQLSTATE HY000, error 2006: MySQL server has gone away' . self::SQL, $this->log->lines);
 	}
 
+	// a transaction that cannot begin: the driver's own PDOException, not a QueryException; spooled
+	public function testTransactionNotBegun(): void {
+		$failure = new PDOException('Lock wait timeout exceeded');
+		$failure->errorInfo = ['HY000', 1205, 'Lock wait timeout exceeded'];
+		$pdo = $this->createStub(PDO::class);
+		$pdo->method('beginTransaction')->willThrowException($failure);
+		$this->db = new RecordingDatabase($pdo);
+		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, $this->db->capsule, new MigrationStatus(null, $this->log), App::cache(), true));
+		$this->assertAnswer(200, 'Message spooled', $this->import());
+		$this->assertCount(1, $this->spooled);
+	}
+
 	// this mail's data refused: saved again without its free text
 	public function testDataRejected(): void {
 		$this->db->failInsert['QID1'] = self::failure(['22007', 1366, 'Incorrect string value']);
 		$this->assertAnswer(200, 'Message saved', $this->import());
 		$rows = $this->db->rows('mail_logs');
 		$this->assertCount(1, $rows);
+		// the rest of the mail's data kept
+		$this->assertSame(['QID1', '192.0.2.50'], [$rows[0]['qid'] ?? null, $rows[0]['ip'] ?? null]);
 		$saved = $rows[0] + ($this->db->rows('mail_log_data')[0] ?? []);
 		foreach (['subject', 'mime_from', 'mime_to', 'message_id', 'headers', 'symbols', 'fuzzy_hashes'] as $column) {
 			$this->assertArrayHasKey($column, $saved);

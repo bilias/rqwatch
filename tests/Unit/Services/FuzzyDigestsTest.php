@@ -49,6 +49,12 @@ final class FuzzyDigestsTest extends UnitTestCase
 		$this->assertSame([$a, $b], self::digests([$a, $a, $b]));
 	}
 
+	// a value that is not text, first: the digests after it are still read
+	public function testNotTextFirst(): void {
+		$a = str_repeat('a1', 64);
+		$this->assertSame([$a], self::digests([7, $a]));
+	}
+
 	public function testNone(): void {
 		$this->assertSame([], self::digests([]));
 		$this->assertSame([], self::digests(['abc', 5, null]));

@@ -132,6 +132,7 @@ final class MailApiStoreTest extends ApiTestCase
 	public function testRelease(): void {
 		$response = $this->release();
 		$this->assertAnswer(200, 'Message Released', $response);
+		$this->assertSame('text/html; charset=UTF-8', $response->headers->get('Content-Type'));
 		$this->assertSame([['bob@example.org', 'carol@example.org']], $this->sent);
 		$this->assertStringStartsWith("info Message Q7 released to 'bob@example.org, carol@example.org' via ReleaseMailApi from 'alice@example.org' by '192.0.2.7' | ", $this->log->lines[0] ?? '');
 		$this->assertCount(2, array_filter($this->log->lines, fn (string $line): bool => str_starts_with($line, 'info Message Q7 released')));
