@@ -10,8 +10,9 @@
 # of this checkout's remote on github.com (or $CORGEA_REPO_URL) so Corgea
 # files it under the GitHub repository's project; uncommitted, untracked and
 # ignored files (.env, config.local.php)
-# are not uploaded. With SCAN_ID, fetches that existing scan (one run from the
-# web UI, say) and scans nothing. Either way, into $CORGEA_OUT (default
+# are not uploaded, and neither are qa/ and tests/ (--exclude: they count
+# against the account's sast_scan_lines quota). With SCAN_ID, fetches that
+# existing scan (one run from the web UI, say) and scans nothing. Either way, into $CORGEA_OUT (default
 # corgea-report/) go the HTML, SARIF and Markdown reports Corgea renders
 # (rqwatch-corgea.html, .sarif, .md; the HTML and Markdown from the endpoint
 # `corgea scan --out-format` uses, GET /api/v1/scan/ID/report) and
@@ -79,7 +80,7 @@ if [[ -z "${SCAN_ID}" ]]; then
 	git -C "${WORK}/rqwatch" remote set-url origin "${repo_url}"
 	head=$(git -C "${WORK}/rqwatch" log -1 --format='%h %s')
 	echo "=== scan of ${head}"
-	(cd "${WORK}/rqwatch" && corgea scan --out-format sarif --out-file "${OUT}/rqwatch-corgea.sarif") \
+	(cd "${WORK}/rqwatch" && corgea scan --exclude 'qa/**,tests/**' --out-format sarif --out-file "${OUT}/rqwatch-corgea.sarif") \
 		| tee "${OUT}/corgea-scan.log"
 	SCAN_ID=$(sed -n 's/.*Scan has started with ID: \([0-9a-f-]*\)\..*/\1/p' "${OUT}/corgea-scan.log" | tail -n 1)
 	if ! [[ "${SCAN_ID}" =~ ${UUID_RE} ]]; then
