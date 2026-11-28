@@ -2,7 +2,18 @@
 
 ## Master Dev Branch
 
+### 2026-11-28
+- Security: an attachment is downloaded with the mail's Content-Type only when it is a plain type/subtype, else as application/octet-stream
+- Fix: sessions are saved before the response is sent; with Redis sessions the next request could arrive before the login was stored
+- Fix: a map change and its activity log are saved together; a map file that cannot be written no longer reports the saved change as failed
+- Fix: OIDC: a username or email claim of blanks denies the login (a blank username was an error 500)
+
 ### 2026-11-27
+- Fix: OpenID Connect logout signs out at the provider again (broken in v2.2.0)
+- Fix: passwords set in user edit and profile are trimmed, as the login does
+- Fix: a user's page listed the viewing admin's aliases
+- cron:updatemapfiles and cron:cleanupdb exit with failure when a map file is not written or DATABASE_DAYS is unsafe
+- Mail APIs answer 422 for a mail that is not found (was 400)
 - Users' email addresses are stored and used in lower case; existing addresses are normalized when the user is next saved or logs in
 - Fix: users whose stored email had capitals could not add or edit map entries for their own address
 - LDAP: a server failure is no failed login

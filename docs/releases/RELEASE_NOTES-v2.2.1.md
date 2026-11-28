@@ -38,6 +38,7 @@ Rqwatch 2.x+ contains updates to the database schema.
 - OIDC: the port of a trusted host name came unchecked from the request's `Host` header into
   the callback and logout URLs sent to the IdP (which still had to accept them). Origins must
   now match in scheme, host and port, and the URLs are built on the `.env` origin, not on the request's.
+- Attachments: a download carries the mail's Content-Type only when it is a plain type/subtype, else `application/octet-stream`.
 
 # Behaviour changes
 - Rqwatch does not start while a secret it reads is a published one. See **Upgrade**.
@@ -45,8 +46,13 @@ Rqwatch 2.x+ contains updates to the database schema.
   [OPENIDC_TRUSTED_HOSTS](https://github.com/bilias/rqwatch/blob/master/docs/CONFIGURE.md#openid-connect-settings).
 - `WEB_HOST` and `WEB_HOST_NOTIFICATIONS` are trusted with `WEB_SCHEME` and its default port only.
 - LDAP: .env LDAP_TIMEOUT (5 seconds by default)
+- `cron:updatemapfiles` exits with failure when a map file could not be written, `cron:cleanupdb` when it refuses an unsafe `DATABASE_DAYS`.
 
 # Bug fixes
+- OpenID Connect logout did not sign out at the provider (broken in v2.2.0)
+- With Redis sessions, the request after a login could arrive before the session was stored
+- Passwords set in user edit and profile are trimmed, as the login does
+- A map change whose map file could not be written was reported as failed, though it was saved
 - Users whose stored email had capitals could not add or edit map entries for their own address
 
 **Full Changelog**: https://github.com/bilias/rqwatch/compare/v2.2.0...v2.2.1
