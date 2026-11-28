@@ -110,6 +110,21 @@ final class MapController extends ViewController
 		return $this->mapService;
 	}
 
+	/*
+	 After a change that was saved: says when its map file could not be
+	 written. The change is in the database and cron:updatemapfiles writes the
+	 file later, so the change is no failure; rspamd reads the old file
+	 until then.
+	*/
+	private function warnMapFileBehind(): void {
+		if (!$this->getMapService()->mapFileBehind()) {
+			return;
+		}
+		$this->flashbag->add('warning', $this->is_admin
+			? 'The change is saved, but the map file could not be written: it takes effect when cron:updatemapfiles writes the file. Check logs.'
+			: 'The change is saved, but is not in effect yet.');
+	}
+
 	public function showSelectMap(): Response {
 		// enable form rendering support
 		$this->twigFormView($this->request);
@@ -359,6 +374,7 @@ final class MapController extends ViewController
 			if ($service->addCustomMapConfig($values)) {
 				$this->fileLogger->info("Custom map '{$map_name}' created by '{$this->email}'");
 				$this->flashbag->add('success', "Custom Map '{$map_name}' created");
+				$this->warnMapFileBehind();
 				return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 			} else {
 				$this->flashbag->add('error', "Custom map '{$map_name}' creation problem. Check logs.");
@@ -453,6 +469,7 @@ final class MapController extends ViewController
 			if ($service->updateCustomMapConfig($id, $values)) {
 				$this->fileLogger->info("Custom map '{$map_name}' updated by '{$this->email}'");
 				$this->flashbag->add('success', "Custom Map '{$map_name}' updated");
+				$this->warnMapFileBehind();
 				return new RedirectResponse($this->getShowCustomMapsConfigUrl());
 			} else {
 				$this->flashbag->add('error', "Custom map '{$map_name}' update problem. Check logs.");
@@ -715,6 +732,7 @@ final class MapController extends ViewController
 				// has applyUseScope
 				if ($service->addMapCombinedEntry($map, $fields, $values)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
+					$this->warnMapFileBehind();
 					return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
@@ -723,6 +741,7 @@ final class MapController extends ViewController
 			} elseif ($this->is_admin) {
 				if($service->addMapCustomEntry($map, $values[$fields[0]])) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' created in Map '{$mapdescr}'");
+					$this->warnMapFileBehind();
 					return new RedirectResponse($this->getReturnMailUrl() ?? $this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' creation in Map {$mapdescr} failed");
@@ -869,6 +888,7 @@ final class MapController extends ViewController
 				/** @var \App\Models\MapCombined $map_entry findMapEntry() returns the \$model it was asked for */
 				if ($service->updateMapCombinedEntry($map, $fields, $map_entry, $values)) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' updated in Map '{$mapdescr}'");
+					$this->warnMapFileBehind();
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' update in Map {$mapdescr} failed");
@@ -878,6 +898,7 @@ final class MapController extends ViewController
 				/** @var \App\Models\MapCustom $map_entry findMapEntry() returns the \$model it was asked for */
 				if($service->updateMapCustomEntry($map, $map_entry, trim($values[$fields[0]]))) {
 					$this->flashbag->add('success', "Entry '{$entry_str}' updated in Map '{$mapdescr}'");
+					$this->warnMapFileBehind();
 					return new RedirectResponse($this->getMapShowUrl($map));
 				} else {
 					$this->flashbag->add('error', "Entry '{$entry_str}' update in Map {$mapdescr} failed");
@@ -988,6 +1009,7 @@ final class MapController extends ViewController
 			$delete = $service->delMapEntry($model, $map, $fields, $id);
 			if ($delete) {
 				$this->flashbag->add('success', "Map entry '{$entry_str}' deleted from Map '{$mapdescr}'");
+				$this->warnMapFileBehind();
 			} else {
 				$this->flashbag->add('error', "Map entry {$entry_str} failed to be deleted from Map {$mapdescr}");
 			}
@@ -1043,6 +1065,7 @@ final class MapController extends ViewController
 		$delete = $service->delMapAllEntries($model, $map, $fields);
 		if ($delete) {
 			$this->flashbag->add('success', "All entries from Map '{$mapdescr}' deleted");
+			$this->warnMapFileBehind();
 		} else {
 			$this->flashbag->add('error', "All entries failed to be deleted from Map {$mapdescr}");
 		}
@@ -1279,6 +1302,7 @@ final class MapController extends ViewController
 			$toggle = $service->toggleMapEntry($model, $map, $fields, $id);
 			if ($toggle) {
 				$this->flashbag->add('success', "Map entry '{$entry_str}' {$what_toggle} in Map '{$mapdescr}'");
+				$this->warnMapFileBehind();
 			} else {
 				$this->flashbag->add('error', "Map entry {$entry_str} failed to be {$what_toggle} in Map {$mapdescr}");
 			}

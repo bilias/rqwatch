@@ -145,7 +145,9 @@ final class MapEntriesTest extends MapDatabaseTestCase
 
 	// trimmed and lower case, as the user's, the map marked changed and written
 	public function testAddMapCombinedEntry(): void {
-		$this->assertTrue(self::user()->addMapCombinedEntry(self::MAP, self::FIELDS, ['mail_from' => ' A@Example.NET ', 'rcpt_to' => 'Alias@example.org']));
+		$service = self::user();
+		$this->assertTrue($service->addMapCombinedEntry(self::MAP, self::FIELDS, ['mail_from' => ' A@Example.NET ', 'rcpt_to' => 'Alias@example.org']));
+		$this->assertFalse($service->mapFileBehind());
 		$row = $this->db->rows('maps_combined')[0] ?? [];
 		$this->assertSame(['a@example.net', 'alias@example.org', self::MAP, 7], [$row['mail_from'] ?? null, $row['rcpt_to'] ?? null, $row['map_name'] ?? null, $row['user_id'] ?? null]);
 		$this->assertSame([self::MAP], $this->changedMaps());
@@ -236,12 +238,25 @@ final class MapEntriesTest extends MapDatabaseTestCase
 		$this->assertSame([], $this->changedMaps());
 	}
 
-	// the entry saved, its file not written: false
+	// the entry saved, its file not written: saved all the same, the file behind, logged
 	public function testAddMapCombinedEntryNoFile(): void {
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		$this->assertFalse(self::admin()->addMapCombinedEntry(self::MAP, self::FIELDS, ['mail_from' => 'a@example.net', 'rcpt_to' => 'b@example.org']));
+		$log = $this->noMapDir(self::MAP);
+		$service = self::admin();
+		$this->assertTrue($service->addMapCombinedEntry(self::MAP, self::FIELDS, ['mail_from' => 'a@example.net', 'rcpt_to' => 'b@example.org']));
+		$this->assertTrue($service->mapFileBehind());
 		$this->assertSame([self::MAP], $this->changedMaps());
-		$this->assertSame(["error MAP_DIR not writable: {$this->dir}/none"], $this->log->lines);
+		$this->assertSame($log, $this->log->lines);
+	}
+
+	// the file behind is the last change's: one written after it is not
+	public function testMapFileBehindIsTheLastChanges(): void {
+		$this->noMapDir(self::MAP);
+		$service = self::admin();
+		$service->addMapCombinedEntry(self::MAP, self::FIELDS, ['mail_from' => 'a@example.net', 'rcpt_to' => 'b@example.org']);
+		$this->assertTrue($service->mapFileBehind());
+		Config::set('MAP_DIR', $this->dir);
+		$service->addMapCombinedEntry(self::MAP, self::FIELDS, ['mail_from' => 'c@example.net', 'rcpt_to' => 'b@example.org']);
+		$this->assertFalse($service->mapFileBehind());
 	}
 
 	// a changed key detaches the entry's hits, once
@@ -326,9 +341,12 @@ final class MapEntriesTest extends MapDatabaseTestCase
 
 	public function testUpdateMapCombinedEntryNoFile(): void {
 		$this->answers[] = ['where `id` = ? limit 1', [['mail_from' => 'a', 'rcpt_to' => 'b']]];
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		$this->assertFalse(self::admin()->updateMapCombinedEntry(self::MAP, self::FIELDS, self::entry(), ['mail_from' => 'a', 'rcpt_to' => 'b']));
+		$log = $this->noMapDir(self::MAP);
+		$service = self::admin();
+		$this->assertTrue($service->updateMapCombinedEntry(self::MAP, self::FIELDS, self::entry(), ['mail_from' => 'a', 'rcpt_to' => 'b']));
+		$this->assertTrue($service->mapFileBehind());
 		$this->assertSame([self::MAP], $this->changedMaps());
+		$this->assertSame($log, $this->log->lines);
 	}
 
 	// one entry a line, trimmed, blank lines left out, '#' first for a disabled one
@@ -357,9 +375,12 @@ final class MapEntriesTest extends MapDatabaseTestCase
 	}
 
 	public function testAddMapCustomEntryNoFile(): void {
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		$this->assertFalse(self::admin()->addMapCustomEntry('phish', 'a.org'));
+		$log = $this->noMapDir('phish');
+		$service = self::admin();
+		$this->assertTrue($service->addMapCustomEntry('phish', 'a.org'));
+		$this->assertTrue($service->mapFileBehind());
 		$this->assertSame(['phish'], $this->changedMaps());
+		$this->assertSame($log, $this->log->lines);
 	}
 
 	/** @return array<string, array{string, int, string, int|bool}> new pattern, the entry's disabled, the pattern and disabled stored (the entry's own, as cast) */
@@ -408,9 +429,12 @@ final class MapEntriesTest extends MapDatabaseTestCase
 
 	public function testUpdateMapCustomEntryNoFile(): void {
 		$this->answers[] = ['where `id` = ? limit 1', [['pattern' => 'a.org']]];
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		$this->assertFalse(self::admin()->updateMapCustomEntry('phish', self::customEntry(), 'a.org'));
+		$log = $this->noMapDir('phish');
+		$service = self::admin();
+		$this->assertTrue($service->updateMapCustomEntry('phish', self::customEntry(), 'a.org'));
+		$this->assertTrue($service->mapFileBehind());
 		$this->assertSame(['phish'], $this->changedMaps());
+		$this->assertSame($log, $this->log->lines);
 	}
 
 	private const string ONE_COMBINED = self::COMBINED . self::USER_SCOPE . ' and `id` = ? and `user_id` = ?' . self::ORDER . ' limit 1';
@@ -463,9 +487,12 @@ final class MapEntriesTest extends MapDatabaseTestCase
 
 	public function testDelMapEntryNoFile(): void {
 		$this->answers[] = ['`id` = ?', [['id' => 11]]];
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		$this->assertFalse(self::admin()->delMapEntry('MapCombined', self::MAP, self::FIELDS, 11));
+		$log = $this->noMapDir(self::MAP);
+		$service = self::admin();
+		$this->assertTrue($service->delMapEntry('MapCombined', self::MAP, self::FIELDS, 11));
+		$this->assertTrue($service->mapFileBehind());
 		$this->assertSame([self::MAP], $this->changedMaps());
+		$this->assertSame($log, $this->log->lines);
 	}
 
 	public function testDelMapAllEntries(): void {
@@ -513,9 +540,12 @@ final class MapEntriesTest extends MapDatabaseTestCase
 
 	public function testDelMapAllEntriesNoFile(): void {
 		$this->db->affect = fn (): int => 1;
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		$this->assertFalse(self::admin()->delMapAllEntries('MapCombined', self::MAP, self::FIELDS));
+		$log = $this->noMapDir(self::MAP);
+		$service = self::admin();
+		$this->assertTrue($service->delMapAllEntries('MapCombined', self::MAP, self::FIELDS));
+		$this->assertTrue($service->mapFileBehind());
 		$this->assertSame([self::MAP], $this->changedMaps());
+		$this->assertSame($log, $this->log->lines);
 	}
 
 	/** @return array<string, array{int, bool}> disabled before, after */
@@ -556,8 +586,11 @@ final class MapEntriesTest extends MapDatabaseTestCase
 
 	public function testToggleMapEntryNoFile(): void {
 		$this->answers[] = ['`id` = ?', [['id' => 11, 'disabled' => 0]]];
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		$this->assertFalse(self::admin()->toggleMapEntry('MapCombined', self::MAP, self::FIELDS, 11));
+		$log = $this->noMapDir(self::MAP);
+		$service = self::admin();
+		$this->assertTrue($service->toggleMapEntry('MapCombined', self::MAP, self::FIELDS, 11));
+		$this->assertTrue($service->mapFileBehind());
 		$this->assertSame([self::MAP], $this->changedMaps());
+		$this->assertSame($log, $this->log->lines);
 	}
 }

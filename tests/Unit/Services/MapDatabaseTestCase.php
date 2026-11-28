@@ -104,4 +104,17 @@ abstract class MapDatabaseTestCase extends UnitTestCase
 	protected function changedMaps(): array {
 		return array_column($this->db->rows('map_activity_logs'), 'map_name');
 	}
+
+	/**
+	 * A MAP_DIR that is not there: a change is saved all the same, its map
+	 * file behind. These are the lines such a change of $map logs.
+	 * @return list<string>
+	 */
+	protected function noMapDir(string $map): array {
+		Config::set('MAP_DIR', "{$this->dir}/none");
+		return [
+			"error MAP_DIR not writable: {$this->dir}/none",
+			"error Map file of '{$map}' not written: the change is saved, the file is behind until cron:updatemapfiles writes it",
+		];
+	}
 }

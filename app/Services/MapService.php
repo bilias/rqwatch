@@ -52,6 +52,9 @@ final class MapService
 
 	private int $items_per_page;
 
+	// the last change was saved, but its map file could not be written
+	private bool $mapFileBehind = false;
+
 	/** @param array{is_admin?: bool|null, username?: string|null, user_id?: int|null, email?: string|null, user_aliases?: array<int, string>}|null $userContect */
 	public function __construct(?array $userContect = null) {
 		$this->logger = App::fileLogger();
@@ -846,6 +849,25 @@ final class MapService
 		return true;
 	}
 
+	/**
+	 * The map file after a change that is saved, its activity log updated. A
+	 * file that cannot be written does not undo or fail the change: it is
+	 * behind until cron:updatemapfiles writes it (the activity log is newer
+	 * than the file), and mapFileBehind() tells the caller.
+	 * @param list<string>|null $map_fields
+	 */
+	private function refreshMapFile(string $model, string $map_name, string $last_update, ?array $map_fields = null): void {
+		$this->mapFileBehind = !$this->updateMapFile($model, $map_name, $last_update, $map_fields);
+		if ($this->mapFileBehind) {
+			$this->logger->error("Map file of '{$map_name}' not written: the change is saved, the file is behind until cron:updatemapfiles writes it");
+		}
+	}
+
+	// whether the last change (add, update, delete, toggle) left its map file behind
+	public function mapFileBehind(): bool {
+		return $this->mapFileBehind;
+	}
+
 	/** @return non-empty-list<string> the lines of $text, split at CRLF, CR or LF */
 	private static function lines(string $text): array {
 		return explode("\n", str_replace(["\r\n", "\r"], "\n", $text));
@@ -925,10 +947,8 @@ final class MapService
 			return false;
 		}
 
-		// update map file
-		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
-			return false;
-		}
+		// update map file: one not written does not fail the saved change
+		$this->refreshMapFile('MapCombined', $map_name, $last_update, $map_fields);
 
 		return true;
 	}
@@ -1015,10 +1035,8 @@ final class MapService
 			return false;
 		}
 
-		// update map file
-		if (!self::updateMapFile('MapCombined', $map_name, $last_update, $map_fields)) {
-			return false;
-		}
+		// update map file: one not written does not fail the saved change
+		$this->refreshMapFile('MapCombined', $map_name, $last_update, $map_fields);
 
 		return true;
 	}
@@ -1094,10 +1112,8 @@ final class MapService
 			return false;
 		}
 
-		// update map file
-		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
-			return false;
-		}
+		// update map file: one not written does not fail the saved change
+		$this->refreshMapFile('MapCustom', $map_name, $last_update);
 
 		return true;
 	}
@@ -1157,10 +1173,8 @@ final class MapService
 			return false;
 		}
 
-		// update map file
-		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
-			return false;
-		}
+		// update map file: one not written does not fail the saved change
+		$this->refreshMapFile('MapCustom', $map_name, $last_update);
 
 		return true;
 	}
@@ -1190,11 +1204,8 @@ final class MapService
 			return false;
 		}
 
-		// update map file
-		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
-			$this->logger->error("Error updating map file for '{$map_name}' in addCustomMapConfig");
-			return false;
-		}
+		// update map file: one not written does not fail the saved change
+		$this->refreshMapFile('MapCustom', $map_name, $last_update);
 
 		return true;
 	}
@@ -1255,11 +1266,8 @@ final class MapService
 			return false;
 		}
 
-		// 4. update map file
-		if (!self::updateMapFile('MapCustom', $map_name, $last_update)) {
-			$this->logger->error("Error updating map file for '{$map_name}' in updateCustomMapConfig");
-			return false;
-		}
+		// 4. update map file: one not written does not fail the saved change
+		$this->refreshMapFile('MapCustom', $map_name, $last_update);
 
 		return true;
 	}
@@ -1347,10 +1355,8 @@ final class MapService
 			return false;
 		}
 
-		// update map file
-		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
-			return false;
-		}
+		// update map file: one not written does not fail the saved change
+		$this->refreshMapFile($model, $map_name, $last_update, $map_fields);
 
 		return true;
 	}
@@ -1402,10 +1408,8 @@ final class MapService
 			return false;
 		}
 
-		// update map file
-		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
-			return false;
-		}
+		// update map file: one not written does not fail the saved change
+		$this->refreshMapFile($model, $map_name, $last_update, $map_fields);
 
 		return true;
 	}
@@ -1464,10 +1468,8 @@ final class MapService
 			return false;
 		}
 
-		// update map file
-		if (!self::updateMapFile($model, $map_name, $last_update, $map_fields)) {
-			return false;
-		}
+		// update map file: one not written does not fail the saved change
+		$this->refreshMapFile($model, $map_name, $last_update, $map_fields);
 
 		return true;
 	}

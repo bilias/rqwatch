@@ -42,18 +42,18 @@
 				// MailReleaseForm has no id field: the data's id is never read
 				"App\\Controllers\\MailLogController::releaseFormView::1621",
 				// the map forms define a 'role' option but never read it
-				"App\\Controllers\\MapController::addMapEntry::652",
-				"App\\Controllers\\MapController::editMapEntry::813",
+				"App\\Controllers\\MapController::addMapEntry::669",
+				"App\\Controllers\\MapController::editMapEntry::832",
 				// add() never sets $error: always null, as a missing key is in Twig
 				"App\\Controllers\\UserController::add::432",
 				// the query selects its own columns: paginate()'s are only a default, and its count ignores them
-				"App\\Services\\MapService::getPaginatedMapCustom::536",
-				"App\\Services\\MapService::searchPaginatedMapCombined::398",
-				"App\\Services\\MapService::getPaginatedAllMapCombined::430",
-				"App\\Services\\MapService::searchPaginatedMapCustom::466",
-				"App\\Services\\MapService::getPaginatedAllMapCustom::487",
-				"App\\Services\\MapService::getPaginatedCustomMapConfigs::509",
-				"App\\Services\\MapService::getPaginatedMapCombined::562",
+				"App\\Services\\MapService::getPaginatedMapCustom::539",
+				"App\\Services\\MapService::searchPaginatedMapCombined::401",
+				"App\\Services\\MapService::getPaginatedAllMapCombined::433",
+				"App\\Services\\MapService::searchPaginatedMapCustom::469",
+				"App\\Services\\MapService::getPaginatedAllMapCustom::490",
+				"App\\Services\\MapService::getPaginatedCustomMapConfigs::512",
+				"App\\Services\\MapService::getPaginatedMapCombined::565",
 				// the loop sets every id's counts again: the defaults only reach an empty result
 				"App\\Services\\MapHitService::entryHits::511",
 				"App\\Services\\MailLogService::getPaginatedQuarantine::1398",
@@ -169,7 +169,7 @@
 				// an int . 'B' is the same string
 				"App\\Utils\\Helper::formatSizeUnits::506",
 				// with partial output json_encode() returns text; false would concatenate as '' anyway
-				"App\\Services\\MapService::mapSymbols::268",
+				"App\\Services\\MapService::mapSymbols::271",
 				// json_encode() of a decoded value does not fail
 				"App\\Utils\\Helper::log_to_files::698",
 				// preg_replace() with this ASCII pattern does not fail
@@ -197,7 +197,7 @@
 		"ConcatOperandRemoval": {
 			"ignore": [
 				// tempnam() leaves MAP_DIR only when MAP_DIR is unusable, which was refused just before
-				"App\\Services\\MapService::updateMapFile::745",
+				"App\\Services\\MapService::updateMapFile::748",
 				// the same default log file
 				"App\\Core\\Logging\\LoggerFactory::createFileLogger::38",
 				// Symfony's formatter styles an unclosed tag to the end of the line
@@ -232,9 +232,9 @@
 				// an id that is not digits is refused either way ($id <= 0)
 				"App\\Api\\ReleaseMailApi::handle::63",
 				// showMap(): ?entry= of 0 or below is no entry either way ($entry_filter > 0)
-				"App\\Controllers\\MapController::showMap::537",
+				"App\\Controllers\\MapController::showMap::554",
 				// the quota is reached only with USER_MAP_MAX_ENTRIES set above 0, so the fallback never shows
-				"App\\Controllers\\MapController::addMapEntry::707",
+				"App\\Controllers\\MapController::addMapEntry::724",
 				// showMails(): ?entry= of 0 or below is no entry either way ($entry > 0)
 				"App\\Controllers\\MapHitController::showMails::94",
 				// ?page defaults to 1; 0 is read as 1 too, by paginate(), Collection::forPage() and
@@ -255,10 +255,10 @@
 				"App\\Controllers\\MailLogController::showQuarantineMonth::585",
 				"App\\Controllers\\MailLogController::showQuarantine::631",
 				"App\\Controllers\\MailLogController::showQuarantinePerMonth::678",
-				"App\\Controllers\\MapController::showAllMaps::167",
-				"App\\Controllers\\MapController::showCustomMapsConfig::281",
-				"App\\Controllers\\MapController::showMap::531",
-				"App\\Controllers\\MapController::searchMapEntry::1122",
+				"App\\Controllers\\MapController::showAllMaps::182",
+				"App\\Controllers\\MapController::showCustomMapsConfig::296",
+				"App\\Controllers\\MapController::showMap::548",
+				"App\\Controllers\\MapController::searchMapEntry::1145",
 				"App\\Controllers\\MapHitController::showMails::164",
 				"App\\Controllers\\UserController::searchUser::164",
 				"App\\Controllers\\UserController::showAll::210",
@@ -309,7 +309,7 @@
 				// -1 is below 1 as 0 is: no limit, or the default
 				"App\\Services\\MailLogService::notificationCutoff::2229",
 				"App\\Services\\MailLogService::adminNotificationCutoff::2241",
-				"App\\Services\\MapService::userMapQuotaReached::176",
+				"App\\Services\\MapService::userMapQuotaReached::179",
 				// page 0 is page 1: paginate() and the paginator take a falsy page as the current one (1, with no resolver set), and forPage() starts at offset 0
 				"App\\Services\\MailLogService::getPaginatedDay::1293",
 				"App\\Services\\MailLogService::getPaginatedQuarantineDay::1317",
@@ -328,10 +328,10 @@
 				"App\\Api\\MetadataImporterMultipartApi::save::125",
 				"App\\Api\\MetadataImporterMultipartApi::save::142",
 				// Eloquent's save()/insert() is false only when a model event cancels it (none on these models); a failing query throws
-				"App\\Services\\MapService::addMapCombinedEntry::909",
-				"App\\Services\\MapService::addMapCustomEntry::1077",
-				"App\\Services\\MapService::addCustomMapConfig::1178",
-				"App\\Services\\MapService::updateCustomMapConfig::1229",
+				"App\\Services\\MapService::addMapCombinedEntry::931",
+				"App\\Services\\MapService::addMapCustomEntry::1095",
+				"App\\Services\\MapService::addCustomMapConfig::1192",
+				"App\\Services\\MapService::updateCustomMapConfig::1240",
 				// mailparse always sets is_group
 				"App\\Utils\\Helper::getMailFromMime::1385",
 				// inet_pton() of an address FILTER_VALIDATE_IP accepted does not fail
@@ -370,7 +370,7 @@
 		"IncrementInteger": {
 			"ignore": [
 				// the quota is reached only with USER_MAP_MAX_ENTRIES set above 0, so the fallback never shows
-				"App\\Controllers\\MapController::addMapEntry::707",
+				"App\\Controllers\\MapController::addMapEntry::724",
 				// a prefix is 0 bits or more: starting at 0 credits the entries -1 does
 				"App\\Services\\MapHitService::longestPrefix::335",
 				// array_pad() to 3 leaves the two values destructured unchanged; the line's
@@ -410,9 +410,9 @@
 		"LogicalAnd": {
 			"ignore": [
 				// no user loaded has an empty username; without one, both read as a deleted user
-				"App\\Controllers\\MapController::getMapUser::1323",
+				"App\\Controllers\\MapController::getMapUser::1347",
 				// the MapCombined branch is taken first, and a user never reaches the update with MapCustom
-				"App\\Controllers\\MapController::editMapEntry::864",
+				"App\\Controllers\\MapController::editMapEntry::883",
 				// the router attaches the session before any middleware runs
 				"App\\Core\\Middleware\\AuthMiddleware::handle::46",
 				// null and '' fall through the switch to the same "clean"
@@ -431,14 +431,14 @@
 		"LogicalOr": {
 			"ignore": [
 				// a valid map form's data is an array holding its required fields: never anything else, never empty
-				"App\\Controllers\\MapController::addMapEntry::672",
-				"App\\Controllers\\MapController::editMapEntry::837",
+				"App\\Controllers\\MapController::addMapEntry::689",
+				"App\\Controllers\\MapController::editMapEntry::856",
 				// no row has no others; with none shared the checks below find nothing to warn about
 				"App\\Controllers\\FuzzyController::warnShared::405",
 				// tempnam() leaves MAP_DIR only when MAP_DIR is unusable, which was refused just before
-				"App\\Services\\MapService::updateMapFile::745",
+				"App\\Services\\MapService::updateMapFile::748",
 				// a local file write that fails short or flushes nothing: no test can make one
-				"App\\Services\\MapService::updateMapFile::820",
+				"App\\Services\\MapService::updateMapFile::823",
 				// php-ip's isPrivate() or isReserved() already covers loopback and link-local
 				"App\\Utils\\Helper::isLocalOrReservedIp::1230",
 				// valid UTF-8 comes out of toUtf8() unchanged
@@ -538,8 +538,8 @@
 			// public, but only called inside its class (Eloquent calls accessors
 			// and mutators from inside the model)
 			"ignore": [
-				"App\\Services\\MapService::getMapCombinedBasicQuery::120",
-				"App\\Services\\MapService::getMapCustomQuery::152",
+				"App\\Services\\MapService::getMapCombinedBasicQuery::123",
+				"App\\Services\\MapService::getMapCustomQuery::155",
 				"App\\Services\\MailLogService::getSqlFromQuery::103",
 				"App\\Services\\UserService::getSqlFromQuery::66",
 				"App\\Services\\MailAliasService::getSqlFromQuery::48",
@@ -590,12 +590,12 @@
 				// $stats is that null
 				"App\\Controllers\\MailLogController::getMailStats::1542",
 				// Eloquent's save()/insert() is false only when a model event cancels it (none on these models); a failing query throws
-				"App\\Services\\MapService::addMapCombinedEntry::909",
-				"App\\Services\\MapService::addMapCustomEntry::1077",
-				"App\\Services\\MapService::addCustomMapConfig::1178",
-				"App\\Services\\MapService::updateCustomMapConfig::1229",
+				"App\\Services\\MapService::addMapCombinedEntry::931",
+				"App\\Services\\MapService::addMapCustomEntry::1095",
+				"App\\Services\\MapService::addCustomMapConfig::1192",
+				"App\\Services\\MapService::updateCustomMapConfig::1240",
 				// the map pages test is_admin before user_can_delete
-				"App\\Controllers\\MapController::getUserCanDelete::1300",
+				"App\\Controllers\\MapController::getUserCanDelete::1324",
 				// the same redirect follows the try
 				"App\\Controllers\\LoginController::logout_openidc::130",
 				// no row has no others; with none shared the checks below find nothing to warn about
@@ -605,7 +605,7 @@
 				"App\\Core\\Middleware\\AuthMiddleware::sessionStillValid::99",
 				"App\\Core\\Middleware\\AuthMiddleware::sessionStillValid::104",
 				// an empty pattern ('' or '0') leaves no line either: false all the same, logged once
-				"App\\Services\\MapService::addMapCustomEntry::1029",
+				"App\\Services\\MapService::addMapCustomEntry::1047",
 				// LoginThrottle's listBlocked() and listCounters() give [] for no cache, clearIp() false
 				"App\\Services\\UserService::getLoginThrottles::414",
 				"App\\Services\\UserService::clearLoginThrottle::435",
@@ -677,11 +677,11 @@
 		"TrueValue": {
 			"ignore": [
 				// the map pages test is_admin before user_can_delete
-				"App\\Controllers\\MapController::getUserCanDelete::1300",
+				"App\\Controllers\\MapController::getUserCanDelete::1324",
 				// an int status against ints: == matches as === does
 				"App\\Services\\FuzzyService::callApi::690",
 				// the values are text, none of them numeric: == matches as === does
-				"App\\Services\\MapService::updateMapFile::779",
+				"App\\Services\\MapService::updateMapFile::782",
 				// resyncCounters() reads only the keys of the aliases seen
 				"App\\Services\\Import\\MailLogSpool::drain::323",
 				"App\\Services\\Import\\MailLogSpool::drain::410",
@@ -728,8 +728,8 @@
 				// only the keys of $hashes are read
 				"App\\Services\\FuzzyService::sharedWith::399",
 				// a non-empty address against the user's (or ''), no numeric string: in_array() matches loosely as strictly
-				"App\\Services\\MapService::addMapCombinedEntry::891",
-				"App\\Services\\MapService::updateMapCombinedEntry::967",
+				"App\\Services\\MapService::addMapCombinedEntry::913",
+				"App\\Services\\MapService::updateMapCombinedEntry::987",
 				// flags are ints both sides (the cast and Row::int()): in_array() matches loosely as strictly
 				"App\\Services\\FuzzyService::orphanedSlotHolders::551"
 			]
@@ -748,7 +748,7 @@
 				"App\\Controllers\\MailLogController::releaseMail::969",
 				"App\\Controllers\\MailLogController::releaseMail::1002",
 				// http_build_query() leaves null values out anyway (the redirect and the page links)
-				"App\\Controllers\\MapController::searchMapEntry::1116",
+				"App\\Controllers\\MapController::searchMapEntry::1139",
 				// an empty whitelist entry only matches an empty client IP, which is never throttled
 				"App\\Core\\Auth\\LoginThrottle::__construct::80",
 				// http_build_query() leaves a null out of the page's url
@@ -769,8 +769,8 @@
 		"UnwrapTrim": {
 			"ignore": [
 				// the custom field is a TextType on edit, which trims already
-				"App\\Controllers\\MapController::editMapEntry::853",
-				"App\\Controllers\\MapController::editMapEntry::879",
+				"App\\Controllers\\MapController::editMapEntry::872",
+				"App\\Controllers\\MapController::editMapEntry::899",
 				// the custom map config form's text fields trim already
 				"App\\Controllers\\MapController::customMapConfigValues::70",
 				"App\\Controllers\\MapController::customMapConfigValues::74",
@@ -788,8 +788,8 @@
 				// the message starts with "error:" and ends with a quote: nothing to trim
 				"App\\Core\\Auth\\LdapAuth::getError::292",
 				// each line is trimmed, and blank lines dropped, after
-				"App\\Services\\MapService::mapEntryExists::586",
-				"App\\Services\\MapService::addMapCustomEntry::1050"
+				"App\\Services\\MapService::mapEntryExists::589",
+				"App\\Services\\MapService::addMapCustomEntry::1068"
 			]
 		},
 		"UnwrapArrayValues": {
@@ -802,7 +802,7 @@
 				// a header's values are sent in order, their keys not at all
 				"App\\Services\\FuzzyService::deleteHashes::707",
 				// implode() ignores the keys, and an empty array is [] with gaps or without
-				"App\\Services\\MapService::prepareSymbols::328",
+				"App\\Services\\MapService::prepareSymbols::331",
 				// in_array() does not need list keys
 				"App\\Core\\Auth\\LoginThrottle::__construct::80",
 				// only iterated
@@ -854,9 +854,9 @@
 				// netdns2 gives the name without its trailing dot: the rtrim() is a guard
 				"App\\Utils\\Helper::lookupPtr::1586",
 				// realpath() ends in a separator only for /, whose prefix is the same
-				"App\\Services\\MapService::updateMapFile::745",
+				"App\\Services\\MapService::updateMapFile::748",
 				// a trailing / in MAP_DIR makes the path's // , which the file system reads as /
-				"App\\Services\\MapService::updateMapFile::836",
+				"App\\Services\\MapService::updateMapFile::839",
 				"App\\Console\\CronUpdateMapFiles::mapFileNeedsUpdate::56",
 				// a name from scandir() ends in no separator
 				"App\\Console\\CronQuarantine::pruneEmptyQuarantineDateDirs::337",

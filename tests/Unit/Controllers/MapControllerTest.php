@@ -346,12 +346,54 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertSame(['error' => ["Map 'phish' already exists!"]], self::flashes($request));
 	}
 
-	// saved, but the map file cannot be written
-	public function testAddConfigFails(): void {
-		Config::set('MAP_DIR', "{$this->dir}/gone");
-		[$response, $request] = $this->postConfig(['map_name' => 'senders']);
-		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS_CUSTOM_ADD), $response);
-		$this->assertSame(['error' => ["Custom map 'senders' creation problem. Check logs."]], self::flashes($request));
+	private const string FILE_BEHIND = 'The change is saved, but the map file could not be written: it takes effect when cron:updatemapfiles writes the file. Check logs.';
+
+	/** @return array<string, array{string, string}> the change, its success message */
+	public static function savedChanges(): array {
+		return [
+			'a custom map added' => ['add config', "Custom Map 'senders' created"],
+			'a custom map updated' => ['edit config', "Custom Map 'phishing' updated"],
+			'an entry added' => ['add entry', "Entry 'IP Address: 192.0.2.0/24' created in Map 'IP Blacklist'"],
+			'a custom entry added' => ['add custom entry', "Entry 'URL: bad.example' created in Map 'Phishing URLs'"],
+			'an entry updated' => ['edit entry', "Entry 'Mail From: new@example.net, RCPT To: alice@example.org' updated in Map 'Mail From/RCPT_TO Whitelist'"],
+			'a custom entry updated' => ['edit custom entry', "Entry 'URL: worse.example' updated in Map 'Phishing URLs'"],
+			'an entry deleted' => ['del', "Map entry 'Mail From: friend@example.net, RCPT To: alice@example.org' deleted from Map 'Mail From/RCPT_TO Whitelist'"],
+			'all entries deleted' => ['delall', "All entries from Map 'Mail From/RCPT_TO Whitelist' deleted"],
+			'an entry toggled' => ['toggle', "Map entry 'Mail From: friend@example.net, RCPT To: alice@example.org' disabled in Map 'Mail From/RCPT_TO Whitelist'"],
+		];
+	}
+
+	/*
+	 A change whose map file cannot be written (no MAP_DIR): it is saved, so
+	 it is a success, back to where a success goes, with a warning that the
+	 file is behind.
+	*/
+	#[DataProvider('savedChanges')]
+	public function testSavedWithItsMapFileBehind(string $change, string $success): void {
+		Config::set('MAP_DIR', "{$this->dir}/none");
+		[$response, $request] = match ($change) {
+			'add config' => $this->postConfig(['map_name' => 'senders']),
+			'edit config' => $this->postConfig(['map_name' => 'phishing'], 1),
+			'add entry' => $this->postEntry('ip_blacklist', 'map_ip_form', ['ip' => '192.0.2.0/24']),
+			'add custom entry' => $this->postEntry('phish', 'map_with_custom_field_form', ['url' => 'bad.example']),
+			'edit entry' => $this->postEntry('mail_from_rcpt_to_whitelist', 'map_mail_from_rcpt_to_form', ['mail_from' => 'new@example.net', 'rcpt_to' => 'alice@example.org'], self::ADMIN, [], 5),
+			'edit custom entry' => $this->postEntry('phish', 'map_with_custom_field_form', ['url' => 'worse.example'], self::ADMIN, [], 9),
+			default => $this->entryAction($change),
+		};
+		$this->assertSame(['success' => [$success], 'warning' => [self::FILE_BEHIND]], self::flashes($request));
+		$this->assertRedirect(match ($change) {
+			'add config', 'edit config' => $this->url(RouteName::ADMIN_MAPS_CUSTOM_SHOW),
+			'add entry' => $this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'ip_blacklist']),
+			'add custom entry', 'edit custom entry' => $this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'phish']),
+			default => $this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'mail_from_rcpt_to_whitelist']),
+		}, $response);
+	}
+
+	// a user is told without the admin's details
+	public function testUserSavedWithItsMapFileBehind(): void {
+		Config::set('MAP_DIR', "{$this->dir}/none");
+		[, $request] = $this->entryAction('toggle', 'mail_from_rcpt_to_whitelist', self::USER);
+		$this->assertSame(['The change is saved, but is not in effect yet.'], self::flashes($request)['warning'] ?? null);
 	}
 
 	public function testEditConfigForm(): void {
@@ -823,15 +865,6 @@ final class MapControllerTest extends ControllerTestCase
 			'delete all' => ['delall', 'All entries failed to be deleted from Map Mail From/RCPT_TO Whitelist'],
 			'toggle' => ['toggle', 'Map entry Mail From: friend@example.net, RCPT To: alice@example.org failed to be disabled in Map Mail From/RCPT_TO Whitelist'],
 		];
-	}
-
-	// the entry changed in the database, but its map file could not be written
-	#[DataProvider('failedEntryActions')]
-	public function testEntryActionFails(string $action, string $error): void {
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		[$response, $request] = $this->entryAction($action);
-		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'mail_from_rcpt_to_whitelist']), $response);
-		$this->assertSame(['error' => [$error]], self::flashes($request));
 	}
 
 	// the database refusing the change: logged, said as a failure, no error page

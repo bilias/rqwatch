@@ -149,11 +149,14 @@ final class MapConfigTest extends MapDatabaseTestCase
 		$this->assertArrayNotHasKey('symbols', $this->db->rows('custom_map_config')[0] ?? []);
 	}
 
+	// the map saved, its file not written: saved all the same, the file behind, logged
 	public function testAddCustomMapConfigNoFile(): void {
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		$this->assertFalse(self::admin()->addCustomMapConfig(self::CONFIG));
+		$log = $this->noMapDir('phish');
+		$service = self::admin();
+		$this->assertTrue($service->addCustomMapConfig(self::CONFIG));
+		$this->assertTrue($service->mapFileBehind());
 		$this->assertSame(['phish'], $this->changedMaps());
-		$this->assertSame("error Error updating map file for 'phish' in addCustomMapConfig", $this->log->lines[1] ?? null);
+		$this->assertSame($log, $this->log->lines);
 	}
 
 	public function testAddCustomMapConfigFails(): void {
@@ -219,10 +222,12 @@ final class MapConfigTest extends MapDatabaseTestCase
 
 	public function testUpdateCustomMapConfigNoFile(): void {
 		$this->storedConfig();
-		Config::set('MAP_DIR', "{$this->dir}/none");
-		$this->assertFalse(self::admin()->updateCustomMapConfig(5, self::CONFIG));
+		$log = $this->noMapDir('phish');
+		$service = self::admin();
+		$this->assertTrue($service->updateCustomMapConfig(5, self::CONFIG));
+		$this->assertTrue($service->mapFileBehind());
 		$this->assertSame(['phish'], $this->changedMaps());
-		$this->assertSame("error Error updating map file for 'phish' in updateCustomMapConfig", $this->log->lines[1] ?? null);
+		$this->assertSame($log, $this->log->lines);
 	}
 
 	public function testDelCustomMap(): void {
