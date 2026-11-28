@@ -765,11 +765,25 @@ final class LoginControllerTest extends ControllerTestCase
 		$this->assertStringNotContainsString('firstname', $this->update());
 	}
 
-	// a blank address at the provider keeps the stored one
-	public function testOpenIdConnectBlankEmail(): void {
-		$this->oidc->userInfo = (object) (['email' => ' '] + (array) $this->oidc->userInfo);
-		$this->oidcUser([]);
-		$this->assertStringNotContainsString('`email`', $this->update());
+	/** @return array<string, array{string, string}> the claim of blanks, what is logged */
+	public static function blankClaims(): array {
+		return [
+			'the address' => ['email', "error OIDC user 'carol' has no email claim; login denied"],
+			'the username' => ['preferred_username', 'error Empty userinfo or preferred_username from OIDC. Check OPENIDC_PREFERRED_USERNAME_ATTR in .env'],
+		];
+	}
+
+	// a username or address of blanks at the provider is none: the login is denied, nothing stored
+	#[DataProvider('blankClaims')]
+	public function testOpenIdConnectBlankClaimDenied(string $claim, string $logged): void {
+		$this->setEnv('OPENIDC_AUTH_ENABLED', 'true');
+		$this->oidc->userInfo = (object) ([$claim => ' '] + (array) $this->oidc->userInfo);
+		$request = self::request('https://rq.example.org/login/openid/callback');
+		$this->assertRedirect($this->url(RouteName::LOGIN), $this->login($request)->login_openidc_callback());
+		$this->assertSame(['error' => ['Authentication failed']], self::flashes($request));
+		$this->assertSame([$logged], $this->log->lines);
+		$this->assertSame([], $this->db->changes);
+		$this->assertFalse($request->getSession()->has('username'));
 	}
 
 	/** @return array<string, array{int}> */

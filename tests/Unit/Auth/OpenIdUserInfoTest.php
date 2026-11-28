@@ -78,6 +78,8 @@ final class OpenIdUserInfoTest extends UnitTestCase
 			'empty' => [''],
 			"'0'" => ['0'],
 			'none' => [null],
+			'blanks' => [" \t"],
+			"'0' among blanks" => [' 0 '],
 		];
 	}
 
@@ -148,9 +150,16 @@ final class OpenIdUserInfoTest extends UnitTestCase
 		$this->assertSame(["error OIDC user 'alice' has no email claim; login denied"], $this->log->lines);
 	}
 
-	// an empty claim is no address: the login must not go through with e-mail ''
-	public function testEmailEmptyDenied(): void {
-		$this->assertFalse(self::apply(new OpenIDConnectAuth($this->log), self::userInfo(['email' => ''])));
+	/** @return array<string, array{string}> */
+	public static function noEmail(): array {
+		return ['empty' => [''], 'blanks' => [" \t"], "'0' among blanks" => [' 0 ']];
+	}
+
+	// an empty claim, or one of blanks, is no address: the login must not go through with e-mail ''
+	#[DataProvider('noEmail')]
+	public function testEmailEmptyDenied(string $email): void {
+		$auth = new OpenIDConnectAuth($this->log);
+		$this->assertFalse(self::apply($auth, self::userInfo(['email' => $email])));
 		$this->assertSame(["error OIDC user 'alice' has no email claim; login denied"], $this->log->lines);
 	}
 

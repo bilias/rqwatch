@@ -119,6 +119,10 @@ final class OpenIDConnectAuth implements AuthInterface {
 
 		/** @var mixed $username */
 		$username = $userInfo->{$usernameAttr} ?? null;
+		// trimmed before the check: a claim of blanks is no username
+		if (is_string($username)) {
+			$username = trim($username);
+		}
 		if (empty($username)) {
 			$this->logger->error("Empty userinfo or {$usernameAttr} from OIDC. Check OPENIDC_PREFERRED_USERNAME_ATTR in .env");
 			return false;
@@ -130,7 +134,7 @@ final class OpenIDConnectAuth implements AuthInterface {
 			return false;
 		}
 
-		$this->authenticatedUser = strtolower(trim((string) $username));
+		$this->authenticatedUser = strtolower((string) $username);
 
 		$emailVerified = filter_var(
 			$userInfo->email_verified ?? null,
@@ -140,6 +144,10 @@ final class OpenIDConnectAuth implements AuthInterface {
 
 		/** @var mixed $email */
 		$email = $userInfo->email ?? null;
+		// trimmed before the check: a claim of blanks is no address
+		if (is_string($email)) {
+			$email = trim($email);
+		}
 		if (empty($email)) {
 			$this->logger->error("OIDC user '{$this->authenticatedUser}' has no email claim; login denied");
 			return false;
@@ -164,7 +172,7 @@ final class OpenIDConnectAuth implements AuthInterface {
 			);
 		}
 
-		$this->email = strtolower(trim($email));
+		$this->email = strtolower($email);
 
 		$this->lastname = $this->nameClaim($userInfo, 'family_name');
 		$this->firstname = $this->nameClaim($userInfo, 'given_name');
