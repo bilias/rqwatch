@@ -39,6 +39,7 @@ use App\Services\ApiClient;
 use App\Services\MailerService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Redis;
+use ReflectionMethod;
 use ReflectionProperty;
 use RuntimeException;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -1609,6 +1610,39 @@ final class MailLogControllerTest extends ControllerTestCase
 		$this->assertSame(['application/pdf', '3'], [$response->headers->get('Content-Type'), $response->headers->get('Content-Length')]);
 		$this->assertMatchesRegularExpression("/^attachment; filename=[0-9a-f]{16}\\.pdf; filename\\*=utf-8''inv\\.pdf$/D", (string) $response->headers->get('Content-Disposition'));
 		$this->assertSame('PDF', self::streamed($response));
+	}
+
+	/** @return array<string, array{string, string}> the part's Content-Type, the download's */
+	public static function downloadTypes(): array {
+		return [
+			'a vendor type' => ['application/vnd.ms-excel.sheet.macroEnabled.12', 'application/vnd.ms-excel.sheet.macroenabled.12'],
+			'with a + suffix' => ['image/svg+xml', 'image/svg+xml'],
+			'markup' => ['text/html <script>', 'application/octet-stream'],
+			'quoted text' => ['"text/html\\r\\nSet-Cookie: a=b"', 'application/octet-stream'],
+			'a control byte' => ["\"a\x01b/c\"", 'application/octet-stream'],
+			'two slashes' => ['text/html/x', 'application/octet-stream'],
+			'no subtype' => ['text', 'application/octet-stream'],
+			'not starting with a letter or digit' => ['.text/html', 'application/octet-stream'],
+			'a subtype not starting with one' => ['text/+html', 'application/octet-stream'],
+			'the longest name' => ['a' . str_repeat('b', 126) . '/c' . str_repeat('d', 126), 'a' . str_repeat('b', 126) . '/c' . str_repeat('d', 126)],
+			'a type too long' => ['a' . str_repeat('b', 127) . '/c', 'application/octet-stream'],
+			'a subtype too long' => ['a/c' . str_repeat('d', 127), 'application/octet-stream'],
+		];
+	}
+
+	// a download keeps the mail's type only when it is a plain type/subtype
+	#[DataProvider('downloadTypes')]
+	public function testSaveAttachmentType(string $given, string $type): void {
+		file_put_contents("{$this->dir}/Q41/Q41", str_replace('Content-Type: application/pdf; name="inv.pdf"', "Content-Type: {$given}; name=\"inv.pdf\"", self::EML));
+		$this->assertSame($type, $this->attachment('save', 0)->headers->get('Content-Type'));
+	}
+
+	// what mailparse never hands over, refused or kept all the same: a line feed at the end, capitals
+	public function testDownloadContentType(): void {
+		$type = new ReflectionMethod(MailLogController::class, 'downloadContentType');
+		$mails = $this->mails(self::request('/mail/41/attach', self::ADMIN));
+		$this->assertSame('application/octet-stream', $type->invoke($mails, "text/html\n"));
+		$this->assertSame('Text/HTML', $type->invoke($mails, 'Text/HTML'));
 	}
 
 	/** @return array<string, array{int, string}> */

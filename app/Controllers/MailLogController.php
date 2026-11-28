@@ -1121,7 +1121,7 @@ final class MailLogController extends ViewController
 
 		[$filename, $filenameFallback] = $this->attachmentNames($attachment->getFilename());
 
-		$filetype = $attachment->getFileType();
+		$filetype = $this->downloadContentType($attachment->getFileType());
 		$content = $attachment->getContent();
 		$size = $attachment->getSize();
 
@@ -1635,12 +1635,29 @@ final class MailLogController extends ViewController
 			|| in_array($normalized, self::INLINE_AS_TEXT_TYPES, true);
 	}
 
+	/**
+	 * The Content-Type an attachment opens in the browser with: one of the
+	 * types listed above, or bytes. Never the mail's own text.
+	 * @psalm-taint-escape header
+	 */
 	private function safeInlineContentType(string $filetype): string {
 		$normalized = $this->normalizeFileType($filetype);
 		if (in_array($normalized, self::INLINE_AS_TEXT_TYPES, true)) {
 			return 'text/plain; charset=utf-8';
 		}
-		return in_array($normalized, self::INLINE_SAFE_TYPES, true) ? $filetype : 'application/octet-stream';
+		return in_array($normalized, self::INLINE_SAFE_TYPES, true) ? $normalized : 'application/octet-stream';
+	}
+
+	/**
+	 * The Content-Type an attachment downloads with: the mail's own when it
+	 * is a plain type/subtype (RFC 6838 names), bytes otherwise. The mail's
+	 * sender writes it: mailparse drops parameters, but keeps anything else
+	 * (quoted text with blanks, <, :, control bytes).
+	 * @psalm-taint-escape header
+	 */
+	private function downloadContentType(string $filetype): string {
+		$name = '[a-z0-9][a-z0-9!#$&^_.+-]{0,126}';
+		return preg_match("~^{$name}/{$name}$~iD", $filetype) === 1 ? $filetype : 'application/octet-stream';
 	}
 
 	private function getSearchResultsUrl(): string {
