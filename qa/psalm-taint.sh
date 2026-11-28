@@ -29,6 +29,7 @@ else
 	sh qa/taint-stubs.sh
 fi
 
+export TMPDIR="${TMPDIR:-/var/tmp}"
 dir=$(mktemp -d)
 trap 'rm -rf "$dir"' EXIT
 config=${dir}/psalm-taint.xml

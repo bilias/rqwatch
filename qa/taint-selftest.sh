@@ -14,6 +14,7 @@
 # @psalm-taint-escape); this can.
 set -eu
 
+export TMPDIR="${TMPDIR:-/var/tmp}"
 dir=$(mktemp -d)
 trap 'rm -rf "$dir"' EXIT
 report=${dir}/report.json  # Psalm picks the format by extension

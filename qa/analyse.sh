@@ -13,6 +13,7 @@
 # Run from the project root.
 set -u
 
+export TMPDIR="${TMPDIR:-/var/tmp}"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 trap 'exit 130' INT TERM

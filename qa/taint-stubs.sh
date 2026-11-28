@@ -15,6 +15,7 @@ set -eu
 [ "${COMPOSER_DEV_MODE:-1}" = 0 ] && exit 0
 
 stub=qa/taint-stubs.phpstub
+export TMPDIR="${TMPDIR:-/var/tmp}"
 tmp=$(mktemp)
 trap 'rm -f "$tmp"' EXIT
 

@@ -34,6 +34,7 @@ lib_cleanup() {
 }
 
 make_workdir() {
+	export TMPDIR="${TMPDIR:-/var/tmp}"
 	WORK=$(mktemp -d)
 	trap lib_cleanup EXIT
 }
