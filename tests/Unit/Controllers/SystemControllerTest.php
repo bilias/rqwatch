@@ -87,6 +87,8 @@ final class SystemControllerTest extends ControllerTestCase
 		/** @var list<array{mixed, mixed, mixed}> $sets */
 		$sets = [];
 		$redis = $this->createStub(Redis::class);
+		// a config of this version is cached: a reload does not read it
+		$redis->method('get')->willReturn(json_encode(['APP_VERSION' => AppConfig::VERSION, 'rspamd_stat_disable' => 'from the cache']));
 		$redis->method('set')->willReturnCallback(function (mixed $key, mixed $value, mixed $options) use (&$sets): bool {
 			$sets[] = [$key, $value, $options];
 			return true;
@@ -112,7 +114,7 @@ final class SystemControllerTest extends ControllerTestCase
 		$this->assertIsArray($cached);
 		$this->assertSame(AppConfig::VERSION, $cached['APP_VERSION'] ?? null);
 		// read again from the files
-		$this->assertNotSame('from before the reload', Config::get('rspamd_stat_disable'));
+		$this->assertNotContains(Config::get('rspamd_stat_disable'), ['from before the reload', 'from the cache']);
 	}
 
 	/** @return array<string, array{string, string}> action, what it is said to be */

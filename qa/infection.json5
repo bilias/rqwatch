@@ -405,6 +405,8 @@
 		},
 		"LogicalAnd": {
 			"ignore": [
+				// LDAP and OIDC both refuse an empty email before this, and an unchanged email is not dirty: the same UPDATE either way
+				"App\\Controllers\\LoginController::finalizeAuthenticatedUser::501",
 				// no user loaded has an empty username; without one, both read as a deleted user
 				"App\\Controllers\\MapController::getMapUser::1358",
 				// the MapCombined branch is taken first, and a user never reaches the update with MapCustom
