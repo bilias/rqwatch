@@ -423,11 +423,13 @@ final class UserControllerTest extends ControllerTestCase
 			throw new RuntimeException('gone away');
 		};
 		[$response, $request] = $this->postUser('edit', ['username' => 'bob', 'email' => 'robert@example.org']);
-		// said once, in the form's error box
+		// said once, in the form's error box; the database's own words go to the log only
 		$html = $this->html($response);
-		$this->assertMatchesRegularExpression("#<div class='user_errors'>\\s*[^<]*gone away#", $html);
-		$this->assertSame(1, substr_count($html, 'gone away'));
+		$this->assertMatchesRegularExpression("#<div class='user_errors'>\\s*User update failed\\s*<#", $html);
+		$this->assertSame(1, substr_count($html, 'User update failed'));
+		$this->assertStringNotContainsString('gone away', $html);
 		$this->assertSame([], self::flashes($request));
+		$this->assertSame(["error Update of user id 9 by 'root' failed: gone away"], $this->log->lines);
 	}
 
 	public function testDelete(): void {

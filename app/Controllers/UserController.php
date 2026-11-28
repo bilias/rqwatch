@@ -555,7 +555,8 @@ final class UserController extends ViewController
 					}
 					return new RedirectResponse($this->getAdminUsersUrl());
 				} catch (Exception $e) {
-					$error = $e->getMessage();
+					$this->fileLogger->error("Update of user id {$id} by '{$this->username}' failed: " . $e->getMessage());
+					$error = "User update failed";
 				}
 			}
 		}

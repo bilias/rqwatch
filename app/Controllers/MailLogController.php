@@ -121,7 +121,9 @@ final class MailLogController extends ViewController
 		try {
 			$logs = $service->getPaginatedAll(array(), $this->getAllUrl(), $page);
 		} catch (QueryTimeoutException $e) {
-			Helper::failRequest($e->getMessage());
+			$this->flashbag->add('error', "The list of all mails took too long and was stopped. "
+				. "Search with filters instead, for example a date.");
+			return new RedirectResponse($this->getSearchUrl());
 		}
 
 		return new Response($this->twig->render('home_paginated.twig', [

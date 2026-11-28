@@ -18,13 +18,13 @@
 		"UnwrapArrayMerge": {
 			"ignore": [
 				// $release_to is still empty there
-				"App\\Controllers\\MailLogController::releaseMail::1001"
+				"App\\Controllers\\MailLogController::releaseMail::1003"
 			]
 		},
 		"UnwrapArrayUnique": {
 			"ignore": [
 				// a repeated address does not change array_intersect()'s count
-				"App\\Controllers\\MailLogController::releaseMail::968"
+				"App\\Controllers\\MailLogController::releaseMail::970"
 			]
 		},
 		"Catch_": {
@@ -105,8 +105,8 @@
 		"CastInt": {
 			"ignore": [
 				// the page prints it through |nf, which formats '30' as 30
-				"App\\Controllers\\MailLogController::showQuarantine::660",
-				"App\\Controllers\\MailLogController::showQuarantinePerMonth::707",
+				"App\\Controllers\\MailLogController::showQuarantine::662",
+				"App\\Controllers\\MailLogController::showQuarantinePerMonth::709",
 				// a weight checked to be digits compares and adds as its number
 				"App\\Controllers\\FuzzyController::learn::187",
 				"App\\Controllers\\FuzzyController::boost::281",
@@ -138,10 +138,10 @@
 		"CastString": {
 			"ignore": [
 				// a logged-in session always holds the user's email
-				"App\\Controllers\\MailLogController::releaseMail::968",
-				"App\\Controllers\\MailLogController::releaseMail::991",
+				"App\\Controllers\\MailLogController::releaseMail::970",
+				"App\\Controllers\\MailLogController::releaseMail::993",
 				// a numeric map name as an int key: isset(), array_unique() and the URL read it as its text
-				"App\\Controllers\\MailLogController::symbolLinks::878",
+				"App\\Controllers\\MailLogController::symbolLinks::880",
 				// an int header value goes out as its digits, Symfony makes it text
 				"App\\Services\\FuzzyService::deleteHashes::706",
 				"App\\Services\\FuzzyService::fuzzyAdd::776",
@@ -219,7 +219,7 @@
 		"DecrementInteger": {
 			"ignore": [
 				// $m[0] is the whole 'Y-m', which (int) reads as its year
-				"App\\Controllers\\MailLogController::showResults::209",
+				"App\\Controllers\\MailLogController::showResults::211",
 				// an id that is not digits is refused either way ($id <= 0)
 				"App\\Api\\ReleaseMailApi::handle::63",
 				// showMap(): ?entry= of 0 or below is no entry either way ($entry_filter > 0)
@@ -239,13 +239,13 @@
 				"App\\Controllers\\MailAliasController::showAll::73",
 				"App\\Controllers\\MailAliasController::searchAlias::130",
 				"App\\Controllers\\MailLogController::showAll::117",
-				"App\\Controllers\\MailLogController::showResults::229",
-				"App\\Controllers\\MailLogController::showVirusMails::472",
-				"App\\Controllers\\MailLogController::showDay::511",
-				"App\\Controllers\\MailLogController::showQuarantineDay::546",
-				"App\\Controllers\\MailLogController::showQuarantineMonth::585",
-				"App\\Controllers\\MailLogController::showQuarantine::631",
-				"App\\Controllers\\MailLogController::showQuarantinePerMonth::678",
+				"App\\Controllers\\MailLogController::showResults::231",
+				"App\\Controllers\\MailLogController::showVirusMails::474",
+				"App\\Controllers\\MailLogController::showDay::513",
+				"App\\Controllers\\MailLogController::showQuarantineDay::548",
+				"App\\Controllers\\MailLogController::showQuarantineMonth::587",
+				"App\\Controllers\\MailLogController::showQuarantine::633",
+				"App\\Controllers\\MailLogController::showQuarantinePerMonth::680",
 				"App\\Controllers\\MapController::showAllMaps::182",
 				"App\\Controllers\\MapController::showCustomMapsConfig::296",
 				"App\\Controllers\\MapController::showMap::548",
@@ -463,8 +463,8 @@
 				"App\\Controllers\\LoginController::login::240",
 				// loginAs(): setSessionVars() sets every var again and refreshUrls() runs at the end, and nothing
 				// between reads a URL or var: each of unsetSessionVars() and the final refreshUrls() covers the other
-				"App\\Controllers\\UserController::loginAs::637",
-				"App\\Controllers\\UserController::loginAs::663",
+				"App\\Controllers\\UserController::loginAs::638",
+				"App\\Controllers\\UserController::loginAs::664",
 				// requireColumn() checks the table first, with the same message
 				"App\\Core\\Database\\Database::verifyMailLogTokens::163",
 				"App\\Core\\Database\\Database::verifyMailRecipients::181",
@@ -734,8 +734,8 @@
 		"UnwrapArrayFilter": {
 			"ignore": [
 				// no recipient is blank: blanks and repeats change neither array_intersect()'s count nor the release list (mail_recipients is checked not empty first)
-				"App\\Controllers\\MailLogController::releaseMail::968",
-				"App\\Controllers\\MailLogController::releaseMail::1001",
+				"App\\Controllers\\MailLogController::releaseMail::970",
+				"App\\Controllers\\MailLogController::releaseMail::1003",
 				// http_build_query() leaves null values out anyway (the redirect and the page links)
 				"App\\Controllers\\MapController::searchMapEntry::1137",
 				// an empty whitelist entry only matches an empty client IP, which is never throttled
@@ -747,8 +747,8 @@
 		"UnwrapStrToLower": {
 			"ignore": [
 				// mail_recipients is lowercased already, and the disabled form field holds it
-				"App\\Controllers\\MailLogController::releaseMail::970",
 				"App\\Controllers\\MailLogController::releaseMail::972",
+				"App\\Controllers\\MailLogController::releaseMail::974",
 				// mailparse gives the content type lowercased, without parameters
 				"App\\Inventory\\MailObject::embedImages::100",
 				// the form allows only lowercase map names
@@ -784,10 +784,10 @@
 		"UnwrapArrayValues": {
 			"ignore": [
 				// the filters are only iterated, and appended to after: their keys show nowhere
-				"App\\Controllers\\MailLogController::showResults::178",
-				"App\\Controllers\\MailLogController::showResults::210",
+				"App\\Controllers\\MailLogController::showResults::180",
+				"App\\Controllers\\MailLogController::showResults::212",
 				// its callers only implode() the list
-				"App\\Controllers\\UserController::getMailAliases::609",
+				"App\\Controllers\\UserController::getMailAliases::610",
 				// a header's values are sent in order, their keys not at all
 				"App\\Services\\FuzzyService::deleteHashes::707",
 				// implode() ignores the keys, and an empty array is [] with gaps or without

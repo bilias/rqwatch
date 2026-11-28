@@ -809,6 +809,18 @@ final class MailLogControllerTest extends ControllerTestCase
 		$this->assertSame([], $this->db->selects);
 	}
 
+	// the list of all mails stopped by max_statement_time: to the search, with a message, not an error page
+	public function testAllTimeout(): void {
+		$timeout = new \PDOException('Query execution was interrupted (max_statement_time exceeded)');
+		$timeout->errorInfo = ['70100', 1969, 'Query execution was interrupted (max_statement_time exceeded)'];
+		$this->answers = array_merge([['select `id` from `mail_logs`', function () use ($timeout): array {
+			throw new \Illuminate\Database\QueryException('default', 'select', [], $timeout);
+		}]], $this->answers);
+		$request = self::request('/admin', self::ADMIN);
+		$this->assertRedirect($this->url(RouteName::ADMIN_SEARCH), $this->mails($request)->showAll());
+		$this->assertSame(['error' => ['The list of all mails took too long and was stopped. Search with filters instead, for example a date.']], self::flashes($request));
+	}
+
 	public function testResultsTimeout(): void {
 		$timeout = new \PDOException('Query execution was interrupted (max_statement_time exceeded)');
 		$timeout->errorInfo = ['70100', 1969, 'Query execution was interrupted (max_statement_time exceeded)'];
