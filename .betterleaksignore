@@ -22,12 +22,23 @@ fd3b6184db39126529e69e007736d391a6b60bf5:contrib/rspamd/local.d/metadata_exporte
 
 # Passwords of the test and CI throwaway databases and seeded users
 643655a1e5405598279162b2ee6ec8df2346a73c:tests/Integration/Access/UserProfileTest.php:generic-password:67
+755a5bb7c2df0d5509261fe67640b0a729f4af7d:tests/Integration/Access/UserAdminTest.php:generic-password:87
+755a5bb7c2df0d5509261fe67640b0a729f4af7d:tests/Integration/Access/UserProfileTest.php:generic-password:77
 a5a5539252e12ed44fe6e6e3f32cb29731414d99:.github/workflows/integration-tests.yml:generic-password:24
 ad03d2bb2c33254d50fac604668eaa38e448de3c:.github/workflows/tests.yml:generic-password:40
 b90e7acb90c2b0359fb7baedf3be3a676186f8a6:tests/Scoping/WebTestCase.php:generic-password:48
 d144ff9c07af94e0a4665cc803065053de6125e8:.github/workflows/static-analysis.yml:generic-password:71
 d144ff9c07af94e0a4665cc803065053de6125e8:tests/Scoping/ScopingTest.php:generic-password:32
 f7280481f98b08edcef4cdc9e9dbdc15095048ff:.github/workflows/ci.yml:generic-password:160
+
+# Made-up passwords and tokens of the unit tests: given to a fake LDAP server or a database that runs nothing
+69787bb3846ff9dbf06cc6b8c371a219a85aad51:tests/Unit/Auth/LdapLoginTest.php:generic-password:136
+8f361a8bb7bd32efc6178e28be2fb5d16297c101:tests/Unit/Auth/LdapLoginTest.php:generic-password:118
+8f361a8bb7bd32efc6178e28be2fb5d16297c101:tests/Unit/Auth/LdapLoginTest.php:generic-password:123
+8f361a8bb7bd32efc6178e28be2fb5d16297c101:tests/Unit/Auth/LdapLoginTest.php:generic-password:141
+e022449ffa9853d0508d0e267a27f698231a45fe:tests/Unit/Services/MailTokenServiceTest.php:generic-api-key:47
+e756dac33063fc4089fb83346143fd96561a6af5:tests/Unit/Controllers/LoginControllerTest.php:generic-password:116
+e756dac33063fc4089fb83346143fd96561a6af5:tests/Unit/Controllers/QuarantineControllerTest.php:generic-api-key:48
 
 # EXTERNAL_AUTH: the password-column marker of external users, not a secret
 1e99bd2f7333ccdd9ab27551d9328749b79bb483:app/Controllers/LoginController.php:generic-password:335
