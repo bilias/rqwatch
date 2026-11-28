@@ -74,6 +74,15 @@ final class CustomMapConfigTest extends IntegrationTestCase
 		$this->assertSame(0, self::configs('123'));
 	}
 
+	#[TestDox('A name longer than the map_name columns (64) is refused by the form, not by the database')]
+	public function testNameTooLongRefused(): void {
+		$long = 'cfg-test-' . str_repeat('x', 56);
+		$response = self::submit(self::client('admin'), '/admin/maps/custom/add', ['map_name' => $long]);
+		$this->assertSame(200, $response['status'], 'the form is shown again');
+		$this->assertStringContainsString('This value is too long. It should have 64 characters or less.', self::text($response['body']));
+		$this->assertSame(0, self::valueInt("SELECT COUNT(*) FROM custom_map_config WHERE map_name LIKE 'cfg-test-x%'"));
+	}
+
 	#[TestDox('A name of digits only already stored: the map pages fail naming the map, not with a TypeError')]
 	public function testStoredDigitsOnlyNameNamed(): void {
 		$log = (string) getenv('INTEGRATION_WEB_LOG');

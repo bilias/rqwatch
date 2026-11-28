@@ -12,8 +12,9 @@
  A user's own profile over HTTP, as a user of the test's own: a new
  password needs the current one, wrong it changes nothing; right, the new
  password is stored, the session that changed it stays logged in and a
- fresh login takes the new one. And the admin's delete button names the
- user it deletes. The test removes its user.
+ fresh login takes the new one; blanks around either are dropped, as the
+ login drops them. And the admin's delete button names the user it deletes.
+ The test removes its user.
 */
 
 namespace Tests\Integration\Access;
@@ -65,6 +66,15 @@ final class UserProfileTest extends IntegrationTestCase
 
 		$this->assertSame(200, $client->get('/profile')['status'], 'still logged in');
 		(new WebClient((string) getenv('INTEGRATION_BASE_URL')))->login(self::PROFILE_USER, 'pw-changed-1234');
+	}
+
+	#[TestDox('Blanks around the current and the new password are dropped, as the login drops them')]
+	public function testPasswordTrimmed(): void {
+		$client = self::client(self::PROFILE_USER);
+		$response = self::changePassword($client, ' pw-' . self::PROFILE_USER . ' ', ' pw-changed-5678 ');
+		$this->assertSame(302, $response['status']);
+		$this->assertTrue(password_verify('pw-changed-5678', self::hash()));
+		(new WebClient((string) getenv('INTEGRATION_BASE_URL')))->login(self::PROFILE_USER, 'pw-changed-5678');
 	}
 
 	#[TestDox("The admin's delete button names the user")]

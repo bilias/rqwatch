@@ -14,7 +14,9 @@
  quarantine: get_mail.php refuses it and the mail page does not render it.
  The outside rows point at the copy's .env, so its MAIL_API_PASS must never
  appear. A row of the same shape with its file inside the quarantine is the
- positive control. Rows and files are created and removed per test.
+ positive control. Rows and files are created and removed per test. A mail
+ id that does not exist is 422 "Message not found" (not 404, which a missing
+ API path gives too); a malformed id is 400.
 */
 
 namespace Tests\Integration\Access;
@@ -80,6 +82,13 @@ final class QuarantinePathTest extends IntegrationTestCase
 			$this->assertSame([400, 'File not found'], [$status, $body], $how);
 			$this->assertStringNotContainsString(self::secret(), $body, $how);
 		}
+	}
+
+	#[TestDox('get_mail.php: a mail id that does not exist is 422 "Message not found", a malformed one 400')]
+	public function testGetMailNotFound(): void {
+		$id = self::valueInt('SELECT MAX(id) FROM mail_logs') + 1000;
+		$this->assertSame([422, 'Message not found'], self::getMail($id));
+		$this->assertSame([400, 'Missing Required info'], self::mailApi('get_mail.php', ['id' => '5abc', 'remote_user' => 'integration-test']));
 	}
 
 	#[TestDox('Mail page: a file under QUARANTINE_DIR renders; outside it (another file, ../, a symlink): not rendered, back to the homepage')]

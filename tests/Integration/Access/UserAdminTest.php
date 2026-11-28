@@ -11,9 +11,12 @@
 /*
  The admin's user pages over HTTP. Create: the form makes a user who can
  log in, the name stored lowercased, and the same name again in another
- case is refused. Delete: the user's map entries for their own e-mail and
- aliases go with them, matched case-insensitively; an entry for anyone
- else moves to the admin doing the delete. Each test removes what it made.
+ case is refused. Edit: a new password is stored without the blanks around
+ it (the login drops them), and the user's own name retyped in another case
+ is no change. A user's page lists that user's aliases, never the admin's.
+ Delete: the user's map entries for their own e-mail and aliases go with
+ them, matched case-insensitively; an entry for anyone else moves to the
+ admin doing the delete. Each test removes what it made.
 */
 
 namespace Tests\Integration\Access;
@@ -30,6 +33,7 @@ final class UserAdminTest extends IntegrationTestCase
 
 	#[\Override]
 	protected function tearDown(): void {
+		self::db()->prepare("DELETE FROM mail_aliases WHERE alias LIKE 'user-admin-test-%'")->execute();
 		self::db()->prepare("DELETE FROM maps_combined WHERE mail_from LIKE 'user-admin-test-%'")->execute();
 		self::db()->prepare('DELETE FROM users WHERE username IN (?, ?)')->execute([self::CREATED, self::LEAVER]);
 		parent::tearDown();
@@ -49,6 +53,63 @@ final class UserAdminTest extends IntegrationTestCase
 		$this->assertSame(200, $response['status'], 'refused: the form is shown again');
 		$this->assertStringContainsString("User 'NEWADMINUSER' already exists", self::text($response['body']));
 		$this->assertSame(1, self::valueInt('SELECT COUNT(*) FROM users WHERE username = ?', self::CREATED));
+	}
+
+	// a user of the test's own, with password pw-newadminuser
+	private static function created(): int {
+		self::db()->prepare("INSERT INTO users (username, email, password, is_admin, auth_provider) VALUES (?, 'new-admin-user@example.org', ?, 0, 0)")
+			->execute([self::CREATED, password_hash('pw-' . self::CREATED, PASSWORD_DEFAULT)]);
+		return (int) self::db()->lastInsertId();
+	}
+
+	/** @return array{status: int, location: string, body: string, headers: array<string, string>} */
+	private static function submitEdit(WebClient $admin, int $id, string $username, string $password = ''): array {
+		$path = "/admin/user/edit/{$id}";
+		$token = WebClient::match('/name="user_form\[_token\]"[^>]*value="([^"]+)"/', $admin->get($path)['body']);
+		return $admin->post($path, [
+			'user_form[username]' => $username,
+			'user_form[email]' => 'new-admin-user@example.org',
+			'user_form[password][first]' => $password,
+			'user_form[password][second]' => $password,
+			'user_form[disable_notifications]' => 'default',
+			'user_form[add]' => '',
+			'user_form[_token]' => $token,
+		]);
+	}
+
+	#[TestDox('Admin sets a password with blanks around it: stored without them, the user logs in without them')]
+	public function testEditPasswordTrimmed(): void {
+		$id = self::created();
+		$admin = self::client('admin');
+		$response = self::submitEdit($admin, $id, self::CREATED, ' pw-edited-1234 ');
+		$this->assertSame(302, $response['status']);
+		$this->assertTrue(password_verify('pw-edited-1234', self::valueString('SELECT password FROM users WHERE id = ?', $id)));
+		(new WebClient((string) getenv('INTEGRATION_BASE_URL')))->login(self::CREATED, 'pw-edited-1234');
+	}
+
+	#[TestDox("Admin retypes a user's name in capitals: no change, not \"already exists\"")]
+	public function testEditOwnNameInCapitals(): void {
+		$id = self::created();
+		$admin = self::client('admin');
+		$response = self::submitEdit($admin, $id, 'NEWADMINUSER');
+		$this->assertSame(302, $response['status']);
+		$this->assertSame('/admin/users', self::target($response));
+		$this->assertStringContainsString("User 'newadminuser' updated", self::text($admin->get('/admin/users')['body']));
+		$this->assertSame(self::CREATED, self::valueString('SELECT username FROM users WHERE id = ?', $id));
+	}
+
+	#[TestDox("A user's page lists the user's aliases, not the admin's own")]
+	public function testUserPageAliases(): void {
+		$id = self::created();
+		$adminId = self::valueInt("SELECT id FROM users WHERE username = 'admin'");
+		$insert = self::db()->prepare('INSERT INTO mail_aliases (user_id, alias) VALUES (?, ?)');
+		$insert->execute([$adminId, 'user-admin-test-admin@example.org']);
+		$insert->execute([$id, 'user-admin-test-own@example.org']);
+		// logged in after the alias was added: the admin's session holds it
+		$page = self::client('admin')->get("/admin/user/{$id}");
+		$this->assertSame(200, $page['status']);
+		$this->assertStringContainsString('user-admin-test-own@example.org', $page['body']);
+		$this->assertStringNotContainsString('user-admin-test-admin@example.org', $page['body']);
 	}
 
 	#[TestDox('Admin deletes a user: entries for their own e-mail and alias go, a shared one moves to the admin')]
