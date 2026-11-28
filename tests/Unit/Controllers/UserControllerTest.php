@@ -21,17 +21,27 @@
  admin status, keeping the admin's to return to and dropping the admin's
  filters. The profile: the names, and for a database user a new password
  with the current one, which keeps this session. The login throttles
- need Redis: without it the page says so and nothing is cleared.
+ need Redis: without it the page says so and nothing is cleared; with it
+ (a stub client) the blocked IPs and the failure counters are listed, and
+ an IP's throttle is cleared.
 */
 
 namespace Tests\Unit\Controllers;
 
+use App\Configuration\Config;
 use App\Controllers\UserController;
+use App\Core\App;
+use App\Core\AppContainer;
+use App\Core\Cache\RedisCache;
 use App\Core\Routing\RouteName;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Redis;
+use ReflectionProperty;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Tests\Unit\RecordingSessionStorage;
 
 final class UserControllerTest extends ControllerTestCase
 {
@@ -143,6 +153,9 @@ final class UserControllerTest extends ControllerTestCase
 		$this->assertStringContainsString("<td class='center'>bob@example.org</td>", $html);
 		$this->assertStringContainsString('Default (Yes)', $html);
 		$this->assertStringContainsString('name="user_search_form[user]"', $html);
+		// one page: no "Displaying 50/page"; the first page without ?page
+		$this->assertStringNotContainsString('Displaying', $html);
+		$this->assertStringEndsWith('limit 50 offset 0', $this->selected('order by `last_login` desc')[0] ?? '');
 	}
 
 	public function testSearch(): void {
@@ -150,7 +163,17 @@ final class UserControllerTest extends ControllerTestCase
 		$html = $this->html($this->users($request)->searchUser());
 		$this->assertStringContainsString("<td class='center'>bob@example.org</td>", $html);
 		$this->assertStringContainsString('value="bob"', $html);
+		$this->assertStringContainsString('Default (Yes)', $html);
+		$this->assertStringNotContainsString('Displaying', $html);
 		$this->assertContains('%bob%', $this->selected('count(*) as aggregate')[1] ?? []);
+		$this->assertStringEndsWith('limit 50 offset 0', $this->selected('order by `last_login` desc')[0] ?? '');
+	}
+
+	// 128 characters is the longest search
+	public function testSearchAtItsMaximum(): void {
+		$q = str_repeat('a', 128);
+		$this->html($this->users(self::request('/admin/users/search', self::ADMIN, ['q' => $q]))->searchUser());
+		$this->assertContains("%{$q}%", $this->selected('count(*) as aggregate')[1] ?? []);
 	}
 
 	/** @return array<string, array{string}> */
@@ -190,12 +213,24 @@ final class UserControllerTest extends ControllerTestCase
 		$this->assertStringContainsString("<div class='detail'>bob</div>", $html);
 		$this->assertStringContainsString('b.builder@example.org', $html);
 		$this->assertStringNotContainsString('root2@example.org', $html);
+		$this->assertStringContainsString('Default (Yes)', $html);
 	}
 
-	// one's own page has the session's aliases too, as the profile does
+	// one's own page has the session's aliases too, as the profile does: lower
+	// case, blanks dropped, each once
 	public function testOneSelf(): void {
-		$html = $this->html($this->users(self::request('/admin/user/9', ['user_id' => 9, 'user_aliases' => ['Bob@IdP.example.org']] + self::ADMIN))->showOne(9));
-		$this->assertStringContainsString('b.builder@example.org, bob@idp.example.org', $html);
+		$session = ['user_id' => 9, 'user_aliases' => ['Bob@IdP.example.org', ' ', 'b.BUILDER@example.org']] + self::ADMIN;
+		$html = $this->html($this->users(self::request('/admin/user/9', $session))->showOne(9));
+		$this->assertStringContainsString("<div class='detail'>\nb.builder@example.org, bob@idp.example.org\n</div>", $html);
+	}
+
+	// an alias stored with blanks around it is shown without them
+	public function testOneAliasTrimmed(): void {
+		array_unshift($this->answers, ['from `mail_aliases`', [['alias' => ' B.Builder@example.org ']]]);
+		$html = $this->html($this->users(self::request('/admin/user/9', self::ADMIN))->showOne(9));
+		$this->assertStringContainsString("<div class='detail'>\nb.builder@example.org\n</div>", $html);
+		$request = self::request($this->url(RouteName::PROFILE), ['user_aliases' => []] + $this->bobSession());
+		$this->assertStringContainsString("<div class='detail'>\nb.builder@example.org\n</div>", $this->html($this->users($request)->profile()));
 	}
 
 	public function testOneNotFound(): void {
@@ -207,7 +242,15 @@ final class UserControllerTest extends ControllerTestCase
 	public function testAddForm(): void {
 		$html = $this->html($this->users(self::request('/admin/users/add', self::ADMIN))->add());
 		$this->assertStringContainsString('name="user_form[username]"', $html);
-		$this->assertStringContainsString('name="user_form[password][first]"', $html);
+		$this->assertStringContainsString('name="user_form[password][first]" required="required"', $html);
+	}
+
+	// the notifications choice names the configured default
+	public function testFormsNotificationsDefault(): void {
+		Config::set('user_notifications_default', false);
+		$this->assertStringContainsString('>Default (No)</option>', $this->html($this->users(self::request('/admin/users/add', self::ADMIN))->add()));
+		$request = self::request($this->url(RouteName::PROFILE), $this->bobSession());
+		$this->assertStringContainsString('>Default (No)</option>', $this->html($this->users($request)->profile()));
 	}
 
 	/**
@@ -261,6 +304,19 @@ final class UserControllerTest extends ControllerTestCase
 		$html = $this->html($this->users($request)->edit(9));
 		$this->assertStringContainsString('value="bob"', $html);
 		$this->assertStringContainsString('name="user_delete_form[delete]"', $html);
+		$this->assertStringContainsString('name="user_delete_form[id]" value="9"', $html);
+		$this->assertStringContainsString('data-confirm="Are you sure you want to delete user &quot;bob&quot;?"', $html);
+		// a new password is optional here
+		$this->assertStringContainsString('name="user_form[password][first]"', $html);
+		$this->assertStringNotContainsString('name="user_form[password][first]" required', $html);
+		$this->assertStringNotContainsString('disabled for external users', $html);
+	}
+
+	// an external user's name, address and password are the provider's
+	public function testEditFormExternalUser(): void {
+		$this->bob['auth_provider'] = 1;
+		$html = $this->html($this->users(self::request('/admin/user/9/edit', self::ADMIN))->edit(9));
+		$this->assertSame(5, substr_count($html, '(disabled for external users)'));
 	}
 
 	/** @return array<string, array{array<string, mixed>, string}> the user edited, the admin */
@@ -329,6 +385,14 @@ final class UserControllerTest extends ControllerTestCase
 		self::fail('no password hash bound');
 	}
 
+	// the username is kept in the user's sessions: they end
+	public function testEditRename(): void {
+		[$response, $request] = $this->postUser('edit', ['username' => 'robert', 'email' => 'bob@example.org']);
+		$this->assertSame(['success' => ["User 'robert' updated"]], self::flashes($request));
+		$this->assertStringStartsWith('update `users` set `username` = ?', $this->db->changes[0][0] ?? '');
+		$this->assertStringContainsString('`session_version` = `session_version` + 1', $this->db->changes[1][0] ?? '');
+	}
+
 	public function testEditNothingKeptChanged(): void {
 		$this->postUser('edit', ['username' => 'bob', 'email' => 'bob@example.org', 'firstname' => 'Robert']);
 		$this->assertCount(1, $this->db->changes);
@@ -372,9 +436,24 @@ final class UserControllerTest extends ControllerTestCase
 		$this->assertContains("info User 'bob' deleted by 'root'", $this->log->lines);
 	}
 
+	public function testDeleteFails(): void {
+		$request = self::request('/admin/user/9/edit', self::ADMIN);
+		$request->setMethod('POST');
+		$request->request->replace(['user_delete_form' => ['id' => '9', 'delete' => '', '_token' => self::csrf($request, 'user_delete_form')]]);
+		$this->db->affect = fn (): never => throw new RuntimeException('gone away');
+		$this->assertRedirect($this->url(RouteName::ADMIN_USERS), $this->users($request)->edit(9));
+		$this->assertSame(['error' => ["Failed 'bob' delete"]], self::flashes($request));
+	}
+
+	private RecordingSessionStorage $storage;
+
 	/** @return array{Response, Request} */
 	private function loginAs(?string $token = null, int $id = 9): array {
-		$request = self::request('/admin/loginas/9', ['filters' => ['x'], 'user_aliases' => ['root2@example.org']] + self::ADMIN);
+		$request = self::request('/admin/loginas/9');
+		$this->storage = new RecordingSessionStorage();
+		$session = new Session($this->storage);
+		$session->replace(['filters' => ['x'], 'user_aliases' => ['root2@example.org']] + self::ADMIN);
+		$request->setSession($session);
 		$request->query->set('_token', $token ?? self::csrf($request, 'user_loginas'));
 		return [$this->users($request)->loginAs($id), $request];
 	}
@@ -390,6 +469,25 @@ final class UserControllerTest extends ControllerTestCase
 		$this->assertFalse($session->has('filters'));
 		$this->assertSame(['success' => ['You are now logged in as bob']], self::flashes($request));
 		$this->assertSame(["info 'root' logged in as 'bob'"], $this->log->lines);
+		// a new session id, the old session's data destroyed
+		$this->assertSame([true], $this->storage->regenerated);
+	}
+
+	// no session version yet: 0; the aliases in lower case, each once
+	public function testLoginAsDefaults(): void {
+		$this->bob['session_version'] = null;
+		array_unshift($this->answers, ['from `mail_aliases`', [['alias' => 'B.Builder@example.org'], ['alias' => 'b.builder@EXAMPLE.org']]]);
+		[, $request] = $this->loginAs();
+		$this->assertSame([0, ['b.builder@example.org']], [$request->getSession()->get('session_version'), $request->getSession()->get('user_aliases')]);
+	}
+
+	// an LDAP user in LDAP_ADMINS is an admin whatever the database says: to the admin's home
+	public function testLoginAsExternalAdmin(): void {
+		$this->setEnv('LDAP_ADMINS', 'carol, BOB');
+		$this->bob['auth_provider'] = 1;
+		[$response, $request] = $this->loginAs();
+		$this->assertRedirect($this->url(RouteName::ADMIN_DAY_LOGS), $response);
+		$this->assertSame([true, 'LDAP'], [$request->getSession()->get('is_admin'), $request->getSession()->get('auth_provider')]);
 	}
 
 	public function testLoginAsNotFound(): void {
@@ -401,6 +499,7 @@ final class UserControllerTest extends ControllerTestCase
 	public function testLoginAsBadToken(): void {
 		[$response, $request] = $this->loginAs('forged');
 		$this->assertRedirect($this->url(RouteName::ADMIN_DAY_LOGS), $response);
+		$this->assertSame(['error' => ['Invalid or expired request. Please try again.']], self::flashes($request));
 		$this->assertSame(['warning CSRF check failed on loginAs from 192.0.2.7'], $this->log->lines);
 		$this->assertSame('root', $request->getSession()->get('username'));
 	}
@@ -440,6 +539,22 @@ final class UserControllerTest extends ControllerTestCase
 		$this->assertSame(['success' => ['Profile updated']], self::flashes($request));
 		$this->assertCount(1, $this->db->changes);
 		$this->assertStringNotContainsString('password', $this->db->changes[0][0] ?? '');
+		// no new password: the session's version is not read back
+		$this->assertNull($this->selected('select `session_version` from `users`'));
+	}
+
+	/** @return array<string, array{list<array<string, mixed>>}> */
+	public static function versionsGone(): array {
+		return ['no version' => [[['session_version' => null]]], 'no row' => [[]]];
+	}
+
+	// the version read back after a password change: 0 when there is none
+	/** @param list<array<string, mixed>> $rows */
+	#[DataProvider('versionsGone')]
+	public function testProfilePasswordVersionGone(array $rows): void {
+		$this->answers = array_merge([['select `session_version` from `users`', $rows]], $this->answers);
+		[, $request] = $this->postProfile(['current_password' => 'old-pass', 'password' => ['first' => 'n3w-pass', 'second' => 'n3w-pass']]);
+		$this->assertSame(0, $request->getSession()->get('session_version'));
 	}
 
 	// both trimmed, as the login does
@@ -501,6 +616,62 @@ final class UserControllerTest extends ControllerTestCase
 	public function testClearThrottleBadToken(): void {
 		$request = self::request('/admin/throttles/clear', self::ADMIN, ['_token' => 'forged']);
 		$this->assertRedirect($this->url(RouteName::ADMIN_THROTTLES), $this->users($request)->clearThrottle('192.0.2.9'));
+		$this->assertSame(['error' => ['Invalid or expired request. Please try again.']], self::flashes($request));
 		$this->assertSame(['warning CSRF check failed on clearThrottle from 192.0.2.7'], $this->log->lines);
+	}
+
+	/** @var list<mixed> the keys deleted from Redis */
+	private array $deleted = [];
+
+	/**
+	 * Login throttling on, in a Redis (a stub client) of these keys.
+	 * @param array<string, int> $ttls key => TTL; each counter counts 2
+	 */
+	private function redis(array $ttls): void {
+		$this->setEnv('REDIS_ENABLE', 'true');
+		$this->setEnv('LOGIN_THROTTLE_ENABLE', 'true');
+		$redis = $this->createStub(Redis::class);
+		$redis->method('scan')->willReturnCallback(function (mixed &$iterator, string $pattern) use ($ttls): array {
+			$iterator = 0;
+			return array_values(array_filter(array_keys($ttls), fn (string $key): bool => str_starts_with($key, rtrim($pattern, '*'))));
+		});
+		$redis->method('ttl')->willReturnCallback(fn (string $key): int => $ttls[$key] ?? -2);
+		$redis->method('get')->willReturnCallback(fn (string $key): string|false => isset($ttls[$key]) ? '2' : false);
+		$redis->method('del')->willReturnCallback(function (mixed $key): int {
+			$this->deleted[] = $key;
+			return 1;
+		});
+		$cache = new RedisCache($this->log);
+		(new ReflectionProperty(RedisCache::class, 'client'))->setValue($cache, $redis);
+		App::swap(new AppContainer(0.0, 0, $this->log, $this->log, $this->db->capsule, $this->status, $cache, true));
+	}
+
+	public function testThrottles(): void {
+		$this->redis(['rqwatch_throttle:block:192.0.2.9' => 125, 'rqwatch_throttle:count:192.0.2.10' => 61]);
+		$html = $this->html($this->users(self::request($this->url(RouteName::ADMIN_THROTTLES), self::ADMIN))->showThrottles());
+		$this->assertStringNotContainsString('Redis is not available', $html);
+		$this->assertStringContainsString('Blocked IPs: 1', $html);
+		$this->assertStringContainsString("<td class='center'>192.0.2.9</td>", $html);
+		$this->assertStringContainsString("<td class='center'>2m 5s</td>", $html);
+		$this->assertStringContainsString('IPs with failed attempts: 1', $html);
+		$this->assertStringContainsString("<td class='center'>2 / 10</td>", $html);
+	}
+
+	// the attempts allowed, from LOGIN_MAX_ATTEMPTS_IP, as a number
+	public function testThrottlesMaxAttempts(): void {
+		$this->redis(['rqwatch_throttle:count:192.0.2.10' => 61]);
+		$this->setEnv('LOGIN_MAX_ATTEMPTS_IP', '07');
+		$html = $this->html($this->users(self::request($this->url(RouteName::ADMIN_THROTTLES), self::ADMIN))->showThrottles());
+		$this->assertStringContainsString("<td class='center'>2 / 7</td>", $html);
+	}
+
+	public function testClearThrottle(): void {
+		$this->redis(['rqwatch_throttle:block:192.0.2.9' => 125]);
+		$request = self::request('/admin/throttles/clear', self::ADMIN);
+		$request->query->set('_token', self::csrf($request, 'throttle_clear'));
+		$this->assertRedirect($this->url(RouteName::ADMIN_THROTTLES), $this->users($request)->clearThrottle('192.0.2.9'));
+		$this->assertSame(['success' => ['Login throttle cleared for 192.0.2.9']], self::flashes($request));
+		$this->assertSame(["info Login throttle cleared for IP:192.0.2.9 by 'root'"], $this->log->lines);
+		$this->assertSame(['rqwatch_throttle:count:192.0.2.9', 'rqwatch_throttle:block:192.0.2.9'], $this->deleted);
 	}
 }

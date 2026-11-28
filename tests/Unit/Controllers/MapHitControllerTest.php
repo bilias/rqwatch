@@ -84,14 +84,17 @@ final class MapHitControllerTest extends ControllerTestCase
 				['name' => 'OTHER_RULE', 'd1' => 1, 'd7' => 4, 'd31' => 7, 'last' => '2026-11-27'],
 			]],
 			['AS d1, COUNT', function (array $bindings): array {
-				return match ($bindings[1] ?? null) {
+				// the map's name, wherever the symbol ids put it
+				$map = current(array_filter($bindings, 'is_string'));
+				return match ($map === false ? null : $map) {
 					'ip_blacklist' => [['d1' => 1, 'd7' => 3, 'd31' => 5]],
 					'mail_from_blacklist' => [['d1' => 0, 'd7' => 2, 'd31' => 5]],
 					'mime_from_whitelist' => [['d1' => 0, 'd7' => 0, 'd31' => 9]],
 					default => [['d1' => 0, 'd7' => 0, 'd31' => 0]],
 				};
 			}],
-			['MAX(t.created_day) AS last', fn (array $bindings): array => [['last' => ($bindings[1] ?? null) === 'ip_whitelist' ? '2026-09-01' : null]]],
+			['MAX(t.created_day) AS last', fn (array $bindings): array => [['last' => in_array('ip_whitelist', $bindings, true) ? '2026-09-01' : null]]],
+			['from `symbol_names` where `name` in', fn (array $bindings): array => count($bindings) > 3 && in_array('RQWATCH_IP_BLACKLIST', $bindings, true) ? [['id' => 3, 'name' => 'RQWATCH_IP_BLACKLIST']] : []],
 		];
 		[$response] = $this->call('showReport');
 		$html = $this->html($response);
@@ -109,6 +112,12 @@ final class MapHitControllerTest extends ControllerTestCase
 		$this->assertStringContainsString('RQWATCH_IP_BLACKLIST', $html);
 		$this->assertLessThan(strpos($html, 'LOCAL_RULE'), strpos($html, 'OTHER_RULE'));
 		$this->assertStringContainsString('?symbol=OTHER_RULE&amp;days=31">7</a>', $html);
+		$this->assertStringContainsString('IP Blacklist', $html);
+		// the maps' own symbols are left out of the unmapped ones
+		$unmapped = $this->selected('group by `sn`.`name`');
+		$this->assertNotNull($unmapped);
+		$this->assertStringContainsString('`h`.`symbol_id` not in (?)', $unmapped[0]);
+		$this->assertContains(3, $unmapped[1]);
 	}
 
 	/** @return array<string, array{string, array<string, mixed>}> */
@@ -188,7 +197,26 @@ final class MapHitControllerTest extends ControllerTestCase
 		$this->assertStringContainsString('ml.released = 1 AND ml.notified = 1', $ids[0]);
 		$this->assertSame([1, 'ip_blacklist', 6, 'reject'], $ids[1]);
 		$this->assertStringContainsString('Cheap pills', $html);
-		foreach (['IP Blacklist', 'reject', 'the last 7 days'] as $shown) {
+		foreach (['Map hit by "IP Blacklist"', 'Action is "reject"', 'Released is "yes"', 'Notified is "yes"', 'Date in "the last 7 days"'] as $shown) {
+			$this->assertStringContainsString($shown, $html);
+		}
+	}
+
+	// two pages: the next page's link keeps the list's query; the settings of the list shown
+	public function testMapMailsPages(): void {
+		Config::set('items_per_page', 1);
+		Config::set('max_items', 2);
+		Config::set('refresh_rate', 60);
+		Config::set('subject_privacy', null);
+		$this->answers = [
+			['SELECT DISTINCT t.mail_log_id', [['mail_log_id' => 41], ['mail_log_id' => 40]]],
+			['from `mail_logs` where `id` in', [self::MAIL]],
+		];
+		[$response] = $this->call('showMails', ['map' => 'ip_blacklist', 'days' => 7, 'released' => '1']);
+		$html = $this->html($response);
+		$this->assertStringContainsString('?page=2&amp;map=ip_blacklist&amp;days=7&amp;released=1', $html);
+		$this->assertStringContainsString($this->url(RouteName::ADMIN_MAP_HITS_MAILS) . '?page=2', $html);
+		foreach (['/ Limited', '| Displaying 1/page', '| Refreshing every 60 s', 'Cheap pills'] as $shown) {
 			$this->assertStringContainsString($shown, $html);
 		}
 	}
@@ -206,6 +234,8 @@ final class MapHitControllerTest extends ControllerTestCase
 			'not a date' => ['yesterday'],
 			'no such date' => ['2026-13-45'],
 			'trailing text' => ['2026-11-20x'],
+			'a leading blank' => [' 2026-11-20'],
+			'a trailing newline' => ["2026-11-20\n"],
 		];
 	}
 
@@ -222,6 +252,7 @@ final class MapHitControllerTest extends ControllerTestCase
 		return [
 			'upper case' => ['REJECT'],
 			'too long' => [str_repeat('a', 21)],
+			'a trailing newline' => ["reject\n"],
 		];
 	}
 
@@ -232,6 +263,27 @@ final class MapHitControllerTest extends ControllerTestCase
 		$this->assertStringContainsString('ORDER BY t.mail_log_id', $ids);
 		$this->assertStringNotContainsString('ml.action', $ids);
 		$this->assertStringNotContainsString('released', $ids);
+	}
+
+	// over two pages: the next page keeps the symbol
+	public function testSymbolMailsFilter(): void {
+		Config::set('items_per_page', 1);
+		$this->answers = [
+			['from `symbol_names` where `name` in', [['id' => 12, 'name' => 'OTHER_RULE']]],
+			['from `mail_log_symbol_hits`', [['mail_log_id' => 41], ['mail_log_id' => 40]]],
+			['from `mail_logs` where `id` in', [self::MAIL]],
+		];
+		[$response] = $this->call('showMails', ['symbol' => 'OTHER_RULE', 'days' => 7]);
+		$html = $this->html($response);
+		$this->assertStringContainsString('Symbol not credited to a map "OTHER_RULE"', $html);
+		$this->assertStringContainsString('?page=2&amp;symbol=OTHER_RULE&amp;days=7', $html);
+	}
+
+	public function testSubjectPrivacy(): void {
+		Config::set('subject_privacy', true);
+		$this->answers = [['SELECT DISTINCT t.mail_log_id', [['mail_log_id' => 41]]], ['from `mail_logs` where `id` in', [self::MAIL]]];
+		[$response] = $this->call('showMails', ['map' => 'ip_blacklist']);
+		$this->assertStringNotContainsString('Cheap pills', $this->html($response));
 	}
 
 	public function testSymbolMails(): void {
@@ -287,10 +339,22 @@ final class MapHitControllerTest extends ControllerTestCase
 		$this->entry();
 		[$response] = $this->call('showMails', ['map' => 'mail_from_rcpt_to_whitelist', 'entry' => 5, 'days' => 7], self::USER);
 		$html = $this->html($response);
-		$this->assertStringContainsString('friend@example.net | alice@example.org', $html);
+		$this->assertStringContainsString('Map entry of Mail From/RCPT_TO Whitelist "friend@example.net | alice@example.org"', $html);
 		$this->assertStringContainsString('of Mail From/RCPT_TO Whitelist', $html);
 		$last = end($this->db->selects);
 		$this->assertSame([1, 5], array_slice($last[1] ?? [], 0, 2));
+	}
+
+	// a user's entry list over two pages: on the user's own mails list
+	public function testUserEntryMailsPages(): void {
+		Config::set('items_per_page', 1);
+		$this->entry();
+		$this->answers[] = ['select distinct `mail_log_id` from `mail_log_symbol_hits`', [['mail_log_id' => 41], ['mail_log_id' => 40]]];
+		// the user's scope first: its query also reads mail_logs by id
+		$this->answers[] = ['select `id` from `mail_logs`', [['id' => 41], ['id' => 40]]];
+		$this->answers[] = ['from `mail_logs` where `id` in', [self::MAIL]];
+		[$response] = $this->call('showMails', ['map' => 'mail_from_rcpt_to_whitelist', 'entry' => 5, 'days' => 7], self::USER);
+		$this->assertStringContainsString($this->url(RouteName::MAP_HITS_MAILS) . '?page=2&amp;map=mail_from_rcpt_to_whitelist&amp;entry=5&amp;days=7', $this->html($response));
 	}
 
 	/** @return array<string, array{array<string, mixed>}> */
@@ -306,8 +370,10 @@ final class MapHitControllerTest extends ControllerTestCase
 	#[DataProvider('entriesNotShown')]
 	public function testUserEntryNotShown(array $query): void {
 		$this->entry();
-		[$response] = $this->call('showMails', $query, self::USER);
+		[$response, $request] = $this->call('showMails', $query, self::USER);
 		$this->assertRedirect($this->url(RouteName::DAY_LOGS), $response);
+		// refused, not a query error
+		$this->assertSame([[], []], [self::flashes($request), $this->log->lines]);
 	}
 
 	public function testCustomEntryMails(): void {
@@ -341,6 +407,11 @@ final class MapHitControllerTest extends ControllerTestCase
 		$this->assertStringContainsString('IP Blacklist', $html);
 		$this->assertStringContainsString('add header', $html);
 		$this->assertMatchesRegularExpression('/>\s*8\s*</', $html);
+		// the totals (their links without an action): released 1, notified 2
+		$this->assertStringContainsString('?map=ip_blacklist&amp;days=7&amp;released=1">1</a>', $html);
+		$this->assertStringContainsString('?map=ip_blacklist&amp;days=7&amp;notified=1">2</a>', $html);
+		// each bar to its day's mails of this map
+		$this->assertStringContainsString(str_replace('/', '\\/', $this->url(RouteName::ADMIN_MAP_HITS_MAILS)) . '?map=ip_blacklist&day=2026-11-20"', $html);
 		$this->assertStringContainsString("Click on a bar to view that day&#039;s mails", $html);
 		$this->assertStringContainsString('day=2026-11-20', $html);
 	}

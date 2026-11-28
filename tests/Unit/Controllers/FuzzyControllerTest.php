@@ -42,6 +42,14 @@ final class FuzzyControllerTest extends ControllerTestCase
 {
 	private const string A = 'a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1';
 
+	private const array MAIL = [
+		'id' => 41, 'qid' => 'QID41', 'action' => 'reject', 'has_virus' => 0, 'mail_from' => 'spam@example.net',
+		'mime_from' => 'spam@example.net', 'mime_to' => 'alice@example.org', 'subject' => 'Cheap pills', 'size' => 1200,
+		'score' => 15.5, 'server' => 'mx1', 'mail_stored' => 0, 'mail_location' => null, 'message_id' => '<41@example.net>',
+		'ip' => '192.0.2.50', 'notified' => 0, 'notify_date' => null, 'released' => 0, 'release_date' => null,
+		'notification_pending' => 0, 'created_at' => '2026-11-20 10:00:00', 'updated_at' => '2026-11-20 10:00:00', 'created_day' => '2026-11-20',
+	];
+
 	private string $dir = '';
 
 	/** @var list<MockResponse> */
@@ -121,6 +129,19 @@ final class FuzzyControllerTest extends ControllerTestCase
 		$this->assertSame('select * from `mail_log_fuzzy` order by `id` desc limit 50 offset 0', $this->selected('limit 50 offset')[0] ?? null);
 	}
 
+	// a row whose digest another learned mail holds lists it; the page size reaches the pager
+	public function testListShared(): void {
+		Config::set('items_per_page', 1);
+		$this->learnedList(2);
+		$this->answers = array_merge([['SELECT f.id, f.qid, f.mail_log_id, f.flag, j.h', [
+			['id' => 3, 'qid' => 'Q1', 'mail_log_id' => 7, 'flag' => 1, 'h' => self::A],
+			['id' => 5, 'qid' => 'Q5', 'mail_log_id' => 8, 'flag' => 2, 'h' => self::A],
+		]]], $this->answers);
+		$html = $this->html($this->fuzzyController(self::request($this->url(RouteName::ADMIN_FUZZY), self::ADMIN))->showAll());
+		$this->assertStringContainsString('">Q5</a> (Phish)', $html);
+		$this->assertStringContainsString('| Displaying 1/page', $html);
+	}
+
 	public function testListByLastHit(): void {
 		$this->learnedList();
 		$request = self::request('/admin/fuzzy', self::ADMIN, ['sort' => 'hit', 'page' => 2]);
@@ -144,6 +165,8 @@ final class FuzzyControllerTest extends ControllerTestCase
 		$this->assertStringContainsString("Fuzzy learned mails matching 'Q1': 1", $html);
 		$this->assertStringContainsString('value="Q1"', $html);
 		$this->assertContains('%Q1%', $this->selected('count(*) as aggregate')[1] ?? []);
+		// no ?page: the first
+		$this->assertStringEndsWith('limit 50 offset 0', $this->selected('limit 50 offset')[0] ?? '');
 	}
 
 	/** @return array<string, array{string}> */
@@ -248,9 +271,35 @@ final class FuzzyControllerTest extends ControllerTestCase
 		$this->framed($request);
 		$html = $this->html($this->fuzzyController($request)->showHitMails(3));
 		$this->assertFramed($html, null);
-		$this->assertStringContainsString("on &#039;Spam&#039; learned mail", $html);
+		$this->assertStringContainsString("Fuzzy hit on &#039;Spam&#039; learned mail", $html);
 		$this->assertStringContainsString('1 of 4 hits listed: the rest are on purged mails or were counted before the hits were linked', $html);
-		$this->assertStringContainsString($this->url(RouteName::ADMIN_DETAIL, ['type' => 'id', 'value' => 7]), $html);
+		$this->assertStringContainsString('learned mail "<a href="' . $this->url(RouteName::ADMIN_DETAIL, ['type' => 'id', 'value' => 7]) . '">Q1</a>"', $html);
+	}
+
+	private function hitMailsHtml(): string {
+		$this->fuzzyRow();
+		$this->answers[] = ['from `mail_log_fuzzy_hits`', [['mail_log_id' => 41], ['mail_log_id' => 40]]];
+		$this->answers[] = ['from `mail_logs` where `id` in', [self::MAIL]];
+		return $this->html($this->fuzzyController(self::request('/admin/fuzzy/3/hits', self::ADMIN))->showHitMails(3));
+	}
+
+	// the page settings reach the mail list; no privacy setting shows subjects
+	public function testHitMailsPages(): void {
+		Config::set('items_per_page', 1);
+		Config::set('max_items', 2);
+		Config::set('refresh_rate', 60);
+		Config::set('subject_privacy', null);
+		$html = $this->hitMailsHtml();
+		// no ?page: the first, the newest
+		$this->assertSame([41], $this->selected('from `mail_logs` where `id` in')[1] ?? null);
+		foreach (['/ Limited', '| Displaying 1/page', '| Refreshing every 60 s', 'Cheap pills'] as $shown) {
+			$this->assertStringContainsString($shown, $html);
+		}
+	}
+
+	public function testHitMailsSubjectPrivacy(): void {
+		Config::set('subject_privacy', true);
+		$this->assertStringNotContainsString('Cheap pills', $this->hitMailsHtml());
 	}
 
 	public function testHitMailsAllListed(): void {
@@ -323,12 +372,85 @@ final class FuzzyControllerTest extends ControllerTestCase
 		$this->assertSame(20, $this->db->rows('mail_log_fuzzy')[0]['weight'] ?? null);
 	}
 
+	/**
+	 * After a learn: the learned row, what the mail matched on arrival and the
+	 * learned mails sharing its digest.
+	 * @param list<array<string, mixed>> $matched the near matches (id, mail_log_id, qid, flag)
+	 * @param list<array<string, mixed>> $holders the rows holding the digest (id, qid, mail_log_id, flag)
+	 */
+	private function learnedWith(array $matched, array $holders, bool $sharedHash): void {
+		$this->mail();
+		$this->added();
+		$reads = 0;
+		$this->answers = array_merge([
+			// not learned before the learn, learned after it
+			['from `mail_log_fuzzy` where `mail_log_id` = ?', function () use (&$reads): array {
+				return ++$reads === 1 ? [] : [['id' => 3, 'flag' => 2] + $this->fuzzy];
+			}],
+			['select `fuzzy_hashes` from `mail_log_data`', [['fuzzy_hashes' => '["' . self::A . '"]']]],
+			['select `id`, `mail_log_id`, `qid`, `flag` from `mail_log_fuzzy`', $matched],
+			['SELECT f.id, f.qid, f.mail_log_id, f.flag, j.h', array_map(fn (array $h): array => $h + ['h' => self::A], $holders)],
+			['select exists(', [['exists' => $sharedHash ? 1 : 0]]],
+		], $this->answers);
+	}
+
+	// a near match on arrival (different digests): its own entries were added
+	public function testLearnAfterNearMatch(): void {
+		$this->learnedWith([['id' => 5, 'mail_log_id' => 8, 'qid' => 'Q5', 'flag' => 1]], [['id' => 3, 'qid' => 'Q1', 'mail_log_id' => 7, 'flag' => 2]], false);
+		[, $request] = $this->act('learn');
+		$this->assertSame(['This mail had already matched learned mail(s) Q5: its own hashes were added as new entries'], self::flashes($request)['warning'] ?? null);
+	}
+
+	// the same digest learned before: in this list it adds weight, in another it is also that list's
+	public function testLearnSharedDigest(): void {
+		$holders = [['id' => 3, 'qid' => 'Q1', 'mail_log_id' => 7, 'flag' => 2], ['id' => 5, 'qid' => 'Q5', 'mail_log_id' => 8, 'flag' => 2],
+			['id' => 6, 'qid' => 'Q6', 'mail_log_id' => null, 'flag' => 1], ['id' => 7, 'qid' => 'Q7', 'mail_log_id' => null, 'flag' => 1]];
+		$this->learnedWith([['id' => 5, 'mail_log_id' => 8, 'qid' => 'Q5', 'flag' => 2]], $holders, true);
+		[, $request] = $this->act('learn');
+		$this->assertSame([
+			'Its content was already learned via Q5: this learn added its weight to the existing entry',
+			"The same content is also learned as 'Spam' via Q6, Q7",
+		], self::flashes($request)['warning'] ?? null);
+	}
+
+	// one of its two digests learned before: said as a count, a digest stored twice counted once
+	public function testLearnPartlyShared(): void {
+		$b = str_repeat('b2', 64);
+		$this->learnedWith([], [['id' => 3, 'qid' => 'Q1', 'mail_log_id' => 7, 'flag' => 2], ['id' => 5, 'qid' => 'Q5', 'mail_log_id' => 8, 'flag' => 2]], false);
+		$this->answers = array_merge([
+			// the learned row has two digests, the first stored twice; only the second is held by another
+			['from `mail_log_fuzzy` where `mail_log_id` = ?', fn (): array => $this->db->rows('mail_log_fuzzy') === [] ? [] : [['id' => 3, 'flag' => 2, 'hashes' => '["' . self::A . '","' . $b . '","' . self::A . '"]'] + $this->fuzzy]],
+			['select exists(', fn (array $bindings): array => [['exists' => ($bindings[0] ?? null) === $b ? 1 : 0]]],
+		], $this->answers);
+		[, $request] = $this->act('learn');
+		$this->assertSame(['1 of its 2 hashes was already learned via Q5: this learn added its weight to the existing entry'], self::flashes($request)['warning'] ?? null);
+	}
+
+	// the check after the learn fails: logged; the learn stands
+	public function testLearnSharedCheckFails(): void {
+		$this->learnedWith([], [], false);
+		$this->answers = array_merge([['SELECT f.id, f.qid, f.mail_log_id, f.flag, j.h', function (): array {
+			throw new RuntimeException('gone away');
+		}]], $this->answers);
+		[, $request] = $this->act('learn');
+		$this->assertSame(['success' => ["Mail Q1 learned as fuzzy 'Phish' (weight 20)"]], self::flashes($request));
+		$this->assertContains('error [FuzzyController] shared-hash check for mail 7 failed: gone away', $this->log->lines);
+	}
+
 	public function testLearnWeight(): void {
 		$this->mail();
 		$this->added();
 		[$response, $request] = $this->act('learn', ['weight' => '65535']);
 		$this->assertSame(['success' => ["Mail Q1 learned as fuzzy 'Phish' (weight 65535)"]], self::flashes($request));
 		$this->assertSame(65535, $this->db->rows('mail_log_fuzzy')[0]['weight'] ?? null);
+	}
+
+	// the smallest weight is taken
+	public function testLearnWeightOne(): void {
+		$this->mail();
+		$this->added();
+		[, $request] = $this->act('learn', ['weight' => '1']);
+		$this->assertSame(['success' => ["Mail Q1 learned as fuzzy 'Phish' (weight 1)"]], self::flashes($request));
 	}
 
 	/** @return array<string, array{string}> */
@@ -387,6 +509,25 @@ final class FuzzyControllerTest extends ControllerTestCase
 		$this->assertSame(['http://127.0.0.1:11334/fuzzydelhash'], $this->requests);
 	}
 
+	// another list's mail holds the digest: rspamd keeps it, and this list's slot with it
+	public function testUnlearnOrphanedSlot(): void {
+		$this->fuzzyRow();
+		$this->answers = array_merge([['WHERE f.id <> ?', [['qid' => 'Q2', 'flag' => 2, 'h' => self::A], ['qid' => 'Q4', 'flag' => 9, 'h' => self::A]]]], $this->answers);
+		$this->replies[] = new MockResponse((string) json_encode(['success' => true]), ['http_code' => 200]);
+		[, $request] = $this->act('unlearn');
+		$this->assertSame(["The 'Spam' entry stays active in rspamd: the same content is also learned via Q2 ('Phish'), Q4 ('flag 9'). "
+			. 'Unlearn those too to remove it, then learn them again if you want them.'], self::flashes($request)['warning'] ?? null);
+	}
+
+	// a record whose mail is gone: home, not to the mail's page
+	public function testUnlearnMailGone(): void {
+		$this->fuzzy['mail_log_id'] = null;
+		$this->fuzzyRow();
+		$this->replies[] = new MockResponse((string) json_encode(['success' => true]), ['http_code' => 200]);
+		[$response] = $this->act('unlearn');
+		$this->assertRedirect($this->url(RouteName::ADMIN_DAY_LOGS), $response);
+	}
+
 	public function testUnlearnFromList(): void {
 		$this->fuzzyRow();
 		$this->replies[] = new MockResponse((string) json_encode(['success' => true]), ['http_code' => 200]);
@@ -426,6 +567,22 @@ final class FuzzyControllerTest extends ControllerTestCase
 		[$response, $request] = $this->act('boost', ['weight' => '5']);
 		$this->assertRedirect($this->detail(), $response);
 		$this->assertSame(['success' => ["Mail Q1: weight +5 added to fuzzy 'Spam', now 15"]], self::flashes($request));
+	}
+
+	public function testBoostOne(): void {
+		$this->fuzzyRow();
+		$this->mail();
+		$this->added();
+		$this->db->affect = fn (): int => 1;
+		[, $request] = $this->act('boost', ['weight' => '1']);
+		$this->assertSame(['success' => ["Mail Q1: weight +1 added to fuzzy 'Spam', now 11"]], self::flashes($request));
+	}
+
+	// the largest weight passes the form check; the total is what refuses it
+	public function testBoostLargest(): void {
+		$this->fuzzyRow();
+		[, $request] = $this->act('boost', ['weight' => '65535']);
+		$this->assertSame(['error' => ['Mail Q1: total weight would exceed 65535']], self::flashes($request));
 	}
 
 	public function testBoostTooMuch(): void {

@@ -26,7 +26,9 @@ namespace Tests\Unit\Controllers;
 use App\Configuration\Config;
 use App\Controllers\MapController;
 use App\Core\Routing\RouteName;
+use App\Inventory\Migrations;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -155,6 +157,36 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'ip_blacklist']), $page($this->maps($request)));
 	}
 
+	// the picker's choice is handled on every page, whichever shows the picker
+	/** @param \Closure(MapController): Response $page */
+	#[DataProvider('pages')]
+	public function testPickerChoiceOnEveryPage(\Closure $page): void {
+		$request = self::request('/admin/maps', self::ADMIN, ['model' => 'MapCombined', 'q' => 'friend']);
+		$request->setMethod('POST');
+		$request->request->replace(['map_custom_form' => ['map_name' => 'phish', 'model' => 'MapCustom', 'select' => '', '_token' => self::csrf($request, 'map_custom_form')]]);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'phish']), $page($this->maps($request)));
+	}
+
+	/** @return array<string, array{array<string, mixed>, bool, bool}> who, map hits migrated, the link */
+	public static function mapHitsLinks(): array {
+		return [
+			'an admin' => [self::ADMIN, true, true],
+			'a user' => [self::USER, true, false],
+			'before the migration' => [self::ADMIN, false, false],
+		];
+	}
+
+	// the map hits page, linked for an admin once the map hits are migrated
+	/** @param array<string, mixed> $session */
+	#[DataProvider('mapHitsLinks')]
+	public function testPickerMapHitsLink(array $session, bool $migrated, bool $link): void {
+		if (!$migrated) {
+			$this->status->setMigrationState(Migrations::MAP_HITS, Migrations::STATUS_RUNNING);
+		}
+		$html = $this->html($this->maps(self::request('/maps', $session))->showSelectMap());
+		$this->assertSame($link, str_contains($html, '>Map hits</a>'));
+	}
+
 	public function testUserPicker(): void {
 		$html = $this->html($this->maps(self::request('/maps', self::USER))->showSelectMap());
 		$this->assertStringNotContainsString('<option value="phish">', $html);
@@ -164,14 +196,47 @@ final class MapControllerTest extends ControllerTestCase
 	public function testAllEntries(): void {
 		$html = $this->html($this->maps(self::request('/admin/maps/all', self::ADMIN))->showAllMaps());
 		$this->assertStringContainsString('friend@example.net', $html);
-		$this->assertStringContainsString('Mail From/RCPT_TO Whitelist', $html);
-		$this->assertStringContainsString('alice', $html);
+		// the table's own cells: the field headers, the map, the creator
+		foreach (['<th>Mail From</th>', '">Mail From/RCPT_TO Whitelist</a></td>', "<td class='center'>alice</td>"] as $shown) {
+			$this->assertStringContainsString($shown, $html);
+		}
+	}
+
+	// a user's pages link to the user's list
+	public function testUserAllEntriesPages(): void {
+		Config::set('items_per_page', 1);
+		$this->entries[] = ['id' => 6] + $this->entries[0];
+		$html = $this->html($this->maps(self::request('/maps/all', self::USER))->showAllMaps());
+		$this->assertStringContainsString($this->url(RouteName::MAP_SHOW_ALL) . '?page=2', $html);
+	}
+
+	// the pickers, the search, the hits column and the map file links; the first page
+	public function testAllEntriesPage(): void {
+		$html = $this->html($this->maps(self::request('/admin/maps/all', self::ADMIN))->showAllMaps());
+		foreach (['name="map_combined_form[map_name]"', 'name="map_custom_form[map_name]"', '<div class="mapsearchform">', 'name="map_search_form[model]" value="MapCombined"',
+			'<th>Hits (', '"http://rq.example.org/maps/mail_from_rcpt_to_whitelist.txt"', 'All Basic/Combined Map Entries'] as $shown) {
+			$this->assertStringContainsString($shown, $html);
+		}
+		$this->assertStringEndsWith('offset 0', $this->selected('select * from `maps_combined`')[0] ?? '');
+		$this->assertSame([], $this->log->lines);
+	}
+
+	// the custom entries: their own search scope, hits and page links
+	public function testAllCustomEntriesPage(): void {
+		Config::set('items_per_page', 1);
+		$this->customEntries[] = ['id' => 10, 'map_name' => 'phish', 'pattern' => 'worse.example', 'disabled' => 0, 'user_id' => 1, 'created_at' => null, 'updated_at' => null];
+		$html = $this->html($this->maps(self::request('/admin/maps/all/MapCustom', self::ADMIN))->showAllMaps('MapCustom'));
+		foreach (['name="map_search_form[model]" value="MapCustom"', '<th>Hits (', $this->url(RouteName::ADMIN_MAP_SHOW_ALL, ['model' => 'MapCustom']) . '?page=2'] as $shown) {
+			$this->assertStringContainsString($shown, $html);
+		}
+		$this->assertSame([], $this->log->lines);
 	}
 
 	public function testAllCustomEntries(): void {
 		$html = $this->html($this->maps(self::request('/admin/maps/all/MapCustom', self::ADMIN))->showAllMaps('MapCustom'));
 		$this->assertStringContainsString('evil.example', $html);
-		$this->assertStringContainsString('Phishing URLs', $html);
+		$this->assertStringContainsString('">Phishing URLs</a></td>', $html);
+		$this->assertStringContainsString("<td class='center'>URL</td>", $html);
 	}
 
 	/** @return array<string, array{string|null}> */
@@ -199,6 +264,15 @@ final class MapControllerTest extends ControllerTestCase
 		$html = $this->html($this->maps(self::request('/admin/maps/custom', self::ADMIN))->showCustomMapsConfig());
 		$this->assertStringContainsString('Phishing URLs', $html);
 		$this->assertStringContainsString('Virus skip', $html);
+	}
+
+	public function testCustomConfigsPage(): void {
+		Config::set('items_per_page', 1);
+		$html = $this->html($this->maps(self::request('/admin/maps/custom', self::ADMIN))->showCustomMapsConfig());
+		foreach (['name="map_combined_form[map_name]"', 'name="map_custom_form[map_name]"', 'Total: 2 entries', '| Displaying 1/page', '"http://rq.example.org/maps/phish.txt"'] as $shown) {
+			$this->assertStringContainsString($shown, $html);
+		}
+		$this->assertStringEndsWith('limit 1 offset 0', $this->selected('select * from `custom_map_config`')[0] ?? '');
 	}
 
 	/** @return array<string, array{string, string}> */
@@ -241,6 +315,7 @@ final class MapControllerTest extends ControllerTestCase
 	public function testAddConfigForm(): void {
 		$html = $this->html($this->maps(self::request('/admin/maps/custom/add', self::ADMIN))->addCustomMap());
 		$this->assertStringContainsString('name="custom_map_config_form[map_name]"', $html);
+		$this->assertStringContainsString('name="custom_map_config_form[symbols]"', $html);
 	}
 
 	public function testAddConfig(): void {
@@ -249,6 +324,12 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertSame(['success' => ["Custom Map 'senders' created"]], self::flashes($request));
 		$this->assertContains("info Custom map 'senders' created by 'root@example.org'", $this->log->lines);
 		$this->assertSame('senders', $this->db->rows('custom_map_config')[0]['map_name'] ?? null);
+	}
+
+	// the rspamd symbols reading the map, while map hits are on
+	public function testAddConfigSymbols(): void {
+		$this->postConfig(['map_name' => 'senders', 'symbols' => 'MY_SYM']);
+		$this->assertSame('MY_SYM', $this->db->rows('custom_map_config')[0]['symbols'] ?? null);
 	}
 
 	public function testAddConfigReservedName(): void {
@@ -276,12 +357,14 @@ final class MapControllerTest extends ControllerTestCase
 	public function testEditConfigForm(): void {
 		$html = $this->html($this->maps(self::request('/admin/maps/custom/1/edit', self::ADMIN))->editCustomMap(1));
 		$this->assertStringContainsString('value="phish"', $html);
+		$this->assertStringContainsString('name="custom_map_config_form[symbols]"', $html);
 	}
 
 	public function testEditConfig(): void {
 		[$response, $request] = $this->postConfig(['map_name' => 'phishing'], 1);
 		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS_CUSTOM_SHOW), $response);
 		$this->assertSame(['success' => ["Custom Map 'phishing' updated"]], self::flashes($request));
+		$this->assertContains("info Custom map 'phishing' updated by 'root@example.org'", $this->log->lines);
 	}
 
 	public function testEditConfigToExisting(): void {
@@ -289,6 +372,20 @@ final class MapControllerTest extends ControllerTestCase
 		[$response, $request] = $this->postConfig(['map_name' => 'ip_blacklist'], 1);
 		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS_CUSTOM_EDIT, ['id' => 1]), $response);
 		$this->assertSame(['error' => ["Map 'ip_blacklist' already exists!"]], self::flashes($request));
+	}
+
+	public function testEditConfigReservedName(): void {
+		[$response, $request] = $this->postConfig(['map_name' => 'manage_custom_maps'], 1);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS_CUSTOM_EDIT, ['id' => 1]), $response);
+		$this->assertSame(['error' => ["Map name 'manage_custom_maps' is not allowed!"]], self::flashes($request));
+		$this->assertSame([], $this->db->changes);
+	}
+
+	public function testEditConfigFails(): void {
+		$this->db->affect = fn (): never => throw new RuntimeException('gone away');
+		[$response, $request] = $this->postConfig(['map_name' => 'phish'], 1);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS_CUSTOM_EDIT, ['id' => 1]), $response);
+		$this->assertSame(['error' => ["Custom map 'phish' update problem. Check logs."]], self::flashes($request));
 	}
 
 	/** @return array<string, array{int, string}> */
@@ -335,6 +432,7 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS_CUSTOM_SHOW), $response);
 		$this->assertSame(['error' => [$error]], self::flashes($request));
 		$this->assertSame([], $this->db->changes);
+		$this->assertSame($token === null ? [] : ['warning CSRF check failed on delCustomMap from 192.0.2.7'], $this->log->lines);
 	}
 
 	public function testMap(): void {
@@ -345,6 +443,68 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertStringContainsString('friend@example.net', $html);
 		$this->assertStringContainsString('Mail From/RCPT_TO Whitelist', $html);
 		$this->assertStringContainsString('"http://rq.example.org/maps/mail_from_rcpt_to_whitelist.txt"', $html);
+		foreach (['name="map_combined_form[map_name]"', 'name="map_custom_form[map_name]"', '<div class="mapsearchform">', '1 entries', "<th class='email'>Mail From</th>"] as $shown) {
+			$this->assertStringContainsString($shown, $html);
+		}
+		// no ?entry: the whole map, its first page
+		$sql = $this->selected('`rcpt_to` from `maps_combined`')[0] ?? '';
+		$this->assertStringNotContainsString('`id` = ?', $sql);
+		$this->assertStringEndsWith('offset 0', $sql);
+	}
+
+	// one entry, as the detail page links it
+	public function testMapOneEntry(): void {
+		$this->html($this->maps(self::request('/admin/map/mail_from_rcpt_to_whitelist', self::ADMIN, ['entry' => '5']))->showMap('mail_from_rcpt_to_whitelist'));
+		$this->assertContains(5, $this->selected('`rcpt_to` from `maps_combined`')[1] ?? []);
+	}
+
+	// the map's last change, as the activity log keeps it
+	public function testMapLastChange(): void {
+		$this->answers = array_merge([['from `map_activity_logs`', [['map_name' => 'mail_from_rcpt_to_whitelist', 'table_name' => 'maps_combined', 'last_changed_at' => '2026-11-20 09:00:00']]]], $this->answers);
+		$html = $this->html($this->maps(self::request('/admin/map/mail_from_rcpt_to_whitelist', self::ADMIN))->showMap('mail_from_rcpt_to_whitelist'));
+		$this->assertStringContainsString('| Updated 2026-11-20 09:00:00', $html);
+	}
+
+	// idle entries (no hit in the window): kept in the page links
+	public function testMapIdlePages(): void {
+		Config::set('items_per_page', 1);
+		$this->entries = [
+			['id' => 6, 'map_name' => 'ip_blacklist', 'ip' => '192.0.2.1', 'mail_from' => null, 'rcpt_to' => null, 'mime_from' => null, 'user_id' => 7, 'disabled' => 0, 'created_at' => null, 'updated_at' => null],
+			['id' => 7, 'map_name' => 'ip_blacklist', 'ip' => '192.0.2.2', 'mail_from' => null, 'rcpt_to' => null, 'mime_from' => null, 'user_id' => 7, 'disabled' => 0, 'created_at' => null, 'updated_at' => null],
+		];
+		$html = $this->html($this->maps(self::request('/admin/map/ip_blacklist', self::ADMIN, ['idle' => '1']))->showMap('ip_blacklist'));
+		$this->assertStringContainsString('idle=1&amp;page=2', $html);
+		$this->assertStringContainsString('Displaying 1/page', $html);
+	}
+
+	// the hits column without its counts when their query fails, logged
+	public function testMapHitsQueryError(): void {
+		$this->answers = array_merge([['entry_id, COUNT(DISTINCT mail_log_id) AS hits', function (): array {
+			throw new RuntimeException('gone away');
+		}]], $this->answers);
+		$this->html($this->maps(self::request('/admin/map/mail_from_rcpt_to_whitelist', self::ADMIN))->showMap('mail_from_rcpt_to_whitelist'));
+		$this->assertSame(['error [MapController] map hits query error: gone away'], $this->log->lines);
+	}
+
+	/** @return array<string, array{int, bool, bool}> the entry's creator, USER_CAN_DEL_ADMIN_MAP_ENTRIES, a delete link */
+	public static function userDeletes(): array {
+		return [
+			'own entry' => [7, false, true],
+			"another's entry" => [1, false, false],
+			"another's entry, allowed" => [1, true, true],
+			"a deleted user's entry" => [99, false, false],
+		];
+	}
+
+	// a user deletes own entries, others' only when USER_CAN_DEL_ADMIN_MAP_ENTRIES allows
+	#[DataProvider('userDeletes')]
+	public function testUserDeleteLink(int $creator, bool $allowed, bool $link): void {
+		Config::set('USER_CAN_DEL_ADMIN_MAP_ENTRIES', $allowed);
+		$this->entries[0]['user_id'] = $creator;
+		$this->answers = array_merge([['from `users` where `users`.`id` in', [['id' => 7, 'username' => 'alice'], ['id' => 1, 'username' => 'root']]]], $this->answers);
+		$html = $this->html($this->maps(self::request('/map/mail_from_rcpt_to_whitelist', self::USER))->showMap('mail_from_rcpt_to_whitelist'));
+		$this->assertSame($link, str_contains($html, 'href="' . $this->url(RouteName::MAP_DEL_ENTRY, ['map' => 'mail_from_rcpt_to_whitelist', 'id' => 5])));
+		$this->assertStringContainsString("<td class='center'>" . [7 => 'alice', 1 => 'root', 99 => 'Deleted user'][$creator] . '</td>', $html);
 	}
 
 	/** @return array<string, array{string|null, string}> $_SERVER['HTTPS'], the scheme of the map files' links */
@@ -371,6 +531,7 @@ final class MapControllerTest extends ControllerTestCase
 
 	public function testCustomMap(): void {
 		$html = $this->html($this->maps(self::request('/admin/map/phish', self::ADMIN))->showMap('phish'));
+		$this->assertStringContainsString('name="map_search_form[model]" value="MapCustom"', $html);
 		$this->assertStringContainsString('evil.example', $html);
 		$this->assertStringContainsString('URL', $html);
 	}
@@ -429,6 +590,41 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertRedirect($this->url(RouteName::ADMIN_DETAIL, ['type' => 'id', 'value' => 41]), $response);
 	}
 
+	// the smallest mail id is one
+	public function testAddEntryBackToMailOne(): void {
+		[$response] = $this->postEntry('ip_blacklist', 'map_ip_form', ['ip' => '192.0.2.1'], self::ADMIN, ['return-mail' => '1']);
+		$this->assertRedirect($this->url(RouteName::ADMIN_DETAIL, ['type' => 'id', 'value' => 1]), $response);
+	}
+
+	public function testAddEntryExistingBackToMail(): void {
+		$this->answers[0] = ['select exists(', [['exists' => 1]]];
+		[$response] = $this->postEntry('ip_blacklist', 'map_ip_form', ['ip' => '192.0.2.1'], self::ADMIN, ['return-mail' => '41']);
+		$this->assertRedirect($this->url(RouteName::ADMIN_DETAIL, ['type' => 'id', 'value' => 41]), $response);
+	}
+
+	public function testAddCustomEntryBackToMail(): void {
+		[$response] = $this->postEntry('phish', 'map_with_custom_field_form', ['url' => 'bad.example'], self::ADMIN, ['return-mail' => '41']);
+		$this->assertRedirect($this->url(RouteName::ADMIN_DETAIL, ['type' => 'id', 'value' => 41]), $response);
+	}
+
+	public function testUserAddEntryBackToMail(): void {
+		[$response] = $this->postEntry('mail_from_rcpt_to_whitelist', 'map_mail_from_rcpt_to_user_form', ['mail_from' => 'new@example.net', 'rcpt_to' => 'alias@example.org'], self::USER, ['return-mail' => '41']);
+		$this->assertRedirect($this->url(RouteName::DETAIL, ['type' => 'id', 'value' => 41]), $response);
+	}
+
+	public function testUserAddEntryExisting(): void {
+		$this->answers[0] = ['select exists(', [['exists' => 1]]];
+		[$response] = $this->postEntry('mail_from_rcpt_to_whitelist', 'map_mail_from_rcpt_to_user_form', ['mail_from' => 'new@example.net', 'rcpt_to' => 'alias@example.org'], self::USER);
+		$this->assertRedirect($this->url(RouteName::MAP_ADD_ENTRY, ['map' => 'mail_from_rcpt_to_whitelist']), $response);
+	}
+
+	public function testUserQuotaBackToMail(): void {
+		Config::set('USER_MAP_MAX_ENTRIES', 1);
+		$this->answers = array_merge([['select count(*) as aggregate from `maps_combined` where `map_name` = ? and `user_id` = ?', [['aggregate' => 1]]]], $this->answers);
+		[$response] = $this->postEntry('mail_from_rcpt_to_whitelist', 'map_mail_from_rcpt_to_user_form', ['mail_from' => 'new@example.net', 'rcpt_to' => 'alias@example.org'], self::USER, ['return-mail' => '41']);
+		$this->assertRedirect($this->url(RouteName::DETAIL, ['type' => 'id', 'value' => 41]), $response);
+	}
+
 	/** @return array<string, array{string}> */
 	public static function badReturns(): array {
 		return ['zero' => ['0'], 'not a number' => ['4x'], 'negative' => ['-3']];
@@ -470,11 +666,41 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertSame('bad.example', $this->db->rows('maps_custom')[0]['pattern'] ?? null);
 	}
 
+	// '0' is no map, and 0 no entry
+	public function testNoMapSelected(): void {
+		$request = self::request('/', self::ADMIN);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS), $this->maps($request)->addMapEntry('0'));
+		$this->assertSame(['error' => ['No map selected']], self::flashes($request));
+		$request = self::request('/', self::ADMIN);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS), $this->maps($request)->editMapEntry('0', 5));
+		$this->assertSame(['error' => ['No map selected']], self::flashes($request));
+		$request = self::request('/', self::ADMIN);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS), $this->maps($request)->editMapEntry('ip_blacklist', 0));
+		$this->assertSame(['error' => ['Invalid map entry id']], self::flashes($request));
+		[$response, $request] = $this->entryAction('delall', '0');
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS), $response);
+		$this->assertSame(['error' => ['Invalid map selected']], self::flashes($request));
+	}
+
+	public function testAddEntryFails(): void {
+		$this->db->failInsertInto['maps_combined'] = new RuntimeException('gone away');
+		[$response, $request] = $this->postEntry('ip_blacklist', 'map_ip_form', ['ip' => '192.0.2.1']);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_ADD_ENTRY, ['map' => 'ip_blacklist']), $response);
+		$this->assertSame(['error' => ["Entry 'IP Address: 192.0.2.1' creation in Map IP Blacklist failed"]], self::flashes($request));
+	}
+
+	public function testAddCustomEntryFails(): void {
+		$this->db->failInsertInto['maps_custom'] = new RuntimeException('gone away');
+		[$response, $request] = $this->postEntry('phish', 'map_with_custom_field_form', ['url' => 'bad.example']);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_ADD_ENTRY, ['map' => 'phish']), $response);
+		$this->assertSame(['error' => ["Entry 'URL: bad.example' creation in Map Phishing URLs failed"]], self::flashes($request));
+	}
+
 	public function testAddEntryUnknownMap(): void {
 		$request = self::request('/', self::USER);
 		$this->assertRedirect($this->url(RouteName::MAPS), $this->maps($request)->addMapEntry('ip_blacklist'));
 		$this->assertSame(['error' => ['Invalid map selected']], self::flashes($request));
-		$this->assertStringStartsWith('warning User alice tried to add map entry in ', $this->log->lines[0] ?? '');
+		$this->assertSame(['warning User alice tried to add map entry in / without admin authorization'], $this->log->lines);
 	}
 
 	public function testEditEntry(): void {
@@ -487,6 +713,54 @@ final class MapControllerTest extends ControllerTestCase
 	public function testEditEntryForm(): void {
 		$html = $this->html($this->maps(self::request('/', self::ADMIN))->editMapEntry('mail_from_rcpt_to_whitelist', 5));
 		$this->assertStringContainsString('value="friend@example.net"', $html);
+	}
+
+	public function testEditEntryFails(): void {
+		$this->entries[0] = ['id' => 6, 'map_name' => 'ip_blacklist', 'ip' => '192.0.2.1', 'mail_from' => null, 'rcpt_to' => null, 'mime_from' => null, 'user_id' => 1, 'disabled' => 0, 'created_at' => null, 'updated_at' => null];
+		$this->db->affect = fn (): never => throw new RuntimeException('gone away');
+		[$response, $request] = $this->postEntry('ip_blacklist', 'map_ip_form', ['ip' => '192.0.2.2'], self::ADMIN, [], 6);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_EDIT_ENTRY, ['map' => 'ip_blacklist', 'id' => 6]), $response);
+		$this->assertSame(['error' => ["Entry 'IP Address: 192.0.2.2' update in Map IP Blacklist failed"]], self::flashes($request));
+	}
+
+	// a user's own entry in a map users may use: the user's addresses to choose from
+	public function testUserEditEntryForm(): void {
+		$html = $this->html($this->maps(self::request('/', self::USER))->editMapEntry('mail_from_rcpt_to_whitelist', 5));
+		$this->assertStringContainsString('value="friend@example.net"', $html);
+		$this->assertStringContainsString('<option value="alias@example.org"', $html);
+	}
+
+	public function testUserEditEntryOtherMap(): void {
+		$request = self::request('/', self::USER);
+		$this->assertRedirect($this->url(RouteName::MAPS), $this->maps($request)->editMapEntry('ip_blacklist', 5));
+		$this->assertSame(['error' => ['Invalid map selected']], self::flashes($request));
+		$this->assertSame(['warning User alice tried to edit map entry in / without admin authorization'], $this->log->lines);
+	}
+
+	// a user's update that fails: back to the user's edit page
+	public function testUserEditEntryFails(): void {
+		$this->db->affect = fn (): never => throw new RuntimeException('gone away');
+		[$response] = $this->postEntry('mail_from_rcpt_to_whitelist', 'map_mail_from_rcpt_to_user_form', ['mail_from' => 'new@example.net', 'rcpt_to' => 'alias@example.org'], self::USER, [], 5);
+		$this->assertRedirect($this->url(RouteName::MAP_EDIT_ENTRY, ['map' => 'mail_from_rcpt_to_whitelist', 'id' => 5]), $response);
+	}
+
+	public function testEditCustomEntryForm(): void {
+		$html = $this->html($this->maps(self::request('/', self::ADMIN))->editMapEntry('phish', 9));
+		$this->assertStringContainsString('value="evil.example"', $html);
+	}
+
+	public function testEditCustomEntry(): void {
+		[$response, $request] = $this->postEntry('phish', 'map_with_custom_field_form', ['url' => ' worse.example '], self::ADMIN, [], 9);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'phish']), $response);
+		$this->assertSame(['success' => ["Entry 'URL: worse.example' updated in Map 'Phishing URLs'"]], self::flashes($request));
+		$this->assertContains('worse.example', $this->db->changes[0][1] ?? []);
+	}
+
+	public function testEditCustomEntryFails(): void {
+		$this->db->affect = fn (): never => throw new RuntimeException('gone away');
+		[$response, $request] = $this->postEntry('phish', 'map_with_custom_field_form', ['url' => 'worse.example'], self::ADMIN, [], 9);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_EDIT_ENTRY, ['map' => 'phish', 'id' => 9]), $response);
+		$this->assertSame(['error' => ["Entry 'URL: worse.example' update in Map Phishing URLs failed"]], self::flashes($request));
 	}
 
 	public function testEditEntryNotFound(): void {
@@ -517,6 +791,61 @@ final class MapControllerTest extends ControllerTestCase
 		[$response, $request] = $this->entryAction('del');
 		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'mail_from_rcpt_to_whitelist']), $response);
 		$this->assertSame(['success' => ["Map entry 'Mail From: friend@example.net, RCPT To: alice@example.org' deleted from Map 'Mail From/RCPT_TO Whitelist'"]], self::flashes($request));
+	}
+
+	/**
+	 * A custom map entry: deleted or toggled by an admin.
+	 * @return array{Response, Request}
+	 */
+	private function customEntryAction(string $action): array {
+		$request = self::request('/', self::ADMIN);
+		$request->query->set('_token', self::csrf($request, $action === 'del' ? 'map_del' : 'map_toggle'));
+		$maps = $this->maps($request);
+		return [$action === 'del' ? $maps->delMapEntry('phish', 9) : $maps->toggleMapEntry('phish', 9), $request];
+	}
+
+	public function testDelCustomEntry(): void {
+		[$response, $request] = $this->customEntryAction('del');
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'phish']), $response);
+		$this->assertSame(['success' => ["Map entry 'URL: evil.example' deleted from Map 'Phishing URLs'"]], self::flashes($request));
+	}
+
+	public function testToggleCustomEntry(): void {
+		[$response, $request] = $this->customEntryAction('toggle');
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'phish']), $response);
+		$this->assertSame(['success' => ["Map entry 'URL: evil.example' disabled in Map 'Phishing URLs'"]], self::flashes($request));
+	}
+
+	/** @return array<string, array{string, string}> */
+	public static function failedEntryActions(): array {
+		return [
+			'delete' => ['del', "Map entry Mail From: friend@example.net, RCPT To: alice@example.org failed to be deleted from Map Mail From/RCPT_TO Whitelist"],
+			'delete all' => ['delall', 'All entries failed to be deleted from Map Mail From/RCPT_TO Whitelist'],
+			'toggle' => ['toggle', 'Map entry Mail From: friend@example.net, RCPT To: alice@example.org failed to be disabled in Map Mail From/RCPT_TO Whitelist'],
+		];
+	}
+
+	// the entry changed in the database, but its map file could not be written
+	#[DataProvider('failedEntryActions')]
+	public function testEntryActionFails(string $action, string $error): void {
+		Config::set('MAP_DIR', "{$this->dir}/none");
+		[$response, $request] = $this->entryAction($action);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'mail_from_rcpt_to_whitelist']), $response);
+		$this->assertSame(['error' => [$error]], self::flashes($request));
+	}
+
+	// nothing to delete: said as a failure
+	public function testDelAllOfAnEmptyMap(): void {
+		$this->db->affect = fn (): int => 0;
+		[, $request] = $this->entryAction('delall');
+		$this->assertSame(['error' => ['All entries failed to be deleted from Map Mail From/RCPT_TO Whitelist']], self::flashes($request));
+	}
+
+	public function testToggleNotFound(): void {
+		$this->entries = [];
+		[$response, $request] = $this->entryAction('toggle');
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'mail_from_rcpt_to_whitelist']), $response);
+		$this->assertSame(['error' => ['Map entry not found']], self::flashes($request));
 	}
 
 	public function testDelEntryNotFound(): void {
@@ -553,7 +882,31 @@ final class MapControllerTest extends ControllerTestCase
 		[$response, $request] = $this->entryAction($action, 'mail_from_rcpt_to_whitelist', self::ADMIN, 'forged');
 		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS), $response);
 		$this->assertSame(["warning CSRF check failed on {$method} from 192.0.2.7"], $this->log->lines);
+		$this->assertSame(['error' => ['Invalid or expired request. Please try again.']], self::flashes($request));
 		$this->assertSame([], $this->db->changes);
+	}
+
+	/** @return array<string, array{string, string}> */
+	public static function userEntryActions(): array {
+		return [
+			'delete' => ['del', "Map entry 'Mail From: friend@example.net, RCPT To: alice@example.org' deleted from Map 'Mail From/RCPT_TO Whitelist'"],
+			'delete all' => ['delall', "All entries from Map 'Mail From/RCPT_TO Whitelist' deleted"],
+			'toggle' => ['toggle', "Map entry 'Mail From: friend@example.net, RCPT To: alice@example.org' disabled in Map 'Mail From/RCPT_TO Whitelist'"],
+		];
+	}
+
+	// a user's own entries in a map of theirs
+	#[DataProvider('userEntryActions')]
+	public function testUserEntryAction(string $action, string $success): void {
+		[$response, $request] = $this->entryAction($action, 'mail_from_rcpt_to_whitelist', self::USER);
+		$this->assertRedirect($this->url(RouteName::MAP_SHOW, ['map' => 'mail_from_rcpt_to_whitelist']), $response);
+		$this->assertSame(['success' => [$success]], self::flashes($request));
+	}
+
+	public function testDelAllCustom(): void {
+		[$response, $request] = $this->entryAction('delall', 'phish');
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SHOW, ['map' => 'phish']), $response);
+		$this->assertSame(['success' => ["All entries from Map 'Phishing URLs' deleted"]], self::flashes($request));
 	}
 
 	#[DataProvider('entryActions')]
@@ -561,6 +914,8 @@ final class MapControllerTest extends ControllerTestCase
 		[$response, $request] = $this->entryAction($action, 'ip_blacklist', self::USER);
 		$this->assertRedirect($this->url(RouteName::MAPS), $response);
 		$this->assertSame(['error' => ['Invalid map selected']], self::flashes($request));
+		$what = ['del' => 'del map entry', 'delall' => 'del all entries', 'toggle' => 'toggle map entry'][$action];
+		$this->assertSame(["warning User alice tried to {$what} in / for an invalid map or without authorization"], $this->log->lines);
 		$this->assertSame([], $this->db->changes);
 	}
 
@@ -569,11 +924,19 @@ final class MapControllerTest extends ControllerTestCase
 		$html = $this->html($this->maps($request)->searchMapEntry());
 		$this->assertStringContainsString('friend@example.net', $html);
 		$this->assertContains('%friend%', $this->selected('count(*) as aggregate from `maps_combined`')[1] ?? []);
+		foreach (['Basic/Combined Map Entries after search', '<th>Hits (', '<th>Mail From</th>', '">Mail From/RCPT_TO Whitelist</a></td>', "<td class='center'>alice</td>", 'name="map_combined_form[map_name]"', 'name="map_custom_form[map_name]"', '"http://rq.example.org/maps/mail_from_rcpt_to_whitelist.txt"'] as $shown) {
+			$this->assertStringContainsString($shown, $html);
+		}
+		$this->assertStringEndsWith('offset 0', $this->selected('select * from `maps_combined`')[0] ?? '');
 	}
 
 	public function testSearchCustom(): void {
 		$request = self::request('/admin/maps/search', self::ADMIN, ['model' => 'MapCustom', 'q' => 'evil', 'map' => 'phish']);
-		$this->assertStringContainsString('evil.example', $this->html($this->maps($request)->searchMapEntry()));
+		$html = $this->html($this->maps($request)->searchMapEntry());
+		$this->assertStringContainsString('evil.example', $html);
+		foreach (['name="map_search_form[model]" value="MapCustom"', '<th>Hits (', "<td class='center'>URL</td>", '">Phishing URLs</a></td>'] as $shown) {
+			$this->assertStringContainsString($shown, $html);
+		}
 	}
 
 	public function testSearchForm(): void {
@@ -581,6 +944,15 @@ final class MapControllerTest extends ControllerTestCase
 		$request->setMethod('POST');
 		$request->request->replace(['map_search_form' => ['model' => 'MapCombined', 'field' => ' friend ', 'map_name' => 'mail_from_rcpt_to_whitelist']]);
 		$this->assertRedirect($this->url(RouteName::ADMIN_MAP_SEARCH_ENTRY) . '?model=MapCombined&q=friend&map=mail_from_rcpt_to_whitelist', $this->maps($request)->searchMapEntry());
+	}
+
+	public function testSearchFormNotAValue(): void {
+		$request = self::request('/admin/maps/search', self::ADMIN);
+		$request->setMethod('POST');
+		$request->request->replace(['map_search_form' => ['model' => 'MapCombined', 'field' => ['friend'], 'map_name' => 'mail_from_rcpt_to_whitelist']]);
+		$this->expectException(\Symfony\Component\HttpFoundation\Exception\BadRequestException::class);
+		$this->expectExceptionMessage('Input value "field" contains a non-scalar value.');
+		$this->maps($request)->searchMapEntry();
 	}
 
 	/** @return array<string, array{array<string, string>, string}> */
@@ -601,6 +973,13 @@ final class MapControllerTest extends ControllerTestCase
 		$this->assertSame(['error' => [$error]], self::flashes($request));
 	}
 
+	public function testSearchCustomNothingFound(): void {
+		$this->customEntries = [];
+		$request = self::request('/admin/maps/search', self::ADMIN, ['model' => 'MapCustom', 'q' => 'x']);
+		$this->assertRedirect($this->url(RouteName::ADMIN_MAPS), $this->maps($request)->searchMapEntry());
+		$this->assertSame(['info' => ['No map entries exist']], self::flashes($request));
+	}
+
 	public function testSearchNothingFound(): void {
 		$this->entries = [];
 		$request = self::request('/admin/maps/search', self::ADMIN, ['model' => 'MapCombined', 'q' => 'x']);
@@ -612,5 +991,7 @@ final class MapControllerTest extends ControllerTestCase
 		$request = self::request('/maps/search', self::USER);
 		$this->assertRedirect($this->url(RouteName::MAPS), $this->maps($request)->searchMapEntry());
 		$this->assertSame(["warning 'alice' tried to search map entries without admin authorization"], $this->log->lines);
+		$this->assertSame(['error' => ['Permission denied']], self::flashes($request));
+		$this->assertSame([], $this->db->selects);
 	}
 }

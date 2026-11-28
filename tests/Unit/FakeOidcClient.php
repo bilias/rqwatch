@@ -33,6 +33,8 @@ final class FakeOidcClient implements OidcClient
 
 	public ?Throwable $endpointFailure = null;
 
+	public ?Throwable $signOutFailure = null;
+
 	#[\Override]
 	public function setRedirectURL(string $url): void {
 		$this->calls[] = "setRedirectURL {$url}";
@@ -67,6 +69,9 @@ final class FakeOidcClient implements OidcClient
 	#[\Override]
 	public function signOut(string $idToken, ?string $redirect): void {
 		$this->calls[] = "signOut {$idToken} " . ($redirect ?? 'null');
+		if ($this->signOutFailure !== null) {
+			throw $this->signOutFailure;
+		}
 	}
 
 	#[\Override]

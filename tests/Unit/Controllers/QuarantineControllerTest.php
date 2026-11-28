@@ -28,6 +28,7 @@ namespace Tests\Unit\Controllers;
 
 use App\Configuration\Config;
 use App\Controllers\QuarantineController;
+use App\Services\ApiClient;
 use App\Core\Routing\RouteName;
 use App\Services\MailerService;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -36,6 +37,8 @@ use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use ReflectionProperty;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
@@ -44,6 +47,7 @@ use Symfony\Component\Mailer\Transport\AbstractTransport;
 use Symfony\Component\Mailer\Transport\TransportInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class QuarantineControllerTest extends ControllerTestCase
 {
@@ -437,6 +441,35 @@ final class QuarantineControllerTest extends ControllerTestCase
 			"info Message Q7 released to 'alice@example.org' via notification link from '192.0.2.7' (sent by mx1)",
 		], $this->log->lines);
 		$this->assertContains(['delete from `mail_log_tokens` where `token_hash` = ?', [hash('sha256', self::TOKEN)]], $this->db->changes);
+	}
+
+	// a mail on another node: read and released by that node's APIs, which
+	// send it, so no mailer is needed here (ApiClient's seam answers)
+	public function testReleaseOnAnotherNode(): void {
+		$this->setEnv('MAILER_DSN', null);
+		$this->setEnv('MAIL_API_USER', 'rqwatch-api');
+		$this->setEnv('MAIL_API_PASS', 'k9-unit-test-pass');
+		Config::set('API_SERVERS', ['mx2' => ['url' => 'https://mx2.example.org']]);
+		// the mail's row, stored on mx2
+		$this->answers = array_map(fn (array $answer): array => $answer[0] === 'from `mail_logs`' ? [$answer[0], [['server' => 'mx2'] + $this->mailRow()]] : $answer, $this->answers);
+		$replies = [new MockResponse(self::EML), new MockResponse('Message Released')];
+		/** @var list<string> $requests */
+		$requests = [];
+		$client = new MockHttpClient(function (string $method, string $url) use (&$replies, &$requests): MockResponse {
+			$requests[] = "{$method} {$url}";
+			return array_shift($replies) ?? throw new \LogicException("No reply queued for {$url}");
+		});
+		$seam = new ReflectionProperty(ApiClient::class, 'httpClient');
+		$seam->setValue(null, fn (array $options): HttpClientInterface => $client);
+		try {
+			[$response] = $this->post('release', true);
+		} finally {
+			$seam->setValue(null, null);
+		}
+		$this->assertTokenPage($response, 'The message has been released and should arrive in your mailbox shortly.');
+		$this->assertSame(['POST https://mx2.example.org/api/get_mail.php', 'POST https://mx2.example.org/api/release_mail.php'], $requests);
+		$this->assertSame([], $this->sent);
+		$this->assertContains("info Message Q7 released to 'alice@example.org' via notification link from '192.0.2.7' (sent by mx2)", $this->log->lines);
 	}
 
 	public function testReleaseWithoutMailer(): void {
